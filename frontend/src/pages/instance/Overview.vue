@@ -7,7 +7,7 @@
 
                     <table class="table-fixed w-full border border-separate rounded">
                         <tr class="border-b">
-                            <td class="w-40 font-medium">Editor</td>
+                            <td class="w-48 font-medium">Editor</td>
                             <td>
                                 <div v-if="editorAvailable">
                                     <div v-if="isVisitingAdmin || instance.settings.disableEditor" class="my-2">
@@ -65,7 +65,29 @@
                                     <template v-else>
                                         None
                                     </template>
-                                    <router-link class="mt-0.5 ml-3" :to="{ name: 'instance-settings-security' }"><LinkIcon class="w-4" /></router-link>
+                                    <router-link v-if="canEditProject" class="mt-0.5 ml-3" :to="{ name: 'instance-settings-security' }"><LinkIcon class="w-4" /></router-link>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-medium">Scheduled Maintenance</td>
+                            <td class="py-2">
+                                <div class="flex">
+                                    <template v-if="autoStackUpgrade">
+                                        <StatusBadge
+                                            class="forge-status-running hover:text-blue-600"
+                                            status="Enabled"
+                                        />
+                                    </template>
+                                    <template v-else>
+                                        <StatusBadge
+                                            class="text-gray-400 hover:text-blue-600"
+                                            status="Disabled"
+                                        />
+                                    </template>
+                                    <router-link v-if="canEditProject" :to="{ name: 'instance-settings-maintenance' }" @click.stop>
+                                        <LinkIcon class="mt-0.5 ml-3 w-4" />
+                                    </router-link>
                                 </div>
                             </td>
                         </tr>
@@ -148,14 +170,18 @@ export default {
         }
     },
     setup () {
-        const { isVisitingAdmin } = usePermissions()
+        const { hasPermission, isVisitingAdmin } = usePermissions()
 
-        return { isVisitingAdmin }
+        return {
+            hasPermission,
+            isVisitingAdmin
+        }
     },
     data () {
         return {
             auditLog: [],
-            loading: true
+            loading: true,
+            autoStackUpgrade: false
         }
     },
     computed: {
@@ -173,15 +199,20 @@ export default {
                 return this.instance.settings.httpNodeAuth.type
             }
             return this.instance.template.settings.httpNodeAuth?.type
+        },
+        canEditProject () {
+            return this.hasPermission('project:edit', { application: this.instance.application })
         }
     },
     watch: {
         'instance.id': function (old, news) {
             this.loadLogs()
+            this.getUpdateSchedule(this.instance.id)
         }
     },
     mounted () {
         this.loadLogs()
+        this.getUpdateSchedule(this.instance.id)
     },
     methods: {
         loadLogs () {
@@ -202,6 +233,15 @@ export default {
         },
         loadItems: async function (instanceId, cursor) {
             return await InstanceApi.getInstanceAuditLog(instanceId, null, cursor, 4)
+        },
+        getUpdateSchedule: async function (instanceId) {
+            try {
+                await InstanceApi.getUpdateSchedule(instanceId)
+                this.autoStackUpgrade = true
+                return
+            } catch (error) {
+            }
+            this.autoStackUpgrade = false
         }
     }
 }

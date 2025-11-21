@@ -35,7 +35,7 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.project
      */
     app.get('/', {
-        preHandler: app.needsPermission('project:edit'),
+        preHandler: app.needsPermission('project:read'),
         schema: {
             summary: 'Returns when a Instance allowed to be restarted ',
             tags: ['Instances'],
