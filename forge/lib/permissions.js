@@ -217,6 +217,9 @@ const Permissions = {
     'team:database:delete': { description: 'Delete the team database', role: Roles.Owner },
     'team:database:list': { description: 'List the team databases', role: Roles.Member },
 
+    // MCP
+    'team:mcp:list': { description: 'List the team MCP endpoints', role: Roles.Member },
+
     'assistant:call': { description: 'Call the Assistant service' }
 }
 

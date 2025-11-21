@@ -50,6 +50,15 @@ module.exports = fp(async function (app, _opts) {
                         }
                         client.publish('ff/v1/platform/sync', JSON.stringify(msg))
                     }
+                },
+                housekeeper: {
+                    vote: function (vote) {
+                        const msg = {
+                            vote,
+                            id: client.platformId
+                        }
+                        client.publish('ff/v1/platform/leader', JSON.stringify(msg))
+                    }
                 }
             }
         })
@@ -64,6 +73,7 @@ module.exports = fp(async function (app, _opts) {
         app.addHook('onClose', async (_) => {
             app.log.info('Comms shutdown')
             await deviceCommsHandler.stopLogWatcher()
+            client.publish('ff/v1/platform/leader', JSON.stringify({ id: client.platformId, vote: -1 }))
             await client.disconnect()
         })
     } else {

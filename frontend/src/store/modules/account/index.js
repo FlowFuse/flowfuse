@@ -255,7 +255,10 @@ const getters = {
             isApplicationsRBACFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.rbacApplication,
 
             // Expert Assistant
-            isExpertAssistantFeatureEnabledForPlatform: !!state.features.expertAssistant
+            isExpertAssistantFeatureEnabledForPlatform: !!state.features.expertAssistant,
+
+            // Instance Maintenance
+            isInstanceAutoStackUpdateFeatureEnabledForPlatform: !!state.features.autoStackUpdate
         }
         return {
             ...preCheck,
@@ -488,7 +491,6 @@ const actions = {
             }
             commit('setPending', true)
             dispatch('checkState', getters.redirectUrlAfterLogin)
-            dispatch('product/expert/handleUserAuth', { }, { root: true })
         } catch (err) {
             if (err.response?.status >= 401) {
                 commit('loginFailed', err.response.data)

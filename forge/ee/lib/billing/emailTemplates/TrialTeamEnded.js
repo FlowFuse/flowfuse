@@ -9,7 +9,7 @@ module.exports = {
     text:
 `Hello {{{username}}},
 
-Your FlowFuse trial has now ended on '{{teamName}}'.
+Your FlowFuse trial has now ended on '{{teamName.text}}'.
 
 We hope you are enjoying your time with us and look forward to seeing what else you
 create.
@@ -21,7 +21,7 @@ Your friendly FlowFuse Team
     html:
 `<p>Hello {{{username}}},</p>
 
-<p>Your FlowFuse trial has now ended on '{{teamName}}'.</p>
+<p>Your FlowFuse trial has now ended on '{{teamName.html}}'.</p>
 <p>We hope you are enjoying your time with us and look forward to seeing what else you
 create.</p>
 <p>Cheers!</p>

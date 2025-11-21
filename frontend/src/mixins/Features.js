@@ -83,6 +83,9 @@ export default {
         },
         isInstanceResourcesFeatureEnabledForTeam () {
             return this.featuresCheck.isInstanceResourcesFeatureEnabledForTeam
+        },
+        isInstanceAutoStackUpdateFeatureEnabledForPlatform () {
+            return this.featuresCheck.isInstanceAutoStackUpdateFeatureEnabledForPlatform
         }
     }
 }

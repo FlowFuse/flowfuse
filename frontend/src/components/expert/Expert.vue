@@ -29,15 +29,12 @@
                     :message="message"
                     :is-streaming="isStreaming(index)"
                 >
-                    <!-- Rich guide content slot -->
-                    <template v-if="message.kind === 'guide'" #rich-content>
-                        <expert-rich-guide :guide="message.guide" />
-                    </template>
-
                     <!-- Rich resources content slot -->
-                    <!-- eslint-disable vue/valid-v-slot-->
-                    <template v-if="message.kind === 'resources'" #rich-content>
-                        <expert-rich-resources :resources="message.resources" />
+                    <template v-if="richContentComponentMap[message.kind]" #rich-content>
+                        <component
+                            :is="richContentComponentMap[message.kind]"
+                            :message="message"
+                        />
                     </template>
                 </expert-chat-message>
             </div>
@@ -59,6 +56,7 @@
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
 import ExpertChatInput from './ExpertChatInput.vue'
@@ -76,9 +74,19 @@ export default {
         ExpertRichGuide,
         ExpertRichResources
     },
+    inject: {
+        togglePinWithWidth: {
+            from: 'togglePinWithWidth',
+            default: () => () => {} // No-op function when not provided
+        }
+    },
     data () {
         return {
-            scrollCheckDebounce: null
+            scrollCheckDebounce: null,
+            richContentComponentMap: {
+                guide: markRaw(ExpertRichGuide),
+                resources: markRaw(ExpertRichResources)
+            }
         }
     },
     computed: {
@@ -96,7 +104,10 @@ export default {
             'hasMessages',
             'lastMessage',
             'isSessionExpired'
-        ])
+        ]),
+        isPinned () {
+            return this.$store.state.ux.drawers.rightDrawer.fixed
+        }
     },
     watch: {
         messages: {
@@ -144,6 +155,11 @@ export default {
 
         async handleSendMessage (query) {
             if (!query.trim()) return
+
+            // Auto-pin drawer on first message
+            if (!this.isPinned && this.messages.length === 0) {
+                this.togglePinWithWidth()
+            }
 
             // Call Vuex action to handle API logic
             const result = await this.handleMessage({

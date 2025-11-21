@@ -24,7 +24,11 @@ class CommsClient extends EventEmitter {
                 clientId: 'forge_platform:' + randomBytes(8).toString('hex'),
                 username: 'forge_platform',
                 password: await this.app.settings.get('commsToken'),
-                reconnectPeriod: 5000
+                reconnectPeriod: 5000,
+                will: {
+                    topic: 'ff/v1/platform/leader',
+                    payload: JSON.stringify({ id: this.platformId, vote: -1 })
+                }
             }
             this.client = mqtt.connect(this.app.config.broker.url, brokerConfig)
             this.client.on('connect', () => {
@@ -102,6 +106,10 @@ class CommsClient extends EventEmitter {
                     if (jsonPayload.srcId !== this.platformId) {
                         this.app.settings.refresh(jsonPayload.key)
                     }
+                } else if (ownerType === 'leader') {
+                    const payload = message.toString()
+                    const jsonPayload = JSON.parse(payload)
+                    this.app.housekeeper.updateLeader(jsonPayload)
                 }
             })
             this.client.subscribe([

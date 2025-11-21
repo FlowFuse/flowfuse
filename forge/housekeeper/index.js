@@ -20,6 +20,12 @@ const fp = require('fastify-plugin')
 module.exports = fp(async function (app, _opts) {
     const tasks = {}
     const delayedStartupTasks = []
+    const localLeaderVote = Math.round(Math.random() * 100000)
+    const leaderVotes = {}
+    // vote every 15 seconds
+    const voteInterval = setInterval(() => {
+        app.comms?.platform?.housekeeper?.vote(localLeaderVote)
+    }, 15000)
 
     // Ensure we stop any scheduled tasks when the app is shutting down
     app.addHook('onClose', async () => {
@@ -32,6 +38,7 @@ module.exports = fp(async function (app, _opts) {
         delayedStartupTasks.forEach(startupTimeout => {
             clearTimeout(startupTimeout)
         })
+        clearInterval(voteInterval)
     })
 
     function reportTask (name, schedule) {
@@ -109,22 +116,27 @@ module.exports = fp(async function (app, _opts) {
     }
 
     function runTask (task) {
-        app.log.trace(`Running task '${task.name}'`)
+        if (checkVote()) {
+            app.log.trace(`Running task '${task.name}'`)
 
-        const checkInId = reportTask(task.name, task.schedule)
+            const checkInId = reportTask(task.name, task.schedule)
 
-        return task
-            .run(app)
-            .then(reportTaskComplete.bind(this, checkInId, task.name))
-            .catch(err => {
-                const errorMessage = `Error running task '${task.name}: ${err.toString()}`
+            return task
+                .run(app)
+                .then(reportTaskComplete.bind(this, checkInId, task.name))
+                .catch(err => {
+                    const errorMessage = `Error running task '${task.name}: ${err.toString()}`
 
-                app.log.error(errorMessage)
-                reportTaskFailure(checkInId, task.name, errorMessage)
-            }).then(() => {
-                app.log.trace(`Completed task '${task.name}'`)
-                return null
-            })
+                    app.log.error(errorMessage)
+                    reportTaskFailure(checkInId, task.name, errorMessage)
+                }).then(() => {
+                    app.log.trace(`Completed task '${task.name}'`)
+                    return null
+                })
+        } else {
+            app.log.trace(`Skipping task '${task.name}' not leader`)
+            return null
+        }
     }
 
     await registerTask(require('./tasks/expireTokens'))
@@ -135,6 +147,7 @@ module.exports = fp(async function (app, _opts) {
     await registerTask(require('./tasks/inviteReminder'))
     await registerTask(require('./tasks/blueprintImport'))
     await registerTask(require('./tasks/deviceUnusedReminder'))
+    await registerTask(require('./tasks/certifiedNodes'))
 
     app.addHook('onReady', async () => {
         let promise = Promise.resolve()
@@ -149,7 +162,26 @@ module.exports = fp(async function (app, _opts) {
         }
     })
 
+    function updateLeader (vote) {
+        if (vote.vote === -1) {
+            delete leaderVotes[vote.id]
+        } else {
+            leaderVotes[vote.id] = vote.vote
+        }
+    }
+
+    function checkVote () {
+        const instances = Object.keys(leaderVotes)
+        for (const i of instances) {
+            if (leaderVotes[i] < localLeaderVote) {
+                return false
+            }
+        }
+        return true
+    }
+
     app.decorate('housekeeper', {
-        registerTask
+        registerTask,
+        updateLeader
     })
 }, { name: 'app.housekeeper' })

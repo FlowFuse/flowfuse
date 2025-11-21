@@ -1,5 +1,5 @@
 <template>
-    <vue-date-picker v-bind="$props" />
+    <vue-date-picker v-bind="$props" :locale="$props.locale ?? defaultLocale" class="ff-date-picker" />
 </template>
 
 <script>
@@ -10,17 +10,30 @@ import '@vuepic/vue-datepicker/dist/main.css'
 // documentation https://vue3datepicker.com/props/modes/
 export default {
     name: 'ff-date-time-picker',
-    components: { VueDatePicker }
+    components: { VueDatePicker },
+    computed: {
+        defaultLocale () {
+            return window.navigator.language
+        }
+    }
 }
 </script>
 
 <style lang="scss">
-.dp__action_button {
-    &.dp__action_select {
-        background: $ff-indigo-700;
+.ff-date-picker {
+    &.disabled {
+        input {
+            cursor: not-allowed !important;
+        }
+    }
 
-        &[disabled] {
-            background: $ff-grey-300;
+    .dp__action_button {
+        &.dp__action_select {
+            background: $ff-indigo-700;
+
+            &[disabled] {
+                background: $ff-grey-300;
+            }
         }
     }
 }

@@ -7,69 +7,73 @@
         </div>
 
         <!-- Resources List -->
-        <div v-if="resources.resources && resources.resources.length > 0" class="resources-list">
+        <div v-if="hasAdditionalResources" class="resources-list">
+            <h4 v-if="hasFlows" class="section-title">Related Resources</h4>
             <div class="resources-grid">
-                <a
-                    v-for="(resource, index) in resources.resources"
-                    :key="index"
-                    :href="addUTMTracking(resource.url)"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="resource-card"
-                >
-                    <img
-                        :src="getFaviconUrl(resource.url)"
-                        :alt="resource.type"
-                        class="resource-icon"
-                        @error="handleImageError"
-                    >
-                    <div class="resource-info">
-                        <div class="resource-title">{{ resource.title }}</div>
-                        <div class="resource-url">{{ resource.url }}</div>
-                    </div>
-                </a>
+                <StandardResourceCard v-for="(resource, index) in additionalResources" :key="index" :resource="resource" />
             </div>
+        </div>
+
+        <!-- nodePackages List -->
+        <div v-if="hasNodePackages" class="resources-list">
+            <h4 v-if="hasFlows || hasAdditionalResources" class="section-title">Required Node Packages</h4>
+            <div class="resources-grid">
+                <PackageResourceCard v-for="(node, index) in nodePackages" :key="index" :nodePackage="node" />
+            </div>
+        </div>
+
+        <!-- Flows List -->
+        <div v-if="hasFlows" class="flows-list">
+            <h4 v-if="hasAdditionalResources || hasNodePackages" class="section-title">Example Flows</h4>
+            <ul class="flows-list flex flex-col gap-2">
+                <li v-for="flow in flows" :key="flow.id">
+                    <FlowResourceCard :flow="flow" />
+                </li>
+            </ul>
         </div>
     </div>
 </template>
 
 <script>
+
+import FlowResourceCard from './resources/FlowResourceCard.vue'
+import PackageResourceCard from './resources/PackageResourceCard.vue'
+import StandardResourceCard from './resources/StandardResourceCard.vue'
+
 export default {
     name: 'ExpertRichResources',
+    components: { StandardResourceCard, FlowResourceCard, PackageResourceCard },
     props: {
-        resources: {
+        message: {
             type: Object,
             required: true,
-            validator: (resources) => {
-                return resources.title !== undefined && resources.resources !== undefined
+            validator: (message) => {
+                return message.resources.title !== undefined &&
+                    (message.resources.resources !== undefined || message.resources.flows)
             }
         }
     },
-    methods: {
-        getFaviconUrl (url) {
-            try {
-                const urlObj = new URL(url)
-                return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}`
-            } catch (e) {
-                // If URL parsing fails, return empty string to trigger error handler
-                return ''
-            }
+    computed: {
+        additionalResources () {
+            return this.resources.resources
         },
-        addUTMTracking (url) {
-            try {
-                const urlObj = new URL(url)
-                urlObj.searchParams.set('utm_source', 'flowfuse-expert')
-                urlObj.searchParams.set('utm_medium', 'assistant')
-                urlObj.searchParams.set('utm_campaign', 'expert-chat')
-                return urlObj.toString()
-            } catch (e) {
-                // If URL parsing fails, return original
-                return url
-            }
+        hasAdditionalResources () {
+            return this.resources.resources && this.resources.resources.length > 0
         },
-        handleImageError (event) {
-            // Hide broken image icon
-            event.target.style.display = 'none'
+        hasNodePackages () {
+            return this.resources.nodePackages && this.resources.nodePackages.length > 0
+        },
+        hasFlows () {
+            return this.resources.flows && this.resources.flows.length > 0
+        },
+        resources () {
+            return this.message.resources
+        },
+        flows () {
+            return this.resources.flows
+        },
+        nodePackages () {
+            return this.resources.nodePackages
         }
     }
 }
@@ -79,7 +83,7 @@ export default {
 .ff-expert-rich-resources {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 0.5rem;
 }
 
 .resources-header {
@@ -99,6 +103,13 @@ export default {
         line-height: 1.5;
         font-size: 1rem;
     }
+}
+
+.section-title {
+    font-size: 1rem; // text-base
+    font-weight: 500; // font-medium
+    color: #111827; // text-gray-900
+    margin: 0.5rem 0 0.75rem 0; // mt-2 mb-3
 }
 
 .resources-list {

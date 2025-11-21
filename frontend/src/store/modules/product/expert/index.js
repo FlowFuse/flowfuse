@@ -8,8 +8,7 @@ const initialState = () => ({
     // Context from PR #6231 postMessage integration
     context: null,
     sessionId: null,
-    shouldPromptAssistant: false,
-    shouldHydrate: false,
+    shouldWakeUpAssistant: false,
 
     // Conversation state
     messages: [],
@@ -30,19 +29,25 @@ const initialState = () => ({
     streamingTimer: null,
 
     // todo this should be moved into a dedicated context store
-    route: null
+    route: null,
+
+    // Drawer width management
+    hasWidenedForFlows: false
 })
 
 const meta = {
     persistence: {
         context: {
-            storage: 'localStorage'
+            storage: 'localStorage',
+            clearOnLogout: true
         },
-        shouldPromptAssistant: {
-            storage: 'localStorage'
+        shouldWakeUpAssistant: {
+            storage: 'localStorage',
+            clearOnLogout: true
         },
-        shouldHydrate: {
-            storage: 'localStorage'
+        sessionId: {
+            storage: 'localStorage',
+            clearOnLogout: true
         }
     }
 }
@@ -91,7 +96,6 @@ const getters = {
 }
 
 const mutations = {
-    // Context mutations (for PR #6231 integration)
     SET_CONTEXT (state, context) {
         state.context = context
     },
@@ -125,8 +129,8 @@ const mutations = {
     SET_ABORT_CONTROLLER (state, controller) {
         state.abortController = controller
     },
-    SET_SHOULD_PROMPT_ASSISTANT (state, shouldPromptAssistant) {
-        state.shouldPromptAssistant = shouldPromptAssistant
+    SET_SHOULD_WAKE_UP_ASSISTANT (state, shouldWakeUpAssistant) {
+        state.shouldWakeUpAssistant = shouldWakeUpAssistant
     },
     SET_STREAMING_WORDS (state, words) {
         state.streamingWords = words
@@ -149,11 +153,11 @@ const mutations = {
     SET_SESSION_CHECK_TIMER (state, timer) {
         state.sessionCheckTimer = timer
     },
+    SET_HAS_WIDENED_FOR_FLOWS (state, value) {
+        state.hasWidenedForFlows = value
+    },
     RESET (state) {
         Object.assign(state, initialState())
-    },
-    UPDATE_CONTEXT (state, message) {
-        state.context.push(message)
     },
     HYDRATE_MESSAGES (state, messages) {
         messages.forEach((message) => {
@@ -204,22 +208,25 @@ const mutations = {
     // todo this should be moved into a dedicated context store
     UPDATE_ROUTE (state, route) {
         state.route = route
-    },
-    SET_SHOULD_HYDRATE (state, shouldHydrate) {
-        state.shouldHydrate = shouldHydrate
     }
 }
 
 const actions = {
-    // Context actions and hydration
-    setContext (
-        { commit, dispatch, state, rootState, rootGetters },
-        { data, sessionId }
+    // Context actions and lifecycle
+    async setContext (
+        {
+            commit,
+            dispatch,
+            state,
+            rootState,
+            rootGetters
+        },
+        {
+            data,
+            sessionId
+        }
     ) {
-        if (
-            rootGetters['account/featuresCheck']
-                .isExpertAssistantFeatureEnabled === false
-        ) {
+        if (rootGetters['account/featuresCheck'].isExpertAssistantFeatureEnabled === false) {
             return
         }
 
@@ -231,23 +238,20 @@ const actions = {
             dispatch('startSessionTimer')
         }
 
-        commit('SET_SHOULD_PROMPT_ASSISTANT', true)
-        commit('HYDRATE_MESSAGES', data)
-        // Add loading message with transfer variant to indicate syncing from website
-        commit('ADD_MESSAGE', {
-            type: 'loading',
-            variant: 'transfer',
-            timestamp: Date.now()
-        })
+        commit('SET_SHOULD_WAKE_UP_ASSISTANT', true)
 
         if (rootState.account?.user) {
-            dispatch('openAssistantDrawer')
-                .then(() => dispatch('hydrateClient'))
-                .then(() => commit('SET_SHOULD_PROMPT_ASSISTANT', false))
-                .catch((error) => error)
+            await dispatch('wakeUpAssistant', {
+                shouldHydrateMessages: true,
+                shouldAddTransferLoadingIndicator: true
+            })
         }
     },
-    hydrateClient ({ dispatch, state, rootGetters }) {
+    hydrateClient ({
+        dispatch,
+        state,
+        rootGetters
+    }) {
         if (
             rootGetters['account/featuresCheck']
                 .isExpertAssistantFeatureEnabled === false
@@ -270,31 +274,41 @@ const actions = {
                 )
             })
     },
-    handleUserAuth ({ dispatch, commit, state }, { shouldHydrateMessages = false }) {
-        if (state.shouldPromptAssistant) {
+    wakeUpAssistant ({
+        dispatch,
+        commit,
+        state
+    }, {
+        shouldHydrateMessages = false
+    }) {
+        if (state.shouldWakeUpAssistant) {
+            dispatch('setAssistantWakeUp', false)
+
             if (shouldHydrateMessages) {
                 commit('HYDRATE_MESSAGES', state.context)
             }
 
+            // Add loading message with transfer variant to indicate syncing from website
+            commit('ADD_MESSAGE', {
+                type: 'loading',
+                variant: 'transfer',
+                timestamp: Date.now()
+            })
+
             return dispatch('openAssistantDrawer')
-                .then(() => dispatch('disableAssistantPrompt'))
                 .then(() => dispatch('hydrateClient'))
-                .then(() => dispatch('setShouldHydrate', false))
         }
-    },
-    setShouldHydrate ({ commit }, shouldHydrate) {
-        commit('SET_SHOULD_HYDRATE', shouldHydrate)
     },
 
     // Main message sending action
-    async handleMessage ({ commit, state, dispatch }, { query }) {
+    async handleMessage ({
+        commit,
+        state,
+        dispatch
+    }, { query }) {
         // Auto-initialize session ID if not set
         if (!state.sessionId) {
-            const { default: ExpertAPI } = await import(
-                '../../../../api/expert.js'
-            )
-            const newSessionId = ExpertAPI.initSession()
-            commit('SET_SESSION_ID', newSessionId)
+            commit('SET_SESSION_ID', uuidv4())
 
             // Start session timing
             dispatch('startSessionTimer')
@@ -363,13 +377,18 @@ const actions = {
         }
     },
 
-    async handleMessageResponse ({ commit, dispatch }, response) {
+    async handleMessageResponse ({ commit, dispatch, state }, response) {
         // Handle UI-specific processing if successful
         if (
             response.success &&
             response.answer &&
             Array.isArray(response.answer)
         ) {
+            // Check if any item has non-empty flows
+            const hasFlows = response.answer.some(item =>
+                item.flows && Array.isArray(item.flows) && item.flows.length > 0
+            )
+
             for (const item of response.answer) {
                 if (item.kind === 'guide') {
                     // Add rich guide message
@@ -393,6 +412,11 @@ const actions = {
                     // Add chat message with streaming effect
                     await dispatch('streamMessage', item.content)
                 }
+            }
+
+            // Auto-widen drawer if flows detected
+            if (hasFlows) {
+                await dispatch('ux/drawers/setRightDrawerWider', true, { root: true })
             }
         } else if (
             response.success &&
@@ -454,7 +478,8 @@ const actions = {
         return expertApi.chat({
             query,
             context: getters.context,
-            sessionId: state.sessionId
+            sessionId: state.sessionId,
+            abortController: state.abortController
         })
     },
 
@@ -473,8 +498,8 @@ const actions = {
         )
     },
 
-    disableAssistantPrompt ({ commit }) {
-        commit('SET_SHOULD_PROMPT_ASSISTANT', false)
+    setAssistantWakeUp ({ commit }, shouldWakeUp) {
+        commit('SET_SHOULD_WAKE_UP_ASSISTANT', shouldWakeUp)
     },
 
     async streamMessage ({ commit, state, getters }, content) {
@@ -617,6 +642,7 @@ const actions = {
 export default {
     namespaced: true,
     meta,
+    initialState: initialState(),
     state,
     getters,
     mutations,
