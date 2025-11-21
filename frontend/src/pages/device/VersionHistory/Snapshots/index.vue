@@ -1,5 +1,5 @@
 <template>
-    <div id="device-snapshots">
+    <div id="device-snapshots" class="flex-1 flex flex-col overflow-auto">
         <div v-if="isOwnedByAnInstance || isUnassigned" class="space-y-6">
             <EmptyState :feature-unavailable="!features.deviceEditor">
                 <template #img>
@@ -39,7 +39,7 @@
                 </template>
             </EmptyState>
         </div>
-        <div v-else class="space-y-6">
+        <div v-else class="space-y-6 flex-1 flex flex-col overflow-auto">
             <ff-loading v-if="loading" message="Loading Snapshots..." />
             <template v-else-if="features.deviceEditor && snapshots.length > 0">
                 <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshotsFiltered" :show-search="true" search-placeholder="Search Snapshots...">
