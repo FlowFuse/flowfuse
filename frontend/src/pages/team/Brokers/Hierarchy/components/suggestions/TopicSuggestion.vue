@@ -93,7 +93,7 @@ export default {
                             }
                         },
                         template: `
-                            <div class="p-4 border border-indigo-100 bg-indigo-50 rounded shadow-sm overflow-auto text-indigo-600" style="max-height: 70vh;">
+                            <div class="p-4 border border-indigo-100 bg-indigo-50 rounded shadow-xs overflow-auto text-indigo-600" style="max-height: 70vh;">
                                 <object-properties :properties="properties"/>
                             </div>`
                     })

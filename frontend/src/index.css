@@ -16,7 +16,7 @@
 @layer base {
     /* .forge-block {
         @apply bg-white;
-        @apply shadow;
+        @apply shadow-sm;
         @apply rounded-sm;
         @apply mx-2;
         @apply sm:mx-4;

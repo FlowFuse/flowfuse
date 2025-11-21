@@ -15,7 +15,7 @@
             leave-from-class="transform scale-100 opacity-100"
             leave-to-class="transform scale-95 opacity-0"
         >
-            <MenuItems :class="[edge === 'left' ? 'left-0 origin-top-left' : 'right-0 origin-top-right','z-50 absolute w-56 mt-1 bg-white divide-y divide-gray-100 rounded-sm overflow-hidden shadow-lg ring-1 ring-black/10 focus:outline-hidden']">
+            <MenuItems :class="[edge === 'left' ? 'left-0 origin-top-left' : 'right-0 origin-top-right','z-50 absolute w-56 mt-1 bg-white divide-y divide-gray-100 rounded-sm overflow-hidden shadow-md ring-1 ring-black/10 focus:outline-hidden']">
                 <div class="apx-1 apy-1">
                     <MenuItem v-for="(item, $index) in options" v-slot="{ active }" :key="$index" :disabled="!item || item.disabled == true ? true : false">
                         <template v-if="item == null">

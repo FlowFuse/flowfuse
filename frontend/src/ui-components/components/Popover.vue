@@ -18,7 +18,7 @@
             <PopoverPanel
                 v-if="open"
                 v-slot="{ close }"
-                class="absolute w-full overflow-auto bg-white  border border-gray-200 rounded shadow-md z-[200]"
+                class="absolute w-full overflow-auto bg-white  border border-gray-200 rounded shadow z-[200]"
                 :style="{
                     top: position.top + 10 + 'px',
                     left: position.left + 'px',
