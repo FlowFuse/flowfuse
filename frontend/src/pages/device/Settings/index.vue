@@ -1,7 +1,7 @@
 <template>
-    <div class="flex flex-col sm:flex-row">
+    <div class="flex flex-col sm:flex-row flex-1 flex flex-col overflow-auto">
         <SectionSideMenu :options="sideNavigation" />
-        <div class="flex-grow">
+        <div class="flex-grow flex-1 flex flex-col overflow-auto">
             <router-view :device="device" @device-updated="$emit('device-updated')" @assign-device="$emit('assign-device')" />
         </div>
     </div>
