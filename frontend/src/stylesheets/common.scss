@@ -2,6 +2,21 @@
 @import "./transitions.scss";
 @import "./animations.scss";
 @import "./components/charts.scss";
+@import "./components/ff-components.scss";
+
+/*
+ * Core element styles (merged from ff-core.scss)
+ */
+
+* {
+    box-sizing: border-box;
+}
+
+.transition-fade--color {
+    --time: 0.3s;
+    transition: var(--time) color, var(--time) background-color, var(--time) fill, var(--time) stroke, var(--time) border-color;
+    -webkit-transition: var(--time) color, var(--time) background-color, var(--time) fill, var(--time) stroke, var(--time) border-color;
+}
 
 /* Define Font Family */
 /* latin */
@@ -15,6 +30,12 @@
 
 /* Define Global Styles */
 
+html {
+    font-family: ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    font-size: 14px;
+    line-height: 1.25rem;
+}
+
 html, body, #app {
     height: 100%;
     display: flex;
@@ -22,10 +43,58 @@ html, body, #app {
     flex: 1;
 }
 
+body {
+    margin: 0;
+    color: var(--ff-grey-800);
+}
+
 @layer base {
-    h1, h2, h3 {
+    h1 {
+        font-weight: bold;
+        font-size: var(--ff-funit-xl);
+        line-height: calc(1.45 * var(--ff-funit-xl));
+        margin-bottom: var(--ff-unit-lg);
+    }
+
+    h2 {
+        font-weight: bold;
+        font-size: var(--ff-funit-lg);
+        line-height: calc(1.45 * var(--ff-funit-lg));
+        margin-bottom: var(--ff-unit-sm);
+    }
+
+    h3 {
+        font-size: var(--ff-funit-md);
+        line-height: calc(1.45 * var(--ff-funit-md));
+        margin-bottom: var(--ff-unit-sm);
+        font-weight: bold;
+    }
+
+    h4 {
+        font-size: var(--ff-funit-md);
+        line-height: calc(1.45 * var(--ff-funit-sm));
+        margin-bottom: var(--ff-unit-sm);
         font-weight: 500;
     }
+}
+
+code {
+    border-radius: var(--ff-unit-sm);
+    border: 1px solid var(--ff-grey-200);
+    padding: var(--ff-unit-md);
+}
+
+p code {
+    padding: 0 var(--ff-unit-xs);
+}
+
+.ff-description {
+    font-size: var(--ff-funit-sm);
+    color: var(--ff-grey-400);
+}
+
+hr {
+    color: var(--ff-grey-200);
 }
 
 #ff-app {
