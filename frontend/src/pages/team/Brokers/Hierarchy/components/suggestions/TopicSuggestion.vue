@@ -1,5 +1,5 @@
 <template>
-    <li class="suggestion p-4 border border-gray-200 bg-white rounded-md flex gap-10 items-center justify-between">
+    <li class="suggestion p-4 border border-gray-200 bg-white rounded flex gap-10 items-center justify-between">
         <div class="content flex flex-col gap-1">
             <div class="title-wrapper">
                 <span class="title">Message Format: </span>
@@ -93,7 +93,7 @@ export default {
                             }
                         },
                         template: `
-                            <div class="p-4 border border-indigo-100 bg-indigo-50 rounded-md shadow-sm overflow-auto text-indigo-600" style="max-height: 70vh;">
+                            <div class="p-4 border border-indigo-100 bg-indigo-50 rounded shadow-sm overflow-auto text-indigo-600" style="max-height: 70vh;">
                                 <object-properties :properties="properties"/>
                             </div>`
                     })

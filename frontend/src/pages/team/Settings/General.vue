@@ -4,7 +4,7 @@
             <div class="ff-instance-info">
                 <FormHeading><TemplateIcon />Team Info</FormHeading>
 
-                <table class="table-fixed w-full border border-separate rounded">
+                <table class="table-fixed w-full border border-separate rounded-sm">
                     <tr class="border-b">
                         <td class="w-40 font-medium">Name</td>
                         <td>

@@ -5,7 +5,7 @@
                 <ChevronLeftIcon class="ff-icon" />
                 <ChevronLeftIcon class="ff-icon ff-icon-second" />
             </MenuButton>
-            <MenuItems class="z-50 absolute left-0 top-full origin-top-left mt-1 max-h-96 overflow-y-auto bg-white divide-y divide-gray-100 rounded shadow-lg ring-1 ring-black/10 focus:outline-none" style="max-width: min(14rem, calc(100vw - 1rem)); width: 14rem;">
+            <MenuItems class="z-50 absolute left-0 top-full origin-top-left mt-1 max-h-96 overflow-y-auto bg-white divide-y divide-gray-100 rounded-sm shadow-lg ring-1 ring-black/10 focus:outline-hidden" style="max-width: min(14rem, calc(100vw - 1rem)); width: 14rem;">
                 <MenuItem
                     v-for="tab in hiddenLeftTabs"
                     :key="'left-' + tab.label"
@@ -15,7 +15,7 @@
                         :class="[active ? 'bg-gray-200' : '', 'block w-full text-left px-4 py-2 text-sm text-gray-700']"
                         @click="onDropdownItemClick(tab)"
                     >
-                        <component :is="tab.icon" v-if="tab.icon" class="h-4 w-4 inline rounded mr-1" />
+                        <component :is="tab.icon" v-if="tab.icon" class="h-4 w-4 inline rounded-sm mr-1" />
                         {{ tab.label }}
                     </button>
                 </MenuItem>
@@ -54,7 +54,7 @@
                 <ChevronRightIcon class="ff-icon ff-icon-second" />
             </MenuButton>
             <Teleport to="body">
-                <MenuItems class="z-50 fixed origin-top-left max-h-96 overflow-y-auto bg-white divide-y divide-gray-100 rounded shadow-lg ring-1 ring-black/10 focus:outline-none" :style="rightMenuStyle">
+                <MenuItems class="z-50 fixed origin-top-left max-h-96 overflow-y-auto bg-white divide-y divide-gray-100 rounded-sm shadow-lg ring-1 ring-black/10 focus:outline-hidden" :style="rightMenuStyle">
                     <MenuItem
                         v-for="tab in hiddenRightTabs"
                         :key="'right-' + tab.label"
@@ -64,7 +64,7 @@
                             :class="[active ? 'bg-gray-200' : '', 'block w-full text-left px-4 py-2 text-sm text-gray-700']"
                             @click="onDropdownItemClick(tab)"
                         >
-                            <component :is="tab.icon" v-if="tab.icon" class="h-4 w-4 inline rounded mr-1" />
+                            <component :is="tab.icon" v-if="tab.icon" class="h-4 w-4 inline rounded-sm mr-1" />
                             {{ tab.label }}
                         </button>
                     </MenuItem>

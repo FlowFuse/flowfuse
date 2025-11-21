@@ -96,7 +96,7 @@ $nav_height: 60px;
 .ff-layout--box--right .ff-layout--box--content {
     min-height: 400px;
     padding: 64px 24px;
-    @apply rounded-xl;
+    @apply rounded-lg;
     color: $ff-grey-700;
     h2 {
         margin-top: -12px;

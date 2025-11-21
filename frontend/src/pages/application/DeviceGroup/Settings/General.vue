@@ -31,7 +31,7 @@
                 <div class="flex-grow">
                     <div class="max-w-sm pr-2">Clearing the groups target snapshot will reset the target of all devices in the group.</div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button class="w-36" kind="danger" data-action="clear-device-group-target-snapshot" :disabled="!hasTargetSnapshot" @click="clearTargetSnapshot">Clear Target</ff-button>
                 </div>
             </div>
@@ -43,7 +43,7 @@
                 <div class="flex-grow">
                     <div class="max-w-sm pr-2">Deleting the device group will reset all devices in the group. This action cannot be undone.</div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button class="w-36" kind="danger" data-action="delete-device-group" @click="deleteGroup">Delete Group</ff-button>
                 </div>
             </div>

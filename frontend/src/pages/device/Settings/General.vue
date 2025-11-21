@@ -39,7 +39,7 @@
                     The flows will not be running while this happens.
                 </p>
             </div>
-            <div class="min-w-fit flex-shrink-0 flex-col gap-5">
+            <div class="min-w-fit shrink-0 flex-col gap-5">
                 <ff-button
                     data-action="change-stack"
                     kind="secondary"

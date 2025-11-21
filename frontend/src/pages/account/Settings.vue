@@ -26,7 +26,7 @@
 
         <FormHeading class="text-red-700 mt-6">Delete Account</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl mt-3">
-            <div class="min-w-fit flex-shrink-0">
+            <div class="min-w-fit shrink-0">
                 <ff-button class="warning" kind="danger" data-action="delete-account" :disabled="!canDeleteAccount" @click="deleteAccount">Delete Account</ff-button>
             </div>
             <div v-if="!canDeleteAccount" class="flex-grow text-gray-500">

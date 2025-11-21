@@ -18,7 +18,7 @@
                         The flows will not be running while this happens.
                     </p>
                 </div>
-                <div class="min-w-fit flex-shrink-0 flex-col gap-5">
+                <div class="min-w-fit shrink-0 flex-col gap-5">
                     <ff-button
                         v-if="instance.stack && instance.stack.replacedBy"
                         ref="updateStackButton"
@@ -52,7 +52,7 @@
                         Add a new instance to your application, that is a copy of this instance.
                     </div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button
                         kind="secondary"
                         data-nav="copy-project"
@@ -75,7 +75,7 @@
                         Import an existing Node-RED instance.
                     </div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button data-action="import-instance" kind="secondary" @click="showImportInstanceDialog()">Import Instance</ff-button>
                     <ImportInstanceDialog ref="importInstanceDialog" data-el="dialog-import-instance" @confirm="importInstance" />
                 </div>
@@ -91,7 +91,7 @@
                         The flows will not be running while this happens.
                     </div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button kind="secondary" data-nav="change-instance-settings" @click="showProjectChangeTypePage()">Change Instance Type</ff-button>
                 </div>
             </div>
@@ -109,7 +109,7 @@
                         While suspended, the instance will consume no <span v-if="features.billing">billable</span> resources.
                     </div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button data-action="suspend-instance" kind="danger" :disabled="instance?.meta?.state === 'suspended'" @click="$emit('instance-confirm-suspend')">Suspend Instance</ff-button>
                 </div>
             </div>
@@ -123,7 +123,7 @@
                         Once deleted, your instance is gone. This cannot be undone.
                     </div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button data-action="delete-instance" kind="danger" @click="$emit('instance-confirm-delete')">Delete Instance</ff-button>
                 </div>
             </div>

@@ -12,7 +12,7 @@
                     Note: when signing in via your SSO provider, you will not be challenged for your two-factor authentication code
                 </div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
+            <div class="min-w-fit shrink-0">
                 <ff-button v-if="!user.mfa_enabled" data-action="enable-mfa" kind="primary" @click="setupMFA()">Enable two-factor authentication</ff-button>
                 <ff-button v-else data-action="disable-mfa" kind="danger" @click="disableMFA()">Disable two-factor authentication</ff-button>
             </div>

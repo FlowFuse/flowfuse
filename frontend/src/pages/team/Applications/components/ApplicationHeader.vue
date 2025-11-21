@@ -5,7 +5,7 @@
         class="ff-application-list--app gap-x-4 flex flex-col gap-2 sm:gap-0 justify-between sm:flex-row sm:items-center"
     >
         <div class="flex items-cente flex-wrap">
-            <span class="ff-application-list--icon flex flex-shrink-0 flex-grow-0 whitespace-nowrap gap-2 w-full">
+            <span class="ff-application-list--icon flex shrink-0 grow-0 whitespace-nowrap gap-2 w-full">
                 <TemplateIcon class="ff-icon text-gray-600" />
                 {{ application.name }}
             </span>

@@ -1,12 +1,12 @@
 <template>
     <div v-if="!isExpertDrawerOpen" class="expert-button-wrapper flex items-center justify-center h-full px-3" style="height: 60px;">
         <button
-            class="expert-button flex items-center gap-1.5 justify-center rounded-md px-[9px] py-[6px] font-bold text-[0.85rem] leading-[20px] text-gray-800 whitespace-nowrap transition-colors"
+            class="expert-button flex items-center gap-1.5 justify-center rounded px-[9px] py-[6px] font-bold text-[0.85rem] leading-[20px] text-gray-800 whitespace-nowrap transition-colors"
             data-el="expert-button"
             data-click-exclude="right-drawer"
             @click="onClick"
         >
-            <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 -ml-1 mr-0.5 flex-shrink-0">
+            <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 -ml-1 mr-0.5 shrink-0">
             <span>Expert</span>
         </button>
     </div>

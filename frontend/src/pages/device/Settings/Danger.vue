@@ -7,7 +7,7 @@
                 Once deleted, your Remote Instance is removed. This cannot be undone.
             </div>
         </div>
-        <div class="min-w-fit flex-shrink-0">
+        <div class="min-w-fit shrink-0">
             <ff-button kind="danger" @click="showConfirmDeleteDialog()">Delete Remote Instance</ff-button>
             <ConfirmDeviceDeleteDialog @delete-device="deleteDevice()" ref="confirmDeviceDeleteDialog" />
         </div>

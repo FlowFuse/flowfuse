@@ -12,13 +12,13 @@
                 </div>
                 <div v-if="info" class="hidden sm:block text-gray-400 info truncate text-sm">{{ info }}</div>
             </div>
-            <div class="actions flex-shrink-0">
+            <div class="actions shrink-0">
                 <ul v-if="options.length > 0" class="flex">
                     <li v-for="item in options" :key="item.name" class="mr-8 pt-1 flex">
                         <router-link :to="item.path" class="forge-nav-item" active-class="forge-nav-item-active" :data-nav="`section-${item.name.toLowerCase()}`">{{ item.name }}</router-link>
                     </li>
                 </ul>
-                <ul v-if="hasTools" class="flex-shrink-0">
+                <ul v-if="hasTools" class="shrink-0">
                     <li class="w-full md:w-auto flex-grow text-right">
                         <slot name="tools" />
                     </li>

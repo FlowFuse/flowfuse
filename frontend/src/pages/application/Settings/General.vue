@@ -42,7 +42,7 @@
                         {{ getDeleteApplicationText }}
                     </div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button
                         data-action="delete-application" kind="danger"
                         :disabled="options.instances > 0"

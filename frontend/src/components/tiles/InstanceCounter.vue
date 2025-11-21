@@ -1,6 +1,6 @@
 <template>
     <div
-        class="ff-counter rounded-md flex-1 p-3 cursor-pointer"
+        class="ff-counter rounded flex-1 p-3 cursor-pointer"
         :class="[backgroundColor, `text-${accent}-500`, accent, emptyCounter]"
         :data-state="state"
         @click="clicked()"

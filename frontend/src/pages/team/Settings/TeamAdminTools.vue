@@ -26,7 +26,7 @@
                     </tr>
                 </table>
             </div>
-            <div class="min-w-fit flex-shrink-0">
+            <div class="min-w-fit shrink-0">
                 <ff-button kind="danger" @click="confirmExtendTrial()">Extend Trial</ff-button>
             </div>
         </div>
@@ -63,14 +63,14 @@
                     </template>
                 </div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
+            <div class="min-w-fit shrink-0">
                 <ff-button v-if="!isUnmanaged" kind="danger" data-action="admin-setup-billing" :disabled="team.suspended" @click="confirmManualBilling()">Setup Manual Billing</ff-button>
                 <ff-button v-else kind="danger" data-action="admin-disable-billing" @click="disableManualBilling()">Enable Billing</ff-button>
             </div>
         </div>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="font-bold flex-grow">Usage Limits</div>
-            <div class="min-w-fit flex-shrink-0">
+            <div class="min-w-fit shrink-0">
                 <template v-if="!editingLimits">
                     <ff-button kind="primary" @click="editOverrides">Edit usage limits</ff-button>
                 </template>

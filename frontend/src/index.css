@@ -17,7 +17,7 @@
     /* .forge-block {
         @apply bg-white;
         @apply shadow;
-        @apply rounded;
+        @apply rounded-sm;
         @apply mx-2;
         @apply sm:mx-4;
         @apply py-6;
@@ -47,11 +47,11 @@
         @apply text-white;
         @apply hover:text-gray-100;
         @apply focus:text-gray-300;
-        @apply rounded-md;
+        @apply rounded;
         @apply inline-flex;
         @apply items-center;
         @apply text-sm;
-        @apply focus:outline-none;
+        @apply focus:outline-hidden;
         @apply focus:ring-2;
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
@@ -72,11 +72,11 @@
         @apply text-gray-500;
         @apply hover:text-gray-600;
         @apply focus:text-gray-700;
-        @apply rounded-md;
+        @apply rounded;
         @apply inline-flex;
         @apply items-center;
         @apply text-sm;
-        @apply focus:outline-none;
+        @apply focus:outline-hidden;
         @apply focus:ring-2;
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
@@ -96,11 +96,11 @@
         @apply text-gray-500;
         @apply hover:text-gray-600;
         @apply focus:text-gray-700;
-        @apply rounded-md;
+        @apply rounded;
         @apply inline-flex;
         @apply items-center;
         @apply text-sm;
-        @apply focus:outline-none;
+        @apply focus:outline-hidden;
         @apply focus:ring-2;
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
@@ -120,11 +120,11 @@
         @apply text-gray-500;
         @apply hover:text-gray-600;
         @apply focus:text-gray-700;
-        @apply rounded-md;
+        @apply rounded;
         @apply inline-flex;
         @apply items-center;
         @apply text-sm;
-        @apply focus:outline-none;
+        @apply focus:outline-hidden;
         @apply focus:ring-2;
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
@@ -144,11 +144,11 @@
         @apply text-gray-500;
         @apply hover:text-gray-600;
         @apply focus:text-gray-700;
-        @apply rounded-md;
+        @apply rounded;
         @apply inline-flex;
         @apply items-center;
         @apply text-sm;
-        @apply focus:outline-none;
+        @apply focus:outline-hidden;
         @apply focus:ring-2;
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
@@ -169,11 +169,11 @@
         @apply hover:text-white;
         @apply focus:text-white;
         @apply focus:bg-red-700;
-        @apply rounded-md;
+        @apply rounded;
         @apply inline-flex;
         @apply items-center;
         @apply text-sm;
-        @apply focus:outline-none;
+        @apply focus:outline-hidden;
         @apply focus:ring-2;
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
@@ -340,7 +340,7 @@
     .uneditable {
         @apply text-sm;
         @apply appearance-none;
-        @apply rounded;
+        @apply rounded-sm;
         @apply relative;
         @apply font-normal;
         @apply px-2;
@@ -365,7 +365,7 @@
     input[type="checkbox"]:focus,
     select:focus,
     textarea:focus {
-        @apply outline-none;
+        @apply outline-hidden;
         @apply ring-0;
         @apply border-indigo-500;
     }
@@ -400,6 +400,6 @@
         @apply p-0 md:p-12;
     }
     .ff-layout--box--right .ff-layout--box--content {
-        @apply rounded-none md:rounded-xl m-auto;
+        @apply rounded-none md:rounded-lg m-auto;
     }
 }

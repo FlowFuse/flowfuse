@@ -28,14 +28,14 @@
             </div>
             <div v-if="changes.length" class="flex justify-between items-center gap-2 mt-2 ml-2">
                 <div class="whitespace-nowrap">Change {{ changeIndex + 1 }} of {{ changes.length }}:</div>
-                <div class="text-sm text-gray-500 flex-grow truncate overflow-ellipsis">
+                <div class="text-sm text-gray-500 flex-grow truncate text-ellipsis">
                     {{ changes[changeIndex].toString() }}
                 </div>
                 <ff-button kind="secondary" size="small" class="w-14" @click="gotoPreviousDifference">Prev</ff-button>
                 <ff-button kind="secondary" size="small" class="w-14" @click="gotoNextDifference">Next</ff-button>
             </div>
             <div v-else class="mt-2">
-                <div class="text-sm text-gray-500 flex-grow truncate overflow-ellipsis ml-2">No differences found</div>
+                <div class="text-sm text-gray-500 flex-grow truncate text-ellipsis ml-2">No differences found</div>
             </div>
             <div ref="compareViewer" data-el="ff-flow-compare-view" class="ff-flow-compare-viewer pt-4" @click.stop.prevent>
               &nbsp;

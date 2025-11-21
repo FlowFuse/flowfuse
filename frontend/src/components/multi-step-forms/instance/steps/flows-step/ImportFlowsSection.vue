@@ -34,7 +34,7 @@
                         <template #input>
                             <div class="flow-input-wrapper w-full relative">
                                 <textarea
-                                    v-model="rawFlows" class="rounded-md w-full"
+                                    v-model="rawFlows" class="rounded w-full"
                                     :class="{'has-content': rawFlows}"
                                 />
                                 <ff-button

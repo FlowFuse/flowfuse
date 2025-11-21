@@ -6,7 +6,7 @@
                 <div class="flex-grow">
                     <div class="max-w-sm pr-2">Change to a different team type</div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button data-action="change-team-type" :to="{name: 'TeamChangeType'}">Change Team Type</ff-button>
                 </div>
             </div>
@@ -17,7 +17,7 @@
                 <div class="flex-grow">
                     <div class="max-w-sm pr-2">Suspending the team will suspend all instances and prevent any further activity on the team.</div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button kind="danger" data-action="suspend-team" @click="showConfirmSuspendDialog()">Suspend Team</ff-button>
                     <ConfirmTeamSuspendDialog ref="confirmTeamSuspendDialog" @suspend-team="suspendTeam" />
                 </div>
@@ -29,7 +29,7 @@
                 <div class="flex-grow">
                     <div class="max-w-sm pr-2">This team is currently suspended.</div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button kind="danger" data-action="unsuspend-team" @click="unsuspendTeam()">Reactivate Team</ff-button>
                 </div>
             </div>
@@ -39,7 +39,7 @@
             <div class="flex-grow">
                 <div class="max-w-sm pr-2">Deleting the team cannot be undone. Take care.</div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
+            <div class="min-w-fit shrink-0">
                 <ff-button kind="danger" data-action="delete-team" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
                 <ConfirmTeamDeleteDialog ref="confirmTeamDeleteDialog" @delete-team="deleteTeam" />
             </div>

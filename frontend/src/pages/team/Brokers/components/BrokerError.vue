@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full bg-red-50 text-red-500 p-4 rounded-lg block border border-red-300 mb-4">
+    <div class="w-full bg-red-50 text-red-500 p-4 rounded-md block border border-red-300 mb-4">
         Error ({{ errorCode }}): {{ errorMessage }}
     </div>
 </template>

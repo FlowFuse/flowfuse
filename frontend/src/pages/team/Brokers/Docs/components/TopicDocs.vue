@@ -11,11 +11,11 @@
                     <section>
                         <label>Payload Schema:</label>
                         <div class="space-y-2">
-                            <div v-if="topic.schema?.type" class="mt-2 flex items-center justify-between border rounded p-3">
+                            <div v-if="topic.schema?.type" class="mt-2 flex items-center justify-between border rounded-sm p-3">
                                 <label>Type</label>
                                 <span class="capitalize">{{ topic.schema.type }}</span>
                             </div>
-                            <pre v-if="showRaw" class="p-2 border border-gray-200 bg-gray-50 rounded-md">{{ topic.schema.properties }}</pre>
+                            <pre v-if="showRaw" class="p-2 border border-gray-200 bg-gray-50 rounded">{{ topic.schema.properties }}</pre>
                             <p v-if="!topic.schema" class="ff-empty-state">No schema available.</p>
                         </div>
                     </section>

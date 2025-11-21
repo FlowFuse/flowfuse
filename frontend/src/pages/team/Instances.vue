@@ -227,7 +227,7 @@ export default {
                         }
                     }
                 },
-                { label: 'Application', class: ['flex-grow-[0.25]'], key: 'application.name', sortable: true },
+                { label: 'Application', class: ['grow-[0.25]'], key: 'application.name', sortable: true },
                 {
                     label: 'Last Updated',
                     class: ['w-60'],

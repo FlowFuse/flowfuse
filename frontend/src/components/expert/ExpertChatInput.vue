@@ -171,7 +171,7 @@ button {
         width: 0.75rem; // w-3
         height: 0.75rem; // h-3
         background-color: #1F2937; // gray-800
-        border-radius: 0.125rem; // rounded-sm
+        border-radius: 0.125rem; // rounded-xs
     }
 
     &:hover {
@@ -184,7 +184,7 @@ button {
     height: 6rem; // h-24
     padding: 1rem; // p-4
     border: 2px solid #D1D5DB; // border-2 border-gray-300
-    border-radius: 0.5rem; // rounded-lg
+    border-radius: 0.5rem; // rounded-md
     font-size: 0.875rem; // text-sm
     line-height: 1.5;
     color: #111827; // text-gray-900
