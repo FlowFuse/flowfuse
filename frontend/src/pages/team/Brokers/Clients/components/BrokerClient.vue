@@ -143,12 +143,18 @@ export default {
             overflow: hidden;
 
             .ff-text-copier {
-                @include truncate;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
                 & > span {
-                    @include truncate;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
                 .title-wrapper {
-                    @include truncate;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
 
             }
