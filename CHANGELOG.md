@@ -1,3 +1,11 @@
+#### 2.24.1: Release
+
+ - Add Scheduled Maintenance pill to Overview (#6320) @hardillb
+ - Expert api v4 and flow examples UI (#6310) @cstns
+ - Ensure Instance object has Team when updating Stacks (#6317) @hardillb
+ - Fix checkbox for hour '6' in TeamTypeEditDialog (#6314) @knolleary
+ - fix(expert): drop message mid-flight (#6301) @cstns
+
 #### 2.24.0: Release
 
  - Enable expert feature on pre-staging (#6273)
