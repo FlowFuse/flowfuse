@@ -395,14 +395,14 @@ export default {
     background-color: white;
     border-collapse: separate;
     border-width: 1px;
-    border-color: $ff-grey-300;
+    border-color: var(--ff-grey-300);
     min-width: 400px;
     td {
         height: 36px;
     }
     tr:not(:last-child) {
         td,th {
-            border-bottom: 1px solid $ff-grey-100;
+            border-bottom: 1px solid var(--ff-grey-100);
         }
     }
     th {

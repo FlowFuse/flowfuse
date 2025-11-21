@@ -95,7 +95,7 @@ export default {
     flex-direction: column;
 
     & > p {
-        border-bottom: 1px solid $ff-grey-100;
+        border-bottom: 1px solid var(--ff-grey-100);
         margin-bottom: 10px;
         line-height: 2rem;
     }
@@ -104,7 +104,7 @@ export default {
         height: fit-content;
 
         .instance-tile {
-            border: 1px solid $ff-grey-100;
+            border: 1px solid var(--ff-grey-100);
             padding: 2px 10px;
             border-radius: 5px;
             display: flex;
@@ -121,7 +121,7 @@ export default {
             }
 
             &:hover {
-                border-color: $ff-grey-200;
+                border-color: var(--ff-grey-200);
             }
 
             .details {
@@ -129,12 +129,12 @@ export default {
 
                 .detail-wrapper {
                     &.detail {
-                        font-size: $ff-funit-sm;
-                        color: $ff-grey-400;
+                        font-size: var(--ff-funit-sm);
+                        color: var(--ff-grey-400);
                     }
                     .name, .editor-link:not(.inactive) {
                         &:hover {
-                            color: $ff-indigo-700;
+                            color: var(--ff-indigo-700);
                         }
                     }
                 }

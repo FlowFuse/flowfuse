@@ -149,12 +149,12 @@ button {
 }
 
 .btn-send {
-    background-color: $ff-indigo-600;
+    background-color: var(--ff-indigo-600);
     color: white;
-    border-color: $ff-indigo-600;
+    border-color: var(--ff-indigo-600);
 
     &:hover:not(:disabled) {
-        background-color: $ff-indigo-700;
+        background-color: var(--ff-indigo-700);
     }
 }
 
@@ -194,7 +194,7 @@ button {
     background: white;
 
     &:focus {
-        border-color: $ff-indigo-500; // focus:border-indigo-500
+        border-color: var(--ff-indigo-50)0; // focus:border-indigo-500
         outline: none;
     }
 

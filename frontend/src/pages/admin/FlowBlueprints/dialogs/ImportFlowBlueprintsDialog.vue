@@ -234,7 +234,7 @@ export default {
       .line {
         height: 1px;
         width: 100%;
-        background: $ff-grey-400;
+        background: var(--ff-grey-400);
         position: absolute;
         top: 50%;
         display: block;

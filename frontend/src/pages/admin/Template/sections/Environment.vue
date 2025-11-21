@@ -446,7 +446,7 @@ export default {
 .ff-environment {
     .ff-input.ff-text-input {
         input:disabled {
-            color: $ff-grey-600
+            color: var(--ff-grey-600)
         }
     }
 }

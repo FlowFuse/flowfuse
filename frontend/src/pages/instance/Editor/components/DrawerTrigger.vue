@@ -43,9 +43,9 @@ export default {
     padding: 8px 2px 8px 8px;
 
     /* Colors - matching original drawer trigger */
-    color: $ff-grey-400;
-    background: $ff-white;
-    border: 1px solid $ff-grey-400;
+    color: var(--ff-grey-400);
+    background: var(--ff-white);
+    border: 1px solid var(--ff-grey-400);
     border-left: none;
 
     /* Reset button styles */
@@ -64,7 +64,7 @@ export default {
     }
 
     .ff-btn--icon {
-        color: $ff-grey-400;
+        color: var(--ff-grey-400);
         width: 20px;
         height: 20px;
     }

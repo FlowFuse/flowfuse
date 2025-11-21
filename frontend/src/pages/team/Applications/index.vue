@@ -199,7 +199,7 @@ export default {
 
 .no-results {
   text-align: center;
-  color: $ff-grey-400;
+  color: var(--ff-grey-400);
 }
 
 .fade-slide-enter-active,

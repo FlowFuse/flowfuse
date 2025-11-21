@@ -164,16 +164,16 @@ export default {
   }
 
   .ff-button {
-    border: 1px solid $ff-grey-300;
+    border: 1px solid var(--ff-grey-300);
     padding: 5px 5px 5px 10px;
-    background: $ff-white;
+    background: var(--ff-white);
 
     &:focus-visible {
         outline: none;
     }
 
     &:focus {
-        border-color: $ff-blue-500;
+        border-color: var(--ff-blue-500);
     }
 
     .icon {
@@ -193,22 +193,22 @@ export default {
 }
 
 .ff-options {
-    background: $ff-grey-50;
+    background: var(--ff-grey-50);
     box-shadow: 0 6px 9px 0 #00000038;
     max-height: 14rem;
     z-index: 200;
     overflow-y: auto;
     padding: 0;
-    border-left: 1px solid $ff-grey-200;
-    border-right: 1px solid $ff-grey-200;
-    border-bottom: 1px solid $ff-grey-200;
+    border-left: 1px solid var(--ff-grey-200);
+    border-right: 1px solid var(--ff-grey-200);
+    border-bottom: 1px solid var(--ff-grey-200);
     &:focus-visible, &:focus {
         outline: none;
     }
 
     .ff-option {
-        border-bottom: 1px solid $ff-grey-200;
-        background-color: $ff-grey-50;
+        border-bottom: 1px solid var(--ff-grey-200);
+        background-color: var(--ff-grey-50);
         cursor: pointer;
 
         &:last-of-type {
@@ -216,14 +216,14 @@ export default {
         }
 
         .ff-option-content {
-            padding: $ff-unit-sm $ff-unit-md;
+            padding: var(--ff-unit-sm) var(--ff-unit-md);
             border: 1px solid transparent;
 
             &.selected {
-                background-color: $ff-grey-200;
+                background-color: var(--ff-grey-200);
             }
             &.active {
-                border: 1px solid $ff-indigo-300;
+                border: 1px solid var(--ff-indigo-300);
             }
             &.selected.active {
                 border-color: transparent;
@@ -231,7 +231,7 @@ export default {
         }
 
         &:hover {
-            background-color: $ff-grey-200;
+            background-color: var(--ff-grey-200);
             .ff-option-content.active {
                 border-color: transparent
             }

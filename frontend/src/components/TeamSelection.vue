@@ -144,7 +144,7 @@ export default {
             }
             .icon {
                 svg {
-                    color: $ff-grey-800;
+                    color: var(--ff-grey-800);
                     width: 80%;
                     padding-left: 10px;
                 }
@@ -153,9 +153,9 @@ export default {
     }
 }
 .ff-options .ff-team-selection-option {
-    border-color: $ff-color--border;
-    color: $ff-grey-800;
-    border-bottom: 1px solid $ff-color--border;
+    border-color: var(--ff-color-border);
+    color: var(--ff-grey-800);
+    border-bottom: 1px solid var(--ff-color-border);
     display: flex;
     align-items: center;
 
@@ -167,7 +167,7 @@ export default {
         width: 100%;
 
         &.selected {
-            background: $ff-grey-200;
+            background: var(--ff-grey-200);
         }
 
         .ff-icon {

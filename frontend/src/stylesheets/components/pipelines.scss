@@ -1,6 +1,6 @@
 .ff-pipeline {
     width: 100%;
-    border: 1px solid $ff-grey-300;
+    border: 1px solid var(--ff-grey-300);
     border-radius: 6px;
     .ff-pipeline-banner {
         height: 46px;
@@ -11,21 +11,21 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid $ff-grey-300;
-        background-color: $ff-grey-100;
+        border-bottom: 1px solid var(--ff-grey-300);
+        background-color: var(--ff-grey-100);
         border-top-left-radius: 6px;
         border-top-right-radius: 6px;
         gap: 48px;
     }
     .ff-pipeline-stage-banner {
         height: 54px;
-        background-color: $ff-grey-50;
+        background-color: var(--ff-grey-50);
         label {
             font-weight: 500;
         }
     }
     .ff-pipelines-stage-banner-error {
-        color: $ff-red-600;
+        color: var(--ff-red-600);
         font-size: 0.725rem;
         font-weight: 500;
         display: flex;
@@ -49,12 +49,12 @@
 
 .ff-pipeline-stage {
     border-radius: 6px;
-    border: 1px solid $ff-grey-400;
+    border: 1px solid var(--ff-grey-400);
     min-width: 275px;
     background-color: white;
     a:hover,
     a:hover .ff-icon {
-        color: $ff-blue-600;
+        color: var(--ff-blue-600);
     }
     &.ff-pipeline-stage-ghost {
         border-style: dashed;
@@ -64,12 +64,12 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        color: $ff-grey-400;
+        color: var(--ff-grey-400);
         &:hover {
             border-style: solid;
             cursor: pointer;
-            color: $ff-blue-600;
-            border-color: $ff-blue-600;
+            color: var(--ff-blue-600);
+            border-color: var(--ff-blue-600);
         }
     }
     .ff-pipeline-stage-row {
@@ -79,7 +79,7 @@
         gap: 24px;
         font-size: 0.9rem;    
         label {
-            color: $ff-grey-500;
+            color: var(--ff-grey-500);
         }
         a.ff-link {
             text-overflow: ellipsis;
@@ -89,13 +89,13 @@
     .ff-pipeline-stage-type {
         padding: 9px 0px 0.75rem;
         margin: 0 18px 0.75rem;
-        border-bottom: 1px solid $ff-grey-300;
+        border-bottom: 1px solid var(--ff-grey-300);
         display: flex;
         align-items: flex-start;
         gap: 6px;
         font-size: 0.9rem;    
         label {
-            color: $ff-grey-500;
+            color: var(--ff-grey-500);
             font-size: 0.75em;
             line-height: 0.825em;
         }
@@ -103,10 +103,10 @@
 }
 
 .ff-pipeline-stage--error {
-    border-color: $ff-red-600;
+    border-color: var(--ff-red-600);
     .ff-pipeline-stage-banner {
-        background-color: $ff-red-50;
-        border-bottom: 1px solid $ff-red-600;
+        background-color: var(--ff-red-50);
+        border-bottom: 1px solid var(--ff-red-600);
     }
 }
 
@@ -114,7 +114,7 @@
     animation-name: left-to-right;
     animation-duration: 1s;
     animation-iteration-count: infinite;
-    color: $ff-blue-600;
+    color: var(--ff-blue-600);
 }
 
 @keyframes left-to-right {

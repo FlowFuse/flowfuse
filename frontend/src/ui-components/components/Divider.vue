@@ -12,7 +12,7 @@ export default {
 .ff-divider {
     width: 100%;
     height: 1px;
-    background-color: $ff-grey-200;
+    background-color: var(--ff-grey-200);
     margin-top: 12px;
     margin-bottom: 12px;
 }

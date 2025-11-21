@@ -56,18 +56,18 @@ export default {
 
 <style scoped lang="scss">
 .ff-topic-inspecting {
-    background: $ff-white;
+    background: var(--ff-white);
     padding: 10px;
     border-radius: 6px;
-    border: 1px solid $ff-grey-200;
+    border: 1px solid var(--ff-grey-200);
 }
 
 .ff-topic-path {
     display: flex;
-    background-color: $ff-indigo-50;
-    color: $ff-indigo-600;
+    background-color: var(--ff-indigo-50);
+    color: var(--ff-indigo-600);
     border-radius: 6px;
-    border: 1px solid $ff-indigo-100;
+    border: 1px solid var(--ff-indigo-100);
     padding: 6px;
     font-weight: 600;
     & > span:first-child {

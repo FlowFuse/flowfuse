@@ -96,13 +96,13 @@ export default {
   align-items: center;
   position: relative;
 
-  border-radius: $ff-unit-sm;
-  border: 1px solid $ff-grey-300;
+  border-radius: var(--ff-unit-sm);
+  border: 1px solid var(--ff-grey-300);
 
   height: 28px;
-  padding: $ff-unit-sm 5px;
+  padding: var(--ff-unit-sm) 5px;
 
-  font-size: $ff-funit-sm;
+  font-size: var(--ff-funit-sm);
   line-height: 20px;
 
   svg {
@@ -111,13 +111,13 @@ export default {
 
   &:hover {
     cursor: pointer;
-    border-color: $ff-blue-600;
+    border-color: var(--ff-blue-600);
 
-    color: $ff-blue-600;;
-    background-color: $ff-grey-50;
+    color: var(--ff-blue-600);;
+    background-color: var(--ff-grey-50);
 
     .ff-icon {
-        color: $ff-blue-600;
+        color: var(--ff-blue-600);
     }
   }
 }

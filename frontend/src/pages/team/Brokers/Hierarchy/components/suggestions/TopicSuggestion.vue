@@ -111,19 +111,19 @@ export default {
 .suggestion {
     .content {
         .format {
-            color: $ff-indigo-500;
+            color: var(--ff-indigo-50)0;
         }
     }
 
     .actions {
         .preview {
-            color: $ff-grey-500
+            color: var(--ff-grey-50)0
         }
         .accept {
-            color: $ff-green-500
+            color: var(--ff-green-500)
         }
         .reject {
-            color: $ff-red-500
+            color: var(--ff-red-50)0
         }
     }
 }

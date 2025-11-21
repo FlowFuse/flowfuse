@@ -188,14 +188,14 @@ export default {
 <style lang="scss">
 
     .clients-wrapper {
-        border: 1px solid $ff-grey-300;
+        border: 1px solid var(--ff-grey-300);
         border-radius: 5px;
         overflow: hidden;
 
         .header {
-            background: $ff-grey-100;
+            background: var(--ff-grey-100);
             padding: 10px;
-            border-bottom: 1px solid $ff-grey-300;
+            border-bottom: 1px solid var(--ff-grey-300);
 
             span {
                 &.username {
@@ -205,10 +205,10 @@ export default {
         }
 
         .clients-list {
-            background: $ff-white;
+            background: var(--ff-white);
 
             .client {
-                border-bottom: 1px solid $ff-grey-300;
+                border-bottom: 1px solid var(--ff-grey-300);
 
                 &:last-of-type {
                     border-bottom: none;

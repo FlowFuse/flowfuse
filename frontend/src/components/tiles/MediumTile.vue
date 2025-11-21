@@ -82,7 +82,7 @@ export default {
 .ff-medium-tile {
     position: relative;
     border-radius: 6px;
-    border: 2px solid $ff-grey-300;
+    border: 2px solid var(--ff-grey-300);
     background: white;
     box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.25);
     padding: 49px 24px 24px 24px;
@@ -111,18 +111,18 @@ export default {
         box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 
         &.red {
-            background: $ff-red-500;
+            background: var(--ff-red-50)0;
             &::before,
             &::after {
-                border-color: $ff-red-900 transparent transparent transparent;
+                border-color: var(--ff-red-900) transparent transparent transparent;
             }
         }
 
         &.blue {
-            background: $ff-indigo-700;
+            background: var(--ff-indigo-700);
             &::before,
             &::after {
-                border-color: $ff-indigo-900 transparent transparent transparent;
+                border-color: var(--ff-indigo-900) transparent transparent transparent;
             }
         }
 

@@ -20,55 +20,55 @@ html {
 
 body {
     margin: 0;
-    color: $ff-grey-800;
+    color: var(--ff-grey-800);
 }
 
 @layer base {
     h1 {
         font-weight: bold;
-        font-size: $ff-funit-xl;
-        line-height: 1.45 * $ff-funit-xl;
-        margin-bottom: $ff-unit-lg;
+        font-size: var(--ff-funit-xl);
+        line-height: calc(1.45 * var(--ff-funit-xl));
+        margin-bottom: var(--ff-unit-lg);
     }
 
     h2 {
         font-weight: bold;
-        font-size: $ff-funit-lg;
-        line-height: 1.45 * $ff-funit-lg;
-        margin-bottom: $ff-unit-sm;
+        font-size: var(--ff-funit-lg);
+        line-height: calc(1.45 * var(--ff-funit-lg));
+        margin-bottom: var(--ff-unit-sm);
     }
 
     h3 {
-        font-size: $ff-funit-md;
-        line-height: 1.45 * $ff-funit-md;
-        margin-bottom: $ff-unit-sm;
+        font-size: var(--ff-funit-md);
+        line-height: calc(1.45 * var(--ff-funit-md));
+        margin-bottom: var(--ff-unit-sm);
         font-weight: bold;
     }
 
     h4 {
-        font-size: $ff-funit-md;
-        line-height: 1.45 * $ff-funit-sm;
-        margin-bottom: $ff-unit-sm;
+        font-size: var(--ff-funit-md);
+        line-height: calc(1.45 * var(--ff-funit-sm));
+        margin-bottom: var(--ff-unit-sm);
         font-weight: 500;
     }
 }
 
 code {
-    border-radius: $ff-unit-sm;
-    border: 1px solid $ff-grey-200;
-    padding: $ff-unit-md;
+    border-radius: var(--ff-unit-sm);
+    border: 1px solid var(--ff-grey-200);
+    padding: var(--ff-unit-md);
 }
 
 p code {
-    padding: 0 $ff-unit-xs;
+    padding: 0 var(--ff-unit-xs);
 }
 
 .ff-description {
-    font-size: $ff-funit-sm;
-    color: $ff-grey-400;
+    font-size: var(--ff-funit-sm);
+    color: var(--ff-grey-400);
 }
 
 
 hr {
-  color: $ff-grey-200;
+  color: var(--ff-grey-200);
 }

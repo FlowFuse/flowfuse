@@ -101,10 +101,10 @@ export default {
 
 <style scoped lang="scss">
 .ff-pipeline-stage {
-    border: 1px solid $ff-grey-300;
+    border: 1px solid var(--ff-grey-300);
     border-radius: 6px;
     overflow: hidden;
-    background: $ff-white;
+    background: var(--ff-white);
     padding: 12px;
     display: flex;
     flex-direction: column;
@@ -117,14 +117,14 @@ export default {
         gap: 6px;
         font-size: 11px;
         align-items: center;
-        border: 1px solid $ff-grey-300;
+        border: 1px solid var(--ff-grey-300);
         padding: 6px;
         border-radius: 6px;
         transition: ease-in-out .3s;
 
         &:hover {
-            color: $ff-indigo-700;
-            border-color: $ff-indigo-700;
+            color: var(--ff-indigo-700);
+            border-color: var(--ff-indigo-700);
         }
     }
 }

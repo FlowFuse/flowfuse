@@ -114,7 +114,7 @@ export default {
 .database-form {
     .database, .credentials {
         .title {
-            border-bottom: 1px solid $ff-grey-200;
+            border-bottom: 1px solid var(--ff-grey-200);
         }
     }
     dl {

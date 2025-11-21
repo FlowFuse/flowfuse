@@ -89,13 +89,13 @@ export default {
         opacity: 1;
 
         &.green {
-            border-color: $ff-green-500;
+            border-color: var(--ff-green-500);
         }
         &.red {
-            border-color: $ff-red-500;
+            border-color: var(--ff-red-50)0;
         }
         &.gray {
-            border-color: $ff-grey-500;
+            border-color: var(--ff-grey-50)0;
         }
     }
 }

@@ -1,27 +1,12 @@
 /*
-    ff-utility contains functional variables and classes for padding/margin and sizings
-*/
-
-// screen sizes
-$ff-screen-sm: 640px;
-$ff-screen-md: 768px;
-$ff-screen-lg: 1024px;
-$ff-screen-xl: 1280px;
-$ff-screen-2xl: 1536px;
-
-// unit
-$ff-unit-xs: 3px;
-$ff-unit-sm: 6px;
-$ff-unit-md: 9px;
-$ff-unit-lg: 18px;
-$ff-unit-xl: 27px;
-
-// font unit
-$ff-funit-xs: 0.75rem;
-$ff-funit-sm: 0.85rem;
-$ff-funit-md: 1rem;
-$ff-funit-lg: 1.5rem;
-$ff-funit-xl: 2rem;
+ * FlowFuse Utility Variables
+ *
+ * NOTE: All design tokens (units, font sizes, screen sizes) have been
+ * migrated to CSS custom properties.
+ * See: frontend/src/index.css @theme block for the canonical definitions.
+ *
+ * Usage: var(--ff-unit-sm), var(--ff-funit-lg), var(--ff-screen-md), etc.
+ */
 
 @mixin truncate {
   white-space: nowrap;

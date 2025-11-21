@@ -301,7 +301,7 @@ export default {
         .title {
             margin-bottom: 5px;
             padding-bottom: 5px;
-            border-bottom: 1px solid $ff-grey-200;
+            border-bottom: 1px solid var(--ff-grey-200);
             display: flex;
             justify-content: space-between;
 
@@ -320,7 +320,7 @@ export default {
             margin-top: 5px;
 
             &:nth-of-type(2) {
-                color: $ff-grey-500;
+                color: var(--ff-grey-50)0;
                 font-style: italic;
             }
         }

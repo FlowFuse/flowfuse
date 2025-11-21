@@ -32,14 +32,14 @@ html, body, #app {
 
 #ff-app {
     flex: 1;
-    background-color: $ff-grey-300;
+    background-color: var(--ff-grey-300);
 }
 
 .ff-link {
-    color: $ff-blue-700;
+    color: var(--ff-blue-700);
     &:hover {
         cursor: pointer;
-        color: $ff-blue-900;
+        color: var(--ff-blue-900);
         text-decoration: underline;
     }
 }
@@ -55,11 +55,11 @@ html, body, #app {
     border-radius: 8px;
 }
 .ff-bg-dark {
-    background-color: $ff-grey-800;
+    background-color: var(--ff-grey-800);
     .ff-btn.ff-btn--primary {
-        background-color: $ff-teal-600;
+        background-color: var(--ff-teal-600);
         &:hover {
-            background-color: $ff-teal-700;
+            background-color: var(--ff-teal-700);
         }
     }
 }
@@ -73,7 +73,7 @@ html, body, #app {
         font-weight: 600;
     }
     &.theme-light {
-        color: $ff-grey-900;
+        color: var(--ff-grey-900);
     }
     &.theme-dark {
         color: white;
@@ -87,7 +87,7 @@ html, body, #app {
         -webkit-transition: 0.3s color, 0.3s stroke, 0.3s fill;
     }
     &:hover {
-        color: $ff-blue-600;
+        color: var(--ff-blue-600);
     }
 }
 
@@ -98,9 +98,9 @@ html, body, #app {
 }
 
 .ff-dialog-box a {
-    color: $ff-blue-600;
+    color: var(--ff-blue-600);
     &:hover {
-        color: $ff-blue-800;
+        color: var(--ff-blue-800);
     }
 }
 
@@ -115,10 +115,10 @@ html, body, #app {
 }
 
 .ff-no-data {
-    background-color: $ff-grey-100;
-    color: $ff-grey-400;
+    background-color: var(--ff-grey-100);
+    color: var(--ff-grey-400);
     font-size: 0.875rem;
-    border: $ff-grey-200 solid 1px;
+    border: var(--ff-grey-200) solid 1px;
     padding: 12px;
     text-align: center;
 
@@ -134,7 +134,7 @@ html, body, #app {
            text-align: center;
            margin: 10px 0 10px;
            padding: 10px 0 10px;
-           border: 1px solid $ff-grey-300;
+           border: 1px solid var(--ff-grey-300);
        }
     }
 }
@@ -144,7 +144,7 @@ label {
 }
 
 ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
-    color: $ff-grey-400 !important;
+    color: var(--ff-grey-400) !important;
     opacity: 1; /* Firefox */
 }
 
@@ -161,7 +161,7 @@ label {
     display: flex;
     align-items: center;
     label {
-        color: $ff-blue-600;
+        color: var(--ff-blue-600);
         cursor: pointer;
         &:hover {
             text-decoration: underline;
@@ -177,26 +177,26 @@ label {
 
 .ff-data-table--cell a:not(.ff-btn):hover,
 .ff-data-table--cell a:hover svg.ff-icon {
-    color: $ff-blue-600;
+    color: var(--ff-blue-600);
 }
 
 .ff-data-table--data .ff-data-table--row--nested .ff-data-table--cell {
-    background-color: $ff-grey-50;
+    background-color: var(--ff-grey-50);
     &:first-child {
         padding-left: 36px;
     }
 }
 
 .ff-data-table--data .ff-data-table--row--nested.selectable:hover .ff-data-table--cell {
-    background-color: $ff-grey-100;
+    background-color: var(--ff-grey-100);
 }
 
 .ff-page-banner {
     border-radius: 5px;
-    background-color: $ff-blue-100;
-    color: $ff-grey-600;
+    background-color: var(--ff-blue-100);
+    color: var(--ff-grey-600);
     text-align: left;
-    border: 1px solid $ff-blue-300;
+    border: 1px solid var(--ff-blue-300);
     display: flex;
     align-items: center;
     justify-content: center;

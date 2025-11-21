@@ -84,10 +84,10 @@ export default {
 
 <style scoped lang="scss">
 .topic-schema {
-    background-color: $ff-indigo-50;
-    color: $ff-indigo-600;
+    background-color: var(--ff-indigo-50);
+    color: var(--ff-indigo-600);
     border-radius: 6px;
-    border: 1px solid $ff-indigo-100;
+    border: 1px solid var(--ff-indigo-100);
     padding: 10px 6px;
     font-size: 0.875rem;
     line-height: 1.25rem;
@@ -95,7 +95,7 @@ export default {
     position: relative;
 
     .topic-schema-unknown {
-        color: $ff-grey-500;
+        color: var(--ff-grey-50)0;
         text-align: center;
         font-style: italic;
     }
