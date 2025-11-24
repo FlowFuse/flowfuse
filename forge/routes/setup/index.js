@@ -37,7 +37,10 @@ module.exports = async function (app) {
         const status = {
             adminUser: (await app.db.models.User.count()) !== 0,
             license: app.license.active(),
-            email: !!app.postoffice.exportSettings(true)
+            stackDefaults: {
+                defaults: app.containers.getDefaultStackProperties(),
+                properties: app.containers.properties().stack?.properties || {}
+            }
         }
         reply.type('application/json').send(status)
     })
@@ -50,7 +53,7 @@ module.exports = async function (app) {
             return
         }
         try {
-            await finishSetup(app)
+            await finishSetup(app, request.body.stackOverrides)
             reply.send({ status: 'okay' })
         } catch (err) {
             app.log.error(`Failed to create default ProjectStack: ${err.toString()}`)
