@@ -83,7 +83,7 @@ export default {
         if (this.state.stackDefaults.defaults) {
             Object.entries(this.state.stackDefaults.defaults).map(([key, value]) => {
                 this.input.properties[key] = value
-                return
+                return value
             })
         }
     },
