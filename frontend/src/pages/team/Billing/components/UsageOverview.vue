@@ -62,7 +62,7 @@
 
 <script>
 import { ChipIcon, IdentificationIcon, RssIcon, UsersIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import instanceTypesApi from '../../../../api/instanceTypes.js'
 
@@ -102,6 +102,10 @@ export default {
     async mounted () {
         const instanceTypes = await instanceTypesApi.getInstanceTypes()
         this.instanceTypes = Object.fromEntries(instanceTypes.types.map(type => [type.id, type]))
+        await this.refreshTeam()
+    },
+    methods: {
+        ...mapActions('account', ['refreshTeam'])
     }
 }
 </script>
