@@ -38,6 +38,7 @@ module.exports = function (app) {
             memberCount: { type: 'number' },
             deviceCount: { type: 'number' },
             brokerCount: { type: 'number' },
+            teamBrokerClientsCount: { type: 'number' },
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
             billing: { type: 'object', additionalProperties: true },
@@ -60,6 +61,7 @@ module.exports = function (app) {
                 memberCount: result.memberCount,
                 deviceCount: result.deviceCount,
                 brokerCount: result.brokerCount,
+                teamBrokerClientsCount: result.teamBrokerClientsCount,
                 createdAt: result.createdAt,
                 updatedAt: result.updatedAt,
                 links: result.links

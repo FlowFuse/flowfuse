@@ -1,7 +1,7 @@
 <template>
     <section class="flex gap-5 flex-col md:flex-row mb-5 md:mb-0">
         <div class="ff-instance-info">
-            <FormHeading><TemplateIcon />Instances</FormHeading>
+            <FormHeading>Instances</FormHeading>
             <table class="table-fixed w-full border border-separate rounded">
                 <tbody>
                     <tr>
@@ -28,20 +28,27 @@
                 </tbody>
             </table>
         </div>
+
         <div class="ff-instance-info w-full md:w-auto">
-            <FormHeading><TemplateIcon />Team</FormHeading>
+            <FormHeading>Team</FormHeading>
             <table class="table-fixed w-full border border-separate rounded">
                 <tbody v-if="team.deviceCount > 0">
                     <tr class="border-b">
-                        <td class="font-medium"><UsersIcon class="ff-icon ff-icon-md" /> Users</td>
+                        <td class="font-medium flex items-center gap-2"><UsersIcon class="ff-icon ff-icon-md" /> Users</td>
                         <td class="py-2 text-right">
                             <usage-value :used="team.memberCount" :limit="team?.type?.properties?.users?.limit ?? null" />
                         </td>
                     </tr>
                     <tr class="border-b">
-                        <td class="font-medium"><UsersIcon class="ff-icon ff-icon-md" /> Brokers</td>
+                        <td class="font-medium flex items-center gap-2"><RssIcon class="ff-icon ff-icon-md" /> Brokers</td>
                         <td class="py-2 text-right">
                             <usage-value :used="team.brokerCount" />
+                        </td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="font-medium flex items-center gap-2"><IdentificationIcon class="ff-icon ff-icon-md" /> Broker Clients</td>
+                        <td class="py-2 text-right">
+                            <usage-value :used="team.teamBrokerClientsCount" :limit="team?.type?.properties?.teamBroker?.clients?.limit ?? null" />
                         </td>
                     </tr>
                 </tbody>
@@ -54,7 +61,7 @@
 </template>
 
 <script>
-import { ChipIcon, TemplateIcon, UsersIcon } from '@heroicons/vue/outline'
+import { ChipIcon, IdentificationIcon, RssIcon, UsersIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import instanceTypesApi from '../../../../api/instanceTypes.js'
@@ -67,12 +74,13 @@ import UsageValue from './UsageValue.vue'
 export default {
     name: 'UsageOverview',
     components: {
-        TemplateIcon,
         FormHeading,
         UsageValue,
         ChipIcon,
         UsersIcon,
-        ProjectsIcon
+        ProjectsIcon,
+        RssIcon,
+        IdentificationIcon
     },
     data () {
         return {

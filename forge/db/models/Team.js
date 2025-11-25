@@ -157,16 +157,16 @@ module.exports = {
                                         "brokers"."TeamId" = "Team"."id"
                                     )`),
                                     'brokerCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "TeamBrokerClients" AS "teamBrokerClients"
+                                        WHERE
+                                        "teamBrokerClients"."TeamId" = "Team"."id"
+                                    )`),
+                                    'teamBrokerClientsCount'
                                 ]
-                                // [
-                                //     literal(`(
-                                //         SELECT COUNT(*)
-                                //         FROM "BrokerClients" AS "brokerClients"
-                                //         WHERE
-                                //         "brokerClients"."TeamId" = "Team"."id"
-                                //     )`),
-                                //     'brokerClientsCount'
-                                // ]
                             ]
                         }
                     })
@@ -214,6 +214,15 @@ module.exports = {
                                         "brokers"."TeamId" = "Team"."id"
                                     )`),
                                     'brokerCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "TeamBrokerClients" AS "teamBrokerClients"
+                                        WHERE
+                                        "teamBrokerClients"."TeamId" = "Team"."id"
+                                    )`),
+                                    'teamBrokerClientsCount'
                                 ]
                             ]
                         }
