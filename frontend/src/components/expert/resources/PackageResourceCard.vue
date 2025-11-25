@@ -34,7 +34,7 @@ export default {
         },
         getPackageUrl (pkg) {
             const packageName = this.getPackageName(pkg)
-            return `https://flows.nodered.org/package/${packageName}`
+            return `https://flows.nodered.org/node/${packageName}`
         },
         addUTMTracking (url) {
             try {
