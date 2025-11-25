@@ -65,20 +65,56 @@
                     </p>
                 </template>
             </EmptyState>
-            <EmptyState v-else-if="isUnmanaged">
-                <template #img>
-                    <img src="../../images/empty-states/team-instances.png">
-                </template>
-                <template #header>Team Billing</template>
-                <template #message>
-                    <p>
-                        Your team billing cannot currently be managed from the dashboard.
-                    </p>
-                    <p>
-                        Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
-                    </p>
-                </template>
-            </EmptyState>
+            <template v-else-if="isUnmanaged">
+                <section class="flex gap-5 flex-col md:flex-row mb-5 md:mb-0">
+                    <div class="ff-instance-info">
+                        <FormHeading><TemplateIcon />Hosted Instances</FormHeading>
+                        <table class="table-fixed w-full border border-separate rounded">
+                            <tbody v-if="usedInstancesByType.length > 0">
+                                <tr v-for="instance in usedInstancesByType" :key="instance.type.id" class="border-b">
+                                    <td class="font-medium">{{ instance.type.name }}</td>
+                                    <td class="py-2 text-right">
+                                        {{ instance.count }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tbody v-else>
+                                <tr><td class="text-center text-gray-400">None</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="ff-instance-info w-full md:w-auto">
+                        <FormHeading><TemplateIcon />Remote Instances</FormHeading>
+                        <table class="table-fixed w-full border border-separate rounded">
+                            <tbody v-if="team.deviceCount > 0">
+                                <tr class="border-b">
+                                    <td class="font-medium">Remote Instace</td>
+                                    <td class="py-2 text-right">
+                                        {{ team.deviceCount }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tbody v-else>
+                                <tr><td class="text-center text-gray-400">None</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                <EmptyState>
+                    <template #img>
+                        <img src="../../images/empty-states/team-instances.png">
+                    </template>
+                    <template #header>Team Billing</template>
+                    <template #message>
+                        <p>
+                            Your team billing cannot currently be managed from the dashboard.
+                        </p>
+                        <p>
+                            Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
+                        </p>
+                    </template>
+                </EmptyState>
+            </template>
             <EmptyState v-else>
                 <template #img>
                     <img src="../../images/empty-states/team-instances.png">
@@ -109,11 +145,12 @@
 
 <script>
 
-import { ExternalLinkIcon } from '@heroicons/vue/outline'
+import { ExternalLinkIcon, TemplateIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import billingApi from '../../api/billing.js'
+import instanceTypesApi from '../../api/instanceTypes.js'
 
 import EmptyState from '../../components/EmptyState.vue'
 import FormHeading from '../../components/FormHeading.vue'
@@ -149,6 +186,7 @@ const totalPriceCell = {
 export default {
     name: 'TeamBilling',
     components: {
+        TemplateIcon,
         Loading,
         FormHeading,
         ExternalLinkIcon,
@@ -188,7 +226,8 @@ export default {
                     is: markRaw(totalPriceCell)
                 }
             }],
-            errors: {}
+            errors: {},
+            instanceTypes: []
         }
     },
     computed: {
@@ -228,10 +267,21 @@ export default {
                 return daysLeft + ' day' + (daysLeft !== 1 ? 's' : '')
             }
             return ''
+        },
+        usedInstancesByType () {
+            return Object.keys(this.team.instanceCountByType).map(key => {
+                return {
+                    type: this.instanceTypes[key],
+                    count: this.team.instanceCountByType[key]
+                }
+            })
         }
     },
     watch: { },
     async mounted () {
+        const instanceTypes = await instanceTypesApi.getInstanceTypes()
+        this.instanceTypes = Object.fromEntries(instanceTypes.types.map(type => [type.id, type]))
+
         if (!this.billingSetUp && !this.isUnmanaged) {
             return
         }
