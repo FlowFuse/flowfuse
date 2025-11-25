@@ -104,7 +104,7 @@
                                         v-else
                                         class="text-gray-400 hover:text-blue-600"
                                         status="Disabled"
-                                        :text="!!features.ha ? 'disabled' : 'Not Available'"
+                                        :text="!!features.ha ? 'Disabled' : 'Not Available'"
                                     />
                                     <router-link v-if="canEditProject && !!features.ha" :to="{ name: 'instance-settings-ha' }" @click.stop>
                                         <LinkIcon class="mt-0.5 ml-3 w-4" />
