@@ -160,7 +160,7 @@
 </template>
 
 <script>
-import { ExternalLinkIcon, LinkIcon, TemplateIcon, TrendingUpIcon, erverIcon } from '@heroicons/vue/outline'
+import { ExternalLinkIcon, LinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import InstanceApi from '../../api/instances.js'
