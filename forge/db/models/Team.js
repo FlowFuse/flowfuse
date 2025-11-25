@@ -148,7 +148,25 @@ module.exports = {
                                         "devices"."TeamId" = "Team"."id"
                                     )`),
                                     'deviceCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "BrokerCredentials" AS "brokers"
+                                        WHERE
+                                        "brokers"."TeamId" = "Team"."id"
+                                    )`),
+                                    'brokerCount'
                                 ]
+                                // [
+                                //     literal(`(
+                                //         SELECT COUNT(*)
+                                //         FROM "BrokerClients" AS "brokerClients"
+                                //         WHERE
+                                //         "brokerClients"."TeamId" = "Team"."id"
+                                //     )`),
+                                //     'brokerClientsCount'
+                                // ]
                             ]
                         }
                     })
@@ -187,6 +205,15 @@ module.exports = {
                                         "devices"."TeamId" = "Team"."id"
                                     )`),
                                     'deviceCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "BrokerCredentials" AS "brokers"
+                                        WHERE
+                                        "brokers"."TeamId" = "Team"."id"
+                                    )`),
+                                    'brokerCount'
                                 ]
                             ]
                         }
