@@ -13,7 +13,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 const { KEY_HEALTH_CHECK_INTERVAL, KEY_DISABLE_AUTO_SAFE_MODE } = FF_UTIL.require('forge/db/models/ProjectSettings')
 const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 
-describe('Project API', function () {
+describe.only('Project API', function () {
     let app
     let projectInstanceCount = 0
     const generateProjectName = () => 'test-project' + (projectInstanceCount++)
@@ -963,6 +963,7 @@ describe('Project API', function () {
             })
             it('Check Project Settings do not have TeamType disabled properties', async function () {
                 const existingTeamTypeProps = app.defaultTeamType.properties
+                existingTeamTypeProps.enableAllFeatures = false
                 existingTeamTypeProps.features.customCatalogs = false
                 app.defaultTeamType.properties = existingTeamTypeProps
                 await app.defaultTeamType.save()
@@ -2415,6 +2416,10 @@ describe('Project API', function () {
                         // completions deliberately excluded to check it defaults to enabled
                     }
                 })
+                const existingTeamTypeProperties = app.defaultTeamType.properties
+                existingTeamTypeProperties.enableAllFeatures = false
+                app.defaultTeamType.properties = existingTeamTypeProperties
+                await app.defaultTeamType.save()
 
                 await login('alice', 'aaPassword')
                 TestObjects.tokens.project = (await app.project.refreshAuthTokens()).token
