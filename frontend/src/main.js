@@ -17,6 +17,7 @@ import PageLayout from './layouts/Page.vue'
 import router from './routes.js'
 import Alerts from './services/alerts.js'
 import { setupSentry } from './services/error-tracking.js'
+import { getServiceFactory } from './services/service.factory.js'
 import store from './store/index.js'
 
 import './index.css'
@@ -30,6 +31,8 @@ const app = createApp(App)
     .use(store)
     .use(router)
     .use(VueShepherdPlugin)
+
+const serviceFactory = getServiceFactory()
 
 // Error tracking
 setupSentry(app, router)
@@ -62,3 +65,10 @@ app.config.globalProperties.$filters = {
 }
 
 app.mount('#app')
+
+// Boot all services after mounting
+serviceFactory.bootAllServices(app, store, router)
+    .then((services) => services.bootstrap.init())
+    .catch((error) => {
+        console.error('Bootstrap initialization failed:', error)
+    })

@@ -12,6 +12,8 @@ forge:
       region: eu-west-1
   assistant:
     enabled: true
+  expert:
+    enabled: true
   resources:
     limits:
       cpu: 1000m

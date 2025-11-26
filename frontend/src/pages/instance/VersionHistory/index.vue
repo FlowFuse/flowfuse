@@ -1,7 +1,7 @@
 <template>
     <SectionTopMenu>
         <template #hero>
-            <toggle-button-group :buttons="pageToggle" class="page-toggle" data-nav="page-toggle" title="View" />
+            <toggle-button-group :buttons="pageToggle" class="page-toggle" data-nav="page-toggle" title="View" :visually-hide-title="true" />
         </template>
         <template #pictogram>
             <img v-if="$route.name.includes('timeline')" alt="info" src="../../../images/pictograms/timeline_red.png">
@@ -24,18 +24,22 @@
                 <ff-button
                     v-if="hasPermission('snapshot:import', { application: instance.application })"
                     kind="secondary"
+                    class="ff-btn-icon"
                     data-action="import-snapshot"
                     @click="showImportSnapshotDialog"
                 >
-                    <template #icon-left><UploadIcon /></template>Upload Snapshot
+                    <template #icon-left><UploadIcon /></template>
+                    <span class="hidden sm:inline upload-snapshot-text">Upload Snapshot</span>
                 </ff-button>
                 <ff-button
                     v-if="hasPermission('project:snapshot:create', { application: instance.application })"
                     kind="primary"
+                    class="ff-btn-icon"
                     data-action="create-snapshot"
                     @click="showCreateSnapshotDialog"
                 >
-                    <template #icon-left><PlusSmIcon /></template>Create Snapshot
+                    <template #icon-left><PlusSmIcon /></template>
+                    <span class="hidden sm:inline create-snapshot-text">Create Snapshot</span>
                 </ff-button>
             </section>
         </template>
@@ -157,5 +161,41 @@ export default {
 
 .page-fade-enter, .page-fade-leave-to {
     opacity: 0;
+}
+
+// Viewport-based responsive behavior (matches Tailwind sm: breakpoint)
+// Hide button text on narrow viewports (< 640px)
+@media (max-width: 639px) {
+  .upload-snapshot-text,
+  .create-snapshot-text {
+    display: none;
+  }
+}
+
+// Show button text on wider viewports (>= 640px)
+@media (min-width: 640px) {
+  .upload-snapshot-text,
+  .create-snapshot-text {
+    display: inline;
+  }
+}
+
+// Container query for drawer context - responsive button behavior
+// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
+// These override viewport-based rules when inside the drawer
+@container drawer (max-width: 639px) {
+  // Hide text when drawer is narrow - icon-only mode
+  .upload-snapshot-text,
+  .create-snapshot-text {
+    display: none;
+  }
+}
+
+@container drawer (min-width: 640px) {
+  // Show text when drawer is wide enough
+  .upload-snapshot-text,
+  .create-snapshot-text {
+    display: inline;
+  }
 }
 </style>

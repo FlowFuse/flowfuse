@@ -141,7 +141,7 @@ describe('FlowFuse - Instance editor', () => {
         cy.get('@tabs-wrapper').contains('Recent Activity')
         cy.get('@tabs-wrapper').contains('Specs')
 
-        cy.get('@tabs-wrapper').get('.logo').click()
+        cy.get('@tabs-wrapper').get('.logo a').click()
         cy.get('[data-el="page-name"]').contains('instance-1-1')
     })
 

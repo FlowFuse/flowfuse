@@ -252,7 +252,13 @@ const getters = {
 
             // Applications Role Based Access Control
             isApplicationsRBACFeatureEnabledForPlatform: !!state.features.rbacApplication,
-            isApplicationsRBACFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.rbacApplication
+            isApplicationsRBACFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.rbacApplication,
+
+            // Expert Assistant
+            isExpertAssistantFeatureEnabledForPlatform: !!state.features.expertAssistant,
+
+            // Instance Maintenance
+            isInstanceAutoStackUpdateFeatureEnabledForPlatform: !!state.features.autoStackUpdate
         }
         return {
             ...preCheck,
@@ -272,7 +278,8 @@ const getters = {
             isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam,
             isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam,
             isGeneratedSnapshotDescriptionEnabled: preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForPlatform && preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForTeam,
-            isRBACApplicationFeatureEnabled: preCheck.isApplicationsRBACFeatureEnabledForPlatform && preCheck.isApplicationsRBACFeatureEnabledForTeam
+            isRBACApplicationFeatureEnabled: preCheck.isApplicationsRBACFeatureEnabledForPlatform && preCheck.isApplicationsRBACFeatureEnabledForTeam,
+            isExpertAssistantFeatureEnabled: preCheck.isExpertAssistantFeatureEnabledForPlatform
         }
     }
 }
@@ -474,19 +481,19 @@ const actions = {
         const teams = await teamApi.getTeams()
         state.commit('setTeams', teams.teams)
     },
-    async login (state, credentials) {
+    async login ({ state, dispatch, commit, getters }, credentials) {
         try {
-            state.commit('setLoginInflight')
+            commit('setLoginInflight')
             if (credentials.username) {
                 await userApi.login(credentials.username, credentials.password)
             } else if (credentials.token) {
                 await userApi.verifyMFAToken(credentials.token)
             }
-            state.commit('setPending', true)
-            state.dispatch('checkState', state.getters.redirectUrlAfterLogin)
+            commit('setPending', true)
+            dispatch('checkState', getters.redirectUrlAfterLogin)
         } catch (err) {
             if (err.response?.status >= 401) {
-                state.commit('loginFailed', err.response.data)
+                commit('loginFailed', err.response.data)
             } else {
                 console.error(err)
             }
@@ -566,6 +573,12 @@ const actions = {
     },
     async clearOtherStores (state) {
         await state.dispatch('product/tables/clearState', null, { root: true })
+    },
+    async checkIfAuthenticated ({ commit }) {
+        return userApi.getUser()
+            .then(user => {
+                commit('login', user)
+            })
     }
 }
 

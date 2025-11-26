@@ -7,7 +7,7 @@
 
                     <table class="table-fixed w-full border border-separate rounded">
                         <tr class="border-b">
-                            <td class="w-40 font-medium">Editor</td>
+                            <td class="w-48 font-medium">Editor</td>
                             <td>
                                 <div v-if="editorAvailable">
                                     <div v-if="isVisitingAdmin || instance.settings.disableEditor" class="my-2">
@@ -65,7 +65,50 @@
                                     <template v-else>
                                         None
                                     </template>
-                                    <router-link class="mt-0.5 ml-3" :to="{ name: 'instance-settings-security' }"><LinkIcon class="w-4" /></router-link>
+                                    <router-link v-if="canEditProject" class="mt-0.5 ml-3" :to="{ name: 'instance-settings-security' }"><LinkIcon class="w-4" /></router-link>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-medium">Scheduled Maintenance</td>
+                            <td class="py-2">
+                                <div class="flex">
+                                    <template v-if="autoStackUpgrade">
+                                        <StatusBadge
+                                            class="forge-status-running hover:text-blue-600"
+                                            status="Enabled"
+                                        />
+                                    </template>
+                                    <template v-else>
+                                        <StatusBadge
+                                            class="text-gray-400 hover:text-blue-600"
+                                            status="Disabled"
+                                        />
+                                    </template>
+                                    <router-link v-if="canEditProject" :to="{ name: 'instance-settings-maintenance' }" @click.stop>
+                                        <LinkIcon class="mt-0.5 ml-3 w-4" />
+                                    </router-link>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-medium">High Availability</td>
+                            <td class="py-2">
+                                <div class="flex">
+                                    <StatusBadge
+                                        v-if="isHA"
+                                        class="forge-status-running hover:text-blue-600"
+                                        status="Enabled"
+                                    />
+                                    <StatusBadge
+                                        v-else
+                                        class="text-gray-400 hover:text-blue-600"
+                                        status="Disabled"
+                                        :text="!!features.ha ? 'Disabled' : 'Not Available'"
+                                    />
+                                    <router-link v-if="canEditProject && !!features.ha" :to="{ name: 'instance-settings-ha' }" @click.stop>
+                                        <LinkIcon class="mt-0.5 ml-3 w-4" />
+                                    </router-link>
                                 </div>
                             </td>
                         </tr>
@@ -108,8 +151,8 @@
             <div class="ff-instance-info" data-el="recent-activity">
                 <FormHeading><TrendingUpIcon />Recent Activity</FormHeading>
                 <AuditLog :entries="auditLog" :loading="loading" :showLoadMore="false" :disableAccordion="true" :disableAssociations="true" />
-                <div v-if="!loading" class="pb-4 text-center">
-                    <router-link to="./audit-log" class="forge-button-inline">More...</router-link>
+                <div v-if="!loading" class="pt-4 pb-4 text-center">
+                    <router-link to="./audit-log" class="forge-button-secondary">More...</router-link>
                 </div>
             </div>
         </div>
@@ -118,6 +161,7 @@
 
 <script>
 import { ExternalLinkIcon, LinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
+import { mapState } from 'vuex'
 
 import InstanceApi from '../../api/instances.js'
 import FormHeading from '../../components/FormHeading.vue'
@@ -148,17 +192,22 @@ export default {
         }
     },
     setup () {
-        const { isVisitingAdmin } = usePermissions()
+        const { hasPermission, isVisitingAdmin } = usePermissions()
 
-        return { isVisitingAdmin }
+        return {
+            hasPermission,
+            isVisitingAdmin
+        }
     },
     data () {
         return {
             auditLog: [],
-            loading: true
+            loading: true,
+            autoStackUpgrade: false
         }
     },
     computed: {
+        ...mapState('account', ['features']),
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },
@@ -173,15 +222,20 @@ export default {
                 return this.instance.settings.httpNodeAuth.type
             }
             return this.instance.template.settings.httpNodeAuth?.type
+        },
+        canEditProject () {
+            return this.hasPermission('project:edit', { application: this.instance.application })
         }
     },
     watch: {
         'instance.id': function (old, news) {
             this.loadLogs()
+            this.getUpdateSchedule(this.instance.id)
         }
     },
     mounted () {
         this.loadLogs()
+        this.getUpdateSchedule(this.instance.id)
     },
     methods: {
         loadLogs () {
@@ -202,6 +256,15 @@ export default {
         },
         loadItems: async function (instanceId, cursor) {
             return await InstanceApi.getInstanceAuditLog(instanceId, null, cursor, 4)
+        },
+        getUpdateSchedule: async function (instanceId) {
+            try {
+                await InstanceApi.getUpdateSchedule(instanceId)
+                this.autoStackUpgrade = true
+                return
+            } catch (error) {
+            }
+            this.autoStackUpgrade = false
         }
     }
 }
@@ -209,4 +272,39 @@ export default {
 
 <style lang="scss">
 @import "../../stylesheets/pages/project.scss";
+
+// Container query for drawer context
+// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
+@container drawer (min-width: 640px) {
+  .ff-project-overview .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+// Ensure single column layout when container is smaller
+@container drawer (max-width: 639px) {
+  .ff-project-overview .grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+
+// Editor URL overflow - truncate with ellipsis
+.ff-instance-info a.ff-link.flex {
+  min-width: 0;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// Type field - ellipse from LEFT to show stack name
+.ff-instance-info table tr td.flex .flex-grow {
+  direction: rtl;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 </style>

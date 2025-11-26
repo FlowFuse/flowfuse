@@ -148,6 +148,24 @@ module.exports = {
                                         "devices"."TeamId" = "Team"."id"
                                     )`),
                                     'deviceCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "BrokerCredentials" AS "brokers"
+                                        WHERE
+                                        "brokers"."TeamId" = "Team"."id"
+                                    )`),
+                                    'brokerCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "TeamBrokerClients" AS "teamBrokerClients"
+                                        WHERE
+                                        "teamBrokerClients"."TeamId" = "Team"."id"
+                                    )`),
+                                    'teamBrokerClientsCount'
                                 ]
                             ]
                         }
@@ -187,6 +205,24 @@ module.exports = {
                                         "devices"."TeamId" = "Team"."id"
                                     )`),
                                     'deviceCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "BrokerCredentials" AS "brokers"
+                                        WHERE
+                                        "brokers"."TeamId" = "Team"."id"
+                                    )`),
+                                    'brokerCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "TeamBrokerClients" AS "teamBrokerClients"
+                                        WHERE
+                                        "teamBrokerClients"."TeamId" = "Team"."id"
+                                    )`),
+                                    'teamBrokerClientsCount'
                                 ]
                             ]
                         }
@@ -360,20 +396,20 @@ module.exports = {
                     }
                     return (await M.TeamMember.findAll({ where, include: M.User })).filter(tm => tm && tm.User).map(tm => tm.User)
                 },
-                memberCount: async function (role) {
+                memberCount: async function (role, transaction) {
                     const where = {
                         TeamId: this.id
                     }
                     if (role !== undefined) {
                         where.role = role
                     }
-                    return await M.TeamMember.count({ where })
+                    return await M.TeamMember.count({ where }, { transaction })
                 },
-                ownerCount: async function () {
+                ownerCount: async function (transaction) {
                     // All Team owners
-                    return this.memberCount(Roles.Owner)
+                    return this.memberCount(Roles.Owner, transaction)
                 },
-                instanceCount: async function (projectTypeId) {
+                instanceCount: async function (projectTypeId, transaction) {
                     const where = { TeamId: this.id }
                     if (projectTypeId) {
                         if (typeof projectTypeId === 'string') {
@@ -383,15 +419,15 @@ module.exports = {
                         }
                         where.ProjectTypeId = projectTypeId
                     }
-                    return await M.Project.count({ where })
+                    return await M.Project.count({ where }, { transaction })
                 },
-                instanceCountByType: async function (where = {}) {
+                instanceCountByType: async function (where = {}, transaction) {
                     where = { ...where, TeamId: this.id }
                     const counts = await M.Project.count({
                         where,
                         attributes: ['ProjectTypeId'],
                         group: 'ProjectTypeId'
-                    })
+                    }, { transaction })
                     const result = {}
                     for (const instanceType of Object.values(counts)) {
                         result[M.ProjectType.encodeHashid(instanceType.ProjectTypeId)] = instanceType.count
@@ -401,8 +437,8 @@ module.exports = {
                 pendingInviteCount: async function () {
                     return await M.Invitation.count({ where: { teamId: this.id } })
                 },
-                deviceCount: async function () {
-                    return await M.Device.count({ where: { TeamId: this.id } })
+                deviceCount: async function (transaction) {
+                    return await M.Device.count({ where: { TeamId: this.id } }, { transaction })
                 },
                 getProperty: function (key, defaultValue) {
                     let teamValue
@@ -477,7 +513,7 @@ module.exports = {
                     await this.ensureTeamTypeExists()
                     return this.getProperty('devices.limit', -1)
                 },
-                checkDeviceCreateAllowed: async function () {
+                checkDeviceCreateAllowed: async function (transaction) {
                     if (this.suspended) {
                         const err = new Error()
                         err.code = 'team_suspended'
@@ -488,7 +524,7 @@ module.exports = {
                     const deviceLimit = await this.getDeviceLimit()
                     let currentDeviceCount = null
                     if (deviceLimit > -1) {
-                        currentDeviceCount = await this.deviceCount()
+                        currentDeviceCount = await this.deviceCount(transaction)
                         if (currentDeviceCount >= deviceLimit) {
                             const err = new Error()
                             err.code = 'device_limit_reached'
@@ -500,9 +536,9 @@ module.exports = {
                     const runtimeLimit = await this.getRuntimeLimit()
                     if (runtimeLimit > -1) {
                         if (currentDeviceCount === null) {
-                            currentDeviceCount = await this.deviceCount()
+                            currentDeviceCount = await this.deviceCount(transaction)
                         }
-                        const currentInstanceCount = await this.instanceCount()
+                        const currentInstanceCount = await this.instanceCount(transaction)
                         const currentRuntimeCount = currentDeviceCount + currentInstanceCount
                         if (currentRuntimeCount >= runtimeLimit) {
                             const err = new Error()
@@ -541,7 +577,7 @@ module.exports = {
                  * properties set
                  * @param {object} instanceType - a fully populated ProjectType object
                  */
-                checkInstanceTypeCreateAllowed: async function (instanceType) {
+                checkInstanceTypeCreateAllowed: async function (instanceType, transaction) {
                     if (this.suspended) {
                         const err = new Error()
                         err.code = 'team_suspended'
@@ -565,7 +601,7 @@ module.exports = {
                     if (instanceTypeLimit > -1) {
                         // This team type has a limit on how many instances of this type
                         // can be created. Ensure we're within that limit
-                        const currentInstanceCount = await this.instanceCount(instanceType.hashid)
+                        const currentInstanceCount = await this.instanceCount(instanceType.hashid, transaction)
                         if (currentInstanceCount >= instanceTypeLimit) {
                             const err = new Error()
                             err.code = 'instance_limit_reached'
@@ -576,8 +612,8 @@ module.exports = {
                     // Check for a combined instance+device limit
                     const runtimeLimit = await this.getRuntimeLimit()
                     if (runtimeLimit > -1) {
-                        const currentDeviceCount = await this.deviceCount()
-                        const currentInstanceCount = await this.instanceCount()
+                        const currentDeviceCount = await this.deviceCount(transaction)
+                        const currentInstanceCount = await this.instanceCount(transaction)
                         const currentRuntimeCount = currentDeviceCount + currentInstanceCount
                         if (currentRuntimeCount >= runtimeLimit) {
                             const err = new Error()

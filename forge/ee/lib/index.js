@@ -33,6 +33,7 @@ module.exports = fp(async function (app, opts) {
         app.config.features.register('certifiedNodes', true, true)
         app.config.features.register('ffNodes', true, true)
         app.config.features.register('rbacApplication', true, true)
+        require('./autoUpdateStacks').init(app)
     }
 
     // Set the Team Library Feature Flag
@@ -58,4 +59,7 @@ module.exports = fp(async function (app, opts) {
 
     // Set the assistant inline completions Feature Flag
     app.config.features.register('assistantInlineCompletions', true, true)
+
+    // Set the expert assistant Feature Flag
+    app.config.features.register('expertAssistant', app.config?.expert?.enabled ?? false, true)
 }, { name: 'app.ee.lib' })

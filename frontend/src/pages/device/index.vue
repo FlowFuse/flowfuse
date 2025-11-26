@@ -111,7 +111,7 @@
 <script>
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
-import { TerminalIcon } from '@heroicons/vue/solid'
+// import { TerminalIcon } from '@heroicons/vue/solid'
 import semver from 'semver'
 import { mapState } from 'vuex'
 
@@ -245,21 +245,40 @@ export default {
         },
         navigation () {
             return [
-                { label: 'Overview', to: { name: 'DeviceOverview' }, tag: 'device-overview' },
+                {
+                    label: 'Overview',
+                    to: { name: 'DeviceOverview' },
+                    tag: 'device-overview'
+                },
                 {
                     label: 'Version History',
-                    to: { name: 'DeviceSnapshots', params: { id: this.$route.params.id } },
+                    to: {
+                        name: 'DeviceSnapshots',
+                        params: { id: this.$route.params.id }
+                    },
                     tag: 'version-history'
                 },
-                { label: 'Audit Log', to: { name: 'device-audit-log' }, tag: 'device-audit-log' },
+                {
+                    label: 'Audit Log',
+                    to: { name: 'device-audit-log' },
+                    tag: 'device-audit-log'
+                },
                 {
                     label: 'Node-RED Logs',
                     to: { name: 'device-logs' },
-                    tag: 'device-logs',
-                    icon: TerminalIcon
+                    tag: 'device-logs'
+                    // icon: TerminalIcon
                 },
-                { label: 'Performance', to: { name: 'device-performance' }, tag: 'device-performance' },
-                { label: 'Settings', to: { name: 'device-settings' }, tag: 'device-settings' },
+                {
+                    label: 'Performance',
+                    to: { name: 'device-performance' },
+                    tag: 'device-performance'
+                },
+                {
+                    label: 'Settings',
+                    to: { name: 'device-settings' },
+                    tag: 'device-settings'
+                },
                 {
                     label: 'Developer Mode',
                     to: { name: 'DeviceDeveloperMode' },

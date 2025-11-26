@@ -16,7 +16,8 @@ const modelTypes = [
     'FlowTemplate',
     'MFAToken',
     'GitToken',
-    'Table'
+    'Table',
+    'MCPRegistration'
 ]
 
 async function init (app) {

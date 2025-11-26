@@ -260,6 +260,12 @@ export default {
             }
         },
         bindKeyNavigation (event) {
+            // Only handle arrow keys if focus is within global search
+            const globalSearch = document.getElementById('global-search')
+            if (!globalSearch || !globalSearch.contains(document.activeElement)) {
+                return
+            }
+
             const anchors = document.querySelectorAll('#global-search .iterable')
             const anchorsArray = Array.from(anchors)
             const currentIndex = anchorsArray.findIndex(anchor => anchor === document.activeElement)
@@ -280,7 +286,7 @@ export default {
 
 <style scoped lang="scss">
 #global-search {
-    padding: 0 12px;
+    padding: 0;
     display: flex;
     flex: 1;
     justify-content: flex-end;
@@ -337,10 +343,13 @@ export default {
 
                 input {
                     color: transparent;
-                    padding: 5px 27px;
+                    padding: 6px 27px;
                     background: $ff-grey-50;
                     border-color: $ff-color--border;
                     width: 100%;
+                    line-height: 20px;
+                    height: 34px;
+                    box-sizing: border-box;
 
                     &.overlay-input {
                         display: none;
@@ -399,6 +408,10 @@ export default {
                         &.overlay-input {
                             display: block;
                             transition: ease-in-out .3s;
+                            height: 34px;
+                            line-height: 20px;
+                            padding: 6px 27px;
+                            box-sizing: border-box;
 
                             &.has-results {
                                 border-bottom-left-radius: 0;

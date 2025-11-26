@@ -238,6 +238,7 @@ export default {
         },
         async ggCallback (response) {
             const result = await SSOApi.googleSSOCallback(response.access_token)
+
             if (result.url) {
                 window.location = result.url
             } else if (result.error) {

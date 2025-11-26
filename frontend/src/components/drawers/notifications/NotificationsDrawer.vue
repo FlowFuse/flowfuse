@@ -1,13 +1,22 @@
 <template>
     <div class="ff-notifications-drawer" data-el="notifications-drawer">
         <div class="header">
-            <div class="flex content">
-                <h2 class="title flex-grow">Notifications</h2>
-                <ff-checkbox v-model="hideReadNotifications" class=" mt-2 mr-4" data-action="show-read-check">
+            <h2 class="title">Notifications</h2>
+            <div class="header-actions">
+                <ff-checkbox v-model="hideReadNotifications" data-action="show-read-check">
                     Hide Read
                 </ff-checkbox>
+                <button
+                    class="header-button"
+                    :title="'Close Notifications'"
+                    data-el="notifications-drawer-close-button"
+                    @click="closeDrawer"
+                >
+                    <XIcon class="ff-icon" />
+                </button>
             </div>
-
+        </div>
+        <div class="controls">
             <div class="actions">
                 <span
                     class="forge-badge"
@@ -64,6 +73,7 @@
 </template>
 
 <script>
+import { XIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
 import { mapActions, mapGetters } from 'vuex'
 
@@ -76,6 +86,9 @@ import TeamInvitationReceivedNotification from '../../notifications/invitations/
 
 export default {
     name: 'NotificationsDrawer',
+    components: {
+        XIcon
+    },
     data () {
         return {
             componentCache: {},
@@ -109,6 +122,10 @@ export default {
     },
     methods: {
         ...mapActions('account', ['setNotifications']),
+        ...mapActions('ux/drawers', ['closeRightDrawer']),
+        closeDrawer () {
+            this.closeRightDrawer()
+        },
         getNotificationsComponent (notification) {
             let comp = this.componentCache[notification.type]
             if (comp) {

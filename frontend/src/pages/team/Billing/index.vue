@@ -56,7 +56,7 @@
             </div>
             <EmptyState v-else-if="billingDisabledForTeam">
                 <template #img>
-                    <img src="../../images/empty-states/team-instances.png">
+                    <img src="../../../images/empty-states/team-instances.png">
                 </template>
                 <template #header>Team Billing</template>
                 <template #message>
@@ -65,23 +65,27 @@
                     </p>
                 </template>
             </EmptyState>
-            <EmptyState v-else-if="isUnmanaged">
-                <template #img>
-                    <img src="../../images/empty-states/team-instances.png">
-                </template>
-                <template #header>Team Billing</template>
-                <template #message>
-                    <p>
-                        Your team billing cannot currently be managed from the dashboard.
-                    </p>
-                    <p>
-                        Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
-                    </p>
-                </template>
-            </EmptyState>
+            <template v-else-if="isUnmanaged">
+                <usage-overview />
+
+                <EmptyState>
+                    <template #img>
+                        <img src="../../../images/empty-states/team-instances.png">
+                    </template>
+                    <template #header>Team Billing</template>
+                    <template #message>
+                        <p>
+                            Your team billing cannot currently be managed from the dashboard.
+                        </p>
+                        <p>
+                            Please contact <a href="https://flowfuse.com/support/" class="underline" target="_blank">Support</a> for help.
+                        </p>
+                    </template>
+                </EmptyState>
+            </template>
             <EmptyState v-else>
                 <template #img>
-                    <img src="../../images/empty-states/team-instances.png">
+                    <img src="../../../images/empty-states/team-instances.png">
                 </template>
                 <template #header>Setup Team Billing</template>
                 <template #message>
@@ -113,14 +117,16 @@ import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
-import billingApi from '../../api/billing.js'
+import billingApi from '../../../api/billing.js'
 
-import EmptyState from '../../components/EmptyState.vue'
-import FormHeading from '../../components/FormHeading.vue'
-import Loading from '../../components/Loading.vue'
-import usePermissions from '../../composables/Permissions.js'
-import formatCurrency from '../../mixins/Currency.js'
-import formatDateMixin from '../../mixins/DateTime.js'
+import EmptyState from '../../../components/EmptyState.vue'
+import FormHeading from '../../../components/FormHeading.vue'
+import Loading from '../../../components/Loading.vue'
+import usePermissions from '../../../composables/Permissions.js'
+import formatCurrency from '../../../mixins/Currency.js'
+import formatDateMixin from '../../../mixins/DateTime.js'
+
+import UsageOverview from './components/UsageOverview.vue'
 
 const priceCell = {
     name: 'PriceCell',
@@ -149,6 +155,7 @@ const totalPriceCell = {
 export default {
     name: 'TeamBilling',
     components: {
+        UsageOverview,
         Loading,
         FormHeading,
         ExternalLinkIcon,

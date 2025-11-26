@@ -5,19 +5,21 @@
                 <span class="text">{{ text }}</span>
             </slot>
         </span>
-        <DuplicateIcon v-if="text.length" class="ff-icon" @click="copyPath" @click.prevent.stop />
-        <span ref="copied" class="ff-copied" :class="{ 'ff-copied-left': promptPosition === 'left'}">Copied!</span>
+        <button v-if="text.length" class="ff-icon-button" @click="copyPath">
+            <DuplicateIcon v-if="!copied" class="ff-icon" />
+            <CheckIcon v-else class="ff-icon ff-icon-check" />
+        </button>
     </span>
 </template>
 
 <script>
-import { DuplicateIcon } from '@heroicons/vue/outline'
+import { CheckIcon, DuplicateIcon } from '@heroicons/vue/outline'
 
 import Alert from '../services/alerts.js'
 
 export default {
     name: 'TextCopier',
-    components: { DuplicateIcon },
+    components: { DuplicateIcon, CheckIcon },
     props: {
         text: {
             required: true,
@@ -46,20 +48,42 @@ export default {
         }
     },
     emits: ['copied'],
+    data () {
+        return {
+            copied: false
+        }
+    },
     methods: {
-        copyPath () {
-            navigator.clipboard.writeText(this.text)
+        async copyPath () {
+            try {
+                // Try modern clipboard API first
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(this.text)
+                } else {
+                    // Fallback for non-secure contexts (HTTP, not HTTPS)
+                    const textArea = document.createElement('textarea')
+                    textArea.value = this.text
+                    textArea.style.position = 'fixed'
+                    textArea.style.left = '-999999px'
+                    textArea.style.top = '-999999px'
+                    document.body.appendChild(textArea)
+                    textArea.focus()
+                    textArea.select()
+                    document.execCommand('copy')
+                    document.body.removeChild(textArea)
+                }
 
-            if (this.confirmationType === 'alert') {
-                Alert.emit('Copied to Clipboard', 'confirmation')
-            } else {
-                // show "Copied" notification
-                this.$refs.copied.style.display = 'inline'
-                // hide after 500ms
-                setTimeout(() => {
-                    this.$refs.copied.style.display = 'none'
-                }, 500)
-                this.$emit('copied')
+                if (this.confirmationType === 'alert') {
+                    Alert.emit('Copied to Clipboard', 'confirmation')
+                } else {
+                    this.copied = true
+                    setTimeout(() => { this.copied = false }, 2000)
+                    this.$emit('copied')
+                }
+            } catch (err) {
+                console.error('Failed to copy to clipboard:', err)
+                // Don't show alert to avoid inject() error
+                // Just keep the icon in copy state (don't show checkmark)
             }
         }
     }
@@ -74,6 +98,35 @@ export default {
   position: relative;
   &:hover {
     cursor: pointer;
+  }
+  .ff-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: $ff-grey-600;
+
+    &:hover {
+      color: $ff-indigo-600;
+      background-color: $ff-indigo-50;
+    }
+
+    &:active {
+      background-color: $ff-indigo-100;
+    }
+
+    .ff-icon {
+      pointer-events: none;
+    }
+
+    .ff-icon-check {
+      color: $ff-green-600;
+    }
   }
   .ff-copied {
     background-color: black;

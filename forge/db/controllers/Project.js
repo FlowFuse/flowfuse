@@ -1,7 +1,7 @@
 const crypto = require('crypto')
 
 const { ControllerError } = require('../../lib/errors')
-const { KEY_SETTINGS } = require('../models/ProjectSettings')
+const { KEY_SETTINGS, KEY_STACK_UPGRADE_HOUR } = require('../models/ProjectSettings')
 
 /**
  * inflightProjectState - when projects are transitioning between states, there
@@ -369,10 +369,6 @@ module.exports = {
             throw new ControllerError('invalid_project_type', 'Invalid project type')
         }
 
-        // This will perform all checks needed to ensure this instance type can be created for this team.
-        // Throws an exception if not allowed
-        await team.checkInstanceTypeCreateAllowed(type)
-
         if (sourceProject && flowBlueprint) {
             throw new ControllerError('invalid_request', 'Source Project and Flow Blueprint cannot both be used')
         }
@@ -415,6 +411,16 @@ module.exports = {
             }
         }
 
+        const transaction = await app.db.sequelize.transaction()
+        // This will perform all checks needed to ensure this instance type can be created for this team.
+        // Throws an exception if not allowed
+        try {
+            await team.checkInstanceTypeCreateAllowed(type, transaction)
+        } catch (err) {
+            await transaction.rollback()
+            throw err
+        }
+
         let instance
         try {
             instance = await app.db.models.Project.create({
@@ -422,8 +428,10 @@ module.exports = {
                 ApplicationId: application.id,
                 type: '',
                 url: ''
-            })
+            }, { transaction })
+            await transaction.commit()
         } catch (err) {
+            await transaction.rollback()
             throw new ControllerError('unexpected_error', err.message, null, { cause: err })
         }
 
@@ -468,6 +476,22 @@ module.exports = {
             await instance.updateSetting('credentialSecret', app.db.models.Project.generateCredentialSecret())
             if (flowBlueprint) {
                 await app.db.controllers.Project.applyFlowBlueprint(instance, flowBlueprint)
+            }
+        }
+
+        if (app.config.features.enabled('autoStackUpdate')) {
+            // need to check TeamType flag, commented out code ready for Team Overrides
+            await team.ensureTeamTypeExists()
+            if (team.TeamType.getProperty('autoStackUpdate')) {
+                const autoStackUpdate = team.TeamType.getProperty('autoStackUpdate')
+                if (autoStackUpdate.enabled && !autoStackUpdate.allowDisable) {
+                    const days = autoStackUpdate.days
+                    const hours = autoStackUpdate.hours
+                    // generate random day and hour in ranges
+                    const day = days[Math.round(days.length * Math.random())]
+                    const hour = hours[Math.round(hours.length * Math.random())]
+                    await instance.updateSetting(`${KEY_STACK_UPGRADE_HOUR}_${day}`, { hour })
+                }
             }
         }
 

@@ -29,7 +29,7 @@
             >
                 <li>
                     <div class="ff-option-content truncate" :class="{selected, active}">
-                        <component v-if="option.icon" :is="PlusIcon" class="ff-icon transition-fade" />
+                        <component v-if="option.icon" :is="option.icon" class="ff-icon transition-fade" />
                         <span class="truncate">{{ option.label }}</span>
                     </div>
                 </li>
@@ -43,8 +43,10 @@ import {
     ListboxButton,
     ListboxOption
 } from '@headlessui/vue'
-import { PlusIcon } from '@heroicons/vue/solid'
+import { PlusIcon, UserAddIcon } from '@heroicons/vue/solid'
 import { mapGetters, mapState } from 'vuex'
+
+import usePermissions from '../composables/Permissions.js'
 
 import NavItem from './NavItem.vue'
 
@@ -57,7 +59,8 @@ export default {
         ListboxButton
     },
     setup () {
-        return { PlusIcon }
+        const { hasPermission } = usePermissions()
+        return { PlusIcon, UserAddIcon, hasPermission }
     },
     computed: {
         ...mapState('account', ['team', 'teams', 'settings']),
@@ -67,6 +70,11 @@ export default {
                 ...this.teams.map(team => {
                     return { label: team.name, value: team.slug }
                 }),
+                (
+                    this.team && this.hasPermission('team:user:invite')
+                        ? { label: 'Invite Members', value: 'invite-members', icon: UserAddIcon }
+                        : undefined
+                ),
                 (
                     this.canCreateTeam
                         ? { label: 'Create New Team', value: 'create-new-team', icon: PlusIcon }
@@ -85,6 +93,8 @@ export default {
         selection (value) {
             if (value === 'create-new-team') {
                 return this.createTeam()
+            } else if (value === 'invite-members') {
+                return this.inviteMembers()
             } else {
                 return this.selectTeam({ slug: value })
             }
@@ -106,6 +116,13 @@ export default {
         createTeam () {
             return this.$router.push({
                 name: 'CreateTeam'
+            })
+        },
+        inviteMembers () {
+            return this.$router.push({
+                name: 'team-members',
+                params: { team_slug: this.team.slug },
+                query: { action: 'invite' }
             })
         }
     }
@@ -142,10 +159,6 @@ export default {
     display: flex;
     align-items: center;
 
-    &.create-new {
-        background-color: $ff-grey-200;
-    }
-
     .ff-option-content {
         padding: 12px 12px 12px 18px;
         display: flex;
@@ -156,10 +169,11 @@ export default {
         &.selected {
             background: $ff-grey-200;
         }
-    }
 
-    &:hover {
-        background-color: $ff-grey-100;
+        .ff-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
     }
 }
 
