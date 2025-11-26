@@ -13,7 +13,7 @@ const { Roles } = FF_UTIL.require('forge/lib/roles')
 const { KEY_HEALTH_CHECK_INTERVAL, KEY_DISABLE_AUTO_SAFE_MODE } = FF_UTIL.require('forge/db/models/ProjectSettings')
 const { START_DELAY, STOP_DELAY } = FF_UTIL.require('forge/containers/stub/index.js')
 
-describe.only('Project API', function () {
+describe('Project API', function () {
     let app
     let projectInstanceCount = 0
     const generateProjectName = () => 'test-project' + (projectInstanceCount++)
