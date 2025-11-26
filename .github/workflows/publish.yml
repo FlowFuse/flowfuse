@@ -133,6 +133,7 @@ jobs:
   notify-slack:
     name: Notify on failure
     if: failure()
+    needs: [check-tests-status, publish]
     runs-on: ubuntu-latest
 
     steps:
