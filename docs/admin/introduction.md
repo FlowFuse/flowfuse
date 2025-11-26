@@ -182,10 +182,10 @@ including what Instance Types are available and any limits that should be applie
     Provides a Team scoped shared SQL Relational Database (Requires specific configuration).
  - **Assistant Inline Code Completion**
  
-    Allows LLM assistance when writing Functions nodes (This is currently only available to FlowFuse Cloud)
+    Allows LLM assistance when writing Functions nodes (requires a token from FlowFuse Support and available to Enterprise License holders)
  - **Generated Snapshot Descriptions**
 
-    Enables the creation of Generative AI descriptions of Snapshots (requires a token from FlowFuse and available to Enterprise License holders)
+    Enables the creation of Generative AI descriptions of Snapshots (requires a token from FlowFuse Support and available to Enterprise License holders)
 
 ### Managing Instance Types
 
