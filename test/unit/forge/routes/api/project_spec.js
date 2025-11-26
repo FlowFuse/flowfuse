@@ -963,6 +963,7 @@ describe('Project API', function () {
             })
             it('Check Project Settings do not have TeamType disabled properties', async function () {
                 const existingTeamTypeProps = app.defaultTeamType.properties
+                existingTeamTypeProps.enableAllFeatures = false
                 existingTeamTypeProps.features.customCatalogs = false
                 app.defaultTeamType.properties = existingTeamTypeProps
                 await app.defaultTeamType.save()
@@ -2415,6 +2416,10 @@ describe('Project API', function () {
                         // completions deliberately excluded to check it defaults to enabled
                     }
                 })
+                const existingTeamTypeProperties = app.defaultTeamType.properties
+                existingTeamTypeProperties.enableAllFeatures = false
+                app.defaultTeamType.properties = existingTeamTypeProperties
+                await app.defaultTeamType.save()
 
                 await login('alice', 'aaPassword')
                 TestObjects.tokens.project = (await app.project.refreshAuthTokens()).token

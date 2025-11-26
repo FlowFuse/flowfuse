@@ -52,6 +52,10 @@ describe('ProjectSnapshot controller', function () {
         })
         factory = app.factory
         app.TestObjects.application1 = await factory.createApplication({ name: 'application-1' }, app.TestObjects.team1)
+        const defaultTeamTypeProperties = app.TestObjects.defaultTeamType.properties
+        defaultTeamTypeProperties.enableAllFeatures = false
+        app.TestObjects.defaultTeamType.properties = defaultTeamTypeProperties
+        await app.TestObjects.defaultTeamType.save()
     })
 
     after(async function () {

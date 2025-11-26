@@ -11,7 +11,8 @@ module.exports = {
                     features: {
                         'shared-library': true
                     },
-                    instances: { }
+                    instances: { },
+                    enableAllFeatures: true
                 }
 
                 // Get list of active instance types

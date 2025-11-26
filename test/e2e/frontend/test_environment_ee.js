@@ -95,6 +95,7 @@ if (fs.existsSync(configPath)) {
     defaultTeamTypeProperties.features.deviceGroups = true
     defaultTeamTypeProperties.features.protectedInstance = true
     defaultTeamTypeProperties.features.teamHttpSecurity = true
+    defaultTeamTypeProperties.enableAllFeatures = false
     defaultTeamType.properties = defaultTeamTypeProperties
     await defaultTeamType.save()
 

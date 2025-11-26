@@ -156,7 +156,11 @@ module.exports = {
                     return this.getProperty(`instances.${instanceType}.${property}`, defaultValue)
                 },
                 getFeatureProperty: function (property, defaultValue) {
-                    return this.getProperty(`features.${property}`, defaultValue)
+                    if (this.getProperty('enableAllFeatures', false)) {
+                        return true
+                    } else {
+                        return this.getProperty(`features.${property}`, defaultValue)
+                    }
                 }
             }
         }
