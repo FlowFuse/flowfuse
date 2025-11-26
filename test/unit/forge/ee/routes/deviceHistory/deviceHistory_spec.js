@@ -44,6 +44,7 @@ describe('Devices API (EE)', function () {
             const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
             const defaultTeamTypeProperties = defaultTeamType.properties
             defaultTeamTypeProperties.features.projectHistory = enabled
+            defaultTeamTypeProperties.enableAllFeatures = false
             defaultTeamType.properties = defaultTeamTypeProperties
             await defaultTeamType.save()
         }
