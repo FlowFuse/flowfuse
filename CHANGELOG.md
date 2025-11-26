@@ -1,3 +1,12 @@
+#### 2.24.2: Release
+
+ - fix(ci): send slack notification on package publish failure (#6337)
+ - Ensure correct mime type used for cached device editor (#6335) @hardillb
+ - Unmanaged billing usage (#6331) @cstns
+ - Fix 404 for packages in FlowFuse expert due to wrong url pattern (#6332) @dimitrieh
+ - Add High Availability status display and edit link in `Instance Overview` page (#6330) @cstns
+ - build(deps): bump actions/checkout from 5.0.0 to 6.0.0 (#6327) @app/dependabot
+
 #### 2.24.1: Release
 
  - Add Scheduled Maintenance pill to Overview (#6320) @hardillb
