@@ -168,33 +168,9 @@
 
                 <FormHeading>Features</FormHeading>
                 <div class="grid gap-3 grid-cols-2">
-                    <FormRow v-model="input.properties.features['shared-library']" type="checkbox">Team Library</FormRow>
-                    <FormRow v-model="input.properties.features.projectComms" type="checkbox">Project Nodes</FormRow>
-                    <FormRow v-model="input.properties.features.ha" type="checkbox">High Availability</FormRow>
-                    <FormRow v-model="input.properties.features.teamHttpSecurity" type="checkbox">Team-based Endpoint Security</FormRow>
-                    <FormRow v-model="input.properties.features.customCatalogs" type="checkbox">Custom NPM Catalogs</FormRow>
-                    <FormRow v-model="input.properties.features.deviceGroups" type="checkbox">Device Groups</FormRow>
-                    <FormRow v-model="input.properties.features.emailAlerts" type="checkbox">Email Alerts</FormRow>
-                    <FormRow v-model="input.properties.features.deviceAutoSnapshot" type="checkbox">Device Auto Snapshot</FormRow>
-                    <FormRow v-model="input.properties.features.protectedInstance" type="checkbox">Protected Instances</FormRow>
-                    <FormRow v-model="input.properties.features.instanceAutoSnapshot" type="checkbox">Instance Auto Snapshot</FormRow>
-                    <FormRow v-model="input.properties.features.editorLimits" type="checkbox">API/Debug Length Limits</FormRow>
-                    <FormRow v-model="input.properties.features.customHostnames" type="checkbox">Custom Hostnames</FormRow>
-                    <FormRow v-model="input.properties.features.staticAssets" type="checkbox">Static Assets</FormRow>
-                    <FormRow v-model="input.properties.features.bom" type="checkbox">Bill of Materials / Dependencies</FormRow>
-                    <FormRow v-model="input.properties.features.teamBroker" type="checkbox">Team Broker</FormRow>
-                    <FormRow v-model="input.properties.features.projectHistory" type="checkbox">Version History Timeline</FormRow>
-                    <FormRow v-model="input.properties.features.npm" type="checkbox">NPM Packages</FormRow>
-                    <FormRow v-model="input.properties.features.gitIntegration" type="checkbox">Git Integration</FormRow>
-                    <FormRow v-model="input.properties.features.instanceResources" type="checkbox">Instance Resources</FormRow>
-                    <FormRow v-model="input.properties.features.tables" type="checkbox">Tables</FormRow>
-                    <FormRow v-model="input.properties.features.certifiedNodes" type="checkbox">Certified Nodes</FormRow>
-                    <FormRow v-model="input.properties.features.ffNodes" type="checkbox">FlowFuse Exclusive Nodes</FormRow>
-                    <FormRow v-model="input.properties.features.generatedSnapshotDescription" type="checkbox">Generated Snapshot Descriptions</FormRow>
-                    <FormRow v-model="input.properties.features.assistantInlineCompletions" type="checkbox">Assistant Inline Code Completions</FormRow>
-                    <FormRow v-model="input.properties.features.rbacApplication" type="checkbox">Application-level RBAC</FormRow>
+                    <FormRow v-for="(feature, index) in featureList" :key="index" v-model="input.properties.features[feature]" type="checkbox">{{ featureNames[feature] }}</FormRow>
                     <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
-                    <span />
+                    <span v-if="featureList.length % 2 === 1" />
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
@@ -217,6 +193,7 @@
 <script>
 import { mapState } from 'vuex'
 
+import { featureList, featureNames } from '../../../../../../forge/lib/features.js'
 import instanceTypesApi from '../../../../api/instanceTypes.js'
 import teamTypesApi from '../../../../api/teamTypes.js'
 
@@ -391,6 +368,8 @@ export default {
     },
     data () {
         return {
+            featureList,
+            featureNames,
             teamType: null,
             instanceTypes: [],
             trialInstanceTypes: [],

@@ -437,7 +437,7 @@ module.exports = {
                         : [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended', 'properties']
                             },
                             {
                                 model: M.Application,
@@ -710,7 +710,7 @@ module.exports = {
                     })
 
                     const platformRbacEnabled = app.config.features.enabled('rbacApplication')
-                    const teamRbacEnabled = team.TeamType.getFeatureProperty('rbacApplication', false)
+                    const teamRbacEnabled = team.getFeatureProperty('rbacApplication', false)
                     const rbacEnabled = platformRbacEnabled && teamRbacEnabled
 
                     for (const project of results) {

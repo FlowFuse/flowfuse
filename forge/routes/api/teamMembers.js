@@ -122,7 +122,7 @@ module.exports = async function (app) {
     /**
      * Change member role
      *  - only admins or owner should be able to do this
-     * POST [/api/v1/teams/:teamId/members]/:userId
+     * PUT [/api/v1/teams/:teamId/members/:userId]
      */
     app.put('/:userId', {
         preHandler: app.needsPermission('team:user:change-role'),
@@ -189,7 +189,7 @@ module.exports = async function (app) {
                 reply.code(400).send({ code: 'invalid_team_role', error: 'invalid role' })
             }
         } else if (hasPermissions) {
-            if (!app.config.features.enabled('rbacApplication') || request.team.TeamType.getFeatureProperty('rbacApplication', false) !== true) {
+            if (!app.config.features.enabled('rbacApplication') || request.team.getFeatureProperty('rbacApplication', false) !== true) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Invalid request - Application RBAC not enabled for team' })
                 return
             }

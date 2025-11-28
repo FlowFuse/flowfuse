@@ -81,7 +81,7 @@ module.exports = async function (app) {
             includeInstanceApplication: true,
             includeDeviceGroup: true
         }
-        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.getFeatureProperty('rbacApplication', false)
         if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
             const excludeApplications = []
             Object.keys(request.teamMembership.permissions.applications).forEach(appId => {
@@ -437,7 +437,7 @@ module.exports = async function (app) {
         try {
             /** @type {typeof import('../../db/controllers/Device.js')} */
             const deviceController = app.db.controllers.Device
-            const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team.TeamType.getFeatureProperty('rbacApplication', false)
+            const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team.getFeatureProperty('rbacApplication', false)
             // Only pass through the teamMembership object if application RBAC is enabled
             await deviceController.bulkDelete(request.team, request.body?.devices, request.session?.User, applicationRBACEnabled ? request.teamMembership : null)
             reply.send({ status: 'okay' })
@@ -497,7 +497,7 @@ module.exports = async function (app) {
             }
 
             if (request.body.instance !== undefined || request.body.application !== undefined) {
-                const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team.TeamType.getFeatureProperty('rbacApplication', false)
+                const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team.getFeatureProperty('rbacApplication', false)
                 // Only pass through the teamMembership object if application RBAC is enabled
                 const updatedDevices = await deviceController.moveDevices(request.body.devices, request.body.application, request.body.instance, request.session?.User, applicationRBACEnabled ? request.teamMembership : null)
                 updatedDevices.devices = updatedDevices.devices.map(d => app.db.views.Device.device(d))

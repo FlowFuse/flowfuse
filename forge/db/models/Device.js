@@ -729,7 +729,8 @@ module.exports = {
                     })
 
                     const platformRbacEnabled = app.config.features.enabled('rbacApplication')
-                    const teamRbacEnabled = team.TeamType.getFeatureProperty('rbacApplication', false)
+                    await team.ensureTeamTypeExists()
+                    const teamRbacEnabled = team.getFeatureProperty('rbacApplication', false)
                     const rbacEnabled = platformRbacEnabled && teamRbacEnabled
                     findAll.forEach((device) => {
                         const applicationId = device.Application?.hashid ?? device.Project?.Application?.hashid
