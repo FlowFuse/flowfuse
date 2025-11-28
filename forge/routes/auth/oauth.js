@@ -108,11 +108,11 @@ module.exports = async function (app) {
             }
         } else {
             // Ensure redirect_uri path component is correct for the tools plugin
-            if (!/\/flow(fuse|forge)-nr-tools\/auth\/callback$/.test(redirectURI.pathname)) {
+            if (!/\/(flow(fuse|forge)-nr-tools|nr-assistant)\/auth\/callback$/.test(redirectURI.pathname)) {
                 return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
             }
-            if (scope !== 'ff-plugin') {
-                return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'. Only 'ff-plugin' is supported", state)
+            if (scope !== 'ff-plugin' && scope !== 'ff-assistant') {
+                return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'", state)
             }
         }
         // If anything else missing, redirect with details
@@ -405,9 +405,8 @@ module.exports = async function (app) {
                 }
                 reply.send(response)
             } else {
-                const accessToken = await app.db.controllers.AccessToken.createTokenForUser(requestObject.userId,
-                    null,
-                    [
+                const scope = {
+                    'ff-plugin': [
                         'user:read',
                         'user:team:list',
                         'team:read',
@@ -418,6 +417,17 @@ module.exports = async function (app) {
                         'device:snapshot:list',
                         'device:snapshot:create'
                     ],
+                    'ff-assistant': [
+                        'user:read',
+                        'assistant:call'
+                    ]
+                }[requestObject.scope]
+                if (!scope) {
+                    return badRequest(reply, 'access_denied', 'Access Denied')
+                }
+                const accessToken = await app.db.controllers.AccessToken.createTokenForUser(requestObject.userId,
+                    null,
+                    scope,
                     true
                 )
                 const response = {

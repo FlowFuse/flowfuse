@@ -91,6 +91,27 @@
                                 </div>
                             </td>
                         </tr>
+                        <tr class="border-b">
+                            <td class="font-medium">High Availability</td>
+                            <td class="py-2">
+                                <div class="flex">
+                                    <StatusBadge
+                                        v-if="isHA"
+                                        class="forge-status-running hover:text-blue-600"
+                                        status="Enabled"
+                                    />
+                                    <StatusBadge
+                                        v-else
+                                        class="text-gray-400 hover:text-blue-600"
+                                        status="Disabled"
+                                        :text="!!features.ha ? 'Disabled' : 'Not Available'"
+                                    />
+                                    <router-link v-if="canEditProject && !!features.ha" :to="{ name: 'instance-settings-ha' }" @click.stop>
+                                        <LinkIcon class="mt-0.5 ml-3 w-4" />
+                                    </router-link>
+                                </div>
+                            </td>
+                        </tr>
                     </table>
                 </div>
                 <div class="ff-instance-info">
@@ -140,6 +161,7 @@
 
 <script>
 import { ExternalLinkIcon, LinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
+import { mapState } from 'vuex'
 
 import InstanceApi from '../../api/instances.js'
 import FormHeading from '../../components/FormHeading.vue'
@@ -185,6 +207,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('account', ['features']),
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },
