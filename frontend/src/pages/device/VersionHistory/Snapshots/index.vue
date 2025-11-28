@@ -474,7 +474,7 @@ export default {
                 props: {
                     snapshot,
                     snapshotList: this.snapshotList,
-                    instance: this.instance,
+                    instance: this.device,
                     canSetDeviceTarget: false,
                     canRestore: !this.canDeploy(snapshot),
                     isDevice: true
