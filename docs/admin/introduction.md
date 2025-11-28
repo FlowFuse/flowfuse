@@ -141,7 +141,7 @@ including what Instance Types are available and any limits that should be applie
     Allows Hosted Instances to be marked as Protected. This disables Editor access and requires all flows to be updated via a Pipeline. More details [here](../user/devops-pipelines.md#protected-instances)
  - **Git Integration**
 
-    This allows a GitHub project to be used as the source or output of a Pipeline. More details [here](../user/devops-pipelines.md#git-repository-stage.md)
+    This allows a GitHub project to be used as the source or output of a Pipeline. More details [here](../user/devops-pipelines.md#git-repository-stage)
  - **API/Debug Length Limits**
 
     Lets a Team change the size of the max payload a Hosted Instance can accept and also the size messages sent to the Debug Sidebar will be truncated to. More details [here](../user/instance-settings.md#editor)
