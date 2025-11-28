@@ -23,7 +23,7 @@
                 @click="selected(b, bucket.devices)"
             >
                 <div>{{ bucket.devices.length }}</div>
-                <label class="truncate overflow-ellipsis">{{ bucket.label }}</label>
+                <label class="truncate text-ellipsis">{{ bucket.label }}</label>
             </div>
         </div>
     </div>

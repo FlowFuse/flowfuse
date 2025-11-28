@@ -23,7 +23,7 @@
                     >
                         <template #option="{ option, selected, active }">
                             <li :class="{selected, active}">
-                                <div class="ff-option-content flex flex-col !gap-2 !items-start">
+                                <div class="ff-option-content flex flex-col gap-2! items-start!">
                                     <div class="title flex justify-between w-full items-center">
                                         <span class="truncate bold flex-1">{{ option.name }}</span>
                                         <span class="truncate text-gray-500 flex gap-1 items-center">

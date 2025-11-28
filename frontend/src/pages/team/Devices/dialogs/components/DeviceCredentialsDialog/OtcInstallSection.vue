@@ -6,7 +6,7 @@
             <OsSelector :selected-o-s="selectedOS" @select-os="$emit('select-os', $event)" />
 
             <div class="grid grid-cols-1 gap-4">
-                <div class="p-2 border rounded bg-gray-50">
+                <div class="p-2 border rounded-sm bg-gray-50">
                     <TerminalCommandSection
                         :title="command.title"
                         :command="command.command"

@@ -102,7 +102,7 @@ export default {
 .ff-file-upload {
     width: 100%;
     display: flex;
-    gap: $ff-unit-sm;
+    gap: var(--ff-unit-sm);
     .ff-btn {
         flex-shrink: 0;
     }
@@ -110,23 +110,23 @@ export default {
 .ff-file-upload--empty,
 .ff-file-upload--file {
     flex-grow: 1;
-    border: 1px solid $ff-grey-300;
-    padding: $ff-unit-sm $ff-unit-md;
-    border-radius: $ff-unit-sm;
+    border: 1px solid var(--ff-grey-300);
+    padding: var(--ff-unit-sm) var(--ff-unit-md);
+    border-radius: var(--ff-unit-sm);
     display: flex;
     align-items: center;
-    gap: $ff-unit-sm;
+    gap: var(--ff-unit-sm);
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow-x: hidden;
 }
 .ff-file-upload--empty {
-    color: $ff-grey-400;
+    color: var(--ff-grey-400);
 }
 .ff-file-upload--clear {
     cursor: pointer;
     &:hover {
-        color: $ff-blue-600;
+        color: var(--ff-blue-600);
     }
 }
 </style>

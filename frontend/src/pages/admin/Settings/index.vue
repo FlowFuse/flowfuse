@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header title="Settings" :tabs="sideNavigation" />
         </template>
-        <div class="flex-grow">
+        <div class="grow">
             <router-view />
         </div>
     </ff-page>

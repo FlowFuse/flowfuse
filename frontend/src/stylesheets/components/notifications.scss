@@ -1,11 +1,11 @@
 .ff-notification-interview {
   max-width: 450px;
-  background-color: $ff-white;
+  background-color: var(--ff-white);
   box-shadow: -6px 6px 6px #00000040;
   border-radius: 0 6px 6px 0;
   padding: 12px 9px 12px 18px;
-  border: 1px solid $ff-blue-700;
-  border-left: 8px solid $ff-blue-700;
+  border: 1px solid var(--ff-blue-700);
+  border-left: 8px solid var(--ff-blue-700);
 
   h3 {
     font-size: 1.1rem;
@@ -25,11 +25,11 @@
     font-size: 1rem;
 
     .ff-btn.ff-btn--primary {
-      background-color: $ff-blue-700;
-      border-color: $ff-blue-700;
+      background-color: var(--ff-blue-700);
+      border-color: var(--ff-blue-700);
 
       &:hover {
-        background-color: $ff-blue-800;
+        background-color: var(--ff-blue-800);
       }
     }
   }
@@ -47,7 +47,7 @@ $ff-notifications-drawer-side-padding: 6px;
   > .header {
     width: 100%;
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid $ff-grey-200;
+    border-bottom: 1px solid var(--ff-grey-200);
     background: white;
     flex-shrink: 0;
     display: flex;
@@ -90,7 +90,7 @@ $ff-notifications-drawer-side-padding: 6px;
 
         &:hover {
           cursor: pointer;
-          background: $ff-grey-100;
+          background: var(--ff-grey-100);
         }
       }
     }
@@ -98,7 +98,7 @@ $ff-notifications-drawer-side-padding: 6px;
 
   > .controls {
     width: 100%;
-    border-bottom: 1px solid $ff-grey-300;
+    border-bottom: 1px solid var(--ff-grey-300);
     background: white;
     display: flex;
     flex-direction: column;
@@ -110,16 +110,16 @@ $ff-notifications-drawer-side-padding: 6px;
       padding: 10px 12px;
 
       .forge-badge {
-        background-color: $ff-grey-100;
+        background-color: var(--ff-grey-100);
         border-radius: 5px;
 
         &:hover {
           cursor: pointer;
-          background-color: $ff-grey-300
+          background-color: var(--ff-grey-300)
         }
 
         &.disabled {
-          color: $ff-grey-400;
+          color: var(--ff-grey-400);
 
           &:hover {
             cursor: not-allowed;
@@ -132,19 +132,19 @@ $ff-notifications-drawer-side-padding: 6px;
   .messages-wrapper {
     flex: 1;
     width: 100%;
-    background-color: $ff-grey-100;
+    background-color: var(--ff-grey-100);
     overflow: auto;
-    $read: $ff-grey-400;
+    $read: var(--ff-grey-400);
     $info: blue;
-    $warning: $ff-yellow-600;
-    $error: $ff-red-500;
+    $warning: var(--ff-yellow-600);
+    $error: var(--ff-red-500);
 
     .message-wrapper {
       display: flex;
       flex-direction: row;
-      color: $ff-grey-400;
-      background-color: $ff-white;
-      border-bottom: 1px solid $ff-grey-300;
+      color: var(--ff-grey-400);
+      background-color: var(--ff-white);
+      border-bottom: 1px solid var(--ff-grey-300);
       border-left: 3px solid rgba(0, 0, 0, 0);
       transition: ease-in-out .3s;
       cursor: pointer;
@@ -181,13 +181,13 @@ $ff-notifications-drawer-side-padding: 6px;
       }
 
       &:hover .title {
-        color: $ff-blue-500;
+        color: var(--ff-blue-500);
       }
 
       &.unread {
         border-left: 3px solid $info;
-        border-left-color: $ff-blue-500;
-        color: $ff-grey-800;
+        border-left-color: var(--ff-blue-500);
+        color: var(--ff-grey-800);
 
         &.warning {
           border-left: 3px solid $warning;
@@ -256,7 +256,7 @@ $ff-notifications-drawer-side-padding: 6px;
         .footer {
           display: flex;
           text-align: right;
-          color: $ff-grey-400;
+          color: var(--ff-grey-400);
           font-size: 80%;
           padding: 0 $ff-notifications-drawer-side-padding;
           justify-content: flex-end;
@@ -264,7 +264,7 @@ $ff-notifications-drawer-side-padding: 6px;
       }
 
       &:hover {
-        background-color: $ff-grey-100;
+        background-color: var(--ff-grey-100);
       }
     }
   }
@@ -275,9 +275,9 @@ $ff-notifications-drawer-side-padding: 6px;
     align-items: center;
     justify-content: center;
     text-align: center;
-    color: $ff-grey-400;
+    color: var(--ff-grey-400);
     width: 100%;
-    background-color: $ff-grey-100;
+    background-color: var(--ff-grey-100);
   }
 
 }

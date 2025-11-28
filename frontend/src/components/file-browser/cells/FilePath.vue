@@ -85,7 +85,7 @@ export default {
 .ff-row-file {
     position: relative;
     &:hover {
-        color: $ff-blue-600;
+        color: var(--ff-blue-600);
     }
 }
 

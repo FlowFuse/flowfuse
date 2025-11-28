@@ -136,7 +136,7 @@ export default {
             p {
               line-height: 20px;
               padding-top: 10px;
-              color : $ff-grey-500;
+              color : var(--ff-grey-50)0;
             }
           }
 
@@ -178,7 +178,7 @@ export default {
       }
 
       .ff-dialog-actions {
-        border-top: 1px solid $ff-grey-400;
+        border-top: 1px solid var(--ff-grey-400);
       }
     }
 }

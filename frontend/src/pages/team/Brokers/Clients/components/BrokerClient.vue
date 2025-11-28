@@ -31,7 +31,7 @@
                 <ProjectsIcon
                     v-else-if="client.owner?.instanceType === 'instance'"
                     v-ff-tooltip:left="`Client is linked to Instance '${client.owner.name || client.owner.id}'`"
-                    class="!ml-0 ff-icon-sm"
+                    class="ml-0! ff-icon-sm"
                     @click.prevent.stop="$router.push({ name: 'Instance', params: { id:client.owner.id } })"
                 />
             </span>
@@ -143,12 +143,18 @@ export default {
             overflow: hidden;
 
             .ff-text-copier {
-                @include truncate;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
                 & > span {
-                    @include truncate;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
                 .title-wrapper {
-                    @include truncate;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
 
             }
@@ -195,19 +201,19 @@ export default {
             }
 
             .edit:hover {
-                color: $ff-grey-700;
+                color: var(--ff-grey-700);
             }
             .delete:hover {
-                color: $ff-red-700;
+                color: var(--ff-red-700);
             }
         }
     }
 
     .ff-accordion--content {
-        background: $ff-grey-100;
+        background: var(--ff-grey-100);
         .acl-list {
             .acl-wrapper {
-                border-bottom: 1px solid $ff-grey-200;
+                border-bottom: 1px solid var(--ff-grey-200);
                 padding: 15px 10px;
                 gap: 10px;
                 font-size: 80%;

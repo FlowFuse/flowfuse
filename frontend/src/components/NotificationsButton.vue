@@ -42,7 +42,7 @@ export default {
 .notifications-button-wrapper {
 
   .notifications-button {
-    color: $ff-grey-800;
+    color: var(--ff-grey-800);
     display: flex;
     align-items: center;
     flex: 1;
@@ -67,7 +67,7 @@ export default {
     &:hover {
       svg {
         will-change: transform ;
-        color: $ff-indigo-600;
+        color: var(--ff-indigo-600);
         transform: scale(1.25) translateZ(0); /* Using slight adjustments to whole values */
         backface-visibility: hidden;
         perspective: 1000px;
@@ -83,7 +83,7 @@ export default {
       position: absolute;
       font-size: 0.65rem;
       padding: 0 7px;
-      background-color: $ff-red-500;
+      background-color: var(--ff-red-500);
     }
   }
 }

@@ -107,7 +107,7 @@ export default defineComponent({
     min-width: 250px;
 
     .header {
-        border-bottom: 1px solid $ff-color--border;
+        border-bottom: 1px solid var(--ff-color-border);
         padding-bottom: 15px;
         margin-bottom: 15px;
 
@@ -126,8 +126,8 @@ export default defineComponent({
             cursor: pointer;
 
             &:hover, &.active {
-                color: $ff-indigo-500;
-                background-color: $ff-grey-100;
+                color: var(--ff-indigo-50)0;
+                background-color: var(--ff-grey-100);
             }
 
             &:hover {
@@ -165,12 +165,12 @@ export default defineComponent({
         flex-direction: column;
         text-align: center;
         justify-content: center;
-        color: $ff-grey-400;
+        color: var(--ff-grey-400);
         line-height: 1.6;
 
         .cta {
             cursor: pointer;
-            color: $ff-indigo-500;
+            color: var(--ff-indigo-50)0;
         }
     }
 }

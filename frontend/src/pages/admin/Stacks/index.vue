@@ -76,7 +76,7 @@ import AdminStackEditDialog from './dialogs/AdminStackEditDialog.vue'
 const StackName = {
     template: `<div class="flex items-center">
         <DesktopComputerIcon class="w-6 mr-2 text-gray-500" />
-        <div class="flex flex-grow flex-col space-y-1">
+        <div class="flex grow flex-col space-y-1">
             <span class="text-lg">{{label || name}}</span>
             <span class="text-xs text-gray-500">name: {{ name }}</span>
             <span class="text-xs text-gray-500">id: {{id}}</span>

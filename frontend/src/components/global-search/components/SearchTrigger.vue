@@ -71,7 +71,7 @@ export default {
                 stroke-width: 1.5px;
                 shape-rendering: geometricPrecision;
                 text-rendering: geometricPrecision;
-                color: $ff-indigo-500;
+                color: var(--ff-indigo-500);
             }
         }
     }

@@ -3,7 +3,7 @@
         <li
             v-for="os in ['Windows', 'MacOS', 'Linux']"
             :key="os"
-            class="os-item p-4 mb-2 border rounded bg-white border-gray-200 cursor-pointer flex items-center justify-center space-x-2"
+            class="os-item p-4 mb-2 border rounded-sm bg-white border-gray-200 cursor-pointer flex items-center justify-center space-x-2"
             :class="{ 'border-blue-600': selectedOS === os }"
             @click.stop="$emit('select-os', os)"
         >

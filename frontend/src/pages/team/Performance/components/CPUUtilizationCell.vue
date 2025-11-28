@@ -93,7 +93,7 @@ export default {
     border-radius: 3px;
     padding: 3px;
     border: 1px solid;
-    border-color: $ff-grey-300;
+    border-color: var(--ff-grey-300);
 }
 
 .ff-cpu-bar--fill {
@@ -102,15 +102,15 @@ export default {
 }
 
 .ff-cpu-bar--fill.high {
-    background-color: $ff-red-200;
+    background-color: var(--ff-red-200);
 }
 
 .ff-cpu-bar--fill.medium {
-    background-color: $ff-yellow-200;
+    background-color: var(--ff-yellow-200);
 }
 
 .ff-cpu-bar--fill.low {
-    background-color: $ff-green-200;
+    background-color: var(--ff-green-200);
 }
 
 .ff-cpu-bar--label {

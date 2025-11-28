@@ -2,12 +2,12 @@
     <div>
         <FormHeading>
             Node Catalogues
-            <ChangeIndicator class="!inline-block ml-4 mt-0" :value="editable.changed.settings.palette_catalogue" />
+            <ChangeIndicator class="inline-block! ml-4 mt-0" :value="editable.changed.settings.palette_catalogue" />
         </FormHeading>
 
-        <FeatureUnavailable v-if="!isCustomCatalogsFeatureEnabledForPlatform" :minimal="true" class="!my-5 !mx-0 !p-0 !justify-start" />
+        <FeatureUnavailable v-if="!isCustomCatalogsFeatureEnabledForPlatform" :minimal="true" class="my-5! mx-0! p-0! justify-start!" />
 
-        <FeatureUnavailableToTeam v-if="!isCustomCatalogsFeatureEnabledForTeam" :minimal="true" class="!my-5 !mx-0 !p-0 !justify-start" />
+        <FeatureUnavailableToTeam v-if="!isCustomCatalogsFeatureEnabledForTeam" :minimal="true" class="my-5! mx-0! p-0! justify-start!" />
 
         <form class="space-y-4 max-w-2xl" @submit.prevent>
             <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
@@ -22,7 +22,7 @@
                 <div class="w-full flex flex-col sm:flex-row">
                     <div class="w-full sm:mr-8 space-y-2">
                         <div class="w-full flex items-center">
-                            <div class="flex-grow" :class="{'opacity-20': !defaultEnabled}">{{ defaultCatalogue }}</div>
+                            <div class="grow" :class="{'opacity-20': !defaultEnabled}">{{ defaultCatalogue }}</div>
                             <!-- Default is enabled, allow for removal -->
                             <ff-button
                                 v-if="!defaultEnabled"
@@ -45,7 +45,7 @@
                             </ff-button>
                         </div>
                         <div v-for="(url, index) in thirdPartyUrls" :key="index" class="w-full flex items-center">
-                            <div class="flex-grow">{{ url }}</div>
+                            <div class="grow">{{ url }}</div>
                             <ff-button
                                 kind="tertiary"
                                 size="small"
@@ -230,7 +230,7 @@ export default {
 
 <style lang="scss">
 input:disabled {
-  background-color: $ff-white !important;
+  background-color: var(--ff-white) !important;
   opacity: .9;
   -webkit-appearance: none;
   -moz-appearance: none;

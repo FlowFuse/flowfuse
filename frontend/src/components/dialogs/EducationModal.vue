@@ -123,8 +123,8 @@ export default {
   top: 65px;
   right: 5px;
   width: 350px;
-  background: $ff-white;
-  border: 1px solid $ff-grey-300;
+  background: var(--ff-white);
+  border: 1px solid var(--ff-grey-300);
   box-shadow: -6px 6px 10px rgba(0, 0, 0, .2);
   margin: 0;
 
@@ -143,7 +143,7 @@ export default {
   .title {
     margin-bottom: 20px;
     text-align: center;
-    border-bottom: 1px solid $ff-grey-200;
+    border-bottom: 1px solid var(--ff-grey-200);
     padding-bottom: 15px;
   }
 
@@ -158,15 +158,15 @@ export default {
         display: flex;
         justify-content: space-between;
         width: 100%;
-        border: 1px solid $ff-grey-200;
+        border: 1px solid var(--ff-grey-200);
         align-items: center;
         padding: 5px;
-        color: $ff-black;
+        color: var(--ff-black);
 
         &:hover {
           text-decoration: none;
-          border: 1px solid $ff-blue-700;
-          color: $ff-blue-700;
+          border: 1px solid var(--ff-blue-700);
+          color: var(--ff-blue-700);
         }
       }
     }

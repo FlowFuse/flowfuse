@@ -363,7 +363,7 @@ export default {
                 return // nothing to do, shouldn't be able to get here as the save button should be disabled. but just in case...
             }
 
-            text.push('<p class="!mt-5">Do you want to continue?</p>')
+            text.push('<p class="mt-5!">Do you want to continue?</p>')
 
             const html = text.join('\n')
 

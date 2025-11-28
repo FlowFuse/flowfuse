@@ -46,12 +46,12 @@ export default {
     align-items: center;
 
     .title {
-        color: $ff-black;
+        color: var(--ff-black);
         font-weight: 400;
     }
 
     .toggle {
-        border: 1px solid $ff-blue-800;
+        border: 1px solid var(--ff-blue-800);
         display: flex;
         border-radius: 5px;
 
@@ -67,8 +67,8 @@ export default {
                 transition: ease-in-out .2s;
 
                 &.router-link-active {
-                    background: $ff-blue-800;
-                    color: $ff-white;
+                    background: var(--ff-blue-800);
+                    color: var(--ff-white);
                 }
             }
         }

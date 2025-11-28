@@ -9,7 +9,7 @@
         <template v-if="hasPermission('project:edit', { application: instance.application })">
             <FormHeading>Change Instance Node-RED Version</FormHeading>
             <div ref="updateStack" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-                <div class="flex-grow">
+                <div class="grow">
                     <p v-if="instance.stack && instance.stack.replacedBy" class="max-w-sm mb-5">
                         There is a new version of Node-RED available.
                     </p>
@@ -18,7 +18,7 @@
                         The flows will not be running while this happens.
                     </p>
                 </div>
-                <div class="min-w-fit flex-shrink-0 flex-col gap-5">
+                <div class="min-w-fit shrink-0 flex-col gap-5">
                     <ff-button
                         v-if="instance.stack && instance.stack.replacedBy"
                         ref="updateStackButton"
@@ -47,12 +47,12 @@
             <FormHeading>Copy Instance</FormHeading>
 
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-                <div class="flex-grow">
+                <div class="grow">
                     <div class="max-w-sm">
                         Add a new instance to your application, that is a copy of this instance.
                     </div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button
                         kind="secondary"
                         data-nav="copy-project"
@@ -70,12 +70,12 @@
         <template v-if="hasPermission('project:edit', { application: instance.application })">
             <FormHeading>Import Instance</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-                <div class="flex-grow">
+                <div class="grow">
                     <div class="max-w-sm">
                         Import an existing Node-RED instance.
                     </div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button data-action="import-instance" kind="secondary" @click="showImportInstanceDialog()">Import Instance</ff-button>
                     <ImportInstanceDialog ref="importInstanceDialog" data-el="dialog-import-instance" @confirm="importInstance" />
                 </div>
@@ -85,13 +85,13 @@
         <template v-if="hasPermission('project:edit', { application: instance.application })">
             <FormHeading>Change Instance Type</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-                <div class="flex-grow">
+                <div class="grow">
                     <div class="max-w-sm">
                         Changing the Instance Type will restart the instance.
                         The flows will not be running while this happens.
                     </div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button kind="secondary" data-nav="change-instance-settings" @click="showProjectChangeTypePage()">Change Instance Type</ff-button>
                 </div>
             </div>
@@ -100,7 +100,7 @@
         <template v-if="hasPermission('project:change-status', { application: instance.application })">
             <FormHeading class="text-red-700">Suspend Instance</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-                <div class="flex-grow">
+                <div class="grow">
                     <div v-if="instance?.meta?.state === 'suspended'" class="max-w-sm">
                         Your instance is already suspended. To restart the instance, select "Start" from the Instance actions.
                     </div>
@@ -109,7 +109,7 @@
                         While suspended, the instance will consume no <span v-if="features.billing">billable</span> resources.
                     </div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button data-action="suspend-instance" kind="danger" :disabled="instance?.meta?.state === 'suspended'" @click="$emit('instance-confirm-suspend')">Suspend Instance</ff-button>
                 </div>
             </div>
@@ -118,12 +118,12 @@
         <template v-if="hasPermission('project:delete', { application: instance.application })">
             <FormHeading class="text-red-700">Delete Instance</FormHeading>
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-                <div class="flex-grow">
+                <div class="grow">
                     <div class="max-w-sm">
                         Once deleted, your instance is gone. This cannot be undone.
                     </div>
                 </div>
-                <div class="min-w-fit flex-shrink-0">
+                <div class="min-w-fit shrink-0">
                     <ff-button data-action="delete-instance" kind="danger" @click="$emit('instance-confirm-delete')">Delete Instance</ff-button>
                 </div>
             </div>

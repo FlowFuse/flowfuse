@@ -34,11 +34,11 @@
                         <template #input>
                             <div class="flow-input-wrapper w-full relative">
                                 <textarea
-                                    v-model="rawFlows" class="rounded-md w-full"
+                                    v-model="rawFlows" class="rounded w-full"
                                     :class="{'has-content': rawFlows}"
                                 />
                                 <ff-button
-                                    v-if="rawFlows" kind="secondary" class="!absolute bottom-1 right-1"
+                                    v-if="rawFlows" kind="secondary" class="absolute! bottom-1 right-1"
                                     @click="rawFlows = null"
                                 >
                                     clear
@@ -204,27 +204,27 @@ export default {
 
                     textarea {
                         background: none;
-                        border-color: $ff-grey-200;
+                        border-color: var(--ff-grey-200);
                         resize: none;
                         min-height: 200px;
                         transition: background-color ease-out .3s, border-color ease-out .3s;
                         flex: 1;
 
                         &:hover, &:focus {
-                            background: $ff-white;
-                            border-color: $ff-grey-300;
+                            background: var(--ff-white);
+                            border-color: var(--ff-grey-300);
                             resize: vertical;
                         }
 
                         &.has-content {
-                            border-color: $ff-grey-300;
+                            border-color: var(--ff-grey-300);
                         }
 
                         @media (max-width: 768px) {
                             max-height: 100%;
                             min-height: 100px;
-                            background: $ff-white;
-                            border-color: $ff-grey-300;
+                            background: var(--ff-white);
+                            border-color: var(--ff-grey-300);
                             resize: none;
                         }
                     }

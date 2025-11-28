@@ -1,6 +1,6 @@
 .ff-chart {
     padding: 8px 18px;
-    border: 1px solid $ff-grey-300;
+    border: 1px solid var(--ff-grey-300);
     border-radius: 6px;
     background-color: white;
     h3 {
@@ -44,30 +44,30 @@
             cursor: pointer;
         }
         &--error {
-            --bar-bg: #{$ff-red-200};
-            --bar-border: #{$ff-red-300};
-            --text-color: #{$ff-red-600};
+            --bar-bg: #{var(--ff-red-200)};
+            --bar-border: #{var(--ff-red-300)};
+            --text-color: #{var(--ff-red-600)};
         }
         &--never,
         &--stopped {
-            --bar-bg: #{$ff-grey-200};
-            --bar-border: #{$ff-grey-300};
-            --text-color: #{$ff-grey-600};
+            --bar-bg: #{var(--ff-grey-200)};
+            --bar-border: #{var(--ff-grey-300)};
+            --text-color: #{var(--ff-grey-600)};
         }
         &--offline {
-            --bar-bg: #{$ff-grey-50};
-            --bar-border: #{$ff-grey-300};
-            --text-color: #{$ff-grey-600};
+            --bar-bg: #{var(--ff-grey-50)};
+            --bar-border: #{var(--ff-grey-300)};
+            --text-color: #{var(--ff-grey-600)};
         }
         &--safe {
-            --bar-bg: #{$ff-yellow-200};
-            --bar-border: #{$ff-yellow-300};
-            --text-color: #{$ff-yellow-600};
+            --bar-bg: #{var(--ff-yellow-200)};
+            --bar-border: #{var(--ff-yellow-300)};
+            --text-color: #{var(--ff-yellow-600)};
         }
         &--running {
-            --bar-bg: #{$ff-green-200};
-            --bar-border: #{$ff-green-300};
-            --text-color: #{$ff-green-600};
+            --bar-bg: #{var(--ff-green-200)};
+            --bar-border: #{var(--ff-green-300)};
+            --text-color: #{var(--ff-green-600)};
         }
         &.ghost {
             opacity: 0.15;

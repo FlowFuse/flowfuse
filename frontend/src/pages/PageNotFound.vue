@@ -38,7 +38,7 @@ export default {
     justify-content: flex-start;
 
     .not-found-container {
-        background: $ff-white;
+        background: var(--ff-white);
         padding: 30px 150px;
         margin: 50px;
         border-radius: 20px;

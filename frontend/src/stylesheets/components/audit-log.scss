@@ -9,7 +9,7 @@
         font-weight: 500;
     }
     span {
-        color: $ff-grey-400;
+        color: var(--ff-grey-400);
         font-weight: 400;
         font-size: 0.875rem;
         line-height: 1rem;
@@ -28,7 +28,7 @@
             list-style: none;
             cursor: pointer;
             font-size: 0.875rem;
-            color: $ff-grey-500;
+            color: var(--ff-grey-500);
             &::-webkit-details-marker {
                 display: none;
             }
@@ -38,8 +38,8 @@
             position: absolute;
             top: 3px;
             left: 0;
-            background-color: $ff-grey-50;
-            fill: $ff-grey-500;
+            background-color: var(--ff-grey-50);
+            fill: var(--ff-grey-500);
         }
         &:hover {
             summary {
@@ -59,7 +59,7 @@
 .ff-audit-entry-trigger, .ff-audit-entry-time {
     grid-area: time;
     display: block;
-    color: $ff-grey-500;
+    color: var(--ff-grey-500);
     overflow-x: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -71,7 +71,7 @@
 }
 
 
-@media screen and (min-width: $ff-screen-lg) {
+@media screen and (min-width: 1024px) {
     .ff-audit-entry {
         grid-template-areas: 'time entry author';
         grid-template-columns: min-content 1fr min-content;

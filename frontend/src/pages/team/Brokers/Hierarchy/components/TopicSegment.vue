@@ -191,15 +191,15 @@ export default {
         margin: 5px 0 0;
         transition: ease .15s;
         &:hover {
-            color: $ff-indigo-700;
+            color: var(--ff-indigo-700);
 
             cursor: pointer;
         }
 
         .diagram {
             .connector-elbow {
-                border-left: 2px solid  $ff-indigo-300;
-                border-bottom: 2px solid  $ff-indigo-300;
+                border-left: 2px solid  var(--ff-indigo-300);
+                border-bottom: 2px solid  var(--ff-indigo-300);
                 border-bottom-left-radius: 7px;
                 display: inline-block;
                 position: absolute;
@@ -210,7 +210,7 @@ export default {
             }
             .connector-trunk {
                 width: 1px;
-                border-left: 2px solid $ff-indigo-300;
+                border-left: 2px solid var(--ff-indigo-300);
                 display: inline-block;
                 position: absolute;
                 height: 5000px;
@@ -233,7 +233,7 @@ export default {
                 gap: 3px;
 
                 .highlight {
-                    background-color: $ff-indigo-100;
+                    background-color: var(--ff-indigo-100);
                 }
             }
 
@@ -245,7 +245,7 @@ export default {
             &:hover {
                 .ff-text-copier {
                     display: inline-block;
-                    color: $ff-grey-400;
+                    color: var(--ff-grey-400);
                 }
             }
         }
@@ -256,14 +256,14 @@ export default {
     }
     &.selected > {
         .segment {
-            background: $ff-indigo-50;
+            background: var(--ff-indigo-50);
         }
     }
     &.open > {
         .segment {
             .content {
                 .title {
-                    color: $ff-indigo-700;
+                    color: var(--ff-indigo-700);
                 }
 
                 .chevron {
@@ -277,12 +277,12 @@ export default {
         .segment {
             .content {
                 .title {
-                    color: $ff-grey-600;
+                    color: var(--ff-grey-600);
                     font-size: 90%;
                     font-weight: 300;
 
                     .separator {
-                        color: $ff-black;
+                        color: var(--ff-black);
                         font-weight: bold;
                     }
                 }

@@ -94,7 +94,7 @@ export default {
     .header {
         padding: 1rem 1.5rem;
         background: linear-gradient(white, white) padding-box,
-                    linear-gradient(90deg, $ff-red-600, #5048e5, $ff-red-600, #5048e5, $ff-red-600) border-box;
+                    linear-gradient(90deg, var(--ff-red-600), #5048e5, var(--ff-red-600), #5048e5, var(--ff-red-600)) border-box;
         border: none;
         border-bottom: 1px solid transparent;
         background-size: 200% 100%;
@@ -159,15 +159,15 @@ export default {
 
                 &:hover {
                     cursor: pointer;
-                    background: $ff-grey-100;
+                    background: var(--ff-grey-100);
                 }
 
                 &.pin-button.is-pinned {
-                    background: $ff-indigo-800;
+                    background: var(--ff-indigo-800);
                     color: white;
 
                     &:hover {
-                        background: $ff-indigo-900;
+                        background: var(--ff-indigo-900);
                     }
                 }
             }

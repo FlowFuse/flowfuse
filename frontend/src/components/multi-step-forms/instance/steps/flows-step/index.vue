@@ -147,7 +147,7 @@ export default {
 
             li:hover {
                 cursor: pointer;
-                color: $ff-blue-600;
+                color: var(--ff-blue-600);
             }
         }
     }

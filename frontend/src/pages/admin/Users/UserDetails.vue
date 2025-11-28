@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header>
                 <template #breadcrumbs>
-                    <div class="flex-grow">
+                    <div class="grow">
                         <div class="text-gray-800 text-xl">
                             <router-link class="ff-link font-bold" :to="{name: 'admin-users'}">Users</router-link>
                             <!-- <nav-item :icon="icons.breadcrumbSeparator" label="sss"></nav-item> -->
@@ -19,7 +19,7 @@
         </template>
         <div>
             <div class="flex items-center mb-4">
-                <div class="mr-3"><img :src="user.avatar" class="h-14 v-14 rounded-md"></div>
+                <div class="mr-3"><img :src="user.avatar" class="h-14 v-14 rounded"></div>
                 <div class="flex flex-col">
                     <div class="text-xl font-bold">{{ user.name }}</div>
                     <div class="text-l text-gray-400">{{ user.username }}</div>

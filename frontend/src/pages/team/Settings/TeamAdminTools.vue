@@ -15,7 +15,7 @@
             </table>
         </div>
         <div v-if="!isUnmanaged && trialMode" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
+            <div class="grow">
                 <table class="table-fixed max-w-sm">
                     <tr v-if="!trialHasEnded">
                         <td class="font-medium font-bold pr-4">Trial Ends:</td>
@@ -26,12 +26,12 @@
                     </tr>
                 </table>
             </div>
-            <div class="min-w-fit flex-shrink-0">
+            <div class="min-w-fit shrink-0">
                 <ff-button kind="danger" @click="confirmExtendTrial()">Extend Trial</ff-button>
             </div>
         </div>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
+            <div class="grow">
                 <div class="max-w-sm pr-2">
                     <template v-if="team.suspended">
                         <b>This team is suspended.</b><br>
@@ -63,14 +63,14 @@
                     </template>
                 </div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
+            <div class="min-w-fit shrink-0">
                 <ff-button v-if="!isUnmanaged" kind="danger" data-action="admin-setup-billing" :disabled="team.suspended" @click="confirmManualBilling()">Setup Manual Billing</ff-button>
                 <ff-button v-else kind="danger" data-action="admin-disable-billing" @click="disableManualBilling()">Enable Billing</ff-button>
             </div>
         </div>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="font-bold flex-grow">Usage Limits</div>
-            <div class="min-w-fit flex-shrink-0">
+            <div class="font-bold grow">Usage Limits</div>
+            <div class="min-w-fit shrink-0">
                 <template v-if="!editingLimits">
                     <ff-button kind="primary" @click="editOverrides">Edit usage limits</ff-button>
                 </template>
@@ -395,14 +395,14 @@ export default {
     background-color: white;
     border-collapse: separate;
     border-width: 1px;
-    border-color: $ff-grey-300;
+    border-color: var(--ff-grey-300);
     min-width: 400px;
     td {
         height: 36px;
     }
     tr:not(:last-child) {
         td,th {
-            border-bottom: 1px solid $ff-grey-100;
+            border-bottom: 1px solid var(--ff-grey-100);
         }
     }
     th {

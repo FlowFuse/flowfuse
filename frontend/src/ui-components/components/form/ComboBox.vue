@@ -263,45 +263,45 @@ export default {
 
     .ff-combobox-input {
         padding: 5px 2.5rem 5px 10px;
-        border: 1px solid $ff-grey-300;
-        font-size: $ff-funit-md;
+        border: 1px solid var(--ff-grey-300);
+        font-size: var(--ff-funit-md);
         line-height: 1.5;
         &:focus {
-            border-color: $ff-grey-300;
+            border-color: var(--ff-grey-300);
             outline: none;
         }
     }
 
     .ff-options {
-        background: $ff-grey-50;
+        background: var(--ff-grey-50);
         box-shadow: 0 6px 9px 0 #00000038;
         max-height: 14rem;
         z-index: 100;
         overflow-y: auto;
         padding: 0;
-        border-left: 1px solid $ff-grey-200;
-        border-right: 1px solid $ff-grey-200;
-        border-bottom: 1px solid $ff-grey-200;
+        border-left: 1px solid var(--ff-grey-200);
+        border-right: 1px solid var(--ff-grey-200);
+        border-bottom: 1px solid var(--ff-grey-200);
     }
 
     .ff-option {
         cursor: pointer;
-        border-bottom: 1px solid $ff-grey-200;
+        border-bottom: 1px solid var(--ff-grey-200);
 
         &:last-of-type {
             border-bottom: none;
         }
 
         .ff-option-content {
-            padding: $ff-unit-sm $ff-unit-md;
+            padding: var(--ff-unit-sm) var(--ff-unit-md);
             border: 1px solid transparent;
 
             &.selected {
-                background-color: $ff-grey-200;
+                background-color: var(--ff-grey-200);
             }
 
             &.active {
-                border: 1px solid $ff-indigo-300;
+                border: 1px solid var(--ff-indigo-300);
             }
 
             &.selected.active {
@@ -310,7 +310,7 @@ export default {
         }
 
         &:hover {
-            background-color: $ff-grey-200;
+            background-color: var(--ff-grey-200);
             .ff-option-content.active {
                 border-color: transparent;
             }

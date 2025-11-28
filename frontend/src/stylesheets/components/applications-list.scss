@@ -4,27 +4,27 @@
     gap: 18px;
     > li {
         > *:not(.ff-dialog-container) {
-            border-left: 1px solid $ff-grey-300;
-            border-right: 1px solid $ff-grey-300;
-            background-color: $ff-grey-50;
+            border-left: 1px solid var(--ff-grey-300);
+            border-right: 1px solid var(--ff-grey-300);
+            background-color: var(--ff-grey-50);
         }
 
         > section:last-of-type {
             border-bottom-left-radius: 6px;
             border-bottom-right-radius: 6px;
-            border-bottom: 1px solid $ff-grey-300;
+            border-bottom: 1px solid var(--ff-grey-300);
         }
 
         > :first-child {
             border-top-left-radius: 6px;
             border-top-right-radius: 6px;
-            border-top: 1px solid $ff-grey-300;
+            border-top: 1px solid var(--ff-grey-300);
         }
 
         > :last-child {
             border-bottom-left-radius: 6px;
             border-bottom-right-radius: 6px;
-            border-bottom: 1px solid $ff-grey-300;
+            border-bottom: 1px solid var(--ff-grey-300);
         }
     }
     .ff-application-list--app {
@@ -32,7 +32,7 @@
         display: flex;
         justify-content: space-between;
         padding: 12px;
-        border: 1px solid $ff-grey-300;
+        border: 1px solid var(--ff-grey-300);
         >span {
             display: flex;
             align-items: center;
@@ -40,11 +40,11 @@
         }
         &:hover {
             cursor: pointer;
-            border-color: $ff-blue-600;
+            border-color: var(--ff-blue-600);
 
             .ff-application-list--icon,
             .ff-application-list--icon .ff-icon {
-                color: $ff-blue-600;
+                color: var(--ff-blue-600);
             }
         }
     }
@@ -52,13 +52,13 @@
         display: flex;
         flex-direction: column;
         span {
-            color: $ff-grey-400;
+            color: var(--ff-grey-400);
             font-size: 0.75rem;;
         }
     }
     .delimiter {
         font-size: 0.875rem;
-        color: $ff-grey-500;
+        color: var(--ff-grey-500);
         display: flex;
         align-items: center;
         gap: 6px;
@@ -68,7 +68,7 @@
             height: 1px;
             flex-grow: 1;
             margin-left: 9px;
-            background-color: $ff-grey-300;
+            background-color: var(--ff-grey-300);
         }
     }
 }
@@ -80,7 +80,7 @@
     flex-direction: column;
     >label {
         font-size: 0.875rem;
-        color: $ff-grey-500;
+        color: var(--ff-grey-500);
         display: flex;
         align-items: center;
         gap: 12px;
@@ -88,12 +88,12 @@
             content: '';
             height: 1px;
             flex-grow: 1;
-            background-color: $ff-grey-300;
+            background-color: var(--ff-grey-300);
         }
     }
     > .items-wrapper {
         background-color: white;
-        border-color: $ff-grey-300;
+        border-color: var(--ff-grey-300);
         border-width: 1px;
         border-style: solid;
         border-radius: 6px;
@@ -103,12 +103,12 @@
         grid-template-columns: 40px 1fr 100px minmax(auto, 220px) 350px;
         &:hover {
             cursor: pointer;
-            border-color: $ff-blue-600;
+            border-color: var(--ff-blue-600);
             .ff-application-list--instance {
-                color: $ff-blue-600;
+                color: var(--ff-blue-600);
             }
             .ff-icon {
-                color: $ff-blue-600;
+                color: var(--ff-blue-600);
             }
         }
     }
@@ -146,12 +146,12 @@
         align-items: center;
         justify-content: center;
         gap: 2px;
-        color: $ff-grey-500;
+        color: var(--ff-grey-500);
     }
 }
 
 .ff-applications-list--details {
-    color: $ff-grey-400;
+    color: var(--ff-grey-400);
     font-size: 0.875rem;
     padding-bottom: 12px;
     text-align: center;

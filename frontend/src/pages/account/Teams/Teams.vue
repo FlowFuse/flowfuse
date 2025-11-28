@@ -27,7 +27,7 @@ export default {
     data () {
         return {
             columns: [
-                { label: 'Name', key: 'name', class: ['flex-grow'], component: { is: markRaw(TeamCell) } },
+                { label: 'Name', key: 'name', class: ['grow'], component: { is: markRaw(TeamCell) } },
                 { label: 'Application Instances', key: 'instanceCount', class: ['w-32', 'text-center'] },
                 { label: 'Members', key: 'memberCount', class: ['w-32', 'text-center'] },
                 { label: 'Role', key: 'roleName', class: ['w-40'] }

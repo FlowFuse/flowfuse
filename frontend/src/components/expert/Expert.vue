@@ -263,11 +263,11 @@ export default {
     }
 
     &::-webkit-scrollbar-thumb {
-        background-color: $ff-grey-300;
+        background-color: var(--ff-grey-300);
         border-radius: 4px;
 
         &:hover {
-            background-color: $ff-grey-400;
+            background-color: var(--ff-grey-400);
         }
     }
 }
@@ -303,13 +303,13 @@ export default {
     height: 100%;
     text-align: center;
     padding: 2rem;
-    color: $ff-grey-600;
+    color: var(--ff-grey-600);
 
     .empty-state-icon {
         width: 4rem;
         height: 4rem;
         margin-bottom: 1rem;
-        color: $ff-indigo-400;
+        color: var(--ff-indigo-400);
 
         svg {
             width: 100%;
@@ -320,7 +320,7 @@ export default {
     h3 {
         font-size: 1.5rem;
         font-weight: 600;
-        color: $ff-grey-900;
+        color: var(--ff-grey-900);
         margin: 0 0 0.5rem 0;
     }
 

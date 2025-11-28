@@ -5,7 +5,6 @@ import { marked } from 'marked'
 // local
 import components from './components.js'
 import directives from './directives.js'
-import './index.scss'
 
 const markedMixin = {
     methods: {

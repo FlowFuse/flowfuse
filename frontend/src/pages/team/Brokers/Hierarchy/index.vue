@@ -131,7 +131,7 @@ export default {
     //height: 100%;
 }
 
-@media screen and (max-width: $ff-screen-md) {
+@media screen and (max-width: 768px) {
     .ff-broker-hierarchy {
         flex-wrap: wrap;
     }

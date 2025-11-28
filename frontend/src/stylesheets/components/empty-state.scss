@@ -3,7 +3,7 @@
     padding-top: 64px;
     padding-bottom: 64px;
     background-color: white;
-    border: 1px solid $ff-grey-200;
+    border: 1px solid var(--ff-grey-200);
     border-radius: 3px;
     >div {
         margin: auto;
@@ -29,7 +29,7 @@
         p {
             margin-bottom: 0.75rem;
             line-height: 1.5rem;
-            color: $ff-grey-800;
+            color: var(--ff-grey-800);
         }
     }
     &--actions {
@@ -41,7 +41,7 @@
         display: flex;
         justify-content: center;
         margin-top: 1.75rem;
-        color: $ff-grey-400;
+        color: var(--ff-grey-400);
     }
 
     &.ff-empty-state-feature-unavailable {

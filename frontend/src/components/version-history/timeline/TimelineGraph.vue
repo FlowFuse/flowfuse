@@ -158,17 +158,17 @@ export default {
     .icon-wrapper {
         min-width: 34px;
         min-height: 35px;
-        border: 2px solid $ff-blue-800;
+        border: 2px solid var(--ff-blue-800);
         border-radius: 50%;
         padding: 5px;
         background: #fff;
         position: relative;
         z-index: 10;
-        color: $ff-blue-800;
+        color: var(--ff-blue-800);
     }
 
     .connector {
-        border: 1px solid $ff-blue-800;
+        border: 1px solid var(--ff-blue-800);
         position: absolute;
         left: 47%;  // compensates for border width
         z-index: 5;
@@ -183,7 +183,7 @@ export default {
                 left: 80%;
                 height: 50px;
                 border-style: dashed;
-                border-color: $ff-grey-500;
+                border-color: var(--ff-grey-500);
             }
         }
 
@@ -196,7 +196,7 @@ export default {
                 left: 83%;
                 height: 50px;
                 border-style: dashed;
-                border-color: $ff-grey-500;
+                border-color: var(--ff-grey-500);
             }
         }
 
@@ -214,7 +214,7 @@ export default {
         .connector {
             &.top, &.bottom {
                 left: 65%;
-                border-color: $ff-grey-500;
+                border-color: var(--ff-grey-500);
                 border-style: dashed;
             }
         }

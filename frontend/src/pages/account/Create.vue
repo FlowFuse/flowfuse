@@ -48,7 +48,7 @@
                 <ff-button type="submit" :disabled="!formValid || busy || tooManyRequests" data-action="sign-up">
                     <span>Sign Up</span>
                     <span class="w-4">
-                        <SpinnerIcon v-if="busy || tooManyRequests" class="ff-icon ml-3 !w-3.5" />
+                        <SpinnerIcon v-if="busy || tooManyRequests" class="ff-icon ml-3 w-3.5!" />
                     </span>
                 </ff-button>
                 <p class="flex text-gray-400 font-light mt-6 gap-2 w-full justify-center">

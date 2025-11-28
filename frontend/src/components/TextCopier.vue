@@ -109,15 +109,15 @@ export default {
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: $ff-grey-600;
+    color: var(--ff-grey-600);
 
     &:hover {
-      color: $ff-indigo-600;
-      background-color: $ff-indigo-50;
+      color: var(--ff-indigo-600);
+      background-color: var(--ff-indigo-50);
     }
 
     &:active {
-      background-color: $ff-indigo-100;
+      background-color: var(--ff-indigo-100);
     }
 
     .ff-icon {
@@ -125,7 +125,7 @@ export default {
     }
 
     .ff-icon-check {
-      color: $ff-green-600;
+      color: var(--ff-green-600);
     }
   }
   .ff-copied {

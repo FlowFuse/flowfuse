@@ -102,7 +102,7 @@ export default defineComponent({
     overflow: auto;
 
     .header {
-        border-bottom: 1px solid $ff-color--border;
+        border-bottom: 1px solid var(--ff-color-border);
         padding-bottom: 15px;
         margin-bottom: 15px;
         display: flex;

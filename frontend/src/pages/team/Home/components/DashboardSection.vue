@@ -38,8 +38,8 @@ export default {
 
 <style scoped lang="scss">
 .ff-box {
-    border: 1px solid $ff-color--border;
-    background: $ff-white;
+    border: 1px solid var(--ff-color-border);
+    background: var(--ff-white);
     padding: 10px;
     display: flex;
     flex-direction: column;

@@ -1,11 +1,3 @@
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@import '../ui-components/stylesheets/ff-colors.scss';
-@import '../ui-components/stylesheets/ff-utility.scss';
-
 $sidenav_width: 250px;
 $transition_time: .15s;
 
@@ -18,7 +10,7 @@ $nav_height: 60px;
 
 .ff-layout--box {
     font-family: 'Heebo', system-ui, sans-serif;
-    background-color: $ff-white;
+    background-color: var(--ff-white);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -28,12 +20,12 @@ $nav_height: 60px;
     background-size: cover;
     background-repeat: no-repeat;
     background-position-y: 0%;
-    color: $ff-grey-700;
+    color: var(--ff-grey-700);
     .ff-error-inline {
         font-size: 0.875rem;;
         display: block;
         margin-top: 0.25rem;
-        color: $ff-red-200;
+        color: var(--ff-red-200);
     }
 
     &.ff--center-box {
@@ -101,8 +93,8 @@ $nav_height: 60px;
 .ff-layout--box--right .ff-layout--box--content {
     min-height: 400px;
     padding: 64px 24px;
-    @apply rounded-xl;
-    color: $ff-grey-700;
+    @apply rounded-lg;
+    color: var(--ff-grey-700);
     h2 {
         margin-top: -12px;
         margin-bottom: 24px;
@@ -113,7 +105,7 @@ $nav_height: 60px;
     }
     label {
         display: block;
-        color: $ff-grey-700;
+        color: var(--ff-grey-700);
         margin-bottom: 4px;
     }
     .ff-radio-btn label {
@@ -123,20 +115,20 @@ $nav_height: 60px;
         margin-bottom: 1rem;
     }
     a {
-        color: $ff-blue-600;
+        color: var(--ff-blue-600);
     }
     .ff-input:not(.ff-input--error) {
-        border-color: $ff-grey-300;
+        border-color: var(--ff-grey-300);
     }
     .ff-input {
         border-width: 2px;
         &:focus-within {
-            border-color: $ff-indigo-600;
+            border-color: var(--ff-indigo-600);
         }
     }
     .ff-radio-btn {
         .checkbox {
-          border: 1px solid $ff-grey-400;
+          border: 1px solid var(--ff-grey-400);
         }
     }
 
@@ -153,23 +145,23 @@ $nav_height: 60px;
         margin-bottom: 6px;
     }
     .ff-btn.ff-btn--primary {
-        background-color: $ff-indigo-600;
+        background-color: var(--ff-indigo-600);
         color: white;
         &:hover {
-            background-color: $ff-indigo-700;
+            background-color: var(--ff-indigo-700);
         }
         &:disabled {
-            background-color: $ff-grey-300;
-            color: $ff-grey-400;
+            background-color: var(--ff-grey-300);
+            color: var(--ff-grey-400);
         }
     }
     .ff-btn.ff-btn--tertiary {
-        color: $ff-indigo-500;
+        color: var(--ff-indigo-500);
         font-weight: normal;
         border: 1px solid transparent;
         &:hover {
             background-color: transparent;
-            border-color: $ff-indigo-600;
+            border-color: var(--ff-indigo-600);
         }
     }
 }
@@ -207,11 +199,11 @@ $nav_height: 60px;
         transition: ease-in-out margin-left .3s;
     }
     main {
-        background-color: $ff-grey-50;
+        background-color: var(--ff-grey-50);
     }
     .ff-page-header {
-        background-color: $ff-white;
-        border-color: $ff-color--border;
+        background-color: var(--ff-white);
+        border-color: var(--ff-color-border);
     }
 }
 
@@ -222,7 +214,7 @@ $nav_height: 60px;
     flex: 1;
 
     main {
-        background-color: $ff-grey-50;
+        background-color: var(--ff-grey-50);
         flex: 1;
     }
 }
@@ -237,7 +229,7 @@ $nav_height: 60px;
 
 .ff-notification-toast {
     min-height: $nav_height;
-    margin-bottom: $ff-unit-md;
+    margin-bottom: var(--ff-unit-md);
 }
 
 .notifications-list-move,
@@ -286,11 +278,11 @@ $nav_height: 60px;
     label {
         font-size: 0.7rem;
         line-height: 0.7rem;
-        color: $ff-grey-500;
+        color: var(--ff-grey-500);
         margin-left: 0;
     }
     h5 {
-        color: $ff-grey-800;
+        color: var(--ff-grey-800);
         white-space: nowrap;
     }
 }
@@ -301,20 +293,20 @@ $nav_height: 60px;
     cursor: pointer;
     &:hover {
         label, h5 {
-            color: $ff-teal-200;
+            color: var(--ff-teal-200);
         }
     }
 }
 .ff-banner {
-    background-color: $ff-grey-800;
-    color: $ff-grey-300;
+    background-color: var(--ff-grey-800);
+    color: var(--ff-grey-300);
     padding: 8px;
     text-align: center;
-    border-bottom: 2px solid $ff-red-500;
+    border-bottom: 2px solid var(--ff-red-500);
 
     &.ff-banner-info {
-        background-color: $ff-blue-100;
-        color: $ff-grey-700;
+        background-color: var(--ff-blue-100);
+        color: var(--ff-grey-700);
         text-align: left;
         border-bottom: none;
         display: flex;
@@ -325,10 +317,10 @@ $nav_height: 60px;
     }
 
     &.ff-banner-warning {
-        background-color: $ff-red-700;
-        color: $ff-grey-50;
+        background-color: var(--ff-red-700);
+        color: var(--ff-grey-50);
         text-align: left;
-        border-bottom: 2px solid $ff-red-800;
+        border-bottom: 2px solid var(--ff-red-800);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -338,9 +330,9 @@ $nav_height: 60px;
 }
 .ff-header {
     z-index: 110;
-    background-color: $ff-white;
+    background-color: var(--ff-white);
     height: $nav_height;
-    border-bottom: 1px solid $ff-color--border;
+    border-bottom: 1px solid var(--ff-color-border);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -363,12 +355,12 @@ $nav_height: 60px;
     .ff-header--mobile-toggle {
         padding: 16px;
         svg {
-            fill: $ff-grey-800;
+            fill: var(--ff-grey-800);
             min-width: 24px;
         }
         &.active {
             cursor: pointer;
-            background-color: $ff-grey-700;
+            background-color: var(--ff-grey-700);
         }
     }
     .ff-header--mobile-usertoggle {
@@ -381,7 +373,7 @@ $nav_height: 60px;
         }
         &.active {
             cursor: pointer;
-            background-color: $ff-grey-100;
+            background-color: var(--ff-grey-100);
         }
     }
     .ff-navigation {
@@ -405,8 +397,8 @@ $nav_height: 60px;
             .ff-notification-pill {
                 font-size: 0.65rem;
                 padding: 0px 6px;
-                background-color: $ff-red-600;
-                border: 1px solid $ff-grey-800;
+                background-color: var(--ff-red-600);
+                border: 1px solid var(--ff-grey-800);
                 position: absolute;
                 bottom: -9px;
                 line-height: 0.85rem;
@@ -424,21 +416,21 @@ $nav_height: 60px;
     }
     .ff-border-left {
         border-width: 0 0 0 1px;
-        border-color: $ff-grey-500;
+        border-color: var(--ff-grey-500);
     }
     .ff-navigation-right {
         height: 100%;
         ul {
-            background: $ff-white;
-            border: 1px solid $ff-color--border;
+            background: var(--ff-white);
+            border: 1px solid var(--ff-color-border);
 
             .ff-nav-item {
                 transition: ease-in-out .3s;
                 &:hover {
-                    background: $ff-grey-100;
+                    background: var(--ff-grey-100);
                     label, svg {
-                        color: $ff-indigo-700;
-                        fill: $ff-indigo-700;
+                        color: var(--ff-indigo-700);
+                        fill: var(--ff-indigo-700);
                     }
                 }
             }
@@ -452,7 +444,7 @@ $nav_height: 60px;
                 content: '';
                 width: 1px;
                 height: 15px;
-                background: $ff-color--border;
+                background: var(--ff-color-border);
                 top: 40%;
             }
         }
@@ -479,7 +471,7 @@ $nav_height: 60px;
                     transform: scale(1.25) translateZ(0);
                     backface-visibility: hidden;
                     perspective: 1000px;
-                    border-color: $ff-indigo-600;
+                    border-color: var(--ff-indigo-600);
                 }
             }
         }
@@ -503,14 +495,14 @@ $nav_height: 60px;
         }
         .ff-dropdown-options {
             width: 100%;
-            border-color: $ff-color--border;
+            border-color: var(--ff-color-border);
             border-right: 0;
 
             .ff-dropdown-option {
                 &:hover {
                     label, svg {
-                        color: $ff-indigo-700;
-                        fill: $ff-indigo-700;
+                        color: var(--ff-indigo-700);
+                        fill: var(--ff-indigo-700);
                     }
                 }
             }
@@ -537,8 +529,8 @@ $nav_height: 60px;
 
             &.danger {
                 label, svg {
-                    color: $ff-red-700;
-                    fill: $ff-red-700;
+                    color: var(--ff-red-700);
+                    fill: var(--ff-red-700);
                 }
             }
         }
@@ -556,40 +548,40 @@ $nav_height: 60px;
 }
 
 .ff-navigation .ff-nav-item {
-    border-bottom: 1px solid $ff-grey-600;
+    border-bottom: 1px solid var(--ff-grey-600);
     padding: 16px 16px 16px 24px;
     display: grid;
     grid-template-columns: 20px 1fr;
     svg {
-        fill: $ff-grey-500;
+        fill: var(--ff-grey-500);
         width: 20px;
     }
     svg.hollow {
         fill: none;
-        stroke: $ff-white;
+        stroke: var(--ff-white);
     }
     label {
         margin-left: 12px;
-        color: $ff-grey-800;
+        color: var(--ff-grey-800);
         white-space: nowrap;
         pointer-events: none;
     }
 }
 
 .ff-team-selection ul .ff-nav-item {
-    border-bottom: 1px solid $ff-grey-600;
+    border-bottom: 1px solid var(--ff-grey-600);
     padding: 16px 16px 16px 22px;
     display: grid;
     align-items: center;
     grid-template-columns: 24px 1fr;
     height: $nav_height;
     svg {
-        fill: $ff-white;
+        fill: var(--ff-white);
         width: 20px;
     }
     label {
         margin-left: 12px;
-        color: $ff-white;
+        color: var(--ff-white);
         white-space: nowrap;
         pointer-events: none;
     }
@@ -610,13 +602,13 @@ $nav_height: 60px;
         .router-link-active {
             li {
                 label {
-                    color: $ff-teal-300;
+                    color: var(--ff-teal-300);
                 }
                 svg {
-                    fill: $ff-teal-300;
+                    fill: var(--ff-teal-300);
                     &.hollow {
                         fill: none;
-                        stroke: $ff-teal-300;
+                        stroke: var(--ff-teal-300);
                     }
                 }
             }
@@ -627,7 +619,7 @@ $nav_height: 60px;
         width: 0;
         overflow: hidden;
         .ff-nested-title {
-            color: $ff-teal-300;
+            color: var(--ff-teal-300);
             font-weight: bold;
             font-size: 1.1rem;
             padding: 12px 16px;
@@ -640,16 +632,16 @@ $nav_height: 60px;
         }
         .router-link-active {
             li {
-                background-color: $ff-grey-600;
+                background-color: var(--ff-grey-600);
             }
             label {
-                color: $ff-teal-300;
+                color: var(--ff-teal-300);
             }
             svg {
-                fill: $ff-teal-300;
+                fill: var(--ff-teal-300);
                 &.hollow {
                     fill: none;
-                    stroke: $ff-teal-300;
+                    stroke: var(--ff-teal-300);
                 }
             }
         }
@@ -661,12 +653,12 @@ $nav_height: 60px;
         .ff-nav-item {
             &.danger {
                 label, svg {
-                    color: $ff-red-700;
-                    fill: $ff-red-700;
+                    color: var(--ff-red-700);
+                    fill: var(--ff-red-700);
                 }
             }
             &.create {
-                background: $ff-grey-100;
+                background: var(--ff-grey-100);
                 border-bottom: none;
             }
         }
@@ -688,13 +680,13 @@ $nav_height: 60px;
         right: 0;
     }
     .ff-navigation-divider {
-        background-color: $ff-grey-900;
+        background-color: var(--ff-grey-900);
         color: white;
         padding: 6px 12px;
         height: 32px;
         display: block;
         font-size: 0.85rem;
-        border-bottom: 1px solid $ff-grey-600;
+        border-bottom: 1px solid var(--ff-grey-600);
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
@@ -705,7 +697,7 @@ $nav_height: 60px;
     .ff-nav-item {
         display: flex;
         justify-content: space-between;
-        border-bottom: 1px solid $ff-color--border;
+        border-bottom: 1px solid var(--ff-color-border);
     }
     .disabled {
         pointer-events: none;
@@ -713,18 +705,18 @@ $nav_height: 60px;
     }
     .ff-notification-pill {
         padding: 2px 12px;
-        background-color: $ff-red-600;
-        border: 1px solid $ff-red-700;
+        background-color: var(--ff-red-600);
+        border: 1px solid var(--ff-red-700);
     }
     .ff-side-navigation--options-back {
         li {
-            border-top: 1px solid $ff-grey-600;
+            border-top: 1px solid var(--ff-grey-600);
         }
     }
 }
 
 /* MOBILE LAYOUT */
-@media screen and (min-width: $ff-screen-lg) {
+@media screen and (min-width: 1024px) {
     /* Box */
     .ff-layout--box--wrapper {
         width: 85%;
@@ -760,8 +752,8 @@ $nav_height: 60px;
         height: 100%;
         z-index: 100;
         left: 0;
-        background: $ff-color--context-menu;
-        border-right: 1px solid $ff-color--border;
+        background: var(--ff-color-context-menu);
+        border-right: 1px solid var(--ff-color-border);
         overflow: auto;
 
         .ff-main-navigation {
@@ -775,7 +767,7 @@ $nav_height: 60px;
                         margin: 10px 0 15px;
                         padding: 0 10px;
                         text-transform: uppercase;
-                        color: $ff-color--disabled;
+                        color: var(--ff-color-disabled);
                         font-size: 11px;
                     }
 
@@ -800,20 +792,20 @@ $nav_height: 60px;
                                 }
 
                                 &:hover {
-                                    background: $ff-color--highlight--light;
+                                    background: var(--ff-color-highlight--light);
                                 }
                             }
 
                             .router-link-active {
                                 .ff-nav-item {
-                                    background: $ff-color--action;
+                                    background: var(--ff-color-action);
                                     color: white;
                                 }
                             }
 
                             .disabled {
                                 .ff-nav-item {
-                                    color: $ff-color--disabled;
+                                    color: var(--ff-color-disabled);
                                     cursor: not-allowed;
                                 }
                             }

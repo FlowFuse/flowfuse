@@ -238,6 +238,6 @@ export default {
 
 <style scoped lang="scss">
 .inactive-team {
-    color: $ff-grey-400;
+    color: var(--ff-grey-400);
 }
 </style>

@@ -93,8 +93,8 @@ export default {
     span {
         display: inline-block;
         padding: 0.5rem 0.75rem; // py-2 px-3
-        background-color: $ff-indigo-100;
-        color: $ff-indigo-700;
+        background-color: var(--ff-indigo-100);
+        color: var(--ff-indigo-700);
         font-size: 0.875rem; // text-sm
         border-radius: 9999px; // rounded-full
     }
@@ -146,7 +146,7 @@ export default {
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: $ff-indigo-600;
+        background-color: var(--ff-indigo-600);
         color: white;
         font-size: 0.875rem; // text-sm
         border-radius: 50%; // rounded-full
@@ -160,13 +160,13 @@ export default {
         .step-title {
             font-size: 1rem;
             font-weight: 500;
-            color: $ff-grey-900;
+            color: var(--ff-grey-900);
             margin: 0 0 0.25rem 0;
         }
 
         .step-detail {
             font-size: 0.875rem;
-            color: $ff-grey-600;
+            color: var(--ff-grey-600);
             margin: 0.25rem 0 0 0;
             line-height: 1.5;
         }

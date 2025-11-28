@@ -37,7 +37,7 @@ export default defineComponent({
     overflow: auto;
 
     #tables-list {
-        border-right: 1px solid $ff-color--border;
+        border-right: 1px solid var(--ff-color-border);
         padding-right: 10px;
     }
 }

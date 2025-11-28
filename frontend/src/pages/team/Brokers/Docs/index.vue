@@ -76,14 +76,14 @@ export default {
 .ff-return-link {
     padding: 9px 12px;
     border-radius: 6px;
-    border: 1px solid $ff-grey-200;
+    border: 1px solid var(--ff-grey-200);
     transition: border-color 0.3s;
     display: inline-flex;
     align-items: center;
     gap: 9px;
     &:hover {
-        border-color: $ff-indigo-500;
-        color: $ff-indigo-500;
+        border-color: var(--ff-indigo-50)0;
+        color: var(--ff-indigo-50)0;
         cursor: pointer;
     }
 }

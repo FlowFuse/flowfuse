@@ -166,19 +166,19 @@ export default {
   }
 
   .ff-options {
-    border: 1px solid $ff-grey-200 !important;
+    border: 1px solid var(--ff-grey-200) !important;
 
     .ff-option {
       background: white !important;
       border: none !important;
 
       &[disabled="true"] {
-        color: $ff-grey-600;
+        color: var(--ff-grey-600);
         cursor: not-allowed;
       }
 
       &:hover {
-        background-color: $ff-grey-200 !important;
+        background-color: var(--ff-grey-200) !important;
       }
     }
   }

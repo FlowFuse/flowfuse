@@ -78,10 +78,10 @@ const TokenFieldFormatter = {
 const AutoAssignToFieldFormatter = {
     template: `
         <template v-if="application">
-            <router-link class="flex content-center" :to="{ name: 'Application', params: { id: application }}"><TemplateIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 !leading-normal">{{ applicationName }}</span></router-link>
+            <router-link class="flex content-center" :to="{ name: 'Application', params: { id: application }}"><TemplateIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 leading-normal!">{{ applicationName }}</span></router-link>
         </template>
         <template v-else-if="instance">
-            <router-link class="flex content-center" :to="{ name: 'Instance', params: { id: instance } }"><ProjectsIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 !leading-normal">{{ instanceName }}</span></router-link>
+            <router-link class="flex content-center" :to="{ name: 'Instance', params: { id: instance } }"><ProjectsIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 leading-normal!">{{ instanceName }}</span></router-link>
         </template>
         <template v-else><span class="italic text-gray-500">Don't assign</span></template>`,
     props: ['instance', 'instanceName', 'application', 'applicationName'],
