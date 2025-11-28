@@ -72,7 +72,7 @@ FlowFuse will show you a device configuration window with installation options:
 
 Follow the steps in the window to connect your device—it takes less than a minute.
 
-[Learn more about Device Agent](./docs/device-agent/)
+[Learn more about Device Agent](/docs/device-agent/introduction.md)
 
 **Accessing Your Remote Instance:**
 
