@@ -42,7 +42,16 @@
         <div v-else class="space-y-6">
             <ff-loading v-if="loading" message="Loading Snapshots..." />
             <template v-else-if="features.deviceEditor && snapshots.length > 0">
-                <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshotsFiltered" :show-search="true" search-placeholder="Search Snapshots...">
+                <ff-data-table
+                    data-el="snapshots"
+                    class="space-y-4"
+                    :columns="columns"
+                    :rows="snapshotsFiltered"
+                    :rows-selectable="true"
+                    :show-search="true"
+                    search-placeholder="Search Snapshots..."
+                    @row-selected="onRowSelected"
+                >
                     <template #actions>
                         <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">
                             <FilterIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
@@ -111,7 +120,7 @@
 <script>
 import { FilterIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import ApplicationApi from '../../../../api/application.js'
 import DeviceApi from '../../../../api/devices.js'
@@ -122,6 +131,7 @@ import EmptyState from '../../../../components/EmptyState.vue'
 import AssetCompareDialog from '../../../../components/dialogs/AssetCompareDialog.vue'
 import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.vue'
 import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
+import SnapshotDetailsDrawer from '../../../../components/drawers/snapshots/SnapshotDetailsDrawer.vue'
 import UserCell from '../../../../components/tables/cells/UserCell.vue'
 import { downloadData } from '../../../../composables/Download.js'
 import usePermissions from '../../../../composables/Permissions.js'
@@ -315,6 +325,7 @@ export default {
         this.fetchData()
     },
     methods: {
+        ...mapActions('ux/drawers', ['openRightDrawer', 'closeRightDrawer']),
         rowIsThisDevice: function (snapshot) {
             if (!snapshot || !this.device.id) {
                 return false
@@ -456,6 +467,28 @@ export default {
                 return this.hasPermission('device:snapshot:delete', { application: this.device.application })
             }
             return false // only permit deletion of snapshots created by this device
+        },
+        onRowSelected (snapshot) {
+            this.openRightDrawer({
+                component: markRaw(SnapshotDetailsDrawer),
+                props: {
+                    snapshot,
+                    snapshotList: this.snapshotList,
+                    instance: this.instance,
+                    canSetDeviceTarget: false,
+                    canRestore: !this.canDeploy(snapshot),
+                    isDevice: true
+                },
+                on: {
+                    updatedSnapshot: () => this.fetchData(true),
+                    deletedSnapshot: () => {
+                        this.closeRightDrawer()
+                        this.fetchData(true)
+                    }
+                },
+                overlay: true,
+                wider: true
+            })
         }
     }
 }

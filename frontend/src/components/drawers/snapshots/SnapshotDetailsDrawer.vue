@@ -2,7 +2,7 @@
     <div id="snapshot-details-drawer" data-el="snapshot-details-drawer" class="p-4">
         <div class="container">
             <section v-if="hasPermission('snapshot:full', applicationContext)" class="flow-viewer flex flex-1 flex-col overflow-auto">
-                <div class="header flex flex-row justify-between">
+                <div class="header flex flex-row justify-between mb-2">
                     <span class="title font-bold">Flows:</span>
                     <span
                         class="compare ff-link" data-action="compare-snapshot"
@@ -11,7 +11,13 @@
                         compare...
                     </span>
                 </div>
-                <flow-viewer v-if="flows.length" :flow="flows" />
+                <information-well
+                    class="flex-grow-1 min-h-0 flex-col !mb-2"
+                    :class="{['items-center justify-center']: !flows.length}"
+                >
+                    <flow-viewer v-if="flows.length" :flow="flows" />
+                    <span v-else class="text-gray-400">No flows found</span>
+                </information-well>
             </section>
 
             <div class="flex-1">
@@ -104,6 +110,7 @@
                     </ff-button>
                 </div>
                 <ff-button
+                    v-if="canSetDeviceTarget"
                     kind="secondary"
                     class="flex-1"
                     :disabled="!hasPermission('project:snapshot:set-target', applicationContext)"
@@ -155,10 +162,12 @@ import alerts from '../../../services/alerts.js'
 import FormRow from '../../FormRow.vue'
 import AssetCompareDialog from '../../dialogs/AssetCompareDialog.vue'
 import FlowViewer from '../../flow-viewer/FlowViewer.vue'
+import InformationWell from '../../wells/InformationWell.vue'
 
 export default defineComponent({
     name: 'SnapshotDetailsDrawer',
     components: {
+        InformationWell,
         FormRow,
         AssetCompareDialog,
         ChipIcon,
@@ -170,6 +179,26 @@ export default defineComponent({
     },
     mixins: [snapshotsMixin],
     props: {
+        canSetDeviceTarget: {
+            type: Boolean,
+            required: false,
+            default: true
+        },
+        canRestore: {
+            type: Boolean,
+            required: false,
+            default: true
+        },
+        instance: {
+            type: Object,
+            required: false,
+            default: null
+        },
+        isDevice: {
+            type: Boolean,
+            required: false,
+            default: false
+        },
         snapshot: {
             type: Object,
             required: true
@@ -177,11 +206,6 @@ export default defineComponent({
         snapshotList: {
             type: Object,
             required: true
-        },
-        instance: {
-            type: Object,
-            required: false,
-            default: null
         }
     },
     emits: ['updated-snapshot', 'deleted-snapshot'],
@@ -304,6 +328,9 @@ export default defineComponent({
                             }
                             return !context.hasPermission('project:snapshot:rollback', context.applicationContext)
                         },
+                        disabled: function () {
+                            return context.canRestore
+                        },
                         bind: {
                             'data-action': 'restore'
                         }
@@ -357,6 +384,7 @@ export default defineComponent({
     flex: 1;
 
     &, .container {
+        flex: 1;
         display: flex;
         flex-direction: column;
         gap: 15px;
