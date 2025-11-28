@@ -1,79 +1,83 @@
 ---
-navTitle: Device Groups
+navTitle: Groups
 ---
 
-# Device Groups
+# Groups
 
+**Navigation**: Team > Application > Groups
 
-**Navigation**: `Team > Application > Device Groups`
+## Overview
 
-<img src="./images/ui-device-groups.png" width="100%" />
+![Groups UI](./images/groups.png){data-zoomable}
 
-When managing many devices that are intended to run the same [snapshot](./snapshots.md), Device Groups allow you
-to organise your devices into logical groups.
-These groups can then be set as the target of a [DevOps Pipelines](./devops-pipelines.md).
+Groups help you organize and manage multiple devices that run the same snapshot configuration. By grouping devices logically, you can deploy updates to dozens or even hundreds of devices simultaneously through DevOps Pipelines.
 
-Furthermore:
-* Devices added to an active Device Group will automatically be updated to the active pipeline snapshot
-* Devices removed from an active Device Group will have their active pipeline snapshot cleared
-More details are provided below in [Adding a Device to a group](#adding-a-device-to-a-group-which-has-an-active-pipeline-snapshot) and [Removing a Device from a group](#removing-a-device-from-a-group-which-has-an-active-pipeline-snapshot)
-* Device Groups can have Environment Variables set at the group level. These are merged with the Environment Variables set in each member device. The following rules apply:
-  * Values set in the Device take precedence over values set in the Device Group.
-  * Removing a device from the group will remove these variables from the device.
-  * The devices environment variables are never modified, they are only merged at runtime.
-  * Updating these environment variables will cause devices in the group to be restarted when a change is detected
+### Key Features
 
-This greatly simplifies deployments of the same configuration to one or even hundreds of devices with a single click.
+**Automatic Updates**
+- Devices added to an active group automatically receive the current pipeline snapshot
+- Devices removed from an active group have their snapshot cleared
 
-The following requirements apply:
+**Group-Level Environment Variables**
+- Set environment variables at the group level that apply to all member devices
+- Device-specific variables take precedence over group variables
+- Variables are merged at runtime without modifying device settings
+- Updates to group variables trigger automatic device restarts
 
-- FlowFuse 1.15+ Enterprise Tier
-- FlowFuse Cloud teams on the Enterprise tier
-- FlowFuse 2.10+ is require for Group Environment Variables
+### Requirements
 
-## Creating a Device Group
+- FlowFuse 1.15+ (Enterprise Tier)
+- FlowFuse Cloud (Enterprise Tier)
+- FlowFuse 2.10+ for Group Environment Variables
 
-<img src="./images/ui-device-group-create.png" width="100%" />
+## Creating a Group
 
-1. Select the Application you want to configure a Device Group for.
-1. Select the "Device Groups" tab
-1. Click "Add Device Group"
-1. Name your Device Group appropriately (this can be changed later)
-1. Click "Create"
+![Create Group](./images/create-device-group.png){data-zoomable}
 
-_Note: Adding a description can help you better distinguish device groups._
+1. Navigate to your Application
+2. Select the **Groups** tab
+3. Click **Add Group**
+4. Enter a descriptive name for your group
+5. (Optional) Add a description to help distinguish between groups
+6. Click **Create**
 
-## Updating Device Group Membership
+## Managing Group Membership
 
-<img src="./images/ui-device-group-member-edit.png" width="100%" />
+### Adding and Removing Devices
 
-1. In the Device Groups table, click the Device Group you want to modify
-1. Click "Edit"
-   1. On the left, you will be shown available devices (ones that are assigned to your application and are available to be added to a device group)
-   1. On the right, you will be shown devices that are already in the device group
-1. Place a checkmark next to the devices in the Available Devices list that you want to add to the Device Group then click "Add Devices"
-1. Place a checkmark next to the devices in the Device Group list that you want to remove then click "Remove Devices"
-1. Click "Save"
-1. You will be prompted to confirm your changes
-   1. Refer to the below information for more details about what happens when you add or remove devices from a device group
-   1. Click "Confirm" to continue or "Cancel" to abort
+![Edit Group Members](./images/ui-device-group-member-edit.png){data-zoomable}
 
-_Note: If you make a mistake, you can cancel your changes at any time by clicking "Cancel"_
-_Note: When a device you want to add to a group doesn't appear in the list, it's likely already assigned to another group._
+1. Click the group you want to modify from the table
+2. Click **Edit**
+3. Review the two lists:
+   - **Available Devices** (left): Devices assigned to your application that can be added
+   - **Group** (right): Devices currently in the group
+4. To add devices: Check the boxes next to devices in the Available list, then click **Add Devices**
+5. To remove devices: Check the boxes next to devices in the Group list, then click **Remove Devices**
+6. Click **Save**
+7. Review the confirmation prompt and click **Confirm** to apply changes
 
-### Adding a Device to a group which has an active pipeline snapshot
+**Note**: If a device doesn't appear in the Available list, it's likely already assigned to another group.
 
-When a pipeline stage is operated and it deploys to a device group, that device group remembers the snapshot that was deployed.
+### How Snapshots Are Affected
 
-Subsequently, if you add a device to a group, it will be instructed to update to the active snapshot.
+**When Adding a Device**
 
-### Removing a Device from a group which has an active pipeline snapshot
+If the group has an active pipeline snapshot, newly added devices will automatically be updated to that snapshot.
 
-When a pipeline stage is operated and it deploys to a device group, that device group remembers the snapshot that was deployed.
+**When Removing a Device**
 
-Subsequently, if you remove a device from a group and the device is running the active pipeline snapshot,
-the device snapshot will be cleared, effectively resetting the device to a blank state.
+If the group has an active pipeline snapshot and the device is currently running it, removing the device will clear its snapshot, effectively resetting it to a blank state.
 
-### Removing the snapshot from a device group
+**Clearing Group Snapshots**
 
-Under the settings of a device group, you can remove the target snapshot. This will also clear the snapshot of all devices in the group.
+You can remove the target snapshot from a group in the group settings. This will also clear the snapshot from all devices in the group.
+
+## Environment Variables
+
+Group-level environment variables follow these rules:
+
+- **Precedence**: Device variables override group variables
+- **Scope**: Variables are merged at runtime only; device settings remain unchanged
+- **Removal**: Removing a device from a group removes the group's variables from that device
+- **Updates**: Changing group variables triggers a restart of all devices in the group
