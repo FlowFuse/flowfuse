@@ -57,7 +57,14 @@ export default {
                 breaks: true,
                 gfm: true
             })
-            return this.sanitize(html)
+            return this.sanitize(html, {
+                targetBlank: true,
+                appendQueryParameters: {
+                    utm_source: 'flowfuse-expert',
+                    utm_medium: 'assistant',
+                    utm_campaign: 'expert-chat'
+                }
+            })
         }
     }
 }

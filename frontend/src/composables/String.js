@@ -84,6 +84,43 @@ export const slugify = (str) => {
         .replace(/^-+|-+$/g, '')
 }
 
-export const sanitize = (str) => {
-    return DOMPurify.sanitize(str)
+export const sanitize = (str, { targetBlank = false, appendQueryParameters = null } = {}) => {
+    if (!targetBlank && !appendQueryParameters) {
+        return DOMPurify.sanitize(str)
+    }
+
+    const hook = node => {
+        if (node.tagName !== 'A') return
+
+        if (targetBlank) {
+            node.setAttribute('target', '_blank')
+            node.setAttribute('rel', 'noopener noreferrer')
+        }
+
+        if (appendQueryParameters) {
+            try {
+                const url = new URL(node.getAttribute('href'), window.location.origin)
+
+                Object.entries(appendQueryParameters).forEach(([key, val]) => {
+                    url.searchParams.set(key, val)
+                })
+
+                node.setAttribute('href', url.toString())
+            } catch (_) {
+                // ignore invalid URLs
+            }
+        }
+    }
+
+    // add a per-call temporary hook
+    //  - dom purify can only be configured globally
+    //  - this hook will be applied removed after sanitization
+    DOMPurify.addHook('afterSanitizeAttributes', hook)
+
+    const result = DOMPurify.sanitize(str)
+
+    // remove all hooks for this stage (including the one we just added)
+    DOMPurify.removeHook('afterSanitizeAttributes')
+
+    return result
 }
