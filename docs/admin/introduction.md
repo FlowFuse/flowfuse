@@ -129,7 +129,7 @@ including what Instance Types are available and any limits that should be applie
     Allows a Team to upload and then access their own private Node-RED nodes (or other  NodeJS module packages). This can include Subflows packaged using the FlowFuse Subflow Packaging Sidebar (Requires Team Library Feature to be enabled). More details [here](../user/custom-npm-packages.md)
  - **Certified Nodes**
 
-    Allows the Team access to FlowFuse Certified nodes (Requires security token from FlowFuse, only available to Enterprise license holders)
+    Allows the Team access to [FlowFuse Certified nodes](https://flowfuse.com/certified-nodes/) (Requires security token from FlowFuse, only available to Enterprise license holders)
  - **FlowFuse Exclusive Nodes**
 
     Allows the Team access to FlowFuse Exclusive nodes (Requires security token from FlowFuse, only available to Enterprise license holders)
