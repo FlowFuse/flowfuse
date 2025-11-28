@@ -11,7 +11,7 @@ The Application Bill of Materials (BoM) provides a comprehensive overview of all
 
 The BoM is located in the **Dependencies** tab of each application.
 
-![bom.png](images/bom.png)
+![bom.png](images/bom.png){data-zoomable}
 
 ## Search Functionality
 
