@@ -148,6 +148,24 @@ module.exports = {
                                         "devices"."TeamId" = "Team"."id"
                                     )`),
                                     'deviceCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "BrokerCredentials" AS "brokers"
+                                        WHERE
+                                        "brokers"."TeamId" = "Team"."id"
+                                    )`),
+                                    'brokerCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "TeamBrokerClients" AS "teamBrokerClients"
+                                        WHERE
+                                        "teamBrokerClients"."TeamId" = "Team"."id"
+                                    )`),
+                                    'teamBrokerClientsCount'
                                 ]
                             ]
                         }
@@ -187,6 +205,24 @@ module.exports = {
                                         "devices"."TeamId" = "Team"."id"
                                     )`),
                                     'deviceCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "BrokerCredentials" AS "brokers"
+                                        WHERE
+                                        "brokers"."TeamId" = "Team"."id"
+                                    )`),
+                                    'brokerCount'
+                                ],
+                                [
+                                    literal(`(
+                                        SELECT COUNT(*)
+                                        FROM "TeamBrokerClients" AS "teamBrokerClients"
+                                        WHERE
+                                        "teamBrokerClients"."TeamId" = "Team"."id"
+                                    )`),
+                                    'teamBrokerClientsCount'
                                 ]
                             ]
                         }

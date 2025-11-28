@@ -7,7 +7,7 @@
                 Apply upgrades when available
                 <template #description>
                     <p>
-                        Select the day of the week and the hour during which the automatic upgrade will occur. The
+                        Select the day of the week and the hour during which the automatic upgrade will occur if available. The
                         upgrade will start within the selected hour.
                     </p>
                     <p class="my-3"><span class="font-bold">Note:</span> All times are stated in UTC.</p>
