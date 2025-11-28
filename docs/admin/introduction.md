@@ -132,7 +132,7 @@ including what Instance Types are available and any limits that should be applie
     Allows the Team access to [FlowFuse Certified nodes](https://flowfuse.com/certified-nodes/) (Requires security token from FlowFuse, only available to Enterprise license holders)
  - **FlowFuse Exclusive Nodes**
 
-    Allows the Team access to FlowFuse Exclusive nodes (Requires security token from FlowFuse, only available to Enterprise license holders)
+    Allows the Team access to [FlowFuse Exclusive nodes](https://flowfuse.com/node-red/flowfuse/) (Requires security token from FlowFuse, only available to Enterprise license holders)
  - **Email Alerts**
 
     Allows Teams to enable email alerts when an Hosted Instance crashes or is approaching the CPU/Memory limits set for it's Stack (requires email to be enabled). More details [here](../user/instance-settings.md#alerts)
