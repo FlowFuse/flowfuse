@@ -10,7 +10,7 @@ navTitle: Groups
 
 ![Groups UI](./images/groups.png){data-zoomable}
 
-Groups help you organize and manage multiple devices that run the same snapshot configuration. By grouping devices logically, you can deploy updates to dozens or even hundreds of devices simultaneously through DevOps Pipelines.
+Groups help you organize and manage multiple devices that run the same [snapshot](./snapshots.md) configuration. By grouping devices logically, you can deploy updates to dozens or even hundreds of devices simultaneously through [DevOps Pipelines](./devops-pipelines.md).
 
 ### Key Features
 
