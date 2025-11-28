@@ -1,3 +1,9 @@
+#### 2.24.3: Release
+
+ - Add extra cause logging on instance create failure (#6346) @hardillb
+ - Add doc about Team Type Feature List (#6336) @hardillb
+ - Improve Bills of material, update screenshots (#6344) @sumitshinde-84
+
 #### 2.24.2: Release
 
  - fix(ci): send slack notification on package publish failure (#6337)
