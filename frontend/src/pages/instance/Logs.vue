@@ -1,34 +1,36 @@
 <template>
-    <div class="mb-3" data-el="instance-logs">
-        <SectionTopMenu hero="Node-RED Logs" info="">
-            <template #tools>
-                <div style="display: flex;align-items: center;">
-                    <div class="mr-2"><strong>Jump:</strong></div>
-                    <DateTimePicker
-                        v-model="startDate"
-                        is-24
-                        enable-seconds
-                        placeholder="Start Time"
-                        :locale="locale"
-                        :format="format"
-                        :min-date="logsStartDate"
-                        :max-date="logsEndDate"
-                        :startTime="startTime"
-                    />
-                </div>
-                <div v-if="instance.ha?.replicas != undefined" style="display: flex;align-items: center;">
-                    <div class="mr-2"><strong>Replica:</strong></div>
-                    <ff-listbox
-                        ref="dropdown"
-                        v-model="selectedHAId"
-                        data-el="select-ha-replica"
-                        :options="haIdOptions"
-                    />
-                </div>
-            </template>
-        </SectionTopMenu>
+    <div id="instance-logs-page" class="flex-1 flex flex-col overflow-auto">
+        <div class="mb-3" data-el="instance-logs">
+            <SectionTopMenu hero="Node-RED Logs" info="">
+                <template #tools>
+                    <div style="display: flex;align-items: center;">
+                        <div class="mr-2"><strong>Jump:</strong></div>
+                        <DateTimePicker
+                            v-model="startDate"
+                            is-24
+                            enable-seconds
+                            placeholder="Start Time"
+                            :locale="locale"
+                            :format="format"
+                            :min-date="logsStartDate"
+                            :max-date="logsEndDate"
+                            :startTime="startTime"
+                        />
+                    </div>
+                    <div v-if="instance.ha?.replicas != undefined" style="display: flex;align-items: center;">
+                        <div class="mr-2"><strong>Replica:</strong></div>
+                        <ff-listbox
+                            ref="dropdown"
+                            v-model="selectedHAId"
+                            data-el="select-ha-replica"
+                            :options="haIdOptions"
+                        />
+                    </div>
+                </template>
+            </SectionTopMenu>
+        </div>
+        <LogsShared ref="logs" :instance="instance" :filter="selectedHAId" @ha-instance-detected="newHAId" @new-range="newRange" />
     </div>
-    <LogsShared ref="logs" :instance="instance" :filter="selectedHAId" @ha-instance-detected="newHAId" @new-range="newRange" />
 </template>
 
 <script>

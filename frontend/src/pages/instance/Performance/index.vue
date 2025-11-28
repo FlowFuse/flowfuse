@@ -28,54 +28,58 @@
 
             <template v-else-if="!error">
                 <section class="ff-chart-section">
-                    <SectionTopMenu>
-                        <template #hero>
-                            <div class="flex items-center gap-2">
-                                <ChipIcon class="ff-icon ff-icon-md text-gray-800" />
-                                <div class="text-gray-800 text-xl font-medium whitespace-nowrap">CPU Utilisation</div>
-                            </div>
-                        </template>
-                        <template #tools>
-                            <div class="flex items-center gap-2">
-                                <div class="ff-socket-status">
-                                    <div class="ff-socket-status-icon" :class="{ 'ff-socket-status-icon-connected': wsConnected, 'ff-socket-status-icon-disconnected': !wsConnected }" />
-                                    <div class="ff-socket-status-text">
-                                        {{ wsConnected ? 'Connected to Live Data' : 'Unable to connect to Live Data' }}
-                                    </div>
+                    <information-well>
+                        <SectionTopMenu>
+                            <template #hero>
+                                <div class="flex items-center gap-2">
+                                    <ChipIcon class="ff-icon ff-icon-md text-gray-800" />
+                                    <div class="text-gray-800 text-xl font-medium whitespace-nowrap">CPU Utilisation</div>
                                 </div>
-                                <ff-button v-if="!wsConnected" size="small" kind="secondary" @click="getResources">
-                                    <template #icon><RefreshIcon /></template>
-                                </ff-button>
-                            </div>
-                        </template>
-                    </SectionTopMenu>
+                            </template>
+                            <template #tools>
+                                <div class="flex items-center gap-2">
+                                    <div class="ff-socket-status">
+                                        <div class="ff-socket-status-icon" :class="{ 'ff-socket-status-icon-connected': wsConnected, 'ff-socket-status-icon-disconnected': !wsConnected }" />
+                                        <div class="ff-socket-status-text">
+                                            {{ wsConnected ? 'Connected to Live Data' : 'Unable to connect to Live Data' }}
+                                        </div>
+                                    </div>
+                                    <ff-button v-if="!wsConnected" size="small" kind="secondary" @click="getResources">
+                                        <template #icon><RefreshIcon /></template>
+                                    </ff-button>
+                                </div>
+                            </template>
+                        </SectionTopMenu>
 
-                    <CpuChart :resources="resources" :instance="instance" />
+                        <CpuChart :resources="resources" :instance="instance" />
+                    </information-well>
                 </section>
 
                 <section class="ff-chart-section">
-                    <SectionTopMenu>
-                        <template #hero>
-                            <div class="flex items-center gap-2">
-                                <ChipIcon class="ff-icon ff-icon-md text-gray-800" />
-                                <div class="text-gray-800 text-xl font-medium whitespace-nowrap">Memory Utilisation</div>
-                            </div>
-                        </template>
-                        <template #tools>
-                            <div class="flex items-center gap-2">
-                                <div class="ff-socket-status">
-                                    <div class="ff-socket-status-icon" :class="{ 'ff-socket-status-icon-connected': wsConnected, 'ff-socket-status-icon-disconnected': !wsConnected }" />
-                                    <div class="ff-socket-status-text">
-                                        {{ wsConnected ? 'Connected to Live Data' : 'Unable to connect to Live Data' }}
-                                    </div>
+                    <information-well>
+                        <SectionTopMenu>
+                            <template #hero>
+                                <div class="flex items-center gap-2">
+                                    <ChipIcon class="ff-icon ff-icon-md text-gray-800" />
+                                    <div class="text-gray-800 text-xl font-medium whitespace-nowrap">Memory Utilisation</div>
                                 </div>
-                                <ff-button v-if="!wsConnected" size="small" kind="secondary" @click="getResources">
-                                    <template #icon><RefreshIcon /></template>
-                                </ff-button>
-                            </div>
-                        </template>
-                    </SectionTopMenu>
-                    <MemoryChart :resources="resources" :instance="instance" />
+                            </template>
+                            <template #tools>
+                                <div class="flex items-center gap-2">
+                                    <div class="ff-socket-status">
+                                        <div class="ff-socket-status-icon" :class="{ 'ff-socket-status-icon-connected': wsConnected, 'ff-socket-status-icon-disconnected': !wsConnected }" />
+                                        <div class="ff-socket-status-text">
+                                            {{ wsConnected ? 'Connected to Live Data' : 'Unable to connect to Live Data' }}
+                                        </div>
+                                    </div>
+                                    <ff-button v-if="!wsConnected" size="small" kind="secondary" @click="getResources">
+                                        <template #icon><RefreshIcon /></template>
+                                    </ff-button>
+                                </div>
+                            </template>
+                        </SectionTopMenu>
+                        <MemoryChart :resources="resources" :instance="instance" />
+                    </information-well>
                 </section>
             </template>
 
@@ -110,12 +114,14 @@ import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavail
 
 import CpuChart from '../../../components/charts/performance/CpuChart.vue'
 import MemoryChart from '../../../components/charts/performance/MemoryChart.vue'
+import InformationWell from '../../../components/wells/InformationWell.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import featuresMixin from '../../../mixins/Features.js'
 
 export default {
     name: 'InstancePerformance',
     components: {
+        InformationWell,
         MemoryChart,
         CpuChart,
         EmptyState,

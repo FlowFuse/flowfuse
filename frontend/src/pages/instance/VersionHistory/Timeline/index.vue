@@ -1,14 +1,11 @@
 <template>
-    <div>
+    <div id="hosted-instance-timeline" class="flex-1 flex flex-col overflow-auto">
         <FeatureUnavailable v-if="!isTimelineFeatureEnabledForPlatform" />
         <FeatureUnavailableToTeam v-else-if="!isTimelineFeatureEnabledForTeam" />
-        <section
-            v-if="isTimelineFeatureEnabled" id="visual-timeline" class="relative"
-            :style="{height: listHeightCss}"
-        >
+        <section v-if="isTimelineFeatureEnabled" id="visual-timeline" class="relative flex-1 flex flex-col overflow-auto">
             <transition-group name="fade">
                 <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
-                <ul v-else ref="timeline" data-el="timeline-list" class="timeline" :style="{'max-height': listHeightCss}">
+                <ul v-else ref="timeline" data-el="timeline-list" class="timeline overflow-auto">
                     <li v-for="event in activeTimeline" :key="event.id">
                         <timeline-event
                             :event="event"
@@ -90,7 +87,6 @@ export default {
         return {
             timeline: [],
             loading: false,
-            listHeight: 0,
             next_cursor: undefined
         }
     },
@@ -105,9 +101,6 @@ export default {
                     id: 'load-more'
                 }]
             } else return this.timeline
-        },
-        listHeightCss () {
-            return this.listHeight ? `${this.listHeight}px` : '800px'
         }
     },
     watch: {
@@ -121,11 +114,6 @@ export default {
     },
     mounted () {
         this.fetchData()
-        this.computeTimelineListMaxHeight()
-        window.addEventListener('resize', this.computeTimelineListMaxHeight)
-    },
-    beforeUnmount () {
-        window.removeEventListener('resize', this.computeTimelineListMaxHeight)
     },
     methods: {
         async fetchData (loadMore = false) {
@@ -162,19 +150,6 @@ export default {
             callback(...payload)
                 .then(() => this.fetchData(false))
                 .catch(e => console.warn(e))
-        },
-        computeTimelineListMaxHeight () {
-            if (!this.$route.path.includes('editor')) {
-                const sectionHeader = document.querySelector('.ff-section-header')
-
-                if (sectionHeader) {
-                    const rect = sectionHeader.getBoundingClientRect()
-                    const heightToBottom = window.innerHeight - rect.bottom
-
-                    // also deduct the <main> tag padding and .ff-section-header's margin-bottom
-                    this.listHeight = heightToBottom - 24.5 - 7
-                }
-            }
         }
     }
 }

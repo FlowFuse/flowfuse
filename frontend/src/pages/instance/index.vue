@@ -59,7 +59,7 @@
             <SubscriptionExpiredBanner :team="team" />
             <TeamTrialBanner v-if="team.billing?.trial" :team="team" />
         </Teleport>
-        <div class="flex flex-col flex-1">
+        <div class="flex flex-col flex-1 overflow-auto">
             <router-view
                 :instance="instance"
                 :is-visiting-admin="isVisitingAdmin"

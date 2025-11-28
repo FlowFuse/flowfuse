@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-6">
+    <form class="space-y-6 flex-1 flex flex-col overflow-auto">
         <TemplateSettingsEnvironment
             v-model="editable"
             :readOnly="!hasPermission('project:edit-env', { application: project.application })"
