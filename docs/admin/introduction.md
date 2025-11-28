@@ -117,16 +117,16 @@ including what Instance Types are available and any limits that should be applie
 
  - **Team Library**
 
-    Enables Team Level sharing of flow fragments and examples.
+    Enables Team Level sharing of flow fragments and examples. More details [here](../user/shared-library)
  - **Project Nodes**
 
-    Enables the FlowFuse Project Nodes which allows Instances within a Team to pass messages between them.
+    Enables the FlowFuse Project Nodes which allows Instances within a Team to pass messages between them. More details [here](../user/projectnodes)
  - **Custom NPM Catalogs**
 
     Allows .npmrc entries to be passed to Hosted and Remote Instances and also custom Node-RED Catalog URLs to be injected. This allows Node-RED nodes to be loaded from 3rd party registries (e.g. npm proxy instances)
  - **NPM Packages**
 
-    Allows a Team to upload and then access their own private Node-RED nodes (or other  NodeJS module packages). This can include Subflows packaged using the FlowFuse Subflow Packaging Sidebar (Requires Team Library Feature to be enabled).
+    Allows a Team to upload and then access their own private Node-RED nodes (or other  NodeJS module packages). This can include Subflows packaged using the FlowFuse Subflow Packaging Sidebar (Requires Team Library Feature to be enabled). More details [here](../user/custom-npm-packages)
  - **Certified Nodes**
 
     Allows the Team access to FlowFuse Certified nodes (Requires security token from FlowFuse, only available to Enterprise license holders)
@@ -135,19 +135,19 @@ including what Instance Types are available and any limits that should be applie
     Allows the Team access to FlowFuse Exclusive nodes (Requires security token from FlowFuse, only available to Enterprise license holders)
  - **Email Alerts**
 
-    Allows Teams to enable email alerts when an Hosted Instance crashes or is approaching the CPU/Memory limits set for it's Stack (requires email to be enabled).
+    Allows Teams to enable email alerts when an Hosted Instance crashes or is approaching the CPU/Memory limits set for it's Stack (requires email to be enabled). More details [here](../user/instance-settings#alerts)
  - **Protected Instances**
 
-    Allows Hosted Instances to be marked as Protected. This disables Editor access and requires all flows to be updated via a Pipeline.
+    Allows Hosted Instances to be marked as Protected. This disables Editor access and requires all flows to be updated via a Pipeline. More details [here](../user/devops-pipelines#protected-instances)
  - **Git Integration**
 
-    This allows a GitHub project to be used as the source or output of a Pipeline.
+    This allows a GitHub project to be used as the source or output of a Pipeline. More details [here](../user/devops-pipelines#git-repository-stage)
  - **API/Debug Length Limits**
 
-    Lets a Team change the size of the max payload a Hosted Instance can accept and also the size messages sent to the Debug Sidebar will be truncated to.
+    Lets a Team change the size of the max payload a Hosted Instance can accept and also the size messages sent to the Debug Sidebar will be truncated to. More details [here](../user/instance-settings#editor)
  - **Static Assets**
 
-    Allows Hosted Instances to share static files stored in the Instance Persistent Storage space via HTTP
+    Allows Hosted Instances to share static files stored in the Instance Persistent Storage space via HTTP. More details [here](../user/static-asset-service)
  - **Instance Resources**
 
     Enables CPU and Memory historical charts for Hosted and Remote Instances.
@@ -156,36 +156,40 @@ including what Instance Types are available and any limits that should be applie
     Allows Team level Roles to be applied at an Application level inside the Team.
  - **Team-based Endpoint Security**
     
-    Allows HTTP endpoints provided by a Hosted or Remote Instance to require a FlowFuse account and membership to the allow access. Also applies to Node-RED Dashboards hosted on the instances.
+    Allows HTTP endpoints provided by a Hosted or Remote Instance to require a FlowFuse account and membership to the allow access. Also applies to Node-RED Dashboards hosted on the instances. More details [here](../user/http-access-tokens)
  - **Device Groups**
 
-    Allows Remote Instances to be placed in groups which can be used as the source or target of a Pipeline stage.
- - Device Auto Snapshot
- - Instance Auto Snapshot
+    Allows Remote Instances to be placed in groups which can be used as the source or target of a Pipeline stage. More details [here](../user/device-groups)
+ - **Device Auto Snapshot**
+
+    Creates a snapshot on every deploy when the Remote Instance is in Developer Mode. These snapshots keep a rolling set of last 10 deploys. More details [here](../user/snapshots)
+ - **Instance Auto Snapshot**
+
+    Creates a snapshot on every deploy from a Hosted Instance. These snapshots keep a rolling set of the last 10 deploys. More details [here](../user/snapshots)
  - **Custom Hostnames**
  
-     Allows Hosted instances to be accessed on a second hostname with an arbitrary domain (Kubernetes only, requires specific configuration).
+     Allows Hosted instances to be accessed on a second hostname with an arbitrary domain (Kubernetes only, requires specific configuration). More details [here](../user/custom-hostnames)
  - **High Availability**
 
-    Allows for 2 copies of Node-RED to be running for a single Hosted Node-RED instance to provide Load Balanced higher throughput and fail over protection (Kubernetes only).
+    Allows for 2 copies of Node-RED to be running for a single Hosted Node-RED instance to provide Load Balanced higher throughput and fail over protection (Kubernetes only). More details [here](../user/high-availability)
  - **Bill of Materials / Dependencies**
 
-    Provides a Team level view of what Node-RED nodes are installed and what versions are being used and which have newer versions available.
+    Provides a Team level view of what Node-RED nodes are installed and what versions are being used and which have newer versions available. More details [here](../user/bill-of-materials)
  - **Version History Timeline**
 
-    Enables a graphical representation of Snapshot creation to allow a clearer picture of when they are created.
+    Enables a graphical representation of Snapshot creation to allow a clearer picture of when they are created. More details [here](../user/snapshots#timeline-view)
  - **Team Broker**
 
-    Provides a Team scoped MQTT broker and Asynchronous API documentation generation.
+    Provides a Team scoped MQTT broker and Asynchronous API documentation generation. More details [here](../user/teambroker)
  - **Tables**
 
-    Provides a Team scoped shared SQL Relational Database (Requires specific configuration).
+    Provides a Team scoped shared SQL Relational Database (Requires specific configuration). More details [here](../user/ff-tables)
  - **Assistant Inline Code Completion**
  
-    Allows LLM assistance when writing Functions nodes (requires a token from FlowFuse Support and available to Enterprise License holders)
+    Allows LLM assistance when writing Functions nodes (requires a token from FlowFuse Support and available to Enterprise License holders). More details [here](../user/assistant)
  - **Generated Snapshot Descriptions**
 
-    Enables the creation of Generative AI descriptions of Snapshots (requires a token from FlowFuse Support and available to Enterprise License holders)
+    Enables the creation of Generative AI descriptions of Snapshots (requires a token from FlowFuse Support and available to Enterprise License holders). More details [here](../user/assistant)
 
 ### Managing Instance Types
 
