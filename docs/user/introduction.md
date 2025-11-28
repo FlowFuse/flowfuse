@@ -23,7 +23,7 @@ To access the Node-RED Editor, simply click on the option shown in the image bel
 
 Alternatively, you can click on that instance and then you will find the "Open Editor" button at the top right:
 
-![Open Editor](./images/getting-started/open-editor.png){data-zoomable}
+![Open Editor](./images/getting-started/Open-Editor.png){data-zoomable}
 
 ### Creating Additional Instances
 
