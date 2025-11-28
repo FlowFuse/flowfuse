@@ -47,6 +47,9 @@ module.exports = async function (app) {
             request.ownerType = 'project'
             request.ownerId = request.owner.id
             request.team = await app.db.models.Team.byId(request.owner.Team.id)
+        } else if (request.session.ownerType === 'user') {
+            request.ownerType = 'user'
+            request.ownerId = request.session.ownerId
         }
     })
 
@@ -173,11 +176,11 @@ module.exports = async function (app) {
         const inlineDisabled = app.config.assistant?.completions?.inlineEnabled === false
         const featureEnabled = app.config.features.enabled('assistantInlineCompletions')
         const featureEnabledForTeam = request.team?.TeamType.getFeatureProperty('assistantInlineCompletions', false)
-        if (inlineDisabled || !featureEnabled || !featureEnabledForTeam) {
+        const isStandaloneSessionUser = request.session.ownerType === 'user'
+        if (inlineDisabled || !featureEnabled || !(isStandaloneSessionUser || featureEnabledForTeam)) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found - feature not enabled for team' })
             return
         }
-
         const nodeModule = request.params.nodeModule
         const nodeType = request.params.nodeType
         const supported = [
@@ -193,7 +196,7 @@ module.exports = async function (app) {
         // if this is a `flowfuse-tables-query` lets see if tables are enabled and try to get the schema hints
         let tablesCacheKey = null
         if (nodeModule === '@flowfuse/nr-tables-nodes' && nodeType === 'tables-query') {
-            const tablesFeatureEnabled = app.config.features.enabled('tables') && request.team?.TeamType.getFeatureProperty('tables', false)
+            const tablesFeatureEnabled = !isStandaloneSessionUser && app.config.features.enabled('tables') && request.team?.TeamType.getFeatureProperty('tables', false)
             tablesCacheKey = tablesFeatureEnabled && request.team.hashid + '/tables/schema'
             if (tablesCacheKey) {
                 if (!tablesSchemaCache.has(tablesCacheKey)) {
@@ -215,10 +218,17 @@ module.exports = async function (app) {
 
         // post to the assistant service /fim/:nodeModule/:nodeType endpoint
         try {
-            let isTeamOnTrial
-            if (app.billing && request.team.getSubscription) {
-                const subscription = await request.team.getSubscription()
-                isTeamOnTrial = subscription ? subscription.isTrial() : null
+            const requestMetadata = {
+                instanceType: request.ownerType,
+                instanceId: request.ownerId,
+                additionalHeaders: request.headers
+            }
+            if (request.team) {
+                requestMetadata.teamHashId = request.team.hashid
+                if (app.billing && request.team.getSubscription) {
+                    const subscription = await request.team.getSubscription()
+                    requestMetadata.isTeamOnTrial = subscription ? subscription.isTrial() : null
+                }
             }
             const data = { ...request.body }
             if (tablesCacheKey) {
@@ -227,14 +237,7 @@ module.exports = async function (app) {
             }
 
             const method = `fim/${encodeURIComponent(nodeModule)}/${encodeURIComponent(nodeType)}`
-            const response = await app.db.controllers.Assistant.invokeLLM(method, data, {
-                teamHashId: request.team.hashid,
-                instanceType: request.ownerType,
-                instanceId: request.ownerId,
-                additionalHeaders: request.headers,
-                isTeamOnTrial
-            })
-
+            const response = await app.db.controllers.Assistant.invokeLLM(method, data, requestMetadata)
             reply.send(response.data)
         } catch (error) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
