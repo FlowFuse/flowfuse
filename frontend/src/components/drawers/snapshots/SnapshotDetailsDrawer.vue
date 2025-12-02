@@ -1,7 +1,11 @@
 <template>
     <div id="snapshot-details-drawer" data-el="snapshot-details-drawer" class="p-4">
         <div class="container">
-            <section v-if="hasPermission('snapshot:full', applicationContext)" class="flow-viewer flex flex-1 flex-col overflow-auto">
+            <section
+                v-if="hasPermission('snapshot:full', applicationContext)"
+                class="flow-viewer flex flex-1 flex-col overflow-auto"
+                data-el="flows"
+            >
                 <div class="header flex flex-row justify-between mb-2">
                     <span class="title font-bold">Flows:</span>
                     <span
@@ -253,6 +257,10 @@ export default defineComponent({
                 this.input.description = this.snapshot.description
                 this.input.name = this.snapshot.name
             }
+        },
+        snapshot: {
+            deep: true,
+            handler: 'setHeader'
         }
     },
     mounted () {
