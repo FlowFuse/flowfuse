@@ -139,7 +139,7 @@ describe('FlowFuse - Devices - With Billing', () => {
             cy.get('[data-action="delete"]').should('exist').and('not.have.class', 'disabled')
         })
 
-        // clear the kebab menu by pressing escape
+        // clear the snapshot drawer
         // eslint-disable-next-line cypress/require-data-selectors
         cy.get('body').type('{esc}')
     })
