@@ -59,15 +59,6 @@
                             <span class="sr-only">Filter Snapshots</span>
                         </DropdownMenu>
                     </template>
-                    <template #context-menu="{row}">
-                        <ff-list-item :disabled="!canDeploy(row)" label="Restore Snapshot" @click="showDeploySnapshotDialog(row)" />
-                        <ff-list-item :disabled="!hasPermission('snapshot:edit', { application: device.application })" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
-                        <ff-list-item :disabled="!hasPermission('snapshot:full', { application: device.application })" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
-                        <ff-list-item :disabled="!hasPermission('snapshot:full', { application: device.application })" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
-                        <ff-list-item :disabled="!canDownload(row)" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
-                        <ff-list-item :disabled="!hasPermission('device:snapshot:read', { application: device.application })" label="Download package.json" @click="downloadSnapshotPackage(row)" />
-                        <ff-list-item :disabled="!canDelete(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
-                    </template>
                 </ff-data-table>
             </template>
             <template v-else-if="!loading">
@@ -240,7 +231,7 @@ export default {
                     component: {
                         is: markRaw(SnapshotName),
                         extraProps: {
-                            // targetSnapshot: this.instance.deviceSettings?.targetSnapshot
+                            clippedDetails: true
                         }
                     }
                 },
