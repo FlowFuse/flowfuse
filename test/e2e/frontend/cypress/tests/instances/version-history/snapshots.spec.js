@@ -118,7 +118,7 @@ describe('FlowFuse - Instance Snapshots', () => {
         })
     })
 
-    it('provides functionality to edit a snapshot', () => {
+    it.only('provides functionality to edit a snapshot', () => {
         cy.intercept('GET', '/api/*/snapshots/*/full', instanceFullSnapshot).as('fullSnapshot')
         cy.intercept('PUT', '/api/*/snapshots/*', {}).as('updateSnapshot')
 
@@ -153,7 +153,7 @@ describe('FlowFuse - Instance Snapshots', () => {
         })
 
         cy.get('[data-el="right-drawer"]').within(() => {
-            cy.get('[data-el="right-drawer-header-title"]').contains('editable-snapshot')
+            cy.get('[data-el="right-drawer-header-title"]').contains('Edited Snapshot Name!!!')
         })
     })
 
