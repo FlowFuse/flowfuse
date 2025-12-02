@@ -361,7 +361,7 @@ export default defineComponent({
                             return !context.hasPermission('project:snapshot:rollback', context.applicationContext)
                         },
                         disabled: function () {
-                            return context.canRestore
+                            return !context.canRestore
                         },
                         bind: {
                             'data-action': 'restore'

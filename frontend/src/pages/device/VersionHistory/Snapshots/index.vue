@@ -467,7 +467,7 @@ export default {
                     snapshotList: this.snapshotList,
                     instance: this.device,
                     canSetDeviceTarget: false,
-                    canRestore: !this.canDeploy(snapshot),
+                    canRestore: this.canDeploy(snapshot),
                     isDevice: true
                 },
                 on: {
