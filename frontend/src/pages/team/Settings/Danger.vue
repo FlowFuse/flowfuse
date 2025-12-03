@@ -16,6 +16,7 @@
             <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
                 <div class="flex-grow">
                     <div class="max-w-sm pr-2">Suspending the team will suspend all instances and prevent any further activity on the team.</div>
+                    <div v-if="features.billing">Billing stops immediately and <span class="font-bold">the team's subscription is canceled.</span></div>
                 </div>
                 <div class="min-w-fit flex-shrink-0">
                     <ff-button kind="danger" data-action="suspend-team" @click="showConfirmSuspendDialog()">Suspend Team</ff-button>
@@ -37,7 +38,8 @@
         <FormHeading class="text-red-700">Delete Team</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
-                <div class="max-w-sm pr-2">Deleting the team cannot be undone. Take care.</div>
+                <div class="max-w-sm pr-2">Deleting the team cannot be undone. It permanently removes all data, users, and instances.</div>
+                <div v-if="features.billing">Billing stops immediately and <span class="font-bold">the team's subscription is canceled.</span></div>
             </div>
             <div class="min-w-fit flex-shrink-0">
                 <ff-button kind="danger" data-action="delete-team" @click="showConfirmDeleteDialog()">Delete Team</ff-button>
