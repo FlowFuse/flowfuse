@@ -4,7 +4,7 @@
             Place the below configuration on your device.
             See the <a href="https://flowfuse.com/docs/device-agent/" target="_blank">Device Agent documentation</a> for instructions on how to do this.
         </p>
-        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
+        <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded-sm bg-gray-800 text-gray-200">{{ credentials }}</pre>
         <div class="flex flex-row justify-end space-x-2 -mt-1">
             <ff-button kind="tertiary" size="small" class="ml-4" @click="downloadCredentials()">
                 <template #icon-right><DocumentDownloadIcon /></template>

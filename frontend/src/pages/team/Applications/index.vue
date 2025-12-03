@@ -129,7 +129,7 @@ export default {
             loading: false,
             applications: new Map(),
             columns: [
-                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true }
+                { label: 'Name', class: ['grow'], key: 'name', sortable: true }
             ],
             filterTerm: '',
             isSearching: false
@@ -199,7 +199,7 @@ export default {
 
 .no-results {
   text-align: center;
-  color: $ff-grey-400;
+  color: var(--ff-grey-400);
 }
 
 .fade-slide-enter-active,

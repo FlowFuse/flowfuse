@@ -63,7 +63,7 @@ export default {
     background-color: currentColor;
   }
   50%, 100% {
-    background-color: rgba($ff-grey-500, 0.2);
+    background-color: var(--ff-grey-500-20);
   }
 }
 </style>

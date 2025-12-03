@@ -22,13 +22,13 @@
         border-radius: 0.25rem;
         border-collapse: separate;
         border-width: 1px;
-        border-color: $ff-grey-300;
+        border-color: var(--ff-grey-300);
         td {
             height: 36px;
         }
         tr:not(:last-child) {
             td {
-                border-bottom: 1px solid $ff-grey-100;
+                border-bottom: 1px solid var(--ff-grey-100);
             }
         }
     }

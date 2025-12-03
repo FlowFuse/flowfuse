@@ -11,11 +11,11 @@
                     <section>
                         <label>Payload Schema:</label>
                         <div class="space-y-2">
-                            <div v-if="topic.schema?.type" class="mt-2 flex items-center justify-between border rounded p-3">
+                            <div v-if="topic.schema?.type" class="mt-2 flex items-center justify-between border rounded-sm p-3">
                                 <label>Type</label>
                                 <span class="capitalize">{{ topic.schema.type }}</span>
                             </div>
-                            <pre v-if="showRaw" class="p-2 border border-gray-200 bg-gray-50 rounded-md">{{ topic.schema.properties }}</pre>
+                            <pre v-if="showRaw" class="p-2 border border-gray-200 bg-gray-50 rounded">{{ topic.schema.properties }}</pre>
                             <p v-if="!topic.schema" class="ff-empty-state">No schema available.</p>
                         </div>
                     </section>
@@ -65,8 +65,8 @@ export default {
 
         .ff-accordion--button{
             font-weight: bold;
-            border: 1px solid $ff-blue-300;
-            background-color: $ff-blue-50;
+            border: 1px solid var(--ff-blue-300);
+            background-color: var(--ff-blue-50);
             border-radius: 6px;
             padding: 12px;
             font-weight: bold;
@@ -76,12 +76,12 @@ export default {
 
             &:hover {
                 cursor: pointer;
-                background-color: $ff-blue-100;
+                background-color: var(--ff-blue-100);
             }
         }
 
         .ff-accordion--content {
-            border: 1px solid $ff-blue-300;
+            border: 1px solid var(--ff-blue-300);
             border-top: none;
             border-radius: 0 0 6px 6px;
             padding: 12px;
@@ -96,8 +96,8 @@ export default {
                         margin-bottom: 3px;
                     }
                     .ff-empty-state {
-                        color: $ff-grey-400;
-                        background-color: $ff-grey-50;
+                        color: var(--ff-grey-400);
+                        background-color: var(--ff-grey-50);
                         padding: 12px;
                         margin-top: 6px;
                     }

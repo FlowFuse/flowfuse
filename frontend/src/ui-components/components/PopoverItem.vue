@@ -61,12 +61,12 @@ export default defineComponent({
         flex-direction: column;
 
         .description {
-            color: $ff-grey-400;
+            color: var(--ff-grey-400);
         }
     }
 
     &:hover {
-        background: $ff-grey-100;
+        background: var(--ff-grey-100);
     }
 }
 </style>

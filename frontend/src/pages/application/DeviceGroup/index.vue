@@ -188,7 +188,7 @@ export default {
 <style lang="scss">
 .device-group {
     .ff-target-snapshot-info{
-        border: 1px solid $ff-grey-300;
+        border: 1px solid var(--ff-grey-300);
         padding: 10px 15px;
         display: flex;
         gap: 20px;

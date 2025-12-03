@@ -39,13 +39,13 @@ export default {
     .ff-method-option {
         flex: 1;
         text-align: center;
-        border-bottom: 2px solid $ff-color--border;
+        border-bottom: 2px solid var(--ff-color-border);
         padding-bottom: 5px;
         cursor: pointer;
         transition: ease-in-out .3s;
 
         &.active {
-            border-color: $ff-indigo-500;
+            border-color: var(--ff-indigo-50)0;
         }
 
         &:first-of-type:after {
@@ -54,8 +54,8 @@ export default {
             top: 5%;
             left: 49%;
             font-style: italic;
-            font-size: $ff-funit-sm;
-            color: $ff-grey-500;
+            font-size: var(--ff-funit-sm);
+            color: var(--ff-grey-50)0;
         }
     }
 }

@@ -37,10 +37,10 @@ export default {
 
 <style scoped lang="scss">
 .notice {
-    border: 1px solid $ff-yellow-100;
-    background-color: $ff-yellow-10;
-    border-radius: $ff-unit-sm;
-    padding: $ff-unit-md;
+    border: 1px solid var(--ff-yellow-100);
+    background-color: var(--ff-yellow-10);
+    border-radius: var(--ff-unit-sm);
+    padding: var(--ff-unit-md);
 
     .icon-wrapper {
         min-width: 40px;

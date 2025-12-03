@@ -73,7 +73,7 @@ export default {
         justify-content: flex-end;
 
         .message-bubble {
-            background-color: $ff-indigo-600;
+            background-color: var(--ff-indigo-600);
             color: white;
             border-radius: 0.5rem;
             border-bottom-right-radius: 0.125rem;
@@ -84,7 +84,7 @@ export default {
         justify-content: flex-start;
 
         .message-bubble {
-            background-color: $ff-grey-100;
+            background-color: var(--ff-grey-100);
             color: #1F2937; // gray-800
             border-radius: 0.5rem;
             border-bottom-left-radius: 0.125rem;
@@ -183,11 +183,11 @@ export default {
     }
 
     :deep(a) {
-        color: $ff-indigo-600;
+        color: var(--ff-indigo-600);
         text-decoration: underline;
 
         &:hover {
-            color: $ff-indigo-700;
+            color: var(--ff-indigo-700);
         }
     }
 

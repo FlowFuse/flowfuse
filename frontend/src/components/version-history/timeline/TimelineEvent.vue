@@ -375,7 +375,7 @@ export default {
                 }
 
                 a {
-                    color: $ff-blue-600;
+                    color: var(--ff-blue-600);
                 }
             }
 
@@ -386,7 +386,7 @@ export default {
         }
 
         .username {
-            color: $ff-grey-600;
+            color: var(--ff-grey-600);
         }
     }
 
@@ -396,13 +396,13 @@ export default {
     }
 
     &.is-snapshot {
-        background: $ff-grey-100;
-        color: $ff-grey-500;
+        background: var(--ff-grey-100);
+        color: var(--ff-grey-500);
     }
 
     &.load-more {
-        background: $ff-grey-200;
-        color: $ff-blue-500;
+        background: var(--ff-grey-200);
+        color: var(--ff-blue-500);
         cursor: pointer;
     }
 }

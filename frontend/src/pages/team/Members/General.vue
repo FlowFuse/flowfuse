@@ -123,7 +123,7 @@ export default {
                     label: 'User',
                     key: 'name',
                     sortable: true,
-                    class: ['flex-grow'],
+                    class: ['grow'],
                     component: { is: markRaw(UserCell) }
                 },
                 {

@@ -149,12 +149,12 @@ button {
 }
 
 .btn-send {
-    background-color: $ff-indigo-600;
+    background-color: var(--ff-indigo-600);
     color: white;
-    border-color: $ff-indigo-600;
+    border-color: var(--ff-indigo-600);
 
     &:hover:not(:disabled) {
-        background-color: $ff-indigo-700;
+        background-color: var(--ff-indigo-700);
     }
 }
 
@@ -171,7 +171,7 @@ button {
         width: 0.75rem; // w-3
         height: 0.75rem; // h-3
         background-color: #1F2937; // gray-800
-        border-radius: 0.125rem; // rounded-sm
+        border-radius: 0.125rem; // rounded-xs
     }
 
     &:hover {
@@ -184,7 +184,7 @@ button {
     height: 6rem; // h-24
     padding: 1rem; // p-4
     border: 2px solid #D1D5DB; // border-2 border-gray-300
-    border-radius: 0.5rem; // rounded-lg
+    border-radius: 0.5rem; // rounded-md
     font-size: 0.875rem; // text-sm
     line-height: 1.5;
     color: #111827; // text-gray-900
@@ -194,7 +194,7 @@ button {
     background: white;
 
     &:focus {
-        border-color: $ff-indigo-500; // focus:border-indigo-500
+        border-color: var(--ff-indigo-50)0; // focus:border-indigo-500
         outline: none;
     }
 

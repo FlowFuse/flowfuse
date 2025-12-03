@@ -35,7 +35,7 @@
             </div>
         </div>
 
-        <table class="w-full max-w-2xl table-fixed text-sm rounded overflow-hidden">
+        <table class="w-full max-w-2xl table-fixed text-sm rounded-sm overflow-hidden">
             <thead>
                 <tr class="font-medium">
                     <td class="border bg-gray-100 p-2 w-auto">Module</td>

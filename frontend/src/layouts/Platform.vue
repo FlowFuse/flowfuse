@@ -55,7 +55,7 @@
                 </div>
             </ff-dialog>
             <transition name="page-fade">
-                <div v-if="overlay" class="ff-dialog-container !z-[100]" />
+                <div v-if="overlay" class="ff-dialog-container z-100!" />
             </transition>
         </div>
     </div>

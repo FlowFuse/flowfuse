@@ -1,6 +1,6 @@
 <template>
     <ff-loading v-if="loading" message="Loading Logs..." />
-    <div v-if="showOfflineBanner" class="ff-banner ff-banner-info my-2 rounded p-2 font-mono">
+    <div v-if="showOfflineBanner" class="ff-banner ff-banner-info my-2 rounded-sm p-2 font-mono">
         <span>
             <span>The Node-RED instance cannot be reached at this time. Please wait...</span>
         </span>
@@ -8,7 +8,7 @@
     <div v-if="!instance.meta || instance.meta.state === 'suspended'" class="flex text-gray-500 justify-center italic mb-4 p-8">
         Logs unavailable
     </div>
-    <div v-else :class="showOfflineBanner ? 'forge-log-offline-background' : ''" class="w-full mx-auto text-xs border bg-gray-800 text-gray-200 rounded p-2 font-mono">
+    <div v-else :class="showOfflineBanner ? 'forge-log-offline-background' : ''" class="w-full mx-auto text-xs border bg-gray-800 text-gray-200 rounded-sm p-2 font-mono">
         <div v-if="prevCursor" class="flex">
             <a class="text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
         </div>
@@ -26,7 +26,7 @@
                 <span>{{ item.date }}</span>
                 <span>{{ "  " }}</span>
                 <span>{{ `[${item.level || ''}]`.padEnd(10, ' ') }}</span>
-                <span class="flex-grow break-all whitespace-pre-wrap inline-flex">{{ item.msg }}</span>
+                <span class="grow break-all whitespace-pre-wrap inline-flex">{{ item.msg }}</span>
                 <br v-if="itemIdx !== filteredLogEntries.length - 1">
             </span>
         </div>

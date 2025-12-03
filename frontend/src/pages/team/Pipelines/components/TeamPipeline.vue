@@ -52,39 +52,39 @@ export default {
 
 <style scoped lang="scss">
 .ff-pipeline {
-    border: 1px solid $ff-grey-300;
+    border: 1px solid var(--ff-grey-300);
     border-radius: 5px;
     overflow: hidden;
 
     & > .ff-pipeline-header {
-        background: $ff-white;
+        background: var(--ff-white);
         padding: 15px;
-        border-bottom: 1px solid $ff-grey-300;
+        border-bottom: 1px solid var(--ff-grey-300);
         transition: ease-in-out .3s;
 
         &:hover {
-            color: $ff-white;
-            background: $ff-indigo-700;
+            color: var(--ff-white);
+            background: var(--ff-indigo-700);
             .ff-pipeline-application-name {
                 transition: ease-in-out .3s;
-                color:  $ff-grey-400;
+                color:  var(--ff-grey-400);
             }
         }
 
         &:has(.ff-pipeline-application-name:hover) {
-            color: $ff-grey-500;
+            color: var(--ff-grey-50)0;
 
             .ff-pipeline-application-name:hover {
-                color: $ff-white;
+                color: var(--ff-white);
             }
         }
 
         .ff-application-name {
             transition: ease-in-out .3s;
-            color: $ff-grey-400;
+            color: var(--ff-grey-400);
 
             &:hover {
-                color: $ff-indigo-700;
+                color: var(--ff-indigo-700);
             }
         }
 
@@ -117,7 +117,7 @@ export default {
 
         .ff-empty-stages-message {
             text-align: center;
-            color: $ff-grey-500;
+            color: var(--ff-grey-50)0;
         }
     }
 }

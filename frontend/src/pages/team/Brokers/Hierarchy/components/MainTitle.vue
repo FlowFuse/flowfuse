@@ -1,7 +1,7 @@
 <template>
     <div class="title mb-2 flex gap-2 items-center">
         <img v-if="!icon" src="../../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
-        <h3 class="my-2 flex-grow" data-el="subtitle">{{ title }}</h3>
+        <h3 class="my-2 grow" data-el="subtitle">{{ title }}</h3>
         <div class="flex items-center gap-2">
             <slot name="actions" />
         </div>

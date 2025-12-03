@@ -251,18 +251,18 @@ export default {
 .ff-select-application-step {
     .app-tile {
         padding: 12px;
-        border: 2px solid $ff-grey-300;
+        border: 2px solid var(--ff-grey-300);
         width: 100%;
         border-radius: 6px;
         cursor: pointer;
         transition: ease-in-out .3s;
 
         &:hover {
-            border-color: $ff-indigo-400;
+            border-color: var(--ff-indigo-400);
         }
 
         &.selected {
-            border-color: $ff-indigo-600;
+            border-color: var(--ff-indigo-600);
         }
 
         .header {
@@ -271,14 +271,14 @@ export default {
             }
 
             .counters {
-                color: $ff-grey-400;
-                font-size: $ff-funit-xs;
+                color: var(--ff-grey-400);
+                font-size: var(--ff-funit-xs);
             }
         }
 
         .description {
-            color: $ff-grey-400;
-            font-size: $ff-funit-sm;
+            color: var(--ff-grey-400);
+            font-size: var(--ff-funit-sm);
         }
     }
 }

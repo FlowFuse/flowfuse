@@ -36,9 +36,9 @@ export default {
   right: -30px;
   margin-top: -50px;
   box-shadow: -4px 4px 8px rgba(0, 0, 0, 0.10);
-  border: 1px solid $ff-grey-300;
+  border: 1px solid var(--ff-grey-300);
   border-left: none;
-  color: $ff-grey-400;
+  color: var(--ff-grey-400);
 
   &:hover {
     cursor: pointer;

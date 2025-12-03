@@ -1,15 +1,15 @@
 <template>
     <div id="ff-app" class="flex flex-col" :class="{'hidden-left-drawer': hiddenLeftDrawer}">
         <template v-if="offline">
-            <main class="ff-bg-dark flex-grow flex flex-col">
-                <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
+            <main class="ff-bg-dark grow flex flex-col">
+                <div class="w-full max-w-(--breakpoint-2xl) mx-auto my-2 sm:my-8 grow flex flex-col">
                     <Offline />
                 </div>
             </main>
         </template>
         <template v-else-if="pending">
-            <main class="ff-bg-dark flex-grow flex flex-col">
-                <div class="w-full mx-auto flex-grow flex flex-col">
+            <main class="ff-bg-dark grow flex flex-col">
+                <div class="w-full mx-auto grow flex flex-col">
                     <Loading color="white" />
                 </div>
             </main>

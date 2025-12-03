@@ -3,7 +3,7 @@
         <div class="flex flex-wrap justify-between pb-3 gap-y-2">
             <div class="flex-1 flex items-center md:w-auto mr-8 gap-x-2">
                 <slot name="hero">
-                    <div class="flex-grow items-center grid gap-1">
+                    <div class="grow items-center grid gap-1">
                         <div class="inline-flex flex-wrap gap-1">
                             <div v-if="!hasCustomBreadcrumbs" class="flex items-center mr-6">
                                 <slot name="breadcrumbs" />

@@ -17,7 +17,7 @@
     </div>
     <div class="flex flex-col sm:flex-row" data-el="instance-settings">
         <SectionSideMenu :options="navigation" />
-        <div class="flex-grow">
+        <div class="grow">
             <router-view v-slot="{ Component }">
                 <component
                     :is="Component"

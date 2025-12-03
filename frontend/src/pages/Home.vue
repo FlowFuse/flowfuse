@@ -1,7 +1,7 @@
 <template>
     <main class="min-h-full">
         <template v-if="pending">
-            <div class="flex-grow flex flex-col items-center justify-center mx-auto text-gray-600 opacity-50">
+            <div class="grow flex flex-col items-center justify-center mx-auto text-gray-600 opacity-50">
                 <FlowFuseLogo class="max-w-xs mx-auto w-full" />
             </div>
         </template>

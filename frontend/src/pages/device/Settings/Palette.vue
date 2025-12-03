@@ -10,7 +10,7 @@
             <div class="w-full flex flex-col sm:flex-row">
                 <div class="w-full sm:mr-8 space-y-2">
                     <div class="w-full flex items-center">
-                        <div class="flex-grow" :class="{'opacity-20': !defaultEnabled}">{{ defaultCatalogue }}</div>
+                        <div class="grow" :class="{'opacity-20': !defaultEnabled}">{{ defaultCatalogue }}</div>
                         <!-- Default is enabled, allow for removal -->
                         <ff-button v-if="!defaultEnabled" v-ff-tooltip:left="'Restore Default Catalogue'" kind="tertiary" size="small" @click="addDefault()">
                             <template #icon><UndoIcon /></template>
@@ -21,7 +21,7 @@
                         </ff-button>
                     </div>
                     <div v-for="(u, index) in thirdPartyUrls" :key="index" class="w-full flex items-center">
-                        <div class="flex-grow">{{ u }}</div>
+                        <div class="grow">{{ u }}</div>
                         <ff-button kind="tertiary" size="small" :disabled="readOnly" @click="removeURL(u)">
                             <template #icon><XIcon /></template>
                         </ff-button>

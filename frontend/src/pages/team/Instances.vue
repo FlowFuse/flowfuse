@@ -209,7 +209,7 @@ export default {
             loading: false,
             instancesMap: new Map(),
             columns: [
-                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName) } },
+                { label: 'Name', class: ['grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName) } },
                 {
                     label: 'Status',
                     class: ['w-44'],
@@ -227,7 +227,7 @@ export default {
                         }
                     }
                 },
-                { label: 'Application', class: ['flex-grow-[0.25]'], key: 'application.name', sortable: true },
+                { label: 'Application', class: ['grow-[0.25]'], key: 'application.name', sortable: true },
                 {
                     label: 'Last Updated',
                     class: ['w-60'],

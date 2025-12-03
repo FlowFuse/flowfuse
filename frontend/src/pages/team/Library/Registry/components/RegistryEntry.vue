@@ -42,9 +42,9 @@ export default {
 
 <style scoped lang="scss">
 .ff-registry-entry {
-    background-color: $ff-white;
+    background-color: var(--ff-white);
     padding: 12px;
-    border: 1px solid $ff-grey-200;
+    border: 1px solid var(--ff-grey-200);
     display: flex;
     justify-content: space-between;
     align-items: center;

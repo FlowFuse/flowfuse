@@ -348,7 +348,7 @@ export default {
       padding: 0 15px 0 0;
       display: flex;
       line-height: 1.5;
-      border-bottom: 1px solid $ff-grey-200;
+      border-bottom: 1px solid var(--ff-grey-200);
       background: white;
       z-index: 10;
 
@@ -362,7 +362,7 @@ export default {
           display: flex;
           justify-content: center;
           align-items: center;
-          color: $ff-grey-500;
+          color: var(--ff-grey-50)0;
           gap: 4px;
 
           .ff-btn--icon {
@@ -391,7 +391,7 @@ export default {
         justify-content: flex-end;
         gap: 10px;
         align-items: center;
-        color: $ff-grey-500;
+        color: var(--ff-grey-50)0;
         flex-shrink: 0;
 
         .close-drawer-button {
@@ -418,7 +418,7 @@ export default {
     -webkit-user-select: none;
     -ms-user-select: none;
     .resize-bar {
-        background-color: $ff-blue-500;
+        background-color: var(--ff-blue-500);
     }
     .tabs-wrapper {
         transition: none;

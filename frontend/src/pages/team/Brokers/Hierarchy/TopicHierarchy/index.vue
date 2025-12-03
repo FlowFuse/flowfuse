@@ -273,15 +273,15 @@ export default {
     overflow: auto;
 
     .topics {
-        background: $ff-white;
+        background: var(--ff-white);
         padding: 10px;
         border-radius: 6px;
-        border: 1px solid $ff-grey-200;
+        border: 1px solid var(--ff-grey-200);
         overflow: auto;
         height: 100%;
     }
 }
-@media screen and (max-width: $ff-screen-md) {
+@media screen and (max-width: 768px) {
     .unified-namespace-hierarchy {
         min-width: 100%;
     }

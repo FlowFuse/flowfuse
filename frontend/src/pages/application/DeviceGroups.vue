@@ -57,7 +57,7 @@
                 <p>Enter the name and description of the Device Group to create.</p>
             </slot>
             <div class="flex gap-4 mt-4">
-                <div class="flex-grow">
+                <div class="grow">
                     <FormRow v-model="input.name" :error="!input.name ? 'required' : ''" data-form="name">Name</FormRow>
                     <FormRow v-model="input.description" data-form="name">Description</FormRow>
                 </div>

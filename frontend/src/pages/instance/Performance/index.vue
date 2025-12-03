@@ -272,15 +272,15 @@ export default {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background-color: $ff-grey-500;
+    background-color: var(--ff-grey-50)0;
 }
 
 .ff-socket-status-icon-connected {
-    background-color: $ff-green-500;
+    background-color: var(--ff-green-500);
 }
 
 .ff-socket-status-icon-disconnected {
-    background-color: $ff-red-500;
+    background-color: var(--ff-red-50)0;
 }
 
 .ff-chart-section {

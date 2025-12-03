@@ -2,7 +2,7 @@
     <div class="terminal-command-section">
         <p>{{ title }}</p>
         <pre
-            class="overflow-auto text-xs font-light p-4 my-2 border rounded bg-gray-800 text-gray-200"
+            class="overflow-auto text-xs font-light p-4 my-2 border rounded-sm bg-gray-800 text-gray-200"
             style="text-wrap: wrap"
         >{{ command }}</pre>
         <div class="flex flex-row justify-end space-x-2 -mt-1">
