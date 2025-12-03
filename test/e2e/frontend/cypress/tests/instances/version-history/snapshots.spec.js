@@ -118,7 +118,7 @@ describe('FlowFuse - Instance Snapshots', () => {
         })
     })
 
-    it.only('provides functionality to edit a snapshot', () => {
+    it('provides functionality to edit a snapshot', () => {
         cy.intercept('GET', '/api/*/snapshots/*/full', instanceFullSnapshot).as('fullSnapshot')
         cy.intercept('PUT', '/api/*/snapshots/*', {}).as('updateSnapshot')
 
