@@ -67,7 +67,7 @@ jobs:
       - name: Build the forge
         run: npm run build:skip-images
         working-directory: 'website'
-      - uses: untitaker/hyperlink@e66bb17cc9ae341677431edec3b893a0aa6ac747 # 0.1.44
+      - uses: untitaker/hyperlink@fb5bb9c5011a3d143a54b4b30aedc30ec5bc0f89 # 0.2.0
         with:
           args: website/_site/ --check-anchors --sources website/src
   publish:
