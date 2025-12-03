@@ -1,3 +1,36 @@
+#### 2.24.4: Release
+
+ - Ensure TeamType passed to instanceCount (#6351) @hardillb
+ - build(deps): bump untitaker/hyperlink from 0.1.44 to 0.2.0 (#6328) @app/dependabot
+ - Update Node-RED tools documentation (#6329) @ZJvandeWeg
+ - build(deps-dev): bump node-forge from 1.3.1 to 1.3.2 (#6340) @app/dependabot
+ - Add ff-assistant oauth scope (#6300) @knolleary
+ - Update Device Groups (#6347) @sumitshinde-84
+ - improve getting started section (#6342) @sumitshinde-84
+
+#### 2.24.3: Release
+
+ - Add extra cause logging on instance create failure (#6346) @hardillb
+ - Add doc about Team Type Feature List (#6336) @hardillb
+ - Improve Bills of material, update screenshots (#6344) @sumitshinde-84
+
+#### 2.24.2: Release
+
+ - fix(ci): send slack notification on package publish failure (#6337)
+ - Ensure correct mime type used for cached device editor (#6335) @hardillb
+ - Unmanaged billing usage (#6331) @cstns
+ - Fix 404 for packages in FlowFuse expert due to wrong url pattern (#6332) @dimitrieh
+ - Add High Availability status display and edit link in `Instance Overview` page (#6330) @cstns
+ - build(deps): bump actions/checkout from 5.0.0 to 6.0.0 (#6327) @app/dependabot
+
+#### 2.24.1: Release
+
+ - Add Scheduled Maintenance pill to Overview (#6320) @hardillb
+ - Expert api v4 and flow examples UI (#6310) @cstns
+ - Ensure Instance object has Team when updating Stacks (#6317) @hardillb
+ - Fix checkbox for hour '6' in TeamTypeEditDialog (#6314) @knolleary
+ - fix(expert): drop message mid-flight (#6301) @cstns
+
 #### 2.24.0: Release
 
  - Enable expert feature on pre-staging (#6273)

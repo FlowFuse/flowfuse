@@ -166,7 +166,7 @@ describe('Assistant API', async function () {
                 sinon.restore()
             })
 
-            function serviceTests (serviceName) {
+            function serviceTests (serviceName, options = { userTokenAllowed: true }) {
                 it('anonymous cannot access', async function () {
                     const response = await app.inject({
                         method: 'GET',
@@ -182,17 +182,30 @@ describe('Assistant API', async function () {
                     })
                     response.statusCode.should.equal(401)
                 })
-                it('user token can not access', async function () {
-                    sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
-                    const response = await app.inject({
-                        method: 'POST',
-                        url: `/api/v1/assistant/${serviceName}`,
-                        cookies: { sid: TestObjects.tokens.alice },
-                        payload: { prompt: 'multiply by 5', transactionId: '1234' }
+                if (!options.userTokenAllowed) {
+                    it('user token can not access', async function () {
+                        sinon.stub(axios, 'post').resolves({ data: { status: 'ok' } })
+                        const response = await app.inject({
+                            method: 'POST',
+                            url: `/api/v1/assistant/${serviceName}`,
+                            cookies: { sid: TestObjects.tokens.alice },
+                            payload: { prompt: 'multiply by 5', transactionId: '1234' }
+                        })
+                        response.statusCode.should.equal(404)
+                        axios.post.calledOnce.should.be.false()
                     })
-                    response.statusCode.should.equal(401)
-                    axios.post.calledOnce.should.be.false()
-                })
+                } else {
+                    it('user token can access', async function () {
+                        sinon.stub(axios, 'post').resolves({ data: { status: 'ok', transactionId: '1234' } })
+                        const response = await app.inject({
+                            method: 'POST',
+                            url: `/api/v1/assistant/${serviceName}`,
+                            cookies: { sid: TestObjects.tokens.alice },
+                            payload: { prompt: 'multiply by 5', transactionId: '1234' }
+                        })
+                        response.statusCode.should.equal(200)
+                    })
+                }
                 it('device token can access', async function () {
                     const deviceCreateResponse = await app.inject({
                         method: 'POST',
@@ -421,7 +434,7 @@ describe('Assistant API', async function () {
                 })
 
                 // standard service tests
-                serviceTests(serviceName)
+                serviceTests(serviceName, { userTokenAllowed: false })
 
                 // specific tests
                 it('can be disabled', async function () {
@@ -537,6 +550,7 @@ describe('Assistant API', async function () {
             const assetUrl1 = '/api/v1/assistant/assets/model.json'
             const assetUrl2 = '/api/v1/assistant/assets/model.bin'
             const assetUrl3 = '/api/v1/assistant/assets/vocabulary.json'
+            const assetUrl4 = '/api/v1/assistant/assets/user-asset.bin'
             let axiosGetStub
 
             beforeEach(function () {
@@ -559,15 +573,6 @@ describe('Assistant API', async function () {
                     method: 'GET',
                     url: assetUrl1,
                     headers: { authorization: 'Bearer blah-blah' }
-                })
-                response.statusCode.should.equal(401)
-            })
-
-            it('should return 401 for user token', async function () {
-                const response = await app.inject({
-                    method: 'GET',
-                    url: assetUrl1,
-                    cookies: { sid: TestObjects.tokens.alice }
                 })
                 response.statusCode.should.equal(401)
             })
@@ -650,6 +655,23 @@ describe('Assistant API', async function () {
                 response.statusCode.should.equal(200)
                 response.headers['content-type'].should.equal('application/octet-stream')
                 Buffer.from(response.rawPayload).toString().should.equal('instance-asset')
+            })
+
+            it('should fetch and cache asset for user token', async function () {
+                const fakeBuffer = Buffer.from('user-asset')
+                axiosGetStub.resolves({
+                    status: 200,
+                    headers: { 'content-type': 'application/octet-stream' },
+                    data: fakeBuffer
+                })
+                const response = await app.inject({
+                    method: 'GET',
+                    url: assetUrl4,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+                response.headers['content-type'].should.equal('application/octet-stream')
+                Buffer.from(response.rawPayload).toString().should.equal('user-asset')
             })
 
             it('should fetch fresh after cache expiration', async function () {

@@ -9,21 +9,93 @@ This guide will help you learn how to use the FlowFuse platform to quickly creat
 
 ## Creating a Node-RED Instance
 
-1. **Automatic Creation**: Your first Node-RED instance should be automatically created upon your initial login to FlowFuse. To access the Node-RED Editor, simply click on `Open Editor`.
+### Your First Hosted Instance
 
-    ![Open Editor](./images/getting-started/Open-Editor.png)
+Your first Node-RED instance should be automatically created upon your initial login to FlowFuse.
 
-2. **Additional Instance**: For utilizing various other FlowFuse features (e.g., DevOps Pipelines), it's highly beneficial to create a second Node-RED instance. A second Node-RED instance is included in both our Starter Tier and the Trial Phase of FlowFuse Cloud. To do so, select your application— in our example, "Demo's Application"— and click `Add Instance`.
+![Instance created initial login](./images/getting-started/ff-home-initial-login.png){data-zoomable}
 
-    ![Add Instance](./images/getting-started/Add-Instance.png)
+**Accessing the Node-RED Editor:**
+
+To access the Node-RED Editor, simply click on the option shown in the image below marked with a red box:
+
+![Open Editor Shortcut](./images/getting-started/open-editor-shortcut.png){data-zoomable}
+
+Alternatively, you can click on that instance and then you will find the "Open Editor" button at the top right:
+
+![Open Editor](./images/getting-started/Open-Editor.png){data-zoomable}
+
+### Creating Additional Instances
+
+For utilizing various other FlowFuse features (e.g., DevOps Pipelines), it's highly beneficial to create a second Node-RED instance. A second Node-RED instance is included in both our Starter Tier and the Trial Phase of FlowFuse Cloud.
+
+**From the Home Page:**
+
+1. Click on the "Add Instance" button shown in the image below
+2. Enter the name you want for your instance
+3. Select your application in which you want to create it
+4. Select the instance type
+5. Select the Node-RED version from the dropdown
+6. Click "Next" and [select the blueprint](#selecting-a-blueprint) you want to use
+
+![Add Instance](./images/getting-started/ff-home-after-initial-login-add-instance.png){data-zoomable}
+
+**From the Applications Page:**
+
+Alternatively, you can go to your applications from the left sidebar by clicking "Applications," select your application—in our example, "Demo's Application"—and click "Add Instance," then follow the same process.
 
 [Learn more about Instances](#working-with-instances)
 
-3. **Blueprint selection**: When creating a new Node-RED instance, you have the option to choose a blueprint tailored for specific use cases. For example, our "ANDON Operator Terminal" blueprint can be selected, and it will automatically configure the Node-RED instance, sparing you the need to start from scratch. While these templates are powerful out-of-the-box, they're also fully customizable, allowing you to tweak them to suit your unique requirements. Ultimately, blueprints speed up the learning curve for new users and expedite the solution-building process for experienced ones.
+### Your First Remote Instance
 
-![Blueprint selection](./images/blueprint-selection.png)
+A remote instance allows you to run Node-RED on your own hardware while managing it through FlowFuse.
 
-NOTE: _Some blueprints may only be available on certain tiers_
+**Adding a Remote Instance:**
+
+1. Click on "Remote Instances" from the left sidebar
+2. Click "Add Remote Instance"
+3. Enter a name for your instance and select the device type
+4. Select your application and click "Add"
+
+![Add Remote Instance](./images/getting-started/add-remote-instance.png){data-zoomable}
+
+![Add Remote Instance Form](./images/getting-started/instance-add-form.png){data-zoomable}
+
+**Installing the Device Agent:**
+
+FlowFuse will show you a device configuration window with installation options:
+
+- **One-Line Install** (Recommended): Automatically installs Node.js (if needed), the device agent, and registers your device
+- **NPM Installation**: Manual installation instructions for Windows, Mac, or Linux
+
+![Device Configuration Window](./images/getting-started/device-configuration-window-2.gif){data-zoomable}
+
+Follow the steps in the window to connect your device—it takes less than a minute.
+
+[Learn more about Device Agent](/docs/device-agent/introduction.md)
+
+**Accessing Your Remote Instance:**
+
+Once registered, you can manage your remote Node-RED instance through FlowFuse:
+
+To start building flows:
+
+1. Enable "Developer Mode" from the top right
+2. Click "Open Editor"
+
+![Developer Mode](./images/getting-started/developer-mode.png){data-zoomable}
+
+![Open Editor](./images/getting-started/open-editor-remote-instance.png){data-zoomable}
+
+### Selecting a Blueprint
+
+When creating a new Node-RED instance, you have the option to choose a blueprint tailored for specific use cases. For example, our "ANDON Operator Terminal" blueprint can be selected, and it will automatically configure the Node-RED instance, install necessary nodes, sparing you the need to start from scratch. Click "Create Instance" from the top-right to complete the process.
+
+While these templates are powerful out-of-the-box, they're also fully customizable, allowing you to tweak them to suit your unique requirements. Ultimately, blueprints speed up the learning curve for new users and expedite the solution-building process for experienced ones.
+
+![Blueprint selection](./images/getting-started/blueprint-selection.png){data-zoomable}
+
+**NOTE**: _Some blueprints may only be available on certain tiers_
 
 ## Creating Your First Flow
 
@@ -44,7 +116,7 @@ DevOps Pipelines enable you to link multiple Node-RED instances together in a de
 
 4. **Execute the Pipeline**: It is now easy to execute the pipeline with one click, promoting your recently created flow to your Production Node-RED instance.
 
-    ![Execute Pipeline](./images/getting-started/Execute-Pipeline.png)
+    ![Execute Pipeline](./images/getting-started/devops-pipeline-w-stage.png)
 
 [Learn more about DevOps Pipelines](/docs/user/devops-pipelines/)
 
