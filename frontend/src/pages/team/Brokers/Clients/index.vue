@@ -156,7 +156,7 @@ export default {
             })
         },
         clientsLimit () {
-            return getTeamProperty(this.team, 'teamBroker.clients.limit', 0)
+            return getTeamProperty(this.team, 'teamBroker.clients.limit', null)
         },
         reachedClientLimit () {
             if (!Number.isInteger(this.clientsLimit)) return false
