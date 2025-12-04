@@ -63,8 +63,8 @@ This ensures a split between your staging environments.
 ### Stage Types
 
 There are four types of stage to chose from:
-1. **[Instance](./concepts.md#instance)** - a single Node-RED instance.
-2. **[Device](./concepts.md#device)** - a single remote instance.
+1. **[Instance](./concepts.md#hosted-instance)** - a single Node-RED instance.
+2. **[Device](./concepts.md#remote-instance)** - a single remote instance.
 3. **[Device Group](./concepts.md#device-groups)** - a group of remote instances.
 4. **Git Repository** - a remote GitHub repository.
     -  This stage currently only supports:
