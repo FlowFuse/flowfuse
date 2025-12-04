@@ -24,8 +24,8 @@ FlowFuse makes it easy to create, manage, and scale Node-RED instances. The plat
     - [Blueprint](#blueprint)
     - [Template](#template)
     - [Snapshot](#snapshot)
-      - [Instance Snapshot (Hosted Instances)](#hosted-instance-snapshot)
-      - [Device Snapshot (Remote Instances)](#device-snapshot-remote-instances)
+      - [Hosted Instance Snapshot](#hosted-instance-snapshot)
+      - [Remote Instances (Device Snapshot)](#remote-instance-snapshot)
   - [Device](#device)
     - [Device Agent](#device-agent)
     - [Fleet Mode vs Developer Mode](#fleet-mode-vs-developer-mode)
@@ -106,13 +106,13 @@ A template can also specify [Environment Variables](./envvar.md) which can then 
 
 Snapshots are point-in-time backups that work differently depending on the instance type.
 
-#### Hosted Instances Snapshot
+#### Hosted Instance Snapshot
 
 A snapshot is a point-in-time backup of a hosted Node-RED instance. It captures the flows, credentials, and runtime settings. Snapshots can be created and deleted on the FlowFuse Platform, or using the [FlowFuse Node-RED Tools plugin](/docs/migration/node-red-tools.md). The platform also allows you to roll an instance back to a previous snapshot.
 
 A user can create an hosted instance snapshot and then mark it as the *target* snapshot for remote instance. The platform will then deploy that snapshot to all of the devices assigned to the instance. Snapshots can be set as targets for DevOps pipeline stages. Auto snapshots are available for automatic backup scheduling. If an auto snapshot is set as a target or assigned to a pipeline stage, it will not be automatically cleaned up, so you may have more than 10 auto snapshots in that case.
 
-#### Remote Instances Snapshot
+#### Remote Instance Snapshot
 
 Similar to instance snapshots, a device snapshot is a point-in-time backup of a Node-RED instance running on a remote device. It captures the flows, credentials, and runtime settings. The difference is that local changes made on a device during developer mode are pulled into the FlowFuse platform and stored as a snapshot. The dashboard also allows you to see and manage these snapshots. With devices assigned to an application, a user can create a device snapshot from the remote device.
 
