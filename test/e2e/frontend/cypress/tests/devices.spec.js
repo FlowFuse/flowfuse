@@ -293,9 +293,9 @@ describe('FlowFuse - Team Devices', () => {
             // Devices list
             cy.get('[data-el="devices-browser"]').within(() => {
                 // Row
-                cy.contains('tr', 'team2-unassigned-device').within(() => {
-                    cy.get('.ff-kebab-menu').click()
-                })
+                // bypass sticky header
+                cy.get('[data-el="row-team2-unassigned-device"]').parent().parent().parent().scrollTo('topRight')
+                cy.get('[data-el="row-team2-unassigned-device"] [data-el="kebab-menu"]').click({ scrollBehavior: false })
             })
             cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="device-assign-to-instance"]').click()
 
@@ -344,8 +344,7 @@ describe('FlowFuse - Team Devices', () => {
                 // Row
                 cy.contains('tr', 'team2-unassigned-device').within(() => {
                     cy.contains(selectedInstance)
-
-                    cy.get('.ff-kebab-menu').click()
+                    cy.get('.ff-kebab-menu').click({ scrollBehavior: false })
                 })
             })
             cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="device-remove-from-instance"]').click()
@@ -371,7 +370,7 @@ describe('FlowFuse - Team Devices', () => {
             cy.get('[data-el="devices-browser"]').within(() => {
                 // Row
                 cy.contains('tr', 'team2-unassigned-device').within(() => {
-                    cy.get('.ff-kebab-menu').click()
+                    cy.get('.ff-kebab-menu').click({ scrollBehavior: false })
                 })
             })
             cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="device-assign-to-instance"]')
@@ -385,9 +384,8 @@ describe('FlowFuse - Team Devices', () => {
             // Devices list
             cy.get('[data-el="devices-browser"]').within(() => {
                 // Row
-                cy.contains('tr', 'team2-unassigned-device').within(() => {
-                    cy.get('.ff-kebab-menu').click()
-                })
+                cy.get('[data-el="row-team2-unassigned-device"]').parent().parent().parent().scrollTo('topRight')
+                cy.get('[data-el="row-team2-unassigned-device"] [data-el="kebab-menu"]').click({ scrollBehavior: false })
             })
             cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="device-assign-to-application"]').click()
 
@@ -400,7 +398,7 @@ describe('FlowFuse - Team Devices', () => {
                     // Instance dropdown
                     cy.get('[data-form="application"]').within(() => {
                         cy.get('.ff-listbox').should('not.be.disabled')
-                        cy.get('.ff-listbox').click()
+                        cy.get('.ff-listbox').click({ scrollBehavior: false })
                     })
                 })
             // Grab name of first application
@@ -423,7 +421,7 @@ describe('FlowFuse - Team Devices', () => {
                 cy.contains('tr', 'team2-unassigned-device').within(() => {
                     cy.contains(selectedApplication)
 
-                    cy.get('.ff-kebab-menu').click()
+                    cy.get('.ff-kebab-menu').click({ scrollBehavior: false })
                 })
             })
             cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="device-remove-from-application"]').click()
@@ -449,7 +447,7 @@ describe('FlowFuse - Team Devices', () => {
             cy.get('[data-el="devices-browser"]').within(() => {
                 // Row
                 cy.contains('tr', 'team2-unassigned-device').within(() => {
-                    cy.get('.ff-kebab-menu').click()
+                    cy.get('.ff-kebab-menu').click({ scrollBehavior: false })
                 })
             })
             cy.get('[data-el="kebab-options"].ff-kebab-options').find('[data-action="device-assign-to-application"]')

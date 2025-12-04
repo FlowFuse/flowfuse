@@ -1,36 +1,38 @@
 <template>
-    <div class="mb-3">
-        <SectionTopMenu hero="Settings" info="">
-            <template #tools>
-                <ff-button
-                    v-if="tools.saveButton.visible"
-                    :disabled="tools.saveButton.disabled"
-                    class="ff-btn ff-btn--primary"
-                    size="small"
-                    data-el="save-settings-button"
-                    @click="onSaveButtonClick"
-                >
-                    {{ tools.saveButton.label }}
-                </ff-button>
-            </template>
-        </SectionTopMenu>
-    </div>
-    <div class="flex flex-col sm:flex-row" data-el="instance-settings">
-        <SectionSideMenu :options="navigation" />
-        <div class="flex-grow">
-            <router-view v-slot="{ Component }">
-                <component
-                    :is="Component"
-                    ref="settingsPage"
-                    :project="instance"
-                    :instance="instance"
-                    @instance-updated="$emit('instance-updated')"
-                    @restart-instance="restartInstance"
-                    @instance-confirm-suspend="$emit('instance-confirm-suspend')"
-                    @instance-confirm-delete="$emit('instance-confirm-delete')"
-                    @save-button-state="onSaveButtonStateChange"
-                />
-            </router-view>
+    <div id="instance-settings-page" class="flex-1 flex flex-col overflow-auto">
+        <div class="mb-3">
+            <SectionTopMenu hero="Settings" info="">
+                <template #tools>
+                    <ff-button
+                        v-if="tools.saveButton.visible"
+                        :disabled="tools.saveButton.disabled"
+                        class="ff-btn ff-btn--primary"
+                        size="small"
+                        data-el="save-settings-button"
+                        @click="onSaveButtonClick"
+                    >
+                        {{ tools.saveButton.label }}
+                    </ff-button>
+                </template>
+            </SectionTopMenu>
+        </div>
+        <div class="flex-1 flex flex-col sm:flex-row overflow-auto" data-el="instance-settings">
+            <SectionSideMenu :options="navigation" />
+            <div class="flex-grow flex-1 flex flex-col overflow-auto">
+                <router-view v-slot="{ Component }">
+                    <component
+                        :is="Component"
+                        ref="settingsPage"
+                        :project="instance"
+                        :instance="instance"
+                        @instance-updated="$emit('instance-updated')"
+                        @restart-instance="restartInstance"
+                        @instance-confirm-suspend="$emit('instance-confirm-suspend')"
+                        @instance-confirm-delete="$emit('instance-confirm-delete')"
+                        @save-button-state="onSaveButtonStateChange"
+                    />
+                </router-view>
+            </div>
         </div>
     </div>
 </template>

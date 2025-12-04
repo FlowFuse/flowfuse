@@ -28,7 +28,7 @@
                 </template>
             </ff-page-header>
         </template>
-        <div class="space-y-6">
+        <div class="flex-1 flex flex-col overflow-auto">
             <div class="banner-wrapper">
                 <FeatureUnavailableToTeam v-if="!instancesAvailable" />
             </div>
