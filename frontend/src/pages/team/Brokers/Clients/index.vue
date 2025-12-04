@@ -101,6 +101,7 @@ import EmptyState from '../../../../components/EmptyState.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 import usePermissions from '../../../../composables/Permissions.js'
 import { slugify } from '../../../../composables/String.js'
+import { getTeamProperty } from '../../../../composables/TeamProperties.js'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
 import featuresMixin from '../../../../mixins/Features.js'
 import Alerts from '../../../../services/alerts.js'
@@ -155,7 +156,7 @@ export default {
             })
         },
         clientsLimit () {
-            return this.team?.type?.properties?.teamBroker?.clients?.limit
+            return getTeamProperty(this.team, 'teamBroker.clients.limit', 0)
         },
         reachedClientLimit () {
             if (!Number.isInteger(this.clientsLimit)) return false
