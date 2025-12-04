@@ -1,3 +1,8 @@
+---
+navTitle: FlowFuse Concepts
+navOrder: 2
+---
+
 # FlowFuse Concepts
 
 FlowFuse makes it easy to create, manage, and scale Node-RED instances. The platform introduces a few core concepts to help you organize and work with it effectively. Throughout the platform, you’ll also see ⓘ icons that you can click on to get pop-up explanations for different features and terms.
@@ -51,8 +56,6 @@ Applications provide logical organization of related instances, support for DevO
 
 DevOps Pipelines allow you to manage staged development environments, pushing from your Development instances to Production once you have stable and well-tested flows. You can find out how to implement DevOps Pipelines [here](./devops-pipelines.md).
 
-Instance Protection Mode adds an additional layer of security by locking down critical Node-RED instances, preventing unauthorized modifications to configuration and nodes. This mode is particularly useful in production environments where flows should only be updated through the DevOps pipeline, preventing accidental changes that could cause costly downtime.
-
 ## Instance
 
 **This was called a Project before FlowFuse 1.5**
@@ -105,9 +108,9 @@ Snapshots are point-in-time backups that work differently depending on the insta
 
 #### Instance Snapshot (Hosted Instances)
 
-A snapshot is a point-in-time backup of a hosted Node-RED instance. It captures the flows, credentials, and runtime settings. Snapshots can be created and deleted on the FlowFuse dashboard, or using the [FlowFuse Node-RED Tools plugin](/docs/migration/node-red-tools.md). The dashboard also allows you to roll an instance back to a previous snapshot.
+A snapshot is a point-in-time backup of a hosted Node-RED instance. It captures the flows, credentials, and runtime settings. Snapshots can be created and deleted on the FlowFuse Platform, or using the [FlowFuse Node-RED Tools plugin](/docs/migration/node-red-tools.md). The platform also allows you to roll an instance back to a previous snapshot.
 
-A user can create an instance snapshot and then mark it as the *target* snapshot for devices. The platform will then deploy that snapshot to all of the devices assigned to the instance. Snapshots can be set as targets for DevOps pipeline stages. Auto snapshots are available for automatic backup scheduling. If an auto snapshot is set as a target or assigned to a pipeline stage, it will not be automatically cleaned up, so you may have more than 10 auto snapshots in that case.
+A user can create an hosted instance snapshot and then mark it as the *target* snapshot for remote instance. The platform will then deploy that snapshot to all of the devices assigned to the instance. Snapshots can be set as targets for DevOps pipeline stages. Auto snapshots are available for automatic backup scheduling. If an auto snapshot is set as a target or assigned to a pipeline stage, it will not be automatically cleaned up, so you may have more than 10 auto snapshots in that case.
 
 #### Device Snapshot (Remote Instances)
 
