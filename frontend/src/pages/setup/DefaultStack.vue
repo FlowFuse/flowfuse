@@ -1,8 +1,8 @@
 <template>
     <form class="px-4 sm:px-6 lg:px-8 mt-8 space-y-4  pt-4">
-        <FormHeading>Default Stack</FormHeading>
-        <p>This will create the default Stack for Hosted Node-RED instances.</p>
-        <p>Here you can change the default values (you can always change them later)</p>
+        <FormHeading>Default Node-RED Settings</FormHeading>
+        <p>The following settings will be used when creating new Node-RED instances.</p>
+        <p>You can modify these values now or on the Stacks page of Admin settings.</p>
         <template v-for="(prop) in stackProperties" :key="prop.name">
             <FormRow v-model="input.properties[prop.name]" :error="errors[prop.name]">
                 {{ prop.label }}
