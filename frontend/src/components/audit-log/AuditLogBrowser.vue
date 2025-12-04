@@ -1,10 +1,10 @@
 <template>
-    <div class="ff-admin-audit">
-        <div data-el="audit-log">
+    <div class="ff-admin-audit flex-1 overflow-auto">
+        <div data-el="audit-log" class="flex-1 flex flex-col overflow-auto">
             <slot name="title" />
             <AuditLog :entries="logEntries" :associations="associations" :loading="loading" />
         </div>
-        <div>
+        <div class="ff-audit-log-filters flex-1 flex flex-col overflow-auto">
             <SectionTopMenu hero="Filters" />
             <slot name="extraFilters" />
             <FormHeading class="mt-4">Event Type:</FormHeading>

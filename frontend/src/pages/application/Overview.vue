@@ -1,5 +1,5 @@
 <template>
-    <div data-el="application-overview-page">
+    <div data-el="application-overview-page" class="flex-1 flex flex-col overflow-auto">
         <SectionTopMenu hero="Node-RED Instances" help-header="Node-RED Instances - Running in FlowFuse" info="Hosted instances of Node-RED, owned by this application.">
             <template #pictogram>
                 <img src="../../images/pictograms/instance_red.png">
@@ -23,7 +23,7 @@
             </template>
         </SectionTopMenu>
         <FeatureUnavailableToTeam v-if="!instancesAvailable" />
-        <div class="space-y-6">
+        <div class="space-y-6 flex-1 flex flex-col overflow-auto">
             <ff-data-table
                 v-if="instances?.length > 0"
                 data-el="cloud-instances"
