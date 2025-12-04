@@ -50,6 +50,8 @@ To organize your Node-RED instances, they are grouped within Applications. With 
 
 Applications provide logical organization of related instances, support for DevOps pipeline workflows, simplified device group management, application-level audit logging, and clear organizational boundaries for managing multiple instances and devices.
 
+With FlowFuse’s Granular RBAC, Applications can now also act as an authorization boundary. This means user roles and permissions can be managed at the application level, providing finer control over access to instances, snapshots, and devices within a given application.
+
 ### DevOps Pipeline
 
 **Introduced in FlowFuse 1.8**
