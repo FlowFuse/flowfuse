@@ -1,3 +1,8 @@
+---
+navTitle: Instance States
+navOrder: 10
+---
+
 # FlowFuse Node-RED Instance States
 The following list describes the possible states a hosted or remote Node-RED instance can find itself in.
 
