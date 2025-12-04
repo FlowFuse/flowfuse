@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-2 overflow-auto flex-1 flex flex-col overflow-auto" data-el="devices-section">
+    <div class="space-y-2 overflow-auto flex-1 flex flex-col" data-el="devices-section">
         <ff-loading
             v-if="loadingStatuses || loadingDevices"
             message="Loading Remote Instances..."
