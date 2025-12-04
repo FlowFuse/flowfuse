@@ -5,16 +5,20 @@
         data-el="page-banner-feature-unavailable-to-team"
     >
         <SparklesIcon class="ff-icon mr-2" style="stroke-width: 1px;" />
-        <div>
-            <span v-if="fullMessage">
-                {{ fullMessage }}
-                Please <a class="ff-link" href="#" @click="navigateToUpgrade">upgrade</a> your Team to continue.
-            </span>
-            <span v-else>
-                {{ featureName }} is not available for your current Team.
-                Please <a class="ff-link" href="#" @click="navigateToUpgrade">upgrade</a> your Team in order to use it.
-            </span>
-        </div>
+        <slot>
+            <div>
+                <span v-if="fullMessage">
+                    {{ fullMessage }}
+                    Please <router-link class="ff-link" href="#" :to="navigateToUpgrade">upgrade</router-link>
+                    your Team to continue.
+                </span>
+                <span v-else>
+                    {{ featureName }} is not available for your current Team.
+                    Please
+                    <router-link class="ff-link" href="#" :to="navigateToUpgrade">upgrade</router-link> your Team in order to use it.
+                </span>
+            </div>
+        </slot>
         <SparklesIcon class="ff-icon ml-2" style="stroke-width: 1px;" />
     </div>
 </template>
@@ -47,7 +51,7 @@ export default {
     computed: {
         ...mapState('account', ['team']),
         upgradePath () {
-            return '/team/' + this.team.slug + '/settings/change-type'
+            return { name: 'TeamChangeType', params: { team_slug: this.team.slug } }
         }
     },
     methods: {
