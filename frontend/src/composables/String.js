@@ -112,15 +112,15 @@ export const sanitize = (str, { targetBlank = false, appendQueryParameters = nul
         }
     }
 
-    // add a per-call temporary hook
-    //  - dom purify can only be configured globally
-    //  - this hook will be applied removed after sanitization
-    DOMPurify.addHook('afterSanitizeAttributes', hook)
+    try {
+        // add a per-call temporary hook
+        //  - dom purify can only be configured globally
+        //  - this hook will be applied removed after sanitization
+        DOMPurify.addHook('afterSanitizeAttributes', hook)
 
-    const result = DOMPurify.sanitize(str)
-
-    // remove all hooks for this stage (including the one we just added)
-    DOMPurify.removeHook('afterSanitizeAttributes')
-
-    return result
+        return DOMPurify.sanitize(str)
+    } finally {
+        // remove all hooks for this stage (including the one we just added)
+        DOMPurify.removeHook('afterSanitizeAttributes')
+    }
 }
