@@ -61,7 +61,7 @@
                             <span v-else>None</span>
                         </template>
                     </InfoCardRow>
-                    <InfoCardRow property="Group:" v-if="device?.application">
+                    <InfoCardRow property="Group:">
                         <template #value>
                             <section class="flex items-center gap-3">
                                 <ff-team-link
@@ -74,10 +74,20 @@
                                 >
                                     {{ device.deviceGroup.name }}
                                 </ff-team-link>
-                                <span v-else>None</span>
+
+                                <template v-else>
+                                    <span v-if="canBeAssignedToGroups">None</span>
+                                    <span
+                                        v-else title="Only application owned instances can be assigned to groups."
+                                        class="cursor-help"
+                                    >
+                                        Not Applicable
+                                    </span>
+                                </template>
+
                                 <ff-button
                                     kind="tertiary"
-                                    v-if="hasPermission('application:device-group:update', {application: device.application})"
+                                    v-if="canBeAssignedToGroups && hasPermission('application:device-group:update', {application: device.application})"
                                     :to="{name: 'device-settings', query: { highlight: 'device-group-section' }}"
                                 >
                                     <template #icon>
@@ -260,6 +270,9 @@ export default {
                 return 'Devices must have connected and initialized to report Node-RED version'
             }
             return ''
+        },
+        canBeAssignedToGroups () {
+            return this.deviceOwnerType === 'application' && this.device.application
         }
     },
     mounted () {
