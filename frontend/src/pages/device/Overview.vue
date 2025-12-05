@@ -79,7 +79,7 @@
                                     <span v-if="canBeAssignedToGroups">None</span>
                                     <span
                                         v-else title="Only application owned instances can be assigned to groups."
-                                        class="cursor-help"
+                                        class="cursor-help text-gray-500 italic"
                                     >
                                         Not Applicable
                                     </span>
