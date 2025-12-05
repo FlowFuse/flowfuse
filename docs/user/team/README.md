@@ -18,7 +18,7 @@ Users can create new teams. Creating a team requires a name and a unique url. Th
 
 Each user with "owner" permissions on a team can invite new members on the "Members" tab of the team page. Invitations can be sent to existing users on the platform by their username, or via email. Users have up to 7 days to accept, or decline, the invitation before it will expire.
 
-When inviting a member, you can assign them an initial role (Owner, Member, Viewer, or Dashboard Only). This role can be changed later by team owners. For more details on managing roles, see [Role-Based Access Control](./rbac.md).
+When inviting a member, you can assign them an initial role (Owner, Member, Viewer, or Dashboard Only). This role can be changed later by team owners. For more details on managing roles, see [Role-Based Access Control](../role-based-access-control.md).
 
 ### Removing Team Members
 
@@ -26,4 +26,4 @@ Owners can remove a member from a team by clicking the dropdown menu next to the
 
 ## Role-Based Access Control
 
-FlowFuse uses role-based access control to manage what users can do within teams and applications. For detailed information about roles, permissions, and access control at both team and application levels, see the [Role-Based Access Control documentation](./role-based-access-control.md).
+FlowFuse uses role-based access control to manage what users can do within teams and applications. For detailed information about roles, permissions, and access control at both team and application levels, see the [Role-Based Access Control documentation](../role-based-access-control.md).
