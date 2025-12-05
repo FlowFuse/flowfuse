@@ -12,7 +12,6 @@
                             :timeline="activeTimeline"
                             :instance="device"
                             :application="device.application"
-                            :instance="device"
                             @preview-snapshot="showViewSnapshotDialog"
                             @restore-snapshot="forceRefresh(showRollbackDialog, $event, true)"
                             @compare-snapshot="forceRefresh(showCompareSnapshotDialog, $event)"
