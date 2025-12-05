@@ -10,8 +10,8 @@
                         <timeline-event
                             :event="event"
                             :timeline="activeTimeline"
-                            :application="device.application"
                             :instance="device"
+                            :application="device.application"
                             @preview-snapshot="showViewSnapshotDialog"
                             @restore-snapshot="forceRefresh(showRollbackDialog, $event, true)"
                             @compare-snapshot="forceRefresh(showCompareSnapshotDialog, $event)"

@@ -684,17 +684,18 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
 
         // version history snapshots
         cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
-        cy.get('[data-el="row-device-snapshot-1"]').within(() => {
-            cy.get('[data-el="kebab-menu"]').click()
-        })
-        cy.get('[data-el="kebab-item-restore-snapshot"]').should('have.class', 'disabled')
-        cy.get('[data-el="kebab-item-edit-snapshot"]').should('have.class', 'disabled')
-        cy.get('[data-el="kebab-item-view-snapshot"]').should('have.class', 'disabled')
-        cy.get('[data-el="kebab-item-compare-snapshot"]').should('have.class', 'disabled')
-        cy.get('[data-el="kebab-item-download-snapshot"]').should('have.class', 'disabled')
-        cy.get('[data-el="kebab-item-download-packagejson"]').should('not.have.class', 'disabled')
-        cy.get('[data-el="kebab-item-delete-snapshot"]').should('have.class', 'disabled')
+        cy.get('[data-el="row-device-snapshot-1"]').click()
+        cy.get('[data-el="restore"]').should('not.exist')
+        cy.get('[data-el="edit"]').should('not.exist')
+        cy.get('[data-el="flows"]').should('not.exist')
+        cy.get('[data-action="compare-snapshot"]').should('not.exist')
+        cy.get('[data-action="download-snapshot"]').should('be.disabled')
+        cy.get('[data-action="download-package-json"]').should('not.be.disabled')
+        cy.get('[data-action="delete"]').should('be.disabled')
 
+        // clear the snapshot drawer
+        // eslint-disable-next-line cypress/require-data-selectors
+        cy.get('body').type('{esc}')
         // device-audit-log
         cy.get('[data-nav="device-audit-log"]').click()
         cy.get('[data-el="audit-log"]').should('exist')
@@ -760,16 +761,18 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
 
         // version history snapshots
         cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
-        cy.get('[data-el="row-device-snapshot-1"]').within(() => {
-            cy.get('[data-el="kebab-menu"]').click()
-        })
-        cy.get('[data-el="kebab-item-restore-snapshot"]').should('have.class', 'disabled')
-        cy.get('[data-el="kebab-item-edit-snapshot"]').should('have.class', 'disabled')
-        cy.get('[data-el="kebab-item-view-snapshot"]').should('not.have.class', 'disabled')
-        cy.get('[data-el="kebab-item-compare-snapshot"]').should('not.have.class', 'disabled')
-        cy.get('[data-el="kebab-item-download-snapshot"]').should('not.have.class', 'disabled')
-        cy.get('[data-el="kebab-item-download-packagejson"]').should('not.have.class', 'disabled')
-        cy.get('[data-el="kebab-item-delete-snapshot"]').should('have.class', 'disabled')
+        cy.get('[data-el="row-device-snapshot-1"]').click()
+        cy.get('[data-action="restore"]').should('be.disabled')
+        cy.get('[data-action="edit"]').should('not.exist')
+        cy.get('[data-el="flows"]').should('not.be.disabled')
+        cy.get('[data-action="compare-snapshot"]').should('not.be.disabled')
+        cy.get('[data-action="download-snapshot"]').should('not.be.disabled')
+        cy.get('[data-action="download-package-json"]').should('not.be.disabled')
+        cy.get('[data-action="delete"]').should('be.disabled')
+
+        // clear the snapshot drawer
+        // eslint-disable-next-line cypress/require-data-selectors
+        cy.get('body').type('{esc}')
 
         // device-audit-log
         cy.get('[data-nav="device-audit-log"]').click()
@@ -836,17 +839,18 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
 
         // version history snapshots
         cy.get('[data-nav="page-toggle"]').contains('Snapshots').click()
-        cy.get('[data-el="row-device-snapshot-1"]').within(() => {
-            cy.get('[data-el="kebab-menu"]').click()
-        })
-        cy.get('[data-el="kebab-item-restore-snapshot"]').should('not.have.class', 'disabled')
-        cy.get('[data-el="kebab-item-edit-snapshot"]').should('not.have.class', 'disabled')
-        cy.get('[data-el="kebab-item-view-snapshot"]').should('not.have.class', 'disabled')
-        cy.get('[data-el="kebab-item-compare-snapshot"]').should('not.have.class', 'disabled')
-        cy.get('[data-el="kebab-item-download-snapshot"]').should('not.have.class', 'disabled')
-        cy.get('[data-el="kebab-item-download-packagejson"]').should('not.have.class', 'disabled')
-        cy.get('[data-el="kebab-item-delete-snapshot"]').should('not.have.class', 'disabled')
+        cy.get('[data-el="row-device-snapshot-1"]').click()
+        cy.get('[data-action="restore"]').should('not.be.disabled')
+        cy.get('[data-action="edit"]').should('exist')
+        cy.get('[data-el="flows"]').should('exist')
+        cy.get('[data-action="compare-snapshot"]').should('not.be.disabled')
+        cy.get('[data-action="download-snapshot"]').should('not.be.disabled')
+        cy.get('[data-action="download-package-json"]').should('not.be.disabled')
+        cy.get('[data-action="delete"]').should('not.be.disabled')
 
+        // clear the snapshot drawer
+        // eslint-disable-next-line cypress/require-data-selectors
+        cy.get('body').type('{esc}')
         // device-audit-log
         cy.get('[data-nav="device-audit-log"]').click()
         cy.get('[data-el="audit-log"]').should('exist')
