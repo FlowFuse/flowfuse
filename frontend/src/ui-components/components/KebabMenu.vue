@@ -12,6 +12,7 @@
                     top: position.top + 'px',
                     left: position.left + 'px'
                 }"
+                @click="onClickIntercept"
             >
                 <slot></slot>
             </ul>
@@ -27,6 +28,7 @@ export default {
     components: {
         DotsVerticalIcon
     },
+    emits: ['click'],
     data () {
         return {
             open: false,
@@ -97,6 +99,10 @@ export default {
             })
 
             this.observer.observe(this.$refs.trigger)
+        },
+        onClickIntercept (e) {
+            this.closeOptions()
+            this.$emit('click', e)
         }
     }
 }
