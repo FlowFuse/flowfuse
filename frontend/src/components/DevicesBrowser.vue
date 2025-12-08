@@ -686,7 +686,7 @@ export default {
             // do the delete
             teamApi.bulkDeviceDelete(this.team?.id, this.checkedDevices.map(device => device.id))
                 .then(() => {
-                    Alerts.emit('Devices successfully deleted.', 'confirmation')
+                    Alerts.emit('Remote Instances successfully deleted.', 'confirmation')
                     this.fullReloadOfData()
                 })
                 .catch((error) => {
@@ -729,7 +729,7 @@ export default {
             let selectedDeviceGroup
 
             Dialog.show({
-                header: 'Add devices to a group',
+                header: 'Add Remote Instances to a group',
                 kind: 'danger',
                 is: {
                     component: markRaw(AddDeviceToGroupDialog),
@@ -745,7 +745,7 @@ export default {
                 confirmLabel: 'Confirm'
             }, async () => {
                 return teamApi.bulkDeviceMove(this.team.id, this.checkedDevices.map(device => device.id), 'group', selectedDeviceGroup)
-                    .then(() => Alerts.emit('Successfully assigned devices.', 'confirmation'))
+                    .then(() => Alerts.emit('Successfully assigned Remote Instances.', 'confirmation'))
                     .catch(e => {
                         if (e.response?.data?.code === 'invalid_input' && e.response?.data?.error) {
                             Alerts.emit(e.response.data.error, 'warning')
@@ -764,7 +764,7 @@ export default {
         async assignDevice (device, instanceId) {
             const updatedDevice = await deviceApi.updateDevice(device.id, { instance: instanceId })
 
-            Alerts.emit('Device successfully assigned to instance.', 'confirmation')
+            Alerts.emit('Remote Instance successfully assigned to instance.', 'confirmation')
 
             this.updateLocalCopyOfDevice({ ...device, ...updatedDevice })
         },
@@ -772,7 +772,7 @@ export default {
         async assignDeviceToApplication (device, applicationId) {
             const updatedDevice = await deviceApi.updateDevice(device.id, { application: applicationId, instance: null })
 
-            Alerts.emit('Device successfully assigned to application.', 'confirmation')
+            Alerts.emit('Remote Instance successfully assigned to application.', 'confirmation')
 
             this.updateLocalCopyOfDevice({ ...device, ...updatedDevice })
         },
@@ -785,7 +785,7 @@ export default {
             const deviceIds = devices.map(device => device.id)
             const data = await teamApi.bulkDeviceMove(this.team.id, deviceIds, 'instance', instance)
             if (data?.devices.length) {
-                Alerts.emit('Devices successfully moved.', 'confirmation')
+                Alerts.emit('Remote Instance successfully moved.', 'confirmation')
                 data.devices.forEach(updatedDevice => {
                     const device = this.devices.get(updatedDevice.id)
                     // ensure the updated device has `instance` and `application` set so that the local copy is updated correctly
@@ -802,7 +802,7 @@ export default {
         async moveDevicesToApplication (devices, application) {
             const deviceIds = devices.map(device => device.id)
             teamApi.bulkDeviceMove(this.team.id, deviceIds, 'application', application)
-                .then(() => Alerts.emit('Devices successfully moved.', 'confirmation'))
+                .then(() => Alerts.emit('Remote Instances successfully moved.', 'confirmation'))
                 .catch((e) => {
                     if (e.response?.data?.code === 'invalid_input' && e.response?.data?.error) {
                         Alerts.emit(e.response.data.error, 'warning')
@@ -819,7 +819,7 @@ export default {
         async moveDevicesToUnassigned (devices) {
             const deviceIds = devices.map(device => device.id)
             teamApi.bulkDeviceMove(this.team.id, deviceIds, 'unassigned')
-                .then(() => Alerts.emit('Devices successfully unassigned.', 'confirmation'))
+                .then(() => Alerts.emit('Remote Instances successfully unassigned.', 'confirmation'))
                 .catch((e) => {
                     if (e.response?.data?.code === 'invalid_input' && e.response?.data?.error) {
                         Alerts.emit(e.response.data.error, 'warning')

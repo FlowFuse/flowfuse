@@ -7,7 +7,7 @@
                 <div class="flex flex-col gap-4">
                     <div class="title">
                         <h3 v-if="devices && (!devicesBelongToSameApplication || assigningInstanceOwnedDevices)">
-                            Unable to assign device to group.
+                            Unable to assign the remote instance to group.
                         </h3>
                         <h3 v-else>
                             Select a group from {{
