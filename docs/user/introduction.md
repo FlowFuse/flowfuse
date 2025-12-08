@@ -141,6 +141,7 @@ FlowFuse supports reading and writing persistent files and persistent context.
 
  ## Working with Instances
 
+ - [Instance States](/docs/user/instance-states.md) - List of states an instance can be in.
  - [Snapshots](/docs/user/snapshots.md) - Create point-in-time backups of your Node-RED instances.
  - [Environment Variables](/docs/user/envvar.md) - How to manage Environment Variables in your Node-RED instances.
  - [Change Project Stack](/docs/user/changestack.md) - How to change an instance stack, for example to upgrade Node-RED.
