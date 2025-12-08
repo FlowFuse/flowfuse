@@ -69,12 +69,16 @@
                     text="One or more Remote Instances are owned by a Hosted Instance and cannot be assigned to a group."
                 />
 
-                <ff-accordion label="Show selection" data-el="selection-accordion">
+                <ff-accordion label="Show selection" data-el="selection-accordion" class="max-h-[500px]" :overflows-content="true">
                     <template #meta>
                         <span class="italic text-gray-500">{{ devices.length }} Remote {{ pluralize('Instance', devices.length) }}</span>
                     </template>
                     <template #content>
-                        hosted instances go here
+                        <ff-data-table :rows="devices" :columns="columns" class="mt-3">
+                            <template #row-actions="{row}">
+                                action here
+                            </template>
+                        </ff-data-table>
                     </template>
                 </ff-accordion>
             </div>
@@ -88,6 +92,7 @@ import { mapActions } from 'vuex'
 
 import ApplicationAPI from '../../api/application.js'
 import { pluralize } from '../../composables/String.js'
+import FfDataTable from '../../ui-components/components/data-table/DataTable.vue'
 import Accordion from '../Accordion.vue'
 import FfLoading from '../Loading.vue'
 import NoticeBanner from '../notices/NoticeBanner.vue'
@@ -96,6 +101,7 @@ import DeployNotice from '../notices/device-groups/DeployNotice.vue'
 export default {
     name: 'AddDeviceToGroupDialog',
     components: {
+        FfDataTable,
         DeployNotice,
         NoticeBanner,
         FfLoading,
@@ -122,7 +128,12 @@ export default {
             deviceGroups: [],
             selectedDeviceGroup: null,
             devicesBelongToSameApplication: true,
-            assigningInstanceOwnedDevices: false
+            assigningInstanceOwnedDevices: false,
+            columns: [
+                { label: 'Name', key: 'name', class: ['flex-grow'] },
+                { label: 'Application', key: 'application.name' },
+                { label: 'Instance', key: 'instance.name' }
+            ]
         }
     },
     computed: {
