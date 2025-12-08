@@ -1,4 +1,4 @@
-module.exports.finishSetup = async function (app) {
+module.exports.finishSetup = async function (app, stackOverrides) {
     try {
         const adminUser = await app.db.models.User.findOne({
             where: {
@@ -14,7 +14,7 @@ module.exports.finishSetup = async function (app) {
         await app.db.controllers.ProjectTemplate.createDefaultTemplate(adminUser)
         app.log.info('[SETUP] Created default Template')
 
-        await app.db.controllers.ProjectStack.createDefaultProjectStack(projectType)
+        await app.db.controllers.ProjectStack.createDefaultProjectStack(projectType, stackOverrides)
         app.log.info('[SETUP] Created default Stack')
 
         await app.settings.set('setup:initialised', true)
