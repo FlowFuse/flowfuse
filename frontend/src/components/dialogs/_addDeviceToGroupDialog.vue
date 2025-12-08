@@ -1,5 +1,5 @@
 <template>
-    <section data-el="add-device-to-group-dialog">
+    <section data-el="add-device-to-group-dialog" class="add-device-to-group-dialog">
         <transition name="fade" mode="out-in">
             <ff-loading v-if="loading" />
 
@@ -68,6 +68,15 @@
                     v-if="assigningInstanceOwnedDevices"
                     text="One or more Remote Instances are owned by a Hosted Instance and cannot be assigned to a group."
                 />
+
+                <ff-accordion label="Show selection" data-el="selection-accordion">
+                    <template #meta>
+                        <span class="italic text-gray-500">{{ devices.length }} Remote {{ pluralize('Instance', devices.length) }}</span>
+                    </template>
+                    <template #content>
+                        hosted instances go here
+                    </template>
+                </ff-accordion>
             </div>
         </transition>
     </section>
@@ -79,6 +88,7 @@ import { mapActions } from 'vuex'
 
 import ApplicationAPI from '../../api/application.js'
 import { pluralize } from '../../composables/String.js'
+import Accordion from '../Accordion.vue'
 import FfLoading from '../Loading.vue'
 import NoticeBanner from '../notices/NoticeBanner.vue'
 import DeployNotice from '../notices/device-groups/DeployNotice.vue'
@@ -89,7 +99,8 @@ export default {
         DeployNotice,
         NoticeBanner,
         FfLoading,
-        ChipIcon
+        ChipIcon,
+        'ff-accordion': Accordion
     },
     props: {
         device: {
@@ -211,6 +222,28 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
+.add-device-to-group-dialog {
+    .ff-accordion {
+        margin-bottom: 0;
 
+        button {
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            background: transparent;
+            transition: background-color ease-in-out .3s;
+            padding-left: 0;
+            padding-right: 0;
+
+            label {
+                font-weight: normal;
+            }
+
+            &:hover {
+                background-color: $ff-grey-50;
+            }
+        }
+    }
+}
 </style>
