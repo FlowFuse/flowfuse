@@ -1,3 +1,25 @@
+#### 2.24.5: Release
+
+ - build(deps): bump aws-actions/configure-aws-credentials (#6354)
+ - build(deps): bump @modelcontextprotocol/sdk from 1.23.0 to 1.24.0 (#6359) @app/dependabot
+ - docs(instances): add detailed instance states list (#6365) @cstns
+ - Allow initial Admin to modify default stack (#6326) @hardillb
+ - build(deps): bump actions/checkout from 6.0.0 to 6.0.1 (#6376) @app/dependabot
+ - build(deps): bump actions/setup-node from 6.0.0 to 6.1.0 (#6377) @app/dependabot
+ - Intercept kebab menu item click to close the menu (#6372) @cstns
+ - Update group entry display for non-assignable devices and permissions (#6371) @cstns
+ - Add Seprate RBAC Document (#6370) @sumitshinde-84
+ - Force plain links to open in new tabs (#6334) @cstns
+ - Align device snapshots ux (#6358) @cstns
+ - build(deps): bump jws (#6368) @app/dependabot
+ - Devices full height pages and scrolling behavior (#6324) @cstns
+ - Update FlowFuse Concept Section (#6366) @sumitshinde-84
+ - Show broker client limit notification and disable client creation when limit is reached (#6363) @cstns
+ - Add note that Suspend/Delete team removes billing Subscription (#6362) @hardillb
+ - build(deps): bump validator from 13.15.20 to 13.15.23 (#6360) @app/dependabot
+ - build(deps): bump express (#6355) @app/dependabot
+ - build(deps): bump nodemailer from 7.0.10 to 7.0.11 (#6356) @app/dependabot
+
 #### 2.24.4: Release
 
  - Ensure TeamType passed to instanceCount (#6351) @hardillb
