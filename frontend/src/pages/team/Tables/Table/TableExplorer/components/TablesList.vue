@@ -37,7 +37,7 @@
         </div>
 
         <div v-else class="empty-state flex gap-5">
-            <p>Get Started by creating your first table using the <code>contrib-postgres</code> node in a Node-RED Instance.</p>
+            <p>Get Started by creating your first table using the <code>@flowfuse/nr-tables-nodes</code> node in a Node-RED Instance.</p>
             <p>Or <span class="cta" @click="onCreateTable">Create</span> your first table now.</p>
         </div>
     </section>
@@ -73,7 +73,7 @@ export default defineComponent({
         tablesState: {
             deep: true,
             handler (newVal) {
-                this.tables = this.getTables(this.$route.params.id)
+                // this.tables = this.getTables(this.$route.params.id)
             }
         }
     },
