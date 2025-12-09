@@ -74,9 +74,16 @@
                         <span class="italic text-gray-500">{{ devices.length }} Remote {{ pluralize('Instance', devices.length) }}</span>
                     </template>
                     <template #content>
-                        <ff-data-table :rows="devices" :columns="columns" class="mt-3">
+                        <ff-data-table :key="dialog.is.payload.devices.length" :rows="dialog.is.payload.devices" :columns="columns" class="mt-3">
                             <template #row-actions="{row}">
-                                action here
+                                <ff-button
+                                    kind="tertiary"
+                                    :disabled="dialog.is.payload.devices.length === 1"
+                                    class="hover:text-indigo-900 hover:!bg-transparent"
+                                    @click="onRemoveFromSelection(row)"
+                                >
+                                    Remove
+                                </ff-button>
                             </template>
                         </ff-data-table>
                     </template>
@@ -88,7 +95,7 @@
 
 <script>
 import { ChipIcon } from '@heroicons/vue/outline'
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import ApplicationAPI from '../../api/application.js'
 import { pluralize } from '../../composables/String.js'
@@ -120,7 +127,7 @@ export default {
             default: () => []
         }
     },
-    emits: ['selected'],
+    emits: ['selected', 'selection-removed'],
     data () {
         return {
             application: null,
@@ -137,6 +144,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('ux/dialog', ['dialog']),
         assignmentNoticeText () {
             if (this.devices.length > 2) {
                 return 'These Remote Instances will be updated to deploy the selected groups active pipeline snapshot.'
@@ -228,6 +236,9 @@ export default {
                 this.setDisablePrimary(true)
                 resolve()
             })
+        },
+        onRemoveFromSelection (row) {
+            this.$emit('selection-removed', row)
         }
     }
 }
