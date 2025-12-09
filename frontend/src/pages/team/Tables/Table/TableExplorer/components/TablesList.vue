@@ -37,8 +37,8 @@
         </div>
 
         <div v-else class="empty-state flex gap-5">
-            <p>Get Started by creating your first table using the <code>@flowfuse/nr-tables-nodes</code> node in a Node-RED Instance.</p>
-            <p>Or <span class="cta" @click="onCreateTable">Create</span> your first table now.</p>
+            <p>Get started by creating your first table using the <code>@flowfuse/nr-tables-nodes</code> node in a Node-RED Instance.</p>
+            <p>or <span class="cta" @click="onCreateTable">create</span> your first table now.</p>
         </div>
     </section>
 </template>
