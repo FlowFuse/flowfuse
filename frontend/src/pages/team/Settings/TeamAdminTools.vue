@@ -172,32 +172,6 @@
                         </div>
                     </td>
                 </tr>
-                    <!-- </th>
-                    <td v-if="!editingLimits"><div>{{ getTeamProperty(`features_${feature}`) || false }}</div></td>
-                    <td v-else>
-                        <div class="grid grid-cols-2 gap-2 my-2">
-                            <FormRow v-model="editableLimits.features[feature]" type="checkbox" />
-                        </div>
-                    </td>
-                </tr> -->
-                <!-- <tr>
-                    <th>Persistent File storage limit (mb):</th>
-                    <td v-if="!editingLimits"><div>{{ getTeamProperty(`features_fileStorageLimit`) }}</div></td>
-                    <td v-else>
-                        <div class="grid grid-cols-2 gap-2 my-2">
-                            <FormRow v-model="editableLimits.features['fileStorageLimit']" type="number" />
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <th>Persistent Context storage limit (mb):</th>
-                    <td v-if="!editingLimits"><div>{{ getTeamProperty(`features_contextLimit`) }}</div></td>
-                    <td v-else>
-                        <div class="grid grid-cols-2 gap-2 my-2">
-                            <FormRow v-model="editableLimits.features['contextLimit']" type="number" />
-                        </div>
-                    </td>
-                </tr> -->
             </table>
         </div>
     </div>
