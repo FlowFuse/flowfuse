@@ -10,9 +10,7 @@
                             Unable to assign the remote instance to group.
                         </h3>
                         <h3 v-else>
-                            Select a group from {{
-                                application ? application.name : device.application.name
-                            }}
+                            Select a group from {{ application ? application.name : device.application.name }}
                         </h3>
                     </div>
 
@@ -69,12 +67,20 @@
                     text="One or more Remote Instances are owned by a Hosted Instance and cannot be assigned to a group."
                 />
 
-                <ff-accordion label="Show selection" data-el="selection-accordion" class="max-h-[500px]" :overflows-content="true">
+                <ff-accordion
+                    v-if="!assigningSingleDevice"
+                    label="Show selection" data-el="selection-accordion"
+                    class="max-h-[500px]" :overflows-content="true"
+                >
                     <template #meta>
                         <span class="italic text-gray-500">{{ devices.length }} Remote {{ pluralize('Instance', devices.length) }}</span>
                     </template>
                     <template #content>
-                        <ff-data-table :key="dialog.is.payload.devices.length" :rows="dialog.is.payload.devices" :columns="columns" class="mt-3">
+                        <ff-data-table
+                            :key="dialog.is.payload.devices.length"
+                            :rows="dialog.is.payload.devices" :columns="columns"
+                            class="mt-3"
+                        >
                             <template #row-actions="{row}">
                                 <ff-button
                                     kind="tertiary"
@@ -130,12 +136,9 @@ export default {
     emits: ['selected', 'selection-removed'],
     data () {
         return {
-            application: null,
-            loading: true,
+            loading: false,
             deviceGroups: [],
             selectedDeviceGroup: null,
-            devicesBelongToSameApplication: true,
-            assigningInstanceOwnedDevices: false,
             columns: [
                 { label: 'Name', key: 'name', class: ['flex-grow'] },
                 { label: 'Application', key: 'application.name' },
@@ -145,6 +148,19 @@ export default {
     },
     computed: {
         ...mapState('ux/dialog', ['dialog']),
+        application () {
+            if (!this.devicesBelongToSameApplication) return null
+
+            const applications = new Set()
+            for (const device of this.devices) {
+                applications.add(device.application)
+            }
+
+            return Array.from(applications).pop()
+        },
+        assigningSingleDevice () {
+            return !!this.device
+        },
         assignmentNoticeText () {
             if (this.devices.length > 2) {
                 return 'These Remote Instances will be updated to deploy the selected groups active pipeline snapshot.'
@@ -162,6 +178,25 @@ export default {
             }
 
             return null
+        },
+        assigningInstanceOwnedDevices () {
+            if (this.assigningSingleDevice) return false
+
+            return this.devices.some(d => d.ownerType === 'instance')
+        },
+        devicesBelongToSameApplication () {
+            if (this.assigningSingleDevice) return true
+
+            const applications = new Set()
+
+            for (const device of this.devices) {
+                applications.add(device.application?.id ?? '')
+            }
+
+            return applications.size === 1 && !applications.has('')
+        },
+        disabledPrimary () {
+            return this.assigningInstanceOwnedDevices || !this.devicesBelongToSameApplication || !this.selectedDeviceGroup
         }
     },
     watch: {
@@ -172,21 +207,30 @@ export default {
             } else if (this.devices.length > 0) {
                 this.setDisablePrimary(this.selectedDeviceGroup === null)
             }
+        },
+        application: {
+            immediate: true,
+            handler (application) {
+                if (this.device) {
+                    this.getDeviceGroups(this.device.application)
+                } else if (application) {
+                    this.getDeviceGroups(application)
+                }
+            }
+        },
+        disabledPrimary: {
+            immediate: true,
+            handler (isDisabled) {
+                this.setDisablePrimary(isDisabled)
+            }
         }
-    },
-    mounted () {
-        this.validateDeviceApplicationOwnership()
-            .then(() => this.getDeviceGroups())
-            .catch(e => e)
-            .finally(() => {
-                this.loading = false
-            })
     },
     methods: {
         pluralize,
         ...mapActions('ux/dialog', ['setDisablePrimary']),
-        async getDeviceGroups () {
-            return ApplicationAPI.getDeviceGroups(this.devices.length ? this.application.id : this.device.application.id)
+        async getDeviceGroups (application) {
+            this.loading = true
+            return ApplicationAPI.getDeviceGroups(application.id)
                 .then((groups) => {
                     this.deviceGroups = groups.groups
                     if (this.device?.deviceGroup) {
@@ -199,43 +243,9 @@ export default {
                 .catch((err) => {
                     console.error(err)
                 })
-        },
-        validateDeviceApplicationOwnership () {
-            return new Promise((resolve, reject) => {
-                if (this.devices.length > 0) {
-                    const map = {}
-
-                    for (const device of this.devices) {
-                        if (device.ownerType === 'instance') {
-                            this.assigningInstanceOwnedDevices = true
-                            this.setDisablePrimary(true)
-                            return reject(new Error('Unable to assign hosted instance owned devices to a group'))
-                        }
-
-                        map[device.application?.id ?? ''] = ''
-                    }
-                    const keys = Object.keys(map)
-
-                    if (keys.some(key => key === '')) {
-                        this.devicesBelongToSameApplication = false
-                        this.setDisablePrimary(true)
-                        return reject(new Error('Some Remote Instances do not belong to an application'))
-                    }
-
-                    this.devicesBelongToSameApplication = keys.filter(key => key)
-                        .length === 1
-
-                    if (this.devicesBelongToSameApplication) {
-                        this.application = this.devices[0].application
-                    } else {
-                        this.setDisablePrimary(true)
-                        reject(new Error('Remote Instances do not belong to the same application'))
-                    }
-                }
-
-                this.setDisablePrimary(true)
-                resolve()
-            })
+                .finally(() => {
+                    this.loading = false
+                })
         },
         onRemoveFromSelection (row) {
             this.$emit('selection-removed', row)
