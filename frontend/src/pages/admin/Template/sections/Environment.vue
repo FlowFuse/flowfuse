@@ -1,5 +1,5 @@
 <template>
-    <form class="space-y-4 ff-environment" data-el="instance-environment" @submit.prevent>
+    <form class="space-y-4 ff-environment flex-1 flex flex-col overflow-auto" data-el="instance-environment" @submit.prevent>
         <FormHeading>
             <div class="flex">
                 <div class="mr-4">Environment Variables</div>
@@ -18,7 +18,7 @@
                 <ff-button @click="$refs['help-dialog'].close()">Close</ff-button>
             </template>
         </ff-dialog>
-        <div class="min-w-min">
+        <div class="min-w-min flex-1 flex flex-col overflow-auto">
             <!-- NOTE:  `:columns:[,,,]` is necessary to instruct the empty row to apply a col-span of 4 -->
             <ff-data-table
                 v-model:search="search"

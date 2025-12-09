@@ -1,3 +1,19 @@
+#### 2.24.4: Release
+
+ - Ensure TeamType passed to instanceCount (#6351) @hardillb
+ - build(deps): bump untitaker/hyperlink from 0.1.44 to 0.2.0 (#6328) @app/dependabot
+ - Update Node-RED tools documentation (#6329) @ZJvandeWeg
+ - build(deps-dev): bump node-forge from 1.3.1 to 1.3.2 (#6340) @app/dependabot
+ - Add ff-assistant oauth scope (#6300) @knolleary
+ - Update Device Groups (#6347) @sumitshinde-84
+ - improve getting started section (#6342) @sumitshinde-84
+
+#### 2.24.3: Release
+
+ - Add extra cause logging on instance create failure (#6346) @hardillb
+ - Add doc about Team Type Feature List (#6336) @hardillb
+ - Improve Bills of material, update screenshots (#6344) @sumitshinde-84
+
 #### 2.24.2: Release
 
  - fix(ci): send slack notification on package publish failure (#6337)

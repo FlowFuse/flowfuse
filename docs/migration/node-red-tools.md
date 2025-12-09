@@ -37,9 +37,6 @@ This assumes the default location of the Node-RED user directory. If you are not
 sure where that is, check the log output when Node-RED starts as it will log the
 full path to the `User directory`.
 
-*Note*: this plugin was previously published under the package `@flowforge/nr-tools-plugin`. That
-package is now deprecated and will no longer receive updates.
-
 ## Usage
 
 This initial version of the plugin allows you to create a snapshot of your locally

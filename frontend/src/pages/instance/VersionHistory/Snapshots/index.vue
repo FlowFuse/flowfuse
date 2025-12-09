@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-6">
+    <div class="space-y-6 flex-1 flex flex-col overflow-auto">
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0 && !loading">
             <ff-data-table

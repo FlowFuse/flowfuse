@@ -153,7 +153,7 @@ describe('FlowFuse - Instance Snapshots', () => {
         })
 
         cy.get('[data-el="right-drawer"]').within(() => {
-            cy.get('[data-el="right-drawer-header-title"]').contains('editable-snapshot')
+            cy.get('[data-el="right-drawer-header-title"]').contains('Edited Snapshot Name!!!')
         })
     })
 

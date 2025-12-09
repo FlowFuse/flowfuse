@@ -1,8 +1,9 @@
 <template>
-    <div class="space-y-2 overflow-auto flex flex-col" data-el="devices-section">
+    <div class="space-y-2 overflow-auto flex-1 flex flex-col" data-el="devices-section">
         <ff-loading
             v-if="loadingStatuses || loadingDevices"
             message="Loading Remote Instances..."
+            class="flex-1"
         />
         <template v-else-if="team">
             <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the limit for Remote Instances in this team." :class="{'mt-0': displayingTeam }" />
@@ -167,7 +168,7 @@
                     </EmptyState>
                 </template>
                 <template v-else-if="displayingInstance">
-                    <EmptyState data-el="instance-no-devices">
+                    <EmptyState data-el="instance-no-devices" class="flex-1">
                         <template #img>
                             <img src="../images/empty-states/instance-devices.png">
                         </template>

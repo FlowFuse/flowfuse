@@ -219,6 +219,8 @@ module.exports = async function (app) {
                 }
             )
         } catch (err) {
+            app.log.error(`Error creating new instance ${err.message}\n ${err.stack}\ncause: ${err.cause?.stack}`)
+            app.log.error(`${err.toString()}`)
             return reply
                 .code(err.statusCode || 400)
                 .send({

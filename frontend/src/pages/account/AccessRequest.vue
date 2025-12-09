@@ -13,7 +13,7 @@
             </div>
         </div>
         <div class="my-4">
-            This application will have access to your teams and projects.
+            This application will have access to your teams and instances.
         </div>
         <div class="ff-actions flex flex-row">
             <ff-button class="mx-8" data-action="deny-access" @click="denyAccess">Deny</ff-button>

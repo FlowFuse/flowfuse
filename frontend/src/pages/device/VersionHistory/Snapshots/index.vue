@@ -1,5 +1,5 @@
 <template>
-    <div id="device-snapshots">
+    <div id="device-snapshots" class="flex-1 flex flex-col overflow-auto">
         <div v-if="isOwnedByAnInstance || isUnassigned" class="space-y-6">
             <EmptyState :feature-unavailable="!features.deviceEditor">
                 <template #img>
@@ -39,25 +39,25 @@
                 </template>
             </EmptyState>
         </div>
-        <div v-else class="space-y-6">
+        <div v-else class="space-y-6 flex-1 flex flex-col overflow-auto">
             <ff-loading v-if="loading" message="Loading Snapshots..." />
             <template v-else-if="features.deviceEditor && snapshots.length > 0">
-                <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshotsFiltered" :show-search="true" search-placeholder="Search Snapshots...">
+                <ff-data-table
+                    data-el="snapshots"
+                    class="space-y-4"
+                    :columns="columns"
+                    :rows="snapshotsFiltered"
+                    :rows-selectable="true"
+                    :show-search="true"
+                    search-placeholder="Search Snapshots..."
+                    @row-selected="onRowSelected"
+                >
                     <template #actions>
                         <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">
                             <FilterIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
                             {{ snapshotFilter?.name || 'All Snapshots' }}
                             <span class="sr-only">Filter Snapshots</span>
                         </DropdownMenu>
-                    </template>
-                    <template #context-menu="{row}">
-                        <ff-list-item :disabled="!canDeploy(row)" label="Restore Snapshot" @click="showDeploySnapshotDialog(row)" />
-                        <ff-list-item :disabled="!hasPermission('snapshot:edit', { application: device.application })" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
-                        <ff-list-item :disabled="!hasPermission('snapshot:full', { application: device.application })" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
-                        <ff-list-item :disabled="!hasPermission('snapshot:full', { application: device.application })" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
-                        <ff-list-item :disabled="!canDownload(row)" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
-                        <ff-list-item :disabled="!hasPermission('device:snapshot:read', { application: device.application })" label="Download package.json" @click="downloadSnapshotPackage(row)" />
-                        <ff-list-item :disabled="!canDelete(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
                     </template>
                 </ff-data-table>
             </template>
@@ -99,11 +99,6 @@
                     </template>
                 </EmptyState>
             </template>
-
-            <SnapshotExportDialog ref="snapshotExportDialog" data-el="dialog-export-snapshot" />
-            <SnapshotEditDialog ref="snapshotEditDialog" data-el="dialog-edit-snapshot" @snapshot-updated="onSnapshotEdit" />
-            <AssetDetailDialog ref="snapshotViewerDialog" data-el="dialog-view-snapshot" />
-            <AssetCompareDialog ref="snapshotCompareDialog" data-el="dialog-compare-snapshot" />
         </div>
     </div>
 </template>
@@ -111,40 +106,28 @@
 <script>
 import { FilterIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import ApplicationApi from '../../../../api/application.js'
-import DeviceApi from '../../../../api/devices.js'
-import SnapshotApi from '../../../../api/snapshots.js'
 import DropdownMenu from '../../../../components/DropdownMenu.vue'
 
 import EmptyState from '../../../../components/EmptyState.vue'
-import AssetCompareDialog from '../../../../components/dialogs/AssetCompareDialog.vue'
-import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.vue'
-import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
+import SnapshotDetailsDrawer from '../../../../components/drawers/snapshots/SnapshotDetailsDrawer.vue'
 import UserCell from '../../../../components/tables/cells/UserCell.vue'
-import { downloadData } from '../../../../composables/Download.js'
 import usePermissions from '../../../../composables/Permissions.js'
-import Alerts from '../../../../services/alerts.js'
-import Dialog from '../../../../services/dialog.js'
 import { applySystemUserDetails } from '../../../../transformers/snapshots.transformer.js'
 import { isAutoSnapshot } from '../../../../utils/snapshot.js'
 import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
 import SnapshotSource from '../../../application/Snapshots/components/cells/SnapshotSource.vue'
-import SnapshotExportDialog from '../../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
 export default {
     name: 'DeviceSnapshots',
     components: {
-        AssetDetailDialog,
-        AssetCompareDialog,
         DropdownMenu,
         EmptyState,
         FilterIcon,
         PlusSmIcon,
-        SnapshotEditDialog,
-        SnapshotExportDialog,
         UploadIcon
     },
     inheritAttrs: false,
@@ -230,7 +213,7 @@ export default {
                     component: {
                         is: markRaw(SnapshotName),
                         extraProps: {
-                            // targetSnapshot: this.instance.deviceSettings?.targetSnapshot
+                            clippedDetails: true
                         }
                     }
                 },
@@ -315,12 +298,7 @@ export default {
         this.fetchData()
     },
     methods: {
-        rowIsThisDevice: function (snapshot) {
-            if (!snapshot || !this.device.id) {
-                return false
-            }
-            return snapshot.device?.id === this.device.id
-        },
+        ...mapActions('ux/drawers', ['openRightDrawer', 'closeRightDrawer']),
         fetchData: async function () {
             if (!this.features.deviceEditor || this.isOwnedByAnInstance || this.isUnassigned) {
                 return
@@ -343,33 +321,6 @@ export default {
                 this.loading = false
             }
         },
-        // snapshot actions - delete
-        showDeleteSnapshotDialog (snapshot) {
-            Dialog.show({
-                header: 'Delete Snapshot',
-                text: 'Are you sure you want to delete this snapshot?',
-                kind: 'danger',
-                confirmLabel: 'Delete'
-            }, async () => {
-                await SnapshotApi.deleteSnapshot(snapshot.id)
-                const index = this.snapshots.indexOf(snapshot)
-                this.snapshots.splice(index, 1)
-                Alerts.emit('Successfully deleted snapshot.', 'confirmation')
-            })
-        },
-        async downloadSnapshotPackage (snapshot) {
-            const ss = await SnapshotApi.getSummary(snapshot.id)
-            const owner = ss.device || ss.project
-            const ownerType = ss.device ? 'device' : 'instance'
-            const packageJSON = {
-                name: `${owner.safeName || owner.name}`.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase(),
-                description: `${ownerType} snapshot, ${snapshot.name} - ${snapshot.description}`,
-                private: true,
-                version: '0.0.0-' + snapshot.id,
-                dependencies: ss.modules || {}
-            }
-            downloadData(packageJSON, 'package.json')
-        },
         getSortKeyForSnapshotSource (snapshot) {
             if (snapshot.ownerType === 'device') {
                 return 'Device:' + snapshot.device?.name || 'No Name'
@@ -381,81 +332,31 @@ export default {
 
             return 'Unassigned'
         },
-        deploySnapshot (snapshotId) {
-            const snapshot = this.snapshots.find(s => s.id === snapshotId)
-            if (!snapshot) {
-                console.warn('Could not find snapshot to deploy', snapshotId, this.snapshots, this.device)
-                Alerts.emit('Oops, something went wrong! Please refresh the page and try again.', 'warning', 7500)
-                return
-            }
-            const currentTargetSnapshot = this.device.targetSnapshot?.id
-            if (typeof currentTargetSnapshot === 'string' && currentTargetSnapshot === snapshot.id) {
-                Alerts.emit('This snapshot is already deployed to this device.', 'info', 7500)
-                return
-            }
-            let body = `Are you sure you want to restore snapshot '${snapshot.name}' to this device?`
-            if (snapshot.device?.id !== this.device.id) {
-                body = `Snapshot '${snapshot.name}' was not generated by this device. Are you sure you want to deploy it to this device?`
-            }
-
-            Dialog.show({
-                header: `Restore Snapshot to device '${this.device.name}'`,
-                kind: 'danger',
-                text: body,
-                confirmLabel: 'Confirm'
-            }, async () => {
-                try {
-                    await DeviceApi.setSnapshotAsTarget(this.device.id, snapshot.id)
-                    Alerts.emit('Successfully applied the snapshot.', 'confirmation')
-                } catch (err) {
-                    Alerts.emit('Failed to apply snapshot: ' + err.toString(), 'warning', 7500)
-                }
-            })
-        },
-        showViewSnapshotDialog (snapshot) {
-            SnapshotApi.getFullSnapshot(snapshot.id).then((data) => {
-                this.$refs.snapshotViewerDialog.show(data)
-            }).catch(err => {
-                console.error(err)
-                Alerts.emit('Failed to get snapshot.', 'warning')
-            })
-        },
-        showCompareSnapshotDialog (snapshot) {
-            SnapshotApi.getFullSnapshot(snapshot.id)
-                .then((data) => this.$refs.snapshotCompareDialog.show(data, this.snapshotList))
-                .catch(err => {
-                    console.error(err)
-                    Alerts.emit('Failed to get snapshot.', 'warning')
-                })
-        },
-        showDownloadSnapshotDialog (snapshot) {
-            this.$refs.snapshotExportDialog.show(snapshot)
-        },
-        showDeploySnapshotDialog (snapshot) {
-            this.deploySnapshot(snapshot.id)
-        },
-        showEditSnapshotDialog (snapshot) {
-            this.$refs.snapshotEditDialog.show(snapshot)
-        },
-        onSnapshotEdit (snapshot) {
-            const index = this.snapshots.findIndex(s => s.id === snapshot.id)
-            if (index >= 0) {
-                this.snapshots[index].name = snapshot.name
-                this.snapshots[index].description = snapshot.description
-            }
-        },
         // enable/disable snapshot actions
         canDeploy (_row) {
             return !this.developerMode && this.hasPermission('device:edit', { application: this.device.application })
         },
-        canDownload (_row) {
-            return this.hasPermission('snapshot:export', { application: this.device.application })
-        },
-        canDelete (row) {
-            if (this.rowIsThisDevice(row)) {
-                return this.hasPermission('device:snapshot:delete', { application: this.device.application })
-            }
-            return false // only permit deletion of snapshots created by this device
+        onRowSelected (snapshot) {
+            this.openRightDrawer({
+                component: markRaw(SnapshotDetailsDrawer),
+                props: {
+                    snapshot,
+                    snapshotList: this.snapshotList,
+                    instance: this.device,
+                    canSetDeviceTarget: false,
+                    canRestore: this.canDeploy(snapshot),
+                    isDevice: true
+                },
+                on: {
+                    updatedSnapshot: () => this.fetchData(true),
+                    deletedSnapshot: () => {
+                        this.closeRightDrawer()
+                        this.fetchData(true)
+                    }
+                },
+                overlay: true,
+                wider: true
+            })
         }
     }
 }

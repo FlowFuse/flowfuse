@@ -538,7 +538,7 @@ module.exports = {
                         if (currentDeviceCount === null) {
                             currentDeviceCount = await this.deviceCount(transaction)
                         }
-                        const currentInstanceCount = await this.instanceCount(transaction)
+                        const currentInstanceCount = await this.instanceCount(undefined, transaction)
                         const currentRuntimeCount = currentDeviceCount + currentInstanceCount
                         if (currentRuntimeCount >= runtimeLimit) {
                             const err = new Error()
@@ -613,7 +613,7 @@ module.exports = {
                     const runtimeLimit = await this.getRuntimeLimit()
                     if (runtimeLimit > -1) {
                         const currentDeviceCount = await this.deviceCount(transaction)
-                        const currentInstanceCount = await this.instanceCount(transaction)
+                        const currentInstanceCount = await this.instanceCount(undefined, transaction)
                         const currentRuntimeCount = currentDeviceCount + currentInstanceCount
                         if (currentRuntimeCount >= runtimeLimit) {
                             const err = new Error()

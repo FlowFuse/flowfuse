@@ -14,6 +14,7 @@ import Logo from './components/Logo.vue'
 import PageFooter from './components/PageFooter.vue'
 import FFLayoutBox from './layouts/Box.vue'
 import CreateAdminUser from './pages/setup/CreateAdminUser.vue'
+import DefaultStack from './pages/setup/DefaultStack.vue'
 import ErrorPage from './pages/setup/ErrorPage.vue'
 import Final from './pages/setup/Final.vue'
 import License from './pages/setup/License.vue'
@@ -27,6 +28,7 @@ const views = [
     CreateAdminUser,
     License,
     // Options,
+    DefaultStack,
     Final,
     ErrorPage
 ]
@@ -37,6 +39,7 @@ export default {
         Logo,
         CreateAdminUser,
         License,
+        DefaultStack,
         'ff-layout-box': FFLayoutBox
     },
     data () {
@@ -50,7 +53,10 @@ export default {
         this.state = (await httpClient.get('/setup/status')).data
     },
     methods: {
-        next () {
+        next (payload) {
+            if (payload?.stackOverrides) {
+                this.state.stackOverrides = payload.stackOverrides
+            }
             this.step++
         },
         error () {

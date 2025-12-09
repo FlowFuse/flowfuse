@@ -31,11 +31,11 @@
         </EmptyState>
 
         <template v-else>
-            <div id="team-device-groups" class="space-y-6" data-page="team-device-groups">
+            <div id="team-device-groups" class="space-y-6 overflow-auto flex flex-col flex-1" data-page="team-device-groups">
                 <ff-loading v-if="loading" message="Loading Groups..." />
 
                 <template v-else>
-                    <section v-if="deviceGroups.length > 0" class="pipelines">
+                    <section v-if="deviceGroups.length > 0" class="pipelines overflow-auto flex flex-col flex-1">
                         <ff-data-table
                             v-model:search="tableSearch"
                             :columns="tableColumns"

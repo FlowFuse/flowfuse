@@ -13,9 +13,9 @@ jobs:
     name: Test Documentation links
     steps:
       - name: Checkout
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Setup Node
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: '18'
       - name: Install Dependencies
@@ -27,11 +27,11 @@ jobs:
     name: Test Documentation with website
     steps:
       - name: Checkout
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           path: 'flowfuse'
       - name: Check out website repository
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           repository: 'FlowFuse/website'
           path: 'website'
@@ -42,7 +42,7 @@ jobs:
           app_id: ${{ secrets.GH_BOT_APP_ID }}
           private_key: ${{ secrets.GH_BOT_APP_KEY }}
       - name: Check out FlowFuse/blueprint-library repository (to access the blueprints)
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           repository: 'FlowFuse/blueprint-library'
           ref: main
@@ -53,7 +53,7 @@ jobs:
         with:
           key: img-pipeline-cache
           path: website/_site/img         
-      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           cache: 'npm'
           cache-dependency-path: './website/package-lock.json'
@@ -67,7 +67,7 @@ jobs:
       - name: Build the forge
         run: npm run build:skip-images
         working-directory: 'website'
-      - uses: untitaker/hyperlink@e66bb17cc9ae341677431edec3b893a0aa6ac747 # 0.1.44
+      - uses: untitaker/hyperlink@fb5bb9c5011a3d143a54b4b30aedc30ec5bc0f89 # 0.2.0
         with:
           args: website/_site/ --check-anchors --sources website/src
   publish:
