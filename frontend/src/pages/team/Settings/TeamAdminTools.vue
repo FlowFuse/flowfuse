@@ -150,17 +150,36 @@
                     </td>
                 </tr>
                 <tr>
-                    <th>Features</th>
+                    <th>Features:</th>
+                    <td>
+                        <span v-if="featureOverrideCount > 0">
+                            * {{ featureOverrideCount }} override<span v-if="featureOverrideCount > 1">s</span> applied
+                        </span>
+                        <span v-else>
+                            &nbsp;
+                        </span>
+                    </td>
                 </tr>
-                <tr v-for="(feature, index) in featureList" :key="index">
-                    <th>{{ featureNames[feature] }}:</th>
+                <tr>
+                    <td colspan="2">
+                        <div class="grid grid-cols-2 gap-2 my-2">
+                            <div v-for="(feature, index) in featureList" :key="index">
+                                <FormRow v-model="editableLimits.features[feature]" :disabled="!editingLimits" type="checkbox">
+                                    {{ featureNames[feature] }}
+                                    <span v-if="editableLimits.features[feature] !== teamTypeDefaultFeatures[feature]" class="text-sm text-gray-500">*</span>
+                                </FormRow>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                    <!-- </th>
                     <td v-if="!editingLimits"><div>{{ getTeamProperty(`features_${feature}`) || false }}</div></td>
                     <td v-else>
                         <div class="grid grid-cols-2 gap-2 my-2">
                             <FormRow v-model="editableLimits.features[feature]" type="checkbox" />
                         </div>
                     </td>
-                </tr>
+                </tr> -->
                 <!-- <tr>
                     <th>Persistent File storage limit (mb):</th>
                     <td v-if="!editingLimits"><div>{{ getTeamProperty(`features_fileStorageLimit`) }}</div></td>
@@ -264,6 +283,32 @@ export default {
                 return `https://dashboard.stripe.com/subscriptions/${this.team.billing.subscription}`
             }
             return null
+        },
+        teamTypeDefaultFeatures () {
+            const result = {}
+            // The current api implementation modifies team.type.properties.features to already include
+            // the overrides. To identify which are actual overrides, we need to check for their presence
+            // in team.properties.features (which only includes overrides) and apply the inverse
+            this.featureList.forEach(feature => {
+                result[feature] = getObjectValue(this.team.type.properties, `features_${feature}`)
+                if (getObjectValue(this.team.properties, `features_${feature}`) !== undefined) {
+                    // There is an override - invert the value
+                    result[feature] = !result[feature]
+                } else if (result[feature] === undefined) {
+                    result[feature] = false
+                }
+            })
+            return result
+        },
+
+        featureOverrideCount () {
+            let count = 0
+            this.featureList.forEach(feature => {
+                if (this.editableLimits.features[feature] !== this.teamTypeDefaultFeatures[feature]) {
+                    count++
+                }
+            })
+            return count
         }
     },
     async created () {
@@ -277,6 +322,9 @@ export default {
             }
         })
         this.deviceFreeOptions.unshift({ value: '_', label: 'None - use own free limit' })
+        this.featureList.forEach(feature => {
+            this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`) || false
+        })
     },
     methods: {
         getTeamProperty (property) {
@@ -422,7 +470,15 @@ export default {
 
             Object.keys(this.editableLimits.features).forEach(feature => {
                 // only store the delta from the TeamType
-                if (this.team.type.properties.features[feature] !== this.editableLimits.features[feature]) {
+                // The current API modifies team.type.properties.features to already include the overrides.
+                // We first need to infer the default value by checking for an override in team.properties.features
+                let teamTypeValue = this.team.type.properties.features[feature] || false
+                if (getObjectValue(this.team.properties, `features_${feature}`) !== undefined) {
+                    // There is an override - invert the value
+                    teamTypeValue = !teamTypeValue
+                }
+
+                if (teamTypeValue !== this.editableLimits.features[feature]) {
                     properties.features[feature] = this.editableLimits.features[feature]
                 } else {
                     delete properties.features[feature]

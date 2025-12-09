@@ -108,6 +108,9 @@ module.exports = async function (app) {
         result.instanceCountByType = await team.instanceCountByType()
 
         await appendBillingDetails(result, team, request)
+        // This modifies the team.type response to include any team feature overrides.
+        // Ideally the `type` property would be the actual type properties, and the front-end use
+        // the top-level team properties to identify overrides. But this is less disruptive for now.
         await updateTeamFeatures(result, team)
 
         reply.send(result)
