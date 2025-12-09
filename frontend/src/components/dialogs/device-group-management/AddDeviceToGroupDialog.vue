@@ -67,33 +67,11 @@
                     text="One or more Remote Instances are owned by a Hosted Instance and cannot be assigned to a group."
                 />
 
-                <ff-accordion
+                <device-list
                     v-if="!assigningSingleDevice"
-                    label="Show selection" data-el="selection-accordion"
-                    class="max-h-[500px]" :overflows-content="true"
-                >
-                    <template #meta>
-                        <span class="italic text-gray-500">{{ devices.length }} Remote {{ pluralize('Instance', devices.length) }}</span>
-                    </template>
-                    <template #content>
-                        <ff-data-table
-                            :key="dialog.is.payload.devices.length"
-                            :rows="dialog.is.payload.devices" :columns="columns"
-                            class="mt-3"
-                        >
-                            <template #row-actions="{row}">
-                                <ff-button
-                                    kind="tertiary"
-                                    :disabled="dialog.is.payload.devices.length === 1"
-                                    class="hover:text-indigo-900 hover:!bg-transparent"
-                                    @click="onRemoveFromSelection(row)"
-                                >
-                                    Remove
-                                </ff-button>
-                            </template>
-                        </ff-data-table>
-                    </template>
-                </ff-accordion>
+                    :devices="devices"
+                    @selection-removed="$emit('selection-removed', $event)"
+                />
             </div>
         </transition>
     </section>
@@ -103,23 +81,22 @@
 import { ChipIcon } from '@heroicons/vue/outline'
 import { mapActions, mapState } from 'vuex'
 
-import ApplicationAPI from '../../api/application.js'
-import { pluralize } from '../../composables/String.js'
-import FfDataTable from '../../ui-components/components/data-table/DataTable.vue'
-import Accordion from '../Accordion.vue'
-import FfLoading from '../Loading.vue'
-import NoticeBanner from '../notices/NoticeBanner.vue'
-import DeployNotice from '../notices/device-groups/DeployNotice.vue'
+import ApplicationAPI from '../../../api/application.js'
+import { pluralize } from '../../../composables/String.js'
+import FfLoading from '../../Loading.vue'
+import NoticeBanner from '../../notices/NoticeBanner.vue'
+import DeployNotice from '../../notices/device-groups/DeployNotice.vue'
+
+import DeviceList from './components/device-list.vue'
 
 export default {
     name: 'AddDeviceToGroupDialog',
     components: {
-        FfDataTable,
+        DeviceList,
         DeployNotice,
         NoticeBanner,
         FfLoading,
-        ChipIcon,
-        'ff-accordion': Accordion
+        ChipIcon
     },
     props: {
         device: {
@@ -138,12 +115,7 @@ export default {
         return {
             loading: false,
             deviceGroups: [],
-            selectedDeviceGroup: null,
-            columns: [
-                { label: 'Name', key: 'name', class: ['flex-grow'] },
-                { label: 'Application', key: 'application.name' },
-                { label: 'Instance', key: 'instance.name' }
-            ]
+            selectedDeviceGroup: null
         }
     },
     computed: {
@@ -246,36 +218,7 @@ export default {
                 .finally(() => {
                     this.loading = false
                 })
-        },
-        onRemoveFromSelection (row) {
-            this.$emit('selection-removed', row)
         }
     }
 }
 </script>
-
-<style lang="scss">
-.add-device-to-group-dialog {
-    .ff-accordion {
-        margin-bottom: 0;
-
-        button {
-            border-top: none;
-            border-left: none;
-            border-right: none;
-            background: transparent;
-            transition: background-color ease-in-out .3s;
-            padding-left: 0;
-            padding-right: 0;
-
-            label {
-                font-weight: normal;
-            }
-
-            &:hover {
-                background-color: $ff-grey-50;
-            }
-        }
-    }
-}
-</style>

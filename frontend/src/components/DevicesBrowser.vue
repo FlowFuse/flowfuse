@@ -382,7 +382,8 @@ import { createPollTimer } from '../utils/timers.js'
 import EmptyState from './EmptyState.vue'
 import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
-import AddDeviceToGroupDialog from './dialogs/_addDeviceToGroupDialog.vue'
+import AddDeviceToGroupDialog from './dialogs/device-group-management/AddDeviceToGroupDialog.vue'
+import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/RemoveDeviceFromGroupDialog.vue'
 
 const POLL_TIME = 10000
 
@@ -721,10 +722,15 @@ export default {
             Dialog.show({
                 header: 'Remove selected Remote Instances from their respective groups?',
                 kind: 'danger',
-                html: `
-                    <p>These Remote Instances will be cleared of any active pipeline snapshot.</p>
-                    <p>Are you sure you want to continue?</p>
-                `,
+                is: {
+                    component: markRaw(RemoveDeviceFromGroupDialog),
+                    payload: {
+                        devices: this.checkedDevices
+                    },
+                    on: {
+                        'selection-removed': this.removeFromSelection
+                    }
+                },
                 confirmLabel: 'Confirm'
             }, () => teamApi.bulkDeviceMove(this.team.id, this.checkedDevices.map(device => device.id), 'group', '')
                 .then(() => this.fullReloadOfData())
