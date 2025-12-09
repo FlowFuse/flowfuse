@@ -14,6 +14,7 @@
             </div>
             <ff-data-table
                 v-if="allDeviceStatuses.size > 0"
+                ref="table"
                 data-el="devices-browser"
                 :columns="columns"
                 :rows="devicesWithStatuses"
@@ -457,6 +458,7 @@ export default {
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         ...mapState('ux/tours', ['tours']),
+        ...mapState('ux/dialog', ['dialog']),
         ...mapGetters('account', ['featuresCheck']),
         columns () {
             const columns = [
@@ -592,7 +594,12 @@ export default {
     watch: {
         instance: 'fullReloadOfData',
         application: 'fullReloadOfData',
-        team: 'fullReloadOfData'
+        team: 'fullReloadOfData',
+        checkedDevices (devices) {
+            if (this.dialog?.is?.payload?.devices) {
+                this.dialog.is.payload.devices = devices
+            }
+        }
     },
     mounted () {
         this.fullReloadOfData()
@@ -739,7 +746,8 @@ export default {
                     on: {
                         selected (selection) {
                             selectedDeviceGroup = selection
-                        }
+                        },
+                        'selection-removed': this.removeFromSelection
                     }
                 },
                 confirmLabel: 'Confirm'
@@ -941,6 +949,10 @@ export default {
             }
             filters[filter] = this.deviceModeFilters[filter]
             this.deviceModeFilters = filters
+        },
+
+        removeFromSelection (device) {
+            this.$refs.table.toggleRowCheck(device)
         }
     }
 }
