@@ -1,5 +1,3 @@
-import { markRaw } from 'vue'
-
 const initialState = () => ({
     dialog: {
         boxClass: null,
