@@ -73,7 +73,7 @@ export default defineComponent({
         tablesState: {
             deep: true,
             handler (newVal) {
-                // this.tables = this.getTables(this.$route.params.id)
+                this.tables = this.getTables(this.$route.params.id)
             }
         }
     },
