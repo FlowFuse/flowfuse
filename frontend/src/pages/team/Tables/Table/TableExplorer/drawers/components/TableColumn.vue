@@ -13,7 +13,20 @@
                 :options="typeOptions"
                 option-title-key="title"
                 placeholder="Select Type"
-            />
+            >
+                <template #option="{ option }">
+                    <div :title="option.title" class="ff-option-content" data-click-exclude="right-drawer">
+                        <p class="clipped-overflow flex-nowrap flex justify-between items-center">
+                            <span class="clipped-overflow">
+                                {{ option.label }}
+                            </span>
+                            <span class="italic text-sm text-gray-400 clipped-overflow">
+                                ({{ option.type }})
+                            </span>
+                        </p>
+                    </div>
+                </template>
+            </ff-combobox>
         </div>
         <div class="col-section flex gap-1 col-span-4">
             <ff-checkbox v-model="localColumn.hasDefault" :disabled="cantHaveDefault" />
@@ -43,24 +56,9 @@
                 option-title-key="title"
             />
         </div>
-        <!--        <div class="col-section flex gap-1 col-span-2 relative">-->
-        <!--            <ff-text-input-->
-        <!--                v-if="hasTypeOption"-->
-        <!--                v-model="localColumn[typeOptionsMap[localColumn.type].key]"-->
-        <!--                :placeholder="typeOptionsMap[localColumn.type].placeholder"-->
-        <!--                :type="typeOptionsMap[localColumn.type].type"-->
-        <!--                :error="errors[typeOptionsMap[localColumn.type].key]"-->
-        <!--            />-->
-        <!--            <div v-if="hasTypeOption && propertyHasError(typeOptionsMap[localColumn.type].key)" data-el="form-row-error" class="ml-4 text-red-400 text-xs">-->
-        <!--                {{ errors[typeOptionsMap[localColumn.type].key] }}-->
-        <!--            </div>-->
-        <!--        </div>-->
         <div class="col-section col-span-1">
             <ff-checkbox v-model="localColumn.nullable" :disabled="cantBeNull" />
         </div>
-        <!--        <div class="col-section col-span-1">-->
-        <!--            <ff-checkbox v-if="isNumericType" v-model="localColumn.unsigned" />-->
-        <!--        </div>-->
         <div class="col-section col-span-1 flex items-center justify-end">
             <span v-ff-tooltip:left="'Remove'" @click="$emit('remove')">
                 <XIcon class="ff-icon ff-icon-sm cursor-pointer text-gray-600" />
@@ -86,56 +84,54 @@ export default defineComponent({
     data () {
         return {
             typeOptions: [
-                // {
-                //     label: 'int',
-                //     value: 'int',
-                //     title: '[integer, int4] signed four-byte integer'
-                // },
                 {
-                    label: 'bigint',
+                    label: 'Big Number',
+                    type: 'int8',
                     value: 'bigint',
                     title: '[int8] signed eight-byte integer'
                 },
                 {
-                    label: 'bigserial',
+                    label: 'Auto-increment Big Number',
+                    type: 'serial8',
                     value: 'bigserial',
                     title: '[serial8] autoincrementing eight-byte integer'
                 },
                 {
-                    label: 'boolean',
+                    label: 'True/False',
+                    type: 'boolean',
                     value: 'boolean',
                     title: 'logical Boolean (true/false)'
                 },
                 {
-                    label: 'date',
+                    label: 'Date',
+                    type: 'date',
                     value: 'date',
                     title: 'calendar date (year, month, day)'
                 },
                 {
-                    label: 'timestamptz',
+                    label: 'Date & Time with Timezone',
+                    type: 'timestamptz',
                     value: 'timestamptz',
                     title: 'date and time, including time zone'
                 },
                 {
-                    label: 'float',
+                    label: 'Number',
+                    type: 'float4',
                     value: 'real',
                     title: '[float4] single precision floating-point number (4 bytes)'
                 },
                 {
-                    label: 'double',
+                    label: 'Number – Double Precision',
+                    type: 'float8',
                     value: 'double precision',
                     title: '[double precision] double precision floating-point number (8 bytes)'
                 },
                 {
-                    label: 'text',
+                    label: 'Text',
+                    type: 'text',
                     value: 'text',
                     title: 'variable-length character string'
                 }
-                // {
-                //     label: 'varchar',
-                //     value: 'varchar',
-                //     title: 'variable-length character string'
-                // }
             ],
             typeOptionsMap: {
                 varchar: {
