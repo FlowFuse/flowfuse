@@ -171,9 +171,11 @@
                     <FormRow v-model="input.properties.enableAllFeatures" type="checkbox">Enable all features</FormRow>
                 </div>
                 <div class="grid gap-3 grid-cols-2">
-                    <FormRow v-for="(feature, index) in featureList" :key="index" v-model="input.properties.features[feature]" :disabled="input.properties.enableAllFeatures" type="checkbox">{{ featureNames[feature] }}</FormRow>
-                    <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
-                    <span v-if="featureList.length % 2 === 1" />
+                    <template v-if="!input.properties.enableAllFeatures">
+                        <FormRow v-for="(feature, index) in featureList" :key="index" v-model="input.properties.features[feature]" :disabled="input.properties.enableAllFeatures" type="checkbox">{{ featureNames[feature] }}</FormRow>
+                        <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
+                        <span v-if="featureList.length % 2 === 1" />
+                    </template>
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
                 </div>
