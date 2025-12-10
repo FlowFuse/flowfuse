@@ -489,6 +489,11 @@ describe('Team Catalogue', function () {
             await app.team.addUser(userBob, { through: { role: Roles.Owner } })
             // Run all the tests with bob - non-admin Team Owner
             await login('bob', 'bbPassword')
+
+            const defaultTeamTypeProperties = app.defaultTeamType.properties
+            defaultTeamTypeProperties.enableAllFeatures = false
+            app.defaultTeamType.properties = defaultTeamTypeProperties
+            await app.defaultTeamType.save()
         })
         after(async function () {
             await app.close()

@@ -1448,6 +1448,11 @@ describe('Device API', async function () {
 
                 })
 
+                const defaultTeamTypeProperties = app.defaultTeamType.properties
+                defaultTeamTypeProperties.enableAllFeatures = false
+                app.defaultTeamType.properties = defaultTeamTypeProperties
+                await app.defaultTeamType.save()
+
                 await app.settings.set('platform:ff-npm-registry:token', 'verySecret')
             })
             after(async function () {
@@ -2442,6 +2447,10 @@ describe('Device API', async function () {
             const dbDevice = await app.db.models.Device.byId(device.id)
             dbDevice.setApplication(app.application)
             await dbDevice.save()
+            const defaultTeamTypeProperties = app.defaultTeamType.properties
+            defaultTeamTypeProperties.enableAllFeatures = false
+            app.defaultTeamType.properties = defaultTeamTypeProperties
+            await app.defaultTeamType.save()
 
             const body = await getLiveSettings(device)
             body.should.have.property('assistant').and.be.an.Object()
@@ -2623,6 +2632,7 @@ describe('Device API', async function () {
             const props = TestObjects.defaultTeamType.properties || {}
             props.features = props.features || {}
             props.features.generatedSnapshotDescription = true
+            props.enableAllFeatures = false
             TestObjects.defaultTeamType.properties = props
             await TestObjects.defaultTeamType.save()
 
