@@ -5,7 +5,7 @@
             <div class="header grid grid-cols-10 gap-1 mb-1">
                 <span class="col-span-2 title">Name</span>
                 <span class="col-span-2 title">Type</span>
-                <span class="col-span-2 title">Nullable</span>
+                <span class="col-span-2 title">Allow null</span>
                 <span class="col-span-2 title">Default</span>
                 <span class="col-span-2 title">Generated</span>
             </div>
