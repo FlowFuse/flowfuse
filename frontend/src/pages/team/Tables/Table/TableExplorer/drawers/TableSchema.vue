@@ -1,5 +1,5 @@
 <template>
-    <div id="table-schema">
+    <div id="table-schema" class="p-4">
         <div class="content-wrapper">
             <h3>Columns</h3>
             <div class="header grid grid-cols-10 gap-1 mb-1">
