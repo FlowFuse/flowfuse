@@ -1,5 +1,5 @@
 <template>
-    <div id="create-table">
+    <div id="create-table" class="p-4">
         <div class="content-wrapper">
             <div class="section table-name">
                 <h3>Define name</h3>
