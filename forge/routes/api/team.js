@@ -88,6 +88,16 @@ module.exports = async function (app) {
         }
     }
 
+    async function updateTeamFeatures (result, team) {
+        const properties = team.properties
+        if (properties.features) {
+            const featureKeys = Object.keys(properties?.features)
+            for (const k of featureKeys) {
+                result.type.properties.features[k] = properties.features[k]
+            }
+        }
+    }
+
     async function getTeamDetails (request, reply, team) {
         if (!request.session.User?.admin && request.teamMembership.role < Roles.Viewer) {
             // Return summary details for any role less than Viewer (eg dashboard)
@@ -98,6 +108,10 @@ module.exports = async function (app) {
         result.instanceCountByType = await team.instanceCountByType()
 
         await appendBillingDetails(result, team, request)
+        // This modifies the team.type response to include any team feature overrides.
+        // Ideally the `type` property would be the actual type properties, and the front-end use
+        // the top-level team properties to identify overrides. But this is less disruptive for now.
+        await updateTeamFeatures(result, team)
 
         reply.send(result)
     }
@@ -365,7 +379,7 @@ module.exports = async function (app) {
             orderByMostRecentFlows: request.query.orderByMostRecentFlows
         }
 
-        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.TeamType.getFeatureProperty('rbacApplication', false)
+        const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.getFeatureProperty('rbacApplication', false)
         if (applicationRBACEnabled && !request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
             const excludeApplications = []
             Object.keys(request.teamMembership.permissions.applications).forEach(appId => {
@@ -425,7 +439,7 @@ module.exports = async function (app) {
 
                     let permissionCheck = true
                     const platformRbacEnabled = app.config.features.enabled('rbacApplication')
-                    const teamRbacEnabled = request.team.TeamType.getFeatureProperty('rbacApplication', false)
+                    const teamRbacEnabled = request.team.getFeatureProperty('rbacApplication', false)
 
                     if (platformRbacEnabled && teamRbacEnabled) {
                         permissionCheck = app.hasPermission(

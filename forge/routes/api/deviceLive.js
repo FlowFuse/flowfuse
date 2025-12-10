@@ -285,15 +285,16 @@ module.exports = async function (app) {
                 response[key] = settings[key]
             }
         })
-        const teamType = await request.device.Team.getTeamType()
+        const team = request.device.Team
+        await team.ensureTeamTypeExists()
         response.features = {
-            'shared-library': !!(app.config.features.enabled('shared-library') && teamType.getFeatureProperty('shared-library', true)),
-            projectComms: !!(app.config.features.enabled('projectComms') && teamType.getFeatureProperty('projectComms', true)),
-            teamBroker: !!(app.config.features.enabled('teamBroker') && teamType.getFeatureProperty('teamBroker', true)),
-            tables: !!(app.config.features.enabled('tables') && teamType.getFeatureProperty('tables', true))
+            'shared-library': !!(app.config.features.enabled('shared-library') && team.getFeatureProperty('shared-library', true)),
+            projectComms: !!(app.config.features.enabled('projectComms') && team.getFeatureProperty('projectComms', true)),
+            teamBroker: !!(app.config.features.enabled('teamBroker') && team.getFeatureProperty('teamBroker', true)),
+            tables: !!(app.config.features.enabled('tables') && team.getFeatureProperty('tables', true))
         }
 
-        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && teamType.getFeatureProperty('assistantInlineCompletions', false))
+        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
         response.assistant = {
             enabled: app.config.assistant?.enabled || false,
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
@@ -319,33 +320,33 @@ module.exports = async function (app) {
             linked
         }
 
-        const teamNPMEnabled = app.config.features.enabled('npm') && teamType.getFeatureProperty('npm', false)
+        const teamNPMEnabled = app.config.features.enabled('npm') && team.getFeatureProperty('npm', false)
         if (teamNPMEnabled) {
             const npmRegURL = new URL(app.config.npmRegistry.url)
-            const team = request.device.Team.hashid
+            const teamId = request.device.Team.hashid
             const deviceNPMPassword = await app.db.controllers.AccessToken.createTokenForNPM(request.device, request.device.Team)
-            const token = Buffer.from(`d-${request.device.hashid}@${team}:${deviceNPMPassword.token}`).toString('base64')
+            const token = Buffer.from(`d-${request.device.hashid}@${teamId}:${deviceNPMPassword.token}`).toString('base64')
             if (!response.palette) {
                 response.palette = {}
             }
             if (response.palette.npmrc) {
                 settings.palette = settings.palette || {}
                 settings.palette.npmrc = `${settings.palette.npmrc || ''}\n` +
-                    `@flowfuse-${team}:registry=${app.config.npmRegistry.url}\n` +
+                    `@flowfuse-${teamId}:registry=${app.config.npmRegistry.url}\n` +
                     `//${npmRegURL.host}:_auth="${token}"\n`
             } else {
                 response.palette.npmrc =
-                    `@flowfuse-${team}:registry=${app.config.npmRegistry.url}\n` +
+                    `@flowfuse-${teamId}:registry=${app.config.npmRegistry.url}\n` +
                     `//${npmRegURL.host}:_auth="${token}"\n`
             }
 
             if (response.palette.catalogues) {
                 response.palette.catalogues
-                    .push(`${app.config.base_url}/api/v1/teams/${team}/npm/catalogue?device=${request.device.hashid}`)
+                    .push(`${app.config.base_url}/api/v1/teams/${teamId}/npm/catalogue?device=${request.device.hashid}`)
             } else {
                 response.palette.catalogues = [
                     'https://catalogue.nodered.org/catalogue.json',
-                    `${app.config.base_url}/api/v1/teams/${team}/npm/catalogue?device=${request.device.hashid}`
+                    `${app.config.base_url}/api/v1/teams/${teamId}/npm/catalogue?device=${request.device.hashid}`
                 ]
             }
         }
@@ -354,8 +355,8 @@ module.exports = async function (app) {
         const platformNPMEnabled = !!app.config.features.enabled('certifiedNodes', false) &&
                                    !!app.config.features.enabled('ffNodes', false) &&
                                    !!app.settings.get('platform:ff-npm-registry:token')
-        const certifiedNodesEnabledForTeam = teamType.getFeatureProperty('certifiedNodes', false)
-        const ffNodesEnabledForTeam = teamType.getFeatureProperty('ffNodes', false)
+        const certifiedNodesEnabledForTeam = team.getFeatureProperty('certifiedNodes', false)
+        const ffNodesEnabledForTeam = team.getFeatureProperty('ffNodes', false)
 
         if (platformNPMEnabled && (certifiedNodesEnabledForTeam || ffNodesEnabledForTeam)) {
             try {
