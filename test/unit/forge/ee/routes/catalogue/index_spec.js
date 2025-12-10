@@ -411,7 +411,7 @@ describe('Team Catalogue', function () {
             })
         })
     })
-    describe('Not enabled for Platform', function  () {
+    describe('Not enabled for Platform', function () {
         let app
         const TestObjects = { tokens: {} }
         before(async function () {
@@ -429,7 +429,7 @@ describe('Team Catalogue', function () {
             await app.team.addUser(userBob, { through: { role: Roles.Owner } })
             // Run all the tests with bob - non-admin Team Owner
             await login('bob', 'bbPassword')
-            
+
             const defaultTeamType = await app.db.models.TeamType.findOne({ where: { id: 1 } })
             const defaultTeamTypeProperties = defaultTeamType.properties
 
