@@ -5,7 +5,7 @@
                 <span class="text">{{ text }}</span>
             </slot>
         </span>
-        <button v-if="text.length" class="ff-icon-button" @click="copyPath">
+        <button v-if="hasText" class="ff-icon-button" @click="copyPath">
             <DuplicateIcon v-if="!copied" class="ff-icon" />
             <CheckIcon v-else class="ff-icon ff-icon-check" />
         </button>
@@ -23,7 +23,7 @@ export default {
     props: {
         text: {
             required: true,
-            type: String
+            type: [String, Number]
         },
         confirmationType: {
             type: String,
@@ -51,6 +51,11 @@ export default {
     data () {
         return {
             copied: false
+        }
+    },
+    computed: {
+        hasText () {
+            return String(this.text).length
         }
     },
     methods: {
