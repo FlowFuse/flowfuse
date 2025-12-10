@@ -1,15 +1,12 @@
 <template>
     <section id="rows-list" data-el="rows-list">
-        <!--        <div class="header flex gap-2 w-full h-full">-->
-        <!--            <CollapseLeft class="ff-icon ff-icon-md" />-->
-        <!--        </div>-->
-
         <div v-if="!selectedTable" class="no-content w-full h-full flex justify-center items-center text-gray-400">
             <p>Select a table to get going!</p>
         </div>
 
         <div v-else-if="selectedTable && selectedTable.schema" class="content overflow-auto h-full">
             <ff-data-table
+                :loading="isLoading"
                 :columns="columns" :rows="rows"
                 class="h-full overflow-auto"
                 tableClass="table-auto overflow-auto"
@@ -31,7 +28,7 @@ import TextCell from './table-cells/text-cell.vue'
 export default defineComponent({
     name: 'RowsList',
     computed: {
-        ...mapState('product/tables', ['tableSelection']),
+        ...mapState('product/tables', ['tableSelection', 'isLoading']),
         ...mapGetters('product/tables', ['selectedTable']),
         ...mapState('account', ['team']),
         columns () {

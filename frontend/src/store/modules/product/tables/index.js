@@ -16,7 +16,8 @@ const initialState = () => ({
     newTable: {
         name: '',
         columns: [{ ...emptyColumn }]
-    }
+    },
+    isLoading: false
 })
 
 const meta = {
@@ -95,6 +96,9 @@ const mutations = {
     },
     addNewTableColumn (state) {
         state.newTable.columns.push({ ...emptyColumn })
+    },
+    setIsLoading (state, isLoading) {
+        state.isLoading = isLoading
     }
 }
 const actions = {
@@ -177,6 +181,10 @@ const actions = {
     },
     addNewTableColumn ({ commit }) {
         commit('addNewTableColumn')
+    },
+    setTableLoadingState ({ commit }, isLoading) {
+        commit('setIsLoading', isLoading)
+        return Promise.resolve()
     }
 }
 
