@@ -195,7 +195,7 @@ import ApplicationApi from '../../../api/application.js'
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
-import AddDeviceToGroupDialog from '../../../components/dialogs/_addDeviceToGroupDialog.vue'
+import AddDeviceToGroupDialog from '../../../components/dialogs/device-group-management/AddDeviceToGroupDialog.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import { scrollToAndJiggleHighlight } from '../../../composables/Ux.js'
 

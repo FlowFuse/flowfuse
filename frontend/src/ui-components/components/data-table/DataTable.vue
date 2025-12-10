@@ -66,7 +66,7 @@
                             </ff-data-table-row>
 
                             <template v-if="!loading">
-                                <template v-for="(r, $index) in filteredRows" :key="$index">
+                                <template v-for="(r, $index) in filteredRows" :key="r.id || r.name || r.label">
                                     <ff-data-table-row
                                         :data="r" :columns="columns"
                                         :selectable="rowsSelectable" :highlight-cell="sort.highlightColumn"
@@ -493,6 +493,13 @@ export default {
                 this.visibleCollapsibleRows.splice(index, 1)
             } else {
                 this.visibleCollapsibleRows.push(rowKey)
+            }
+        },
+        toggleRowCheck (row) {
+            if (Object.prototype.hasOwnProperty.call(this.checks, row[this.checkKeyProp])) {
+                this.checks[row[this.checkKeyProp]] = !this.checks[row[this.checkKeyProp]]
+            } else {
+                this.checks[row[this.checkKeyProp]] = true
             }
         }
     }

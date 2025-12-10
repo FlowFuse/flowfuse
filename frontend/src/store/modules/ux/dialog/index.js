@@ -1,5 +1,3 @@
-import { markRaw } from 'vue'
-
 const initialState = () => ({
     dialog: {
         boxClass: null,
@@ -47,7 +45,7 @@ const mutations = {
             state.dialog.text = payload.text
             state.dialog.textLines = payload.text?.split('\n')
             state.dialog.html = payload.html
-            state.dialog.is = payload.is ? markRaw(payload.is) : undefined
+            state.dialog.is = payload.is ? payload.is : undefined
             state.dialog.confirmLabel = payload.confirmLabel
             state.dialog.cancelLabel = payload.cancelLabel
             state.dialog.kind = payload.kind
