@@ -12,7 +12,7 @@
                 <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
             </template>
         </ff-page-header>
-        <div class="px-3 py-3 md:px-6 md:py-6 flex-1 h-full overflow-auto">
+        <div class="px-3 py-3 md:px-6 md:py-6 flex-1 flex flex-col h-full overflow-auto">
             <router-view
                 :application="application"
                 :instances="instancesArray"

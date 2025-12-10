@@ -765,6 +765,7 @@ li.ff-list-item {
       }
     }
     thead {
+      background: white; // hides td borders when header is sticky
       .ff-data-table--row .ff-data-table--cell {
         &:first-child {
           border-top-left-radius: 6px;

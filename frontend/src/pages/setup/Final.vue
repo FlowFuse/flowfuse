@@ -15,11 +15,17 @@ import httpClient from '../../api/client.js'
 
 export default {
     name: 'SetupFinal',
+    props: {
+        state: {
+            type: Object,
+            required: true
+        }
+    },
     emits: ['error'],
     methods: {
         async done () {
             // eslint-disable-next-line no-undef
-            const opts = { _csrf: SETUP_CSRF_TOKEN }
+            const opts = { _csrf: SETUP_CSRF_TOKEN, stackOverrides: this.state.stackOverrides }
             try {
                 await httpClient.post('/setup/finish', opts)
                 window.location = '/'

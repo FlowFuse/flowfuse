@@ -4,7 +4,7 @@ navTitle: FlowFuse Tables
 
 # FlowFuse Tables
 
-From FlowFuse v2.20.0 Teams (Pro & Enterprise teams on FlowFuse Cloud) can create a relational database to use to store data.
+From FlowFuse v2.20.0 Teams (Enterprise teams only) can create a relational database to use to store data.
 
 You can create a database by selecting the Tables entry in the left hand menu
 

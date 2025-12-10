@@ -31,7 +31,8 @@ export default {
     },
     data () {
         return {
-            loading: true
+            loading: true,
+            mounted: false
         }
     },
     watch: {
@@ -42,11 +43,18 @@ export default {
                 // initial render for empty spinner overlay backdrop
                 this.$nextTick(() => this.render([]))
                 setTimeout(() => {
+                    if (this.mounted === false) return
                     this.render(this.flow)
                     this.loading = false
                 }, 700)
             }
         }
+    },
+    mounted () {
+        this.mounted = true
+    },
+    unmounted () {
+        this.mounted = false
     },
     methods: {
         render (flow) {

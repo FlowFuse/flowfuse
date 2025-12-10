@@ -1,5 +1,12 @@
 <template>
     <div class="unified-namespace-clients">
+        <feature-unavailable-to-team v-if="reachedClientLimit" class="-mt-2">
+            <div>
+                You’ve hit your current broker clients limit.
+                <router-link class="ff-link" :to="{ name: 'TeamChangeType', params: { team_slug: team.slug } }">Upgrade</router-link>
+                your team for more capacity or get in touch with sales for assistance.
+            </div>
+        </feature-unavailable-to-team>
         <div class="title mb-5 flex gap-3 items-center">
             <RssIcon class="ff-icon-sm" />
             <h3 class="my-2" data-el="subtitle">MQTT Broker</h3>
@@ -22,6 +29,7 @@
                             v-if="hasPermission('broker:clients:create')"
                             data-action="create-client"
                             kind="primary"
+                            :disabled="reachedClientLimit"
                             @click="createClient()"
                         >
                             <template #icon-left>
@@ -90,8 +98,10 @@ import { mapActions, mapState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
 import EmptyState from '../../../../components/EmptyState.vue'
+import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 import usePermissions from '../../../../composables/Permissions.js'
 import { slugify } from '../../../../composables/String.js'
+import { getTeamProperty } from '../../../../composables/TeamProperties.js'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
 import featuresMixin from '../../../../mixins/Features.js'
 import Alerts from '../../../../services/alerts.js'
@@ -105,6 +115,7 @@ import ClientDialog from './dialogs/ClientDialog.vue'
 export default {
     name: 'BrokerClients',
     components: {
+        FeatureUnavailableToTeam,
         BrokerClient,
         SearchIcon,
         PlusSmIcon,
@@ -143,6 +154,14 @@ export default {
                     altUserName.includes(term)
                 ].includes(true)
             })
+        },
+        clientsLimit () {
+            return getTeamProperty(this.team, 'teamBroker.clients.limit', null)
+        },
+        reachedClientLimit () {
+            if (!Number.isInteger(this.clientsLimit)) return false
+
+            return this.clients.length >= this.clientsLimit
         }
     },
     mounted () {
