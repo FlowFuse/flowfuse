@@ -10,6 +10,9 @@ const initialState = () => ({
     sessionId: null,
     shouldWakeUpAssistant: false,
 
+    // expert modes
+    agentMode: 'ff-agent', // ff-agent or operator-agent
+
     // Conversation state
     messages: [],
     isGenerating: false,
@@ -208,6 +211,16 @@ const mutations = {
     // todo this should be moved into a dedicated context store
     UPDATE_ROUTE (state, route) {
         state.route = route
+    },
+
+    /**
+     * @param state
+     * @param {'ff-agent' | 'operator-agent'} mode
+     */
+    SET_AGENT_MODE (state, mode) {
+        if (!['ff-agent', 'operator-agent'].includes(mode)) return
+
+        state.agentMode = mode
     }
 }
 
@@ -636,6 +649,15 @@ const actions = {
         commit('SET_SESSION_START_TIME', null)
         commit('SET_SESSION_WARNING_SHOWN', false)
         commit('SET_SESSION_EXPIRED_SHOWN', false)
+    },
+
+    /**
+     *
+     * @param commit
+     * @param {'ff-agent' | 'operator-agent'} mode
+     */
+    setAgentMode ({ commit }, mode) {
+        commit('SET_AGENT_MODE', mode)
     }
 }
 

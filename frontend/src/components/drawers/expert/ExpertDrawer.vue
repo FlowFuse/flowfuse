@@ -7,6 +7,14 @@
                 </div>
                 <h2 class="title">Expert</h2>
             </div>
+            <div class="agent-mode">
+                <toggle-button-group
+                    v-model="agentModeWrapper"
+                    :buttons="agentModeButtons"
+                    :usesLinks="false"
+                    :visually-hide-title="true"
+                />
+            </div>
             <div class="header-actions">
                 <button
                     v-if="shouldAllowPinning()"
@@ -37,49 +45,50 @@
 import { LockClosedIcon, LockOpenIcon, XIcon } from '@heroicons/vue/solid'
 import { mapActions, mapState } from 'vuex'
 
+import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
+
 import ExpertPanel from '../../expert/Expert.vue'
 
 export default {
     name: 'ExpertDrawer',
     components: {
+        ToggleButtonGroup,
         ExpertPanel,
         XIcon,
         LockClosedIcon,
         LockOpenIcon
     },
     inject: ['togglePinWithWidth', 'shouldAllowPinning'],
-    data () {
-        return {
-            // Future: Add expert state here
-        }
-    },
     computed: {
         ...mapState('ux/drawers', ['rightDrawer']),
+        ...mapState('product/expert', ['agentMode']),
+        agentModeButtons () {
+            return [
+                { title: 'Support', value: 'ff-agent' },
+                { title: 'Research', value: 'operator-agent' }
+            ]
+        },
         isPinned () {
             return this.rightDrawer.fixed
+        },
+        agentModeWrapper: {
+            get () {
+                return this.agentMode
+            },
+            set (value) {
+                this.setAgentMode(value)
+            }
         }
-    },
-    mounted () {
-        // Future: Listen for custom events
-        // Example: document.addEventListener('expert:open', this.handleOpenEvent)
-    },
-    beforeUnmount () {
-        // Future: Clean up event listeners
-        // Example: document.removeEventListener('expert:open', this.handleOpenEvent)
     },
     methods: {
         ...mapActions('ux/drawers', ['closeRightDrawer']),
+        ...mapActions('product/expert', ['setAgentMode']),
         closeDrawer () {
             this.closeRightDrawer()
         },
         togglePin () {
             this.togglePinWithWidth()
         }
-        // Future: Handle event-based triggers
-        // handleOpenEvent(event) {
-        //     const context = event.detail
-        //     // Process context and update expert state
-        // }
     }
 }
 </script>
