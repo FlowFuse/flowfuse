@@ -80,16 +80,12 @@ const mutations = {
     },
     CLEAR_MESSAGES (state) {
         state[state.agentMode].messages = []
-        state[state.agentMode].transactionId = null
     },
     SET_GENERATING (state, isGenerating) {
         state.isGenerating = isGenerating
     },
     SET_AUTO_SCROLL (state, enabled) {
         state.autoScrollEnabled = enabled
-    },
-    SET_TRANSACTION_ID (state, transactionId) {
-        state[state.agentMode].transactionId = transactionId
     },
     SET_ABORT_CONTROLLER (state, controller) {
         state.abortController = controller
@@ -415,11 +411,6 @@ const actions = {
 
     setAutoScroll ({ commit }, enabled) {
         commit('SET_AUTO_SCROLL', enabled)
-    },
-
-    setTransactionId ({ commit }, transactionId) {
-        // todo dodo
-        commit('SET_TRANSACTION_ID', transactionId)
     },
 
     setAbortController ({ commit }, controller) {

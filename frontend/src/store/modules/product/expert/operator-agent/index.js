@@ -6,9 +6,7 @@ const initialState = () => ({
     sessionStartTime: null,
     sessionWarningShown: false,
     sessionExpiredShown: false,
-    sessionCheckTimer: null,
-
-    transactionId: null
+    sessionCheckTimer: null
 })
 
 const meta = {
