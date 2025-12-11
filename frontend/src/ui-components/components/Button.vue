@@ -61,7 +61,7 @@ export default {
         },
         size: {
             default: 'normal',
-            type: String // "small", "normal", "full-width"
+            type: String // "small", "medium", "normal", "full-width"
         },
         to: {
             default: null,
@@ -118,6 +118,7 @@ export default {
                 ['ff-btn--' + this.kind]: true,
                 'ff-btn-icon': this.hasIcon,
                 'ff-btn-small': this.size === 'small',
+                'ff-btn-medium': this.size === 'medium',
                 'ff-btn-fwidth': this.size === 'full-width'
             }
         },
