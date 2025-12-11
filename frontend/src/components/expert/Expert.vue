@@ -7,7 +7,7 @@
             @scroll="handleScroll"
         >
             <!-- Info Banner -->
-            <div class="info-banner">
+            <div v-if="isFfAgent" class="info-banner">
                 <p class="info-text">
                     AI agent has access to all of FlowFuse's
                     <a href="https://flowfuse.com/docs" target="_blank" rel="noopener noreferrer" class="info-link">documentation and knowledge</a>,
@@ -91,19 +91,18 @@ export default {
     },
     computed: {
         ...mapState('product/expert', [
-            'messages',
             'isGenerating',
             'autoScrollEnabled',
-            'sessionId',
-            'context',
             'abortController',
             'streamingTimer',
             'streamingWordIndex'
         ]),
         ...mapGetters('product/expert', [
+            'messages',
             'hasMessages',
             'lastMessage',
-            'isSessionExpired'
+            'isSessionExpired',
+            'isFfAgent'
         ]),
         isPinned () {
             return this.$store.state.ux.drawers.rightDrawer.fixed
