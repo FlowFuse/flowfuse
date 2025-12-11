@@ -119,7 +119,6 @@ const mutations = {
         state[state.agentMode].sessionCheckTimer = timer
     },
     RESET (state) {
-        // todo needs to also reset children modules, maybe in the action
         Object.assign(state, initialState())
     },
     HYDRATE_MESSAGES (state, messages) {
@@ -427,8 +426,9 @@ const actions = {
         commit('SET_ABORT_CONTROLLER', controller)
     },
 
-    reset ({ commit }) {
-        // todo dodo
+    reset ({ commit, dispatch, state }) {
+        // order matters
+        dispatch(`product/expert/${state.agentMode}/reset`, null, { root: true })
         commit('RESET')
     },
 

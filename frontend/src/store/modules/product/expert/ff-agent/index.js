@@ -29,9 +29,17 @@ const state = initialState
 
 const getters = {}
 
-const mutations = {}
+const mutations = {
+    RESET (state) {
+        Object.assign(state, initialState())
+    }
+}
 
-const actions = {}
+const actions = {
+    reset ({ commit }) {
+        commit('RESET')
+    }
+}
 
 export default {
     namespaced: true,
