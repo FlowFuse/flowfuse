@@ -433,6 +433,7 @@ const actions = {
     },
 
     sendQuery ({ commit, state, getters, rootGetters }, { query }) {
+        // todo we'll need to alternate between api calls based on agent mode when we'll have the new endpoint in place
         return expertApi.chat({
             query,
             context: rootGetters['context/expert'],
