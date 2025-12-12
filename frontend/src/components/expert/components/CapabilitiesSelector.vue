@@ -20,9 +20,12 @@
                             <div>
                                 <ff-checkbox :modelValue="selected" />
                             </div>
-                            <div class="flex flex-col gap-1">
-                                <p class="truncate self-start" style="line-height: 16px;">{{ option.label }}</p>
-                                <p class="text-gray-400 text-sm">{{ option.description }}</p>
+                            <div class="flex flex-col gap-1 flex-1">
+                                <p class="truncate self-start flex justify-between w-full" style="line-height: 16px;">
+                                    <span>{{ option.label }}</span>
+                                    <span v-if="option.toolCount" class="text-gray-400 text-sm">{{ option.toolCount }}</span>
+                                </p>
+                                <p v-if="option.description" class="text-gray-400 text-sm">{{ option.description }}</p>
                             </div>
                         </div>
                     </li>

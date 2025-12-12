@@ -17,27 +17,30 @@ const initialState = () => ({
         {
             label: 'Facility 1',
             value: 'tool_1',
-            description: '5 tools'
+            toolCount: 12
         },
         {
             label: 'Facility 2',
             value: 'tool_2',
-            description: '12 tools'
+            description: 'Has description',
+            toolCount: 3
         },
         {
             label: 'Facility 3',
             value: 'tool_3',
-            description: '3 tools'
+            toolCount: 0
         },
         {
             label: 'Facility 4',
             value: 'tool_4',
-            description: '8 tools'
+            description: 'My updated server',
+            toolCount: 42
         },
         {
             label: 'Facility 5',
             value: 'tool_5',
-            description: '36 tools'
+            description: 'Running v3',
+            toolCount: 7
         }
     ],
     selectedCapabilities: []
