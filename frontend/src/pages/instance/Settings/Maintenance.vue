@@ -2,17 +2,12 @@
     <div class="maintenance">
         <section data-el="scheduled-upgrade" class="scheduled-upgrade">
             <FeatureUnavailable v-if="!isInstanceAutoStackUpdateFeatureEnabledForPlatform" />
-            <FormHeading>Scheduled Upgrades</FormHeading>
+            <FormHeading>Scheduled Restarts/Upgrades</FormHeading>
             <FormRow v-model="scheduledUpgrade.enabled" :disabled="!allowDisable" type="checkbox" class="mt-5" container-class="max-w-xl">
-                Apply upgrades when available
-                <template #description>
-                    <p>
-                        Select the day of the week and the hour during which the automatic upgrade will occur if available. The
-                        upgrade will start within the selected hour.
-                    </p>
-                    <p class="my-3"><span class="font-bold">Note:</span> All times are stated in UTC.</p>
-                </template>
+                Enabled
             </FormRow>
+            <ff-radio-group v-model="scheduledUpgrade.restartOnly" orientation="vertical" :options="options" />
+            <p class="my-3"><span class="font-bold">Note:</span> All times are stated in UTC.</p>
             <div class="my-5 flex flex-col gap-5 max-w-xl">
                 <!-- <pre>{{ scheduledUpgrade }}</pre> -->
                 <ul class="days-selector flex flex-row flex-wrap justify-start gap-3">
@@ -84,6 +79,7 @@ export default {
         return {
             scheduledUpgrade: {
                 enabled: false,
+                restartOnly: 0,
                 startHour: null,
                 selectedWeekdays: [],
                 initialValue: null
@@ -141,6 +137,22 @@ export default {
         allowDisable () {
             // Team can disable if the autoStackUpdate flag is not explicitly false
             return !this.scheduledUpgrade.enabled || this.team.type.properties?.autoStackUpdate?.allowDisable !== false
+        },
+        options () {
+            return [
+                {
+                    label: 'Apply upgrades when available',
+                    value: 0,
+                    disabled: !this.scheduledUpgrade.enabled,
+                    description: 'Select the days of the week and the hour during which the automatic upgrade will occur if available. The upgrade will start within the selected hour.'
+                },
+                {
+                    label: 'Restart Node-RED at scheduled time',
+                    value: 1,
+                    disabled: !this.scheduledUpgrade.enabled,
+                    description: 'Select the days of the week and the hour during which the Node-RED instance will be restarted. The restart will occur within the selected hour.'
+                }
+            ]
         }
     },
     watch: {
@@ -220,7 +232,8 @@ export default {
                 .then(response => {
                     this.scheduledUpgrade.initialValue = {
                         days: response.map(entry => entry.day),
-                        hour: response[0].hour // use the first entry hour, they should all be the same
+                        hour: response[0].hour, // use the first entry hour, they should all be the same
+                        restartOnly: response[0].restartOnly ? 1 : 0 // use the first entry restartOnly, they should all be the same
                     }
                     this.scheduledUpgrade.initialValue.enabled = true
 
@@ -231,23 +244,33 @@ export default {
                         seconds: 0
                     }
                     this.scheduledUpgrade.enabled = true
+                    this.scheduledUpgrade.restartOnly = response[0].restartOnly ? 1 : 0 // use the first entry restartOnly, they should all be the same
                 }).catch(error => {
                     if (error.response.status === 404) {
                         // Apply any defaults from the team type
                         if (this.team.type.properties.autoStackUpdate?.days?.length > 0 && this.team.type.properties.autoStackUpdate?.hours?.length > 0) {
-                            this.scheduledUpgrade.initialValue = { enabled: false }
+                            this.scheduledUpgrade.initialValue = {
+                                enabled: false,
+                                restartOnly: 0
+                            }
                             this.scheduledUpgrade.selectedWeekdays = [...this.team.type.properties.autoStackUpdate.days]
+                            this.scheduledUpgrade.initialValue.days = [...this.team.type.properties.autoStackUpdate.days]
                             this.scheduledUpgrade.startHour = {
                                 hours: this.team.type.properties.autoStackUpdate.hours[Math.round(this.team.type.properties.autoStackUpdate.hours.length * Math.random())],
                                 minutes: 0,
                                 seconds: 0
                             }
+                            this.scheduledUpgrade.initialValue.hour = this.scheduledUpgrade.startHour.hours
                         } else {
                             this.scheduledUpgrade.initialValue = {
                                 enabled: false,
                                 days: []
                             }
                             this.scheduledUpgrade.startHour = null
+                            this.scheduledUpgrade.initialValue = {
+                                enabled: false,
+                                restartOnly: 0
+                            }
                         }
                         return
                     }
@@ -263,8 +286,13 @@ export default {
 
             changes.push(daysChanged)
             changes.push(hoursChanged)
-            if (this.scheduledUpgrade.initialValue?.enabled && this.scheduledUpgrade?.enabled === false) {
+            if (this.scheduledUpgrade.initialValue?.enabled !== this.scheduledUpgrade?.enabled) {
                 // allow users to disable the schedule
+                this.unsavedChanges = true
+                return
+            }
+
+            if (this.scheduledUpgrade.restartOnly !== this.scheduledUpgrade.initialValue.restartOnly) {
                 this.unsavedChanges = true
                 return
             }
@@ -281,14 +309,17 @@ export default {
             if (this.scheduledUpgrade.enabled) {
                 const schedule = this.scheduledUpgrade.selectedWeekdays.map(day => ({
                     hour: this.scheduledUpgrade.startHour.hours,
-                    day
+                    day,
+                    restartOnly: this.scheduledUpgrade.restartOnly
                 }))
                 return instanceApi.setUpdateSchedule(this.project.id, schedule)
                     .then(() => {
                         this.scheduledUpgrade.initialValue = {
                             days: [...this.scheduledUpgrade.selectedWeekdays],
-                            hour: this.scheduledUpgrade.startHour.hours
+                            hour: this.scheduledUpgrade.startHour.hours,
+                            restartOnly: this.scheduledUpgrade.restartOnly
                         }
+                        this.scheduledUpgrade.initialValue.enabled = true
                         Alerts.emit('Schedule updated', 'confirmation')
                     }).catch(error => {
                         Alerts.emit('Failed to update schedule.', 'warning')
@@ -300,6 +331,8 @@ export default {
                         this.scheduledUpgrade.initialValue = null
                         this.scheduledUpgrade.selectedWeekdays = null
                         this.scheduledUpgrade.startHour = null
+                        this.scheduledUpgrade.restartOnly = false
+                        this.scheduledUpgrade.initialValue.enabled = false
                         Alerts.emit('Schedule removed', 'confirmation')
                     }).catch(error => {
                         Alerts.emit('Failed to remove schedule', 'warning')
