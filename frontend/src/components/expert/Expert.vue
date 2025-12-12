@@ -1,9 +1,12 @@
 <template>
     <div class="ff-expert">
+        <capabilities-selector v-if="isOperatorAgent" />
+
         <!-- Messages Container -->
         <div
             ref="messagesContainer"
-            class="messages-container"
+            class="messages-container pt-10"
+            :class="{'!pt-16': isOperatorAgent}"
             @scroll="handleScroll"
         >
             <!-- Info Banner -->
@@ -64,10 +67,12 @@ import ExpertChatMessage from './ExpertChatMessage.vue'
 import ExpertLoadingDots from './ExpertLoadingDots.vue'
 import ExpertRichGuide from './ExpertRichGuide.vue'
 import ExpertRichResources from './ExpertRichResources.vue'
+import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
 
 export default {
     name: 'ExpertPanel',
     components: {
+        CapabilitiesSelector,
         ExpertChatInput,
         ExpertChatMessage,
         ExpertLoadingDots,
@@ -102,7 +107,8 @@ export default {
             'hasMessages',
             'lastMessage',
             'isSessionExpired',
-            'isFfAgent'
+            'isFfAgent',
+            'isOperatorAgent'
         ]),
         isPinned () {
             return this.$store.state.ux.drawers.rightDrawer.fixed
@@ -243,6 +249,7 @@ export default {
     height: 100%;
     background: white;
     overflow: hidden; // Prevent this container from scrolling
+    position: relative;
 }
 
 .messages-container {

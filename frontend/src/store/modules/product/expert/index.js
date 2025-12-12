@@ -4,11 +4,10 @@ import { markRaw } from 'vue'
 import expertApi from '../../../../api/expert.js'
 import ExpertDrawer from '../../../../components/drawers/expert/ExpertDrawer.vue'
 
+import { FF_AGENT_MODE, OPERATOR_AGENT_MODE } from './agents.js'
+
 import FFAgent from './ff-agent/index.js'
 import OperatorAgent from './operator-agent/index.js'
-
-const FF_AGENT_MODE = 'ff-agent'
-const OPERATOR_AGENT_MODE = 'operator-agent'
 
 const initialState = () => ({
     shouldWakeUpAssistant: false,
