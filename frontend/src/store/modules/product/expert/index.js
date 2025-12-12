@@ -18,6 +18,8 @@ const initialState = () => ({
     // Conversation state
     isGenerating: false,
     autoScrollEnabled: true,
+
+    // todo sharing the same abort controller might not be the smartest thing
     abortController: null,
 
     // streaming words
@@ -422,14 +424,21 @@ const actions = {
         commit('RESET')
     },
 
-    sendQuery ({ commit, state, getters, rootGetters }, { query }) {
-        // todo we'll need to alternate between api calls based on agent mode when we'll have the new endpoint in place
-        return expertApi.chat({
+    sendQuery ({ commit, state, getters, rootGetters, rootState }, { query }) {
+        let client = expertApi.chat
+        const payload = {
             query,
             context: rootGetters['context/expert'],
             sessionId: state[state.agentMode].sessionId,
             abortController: state.abortController
-        })
+        }
+
+        if (state.agentMode === OPERATOR_AGENT_MODE) {
+            payload.context.selectedCapabilities = rootState.product.expert[OPERATOR_AGENT_MODE].selectedCapabilities
+            client = expertApi.operatorChat
+        }
+
+        return client(payload)
     },
 
     openAssistantDrawer ({ dispatch, rootGetters }) {

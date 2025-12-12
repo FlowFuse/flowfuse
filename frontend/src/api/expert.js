@@ -31,6 +31,34 @@ const chat = async ({
     })
 }
 
+const operatorChat = async ({
+    history,
+    query,
+    context = {},
+    sessionId = null,
+    abortController = null
+} = {}) => {
+    // todo this needs to point to the new operator chat endpoint, currently it's a glorified replica of the chat client
+    const transactionId = uuidv4()
+    const url = '/api/v1/expert/chat'
+
+    return client.post(url, { history, query, context }, {
+        signal: abortController?.signal,
+        headers: {
+            'X-Chat-Session-ID': sessionId,
+            'X-Chat-Transaction-ID': transactionId
+        }
+    }).then(res => {
+        // Validate transaction ID to prevent race conditions
+        if (res.data.transactionId !== transactionId) {
+            throw new Error('Transaction ID mismatch - response may be from a different request')
+        }
+
+        return res.data
+    })
+}
+
 export default {
-    chat
+    chat,
+    operatorChat
 }
