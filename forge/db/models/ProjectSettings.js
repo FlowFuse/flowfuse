@@ -2,7 +2,7 @@
  * A Project Settings model
  * @namespace forge.db.models.ProjectSettings
  */
-const { DataTypes } = require('sequelize')
+const { DataTypes, Op } = require('sequelize')
 
 const SettingTypes = {
     STRING: 0,
@@ -76,7 +76,10 @@ module.exports = {
                 getProjectsToUpgrade: async (hour, day) => {
                     return await this.findAll({
                         where: {
-                            key: `${KEY_STACK_UPGRADE_HOUR}_${day}`, value: `${JSON.stringify({ hour })}`
+                            key: `${KEY_STACK_UPGRADE_HOUR}_${day}`,
+                            value: {
+                                [Op.like]: `${JSON.stringify({ hour }).slice(0, -1)},%`
+                            }
                         },
                         include: {
                             model: M.Project,
