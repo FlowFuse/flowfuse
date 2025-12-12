@@ -190,7 +190,7 @@ module.exports = async function (app) {
         // TEMP: switch to the dev url
         const expertDevUrl = expertUrl.replace('flowfuse-expert-api.flowfuse.cloud', 'flowfuse-expert-api-dev.flowfuse.cloud')
         const onePathUp = expertDevUrl.split('/').slice(0, -1).join('/')
-        const mcpSummaryUrl = `${onePathUp}/mcp/summary`
+        const mcpSummaryUrl = `${onePathUp}/mcp/details`
         try {
             /** @type {MCPServerItem[]} */
             const runningInstancesWithMCPServer = []
@@ -232,6 +232,7 @@ module.exports = async function (app) {
                 })
             }
             const response = await axios.post(mcpSummaryUrl, {
+                teamId: request.team.hashid,
                 servers: runningInstancesWithMCPServer
             }, {
                 headers: {

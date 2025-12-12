@@ -1,16 +1,16 @@
 <template>
     <div class="capabilities-selector">
-        <ff-listbox v-model="capabilitiesHandler" :options="capabilities" return-model multiple :options-offset-top="5">
+        <ff-listbox v-model="capabilitiesHandler" :options="capabilities" return-model multiple :options-offset-top="5" label-key="name">
             <template #options="{options}">
                 <ListboxOption
                     v-for="option in options"
                     v-slot="{ active, selected }"
-                    :key="option.value"
+                    :key="option.name"
                     as="template"
                     :value="option"
                     class="ff-option ff-team-selection-option"
-                    :data-option="option.label"
-                    :title="option.label"
+                    :data-option="option.name"
+                    :title="option.name"
                 >
                     <li>
                         <div
@@ -22,7 +22,7 @@
                             </div>
                             <div class="flex flex-col gap-1 flex-1">
                                 <p class="truncate self-start flex justify-between w-full" style="line-height: 16px;">
-                                    <span>{{ option.label }}</span>
+                                    <span class="truncate" :title="option.name">{{ option.name }}</span>
                                     <span v-if="option.toolCount" class="text-gray-400 text-sm">{{ option.toolCount }}</span>
                                 </p>
                                 <p v-if="option.description" class="text-gray-400 text-sm">{{ option.description }}</p>
@@ -37,9 +37,9 @@
 
 <script>
 import { ListboxOption } from '@headlessui/vue'
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
-import { OPERATOR_AGENT_MODE } from '../../../store/modules/product/expert/agents.js'
+import { OPERATOR_AGENT } from '../../../store/modules/product/expert/agents.js'
 import FfCheckbox from '../../../ui-components/components/form/Checkbox.vue'
 import FfListbox from '../../../ui-components/components/form/ListBox.vue'
 
@@ -51,7 +51,8 @@ export default {
         FfListbox
     },
     computed: {
-        ...mapState(`product/expert/${OPERATOR_AGENT_MODE}`, ['capabilities', 'selectedCapabilities']),
+        ...mapState(`product/expert/${OPERATOR_AGENT}`, ['selectedCapabilities']),
+        ...mapGetters(`product/expert/${OPERATOR_AGENT}`, ['capabilities']),
         capabilitiesHandler: {
             get () {
                 return this.selectedCapabilities
@@ -62,7 +63,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(`product/expert/${OPERATOR_AGENT_MODE}`, ['setSelectedCapabilities'])
+        ...mapActions(`product/expert/${OPERATOR_AGENT}`, ['setSelectedCapabilities'])
     }
 }
 </script>

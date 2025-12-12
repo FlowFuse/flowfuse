@@ -1,3 +1,5 @@
+import expertApi from '../../../../../api/expert.js'
+
 const initialState = () => ({
     sessionId: null,
     messages: [
@@ -13,36 +15,7 @@ const initialState = () => ({
 
     // todo replace hardcoded values
     // named after https://modelcontextprotocol.io/docs/learn/server-concepts
-    capabilities: [
-        {
-            label: 'Facility 1',
-            value: 'tool_1',
-            toolCount: 12
-        },
-        {
-            label: 'Facility 2',
-            value: 'tool_2',
-            description: 'Has description',
-            toolCount: 3
-        },
-        {
-            label: 'Facility 3',
-            value: 'tool_3',
-            toolCount: 0
-        },
-        {
-            label: 'Facility 4',
-            value: 'tool_4',
-            description: 'My updated server',
-            toolCount: 42
-        },
-        {
-            label: 'Facility 5',
-            value: 'tool_5',
-            description: 'Running v3',
-            toolCount: 7
-        }
-    ],
+    capabilities: [],
     selectedCapabilities: []
 })
 
@@ -57,7 +30,15 @@ const meta = {
 
 const state = initialState
 
-const getters = {}
+const getters = {
+    capabilities: (state) => {
+        return state.capabilities.map(capability => ({
+            ...capability,
+            toolCount: capability.resources.length + capability.tools.length + capability.prompts.length
+
+        }))
+    }
+}
 
 const mutations = {
     RESET (state) {
@@ -65,6 +46,9 @@ const mutations = {
     },
     SET_SELECTED_CAPABILITIES (state, selectedCapabilities) {
         state.selectedCapabilities = selectedCapabilities
+    },
+    SET_CAPABILITIES (state, capabilities) {
+        state.capabilities = capabilities
     }
 }
 
@@ -74,6 +58,20 @@ const actions = {
     },
     setSelectedCapabilities ({ commit }, selectedCapabilities) {
         commit('SET_SELECTED_CAPABILITIES', selectedCapabilities)
+    },
+    async getCapabilities ({ commit, rootGetters, state }) {
+        const payload = {
+            context: {
+                team: rootGetters['account/team'].id
+            }
+        }
+        return expertApi.getCapabilities(payload)
+            .then(res => {
+                // todo remove the hardcoded response @steve
+                const payload = { servers: [{ team: 'yeONmjGYBj', instance: 'ba1feeea-12c3-42a8-bfa3-eb3132051ac8', instanceType: 'instance', instanceName: 'enchanting-dunlin-1493', name: 'Acme Facilities MCP Server', capabilities: { logging: {}, completions: {}, prompts: { listChanged: true }, resources: { listChanged: true }, tools: { listChanged: true } }, tools: [{ name: 'get_oee', title: 'Get OEE for a facility', description: 'Gets the OEE for a given facility ID', inputSchema: { type: 'object', properties: { facility_id: { type: 'string', description: 'The facility_id of production line' } }, required: ['facility_id'], additionalProperties: false, $schema: 'http://json-schema.org/draft-07/schema#' }, execution: { taskSupport: 'forbidden' } }], prompts: [], resources: [{ name: 'facilities', title: 'Production Lines', uri: 'db://facilities', description: 'Provides a list of production facilities', mimeType: 'application/json' }], resourceTemplates: [], mcpProtocol: 'http' }] }
+
+                commit('SET_CAPABILITIES', payload.servers)
+            })
     }
 }
 

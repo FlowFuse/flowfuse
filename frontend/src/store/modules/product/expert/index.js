@@ -4,7 +4,7 @@ import { markRaw } from 'vue'
 import expertApi from '../../../../api/expert.js'
 import ExpertDrawer from '../../../../components/drawers/expert/ExpertDrawer.vue'
 
-import { FF_AGENT_MODE, OPERATOR_AGENT_MODE } from './agents.js'
+import { FF_AGENT, OPERATOR_AGENT } from './agents.js'
 
 import FFAgent from './ff-agent/index.js'
 import OperatorAgent from './operator-agent/index.js'
@@ -13,7 +13,7 @@ const initialState = () => ({
     shouldWakeUpAssistant: false,
 
     // expert modes
-    agentMode: FF_AGENT_MODE, // ff-agent or operator-agent
+    agentMode: FF_AGENT, // ff-agent or operator-agent
 
     // Conversation state
     isGenerating: false,
@@ -47,8 +47,8 @@ const getters = {
             ? state[state.agentMode].messages[state[state.agentMode].messages.length - 1]
             : null,
     isSessionExpired: (state) => state[state.agentMode].sessionExpiredShown,
-    isFfAgent: (state) => state.agentMode === FF_AGENT_MODE,
-    isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT_MODE
+    isFfAgent: (state) => state.agentMode === FF_AGENT,
+    isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT
 }
 
 const mutations = {
@@ -57,7 +57,7 @@ const mutations = {
      * @param {'ff-agent' | 'operator-agent'} mode
      */
     SET_AGENT_MODE (state, mode) {
-        if (![OPERATOR_AGENT_MODE, FF_AGENT_MODE].includes(mode)) return
+        if (![OPERATOR_AGENT, FF_AGENT].includes(mode)) return
 
         state.agentMode = mode
     },
@@ -425,20 +425,22 @@ const actions = {
     },
 
     sendQuery ({ commit, state, getters, rootGetters, rootState }, { query }) {
-        let client = expertApi.chat
         const payload = {
             query,
-            context: rootGetters['context/expert'],
+            context: {
+                ...rootGetters['context/expert'],
+                agent: state.agentMode
+            },
             sessionId: state[state.agentMode].sessionId,
             abortController: state.abortController
         }
 
-        if (state.agentMode === OPERATOR_AGENT_MODE) {
-            payload.context.selectedCapabilities = rootState.product.expert[OPERATOR_AGENT_MODE].selectedCapabilities
-            client = expertApi.operatorChat
+        if (getters.isOperatorAgent) {
+            payload.context.selectedCapabilities = rootState.product.expert[OPERATOR_AGENT].selectedCapabilities
+            payload.context.selectedCapabilities = rootState.product.expert[OPERATOR_AGENT].selectedCapabilities
         }
 
-        return client(payload)
+        return expertApi.chat(payload)
     },
 
     openAssistantDrawer ({ dispatch, rootGetters }) {
@@ -448,6 +450,8 @@ const actions = {
         ) {
             return
         }
+
+        dispatch(`product/expert/${OPERATOR_AGENT}/getCapabilities`, null, { root: true })
 
         return dispatch(
             'ux/drawers/openRightDrawer',
@@ -604,8 +608,8 @@ const actions = {
 export default {
     namespaced: true,
     modules: {
-        [FF_AGENT_MODE]: FFAgent,
-        [OPERATOR_AGENT_MODE]: OperatorAgent
+        [FF_AGENT]: FFAgent,
+        [OPERATOR_AGENT]: OperatorAgent
     },
     meta,
     initialState: initialState(),
