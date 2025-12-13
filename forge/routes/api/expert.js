@@ -153,6 +153,7 @@ module.exports = async function (app) {
                 200: {
                     type: 'object',
                     properties: {
+                        transactionId: { type: 'string' },
                         servers: {
                             type: 'array',
                             items: {
