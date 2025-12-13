@@ -196,7 +196,10 @@ module.exports = async function (app) {
         try {
             /** @type {MCPServerItem[]} */
             const runningInstancesWithMCPServer = []
-            const mcpServers = await app.db.models.MCPRegistration.byTeam(request.body.context.team, { includeInstance: true })
+            const transactionId = request.headers['x-chat-transaction-id']
+            const mcpCapabilitiesUrl = `${expertUrl.split('/').slice(0, -1).join('/')}/mcp/details`
+            const mcpServers = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
+
             for (const server of mcpServers) {
                 const { name, protocol, endpointRoute, TeamId, Project, Device } = server
                 if (TeamId !== request.team.id) {
@@ -213,7 +216,6 @@ module.exports = async function (app) {
                     owner = Project
                     ownerId = Project.id
                 } else {
-                    // shouldn't happen!
                     continue
                 }
 
@@ -233,17 +235,24 @@ module.exports = async function (app) {
                     mcpProtocol: protocol
                 })
             }
-            const response = await axios.post(mcpSummaryUrl, {
+            if (runningInstancesWithMCPServer.length === 0) {
+                return reply.send({ servers: [], transactionId })
+            }
+            const response = await axios.post(mcpCapabilitiesUrl, {
+                teamId: request.team.hashid,
                 servers: runningInstancesWithMCPServer
             }, {
                 headers: {
                     Origin: request.headers.origin,
-                    'X-Chat-Session-ID': request.headers['x-chat-session-id'],
-                    'X-Chat-Transaction-ID': request.headers['x-chat-transaction-id'],
+                    'X-Chat-Transaction-ID': transactionId,
                     ...(serviceToken ? { Authorization: `Bearer ${serviceToken}` } : {})
                 },
                 timeout: requestTimeout
             })
+
+            if (response.data.transactionId !== transactionId) {
+                throw new Error('Transaction ID mismatch')
+            }
 
             reply.send(response.data)
         } catch (error) {
