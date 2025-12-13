@@ -38,7 +38,7 @@ module.exports = async function (app) {
             // Get the user object
             request.user = await app.db.models.User.byId(request.session.User.id)
             if (!request.user) {
-                reply.code(401).send({
+                return reply.code(401).send({
                     code: 'unauthorized',
                     error: 'unauthorized'
                 })
@@ -46,21 +46,15 @@ module.exports = async function (app) {
             // Ensure users team access is valid
             const teamId = request.body.context?.teamId || request.body.context?.team
             if (!teamId) {
-                reply.code(401).send({
-                    code: 'unauthorized',
-                    error: 'unauthorized'
-                })
+                return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
             const existingRole = await request.user.getTeamMembership(teamId)
             if (!existingRole) {
-                throw new Error('User not in team')
+                return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
             request.team = await app.db.models.Team.byId(teamId)
             if (!request.team) {
-                reply.code(401).send({
-                    code: 'unauthorized',
-                    error: 'unauthorized'
-                })
+                return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
         }
     })
