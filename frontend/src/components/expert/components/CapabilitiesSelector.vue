@@ -9,8 +9,8 @@
                     as="template"
                     :value="option"
                     class="ff-option ff-team-selection-option"
-                    :data-option="option.name"
-                    :title="option.name"
+                    :data-option="option.mcpServerName"
+                    :title="`Instance: '${option.instanceName}', MCP: '${option.mcpServerName}'`"
                 >
                     <li>
                         <div
@@ -22,10 +22,10 @@
                             </div>
                             <div class="flex flex-col gap-1 flex-1">
                                 <p class="truncate self-start flex justify-between w-full" style="line-height: 16px;">
-                                    <span class="truncate" :title="option.name">{{ option.name }}</span>
+                                    <span class="truncate">{{ option.mcpServerName }}</span>
                                     <span v-if="option.toolCount" class="text-gray-400 text-sm">{{ option.toolCount }}</span>
                                 </p>
-                                <p v-if="option.description" class="text-gray-400 text-sm">{{ option.description }}</p>
+                                <p v-if="option.title" class="text-gray-400 text-sm">{{ option.title }}</p>
                             </div>
                         </div>
                     </li>
