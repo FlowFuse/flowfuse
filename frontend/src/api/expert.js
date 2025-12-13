@@ -32,7 +32,17 @@ const chat = async ({
 }
 
 const getCapabilities = async (payload) => {
-    return client.post('/api/v1/expert/mcp/details', payload).then(res => {
+    const transactionId = uuidv4()
+    return client.post('/api/v1/expert/mcp/features', payload, {
+        headers: {
+            'X-Chat-Transaction-ID': transactionId
+        }
+    }).then(res => {
+        if (res.data.transactionId !== transactionId) {
+            // ignore transaction ID mismatch for this endpoint for now
+            console.warn('Transaction ID mismatch - response may be from a different request')
+            return {}
+        }
         return res.data
     })
 }
