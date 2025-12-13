@@ -80,6 +80,17 @@ export default {
             }
         }
     },
+    watch: {
+        // watch agent mode state and dispatch an MCP Features (capabilities) fetch when it changes
+        agentMode: {
+            immediate: true,
+            handler (newMode, oldMode) {
+                if (newMode === 'operator-agent' && newMode !== oldMode) {
+                    this.$store.dispatch(`product/expert/${newMode}/getCapabilities`, null, { root: true })
+                }
+            }
+        }
+    },
     methods: {
         ...mapActions('ux/drawers', ['closeRightDrawer']),
         ...mapActions('product/expert', ['setAgentMode']),
