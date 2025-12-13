@@ -5,7 +5,7 @@
                 <ListboxOption
                     v-for="option in options"
                     v-slot="{ active, selected }"
-                    :key="option.name"
+                    :key="option.mcpServerName"
                     as="template"
                     :value="option"
                     class="ff-option ff-team-selection-option"
