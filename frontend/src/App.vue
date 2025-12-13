@@ -142,8 +142,7 @@ export default {
         this.$store.dispatch('product/checkFlags')
     },
     methods: {
-        // todo this should be switched to a dedicated context store
-        ...mapActions('product/expert', ['updateRoute'])
+        ...mapActions('context', ['updateRoute'])
     }
 }
 </script>

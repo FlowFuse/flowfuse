@@ -5,13 +5,25 @@
         </div>
         <div class="toggle">
             <div class="inner-wrapper">
-                <router-link
-                    v-for="(button, $key) in buttons"
-                    :key="$key"
-                    :to="button.to"
-                >
-                    {{ button.title }}
-                </router-link>
+                <template v-if="usesLinks">
+                    <router-link
+                        v-for="(button, $key) in buttons"
+                        :key="$key"
+                        :to="button.to"
+                    >
+                        {{ button.title }}
+                    </router-link>
+                </template>
+                <template v-else>
+                    <ff-button
+                        v-for="button in buttons" :key="button[valueKey]"
+                        size="medium"
+                        :class="{active: button[valueKey] === modelValue}"
+                        @click="setValue(button.value)"
+                    >
+                        {{ button.title }}
+                    </ff-button>
+                </template>
             </div>
         </div>
     </div>
@@ -32,8 +44,28 @@ export default {
             default: false
         },
         buttons: {
-            type: Array, // [ { title: 'button title, to: {route..} } ]
+            type: Array, // [ { title: 'button title, ?to: {route..}, ?value: [string|object] } ]
             required: true
+        },
+        usesLinks: {
+            type: Boolean,
+            default: true
+        },
+        modelValue: {
+            type: [String, Object],
+            required: false,
+            default: null
+        },
+        valueKey: {
+            type: String,
+            required: false,
+            default: 'value'
+        }
+    },
+    emits: ['update:modelValue'],
+    methods: {
+        setValue (value) {
+            this.$emit('update:modelValue', value)
         }
     }
 }
@@ -68,6 +100,17 @@ export default {
 
                 &.router-link-active {
                     background: $ff-blue-800;
+                    color: $ff-white;
+                }
+            }
+
+            .ff-btn {
+                background: transparent;
+                color: $ff-grey-500;
+                border-color: transparent;
+
+                &.active {
+                    background: $ff-indigo-700;
                     color: $ff-white;
                 }
             }

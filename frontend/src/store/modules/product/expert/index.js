@@ -4,48 +4,33 @@ import { markRaw } from 'vue'
 import expertApi from '../../../../api/expert.js'
 import ExpertDrawer from '../../../../components/drawers/expert/ExpertDrawer.vue'
 
+import { FF_AGENT, OPERATOR_AGENT } from './agents.js'
+
+import FFAgent from './ff-agent/index.js'
+import OperatorAgent from './operator-agent/index.js'
+
 const initialState = () => ({
-    // Context from PR #6231 postMessage integration
-    context: null,
-    sessionId: null,
     shouldWakeUpAssistant: false,
 
+    // expert modes
+    agentMode: FF_AGENT, // ff-agent or operator-agent
+
     // Conversation state
-    messages: [],
     isGenerating: false,
     autoScrollEnabled: true,
-    currentTransactionId: null,
-    abortController: null,
 
-    // Session timing
-    sessionStartTime: null,
-    sessionWarningShown: false,
-    sessionExpiredShown: false,
-    sessionCheckTimer: null,
+    // todo sharing the same abort controller might not be the smartest thing
+    abortController: null,
 
     // streaming words
     streamingWordIndex: -1,
     streamingWords: [],
-    streamingTimer: null,
-
-    // todo this should be moved into a dedicated context store
-    route: null,
-
-    // Drawer width management
-    hasWidenedForFlows: false
+    streamingTimer: null
 })
 
 const meta = {
     persistence: {
-        context: {
-            storage: 'localStorage',
-            clearOnLogout: true
-        },
         shouldWakeUpAssistant: {
-            storage: 'localStorage',
-            clearOnLogout: true
-        },
-        sessionId: {
             storage: 'localStorage',
             clearOnLogout: true
         }
@@ -55,76 +40,53 @@ const meta = {
 const state = initialState
 
 const getters = {
-    hasMessages: (state) => state.messages.length > 0,
+    messages: (state) => state[state.agentMode].messages,
+    hasMessages: (state) => state[state.agentMode].messages.length > 0,
     lastMessage: (state) =>
-        state.messages.length > 0
-            ? state.messages[state.messages.length - 1]
+        state[state.agentMode].messages.length > 0
+            ? state[state.agentMode].messages[state[state.agentMode].messages.length - 1]
             : null,
-    isSessionExpired: (state) => state.sessionExpiredShown,
-    context: (state, getters, rootState, rootGetters) => {
-        // todo this should be moved into a dedicated context store
-        const instanceId = state.route.fullPath.includes('/instance/')
-            ? state.route.params?.id
-            : null
-        const applicationId = state.route.fullPath.includes('/applications/')
-            ? state.route.params?.id
-            : null
-        const deviceId = state.route.fullPath.includes('/device/')
-            ? state.route.params?.id
-            : null
-        const scope =
-            state.route.fullPath.includes('/instance/') &&
-            state.route.fullPath.includes('editor')
-                ? 'immersive'
-                : 'ff-app'
-
-        const { matched, redirectedFrom, ...rawRoute } = state.route ?? {}
-
-        return {
-            userId: rootState.account?.user?.id || null,
-            teamId: rootState.account?.team?.id || null,
-            teamSlug: rootState.account?.team?.slug || null,
-            instanceId: instanceId ?? null,
-            deviceId: deviceId ?? null,
-            applicationId: applicationId ?? null,
-            isTrialAccount: rootGetters['account/isTrialAccount'] || false,
-            pageName: state.route.name,
-            rawRoute,
-            scope
-        }
-    }
+    isSessionExpired: (state) => state[state.agentMode].sessionExpiredShown,
+    isFfAgent: (state) => state.agentMode === FF_AGENT,
+    isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT
 }
 
 const mutations = {
+    /**
+     * @param state
+     * @param {'ff-agent' | 'operator-agent'} mode
+     */
+    SET_AGENT_MODE (state, mode) {
+        if (![OPERATOR_AGENT, FF_AGENT].includes(mode)) return
+
+        state.agentMode = mode
+    },
+
     SET_CONTEXT (state, context) {
-        state.context = context
+        state[state.agentMode].context = context
     },
     SET_SESSION_ID (state, sessionId) {
-        state.sessionId = sessionId
+        state[state.agentMode].sessionId = sessionId
     },
 
     // Conversation mutations
     ADD_MESSAGE (state, message) {
-        state.messages.push(message)
+        state[state.agentMode].messages.push(message)
     },
     UPDATE_LAST_MESSAGE (state, content) {
-        if (state.messages.length > 0) {
-            const lastMessage = state.messages[state.messages.length - 1]
+        if (state[state.agentMode].messages.length > 0) {
+            const lastMessage = state[state.agentMode].messages[state[state.agentMode].messages.length - 1]
             lastMessage.content = content
         }
     },
     CLEAR_MESSAGES (state) {
-        state.messages = []
-        state.currentTransactionId = null
+        state[state.agentMode].messages = []
     },
     SET_GENERATING (state, isGenerating) {
         state.isGenerating = isGenerating
     },
     SET_AUTO_SCROLL (state, enabled) {
         state.autoScrollEnabled = enabled
-    },
-    SET_TRANSACTION_ID (state, transactionId) {
-        state.currentTransactionId = transactionId
     },
     SET_ABORT_CONTROLLER (state, controller) {
         state.abortController = controller
@@ -142,19 +104,16 @@ const mutations = {
         state.streamingTimer = timer
     },
     SET_SESSION_START_TIME (state, time) {
-        state.sessionStartTime = time
+        state[state.agentMode].sessionStartTime = time
     },
     SET_SESSION_WARNING_SHOWN (state, shown) {
-        state.sessionWarningShown = shown
+        state[state.agentMode].sessionWarningShown = shown
     },
     SET_SESSION_EXPIRED_SHOWN (state, shown) {
-        state.sessionExpiredShown = shown
+        state[state.agentMode].sessionExpiredShown = shown
     },
     SET_SESSION_CHECK_TIMER (state, timer) {
-        state.sessionCheckTimer = timer
-    },
-    SET_HAS_WIDENED_FOR_FLOWS (state, value) {
-        state.hasWidenedForFlows = value
+        state[state.agentMode].sessionCheckTimer = timer
     },
     RESET (state) {
         Object.assign(state, initialState())
@@ -166,7 +125,7 @@ const mutations = {
                 message.answer.forEach((item) => {
                     if (item.kind === 'guide') {
                         // Transform guide response
-                        state.messages.push({
+                        state[state.agentMode].messages.push({
                             type: 'ai',
                             kind: 'guide',
                             guide: item,
@@ -175,7 +134,7 @@ const mutations = {
                         })
                     } else if (item.kind === 'resources') {
                         // Transform resources response
-                        state.messages.push({
+                        state[state.agentMode].messages.push({
                             type: 'ai',
                             kind: 'resources',
                             resources: item,
@@ -184,7 +143,7 @@ const mutations = {
                         })
                     } else if (item.kind === 'chat') {
                         // Transform chat response
-                        state.messages.push({
+                        state[state.agentMode].messages.push({
                             type: 'ai',
                             content: item.content,
                             timestamp: Date.now()
@@ -193,7 +152,7 @@ const mutations = {
                 })
             } else if (message.query) {
                 // Transform user message
-                state.messages.push({
+                state[state.agentMode].messages.push({
                     type: 'human',
                     content: message.query,
                     timestamp: Date.now()
@@ -203,11 +162,7 @@ const mutations = {
         })
     },
     REMOVE_MESSAGE_BY_INDEX (state, index) {
-        state.messages.splice(index, 1)
-    },
-    // todo this should be moved into a dedicated context store
-    UPDATE_ROUTE (state, route) {
-        state.route = route
+        state[state.agentMode].messages.splice(index, 1)
     }
 }
 
@@ -247,6 +202,7 @@ const actions = {
             })
         }
     },
+
     hydrateClient ({
         dispatch,
         state,
@@ -261,9 +217,9 @@ const actions = {
 
         return expertApi
             .chat({
-                history: state.context,
+                history: state[state.agentMode].context,
                 context: {},
-                sessionId: state.sessionId
+                sessionId: state[state.agentMode].sessionId
             })
             .then((response) => {
                 return dispatch('removeLoadingIndicator').then(() =>
@@ -274,6 +230,7 @@ const actions = {
                 )
             })
     },
+
     wakeUpAssistant ({
         dispatch,
         commit,
@@ -285,7 +242,7 @@ const actions = {
             dispatch('setAssistantWakeUp', false)
 
             if (shouldHydrateMessages) {
-                commit('HYDRATE_MESSAGES', state.context)
+                commit('HYDRATE_MESSAGES', state[state.agentMode].context)
             }
 
             // Add loading message with transfer variant to indicate syncing from website
@@ -307,7 +264,7 @@ const actions = {
         dispatch
     }, { query }) {
         // Auto-initialize session ID if not set
-        if (!state.sessionId) {
+        if (!state[state.agentMode].sessionId) {
             commit('SET_SESSION_ID', uuidv4())
 
             // Start session timing
@@ -342,15 +299,10 @@ const actions = {
             }
         } catch (error) {
             // Remove loading indicator
-            const loadingIndex = state.messages.findIndex(
-                (m) => m.type === 'loading'
-            )
-            if (loadingIndex !== -1) {
-                state.messages.splice(loadingIndex, 1)
-            }
+            dispatch('removeLoadingIndicator')
 
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
-                // Request was cancelled by user
+                // Request was canceled by user
                 commit('ADD_MESSAGE', {
                     type: 'ai',
                     content: 'Generation stopped.',
@@ -462,25 +414,33 @@ const actions = {
         commit('SET_AUTO_SCROLL', enabled)
     },
 
-    setTransactionId ({ commit }, transactionId) {
-        commit('SET_TRANSACTION_ID', transactionId)
-    },
-
     setAbortController ({ commit }, controller) {
         commit('SET_ABORT_CONTROLLER', controller)
     },
 
-    reset ({ commit }) {
+    reset ({ commit, dispatch, state }) {
+        // order matters
+        dispatch(`product/expert/${state.agentMode}/reset`, null, { root: true })
         commit('RESET')
     },
 
-    sendQuery ({ commit, state, getters }, { query }) {
-        return expertApi.chat({
+    sendQuery ({ commit, state, getters, rootGetters, rootState }, { query }) {
+        const payload = {
             query,
-            context: getters.context,
-            sessionId: state.sessionId,
+            context: {
+                ...rootGetters['context/expert'],
+                agent: state.agentMode
+            },
+            sessionId: state[state.agentMode].sessionId,
             abortController: state.abortController
-        })
+        }
+
+        if (getters.isOperatorAgent) {
+            payload.context.selectedCapabilities = rootState.product.expert[OPERATOR_AGENT].selectedCapabilities
+            payload.context.selectedCapabilities = rootState.product.expert[OPERATOR_AGENT].selectedCapabilities
+        }
+
+        return expertApi.chat(payload)
     },
 
     openAssistantDrawer ({ dispatch, rootGetters }) {
@@ -490,6 +450,8 @@ const actions = {
         ) {
             return
         }
+
+        dispatch(`product/expert/${OPERATOR_AGENT}/getCapabilities`, null, { root: true })
 
         return dispatch(
             'ux/drawers/openRightDrawer',
@@ -567,7 +529,7 @@ const actions = {
     },
 
     removeLoadingIndicator ({ commit, state }) {
-        const loadingIndex = state.messages.findIndex(
+        const loadingIndex = state[state.agentMode].messages.findIndex(
             (m) => m.type === 'loading'
         )
 
@@ -576,16 +538,11 @@ const actions = {
         }
     },
 
-    // todo this should be moved into a dedicated context store
-    updateRoute ({ commit }, route) {
-        commit('UPDATE_ROUTE', route)
-    },
-
     // Session timing actions
     startSessionTimer ({ commit, state }) {
         // Clear any existing timer
-        if (state.sessionCheckTimer) {
-            clearInterval(state.sessionCheckTimer)
+        if (state[state.agentMode].sessionCheckTimer) {
+            clearInterval(state[state.agentMode].sessionCheckTimer)
         }
 
         // Set session start time
@@ -595,12 +552,12 @@ const actions = {
 
         // Check every 30 seconds if we've reached the warning/expiration threshold
         const timer = setInterval(() => {
-            const elapsed = Date.now() - state.sessionStartTime
+            const elapsed = Date.now() - state[state.agentMode].sessionStartTime
             const warningThreshold = 25 * 60 * 1000 // 25 minutes
             const expirationThreshold = 28 * 60 * 1000 // 28 minutes
 
             // Show 25-minute warning
-            if (elapsed >= warningThreshold && !state.sessionWarningShown) {
+            if (elapsed >= warningThreshold && !state[state.agentMode].sessionWarningShown) {
                 commit('SET_SESSION_WARNING_SHOWN', true)
                 commit('ADD_MESSAGE', {
                     type: 'system',
@@ -612,7 +569,7 @@ const actions = {
             }
 
             // Show 30-minute expiration
-            if (elapsed >= expirationThreshold && !state.sessionExpiredShown) {
+            if (elapsed >= expirationThreshold && !state[state.agentMode].sessionExpiredShown) {
                 commit('SET_SESSION_EXPIRED_SHOWN', true)
                 commit('SET_GENERATING', true) // Disable input
                 commit('ADD_MESSAGE', {
@@ -629,18 +586,31 @@ const actions = {
     },
 
     resetSessionTimer ({ commit, state }) {
-        if (state.sessionCheckTimer) {
-            clearInterval(state.sessionCheckTimer)
+        if (state[state.agentMode].sessionCheckTimer) {
+            clearInterval(state[state.agentMode].sessionCheckTimer)
             commit('SET_SESSION_CHECK_TIMER', null)
         }
         commit('SET_SESSION_START_TIME', null)
         commit('SET_SESSION_WARNING_SHOWN', false)
         commit('SET_SESSION_EXPIRED_SHOWN', false)
+    },
+
+    /**
+     *
+     * @param commit
+     * @param {'ff-agent' | 'operator-agent'} mode
+     */
+    setAgentMode ({ commit }, mode) {
+        commit('SET_AGENT_MODE', mode)
     }
 }
 
 export default {
     namespaced: true,
+    modules: {
+        [FF_AGENT]: FFAgent,
+        [OPERATOR_AGENT]: OperatorAgent
+    },
     meta,
     initialState: initialState(),
     state,

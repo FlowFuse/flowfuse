@@ -1,4 +1,10 @@
 export default {
+    props: {
+        optionsOffsetTop: {
+            type: Number,
+            default: 0
+        }
+    },
     data () {
         return {
             open: false,
@@ -20,7 +26,7 @@ export default {
             if (!this.$refs.trigger || !this.$refs.trigger.$el) return
             const rect = this.$refs.trigger.$el.getBoundingClientRect()
             this.position = {
-                top: rect.bottom + window.scrollY,
+                top: rect.bottom + window.scrollY + this.optionsOffsetTop,
                 left: rect.left + window.scrollX,
                 width: rect.width
             }

@@ -1,5 +1,5 @@
 <template>
-    <Listbox v-model="value" :disabled="disabled" class="ff-listbox" data-el="listbox" :by="compareOptions">
+    <Listbox v-model="value" :disabled="disabled" class="ff-listbox" data-el="listbox" :by="compareOptions" :multiple="multiple">
         <div class="relative">
             <ListboxButton
                 ref="trigger"
@@ -119,6 +119,11 @@ export default {
             required: false,
             default: false,
             type: Boolean
+        },
+        multiple: {
+            required: false,
+            default: false,
+            type: Boolean
         }
     },
     emits: ['update:modelValue'],
@@ -128,25 +133,45 @@ export default {
                 return this.modelValue
             },
             set (value) {
-                this.$emit('update:modelValue', !this.returnModel ? value[this.valueKey] : value)
+                if (this.multiple) {
+                    const arr = Array.isArray(value) ? value : (value == null ? [] : [value])
+                    this.$emit(
+                        'update:modelValue',
+                        this.returnModel ? arr : arr.map(v => v?.[this.valueKey]).filter(v => v !== undefined)
+                    )
+                    return
+                }
+                this.$emit('update:modelValue', !this.returnModel ? value?.[this.valueKey] : value)
             }
         },
         selectedOption () {
-            if (this.value === undefined || this.value === null) {
+            if (this.value === undefined || this.value === null || this.multiple) {
                 return null
             }
 
             return this.options.find(opt => {
-                return opt[this.valueKey] === (!this.returnModel ? this.value : this.value[this.valueKey])
+                return opt[this.valueKey] === (!this.returnModel ? this.value : this.value?.[this.valueKey])
             })
         },
         selectedLabel () {
+            if (this.multiple) {
+                const values = Array.isArray(this.modelValue) ? this.modelValue : []
+                if (!values.length) {
+                    return this.placeholder
+                }
+                return `${values.length} selected`
+            }
+
             return this.selectedOption ? this.selectedOption[this.labelKey] : this.placeholder
         }
     },
     methods: {
         compareOptions (modelValue, optionValue) {
-            return modelValue === optionValue[this.valueKey]
+            if (!this.returnModel) {
+                return modelValue === optionValue
+            }
+
+            return modelValue?.[this.valueKey] === optionValue?.[this.valueKey]
         }
     }
 }

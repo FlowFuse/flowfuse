@@ -54,9 +54,9 @@
 </template>
 
 <script>
-import FlowResourceCard from './resources/FlowResourceCard.vue'
-import PackageResourceCard from './resources/PackageResourceCard.vue'
-import StandardResourceCard from './resources/StandardResourceCard.vue'
+import FlowResourceCard from './resource-cards/FlowResourceCard.vue'
+import PackageResourceCard from './resource-cards/PackageResourceCard.vue'
+import StandardResourceCard from './resource-cards/StandardResourceCard.vue'
 
 export default {
     name: 'ExpertRichGuide',
