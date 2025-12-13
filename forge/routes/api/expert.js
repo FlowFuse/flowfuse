@@ -134,6 +134,13 @@ module.exports = async function (app) {
     app.post('/mcp/features', {
         schema: {
             hide: true, // dont show in swagger
+            headers: {
+                type: 'object',
+                properties: {
+                    'x-chat-transaction-id': { type: 'string', minLength: 1 }
+                },
+                required: ['x-chat-transaction-id']
+            },
             body: {
                 type: 'object',
                 properties: {
