@@ -129,9 +129,9 @@ module.exports = async function (app) {
         }
     })
     /**
-     * an endpoint to retrieve MCP capabilities (prompts/resources/tools) for the users team
+     * an endpoint to retrieve MCP features (prompts/resources/tools) for the users team
      */
-    app.post('/mcp/details', {
+    app.post('/mcp/features', {
         schema: {
             hide: true, // dont show in swagger
             body: {
