@@ -189,10 +189,6 @@ module.exports = async function (app) {
      * @param {import('fastify').FastifyReply} reply
      */
     async (request, reply) => {
-        // TEMP: switch to the dev url
-        const expertDevUrl = expertUrl.replace('flowfuse-expert-api.flowfuse.cloud', 'flowfuse-expert-api-dev.flowfuse.cloud')
-        const onePathUp = expertDevUrl.split('/').slice(0, -1).join('/')
-        const mcpSummaryUrl = `${onePathUp}/mcp/summary`
         try {
             /** @type {MCPServerItem[]} */
             const runningInstancesWithMCPServer = []
