@@ -38,7 +38,7 @@ module.exports = async function (app) {
             // Get the user object
             request.user = await app.db.models.User.byId(request.session.User.id)
             if (!request.user) {
-                reply.code(401).send({
+                return reply.code(401).send({
                     code: 'unauthorized',
                     error: 'unauthorized'
                 })
@@ -46,21 +46,15 @@ module.exports = async function (app) {
             // Ensure users team access is valid
             const teamId = request.body.context?.teamId || request.body.context?.team
             if (!teamId) {
-                reply.code(401).send({
-                    code: 'unauthorized',
-                    error: 'unauthorized'
-                })
+                return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
             const existingRole = await request.user.getTeamMembership(teamId)
             if (!existingRole) {
-                throw new Error('User not in team')
+                return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
             request.team = await app.db.models.Team.byId(teamId)
             if (!request.team) {
-                reply.code(401).send({
-                    code: 'unauthorized',
-                    error: 'unauthorized'
-                })
+                return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
         }
     })
@@ -129,11 +123,18 @@ module.exports = async function (app) {
         }
     })
     /**
-     * an endpoint to retrieve MCP capabilities (prompts/resources/tools) for the users team
+     * an endpoint to retrieve MCP features (prompts/resources/tools) for the users team
      */
-    app.post('/mcp/details', {
+    app.post('/mcp/features', {
         schema: {
             hide: true, // dont show in swagger
+            headers: {
+                type: 'object',
+                properties: {
+                    'x-chat-transaction-id': { type: 'string', minLength: 1 }
+                },
+                required: ['x-chat-transaction-id']
+            },
             body: {
                 type: 'object',
                 properties: {
@@ -152,6 +153,7 @@ module.exports = async function (app) {
                 200: {
                     type: 'object',
                     properties: {
+                        transactionId: { type: 'string' },
                         servers: {
                             type: 'array',
                             items: {
@@ -161,14 +163,14 @@ module.exports = async function (app) {
                                     instance: { type: 'string' },
                                     instanceType: { type: 'string', enum: ['instance', 'device'] },
                                     instanceName: { type: 'string' },
-                                    name: { type: 'string' },
+                                    mcpServerName: { type: 'string' },
                                     prompts: { type: 'array', items: { type: 'object', additionalProperties: true } },
                                     resources: { type: 'array', items: { type: 'object', additionalProperties: true } },
                                     resourceTemplates: { type: 'array', items: { type: 'object', additionalProperties: true } },
                                     tools: { type: 'array', items: { type: 'object', additionalProperties: true } },
                                     mcpProtocol: { type: 'string', enum: ['http', 'sse'] }
                                 },
-                                required: ['instance', 'instanceType', 'instanceName', 'name', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol'],
+                                required: ['instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol'],
                                 additionalProperties: false
                             }
                         }
@@ -187,14 +189,13 @@ module.exports = async function (app) {
      * @param {import('fastify').FastifyReply} reply
      */
     async (request, reply) => {
-        // TEMP: switch to the dev url
-        const expertDevUrl = expertUrl.replace('flowfuse-expert-api.flowfuse.cloud', 'flowfuse-expert-api-dev.flowfuse.cloud')
-        const onePathUp = expertDevUrl.split('/').slice(0, -1).join('/')
-        const mcpSummaryUrl = `${onePathUp}/mcp/details`
         try {
             /** @type {MCPServerItem[]} */
             const runningInstancesWithMCPServer = []
-            const mcpServers = await app.db.models.MCPRegistration.byTeam(request.body.context.team, { includeInstance: true })
+            const transactionId = request.headers['x-chat-transaction-id']
+            const mcpCapabilitiesUrl = `${expertUrl.split('/').slice(0, -1).join('/')}/mcp/details`
+            const mcpServers = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
+
             for (const server of mcpServers) {
                 const { name, protocol, endpointRoute, TeamId, Project, Device } = server
                 if (TeamId !== request.team.id) {
@@ -211,7 +212,6 @@ module.exports = async function (app) {
                     owner = Project
                     ownerId = Project.id
                 } else {
-                    // shouldn't happen!
                     continue
                 }
 
@@ -231,18 +231,24 @@ module.exports = async function (app) {
                     mcpProtocol: protocol
                 })
             }
-            const response = await axios.post(mcpSummaryUrl, {
+            if (runningInstancesWithMCPServer.length === 0) {
+                return reply.send({ servers: [], transactionId })
+            }
+            const response = await axios.post(mcpCapabilitiesUrl, {
                 teamId: request.team.hashid,
                 servers: runningInstancesWithMCPServer
             }, {
                 headers: {
                     Origin: request.headers.origin,
-                    'X-Chat-Session-ID': request.headers['x-chat-session-id'],
-                    'X-Chat-Transaction-ID': request.headers['x-chat-transaction-id'],
+                    'X-Chat-Transaction-ID': transactionId,
                     ...(serviceToken ? { Authorization: `Bearer ${serviceToken}` } : {})
                 },
                 timeout: requestTimeout
             })
+
+            if (response.data.transactionId !== transactionId) {
+                throw new Error('Transaction ID mismatch')
+            }
 
             reply.send(response.data)
         } catch (error) {
