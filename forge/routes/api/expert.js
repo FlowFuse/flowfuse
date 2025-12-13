@@ -193,7 +193,7 @@ module.exports = async function (app) {
             /** @type {MCPServerItem[]} */
             const runningInstancesWithMCPServer = []
             const transactionId = request.headers['x-chat-transaction-id']
-            const mcpCapabilitiesUrl = `${expertUrl.split('/').slice(0, -1).join('/')}/mcp/details`
+            const mcpCapabilitiesUrl = `${expertUrl.split('/').slice(0, -1).join('/')}/mcp/features`
             const mcpServers = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
 
             for (const server of mcpServers) {
