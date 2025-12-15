@@ -1,10 +1,8 @@
 <template>
     <div class="ff-expert-drawer" data-el="expert-drawer">
         <div class="header">
-            <div class="flex items-center gap-1">
-                <div class="logo-container">
-                    <img src="/ff-logo--wordmark--light.svg" alt="FlowFuse" class="logo">
-                </div>
+            <div class="flex items-center gap-1.5">
+                <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 flex-shrink-0">
                 <h2 class="title">Expert</h2>
             </div>
             <div class="agent-mode">
@@ -124,6 +122,32 @@ export default {
         align-items: center;
         justify-content: space-between;
 
+        // Logo + Expert title on left
+        > .flex:first-child {
+            flex: 1;
+            justify-content: flex-start;
+        }
+
+        // Mode selector in center
+        .agent-mode {
+            flex: 0 0 auto;
+
+            :deep(.inner-wrapper) {
+                gap: 0;
+            }
+
+            :deep(.ff-btn) {
+                min-width: 5.5rem;
+                justify-content: center;
+            }
+        }
+
+        // Actions on right
+        .header-actions {
+            flex: 1;
+            justify-content: flex-end;
+        }
+
         .flex {
             display: flex;
 
@@ -136,25 +160,12 @@ export default {
             }
         }
 
-        .logo-container {
-            width: 6rem; // w-24
-            height: 1.5rem; // h-6
-            display: flex;
-            align-items: center;
-
-            .logo {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-            }
-        }
-
         .title {
-            font-size: 1rem; // text-base
-            font-weight: 600; // font-semibold
-            color: #374151; // text-gray-700
+            font-size: 1rem;
+            font-weight: 700; // font-bold
+            line-height: 20px;
+            color: #1f2937; // text-gray-800
             margin: 0;
-            line-height: 1.5rem; // Match logo height for proper alignment
         }
 
         .header-actions {
