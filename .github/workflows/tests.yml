@@ -54,7 +54,7 @@ jobs:
     - name: Run forge system tests
       run: npm run cover:system
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+      uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         flags: backend
@@ -140,7 +140,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Run UI E2E (Cypress) Tests - OS
-        uses: cypress-io/github-action@7ef72e250a9e564efb4ed4c2433971ada4cc38b4 # v6.10.4
+        uses: cypress-io/github-action@fa1d27aacdc8fa155253766c3728f6ddc81f8a99 # v6.10.7
         with:
           install: false
           config-file: config/cypress-os.config.js
@@ -151,7 +151,7 @@ jobs:
           SMTP_HOST: 'localhost'
           SMTP_PORT: '1025'
           SMTP_WEB_PORT: '8025'
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: failure()
         with:
           name: os-cypress-output-${{ github.run_id }}-${{ github.run_number }}
@@ -180,7 +180,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Run UI E2E (Cypress) Tests - EE
-        uses: cypress-io/github-action@7ef72e250a9e564efb4ed4c2433971ada4cc38b4 # v6.10.4
+        uses: cypress-io/github-action@fa1d27aacdc8fa155253766c3728f6ddc81f8a99 # v6.10.7
         with:
             install: false
             config-file: config/cypress-ee.config.js
@@ -191,7 +191,7 @@ jobs:
           SMTP_HOST: 'localhost'
           SMTP_PORT: '1025'
           SMTP_WEB_PORT: '8025'
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: failure()
         with:
           name: ee-cypress-output-${{ github.run_id }}-${{ github.run_number }}
