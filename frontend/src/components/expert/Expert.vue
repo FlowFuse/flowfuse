@@ -1,9 +1,20 @@
 <template>
     <div class="ff-expert">
+        <!-- Floating mode switcher (editor context only) -->
+        <div v-if="isEditorContext" class="mode-switcher-floating">
+            <toggle-button-group
+                v-model="agentModeWrapper"
+                :buttons="agentModeButtons"
+                :uses-links="false"
+                :visually-hide-title="true"
+            />
+        </div>
+
         <!-- Messages Container -->
         <div
             ref="messagesContainer"
             class="messages-container pt-10"
+            :class="{ 'has-mode-switcher': isEditorContext }"
             @scroll="handleScroll"
         >
             <!-- Info Banner -->
@@ -66,6 +77,7 @@
 import { markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
+import ToggleButtonGroup from '../elements/ToggleButtonGroup.vue'
 import ExpertChatInput from './ExpertChatInput.vue'
 import ExpertChatMessage from './ExpertChatMessage.vue'
 import ExpertLoadingDots from './ExpertLoadingDots.vue'
@@ -81,7 +93,8 @@ export default {
         ExpertLoadingDots,
         ExpertRichGuide,
         ExpertRichResources,
-        ExpertToolCall
+        ExpertToolCall,
+        ToggleButtonGroup
     },
     inject: {
         togglePinWithWidth: {
@@ -105,7 +118,8 @@ export default {
             'autoScrollEnabled',
             'abortController',
             'streamingTimer',
-            'streamingWordIndex'
+            'streamingWordIndex',
+            'agentMode'
         ]),
         ...mapGetters('product/expert', [
             'messages',
@@ -117,6 +131,24 @@ export default {
         ]),
         isPinned () {
             return this.$store.state.ux.drawers.rightDrawer.fixed
+        },
+        isEditorContext () {
+            // In editor context, the route name includes 'editor'
+            return this.$route?.name?.includes('editor') || false
+        },
+        agentModeWrapper: {
+            get () {
+                return this.agentMode
+            },
+            set (value) {
+                this.$store.dispatch('product/expert/setAgentMode', value)
+            }
+        },
+        agentModeButtons () {
+            return [
+                { title: 'Support', value: 'ff-agent' },
+                { title: 'Research', value: 'operator-agent' }
+            ]
         }
     },
     watch: {
@@ -130,6 +162,14 @@ export default {
                 }
             },
             deep: true
+        },
+        agentMode: {
+            handler (newMode, oldMode) {
+                // Fetch capabilities when switching to Research mode (only in editor context)
+                if (this.isEditorContext && newMode === 'operator-agent' && newMode !== oldMode) {
+                    this.$store.dispatch(`product/expert/${newMode}/getCapabilities`)
+                }
+            }
         }
     },
     mounted () {
@@ -357,5 +397,20 @@ export default {
 
 .scroll-anchor {
     height: 1px;
+}
+
+.mode-switcher-floating {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.messages-container.has-mode-switcher {
+    padding-top: 4rem; // Extra padding to account for floating mode switcher
 }
 </style>
