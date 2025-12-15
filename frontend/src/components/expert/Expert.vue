@@ -40,7 +40,7 @@
                 <p class="info-text">
                     AI agent can access
                     <a
-                        href="https://youtu.be/troUvaF8V68"
+                        href="https://flowfuse.com/node-red/flowfuse/mcp/"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="info-link"
