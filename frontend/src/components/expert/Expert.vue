@@ -21,13 +21,43 @@
             <div v-if="isFfAgent" class="info-banner">
                 <p class="info-text">
                     AI agent has access to all of FlowFuse's
-                    <a href="https://flowfuse.com/docs" target="_blank" rel="noopener noreferrer" class="info-link">documentation and knowledge</a>,
-                    <a href="https://flowfuse.com/blog" target="_blank" rel="noopener noreferrer" class="info-link">blogposts</a>, and more.
+                    <a
+                        href="https://flowfuse.com/docs"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="info-link"
+                        >documentation and knowledge</a
+                    >,
+                    <a
+                        href="https://flowfuse.com/blog"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="info-link"
+                        >blogposts</a
+                    >, and more.
+                </p>
+            </div>
+            <!-- Research mode info banner -->
+            <div v-if="isOperatorAgent" class="info-banner">
+                <p class="info-text">
+                    AI agent can access
+                    <a
+                        href="https://youtu.be/troUvaF8V68"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="info-link"
+                        >MCP server tools</a
+                    >
+                    configured in your hosted Node-RED instances.
                 </p>
             </div>
 
             <!-- Messages -->
-            <div v-for="(message, index) in messages" :key="index" class="message-wrapper">
+            <div
+                v-for="(message, index) in messages"
+                :key="index"
+                class="message-wrapper"
+            >
                 <!-- Loading indicator for AI -->
                 <expert-loading-dots
                     v-if="message.type === 'loading'"
@@ -47,7 +77,10 @@
                     :is-streaming="isStreaming(index)"
                 >
                     <!-- Rich resources content slot -->
-                    <template v-if="richContentComponentMap[message.kind]" #rich-content>
+                    <template
+                        v-if="richContentComponentMap[message.kind]"
+                        #rich-content
+                    >
                         <component
                             :is="richContentComponentMap[message.kind]"
                             :message="message"
@@ -75,19 +108,19 @@
 </template>
 
 <script>
-import { markRaw } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { markRaw } from "vue";
+import { mapActions, mapGetters, mapState } from "vuex";
 
-import ToggleButtonGroup from '../elements/ToggleButtonGroup.vue'
-import ExpertChatInput from './ExpertChatInput.vue'
-import ExpertChatMessage from './ExpertChatMessage.vue'
-import ExpertLoadingDots from './ExpertLoadingDots.vue'
-import ExpertRichGuide from './ExpertRichGuide.vue'
-import ExpertRichResources from './ExpertRichResources.vue'
-import ExpertToolCall from './ExpertToolCall.vue'
+import ToggleButtonGroup from "../elements/ToggleButtonGroup.vue";
+import ExpertChatInput from "./ExpertChatInput.vue";
+import ExpertChatMessage from "./ExpertChatMessage.vue";
+import ExpertLoadingDots from "./ExpertLoadingDots.vue";
+import ExpertRichGuide from "./ExpertRichGuide.vue";
+import ExpertRichResources from "./ExpertRichResources.vue";
+import ExpertToolCall from "./ExpertToolCall.vue";
 
 export default {
-    name: 'ExpertPanel',
+    name: "ExpertPanel",
     components: {
         ExpertChatInput,
         ExpertChatMessage,
@@ -95,207 +128,222 @@ export default {
         ExpertRichGuide,
         ExpertRichResources,
         ExpertToolCall,
-        ToggleButtonGroup
+        ToggleButtonGroup,
     },
     inject: {
         togglePinWithWidth: {
-            from: 'togglePinWithWidth',
-            default: () => () => {} // No-op function when not provided
-        }
+            from: "togglePinWithWidth",
+            default: () => () => {}, // No-op function when not provided
+        },
     },
-    data () {
+    data() {
         return {
             scrollCheckDebounce: null,
             richContentComponentMap: {
                 guide: markRaw(ExpertRichGuide),
                 resources: markRaw(ExpertRichResources),
-                tool_calls: markRaw(ExpertToolCall)
-            }
-        }
+                tool_calls: markRaw(ExpertToolCall),
+            },
+        };
     },
     computed: {
-        ...mapState('product/expert', [
-            'isGenerating',
-            'autoScrollEnabled',
-            'abortController',
-            'streamingTimer',
-            'streamingWordIndex',
-            'agentMode'
+        ...mapState("product/expert", [
+            "isGenerating",
+            "autoScrollEnabled",
+            "abortController",
+            "streamingTimer",
+            "streamingWordIndex",
+            "agentMode",
         ]),
-        ...mapGetters('product/expert', [
-            'messages',
-            'hasMessages',
-            'lastMessage',
-            'isSessionExpired',
-            'isFfAgent',
-            'isOperatorAgent',
-            'hasSelectedCapabilities'
+        ...mapGetters("product/expert", [
+            "messages",
+            "hasMessages",
+            "lastMessage",
+            "isSessionExpired",
+            "isFfAgent",
+            "isOperatorAgent",
+            "hasSelectedCapabilities",
         ]),
-        isPinned () {
-            return this.$store.state.ux.drawers.rightDrawer.fixed
+        isPinned() {
+            return this.$store.state.ux.drawers.rightDrawer.fixed;
         },
-        isEditorContext () {
+        isEditorContext() {
             // In editor context, the route name includes 'editor'
-            return this.$route?.name?.includes('editor') || false
+            return this.$route?.name?.includes("editor") || false;
         },
         agentModeWrapper: {
-            get () {
-                return this.agentMode
+            get() {
+                return this.agentMode;
             },
-            set (value) {
-                this.$store.dispatch('product/expert/setAgentMode', value)
-            }
+            set(value) {
+                this.$store.dispatch("product/expert/setAgentMode", value);
+            },
         },
-        agentModeButtons () {
+        agentModeButtons() {
             return [
-                { title: 'Support', value: 'ff-agent' },
-                { title: 'Research', value: 'operator-agent' }
-            ]
-        }
+                { title: "Support", value: "ff-agent" },
+                { title: "Research", value: "operator-agent" },
+            ];
+        },
     },
     watch: {
         messages: {
-            handler () {
+            handler() {
                 // Auto-scroll when new messages arrive
                 if (this.autoScrollEnabled) {
                     this.$nextTick(() => {
-                        this.scrollToBottom()
-                    })
+                        this.scrollToBottom();
+                    });
                 }
             },
-            deep: true
+            deep: true,
         },
         agentMode: {
-            handler (newMode, oldMode) {
+            handler(newMode, oldMode) {
                 // Fetch capabilities when switching to Research mode (only in editor context)
-                if (this.isEditorContext && newMode === 'operator-agent' && newMode !== oldMode) {
-                    this.$store.dispatch(`product/expert/${newMode}/getCapabilities`)
+                if (
+                    this.isEditorContext &&
+                    newMode === "operator-agent" &&
+                    newMode !== oldMode
+                ) {
+                    this.$store.dispatch(
+                        `product/expert/${newMode}/getCapabilities`,
+                    );
                 }
-            }
-        }
+            },
+        },
     },
-    mounted () {
+    mounted() {
         // Session ID is now auto-initialized in Vuex store when first message is sent
     },
-    beforeUnmount () {
+    beforeUnmount() {
         // Clean up timers
         if (this.streamingTimer) {
-            this.clearStreamingTimer()
+            this.clearStreamingTimer();
         }
         if (this.scrollCheckDebounce) {
-            clearTimeout(this.scrollCheckDebounce)
+            clearTimeout(this.scrollCheckDebounce);
         }
         // Clean up session timer
-        this.resetSessionTimer()
+        this.resetSessionTimer();
     },
     methods: {
-        ...mapActions('product/expert', [
-            'handleMessage',
-            'handleMessageResponse',
-            'addMessage',
-            'updateLastMessage',
-            'clearConversation',
-            'startOver',
-            'setAutoScroll',
-            'clearStreamingTimer',
-            'streamMessage',
-            'setStreamingWordIndex',
-            'setStreamingWords',
-            'setAbortController',
-            'resetSessionTimer'
+        ...mapActions("product/expert", [
+            "handleMessage",
+            "handleMessageResponse",
+            "addMessage",
+            "updateLastMessage",
+            "clearConversation",
+            "startOver",
+            "setAutoScroll",
+            "clearStreamingTimer",
+            "streamMessage",
+            "setStreamingWordIndex",
+            "setStreamingWords",
+            "setAbortController",
+            "resetSessionTimer",
         ]),
 
-        logMessageRender (message, index) {
+        logMessageRender(message, index) {
             console.log(`[DEBUG logMessageRender] Message ${index}:`, {
                 kind: message.kind,
                 hasKind: message.kind !== undefined,
-                hasMappingForKind: this.richContentComponentMap[message.kind] !== undefined,
-                richContentComponentMap: Object.keys(this.richContentComponentMap)
-            })
+                hasMappingForKind:
+                    this.richContentComponentMap[message.kind] !== undefined,
+                richContentComponentMap: Object.keys(
+                    this.richContentComponentMap,
+                ),
+            });
         },
 
-        async handleSendMessage (query) {
-            if (!query.trim()) return
+        async handleSendMessage(query) {
+            if (!query.trim()) return;
 
             // Auto-pin drawer on first message
             if (!this.isPinned && this.messages.length === 0) {
-                this.togglePinWithWidth()
+                this.togglePinWithWidth();
             }
 
             // Call Vuex action to handle API logic
             const result = await this.handleMessage({
                 query,
-                instanceId: null
-            })
+                instanceId: null,
+            });
 
             // Handle UI-specific processing if successful
-            await this.handleMessageResponse(result)
+            await this.handleMessageResponse(result);
 
             // Errors are already handled in the Vuex action
         },
 
-        handleStopGeneration () {
+        handleStopGeneration() {
             if (this.abortController) {
-                this.abortController.abort()
-                this.setAbortController(null)
+                this.abortController.abort();
+                this.setAbortController(null);
             }
 
             // Stop streaming effect
             if (this.streamingTimer) {
-                this.clearStreamingTimer()
+                this.clearStreamingTimer();
             }
 
             // Complete the streaming message
             if (this.streamingWordIndex >= 0 && this.lastMessage?.isStreaming) {
-                this.lastMessage.isStreaming = false
-                this.setStreamingWordIndex(-1)
-                this.setStreamingWords([])
+                this.lastMessage.isStreaming = false;
+                this.setStreamingWordIndex(-1);
+                this.setStreamingWords([]);
             }
         },
 
-        handleStartOver () {
+        handleStartOver() {
             // Confirm before clearing
             if (this.hasMessages) {
-                this.startOver()
+                this.startOver();
             }
         },
 
-        handleScroll () {
+        handleScroll() {
             // Debounce scroll detection
             if (this.scrollCheckDebounce) {
-                clearTimeout(this.scrollCheckDebounce)
+                clearTimeout(this.scrollCheckDebounce);
             }
 
             this.scrollCheckDebounce = setTimeout(() => {
-                const container = this.$refs.messagesContainer
-                if (!container) return
+                const container = this.$refs.messagesContainer;
+                if (!container) return;
 
                 // Check if user has scrolled away from bottom
-                const scrolledToBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100
+                const scrolledToBottom =
+                    container.scrollHeight -
+                        container.scrollTop -
+                        container.clientHeight <
+                    100;
 
                 if (scrolledToBottom && !this.autoScrollEnabled) {
                     // Re-enable auto-scroll if user scrolls back to bottom
-                    this.setAutoScroll(true)
+                    this.setAutoScroll(true);
                 } else if (!scrolledToBottom && this.autoScrollEnabled) {
                     // Disable auto-scroll if user scrolls up
-                    this.setAutoScroll(false)
+                    this.setAutoScroll(false);
                 }
-            }, 100)
+            }, 100);
         },
 
-        scrollToBottom () {
-            const anchor = this.$refs.scrollAnchor
+        scrollToBottom() {
+            const anchor = this.$refs.scrollAnchor;
             if (anchor) {
-                anchor.scrollIntoView({ behavior: 'smooth' })
+                anchor.scrollIntoView({ behavior: "smooth" });
             }
         },
 
-        isStreaming (index) {
-            return index === this.messages.length - 1 &&
-                   this.messages[index]?.isStreaming === true
-        }
-    }
-}
+        isStreaming(index) {
+            return (
+                index === this.messages.length - 1 &&
+                this.messages[index]?.isStreaming === true
+            );
+        },
+    },
+};
 </script>
 
 <style lang="scss" scoped>
@@ -335,13 +383,13 @@ export default {
 }
 
 .info-banner {
-    background-color: #EEF2FF; // indigo-100
+    background-color: #eef2ff; // indigo-100
     border-radius: 0.5rem;
     margin-bottom: 1.5rem;
     padding: 0.75rem 1rem;
 
     .info-text {
-        color: #4338CA; // indigo-700
+        color: #4338ca; // indigo-700
         font-size: 0.875rem;
         margin: 0;
         line-height: 1.5;
@@ -352,7 +400,7 @@ export default {
         text-decoration: underline;
 
         &:hover {
-            color: #3730A3; // indigo-800
+            color: #3730a3; // indigo-800
         }
     }
 }
