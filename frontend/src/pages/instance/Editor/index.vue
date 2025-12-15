@@ -83,7 +83,7 @@ import ResizeBar from './components/drawer/ResizeBar.vue'
 
 // Drawer size constraints
 const DRAWER_MIN_WIDTH = 310 // Minimum drawer width in pixels
-const DRAWER_DEFAULT_WIDTH = 400 // Default drawer width in pixels
+const DRAWER_DEFAULT_WIDTH = 550 // Default drawer width in pixels
 const DRAWER_MAX_VIEWPORT_MARGIN = 200 // Space to preserve when drawer is at max width
 const DRAWER_MAX_WIDTH_RATIO = 0.9 // Maximum drawer width as percentage of viewport (desktop)
 const DRAWER_MOBILE_BREAKPOINT = 640 // Viewport width below which mobile layout applies
