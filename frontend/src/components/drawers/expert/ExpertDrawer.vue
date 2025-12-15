@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-expert-drawer" data-el="expert-drawer">
+    <div ref="drawer" class="ff-expert-drawer" data-el="expert-drawer" tabindex="-1">
         <div class="header">
             <div class="flex items-center gap-1.5">
                 <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 flex-shrink-0">
@@ -78,6 +78,12 @@ export default {
             }
         }
     },
+    mounted () {
+        // Wait for drawer slide-in animation to complete (300ms) before focusing
+        setTimeout(() => {
+            this.$refs.drawer?.focus()
+        }, 350)
+    },
     watch: {
         // watch agent mode state and dispatch an MCP Features (capabilities) fetch when it changes
         agentMode: {
@@ -108,6 +114,10 @@ export default {
     flex-direction: column;
     height: 100%;
     overflow: hidden; // Prevent drawer from scrolling
+
+    &:focus {
+        outline: none;
+    }
 
     .header {
         padding: 1rem 1.5rem;
@@ -187,6 +197,11 @@ export default {
                 &:hover {
                     cursor: pointer;
                     background: $ff-grey-100;
+                }
+
+                &:focus-visible {
+                    outline: 2px solid $ff-indigo-700;
+                    outline-offset: 1px;
                 }
 
                 &.pin-button.is-pinned {
