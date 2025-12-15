@@ -132,10 +132,6 @@ export default {
         .agent-mode {
             flex: 0 0 auto;
 
-            :deep(.inner-wrapper) {
-                gap: 0;
-            }
-
             :deep(.ff-btn) {
                 min-width: 5.5rem;
                 justify-content: center;
