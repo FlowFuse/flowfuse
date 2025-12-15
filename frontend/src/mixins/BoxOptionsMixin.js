@@ -3,12 +3,25 @@ export default {
         optionsOffsetTop: {
             type: Number,
             default: 0
+        },
+        openAbove: {
+            type: Boolean,
+            default: false
+        },
+        minOptionsWidth: {
+            type: Number,
+            default: 0
+        },
+        alignRight: {
+            type: Boolean,
+            default: false
         }
     },
     data () {
         return {
             open: false,
-            position: { top: 0, left: 0, width: 0 }
+            position: { top: 0, left: 0, width: 0 },
+            optionsHeight: 0
         }
     },
     mounted () {
@@ -25,10 +38,17 @@ export default {
         updatePosition () {
             if (!this.$refs.trigger || !this.$refs.trigger.$el) return
             const rect = this.$refs.trigger.$el.getBoundingClientRect()
+            // Estimate options height (max-height from CSS is 14rem = 224px)
+            const estimatedOptionsHeight = 224
+            const width = Math.max(rect.width, this.minOptionsWidth)
             this.position = {
-                top: rect.bottom + window.scrollY + this.optionsOffsetTop,
-                left: rect.left + window.scrollX,
-                width: rect.width
+                top: this.openAbove
+                    ? rect.top + window.scrollY - estimatedOptionsHeight + this.optionsOffsetTop
+                    : rect.bottom + window.scrollY + this.optionsOffsetTop,
+                left: this.alignRight
+                    ? rect.right + window.scrollX - width
+                    : rect.left + window.scrollX,
+                width
             }
         },
         handleClickOutside (e) {

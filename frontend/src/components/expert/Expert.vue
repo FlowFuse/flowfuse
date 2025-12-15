@@ -1,12 +1,9 @@
 <template>
     <div class="ff-expert">
-        <capabilities-selector v-if="isOperatorAgent" />
-
         <!-- Messages Container -->
         <div
             ref="messagesContainer"
             class="messages-container pt-10"
-            :class="{'!pt-16': isOperatorAgent}"
             @scroll="handleScroll"
         >
             <!-- Info Banner -->
@@ -57,6 +54,7 @@
             :is-generating="isGenerating"
             :has-messages="hasMessages"
             :is-session-expired="isSessionExpired"
+            :is-operator-agent="isOperatorAgent"
             @send="handleSendMessage"
             @stop="handleStopGeneration"
             @start-over="handleStartOver"
@@ -74,12 +72,10 @@ import ExpertLoadingDots from './ExpertLoadingDots.vue'
 import ExpertRichGuide from './ExpertRichGuide.vue'
 import ExpertRichResources from './ExpertRichResources.vue'
 import ExpertToolCall from './ExpertToolCall.vue'
-import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
 
 export default {
     name: 'ExpertPanel',
     components: {
-        CapabilitiesSelector,
         ExpertChatInput,
         ExpertChatMessage,
         ExpertLoadingDots,

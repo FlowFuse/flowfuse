@@ -4,7 +4,7 @@
             <span>{{ title }}:</span>
         </div>
         <div class="toggle">
-            <div class="inner-wrapper">
+            <div class="inner-wrapper" :style="{ '--button-count': buttons.length }">
                 <div class="indicator" :style="indicatorStyle" />
                 <template v-if="usesLinks">
                     <router-link
@@ -105,8 +105,8 @@ export default {
         border-radius: 5px;
 
         .inner-wrapper {
-            display: flex;
-            gap: 0;
+            display: grid;
+            grid-template-columns: repeat(var(--button-count), 1fr);
             border-radius: 4px;
             border: 1px solid transparent;
             position: relative;
@@ -128,7 +128,6 @@ export default {
                 transition: color 0.2s ease;
                 position: relative;
                 z-index: 1;
-                flex: 1;
                 text-align: center;
 
                 &.router-link-active {
@@ -142,7 +141,12 @@ export default {
                 border-color: transparent;
                 position: relative;
                 z-index: 1;
-                flex: 1;
+                border-radius: 4px;
+
+                &:focus-visible {
+                    outline: 2px solid $ff-indigo-700;
+                    outline-offset: 1px;
+                }
 
                 &.active {
                     color: $ff-white;
