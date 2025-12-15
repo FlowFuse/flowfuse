@@ -44,7 +44,7 @@
 import { mapActions, mapState } from 'vuex'
 
 const DRAWER_MIN_WIDTH = 310
-const DRAWER_DEFAULT_WIDTH = 400
+const DRAWER_DEFAULT_WIDTH = 550
 const DRAWER_MAX_VIEWPORT_MARGIN = 200
 const DRAWER_MAX_WIDTH_RATIO = 0.9
 const DRAWER_MAX_PINNED_WIDTH_RATIO = 0.5
