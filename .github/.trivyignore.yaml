@@ -1,0 +1,9 @@
+# Trivy ignore file
+# Documentation: https://aquasecurity.github.io/trivy/latest/docs/configuration/filtering/#by-finding-ids
+
+# Ignore development license example in licensing module
+# This is a JWT token used for development/testing purposes only
+secrets:
+  - id: jwt-token
+    paths:
+      - "forge/licensing/index.js"
