@@ -63,7 +63,7 @@ export default {
         agentModeButtons () {
             return [
                 { title: 'Support', value: 'ff-agent' },
-                { title: 'Research', value: 'operator-agent' }
+                { title: 'Insights', value: 'operator-agent' }
             ]
         },
         isPinned () {

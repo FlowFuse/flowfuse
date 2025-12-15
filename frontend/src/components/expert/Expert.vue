@@ -37,7 +37,7 @@
                     >, and more.
                 </p>
             </div>
-            <!-- Research mode info banner -->
+            <!-- Insights mode info banner -->
             <div v-if="isOperatorAgent" class="info-banner">
                 <p class="info-text">
                     AI agent can access
@@ -182,7 +182,7 @@ export default {
         agentModeButtons() {
             return [
                 { title: "Support", value: "ff-agent" },
-                { title: "Research", value: "operator-agent" },
+                { title: "Insights", value: "operator-agent" },
             ];
         },
     },
@@ -200,7 +200,7 @@ export default {
         },
         agentMode: {
             handler(newMode, oldMode) {
-                // Fetch capabilities when switching to Research mode (only in editor context)
+                // Fetch capabilities when switching to Insights mode (only in editor context)
                 if (
                     this.isEditorContext &&
                     newMode === "operator-agent" &&
