@@ -26,6 +26,12 @@
                     :variant="message.variant || 'default'"
                 />
 
+                <!-- Tool calls - rendered without message bubble -->
+                <expert-tool-call
+                    v-else-if="message.kind === 'tool_calls'"
+                    :message="message"
+                />
+
                 <!-- Regular message -->
                 <expert-chat-message
                     v-else
@@ -67,6 +73,7 @@ import ExpertChatMessage from './ExpertChatMessage.vue'
 import ExpertLoadingDots from './ExpertLoadingDots.vue'
 import ExpertRichGuide from './ExpertRichGuide.vue'
 import ExpertRichResources from './ExpertRichResources.vue'
+import ExpertToolCall from './ExpertToolCall.vue'
 import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
 
 export default {
@@ -77,7 +84,8 @@ export default {
         ExpertChatMessage,
         ExpertLoadingDots,
         ExpertRichGuide,
-        ExpertRichResources
+        ExpertRichResources,
+        ExpertToolCall
     },
     inject: {
         togglePinWithWidth: {
@@ -90,7 +98,8 @@ export default {
             scrollCheckDebounce: null,
             richContentComponentMap: {
                 guide: markRaw(ExpertRichGuide),
-                resources: markRaw(ExpertRichResources)
+                resources: markRaw(ExpertRichResources),
+                tool_calls: markRaw(ExpertToolCall)
             }
         }
     },
@@ -157,6 +166,15 @@ export default {
             'setAbortController',
             'resetSessionTimer'
         ]),
+
+        logMessageRender (message, index) {
+            console.log(`[DEBUG logMessageRender] Message ${index}:`, {
+                kind: message.kind,
+                hasKind: message.kind !== undefined,
+                hasMappingForKind: this.richContentComponentMap[message.kind] !== undefined,
+                richContentComponentMap: Object.keys(this.richContentComponentMap)
+            })
+        },
 
         async handleSendMessage (query) {
             if (!query.trim()) return
