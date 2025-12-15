@@ -1,6 +1,6 @@
 <template>
     <div class="capabilities-selector">
-        <ff-listbox v-model="capabilitiesHandler" :options="capabilities" return-model multiple :options-offset-top="5" label-key="name">
+        <ff-listbox v-model="capabilitiesHandler" :options="capabilities" return-model multiple :options-offset-top="5" label-key="name" value-key="mcpServerName">
             <template #options="{options}">
                 <ListboxOption
                     v-for="option in options"
@@ -23,7 +23,7 @@
                             <div class="flex flex-col gap-1 flex-1">
                                 <p class="truncate self-start flex justify-between w-full" style="line-height: 16px;">
                                     <span class="truncate">{{ option.mcpServerName }}</span>
-                                    <span v-if="option.toolCount" class="text-gray-400 text-sm">{{ option.toolCount }}</span>
+                                    <span class="text-gray-400 text-sm">{{ option.toolCount }}</span>
                                 </p>
                                 <p v-if="option.title" class="text-gray-400 text-sm">{{ option.title }}</p>
                             </div>
@@ -79,6 +79,8 @@ export default {
     border-radius: $ff-unit-sm;
 
     .ff-listbox {
+        min-width: 300px;
+
         button {
             padding: 5px 10px;
             border: none;
@@ -107,10 +109,6 @@ export default {
                     }
                 }
             }
-        }
-
-        .ff-options {
-            margin-top: 150px;
         }
     }
 }
