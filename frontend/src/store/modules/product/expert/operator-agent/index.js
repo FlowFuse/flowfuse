@@ -57,27 +57,26 @@ const actions = {
     },
     async getCapabilities ({ commit, rootGetters, state }) {
         // TODO: Remove mock capabilities - for testing ExpertToolCall component
-        const mockCapabilities = [
-            {
-                name: 'Facility 7A - sensor5', // Required for listbox label-key
-                instance: 'mock-instance-1',
-                instanceType: 'instance',
-                instanceName: 'Facility 7A',
-                mcpServerName: 'sensor5',
-                mcpEndpoint: '/mcp',
-                mcpProtocol: 'http',
-                prompts: [],
-                resources: [{ name: 'sensor-data', description: 'Read sensor data' }],
-                tools: [{ name: 'getValue', description: 'Get current sensor value' }],
-                resourceTemplates: []
-            }
-        ]
-        console.log('[MOCK] Setting capabilities:', mockCapabilities)
-        commit('SET_CAPABILITIES', mockCapabilities)
-        return Promise.resolve()
+        // const mockCapabilities = [
+        //     {
+        //         name: 'Facility 7A - sensor5', // Required for listbox label-key
+        //         instance: 'mock-instance-1',
+        //         instanceType: 'instance',
+        //         instanceName: 'Facility 7A',
+        //         mcpServerName: 'sensor5',
+        //         mcpEndpoint: '/mcp',
+        //         mcpProtocol: 'http',
+        //         prompts: [],
+        //         resources: [{ name: 'sensor-data', description: 'Read sensor data' }],
+        //         tools: [{ name: 'getValue', description: 'Get current sensor value' }],
+        //         resourceTemplates: []
+        //     }
+        // ]
+        // console.log('[MOCK] Setting capabilities:', mockCapabilities)
+        // commit('SET_CAPABILITIES', mockCapabilities)
+        // return Promise.resolve()
         // END mock capabilities
 
-        /* Original code - uncomment when backend is ready:
         const payload = {
             context: {
                 team: rootGetters['account/team'].id
@@ -87,7 +86,6 @@ const actions = {
             .then(data => {
                 commit('SET_CAPABILITIES', data.servers || [])
             })
-        */
     }
 }
 

@@ -108,7 +108,7 @@ export default {
         valueKey: {
             required: false,
             default: 'value',
-            type: String
+            type: [String, Array]
         },
         optionTitleKey: {
             required: false,
@@ -137,11 +137,15 @@ export default {
                     const arr = Array.isArray(value) ? value : (value == null ? [] : [value])
                     this.$emit(
                         'update:modelValue',
-                        this.returnModel ? arr : arr.map(v => v?.[this.valueKey]).filter(v => v !== undefined)
+                        this.returnModel
+                            ? arr
+                            : arr
+                                .map(v => this.extractModelValueFromOption(v))
+                                .filter(v => v !== undefined)
                     )
                     return
                 }
-                this.$emit('update:modelValue', !this.returnModel ? value?.[this.valueKey] : value)
+                this.$emit('update:modelValue', this.returnModel ? value : this.extractModelValueFromOption(value))
             }
         },
         selectedOption () {
@@ -150,7 +154,8 @@ export default {
             }
 
             return this.options.find(opt => {
-                return opt[this.valueKey] === (!this.returnModel ? this.value : this.value?.[this.valueKey])
+                const modelComparable = this.returnModel ? this.extractModelValueFromOption(this.value) : this.value
+                return this.compareByValueKey(opt, modelComparable)
             })
         },
         selectedLabel () {
@@ -166,12 +171,38 @@ export default {
         }
     },
     methods: {
-        compareOptions (modelValue, optionValue) {
-            if (!this.returnModel) {
-                return modelValue === optionValue
+        extractModelValueFromOption (option) {
+            if (!option) return undefined
+
+            if (Array.isArray(this.valueKey)) {
+                // For composite keys, emit an object containing just the key parts
+                const out = {}
+                for (const k of this.valueKey) {
+                    out[k] = option?.[k]
+                }
+                return out
             }
 
-            return modelValue?.[this.valueKey] === optionValue?.[this.valueKey]
+            return option?.[this.valueKey]
+        },
+        compareByValueKey (optionLike, modelComparable) {
+            if (!optionLike) return false
+
+            if (Array.isArray(this.valueKey)) {
+                if (!modelComparable || typeof modelComparable !== 'object') return false
+                return this.valueKey.every(k => optionLike?.[k] === modelComparable?.[k])
+            }
+
+            return optionLike?.[this.valueKey] === modelComparable
+        },
+        compareOptions (modelValue, optionValue) {
+            if (!this.returnModel) {
+                // modelValue is what v-model stores (primitive or composite object)
+                return this.compareByValueKey(optionValue, modelValue)
+            }
+
+            // returnModel=true => modelValue/optionValue are full option objects
+            return this.compareByValueKey(optionValue, this.extractModelValueFromOption(modelValue))
         }
     }
 }

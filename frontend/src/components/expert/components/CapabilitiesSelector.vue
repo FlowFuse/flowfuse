@@ -1,6 +1,10 @@
 <template>
     <div class="capabilities-selector">
-        <ff-listbox v-model="capabilitiesHandler" :options="capabilities" return-model multiple :options-offset-top="5" label-key="name">
+        <ff-listbox
+            v-model="capabilitiesHandler" :options="capabilities"
+            return-model multiple :options-offset-top="5" label-key="name"
+            :value-key="['instance', 'mcpServerUrl']"
+        >
             <template #options="{options}">
                 <ListboxOption
                     v-for="option in options"
