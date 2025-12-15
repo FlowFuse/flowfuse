@@ -78,12 +78,6 @@ export default {
             }
         }
     },
-    mounted () {
-        // Wait for drawer slide-in animation to complete (300ms) before focusing
-        setTimeout(() => {
-            this.$refs.drawer?.focus()
-        }, 350)
-    },
     watch: {
         // watch agent mode state and dispatch an MCP Features (capabilities) fetch when it changes
         agentMode: {
@@ -94,6 +88,12 @@ export default {
                 }
             }
         }
+    },
+    mounted () {
+        // Wait for drawer slide-in animation to complete (300ms) before focusing
+        setTimeout(() => {
+            this.$refs.drawer?.focus()
+        }, 350)
     },
     methods: {
         ...mapActions('ux/drawers', ['closeRightDrawer']),

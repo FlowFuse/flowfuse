@@ -36,8 +36,7 @@
                                 <span
                                     class="truncate"
                                     style="line-height: 16px"
-                                    >{{ option.mcpServerName }}</span
-                                >
+                                >{{ option.mcpServerName }}</span>
                                 <p
                                     v-if="option.title"
                                     class="text-gray-400 text-sm truncate"
@@ -46,9 +45,8 @@
                                 </p>
                             </div>
                             <span class="tool-count-badge self-start" title="Tools">{{
-                                    option.toolCount
-                                }}</span
-                            >
+                                option.toolCount
+                            }}</span>
                         </div>
                     </li>
                 </ListboxOption>
@@ -58,40 +56,40 @@
 </template>
 
 <script>
-import { ListboxOption } from "@headlessui/vue";
-import { mapActions, mapGetters, mapState } from "vuex";
+import { ListboxOption } from '@headlessui/vue'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
-import { OPERATOR_AGENT } from "../../../store/modules/product/expert/agents.js";
-import FfCheckbox from "../../../ui-components/components/form/Checkbox.vue";
-import FfListbox from "../../../ui-components/components/form/ListBox.vue";
+import { OPERATOR_AGENT } from '../../../store/modules/product/expert/agents.js'
+import FfCheckbox from '../../../ui-components/components/form/Checkbox.vue'
+import FfListbox from '../../../ui-components/components/form/ListBox.vue'
 
 export default {
-    name: "CapabilitiesSelector",
+    name: 'CapabilitiesSelector',
     components: {
         FfCheckbox,
         ListboxOption,
-        FfListbox,
+        FfListbox
     },
     computed: {
         ...mapState(`product/expert/${OPERATOR_AGENT}`, [
-            "selectedCapabilities",
+            'selectedCapabilities'
         ]),
-        ...mapGetters(`product/expert/${OPERATOR_AGENT}`, ["capabilities"]),
+        ...mapGetters(`product/expert/${OPERATOR_AGENT}`, ['capabilities']),
         capabilitiesHandler: {
-            get() {
-                return this.selectedCapabilities;
+            get () {
+                return this.selectedCapabilities
             },
-            set(value) {
-                this.setSelectedCapabilities(value);
-            },
-        },
+            set (value) {
+                this.setSelectedCapabilities(value)
+            }
+        }
     },
     methods: {
         ...mapActions(`product/expert/${OPERATOR_AGENT}`, [
-            "setSelectedCapabilities",
-        ]),
-    },
-};
+            'setSelectedCapabilities'
+        ])
+    }
+}
 </script>
 
 <style lang="scss">
