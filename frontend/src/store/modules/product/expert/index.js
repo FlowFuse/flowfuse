@@ -48,7 +48,8 @@ const getters = {
             : null,
     isSessionExpired: (state) => state[state.agentMode].sessionExpiredShown,
     isFfAgent: (state) => state.agentMode === FF_AGENT,
-    isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT
+    isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT,
+    hasSelectedCapabilities: (state) => state[OPERATOR_AGENT].selectedCapabilities?.length > 0
 }
 
 const mutations = {

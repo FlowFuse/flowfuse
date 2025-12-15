@@ -38,7 +38,7 @@
             v-model="inputText"
             class="chat-input"
             :placeholder="placeholderText"
-            :disabled="isGenerating"
+            :disabled="isInputDisabled"
             @keydown="handleKeydown"
         />
     </div>
@@ -68,6 +68,10 @@ export default {
         isOperatorAgent: {
             type: Boolean,
             default: false
+        },
+        hasSelectedCapabilities: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['send', 'stop', 'start-over'],
@@ -77,10 +81,18 @@ export default {
         }
     },
     computed: {
+        isInputDisabled () {
+            if (this.isGenerating) return true
+            if (this.isOperatorAgent && !this.hasSelectedCapabilities) return true
+            return false
+        },
         canSend () {
-            return this.inputText.trim().length > 0 && !this.isGenerating
+            return this.inputText.trim().length > 0 && !this.isInputDisabled
         },
         placeholderText () {
+            if (this.isOperatorAgent && !this.hasSelectedCapabilities) {
+                return 'Select a resource to get started'
+            }
             return this.isOperatorAgent
                 ? 'Tell us what you want to know about'
                 : 'Tell us what you need help with'

@@ -66,6 +66,7 @@
             :has-messages="hasMessages"
             :is-session-expired="isSessionExpired"
             :is-operator-agent="isOperatorAgent"
+            :has-selected-capabilities="hasSelectedCapabilities"
             @send="handleSendMessage"
             @stop="handleStopGeneration"
             @start-over="handleStartOver"
@@ -127,7 +128,8 @@ export default {
             'lastMessage',
             'isSessionExpired',
             'isFfAgent',
-            'isOperatorAgent'
+            'isOperatorAgent',
+            'hasSelectedCapabilities'
         ]),
         isPinned () {
             return this.$store.state.ux.drawers.rightDrawer.fixed
