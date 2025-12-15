@@ -1,10 +1,9 @@
 <template>
     <div class="capabilities-selector">
-        <ff-listbox
-            v-model="capabilitiesHandler" :options="capabilities"
-            return-model multiple :options-offset-top="5" label-key="name"
-            :value-key="['instance', 'mcpServerUrl']"
-        >
+        <ff-listbox v-model="capabilitiesHandler" :options="capabilities"
+                    return-model multiple label-key="name" :value-key="['instance', 'mcpServerUrl']"
+                    placeholder="Resources" open-above
+                    :min-options-width="280" align-right>
             <template #options="{options}">
                 <ListboxOption
                     v-for="option in options"
@@ -22,12 +21,12 @@
                             :class="{ active }" data-click-exclude="right-drawer"
                         >
                             <div>
-                                <ff-checkbox :modelValue="selected" />
+                                <ff-checkbox :modelValue="selected"/>
                             </div>
                             <div class="flex flex-col gap-1 flex-1">
                                 <p class="truncate self-start flex justify-between w-full" style="line-height: 16px;">
                                     <span class="truncate">{{ option.mcpServerName }}</span>
-                                    <span v-if="option.toolCount" class="text-gray-400 text-sm">{{ option.toolCount }}</span>
+                                    <span class="text-gray-400 text-sm">{{ option.toolCount }}</span>
                                 </p>
                                 <p v-if="option.title" class="text-gray-400 text-sm">{{ option.title }}</p>
                             </div>
@@ -74,25 +73,27 @@ export default {
 
 <style lang="scss">
 .capabilities-selector {
-    position: absolute;
-    left: 50%;
-    top: 15px;
-    transform: translateX(-50%);
-    background: $ff-white;
-    border: 1px solid $ff-indigo-700;
-    border-radius: $ff-unit-sm;
-
     .ff-listbox {
-        button {
-            padding: 5px 10px;
-            border: none;
-            color: $ff-indigo-700;
-            font-weight: bold;
+        min-width: auto;
+
+        button.ff-button {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #C7D2FE; // indigo-300 to match other buttons
+            border-radius: 9999px; // pill shape
+            background: $ff-white;
+            color: inherit;
+            font-size: 0.875rem;
 
             .icon {
                 svg {
-                    color: $ff-indigo-700;
+                    color: inherit;
+                    width: 1.25rem;
+                    height: 1.25rem;
                 }
+            }
+
+            &:hover {
+                background-color: #F9FAFB; // gray-50
             }
 
             &:focus, &.active {
@@ -101,9 +102,11 @@ export default {
         }
 
         &[data-headlessui-state="open"] {
-            button {
-                background: $ff-indigo-800;
+            button.ff-button {
+                background: $ff-indigo-600;
+                border-color: $ff-indigo-600;
                 color: $ff-white;
+                border-radius: 9999px; // keep pill shape when open
 
                 .icon {
                     svg {
@@ -111,10 +114,6 @@ export default {
                     }
                 }
             }
-        }
-
-        .ff-options {
-            margin-top: 150px;
         }
     }
 }

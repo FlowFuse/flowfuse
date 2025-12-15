@@ -11,6 +11,7 @@
                 Start over
             </button>
             <div class="right-buttons">
+                <capabilities-selector v-if="isOperatorAgent" />
                 <button
                     v-if="isGenerating && !isSessionExpired"
                     type="button"
@@ -36,7 +37,7 @@
             ref="textarea"
             v-model="inputText"
             class="chat-input"
-            placeholder="Tell us what you need help with"
+            :placeholder="placeholderText"
             :disabled="isGenerating"
             @keydown="handleKeydown"
         />
@@ -44,8 +45,13 @@
 </template>
 
 <script>
+import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
+
 export default {
     name: 'ExpertChatInput',
+    components: {
+        CapabilitiesSelector
+    },
     props: {
         isGenerating: {
             type: Boolean,
@@ -56,6 +62,10 @@ export default {
             default: false
         },
         isSessionExpired: {
+            type: Boolean,
+            default: false
+        },
+        isOperatorAgent: {
             type: Boolean,
             default: false
         }
@@ -69,6 +79,11 @@ export default {
     computed: {
         canSend () {
             return this.inputText.trim().length > 0 && !this.isGenerating
+        },
+        placeholderText () {
+            return this.isOperatorAgent
+                ? 'Tell us what you want to know about'
+                : 'Tell us what you need help with'
         }
     },
     methods: {

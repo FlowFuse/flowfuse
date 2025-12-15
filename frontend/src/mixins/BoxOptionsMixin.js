@@ -3,12 +3,24 @@ export default {
         optionsOffsetTop: {
             type: Number,
             default: 0
+        },
+        openAbove: {
+            type: Boolean,
+            default: false
+        },
+        minOptionsWidth: {
+            type: Number,
+            default: 0
+        },
+        alignRight: {
+            type: Boolean,
+            default: false
         }
     },
     data () {
         return {
             open: false,
-            position: { top: 0, left: 0, width: 0 }
+            position: { top: 0, left: 0, width: 0, transform: '' }
         }
     },
     mounted () {
@@ -25,10 +37,17 @@ export default {
         updatePosition () {
             if (!this.$refs.trigger || !this.$refs.trigger.$el) return
             const rect = this.$refs.trigger.$el.getBoundingClientRect()
+            const width = Math.max(rect.width, this.minOptionsWidth)
+            const gap = 4 // small gap between dropdown and trigger
             this.position = {
-                top: rect.bottom + window.scrollY + this.optionsOffsetTop,
-                left: rect.left + window.scrollX,
-                width: rect.width
+                top: this.openAbove
+                    ? rect.top + window.scrollY - gap + this.optionsOffsetTop
+                    : rect.bottom + window.scrollY + this.optionsOffsetTop,
+                left: this.alignRight
+                    ? rect.right + window.scrollX - width
+                    : rect.left + window.scrollX,
+                width,
+                transform: this.openAbove ? 'translateY(-100%)' : ''
             }
         },
         handleClickOutside (e) {
