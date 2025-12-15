@@ -29,7 +29,8 @@
                         :style="{
                             top: position.top + 'px',
                             left: position.left + 'px',
-                            width: position.width + 'px'
+                            width: position.width + 'px',
+                            transform: position.transform || ''
                         }"
                     >
                         <slot name="options" :options="options">
@@ -220,7 +221,7 @@ export default {
 .ff-options {
     background: $ff-grey-50;
     box-shadow: 0 6px 9px 0 #00000038;
-    max-height: 14rem;
+    max-height: 28rem;
     z-index: 200;
     overflow-y: auto;
     padding: 0;
