@@ -198,7 +198,7 @@ module.exports = async function (app) {
             const mcpServers = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
 
             for (const server of mcpServers) {
-                const { name, protocol, endpointRoute, TeamId, Project, Device } = server
+                const { name, protocol, endpointRoute, TeamId, Project, Device, mcpName, mcpTitle, mcpVersion, description } = server
                 if (TeamId !== request.team.id) {
                     // shouldn't happen due to byTeam filter, but just in case
                     continue
@@ -229,7 +229,11 @@ module.exports = async function (app) {
                     instanceUrl: owner.url,
                     mcpServerName: name,
                     mcpEndpoint: endpointRoute,
-                    mcpProtocol: protocol
+                    mcpProtocol: protocol,
+                    mcpName,
+                    mcpTitle,
+                    mcpVersion,
+                    description
                 })
             }
             if (runningInstancesWithMCPServer.length === 0) {
