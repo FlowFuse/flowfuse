@@ -75,9 +75,12 @@ describe('MCP Server Registration', function () {
         result.should.have.property('servers')
         result.servers.should.be.an.Array()
         result.servers.should.have.length(1)
+        result.servers[0].should.have.property('id')
+        result.servers[0].id.should.be.a.String() // ensure id is string (hashid) not a number
         result.servers[0].should.have.property('name', 'foo')
         result.servers[0].should.have.property('endpointRoute', '/mcp')
         result.servers[0].should.have.property('protocol', 'http')
+        result.servers[0].should.have.property('teamId', app.team.hashid)
     })
     it('should delete MCP entry', async function () {
         const { token } = await app.instance.refreshAuthTokens()
