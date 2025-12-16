@@ -93,7 +93,11 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     endpointRoute: { type: 'string' },
-                    protocol: { type: 'string' }
+                    protocol: { type: 'string' },
+                    mcpServerName: { type: 'string' },
+                    mcpServerTitle: { type: 'string' },
+                    version: { type: 'string' },
+                    description: { type: 'string' }
                 }
             },
             response: {
@@ -111,10 +115,16 @@ module.exports = async function (app) {
                 targetType: request.params.type,
                 targetId: request.params.typeId,
                 nodeId: request.params.nodeId,
-                ...request.body,
+                mcpName: request.body.mcpServerName,
+                mcpTitle: request.body.mcpServerTitle,
+                mcpVersion: request.body.version,
+                description: request.body.description,
+                name: request.body.name,
+                endpointRoute: request.body.endpointRoute,
+                protocol: request.body.protocol,
                 TeamId: request.team.id
             }, {
-                fields: ['name', 'endpointRoute'],
+                fields: ['name', 'endpointRoute', 'mcpName', 'mcpTitle', 'mcpVersion', 'description'],
                 conflictFields: ['TeamId', 'targetType', 'nodeId', 'targetId']
             })
         } catch (err) {

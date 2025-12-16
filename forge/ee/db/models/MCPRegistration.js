@@ -11,7 +11,11 @@ module.exports = {
         targetType: { type: DataTypes.STRING, allowNull: false },
         targetId: { type: DataTypes.STRING, allowNull: false },
         nodeId: { type: DataTypes.STRING, allowNull: false },
-        endpointRoute: { type: DataTypes.STRING, allowNull: false }
+        endpointRoute: { type: DataTypes.STRING, allowNull: false },
+        mcpName: { type: DataTypes.STRING, allowNull: false },
+        mcpTitle: { type: DataTypes.STRING, allowNull: false },
+        mcpVersion: { type: DataTypes.STRING, allowNull: false },
+        description: { type: DataTypes.TEXT, allowNull: false }
     },
     indexes: [
         { name: 'mcp_team_type_unique', fields: ['targetId', 'targetType', 'nodeId', 'TeamId'], unique: true }
