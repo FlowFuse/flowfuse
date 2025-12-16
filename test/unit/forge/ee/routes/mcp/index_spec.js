@@ -47,7 +47,11 @@ describe('MCP Server Registration', function () {
             body: {
                 name: 'foo',
                 protocol: 'http',
-                endpointRoute: '/mcp'
+                endpointRoute: '/mcp',
+                mcpName: 'flowfuse-mcp',
+                mcpTitle: 'FlowFuse MCP',
+                mcpVersion: '1.2.3',
+                description: 'Test MCP registration entry'
             }
         })
         response.statusCode.should.equal(200)
@@ -57,6 +61,38 @@ describe('MCP Server Registration', function () {
         mcpServer.name.should.equal('foo')
         mcpServer.protocol.should.equal('http')
         mcpServer.endpointRoute.should.equal('/mcp')
+        mcpServer.mcpName.should.equal('flowfuse-mcp')
+        mcpServer.mcpTitle.should.equal('FlowFuse MCP')
+        mcpServer.mcpVersion.should.equal('1.2.3')
+        mcpServer.description.should.equal('Test MCP registration entry')
+    })
+    it('should create MCP entry with defaults for optional MCP metadata', async function () {
+        const { token } = await app.instance.refreshAuthTokens()
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.hashid}/vwxyz`,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'bar',
+                protocol: 'http',
+                endpointRoute: '/mcp2'
+            }
+        })
+        response.statusCode.should.equal(200)
+
+        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.hashid, 'vwxyz')
+        should.exist(mcpServer)
+        mcpServer.name.should.equal('bar')
+        mcpServer.protocol.should.equal('http')
+        mcpServer.endpointRoute.should.equal('/mcp2')
+        // Defaults from model
+        mcpServer.mcpName.should.equal('')
+        mcpServer.mcpTitle.should.equal('')
+        mcpServer.mcpVersion.should.equal('1.0.0')
+        mcpServer.description.should.equal('')
     })
     it('should list MCP entries', async function () {
         const { token } = await app.instance.refreshAuthTokens()
@@ -71,13 +107,18 @@ describe('MCP Server Registration', function () {
         response.statusCode.should.equal(200)
         const result = response.json()
         result.should.be.an.Object()
-        result.should.have.property('count', 1)
+        result.should.have.property('count', 2)
         result.should.have.property('servers')
         result.servers.should.be.an.Array()
-        result.servers.should.have.length(1)
-        result.servers[0].should.have.property('name', 'foo')
-        result.servers[0].should.have.property('endpointRoute', '/mcp')
-        result.servers[0].should.have.property('protocol', 'http')
+        result.servers.should.have.length(2)
+        const names = result.servers.map(s => s.name)
+        names.should.containEql('foo')
+        names.should.containEql('bar')
+        const routes = result.servers.map(s => s.endpointRoute)
+        routes.should.containEql('/mcp')
+        routes.should.containEql('/mcp2')
+        const protocols = result.servers.map(s => s.protocol)
+        protocols.should.containEql('http')
     })
     it('should delete MCP entry', async function () {
         const { token } = await app.instance.refreshAuthTokens()
