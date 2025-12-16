@@ -10,7 +10,7 @@
                 </template>
             </FormRow>
             <FormRow v-model="scheduledUpgrade.restart" :disabled="!scheduledUpgrade.enabled" type="checkbox">
-                Restart Even if no update available
+                Restart even if no update available
                 <template #description>
                     This will trigger a Node-RED restart even if no update is available.
                 </template>
