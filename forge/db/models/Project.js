@@ -242,10 +242,10 @@ module.exports = {
                 })
                 // if MCPRegistration model is available (EE mode), remove any registrations for this instance
                 if (app.db.models.MCPRegistration) {
-                    await app.db.models.MCPRegistration?.destroy({
+                    await app.db.models.MCPRegistration.destroy({
                         where: {
                             targetType: 'instance',
-                            targetId: '' + project.id
+                            targetId: project.id
                         }
                     })
                 }

@@ -39,7 +39,7 @@ describe('MCPRegistration Model', function () {
         // First, create a sacrificial instance and MCP entry
         const sacrificialInstance = await app.factory.createInstance({ name: 'instance-to-be-deleted' }, app.application, app.stack, app.template, app.projectType, { start: false })
 
-        await app.db.models.MCPRegistration.create({
+        const mcpRegistration = await app.db.models.MCPRegistration.create({
             name: 'to-be-deleted',
             protocol: 'http',
             endpointRoute: '/mcp',
@@ -48,18 +48,19 @@ describe('MCPRegistration Model', function () {
             nodeId: 'xxxxx',
             TeamId: app.team.id
         })
+        const mcpRegistrationId = mcpRegistration.id
         // Now delete the instance
         await sacrificialInstance.destroy()
         // Now check the MCP entry is gone
-        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', sacrificialInstance.hashid, '')
+        const mcpServer = await app.db.models.MCPRegistration.findByPk(mcpRegistrationId)
         should.not.exist(mcpServer)
     })
 
     it('deleting a device should remove associated MCP entry', async function () {
         // First, create a sacrificial device and MCP entry
-        const sacrificialDevice = await app.factory.createInstance({ name: 'device-to-be-deleted' }, app.application, app.stack, app.template, app.projectType, { start: false })
+        const sacrificialDevice = await app.factory.createDevice({ name: 'device to be deleted' }, app.team, null, app.application)
 
-        await app.db.models.MCPRegistration.create({
+        const mcpRegistration = await app.db.models.MCPRegistration.create({
             name: 'to-be-deleted-device',
             protocol: 'http',
             endpointRoute: '/mcp',
@@ -68,10 +69,11 @@ describe('MCPRegistration Model', function () {
             nodeId: 'yyyyy',
             TeamId: app.team.id
         })
+        const mcpRegistrationId = mcpRegistration.id
         // Now delete the device
         await sacrificialDevice.destroy()
         // Now check the MCP entry is gone
-        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('device', sacrificialDevice.hashid, '')
+        const mcpServer = await app.db.models.MCPRegistration.findByPk(mcpRegistrationId)
         should.not.exist(mcpServer)
     })
 })
