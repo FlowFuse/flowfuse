@@ -167,6 +167,15 @@ module.exports = {
                         ownerId: '' + device.id
                     }
                 })
+                // if MCPRegistration model is available (EE mode), remove any registrations for this device
+                if (app.db.models.MCPRegistration) {
+                    await app.db.models.MCPRegistration?.destroy({
+                        where: {
+                            targetType: 'device',
+                            targetId: '' + device.id
+                        }
+                    })
+                }
             }
         }
     },
