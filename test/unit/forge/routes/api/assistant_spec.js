@@ -45,6 +45,7 @@ describe('Assistant API', async function () {
         const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: teamTypeName } })
         const defaultTeamTypeProperties = defaultTeamType.properties
         defaultTeamTypeProperties.features[featureName] = enabled
+        defaultTeamTypeProperties.enableAllFeatures = false
         defaultTeamType.properties = defaultTeamTypeProperties
         await defaultTeamType.save()
     }
