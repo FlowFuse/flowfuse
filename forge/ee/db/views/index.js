@@ -4,6 +4,7 @@ const modelTypes = [
     'PipelineStage',
     'FlowTemplate',
     'GitToken',
+    'MCPRegistrations',
     'Table'
 ]
 
