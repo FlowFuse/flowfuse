@@ -72,7 +72,7 @@ describe('Project Snapshots API', function () {
         TestObjects.stack1 = app.stack
     })
     after(async function () {
-        await TestObjects.project2.destroy()
+        await app.close()
     })
 
     async function login (username, password) {
