@@ -18,7 +18,30 @@ module.exports = {
             const projectList = await app.db.models.ProjectSettings.getProjectsToUpgrade(hour, day)
             if (projectList) {
                 for (const project of projectList) {
-                    if (project.value.restartOnly) { // this might need to be a separate flag to make the query work
+                    // we should probably rate limit this to not restart lots of projects at once
+                    if (project.Project.ProjectStack.replacedBy) {
+                        // need to add audit logging
+                        try {
+                            const newStack = await app.db.models.ProjectStack.byId(project.Project.ProjectStack.replacedBy)
+                            app.log.info(`Updating project ${project.Project.id} to stack: '${newStack.hashid}'`)
+
+                            const suspendOptions = {
+                                skipBilling: true
+                            }
+
+                            app.db.controllers.Project.setInflightState(project.Project, 'starting')
+                            const result = await suspendProject(project.Project, suspendOptions)
+
+                            await project.Project.setProjectStack(newStack)
+                            await project.Project.save()
+
+                            await app.auditLog.Project.project.stack.changed(null, null, project.Project, newStack)
+
+                            await unSuspendProject(project.Project, result.resumeProject, result.targetState)
+                        } catch (err) {
+                            app.log.info(`Problem updating project ${project.Project.id} - ${err.toString()}`)
+                        }
+                    } else if (project.value.restart) {
                         try {
                             app.log.info(`Restarting project ${project.Project.id} as scheduled`)
                             await app.db.controllers.Project.setInflightState(project.Project, 'restarting')
@@ -29,31 +52,6 @@ module.exports = {
                             await app.db.controllers.Project.clearInflightState(project.Project)
                         } catch (err) {
                             app.log.info(`Problem restarting project ${project.Project.id} - ${err.toString()}`)
-                        }
-                    } else {
-                    // we should probably rate limit this to not restart lots of projects at once
-                        if (project.Project.ProjectStack.replacedBy) {
-                            // need to add audit logging
-                            try {
-                                const newStack = await app.db.models.ProjectStack.byId(project.Project.ProjectStack.replacedBy)
-                                app.log.info(`Updating project ${project.Project.id} to stack: '${newStack.hashid}'`)
-
-                                const suspendOptions = {
-                                    skipBilling: true
-                                }
-
-                                app.db.controllers.Project.setInflightState(project.Project, 'starting')
-                                const result = await suspendProject(project.Project, suspendOptions)
-
-                                await project.Project.setProjectStack(newStack)
-                                await project.Project.save()
-
-                                await app.auditLog.Project.project.stack.changed(null, null, project.Project, newStack)
-
-                                await unSuspendProject(project.Project, result.resumeProject, result.targetState)
-                            } catch (err) {
-                                app.log.info(`Problem updating project ${project.Project.id} - ${err.toString()}`)
-                            }
                         }
                     }
                 }

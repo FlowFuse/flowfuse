@@ -53,7 +53,7 @@ module.exports = async function (app) {
                         properties: {
                             hour: { type: 'number' },
                             day: { type: 'number' },
-                            restartOnly: { type: 'boolean' }
+                            restart: { type: 'boolean' }
                         }
                     }
                 },
@@ -103,7 +103,7 @@ module.exports = async function (app) {
                             properties: {
                                 hour: { type: 'number' },
                                 day: { type: 'number' },
-                                restartOnly: { type: 'boolean' }
+                                restart: { type: 'boolean' }
                             }
                         }
                     }
@@ -117,7 +117,7 @@ module.exports = async function (app) {
                         properties: {
                             hour: { type: 'number' },
                             day: { type: 'number' },
-                            restartOnly: { type: 'boolean' }
+                            restart: { type: 'boolean' }
                         }
                     }
                 },
@@ -133,7 +133,7 @@ module.exports = async function (app) {
             }
             try {
                 for (const d of request.body.schedule) {
-                    await request.project.updateSetting(`${KEY_STACK_UPGRADE_HOUR}_${d.day}`, { hour: d.hour, restartOnly: d.restartOnly })
+                    await request.project.updateSetting(`${KEY_STACK_UPGRADE_HOUR}_${d.day}`, { hour: d.hour, restart: d.restart })
                 }
             } catch (err) {
                 return reply
