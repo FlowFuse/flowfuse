@@ -1,0 +1,52 @@
+name: SAST Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trivy-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Cache vulnerability database
+        uses: actions/cache@a7833574556fa59680c1b7cb190c1735db73ebf0 # v5.0.0
+        with:
+          path: .cache/trivy
+          key: ${{ runner.os }}-trivy-db-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-trivy-db-
+
+      - name: Perform SAST scan
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          trivy-config: '.github/trivy.yaml'
+          output: 'trivy-results.sarif'
+        env:
+          TRIVY_FAIL_ON_SEVERITY: ${{ vars.TRIVY_FAIL_ON_SEVERITY || 'NONE' }}
+
+      - name: Upload scan results to GitHub
+        uses: github/codeql-action/upload-sarif@1b168cd39490f61582a9beae412bb7057a6b2c4e # v4.31.8
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: 'trivy-sast'
