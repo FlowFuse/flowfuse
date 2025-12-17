@@ -73,8 +73,7 @@ export default {
         teleportedStyle () {
             return {
                 top: this.position.top + 10 + 'px',
-                left: this.position.left + 'px',
-                width: 'fit-content'
+                left: this.position.left + 'px'
             }
         }
     },
