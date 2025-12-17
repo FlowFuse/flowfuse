@@ -17,8 +17,27 @@
             >
                 <div class="ff-expert-tool-call--title">{{ tool.title || tool.name }}</div>
                 <div class="ff-expert-tool-call--name">{{ tool.name }}</div>
-                <div v-if="expanded && tool.args" class="ff-expert-tool-call--output">
-                    <pre><code v-html="highlightedArgs(tool.args)" /></pre>
+                <div v-if="expanded" class="ff-expert-tool-call--details">
+                    <!-- Input (always visible when expanded) -->
+                    <div v-if="hasContent(tool.args)" class="ff-expert-tool-call--code">
+                        <pre><code v-html="highlightJson(tool.args)" /></pre>
+                    </div>
+                    <!-- Output section (collapsible) -->
+                    <div v-if="hasContent(tool.output)" class="ff-expert-tool-call--section">
+                        <div
+                            class="ff-expert-tool-call--section-header"
+                            @click.stop="toggleSection(tool.id, 'output')"
+                        >
+                            <ChevronRightIcon
+                                class="ff-icon-small"
+                                :class="{ 'rotated': isSectionExpanded(tool.id, 'output') }"
+                            />
+                            <span>Output</span>
+                        </div>
+                        <div v-if="isSectionExpanded(tool.id, 'output')" class="ff-expert-tool-call--code">
+                            <pre><code v-html="highlightJson(tool.output)" /></pre>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -48,7 +67,8 @@ export default {
     },
     data () {
         return {
-            expanded: false
+            expanded: false,
+            expandedSections: {} // Track which sections are expanded: { 'toolId-input': true, 'toolId-output': false }
         }
     },
     computed: {
@@ -70,8 +90,32 @@ export default {
         toggleExpanded () {
             this.expanded = !this.expanded
         },
-        highlightedArgs (args) {
-            const jsonStr = JSON.stringify(args, null, 2)
+        toggleSection (toolId, section) {
+            const key = `${toolId}-${section}`
+            this.expandedSections[key] = !this.expandedSections[key]
+        },
+        isSectionExpanded (toolId, section) {
+            const key = `${toolId}-${section}`
+            return this.expandedSections[key] || false
+        },
+        hasContent (data) {
+            if (data === null || data === undefined) return false
+            if (typeof data === 'object' && Object.keys(data).length === 0) return false
+            if (typeof data === 'string' && data.trim() === '') return false
+            return true
+        },
+        highlightJson (data) {
+            let jsonStr
+            if (typeof data === 'string') {
+                // Try to parse and re-stringify for formatting, fallback to raw string
+                try {
+                    jsonStr = JSON.stringify(JSON.parse(data), null, 2)
+                } catch {
+                    jsonStr = data
+                }
+            } else {
+                jsonStr = JSON.stringify(data, null, 2)
+            }
             return hljs.highlight(jsonStr, { language: 'json' }).value
         }
     }
@@ -153,9 +197,49 @@ export default {
     font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
-.ff-expert-tool-call--output {
+.ff-expert-tool-call--details {
     margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
 
+.ff-expert-tool-call--section {
+    border: 1px solid $ff-grey-200;
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+.ff-expert-tool-call--section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    background-color: white;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: $ff-grey-600;
+
+    &:hover {
+        background-color: $ff-grey-50;
+    }
+
+    .ff-icon-small {
+        width: 0.75rem;
+        height: 0.75rem;
+        color: $ff-grey-400;
+        flex-shrink: 0;
+        transition: transform 0.2s ease;
+
+        &.rotated {
+            transform: rotate(90deg);
+        }
+    }
+}
+
+.ff-expert-tool-call--code {
     pre {
         margin: 0;
         padding: 0.75rem;
@@ -172,6 +256,15 @@ export default {
             border: none;
             background: transparent;
             padding: 0;
+        }
+    }
+
+    // When inside a section, remove border-radius top and add border
+    .ff-expert-tool-call--section & {
+        border-top: 1px solid $ff-grey-200;
+
+        pre {
+            border-radius: 0;
         }
     }
 }
