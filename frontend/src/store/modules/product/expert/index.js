@@ -350,46 +350,25 @@ const actions = {
     },
 
     async handleMessageResponse ({ commit, dispatch, state, rootState }, response) {
-        // DEBUG logging - remove after testing
-        console.log('[DEBUG handleMessageResponse] response:', response)
-        console.log('[DEBUG handleMessageResponse] state.agentMode:', state.agentMode)
-        console.log('[DEBUG handleMessageResponse] selectedCapabilities:', rootState.product.expert[OPERATOR_AGENT].selectedCapabilities)
-
         // Handle UI-specific processing if successful
         if (
             response.success &&
             response.answer &&
             Array.isArray(response.answer)
         ) {
-            // TODO: Remove this mock data - for testing ExpertToolCall component
-            const mockToolCalls = [
-                {
-                    name: 'mcp__facility7a__sensor5__getValue',
-                    args: { query: 'read modbus data from PLC and store in database table' },
-                    type: 'tool_call',
-                    id: 'call_mock123'
-                }
-            ]
-            const mockDuration = 3
-            // END mock data
-
-            // Only show tool calls in Research mode with capabilities selected
+            // Only show tool calls in Insights mode with capabilities selected
             const isOperatorWithCapabilities =
                 state.agentMode === OPERATOR_AGENT &&
                 rootState.product.expert[OPERATOR_AGENT].selectedCapabilities?.length > 0
 
-            console.log('[DEBUG handleMessageResponse] isOperatorWithCapabilities:', isOperatorWithCapabilities)
-
             // Handle tool calls if present - add before answer processing
-            // Using mock data for testing: replace mockToolCalls with response.tool_calls
-            if (isOperatorWithCapabilities && mockToolCalls && mockToolCalls.length > 0) {
-                console.log('[DEBUG handleMessageResponse] Adding tool call message!')
+            if (isOperatorWithCapabilities && response.tool_calls && response.tool_calls.length > 0) {
                 commit('ADD_MESSAGE', {
                     type: 'ai',
                     kind: 'tool_calls',
-                    toolCalls: mockToolCalls,
-                    duration: mockDuration,
-                    content: `${mockToolCalls.length} tool call(s)`,
+                    toolCalls: response.tool_calls,
+                    duration: response.duration,
+                    content: `${response.tool_calls.length} tool call(s)`,
                     timestamp: Date.now()
                 })
             }
