@@ -37,12 +37,12 @@
                                 <span
                                     class="truncate"
                                     style="line-height: 16px"
-                                >{{ option.mcpServerName }}</span>
+                                >{{ option.title }}</span>
                                 <p
                                     v-if="option.title"
                                     class="text-gray-400 text-sm truncate"
                                 >
-                                    {{ option.title }}
+                                    {{ option.mcpServerName }}
                                 </p>
                             </div>
                             <span class="tool-count-badge self-start" title="Tools">{{
@@ -94,12 +94,47 @@ export default {
         ]),
         getResourceTooltip (option) {
             const lines = [
-                `Instance: ${option.instanceName}`,
-                `MCP Server: ${option.mcpServerName}`
+                [
+                    'MCP Server:',
+                    option.mcpServerName
+                ],
+                [
+                    'Instance:',
+                    option.instanceName
+                ],
+                (option.title
+                    ? [
+                        'Title:',
+                        option.title
+                    ]
+                    : []),
+                (option.description
+                    ? [
+                        'Description:',
+                        option.description
+                    ]
+                    : []),
+                (option.tools
+                    ? [
+                        'Tools:',
+                        ...option.tools.map(t => t.name)
+                    ]
+                    : []),
+                // (option.prompts
+                //     ? [
+                //         'Prompts:',
+                //         ...option.prompts.map(p => p.name)
+                //     ]
+                //     : []),
+                (option.resources
+                    ? [
+                        'Resources:',
+                        ...option.resources.map(r => r.name)
+                    ]
+                    : [])
             ]
-            if (option.title) lines.push(`Title: ${option.title}`)
-            if (option.description) lines.push(`Description: ${option.description}`)
-            return lines.join('&#10;')
+
+            return lines.map(e => e.join('\n')).join('\n\n')
         }
     }
 }
