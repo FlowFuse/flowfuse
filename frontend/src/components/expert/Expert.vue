@@ -245,18 +245,6 @@ export default {
             'resetSessionTimer'
         ]),
 
-        logMessageRender (message, index) {
-            console.log(`[DEBUG logMessageRender] Message ${index}:`, {
-                kind: message.kind,
-                hasKind: message.kind !== undefined,
-                hasMappingForKind:
-                    this.richContentComponentMap[message.kind] !== undefined,
-                richContentComponentMap: Object.keys(
-                    this.richContentComponentMap
-                )
-            })
-        },
-
         async handleSendMessage (query) {
             if (!query.trim()) return
 
