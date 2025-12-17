@@ -1,7 +1,7 @@
 <template>
     <div class="ff-expert-tool-call">
-        <div class="ff-expert-tool-call--header">
-            <ChevronRightIcon class="ff-icon" />
+        <div class="ff-expert-tool-call--header" @click="toggleExpanded">
+            <ChevronRightIcon class="ff-icon" :class="{ 'rotated': expanded }" />
             <span class="ff-expert-tool-call--count">
                 {{ toolCallCount }} tool call{{ toolCallCount > 1 ? 's' : '' }}
             </span>
@@ -15,8 +15,11 @@
                 :key="tool.id"
                 class="ff-expert-tool-call--item"
             >
+                <div class="ff-expert-tool-call--title">{{ tool.title || tool.name }}</div>
                 <div class="ff-expert-tool-call--name">{{ tool.name }}</div>
-                <div class="ff-expert-tool-call--query">"{{ toolQuery(tool) }}"</div>
+                <div v-if="expanded && tool.output" class="ff-expert-tool-call--output">
+                    <pre><code>{{ tool.output }}</code></pre>
+                </div>
             </div>
         </div>
     </div>
@@ -39,6 +42,11 @@ export default {
             }
         }
     },
+    data () {
+        return {
+            expanded: false
+        }
+    },
     computed: {
         toolCalls () {
             return this.message.toolCalls || []
@@ -55,14 +63,8 @@ export default {
         }
     },
     methods: {
-        toolQuery (tool) {
-            if (tool.args?.query) {
-                return tool.args.query
-            }
-            if (tool.args && Object.keys(tool.args).length > 0) {
-                return JSON.stringify(tool.args)
-            }
-            return ''
+        toggleExpanded () {
+            this.expanded = !this.expanded
         }
     }
 }
@@ -83,12 +85,23 @@ export default {
     padding: 0.75rem 1rem;
     gap: 0.5rem;
     background-color: white;
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+        background-color: $ff-grey-50;
+    }
 
     .ff-icon {
         width: 1rem;
         height: 1rem;
         color: $ff-grey-500;
         flex-shrink: 0;
+        transition: transform 0.2s ease;
+
+        &.rotated {
+            transform: rotate(90deg);
+        }
     }
 }
 
@@ -118,19 +131,35 @@ export default {
     gap: 0.25rem;
 }
 
-.ff-expert-tool-call--name {
+.ff-expert-tool-call--title {
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
     color: $ff-grey-800;
+}
+
+.ff-expert-tool-call--name {
+    font-size: 0.75rem;
+    color: $ff-grey-500;
     font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
-.ff-expert-tool-call--query {
-    font-size: 0.8125rem;
-    color: $ff-grey-500;
-    font-style: italic;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+.ff-expert-tool-call--output {
+    margin-top: 0.5rem;
+
+    pre {
+        margin: 0;
+        padding: 0.75rem;
+        background-color: $ff-grey-100;
+        border-radius: 0.375rem;
+        overflow-x: auto;
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+            font-size: 0.8125rem;
+            color: $ff-grey-800;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    }
 }
 </style>

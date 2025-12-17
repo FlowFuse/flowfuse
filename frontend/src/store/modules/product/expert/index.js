@@ -123,14 +123,30 @@ const mutations = {
     HYDRATE_MESSAGES (state, messages) {
         messages.forEach((message) => {
             if (message.answer && Array.isArray(message.answer)) {
-                // Handle tool calls if present - add before answer processing
-                if (message.tool_calls && message.tool_calls.length > 0) {
+                // Extract mcp_tool items from the answer array
+                const mcpToolItems = message.answer.filter(item => item.kind === 'mcp_tool')
+
+                // Handle tool calls if present - use mcp_tool items which contain input/output
+                if (mcpToolItems.length > 0) {
+                    const toolCalls = mcpToolItems.map(item => ({
+                        id: item.toolId,
+                        name: item.toolName,
+                        title: item.toolTitle || item.toolName,
+                        args: item.input,
+                        output: item.output,
+                        durationMs: item.durationMs
+                    }))
+
+                    // Calculate total duration in seconds
+                    const totalDurationMs = mcpToolItems.reduce((sum, item) => sum + (item.durationMs || 0), 0)
+                    const totalDurationSec = (totalDurationMs / 1000).toFixed(2)
+
                     state[state.agentMode].messages.push({
                         type: 'ai',
                         kind: 'tool_calls',
-                        toolCalls: message.tool_calls,
-                        duration: message.duration,
-                        content: `${message.tool_calls.length} tool call(s)`,
+                        toolCalls,
+                        duration: totalDurationSec,
+                        content: `${toolCalls.length} tool call(s)`,
                         timestamp: Date.now()
                     })
                 }
@@ -361,14 +377,30 @@ const actions = {
                 state.agentMode === OPERATOR_AGENT &&
                 rootState.product.expert[OPERATOR_AGENT].selectedCapabilities?.length > 0
 
-            // Handle tool calls if present - add before answer processing
-            if (isOperatorWithCapabilities && response.tool_calls && response.tool_calls.length > 0) {
+            // Extract mcp_tool items from the answer array
+            const mcpToolItems = response.answer.filter(item => item.kind === 'mcp_tool')
+
+            // Handle tool calls if present - use mcp_tool items which contain input/output
+            if (isOperatorWithCapabilities && mcpToolItems.length > 0) {
+                const toolCalls = mcpToolItems.map(item => ({
+                    id: item.toolId,
+                    name: item.toolName,
+                    title: item.toolTitle || item.toolName,
+                    args: item.input,
+                    output: item.output,
+                    durationMs: item.durationMs
+                }))
+
+                // Calculate total duration in seconds
+                const totalDurationMs = mcpToolItems.reduce((sum, item) => sum + (item.durationMs || 0), 0)
+                const totalDurationSec = (totalDurationMs / 1000).toFixed(2)
+
                 commit('ADD_MESSAGE', {
                     type: 'ai',
                     kind: 'tool_calls',
-                    toolCalls: response.tool_calls,
-                    duration: response.duration,
-                    content: `${response.tool_calls.length} tool call(s)`,
+                    toolCalls,
+                    duration: totalDurationSec,
+                    content: `${toolCalls.length} tool call(s)`,
                     timestamp: Date.now()
                 })
             }
