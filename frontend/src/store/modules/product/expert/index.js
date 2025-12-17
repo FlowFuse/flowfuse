@@ -123,12 +123,16 @@ const mutations = {
     HYDRATE_MESSAGES (state, messages) {
         messages.forEach((message) => {
             if (message.answer && Array.isArray(message.answer)) {
-                // Extract mcp_tool items from the answer array
-                const mcpToolItems = message.answer.filter(item => item.kind === 'mcp_tool')
+                // Extract MCP items (tools, resources, prompts) from the answer array
+                const mcpItems = message.answer.filter(item =>
+                    item.kind === 'mcp_tool' ||
+                    item.kind === 'mcp_resource' ||
+                    item.kind === 'mcp_prompt'
+                )
 
-                // Handle tool calls if present - use mcp_tool items which contain input/output
-                if (mcpToolItems.length > 0) {
-                    const toolCalls = mcpToolItems.map(item => ({
+                // Handle MCP calls if present - includes tools, resources, and prompts
+                if (mcpItems.length > 0) {
+                    const toolCalls = mcpItems.map(item => ({
                         id: item.toolId,
                         name: item.toolName,
                         title: item.toolTitle || item.toolName,
@@ -138,7 +142,7 @@ const mutations = {
                     }))
 
                     // Calculate total duration in seconds
-                    const totalDurationMs = mcpToolItems.reduce((sum, item) => sum + (item.durationMs || 0), 0)
+                    const totalDurationMs = mcpItems.reduce((sum, item) => sum + (item.durationMs || 0), 0)
                     const totalDurationSec = (totalDurationMs / 1000).toFixed(2)
 
                     state[state.agentMode].messages.push({
@@ -377,12 +381,16 @@ const actions = {
                 state.agentMode === OPERATOR_AGENT &&
                 rootState.product.expert[OPERATOR_AGENT].selectedCapabilities?.length > 0
 
-            // Extract mcp_tool items from the answer array
-            const mcpToolItems = response.answer.filter(item => item.kind === 'mcp_tool')
+            // Extract MCP items (tools, resources, prompts) from the answer array
+            const mcpItems = response.answer.filter(item =>
+                item.kind === 'mcp_tool' ||
+                item.kind === 'mcp_resource' ||
+                item.kind === 'mcp_prompt'
+            )
 
-            // Handle tool calls if present - use mcp_tool items which contain input/output
-            if (isOperatorWithCapabilities && mcpToolItems.length > 0) {
-                const toolCalls = mcpToolItems.map(item => ({
+            // Handle MCP calls if present - includes tools, resources, and prompts
+            if (isOperatorWithCapabilities && mcpItems.length > 0) {
+                const toolCalls = mcpItems.map(item => ({
                     id: item.toolId,
                     name: item.toolName,
                     title: item.toolTitle || item.toolName,
@@ -392,7 +400,7 @@ const actions = {
                 }))
 
                 // Calculate total duration in seconds
-                const totalDurationMs = mcpToolItems.reduce((sum, item) => sum + (item.durationMs || 0), 0)
+                const totalDurationMs = mcpItems.reduce((sum, item) => sum + (item.durationMs || 0), 0)
                 const totalDurationSec = (totalDurationMs / 1000).toFixed(2)
 
                 commit('ADD_MESSAGE', {
