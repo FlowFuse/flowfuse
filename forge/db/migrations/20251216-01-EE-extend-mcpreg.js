@@ -6,11 +6,6 @@ module.exports = {
      * @param {QueryInterface} context Sequelize.QueryInterface
      */
     up: async (context, Sequelize) => {
-        await context.addColumn('MCPRegistrations', 'mcpName', {
-            type: DataTypes.STRING,
-            allowNull: false,
-            defaultValue: ''
-        })
         await context.addColumn('MCPRegistrations', 'title', {
             type: DataTypes.STRING,
             allowNull: false,
