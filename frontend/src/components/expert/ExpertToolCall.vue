@@ -15,8 +15,11 @@
                 :key="tool.id"
                 class="ff-expert-tool-call--item"
             >
-                <div class="ff-expert-tool-call--title">{{ tool.title || tool.name }}</div>
-                <div class="ff-expert-tool-call--name">{{ tool.name }} · {{ formatKind(tool.kind) }}</div>
+                <div class="ff-expert-tool-call--title">
+                    <span class="ff-expert-tool-call--badge" :title="formatKindFull(tool.kind)">{{ formatKindBadge(tool.kind) }}</span>
+                    {{ tool.title || tool.name }}
+                </div>
+                <div class="ff-expert-tool-call--name">{{ tool.name }}</div>
                 <div v-if="expanded" class="ff-expert-tool-call--details">
                     <!-- Input section (collapsible, expanded by default) -->
                     <div v-if="hasContent(tool.args)" class="ff-expert-tool-call--section">
@@ -116,13 +119,21 @@ export default {
             }
             return this.expandedSections[key]
         },
-        formatKind (kind) {
-            const kindMap = {
-                mcp_tool: 'tool',
-                mcp_resource: 'resource',
-                mcp_prompt: 'prompt'
+        formatKindBadge (kind) {
+            const badgeMap = {
+                mcp_tool: 'T',
+                mcp_resource: 'R',
+                mcp_prompt: 'P'
             }
-            return kindMap[kind] || kind || 'unknown'
+            return badgeMap[kind] || '?'
+        },
+        formatKindFull (kind) {
+            const kindMap = {
+                mcp_tool: 'MCP Tool',
+                mcp_resource: 'MCP Resource',
+                mcp_prompt: 'MCP Prompt'
+            }
+            return kindMap[kind] || kind || 'Unknown'
         },
         hasContent (data) {
             if (data === null || data === undefined) return false
@@ -213,9 +224,27 @@ export default {
 }
 
 .ff-expert-tool-call--title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 0.875rem;
     font-weight: 600;
     color: $ff-grey-800;
+}
+
+.ff-expert-tool-call--badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: $ff-grey-600;
+    background-color: $ff-grey-200;
+    border-radius: 0.25rem;
+    flex-shrink: 0;
+    cursor: help;
 }
 
 .ff-expert-tool-call--name {
