@@ -416,7 +416,7 @@ export default {
         text-transform: uppercase;
         letter-spacing: 0.025em;
         cursor: help;
-        vertical-align: middle;
+        vertical-align: text-top;
     }
 }
 
