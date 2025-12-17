@@ -6,7 +6,7 @@
                 {{ toolCallCount }} tool call{{ toolCallCount > 1 ? 's' : '' }}
             </span>
             <span class="ff-expert-tool-call--duration">
-                time: {{ formattedDuration }}
+                {{ formattedDuration }} ms
             </span>
         </div>
         <div class="ff-expert-tool-call--body">
@@ -80,10 +80,10 @@ export default {
         },
         formattedDuration () {
             const duration = this.message.duration
-            if (typeof duration === 'number') {
-                return `${duration}s`
-            }
-            return duration || '0s'
+            if (duration === null || duration === undefined) return 0
+            // Duration is stored as seconds (string or number), convert to ms
+            const seconds = typeof duration === 'string' ? parseFloat(duration) : duration
+            return Math.round(seconds * 1000)
         }
     },
     methods: {
