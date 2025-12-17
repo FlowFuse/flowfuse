@@ -114,7 +114,6 @@ module.exports = async function (app) {
                 targetType: request.params.type,
                 targetId: request.params.typeId,
                 nodeId: request.params.nodeId,
-                mcpName: request.body.mcpName,
                 title: request.body.title,
                 version: request.body.version,
                 description: request.body.description,
