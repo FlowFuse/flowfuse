@@ -136,6 +136,7 @@ const mutations = {
                         id: item.toolId,
                         name: item.toolName,
                         title: item.toolTitle || item.toolName,
+                        kind: item.kind,
                         args: item.input,
                         output: item.output,
                         durationMs: item.durationMs
@@ -394,6 +395,7 @@ const actions = {
                     id: item.toolId,
                     name: item.toolName,
                     title: item.toolTitle || item.toolName,
+                    kind: item.kind,
                     args: item.input,
                     output: item.output,
                     durationMs: item.durationMs

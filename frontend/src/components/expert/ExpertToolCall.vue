@@ -16,13 +16,25 @@
                 class="ff-expert-tool-call--item"
             >
                 <div class="ff-expert-tool-call--title">{{ tool.title || tool.name }}</div>
-                <div class="ff-expert-tool-call--name">{{ tool.name }}</div>
+                <div class="ff-expert-tool-call--name">{{ tool.name }} · {{ formatKind(tool.kind) }}</div>
                 <div v-if="expanded" class="ff-expert-tool-call--details">
-                    <!-- Input (always visible when expanded) -->
-                    <div v-if="hasContent(tool.args)" class="ff-expert-tool-call--code">
-                        <pre><code v-html="highlightJson(tool.args)" /></pre>
+                    <!-- Input section (collapsible, expanded by default) -->
+                    <div v-if="hasContent(tool.args)" class="ff-expert-tool-call--section">
+                        <div
+                            class="ff-expert-tool-call--section-header"
+                            @click.stop="toggleSection(tool.id, 'input')"
+                        >
+                            <ChevronRightIcon
+                                class="ff-icon-small"
+                                :class="{ 'rotated': isSectionExpanded(tool.id, 'input') }"
+                            />
+                            <span class="ff-expert-tool-call--section-label">Input</span>
+                        </div>
+                        <div v-if="isSectionExpanded(tool.id, 'input')" class="ff-expert-tool-call--code">
+                            <pre><code v-html="highlightJson(tool.args)" /></pre>
+                        </div>
                     </div>
-                    <!-- Output section (collapsible) -->
+                    <!-- Output section (collapsible, collapsed by default) -->
                     <div v-if="hasContent(tool.output)" class="ff-expert-tool-call--section">
                         <div
                             class="ff-expert-tool-call--section-header"
@@ -93,11 +105,24 @@ export default {
         },
         toggleSection (toolId, section) {
             const key = `${toolId}-${section}`
-            this.expandedSections[key] = !this.expandedSections[key]
+            const currentState = this.isSectionExpanded(toolId, section)
+            this.expandedSections[key] = !currentState
         },
         isSectionExpanded (toolId, section) {
             const key = `${toolId}-${section}`
-            return this.expandedSections[key] || false
+            // Input sections are expanded by default, output sections are collapsed
+            if (!(key in this.expandedSections)) {
+                return section === 'input'
+            }
+            return this.expandedSections[key]
+        },
+        formatKind (kind) {
+            const kindMap = {
+                mcp_tool: 'tool',
+                mcp_resource: 'resource',
+                mcp_prompt: 'prompt'
+            }
+            return kindMap[kind] || kind || 'unknown'
         },
         hasContent (data) {
             if (data === null || data === undefined) return false
