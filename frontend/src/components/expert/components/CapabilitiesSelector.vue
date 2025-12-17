@@ -121,13 +121,18 @@ export default {
                 }
             }
 
-            &:hover {
+            &:hover:not(:disabled) {
                 background-color: #f9fafb; // gray-50
             }
 
             &:focus,
             &.active {
                 outline: none;
+            }
+
+            &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
             }
         }
 
