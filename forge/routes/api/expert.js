@@ -169,7 +169,10 @@ module.exports = async function (app) {
                                     resourceTemplates: { type: 'array', items: { type: 'object', additionalProperties: true } },
                                     tools: { type: 'array', items: { type: 'object', additionalProperties: true } },
                                     mcpProtocol: { type: 'string', enum: ['http', 'sse'] },
-                                    mcpServerUrl: { type: 'string' }
+                                    mcpServerUrl: { type: 'string' },
+                                    title: { type: 'string' },
+                                    version: { type: 'string' },
+                                    description: { type: 'string' }
                                 },
                                 required: ['instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol'],
                                 additionalProperties: false
