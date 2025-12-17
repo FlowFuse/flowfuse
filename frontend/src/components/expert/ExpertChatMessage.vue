@@ -121,8 +121,8 @@ export default {
         }
     }
 
-    &.is-streaming .message-bubble {
-        position: relative;
+    &.is-streaming .message-text {
+        display: inline;
 
         &::after {
             content: '';
@@ -131,6 +131,7 @@ export default {
             height: 1em;
             background-color: currentColor;
             margin-left: 2px;
+            vertical-align: text-bottom;
             animation: blink 1s infinite;
         }
     }
