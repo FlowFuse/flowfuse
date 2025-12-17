@@ -15,11 +15,11 @@
                 :key="tool.id"
                 class="ff-expert-tool-call--item"
             >
-                <div class="ff-expert-tool-call--title">
+                <div class="ff-expert-tool-call--title">{{ tool.title || tool.name }}</div>
+                <div class="ff-expert-tool-call--name">
                     <span class="ff-expert-tool-call--badge" :title="formatKindFull(tool.kind)">{{ formatKindBadge(tool.kind) }}</span>
-                    {{ tool.title || tool.name }}
+                    {{ tool.name }}
                 </div>
-                <div class="ff-expert-tool-call--name">{{ tool.name }}</div>
                 <div v-if="expanded" class="ff-expert-tool-call--details">
                     <!-- Input section (collapsible, expanded by default) -->
                     <div v-if="hasContent(tool.args)" class="ff-expert-tool-call--section">
@@ -226,33 +226,34 @@ export default {
 }
 
 .ff-expert-tool-call--title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
     font-size: 0.875rem;
     font-weight: 600;
     color: $ff-grey-800;
+}
+
+.ff-expert-tool-call--name {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    color: $ff-grey-500;
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
 .ff-expert-tool-call--badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.25rem;
-    height: 1.25rem;
-    font-size: 0.625rem;
+    min-width: 1.25rem;
+    height: 1.125rem;
+    padding: 0 0.25rem;
+    font-size: 0.5625rem;
     font-weight: 700;
     color: $ff-grey-600;
     background-color: $ff-grey-200;
-    border-radius: 0.25rem;
+    border-radius: 0.1875rem;
     flex-shrink: 0;
     cursor: help;
-}
-
-.ff-expert-tool-call--name {
-    font-size: 0.75rem;
-    color: $ff-grey-500;
-    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
 .ff-expert-tool-call--details {
