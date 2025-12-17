@@ -511,16 +511,18 @@ const actions = {
             return
         }
 
-        // Add welcome message for current mode if no messages exist
-        dispatch('addWelcomeMessageIfNeeded')
-
         dispatch(`product/expert/${OPERATOR_AGENT}/getCapabilities`, null, { root: true })
 
         return dispatch(
             'ux/drawers/openRightDrawer',
             { component: markRaw(ExpertDrawer) },
             { root: true }
-        )
+        ).then(() => {
+            // Delay welcome message until drawer animation completes
+            setTimeout(() => {
+                dispatch('addWelcomeMessageIfNeeded')
+            }, 300)
+        })
     },
 
     addWelcomeMessageIfNeeded ({ dispatch, state }) {
