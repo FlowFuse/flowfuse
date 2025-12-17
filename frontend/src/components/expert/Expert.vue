@@ -212,7 +212,10 @@ export default {
         }
     },
     mounted () {
-        // Session ID is now auto-initialized in Vuex store when first message is sent
+        // Add welcome message when opening in editor (immersive) context
+        if (this.isEditorContext) {
+            this.$store.dispatch('product/expert/addWelcomeMessageIfNeeded')
+        }
     },
     beforeUnmount () {
         // Clean up timers

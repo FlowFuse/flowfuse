@@ -461,6 +461,9 @@ const actions = {
         // Reset session timing
         dispatch('resetSessionTimer')
         dispatch('startSessionTimer')
+
+        // Add welcome message for current mode
+        dispatch('addWelcomeMessageIfNeeded')
     },
 
     setGenerating ({ commit }, isGenerating) {
@@ -500,13 +503,16 @@ const actions = {
         return expertApi.chat(payload)
     },
 
-    openAssistantDrawer ({ dispatch, rootGetters }) {
+    openAssistantDrawer ({ dispatch, commit, state, rootGetters }) {
         if (
             rootGetters['account/featuresCheck']
                 .isExpertAssistantFeatureEnabled === false
         ) {
             return
         }
+
+        // Add welcome message for current mode if no messages exist
+        dispatch('addWelcomeMessageIfNeeded')
 
         dispatch(`product/expert/${OPERATOR_AGENT}/getCapabilities`, null, { root: true })
 
@@ -515,6 +521,25 @@ const actions = {
             { component: markRaw(ExpertDrawer) },
             { root: true }
         )
+    },
+
+    addWelcomeMessageIfNeeded ({ dispatch, state }) {
+        const currentMode = state.agentMode
+        const hasMessages = state[currentMode].messages.length > 0
+
+        if (hasMessages) {
+            return
+        }
+
+        const welcomeMessages = {
+            [FF_AGENT]: 'Hello! I am here to help you get started with FlowFuse and Node-RED. I can answer your questions, provide links to documentation, or help you build step-by-step guides to achieve your goals. How can I assist you today?',
+            [OPERATOR_AGENT]: 'Hello! I can help you gather insights by interacting with your configured resources and MCP tools in your Node-RED instances. What would you like to find out?'
+        }
+
+        if (welcomeMessages[currentMode]) {
+            // Use streamMessage for typing effect
+            dispatch('streamMessage', welcomeMessages[currentMode])
+        }
     },
 
     setAssistantWakeUp ({ commit }, shouldWakeUp) {
@@ -657,8 +682,11 @@ const actions = {
      * @param commit
      * @param {'ff-agent' | 'operator-agent'} mode
      */
-    setAgentMode ({ commit }, mode) {
+    setAgentMode ({ commit, dispatch }, mode) {
         commit('SET_AGENT_MODE', mode)
+
+        // Add welcome message if switching to a mode with no messages
+        dispatch('addWelcomeMessageIfNeeded')
     }
 }
 
