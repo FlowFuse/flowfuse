@@ -31,7 +31,7 @@
                             data-click-exclude="right-drawer"
                         >
                             <div>
-                                <ff-checkbox :modelValue="selected" />
+                                <ff-checkbox :modelValue="selected" @click.stop.prevent="onCheckboxClick(option)" />
                             </div>
                             <div class="flex flex-col gap-1 flex-1 min-w-0">
                                 <span
@@ -92,6 +92,15 @@ export default {
         ...mapActions(`product/expert/${OPERATOR_AGENT}`, [
             'setSelectedCapabilities'
         ]),
+        onCheckboxClick (option) {
+            const key = (c) => `${c.instance}::${c.mcpServerUrl}`
+            const selected = this.selectedCapabilities || []
+            const exists = selected.some(c => key(c) === key(option))
+
+            this.capabilitiesHandler = exists
+                ? selected.filter(c => key(c) !== key(option))
+                : [...selected, option]
+        },
         getResourceTooltip (option) {
             const lines = [
                 [
