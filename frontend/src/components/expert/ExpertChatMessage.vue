@@ -121,20 +121,6 @@ export default {
         }
     }
 
-    &.is-streaming .message-text :deep(p:last-child) {
-        display: inline;
-
-        &::after {
-            content: '';
-            display: inline-block;
-            width: 3px;
-            height: 1em;
-            background-color: currentColor;
-            margin-left: 2px;
-            vertical-align: text-bottom;
-            animation: blink 1s infinite;
-        }
-    }
 }
 
 .message-bubble {
@@ -208,12 +194,4 @@ export default {
     }
 }
 
-@keyframes blink {
-    0%, 49% {
-        opacity: 1;
-    }
-    50%, 100% {
-        opacity: 0;
-    }
-}
 </style>
