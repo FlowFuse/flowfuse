@@ -521,9 +521,22 @@ const actions = {
             [OPERATOR_AGENT]: 'Hello! I can help you gather insights by interacting with your configured resources and MCP tools in your Node-RED instances. What would you like to find out?'
         }
 
-        if (welcomeMessages[currentMode]) {
+        const noResourcesMessage = 'Hello! To use Insights mode, you\'ll need to configure MCP servers in your Node-RED instances first. Once configured, I can help you interact with your flows and gather insights. Switch to Support mode if you need help getting started or watch this [introduction to Node-RED MCP server nodes](https://youtu.be/troUvaF8V68?si=P9GedupXhe5-ifaa)'
+
+        // Determine which message to show
+        let message = welcomeMessages[currentMode]
+
+        // In Insights mode, check if capabilities are available
+        if (currentMode === OPERATOR_AGENT) {
+            const capabilities = state[OPERATOR_AGENT].capabilities
+            if (!capabilities || capabilities.length === 0) {
+                message = noResourcesMessage
+            }
+        }
+
+        if (message) {
             // Use streamMessage for typing effect
-            dispatch('streamMessage', welcomeMessages[currentMode])
+            dispatch('streamMessage', message)
         }
     },
 
