@@ -86,6 +86,7 @@ export default {
     },
     computed: {
         isInputDisabled () {
+            if (this.isSessionExpired) return true
             if (this.isGenerating) return true
             if (this.isOperatorAgent && !this.hasSelectedCapabilities) return true
             return false

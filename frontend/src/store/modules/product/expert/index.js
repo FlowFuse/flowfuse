@@ -679,7 +679,6 @@ const actions = {
             // Show 30-minute expiration
             if (elapsed >= expirationThreshold && !state[state.agentMode].sessionExpiredShown) {
                 commit('SET_SESSION_EXPIRED_SHOWN', true)
-                commit('SET_GENERATING', true) // Disable input
                 commit('ADD_MESSAGE', {
                     type: 'system',
                     variant: 'expired',
