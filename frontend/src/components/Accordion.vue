@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-accordion" :class="{open: isOpen}" data-el="accordion">
+    <div class="ff-accordion" :class="{open: isOpen, [overflowClass]: overflowsContent}" data-el="accordion">
         <button class="ff-accordion--button" :disabled="disabled" @click="toggle()">
             <slot name="label">
                 <label>{{ label }}</label>
@@ -9,7 +9,7 @@
                 <ChevronLeftIcon v-if="!disabled" class="ff-icon chevron" />
             </div>
         </button>
-        <div v-if="isOpen" ref="content" class="ff-accordion--content">
+        <div v-if="isOpen" ref="content" class="ff-accordion--content" :class="{[overflowClass]: overflowsContent}">
             <slot name="content" />
         </div>
     </div>
@@ -36,12 +36,17 @@ export default {
         disabled: {
             type: Boolean,
             default: false
+        },
+        overflowsContent: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['state-changed'],
     data () {
         return {
-            isOpen: false
+            isOpen: false,
+            overflowClass: 'flex-1 flex flex-col overflow-auto'
         }
     },
     watch: {

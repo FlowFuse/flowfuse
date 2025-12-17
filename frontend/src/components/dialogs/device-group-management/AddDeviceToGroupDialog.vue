@@ -1,5 +1,5 @@
 <template>
-    <section data-el="add-device-to-group-dialog">
+    <section data-el="add-device-to-group-dialog" class="add-device-to-group-dialog">
         <transition name="fade" mode="out-in">
             <ff-loading v-if="loading" />
 
@@ -7,12 +7,10 @@
                 <div class="flex flex-col gap-4">
                     <div class="title">
                         <h3 v-if="devices && (!devicesBelongToSameApplication || assigningInstanceOwnedDevices)">
-                            Unable to assign device to group.
+                            Unable to assign the remote instance to group.
                         </h3>
                         <h3 v-else>
-                            Select a group from {{
-                                application ? application.name : device.application.name
-                            }}
+                            Select a group from {{ application ? application.name : device.application.name }}
                         </h3>
                     </div>
 
@@ -68,6 +66,12 @@
                     v-if="assigningInstanceOwnedDevices"
                     text="One or more Remote Instances are owned by a Hosted Instance and cannot be assigned to a group."
                 />
+
+                <device-list
+                    v-if="!assigningSingleDevice"
+                    :devices="devices"
+                    @selection-removed="$emit('selection-removed', $event)"
+                />
             </div>
         </transition>
     </section>
@@ -75,17 +79,20 @@
 
 <script>
 import { ChipIcon } from '@heroicons/vue/outline'
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
-import ApplicationAPI from '../../api/application.js'
-import { pluralize } from '../../composables/String.js'
-import FfLoading from '../Loading.vue'
-import NoticeBanner from '../notices/NoticeBanner.vue'
-import DeployNotice from '../notices/device-groups/DeployNotice.vue'
+import ApplicationAPI from '../../../api/application.js'
+import { pluralize } from '../../../composables/String.js'
+import FfLoading from '../../Loading.vue'
+import NoticeBanner from '../../notices/NoticeBanner.vue'
+import DeployNotice from '../../notices/device-groups/DeployNotice.vue'
+
+import DeviceList from './components/device-list.vue'
 
 export default {
     name: 'AddDeviceToGroupDialog',
     components: {
+        DeviceList,
         DeployNotice,
         NoticeBanner,
         FfLoading,
@@ -103,18 +110,29 @@ export default {
             default: () => []
         }
     },
-    emits: ['selected'],
+    emits: ['selected', 'selection-removed'],
     data () {
         return {
-            application: null,
-            loading: true,
+            loading: false,
             deviceGroups: [],
-            selectedDeviceGroup: null,
-            devicesBelongToSameApplication: true,
-            assigningInstanceOwnedDevices: false
+            selectedDeviceGroup: null
         }
     },
     computed: {
+        ...mapState('ux/dialog', ['dialog']),
+        application () {
+            if (!this.devicesBelongToSameApplication) return null
+
+            const applications = new Set()
+            for (const device of this.devices) {
+                applications.add(device.application)
+            }
+
+            return Array.from(applications).pop()
+        },
+        assigningSingleDevice () {
+            return !!this.device
+        },
         assignmentNoticeText () {
             if (this.devices.length > 2) {
                 return 'These Remote Instances will be updated to deploy the selected groups active pipeline snapshot.'
@@ -132,6 +150,25 @@ export default {
             }
 
             return null
+        },
+        assigningInstanceOwnedDevices () {
+            if (this.assigningSingleDevice) return false
+
+            return this.devices.some(d => d.ownerType === 'instance')
+        },
+        devicesBelongToSameApplication () {
+            if (this.assigningSingleDevice) return true
+
+            const applications = new Set()
+
+            for (const device of this.devices) {
+                applications.add(device.application?.id ?? '')
+            }
+
+            return applications.size === 1 && !applications.has('')
+        },
+        disabledPrimary () {
+            return this.assigningInstanceOwnedDevices || !this.devicesBelongToSameApplication || !this.selectedDeviceGroup
         }
     },
     watch: {
@@ -142,21 +179,30 @@ export default {
             } else if (this.devices.length > 0) {
                 this.setDisablePrimary(this.selectedDeviceGroup === null)
             }
+        },
+        application: {
+            immediate: true,
+            handler (application) {
+                if (this.device) {
+                    this.getDeviceGroups(this.device.application)
+                } else if (application) {
+                    this.getDeviceGroups(application)
+                }
+            }
+        },
+        disabledPrimary: {
+            immediate: true,
+            handler (isDisabled) {
+                this.setDisablePrimary(isDisabled)
+            }
         }
-    },
-    mounted () {
-        this.validateDeviceApplicationOwnership()
-            .then(() => this.getDeviceGroups())
-            .catch(e => e)
-            .finally(() => {
-                this.loading = false
-            })
     },
     methods: {
         pluralize,
         ...mapActions('ux/dialog', ['setDisablePrimary']),
-        async getDeviceGroups () {
-            return ApplicationAPI.getDeviceGroups(this.devices.length ? this.application.id : this.device.application.id)
+        async getDeviceGroups (application) {
+            this.loading = true
+            return ApplicationAPI.getDeviceGroups(application.id)
                 .then((groups) => {
                     this.deviceGroups = groups.groups
                     if (this.device?.deviceGroup) {
@@ -169,48 +215,10 @@ export default {
                 .catch((err) => {
                     console.error(err)
                 })
-        },
-        validateDeviceApplicationOwnership () {
-            return new Promise((resolve, reject) => {
-                if (this.devices.length > 0) {
-                    const map = {}
-
-                    for (const device of this.devices) {
-                        if (device.ownerType === 'instance') {
-                            this.assigningInstanceOwnedDevices = true
-                            this.setDisablePrimary(true)
-                            return reject(new Error('Unable to assign hosted instance owned devices to a group'))
-                        }
-
-                        map[device.application?.id ?? ''] = ''
-                    }
-                    const keys = Object.keys(map)
-
-                    if (keys.some(key => key === '')) {
-                        this.devicesBelongToSameApplication = false
-                        this.setDisablePrimary(true)
-                        return reject(new Error('Some Remote Instances do not belong to an application'))
-                    }
-
-                    this.devicesBelongToSameApplication = keys.filter(key => key)
-                        .length === 1
-
-                    if (this.devicesBelongToSameApplication) {
-                        this.application = this.devices[0].application
-                    } else {
-                        this.setDisablePrimary(true)
-                        reject(new Error('Remote Instances do not belong to the same application'))
-                    }
-                }
-
-                this.setDisablePrimary(true)
-                resolve()
-            })
+                .finally(() => {
+                    this.loading = false
+                })
         }
     }
 }
 </script>
-
-<style scoped lang="scss">
-
-</style>
