@@ -462,6 +462,9 @@ const actions = {
         dispatch('resetSessionTimer')
         dispatch('startSessionTimer')
 
+        // Clear resource selection
+        dispatch(`product/expert/${OPERATOR_AGENT}/setSelectedCapabilities`, [], { root: true })
+
         // Add welcome message for current mode
         dispatch('addWelcomeMessageIfNeeded')
     },
