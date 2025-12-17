@@ -190,7 +190,8 @@ export default {
         }
 
         &[data-headlessui-state="open"] {
-            button.ff-button {
+            button.ff-button,
+            button.ff-button:hover {
                 background: $ff-indigo-600;
                 border-color: $ff-indigo-600;
                 color: $ff-white;
