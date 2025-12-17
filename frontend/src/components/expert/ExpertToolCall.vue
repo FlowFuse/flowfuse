@@ -101,8 +101,9 @@ export default {
         },
         hasContent (data) {
             if (data === null || data === undefined) return false
-            if (typeof data === 'object' && Object.keys(data).length === 0) return false
-            if (typeof data === 'string' && data.trim() === '') return false
+            if (Array.isArray(data)) return data.length > 0
+            if (typeof data === 'object') return Object.keys(data).length > 0
+            if (typeof data === 'string') return data.trim() !== ''
             return true
         },
         highlightJson (data) {
