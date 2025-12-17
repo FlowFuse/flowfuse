@@ -17,8 +17,8 @@
             >
                 <div class="ff-expert-tool-call--title">{{ tool.title || tool.name }}</div>
                 <div class="ff-expert-tool-call--name">{{ tool.name }}</div>
-                <div v-if="expanded && tool.output" class="ff-expert-tool-call--output">
-                    <pre><code>{{ tool.output }}</code></pre>
+                <div v-if="expanded && tool.args" class="ff-expert-tool-call--output">
+                    <pre><code>{{ formatArgs(tool.args) }}</code></pre>
                 </div>
             </div>
         </div>
@@ -65,6 +65,9 @@ export default {
     methods: {
         toggleExpanded () {
             this.expanded = !this.expanded
+        },
+        formatArgs (args) {
+            return JSON.stringify(args, null, 2)
         }
     }
 }
