@@ -291,9 +291,10 @@ const actions = {
             timestamp: Date.now()
         })
 
-        // Add loading indicator
+        // Add loading indicator with variant based on mode
         commit('ADD_MESSAGE', {
             type: 'loading',
+            variant: state.agentMode === OPERATOR_AGENT ? 'insights' : 'default',
             timestamp: Date.now()
         })
 
