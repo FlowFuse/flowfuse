@@ -123,7 +123,7 @@ module.exports = async function (app) {
                 protocol: request.body.protocol,
                 TeamId: request.team.id
             }, {
-                fields: ['name', 'endpointRoute', 'mcpName', 'mcpTitle', 'mcpVersion', 'description'],
+                fields: ['name', 'endpointRoute', 'title', 'version', 'description'],
                 conflictFields: ['TeamId', 'targetType', 'nodeId', 'targetId']
             })
         } catch (err) {
