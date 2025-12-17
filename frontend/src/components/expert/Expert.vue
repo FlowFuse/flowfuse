@@ -40,6 +40,10 @@
             <!-- Insights mode info banner -->
             <div v-if="isOperatorAgent" class="info-banner">
                 <p class="info-text">
+                    <span
+                        v-ff-tooltip:top="'This feature is still under development'"
+                        class="beta-badge"
+                    >BETA</span>
                     AI agent can access
                     <a
                         href="https://flowfuse.com/node-red/flowfuse/mcp/"
@@ -48,10 +52,6 @@
                         class="info-link"
                     >MCP server tools</a>
                     configured in your hosted Node-RED instances.
-                    <span
-                        v-ff-tooltip:top="'This feature is still under development'"
-                        class="beta-badge"
-                    >BETA</span>
                 </p>
             </div>
 
@@ -413,7 +413,6 @@ export default {
         font-weight: 600;
         padding: 0.125rem 0.375rem;
         border-radius: 0.25rem;
-        margin-left: 0.5rem;
         text-transform: uppercase;
         letter-spacing: 0.025em;
         cursor: help;
