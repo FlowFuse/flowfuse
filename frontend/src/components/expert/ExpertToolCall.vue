@@ -123,6 +123,7 @@ export default {
             const badgeMap = {
                 mcp_tool: 'T',
                 mcp_resource: 'R',
+                mcp_resource_template: 'RT',
                 mcp_prompt: 'P'
             }
             return badgeMap[kind] || '?'
@@ -131,6 +132,7 @@ export default {
             const kindMap = {
                 mcp_tool: 'MCP Tool',
                 mcp_resource: 'MCP Resource',
+                mcp_resource_template: 'MCP Resource Template',
                 mcp_prompt: 'MCP Prompt'
             }
             return kindMap[kind] || kind || 'Unknown'

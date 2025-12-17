@@ -123,10 +123,11 @@ const mutations = {
     HYDRATE_MESSAGES (state, messages) {
         messages.forEach((message) => {
             if (message.answer && Array.isArray(message.answer)) {
-                // Extract MCP items (tools, resources, prompts) from the answer array
+                // Extract MCP items (tools, resources, resource templates, prompts) from the answer array
                 const mcpItems = message.answer.filter(item =>
                     item.kind === 'mcp_tool' ||
                     item.kind === 'mcp_resource' ||
+                    item.kind === 'mcp_resource_template' ||
                     item.kind === 'mcp_prompt'
                 )
 
@@ -382,10 +383,11 @@ const actions = {
                 state.agentMode === OPERATOR_AGENT &&
                 rootState.product.expert[OPERATOR_AGENT].selectedCapabilities?.length > 0
 
-            // Extract MCP items (tools, resources, prompts) from the answer array
+            // Extract MCP items (tools, resources, resource templates, prompts) from the answer array
             const mcpItems = response.answer.filter(item =>
                 item.kind === 'mcp_tool' ||
                 item.kind === 'mcp_resource' ||
+                item.kind === 'mcp_resource_template' ||
                 item.kind === 'mcp_prompt'
             )
 
