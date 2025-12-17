@@ -22,7 +22,7 @@
                     :value="option"
                     class="ff-option ff-team-selection-option"
                     :data-option="option.mcpServerName"
-                    :title="`Instance: '${option.instanceName}', MCP: '${option.mcpServerName}'`"
+                    :title="getResourceTooltip(option)"
                 >
                     <li>
                         <div
@@ -91,7 +91,16 @@ export default {
     methods: {
         ...mapActions(`product/expert/${OPERATOR_AGENT}`, [
             'setSelectedCapabilities'
-        ])
+        ]),
+        getResourceTooltip (option) {
+            const lines = [
+                `Instance: ${option.instanceName}`,
+                `MCP Server: ${option.mcpServerName}`
+            ]
+            if (option.title) lines.push(`Title: ${option.title}`)
+            if (option.description) lines.push(`Description: ${option.description}`)
+            return lines.join('&#10;')
+        }
     }
 }
 </script>
@@ -110,7 +119,7 @@ export default {
             border: 1px solid #c7d2fe; // indigo-300 to match other buttons
             border-radius: 9999px; // pill shape
             background: $ff-white;
-            color: inherit;
+            color: #1f2937; // gray-800, explicit dark text
             font-size: 0.875rem;
 
             .icon {
