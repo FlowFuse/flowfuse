@@ -44,7 +44,11 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    type: 'array'
+                    type: 'object',
+                    properties: {
+                        count: { type: 'number' },
+                        servers: { $ref: 'MCPRegistrationSummaryList' }
+                    }
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -57,7 +61,8 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const mcpServers = await app.db.models.MCPRegistration.byTeam(request.params.teamId)
-            reply.send(mcpServers)
+            const mcpServersView = app.db.views.MCPRegistrations.MCPRegistrationSummaryList(mcpServers)
+            reply.send({ count: mcpServers.length, servers: mcpServersView })
         } catch (err) {
             reply.status(500).send({ code: 'unexpected_error', error: 'Failed to find mcp entries for team' })
         }
@@ -88,7 +93,10 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     endpointRoute: { type: 'string' },
-                    protocol: { type: 'string' }
+                    protocol: { type: 'string' },
+                    title: { type: 'string' },
+                    version: { type: 'string' },
+                    description: { type: 'string' }
                 }
             },
             response: {
@@ -106,10 +114,15 @@ module.exports = async function (app) {
                 targetType: request.params.type,
                 targetId: request.params.typeId,
                 nodeId: request.params.nodeId,
-                ...request.body,
+                title: request.body.title,
+                version: request.body.version,
+                description: request.body.description,
+                name: request.body.name,
+                endpointRoute: request.body.endpointRoute,
+                protocol: request.body.protocol,
                 TeamId: request.team.id
             }, {
-                fields: ['name', 'endpointRoute'],
+                fields: ['name', 'endpointRoute', 'title', 'version', 'description'],
                 conflictFields: ['TeamId', 'targetType', 'nodeId', 'targetId']
             })
         } catch (err) {
