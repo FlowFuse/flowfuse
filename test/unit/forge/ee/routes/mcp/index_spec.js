@@ -48,9 +48,8 @@ describe('MCP Server Registration', function () {
                 name: 'foo',
                 protocol: 'http',
                 endpointRoute: '/mcp',
-                mcpName: 'flowfuse-mcp',
-                mcpTitle: 'FlowFuse MCP',
-                mcpVersion: '1.2.3',
+                title: 'FlowFuse MCP',
+                version: '1.2.3',
                 description: 'Test MCP registration entry'
             }
         })
@@ -62,8 +61,8 @@ describe('MCP Server Registration', function () {
         mcpServer.protocol.should.equal('http')
         mcpServer.endpointRoute.should.equal('/mcp')
         mcpServer.mcpName.should.equal('flowfuse-mcp')
-        mcpServer.mcpTitle.should.equal('FlowFuse MCP')
-        mcpServer.mcpVersion.should.equal('1.2.3')
+        mcpServer.title.should.equal('FlowFuse MCP')
+        mcpServer.version.should.equal('1.2.3')
         mcpServer.description.should.equal('Test MCP registration entry')
     })
     it('should create MCP entry with defaults for optional MCP metadata', async function () {
@@ -89,9 +88,8 @@ describe('MCP Server Registration', function () {
         mcpServer.protocol.should.equal('http')
         mcpServer.endpointRoute.should.equal('/mcp2')
         // Defaults from model
-        mcpServer.mcpName.should.equal('')
-        mcpServer.mcpTitle.should.equal('')
-        mcpServer.mcpVersion.should.equal('1.0.0')
+        mcpServer.title.should.equal('')
+        mcpServer.version.should.equal('1.0.0')
         mcpServer.description.should.equal('')
     })
     it('should list MCP entries', async function () {

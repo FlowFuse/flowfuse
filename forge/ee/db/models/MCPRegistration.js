@@ -12,9 +12,8 @@ module.exports = {
         targetId: { type: DataTypes.STRING, allowNull: false },
         nodeId: { type: DataTypes.STRING, allowNull: false },
         endpointRoute: { type: DataTypes.STRING, allowNull: false },
-        mcpName: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
-        mcpTitle: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
-        mcpVersion: { type: DataTypes.STRING, allowNull: false, defaultValue: '1.0.0' },
+        title: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
+        version: { type: DataTypes.STRING, allowNull: false, defaultValue: '1.0.0' },
         description: { type: DataTypes.TEXT, allowNull: false, defaultValue: '' }
     },
     indexes: [

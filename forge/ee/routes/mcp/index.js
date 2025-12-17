@@ -94,9 +94,8 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     endpointRoute: { type: 'string' },
                     protocol: { type: 'string' },
-                    mcpName: { type: 'string' },
-                    mcpTitle: { type: 'string' },
-                    mcpVersion: { type: 'string' },
+                    title: { type: 'string' },
+                    version: { type: 'string' },
                     description: { type: 'string' }
                 }
             },
@@ -116,8 +115,8 @@ module.exports = async function (app) {
                 targetId: request.params.typeId,
                 nodeId: request.params.nodeId,
                 mcpName: request.body.mcpName,
-                mcpTitle: request.body.mcpTitle,
-                mcpVersion: request.body.mcpVersion,
+                title: request.body.title,
+                version: request.body.version,
                 description: request.body.description,
                 name: request.body.name,
                 endpointRoute: request.body.endpointRoute,

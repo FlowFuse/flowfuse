@@ -11,12 +11,12 @@ module.exports = {
             allowNull: false,
             defaultValue: ''
         })
-        await context.addColumn('MCPRegistrations', 'mcpTitle', {
+        await context.addColumn('MCPRegistrations', 'title', {
             type: DataTypes.STRING,
             allowNull: false,
             defaultValue: ''
         })
-        await context.addColumn('MCPRegistrations', 'mcpVersion', {
+        await context.addColumn('MCPRegistrations', 'version', {
             type: DataTypes.STRING,
             allowNull: false,
             defaultValue: '1.0.0'
