@@ -3,6 +3,7 @@
         <ff-listbox
             v-model="capabilitiesHandler"
             :options="capabilities"
+            :disabled="!hasCapabilities"
             return-model
             multiple
             label-key="name"
@@ -75,6 +76,9 @@ export default {
             'selectedCapabilities'
         ]),
         ...mapGetters(`product/expert/${OPERATOR_AGENT}`, ['capabilities']),
+        hasCapabilities () {
+            return this.capabilities && this.capabilities.length > 0
+        },
         capabilitiesHandler: {
             get () {
                 return this.selectedCapabilities
