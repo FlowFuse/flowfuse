@@ -94,6 +94,7 @@
         <expert-chat-input
             :is-generating="isGenerating"
             :has-messages="hasMessages"
+            :has-user-messages="hasUserMessages"
             :is-session-expired="isSessionExpired"
             :is-operator-agent="isOperatorAgent"
             :has-selected-capabilities="hasSelectedCapabilities"
@@ -156,6 +157,7 @@ export default {
         ...mapGetters('product/expert', [
             'messages',
             'hasMessages',
+            'hasUserMessages',
             'lastMessage',
             'isSessionExpired',
             'isFfAgent',

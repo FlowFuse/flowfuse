@@ -5,7 +5,7 @@
             <button
                 type="button"
                 class="btn-start-over"
-                :disabled="!hasMessages || (isGenerating && !isSessionExpired)"
+                :disabled="!hasUserMessages || (isGenerating && !isSessionExpired)"
                 @click="handleStartOver"
             >
                 Start over
@@ -58,6 +58,10 @@ export default {
             default: false
         },
         hasMessages: {
+            type: Boolean,
+            default: false
+        },
+        hasUserMessages: {
             type: Boolean,
             default: false
         },

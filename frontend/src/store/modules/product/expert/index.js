@@ -42,6 +42,7 @@ const state = initialState
 const getters = {
     messages: (state) => state[state.agentMode].messages,
     hasMessages: (state) => state[state.agentMode].messages.length > 0,
+    hasUserMessages: (state) => state[state.agentMode].messages.some(m => m.type === 'human'),
     lastMessage: (state) =>
         state[state.agentMode].messages.length > 0
             ? state[state.agentMode].messages[state[state.agentMode].messages.length - 1]
