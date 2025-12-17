@@ -219,8 +219,6 @@ const actions = {
 
         if (sessionId) {
             commit('SET_SESSION_ID', sessionId)
-            // Start session timer when context is set
-            dispatch('startSessionTimer')
         }
 
         commit('SET_SHOULD_WAKE_UP_ASSISTANT', true)
@@ -296,8 +294,10 @@ const actions = {
         // Auto-initialize session ID if not set
         if (!state[state.agentMode].sessionId) {
             commit('SET_SESSION_ID', uuidv4())
+        }
 
-            // Start session timing
+        // Start session timing on first message (if not already running)
+        if (!state[state.agentMode].sessionStartTime) {
             dispatch('startSessionTimer')
         }
 
