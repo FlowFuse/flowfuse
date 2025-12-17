@@ -140,6 +140,12 @@ export default {
                         'Resources:',
                         ...option.resources.map(r => r.name)
                     ]
+                    : []),
+                (option.resourceTemplates
+                    ? [
+                        'Resource Templates:',
+                        ...option.resourceTemplates.map(r => r.name)
+                    ]
                     : [])
             ]
 
