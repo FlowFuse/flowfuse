@@ -214,7 +214,10 @@ export default {
     mounted () {
         // Add welcome message when opening in editor (immersive) context
         if (this.isEditorContext) {
-            this.$store.dispatch('product/expert/addWelcomeMessageIfNeeded')
+            // Delay to ensure drawer is open and visible before typing animation starts
+            setTimeout(() => {
+                this.$store.dispatch('product/expert/addWelcomeMessageIfNeeded')
+            }, 1000)
         }
     },
     beforeUnmount () {
