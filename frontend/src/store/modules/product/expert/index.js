@@ -304,6 +304,11 @@ const actions = {
         try {
             const response = await dispatch('sendQuery', { query })
 
+            // TODO: Remove this delay - for testing loading messages (8 seconds to see rotating messages)
+            if (state.agentMode === OPERATOR_AGENT) {
+                await new Promise(resolve => setTimeout(resolve, 8000))
+            }
+
             dispatch('removeLoadingIndicator')
 
             // Process and return the response for UI handling
