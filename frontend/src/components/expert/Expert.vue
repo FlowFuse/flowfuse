@@ -452,7 +452,7 @@ export default {
     top: 1rem;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 10;
+    z-index: 1;
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
