@@ -32,7 +32,8 @@
                                 class="ff-icon-small"
                                 :class="{ 'rotated': isSectionExpanded(tool.id, 'output') }"
                             />
-                            <span>Output</span>
+                            <span class="ff-expert-tool-call--section-label">Output</span>
+                            <span class="ff-expert-tool-call--section-duration">{{ tool.durationMs || 0 }} ms</span>
                         </div>
                         <div v-if="isSectionExpanded(tool.id, 'output')" class="ff-expert-tool-call--code">
                             <pre><code v-html="highlightJson(tool.output)" /></pre>
@@ -237,6 +238,15 @@ export default {
             transform: rotate(90deg);
         }
     }
+}
+
+.ff-expert-tool-call--section-label {
+    flex: 1;
+}
+
+.ff-expert-tool-call--section-duration {
+    color: $ff-grey-400;
+    font-weight: 400;
 }
 
 .ff-expert-tool-call--code {
