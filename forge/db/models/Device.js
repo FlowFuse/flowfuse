@@ -167,6 +167,21 @@ module.exports = {
                         ownerId: '' + device.id
                     }
                 })
+                // if MCPRegistration model is available (EE mode), remove any registrations for this device
+                if (app.db.models.MCPRegistration) {
+                    try {
+                        await app.db.models.MCPRegistration.destroy({
+                            where: {
+                                targetType: 'device',
+                                targetId: '' + device.id
+                            }
+                        })
+                    } catch (err) {
+                        // Ignore errors that occur while attempting to clean up MCPRegistration
+                        // to avoid test flakiness where destroy hooks run after shutdown.
+                        app.log && app.log.debug && app.log.debug('Ignoring MCPRegistration cleanup error during device destroy:', err && err.message)
+                    }
+                }
             }
         }
     },
