@@ -18,7 +18,7 @@
                 <div class="ff-expert-tool-call--title">{{ tool.title || tool.name }}</div>
                 <div class="ff-expert-tool-call--name">{{ tool.name }}</div>
                 <div v-if="expanded && tool.args" class="ff-expert-tool-call--output">
-                    <pre><code>{{ formatArgs(tool.args) }}</code></pre>
+                    <pre><code v-html="highlightedArgs(tool.args)" /></pre>
                 </div>
             </div>
         </div>
@@ -27,6 +27,10 @@
 
 <script>
 import { ChevronRightIcon } from '@heroicons/vue/solid'
+import hljs from 'highlight.js/lib/core'
+import json from 'highlight.js/lib/languages/json'
+
+hljs.registerLanguage('json', json)
 
 export default {
     name: 'ExpertToolCall',
@@ -66,14 +70,17 @@ export default {
         toggleExpanded () {
             this.expanded = !this.expanded
         },
-        formatArgs (args) {
-            return JSON.stringify(args, null, 2)
+        highlightedArgs (args) {
+            const jsonStr = JSON.stringify(args, null, 2)
+            return hljs.highlight(jsonStr, { language: 'json' }).value
         }
     }
 }
 </script>
 
 <style scoped lang="scss">
+@import 'highlight.js/styles/github.css';
+
 .ff-expert-tool-call {
     background-color: $ff-grey-50;
     border: 1px solid $ff-grey-200;
@@ -162,6 +169,9 @@ export default {
             color: $ff-grey-800;
             white-space: pre-wrap;
             word-break: break-word;
+            border: none;
+            background: transparent;
+            padding: 0;
         }
     }
 }
