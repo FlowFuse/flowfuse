@@ -41,7 +41,7 @@
             <div v-if="isOperatorAgent" class="info-banner">
                 <p class="info-text">
                     <span
-                        v-ff-tooltip:top="'This feature is still under development'"
+                        title="This feature is still under development"
                         class="beta-badge"
                     >BETA</span>
                     AI agent can access
