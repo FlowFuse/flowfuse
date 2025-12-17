@@ -121,7 +121,7 @@ export default {
         }
     }
 
-    &.is-streaming .message-text {
+    &.is-streaming .message-text :deep(p:last-child) {
         display: inline;
 
         &::after {
