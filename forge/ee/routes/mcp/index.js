@@ -93,7 +93,10 @@ module.exports = async function (app) {
                 properties: {
                     name: { type: 'string' },
                     endpointRoute: { type: 'string' },
-                    protocol: { type: 'string' }
+                    protocol: { type: 'string' },
+                    title: { type: 'string' },
+                    version: { type: 'string' },
+                    description: { type: 'string' }
                 }
             },
             response: {
@@ -111,10 +114,15 @@ module.exports = async function (app) {
                 targetType: request.params.type,
                 targetId: request.params.typeId,
                 nodeId: request.params.nodeId,
-                ...request.body,
+                title: request.body.title,
+                version: request.body.version,
+                description: request.body.description,
+                name: request.body.name,
+                endpointRoute: request.body.endpointRoute,
+                protocol: request.body.protocol,
                 TeamId: request.team.id
             }, {
-                fields: ['name', 'endpointRoute'],
+                fields: ['name', 'endpointRoute', 'title', 'version', 'description'],
                 conflictFields: ['TeamId', 'targetType', 'nodeId', 'targetId']
             })
         } catch (err) {

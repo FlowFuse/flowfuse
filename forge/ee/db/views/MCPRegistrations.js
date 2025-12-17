@@ -14,7 +14,10 @@ module.exports = {
                 targetId: { type: 'string' },
                 nodeId: { type: 'string' },
                 endpointRoute: { type: 'string' },
-                teamId: { type: 'string' }
+                teamId: { type: 'string' },
+                title: { type: 'string' },
+                version: { type: 'string' },
+                description: { type: 'string' }
             }
         })
         app.addSchema({
@@ -25,7 +28,7 @@ module.exports = {
     },
 
     MCPRegistrationSummary (registrationModel) {
-        const { name, protocol, targetType, targetId, nodeId, endpointRoute, TeamId, hashid } = registrationModel
+        const { name, protocol, targetType, targetId, nodeId, endpointRoute, TeamId, hashid, title, version, description } = registrationModel
         const teamId = app.db.models.Team.encodeHashid(+TeamId)
         const result = {
             id: hashid,
@@ -35,7 +38,10 @@ module.exports = {
             targetId,
             nodeId,
             endpointRoute,
-            teamId
+            teamId,
+            title,
+            version,
+            description
         }
         return result
     },
