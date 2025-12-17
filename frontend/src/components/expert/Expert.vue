@@ -199,17 +199,12 @@ export default {
             deep: true
         },
         agentMode: {
-            handler (newMode, oldMode) {
-                // Fetch capabilities when switching to Insights mode (only in editor context)
-                if (
-                    this.isEditorContext &&
-                    newMode === 'operator-agent' &&
-                    newMode !== oldMode
-                ) {
-                    this.$store.dispatch(
-                        `product/expert/${newMode}/getCapabilities`
-                    )
+            immediate: true,
+            async handler (newMode) {
+                if (this.isOperatorAgent) {
+                    await this.$store.dispatch(`product/expert/${newMode}/getCapabilities`)
                 }
+                await this.$store.dispatch('product/expert/addWelcomeMessageIfNeeded')
             }
         }
     },

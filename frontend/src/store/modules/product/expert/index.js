@@ -475,7 +475,8 @@ const actions = {
         dispatch('startSessionTimer')
 
         // Clear resource selection
-        dispatch(`product/expert/${OPERATOR_AGENT}/setSelectedCapabilities`, [], { root: true })
+        await dispatch(`product/expert/${OPERATOR_AGENT}/setSelectedCapabilities`, [], { root: true })
+        await dispatch(`product/expert/${OPERATOR_AGENT}/getCapabilities`, [], { root: true })
 
         // Add welcome message for current mode
         dispatch('addWelcomeMessageIfNeeded')
@@ -532,12 +533,7 @@ const actions = {
             'ux/drawers/openRightDrawer',
             { component: markRaw(ExpertDrawer) },
             { root: true }
-        ).then(() => {
-            // Delay welcome message until drawer animation completes
-            setTimeout(() => {
-                dispatch('addWelcomeMessageIfNeeded')
-            }, 300)
-        })
+        )
     },
 
     addWelcomeMessageIfNeeded ({ dispatch, state }) {
@@ -709,14 +705,11 @@ const actions = {
 
     /**
      *
-     * @param commit
+     * @param {commit, dispatch}
      * @param {'ff-agent' | 'operator-agent'} mode
      */
     setAgentMode ({ commit, dispatch }, mode) {
         commit('SET_AGENT_MODE', mode)
-
-        // Add welcome message if switching to a mode with no messages
-        dispatch('addWelcomeMessageIfNeeded')
     }
 }
 

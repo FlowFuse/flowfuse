@@ -78,17 +78,6 @@ export default {
             }
         }
     },
-    watch: {
-        // watch agent mode state and dispatch an MCP Features (capabilities) fetch when it changes
-        agentMode: {
-            immediate: true,
-            handler (newMode, oldMode) {
-                if (newMode === 'operator-agent' && newMode !== oldMode) {
-                    this.$store.dispatch(`product/expert/${newMode}/getCapabilities`, null, { root: true })
-                }
-            }
-        }
-    },
     mounted () {
         // Wait for drawer slide-in animation to complete (300ms) before focusing
         setTimeout(() => {
