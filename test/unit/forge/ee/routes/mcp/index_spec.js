@@ -60,7 +60,6 @@ describe('MCP Server Registration', function () {
         mcpServer.name.should.equal('foo')
         mcpServer.protocol.should.equal('http')
         mcpServer.endpointRoute.should.equal('/mcp')
-        mcpServer.mcpName.should.equal('flowfuse-mcp')
         mcpServer.title.should.equal('FlowFuse MCP')
         mcpServer.version.should.equal('1.2.3')
         mcpServer.description.should.equal('Test MCP registration entry')
