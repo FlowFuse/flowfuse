@@ -576,7 +576,10 @@ const actions = {
 
         if (message) {
             // Use streamMessage for typing effect
-            dispatch('streamMessage', message)
+            // todo hacky fix for the page jump when first opening the right drawer
+            //   caused by the message watcher in frontend/src/components/expert/Expert.vue:199 triggering scroll on an anchor
+            //   that is not scrollable
+            setTimeout(() => dispatch('streamMessage', message), 700)
         }
     },
 
