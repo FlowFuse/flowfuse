@@ -82,6 +82,7 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
 import ToggleButtonGroup from '../../../components/elements/ToggleButtonGroup.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import featuresMixin from '../../../mixins/Features.js'
 
 import Alerts from '../../../services/alerts.js'
 
@@ -97,6 +98,7 @@ export default {
         UploadIcon,
         SectionTopMenu
     },
+    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         instance: {
@@ -128,6 +130,19 @@ export default {
                 { title: 'Snapshots', to: { name: 'instance-snapshots', params: this.$route.params } },
                 { title: 'Timeline', to: { name: 'instance-version-history-timeline', params: this.$route.params } }
             ]
+        }
+    },
+    created () {
+        // Handle dynamic redirect when landing on parent route
+        // Teams with timeline feature -> Timeline, teams without -> Snapshots
+        if (this.$route.name === 'instance-version-history') {
+            const targetRoute = this.isTimelineFeatureEnabledForTeam
+                ? 'instance-version-history-timeline'
+                : 'instance-snapshots'
+            this.$router.replace({
+                name: targetRoute,
+                params: this.$route.params
+            })
         }
     },
     methods: {
