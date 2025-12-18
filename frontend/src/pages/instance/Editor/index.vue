@@ -129,7 +129,7 @@ export default {
         navigation () {
             if (!this.instance.id) return []
             let versionHistoryRoute
-            if (!this.isTimelineFeatureEnabledForPlatform) {
+            if (!this.isTimelineFeatureEnabled) {
                 versionHistoryRoute = {
                     name: 'instance-editor-snapshots',
                     params: { id: this.instance.id }

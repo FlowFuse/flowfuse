@@ -43,6 +43,13 @@ describe('FlowFuse - RBAC Viewer Contextual permissions', () => {
     })
 
     beforeEach(() => {
+        // Enable projectHistory at team level (platform level is already enabled in EE)
+        cy.intercept('GET', '/api/*/teams/*', (req) => {
+            req.continue((response) => {
+                response.body.type.properties.features.projectHistory = true
+                return response
+            })
+        }).as('getTeam')
         cy.login('viewerVictor', 'vvPassword')
         cy.home()
     })

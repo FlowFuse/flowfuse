@@ -43,6 +43,13 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
     })
 
     beforeEach(() => {
+        // Enable projectHistory at team level (platform level is already enabled in EE)
+        cy.intercept('GET', '/api/*/teams/*', (req) => {
+            req.continue((response) => {
+                response.body.type.properties.features.projectHistory = true
+                return response
+            })
+        }).as('getTeam')
         cy.login('ownerOwen', 'ooPassword')
         cy.home()
     })

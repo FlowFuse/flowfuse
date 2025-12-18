@@ -136,7 +136,7 @@ export default {
         // Handle dynamic redirect when landing on parent route
         // Teams with timeline feature -> Timeline, teams without -> Snapshots
         if (this.$route.name === 'instance-version-history') {
-            const targetRoute = this.isTimelineFeatureEnabledForTeam
+            const targetRoute = this.isTimelineFeatureEnabled
                 ? 'instance-version-history-timeline'
                 : 'instance-snapshots'
             this.$router.replace({
