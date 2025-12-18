@@ -44,7 +44,7 @@ module.exports = async function (app) {
                 })
             }
             // Ensure users team access is valid
-            const teamId = request.body.context?.teamId || request.body.context?.team
+            const teamId = request.body.context?.teamId || request.body.context?.team?.id
             if (!teamId) {
                 return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
