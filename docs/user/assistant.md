@@ -4,7 +4,7 @@ navTitle: FlowFuse Expert Assistant
 
 # FlowFuse Expert Assistant Plugin
 
-The FlowFuse Assistant brings the power of AI to the Node-RED editor and FlowFuse. Hosted Instances running
+The FlowFuse Expert brings the power of AI to the Node-RED editor and FlowFuse. Hosted Instances running
 within FlowFuse Cloud will include the **FlowFuse Assistant**, a plugin that helps you work faster and smarter.
 
 You can also install the FlowFuse Expert Assistant plugin into your own Node-RED instances outside of FlowFuse. This
