@@ -1,5 +1,5 @@
 <template>
-    <div id="create-table">
+    <div id="create-table" class="p-4">
         <div class="content-wrapper">
             <div class="section table-name">
                 <h3>Define name</h3>
@@ -21,7 +21,7 @@
                     <span class="col-span-3 title">Type</span>
                     <span class="col-span-4 title">Default</span>
                     <!-- <span class="col-span-2 title">Options</span>-->
-                    <span class="col-span-1 title">Nullable</span>
+                    <span class="col-span-1 title">Allow null</span>
                     <!-- <span class="col-span-1 title -ml-2">Unsigned</span>-->
                 </div>
                 <ul class="columns">

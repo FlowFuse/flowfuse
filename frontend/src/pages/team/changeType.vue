@@ -49,7 +49,7 @@
                     </template>
                     <template v-else-if="billingEnabled">
                         <div class="mb-8 text-sm text-gray-500 space-y-2 text-center">
-                            <p v-if="isContactRequired">To learn more about our {{ input.teamType?.name }} plan, click below to contact our sales team.</p>
+                            <p v-if="isContactRequired">To learn more about our {{ input.teamType?.name }} plan, including the option to purchase an extended trial, click below to contact our sales team.</p>
                             <p v-if="trialMode && !trialHasEnded">Setting up billing will bring your free trial to an end</p>
                             <p v-if="!isContactRequired && team.suspended">Setting up billing will unsuspend your team</p>
                             <p v-if="isUpgradingFromMonthlyToYearly">Any additional Hosted or Remote Instances will also switch to yearly billing.</p>
