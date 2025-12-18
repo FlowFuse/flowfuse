@@ -11,7 +11,9 @@ const { v4: uuidv4 } = require('uuid')
 module.exports = async function (app) {
     // Get the assistant service configuration
     const serviceEnabled = app.config.expert?.enabled === true
-    const expertUrl = app.config.expert?.service?.url
+    // todo remove hardcoded url
+    // const expertUrl = app.config.expert?.service?.url
+    const expertUrl = 'https://flowfuse-expert-api-dev.flowfuse.cloud/v1/expert'
     const serviceToken = app.config.expert?.service?.token
     const requestTimeout = app.config.expert?.service?.requestTimeout || 60000
 
