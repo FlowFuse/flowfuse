@@ -40,7 +40,7 @@
                                 >{{ option.title }}</span>
                                 <p
                                     v-if="option.title"
-                                    class="text-gray-400 text-sm truncate"
+                                    class="text-gray-400 text-sm truncate leading-4"
                                 >
                                     {{ option.mcpServerName }}
                                 </p>
