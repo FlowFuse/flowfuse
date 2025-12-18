@@ -294,7 +294,11 @@ describe('Expert API', function () {
                         nodeId: 'mcp:node:1',
                         endpointRoute: '/mcp1',
                         TeamId: team.id,
-                        Project: instance
+                        Project: instance,
+                        title: 'the title 1',
+                        version: '1.0.0-beta',
+                        description: 'the description 1'
+
                     }, {
                         id: 2, // should be excluded since it is offline
                         name: 'mcp-server-2',
@@ -308,7 +312,11 @@ describe('Expert API', function () {
                             id: 'acbd-1234',
                             name: 'offline-instance',
                             liveState: () => ({ meta: { state: 'suspended' } })
-                        }
+                        },
+                        title: 'the title 2',
+                        version: '2.0.0-beta',
+                        description: 'the description 2'
+
                     }, {
                         id: 3, // should be excluded since it is for other team
                         name: 'mcp-server-3',
@@ -322,7 +330,10 @@ describe('Expert API', function () {
                             id: 'wxyz-6789',
                             name: 'offline-instance',
                             liveState: () => ({ meta: { state: 'running' } })
-                        }
+                        },
+                        title: 'the title 3',
+                        version: '3.0.0-beta',
+                        description: 'the description 3'
                     }
                 ])
                 // fake online status by stubbing liveState
@@ -331,18 +342,22 @@ describe('Expert API', function () {
                 sinon.stub(axios, 'post').resolves({
                     data: {
                         transactionId: 'abc',
-                        features: [
+                        servers: [
                             {
                                 team: team.hashid,
                                 instance: instance.id,
                                 instanceType: 'instance',
                                 instanceName: instance.name,
                                 mcpServerName: 'mcp-server-1',
-                                prompts: [],
-                                resources: [],
-                                resourceTemplates: [],
-                                tools: [],
+                                mcpServerUrl: 'http://instance-url/mcp1',
+                                prompts: [{}],
+                                resources: [{}],
+                                resourceTemplates: [{}],
+                                tools: [{}],
                                 mcpProtocol: 'http',
+                                title: 'the title 1',
+                                version: '1.0.0-beta',
+                                description: 'the description 1',
                                 notInSchema: 'should not cause error or be included in response due to swagger schema'
                             }
                         ]
@@ -363,7 +378,7 @@ describe('Expert API', function () {
                 axiosPost.should.have.property('servers').which.is.an.Array().and.has.length(1)
                 // since only 1 instance was correct and online, get index 0 and check its properties
                 const reg = axiosPost.servers[0]
-                reg.should.only.have.keys('team', 'instance', 'instanceType', 'instanceName', 'instanceUrl', 'mcpServerName', 'mcpEndpoint', 'mcpProtocol')
+                reg.should.only.have.keys('team', 'instance', 'instanceType', 'instanceName', 'instanceUrl', 'mcpServerName', 'mcpEndpoint', 'mcpProtocol', 'title', 'version', 'description')
                 reg.should.have.property('team', team.hashid)
                 reg.should.have.property('instance', instance.id)
                 reg.should.have.property('instanceType', 'instance')
@@ -372,6 +387,23 @@ describe('Expert API', function () {
                 reg.should.have.property('mcpServerName', 'mcp-server-1')
                 reg.should.have.property('mcpEndpoint', '/mcp1')
                 reg.should.have.property('mcpProtocol', 'http')
+                reg.should.have.property('title', 'the title 1')
+                reg.should.have.property('version', '1.0.0-beta')
+                reg.should.have.property('description', 'the description 1')
+
+                // check the response from our API
+                const result = response.json()
+                result.should.have.property('transactionId', 'abc')
+                result.should.have.property('servers').which.is.an.Array().and.has.length(1)
+                result.servers[0].should.only.have.keys('team', 'instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol', 'mcpServerUrl', 'title', 'version', 'description')
+                result.servers[0].should.have.property('team', team.hashid)
+                result.servers[0].should.have.property('instance', instance.id)
+                result.servers[0].should.have.property('instanceType', 'instance')
+                result.servers[0].should.have.property('instanceName', instance.name)
+                result.servers[0].should.have.property('mcpServerName', 'mcp-server-1')
+                result.servers[0].should.have.property('title', 'the title 1')
+                result.servers[0].should.have.property('version', '1.0.0-beta')
+                result.servers[0].should.have.property('description', 'the description 1')
             })
 
             it('should return 500 if transactionId mismatches', async function () {

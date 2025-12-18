@@ -168,7 +168,11 @@ module.exports = async function (app) {
                                     resources: { type: 'array', items: { type: 'object', additionalProperties: true } },
                                     resourceTemplates: { type: 'array', items: { type: 'object', additionalProperties: true } },
                                     tools: { type: 'array', items: { type: 'object', additionalProperties: true } },
-                                    mcpProtocol: { type: 'string', enum: ['http', 'sse'] }
+                                    mcpProtocol: { type: 'string', enum: ['http', 'sse'] },
+                                    mcpServerUrl: { type: 'string' },
+                                    title: { type: 'string' },
+                                    version: { type: 'string' },
+                                    description: { type: 'string' }
                                 },
                                 required: ['instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol'],
                                 additionalProperties: false
@@ -197,7 +201,7 @@ module.exports = async function (app) {
             const mcpServers = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
 
             for (const server of mcpServers) {
-                const { name, protocol, endpointRoute, TeamId, Project, Device } = server
+                const { name, protocol, endpointRoute, TeamId, Project, Device, title, version, description } = server
                 if (TeamId !== request.team.id) {
                     // shouldn't happen due to byTeam filter, but just in case
                     continue
@@ -228,7 +232,10 @@ module.exports = async function (app) {
                     instanceUrl: owner.url,
                     mcpServerName: name,
                     mcpEndpoint: endpointRoute,
-                    mcpProtocol: protocol
+                    mcpProtocol: protocol,
+                    title,
+                    version,
+                    description
                 })
             }
             if (runningInstancesWithMCPServer.length === 0) {
@@ -267,4 +274,7 @@ module.exports = async function (app) {
  * @property {string} mcpServerName
  * @property {string} mcpEndpoint
  * @property {string} mcpProtocol
+ * @property {string} [title]
+ * @property {string} [version]
+ * @property {string} [description]
 */
