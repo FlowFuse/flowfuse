@@ -164,6 +164,9 @@ module.exports = function (env, argv) {
             port: 3000,
             historyApiFallback: true
         },
+        watchOptions: {
+            poll: 1000
+        },
         resolve: {
             alias: {
                 // Use vue with the runtime compiler (needed for template strings)

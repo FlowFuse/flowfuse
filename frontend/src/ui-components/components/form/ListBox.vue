@@ -1,5 +1,5 @@
 <template>
-    <Listbox v-model="value" :disabled="disabled" class="ff-listbox" data-el="listbox" :by="compareOptions">
+    <Listbox v-model="value" :disabled="disabled" class="ff-listbox" data-el="listbox" :by="compareOptions" :multiple="multiple">
         <div class="relative">
             <ListboxButton
                 ref="trigger"
@@ -29,7 +29,8 @@
                         :style="{
                             top: position.top + 'px',
                             left: position.left + 'px',
-                            width: position.width + 'px'
+                            width: position.width + 'px',
+                            transform: position.transform || ''
                         }"
                     >
                         <slot name="options" :options="options">
@@ -108,7 +109,7 @@ export default {
         valueKey: {
             required: false,
             default: 'value',
-            type: String
+            type: [String, Array]
         },
         optionTitleKey: {
             required: false,
@@ -116,6 +117,11 @@ export default {
             type: [null, String]
         },
         returnModel: {
+            required: false,
+            default: false,
+            type: Boolean
+        },
+        multiple: {
             required: false,
             default: false,
             type: Boolean
@@ -128,25 +134,76 @@ export default {
                 return this.modelValue
             },
             set (value) {
-                this.$emit('update:modelValue', !this.returnModel ? value[this.valueKey] : value)
+                if (this.multiple) {
+                    const arr = Array.isArray(value) ? value : (value == null ? [] : [value])
+                    this.$emit(
+                        'update:modelValue',
+                        this.returnModel
+                            ? arr
+                            : arr
+                                .map(v => this.extractModelValueFromOption(v))
+                                .filter(v => v !== undefined)
+                    )
+                    return
+                }
+                this.$emit('update:modelValue', this.returnModel ? value : this.extractModelValueFromOption(value))
             }
         },
         selectedOption () {
-            if (this.value === undefined || this.value === null) {
+            if (this.value === undefined || this.value === null || this.multiple) {
                 return null
             }
 
             return this.options.find(opt => {
-                return opt[this.valueKey] === (!this.returnModel ? this.value : this.value[this.valueKey])
+                const modelComparable = this.returnModel ? this.extractModelValueFromOption(this.value) : this.value
+                return this.compareByValueKey(opt, modelComparable)
             })
         },
         selectedLabel () {
+            if (this.multiple) {
+                const values = Array.isArray(this.modelValue) ? this.modelValue : []
+                if (!values.length) {
+                    return this.placeholder
+                }
+                return `${values.length} selected`
+            }
+
             return this.selectedOption ? this.selectedOption[this.labelKey] : this.placeholder
         }
     },
     methods: {
+        extractModelValueFromOption (option) {
+            if (!option) return undefined
+
+            if (Array.isArray(this.valueKey)) {
+                // For composite keys, emit an object containing just the key parts
+                const out = {}
+                for (const k of this.valueKey) {
+                    out[k] = option?.[k]
+                }
+                return out
+            }
+
+            return option?.[this.valueKey]
+        },
+        compareByValueKey (optionLike, modelComparable) {
+            if (!optionLike) return false
+
+            if (Array.isArray(this.valueKey)) {
+                if (!modelComparable || typeof modelComparable !== 'object') return false
+                return this.valueKey.every(k => optionLike?.[k] === modelComparable?.[k])
+            }
+
+            return optionLike?.[this.valueKey] === modelComparable
+        },
         compareOptions (modelValue, optionValue) {
-            return modelValue === optionValue[this.valueKey]
+            if (!this.returnModel) {
+                // modelValue is what v-model stores (primitive or composite object)
+                return this.compareByValueKey(optionValue, modelValue)
+            }
+
+            // returnModel=true => modelValue/optionValue are full option objects
+            return this.compareByValueKey(optionValue, this.extractModelValueFromOption(modelValue))
         }
     }
 }
@@ -195,7 +252,7 @@ export default {
 .ff-options {
     background: $ff-grey-50;
     box-shadow: 0 6px 9px 0 #00000038;
-    max-height: 14rem;
+    max-height: 28rem;
     z-index: 200;
     overflow-y: auto;
     padding: 0;

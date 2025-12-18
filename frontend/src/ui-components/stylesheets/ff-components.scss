@@ -104,6 +104,13 @@
     height: 24px;
   }
 
+  &.ff-btn-medium {
+    padding: $ff-unit-xs $ff-unit-sm;
+    font-size: $ff-funit-xs;
+    line-height: 18px;
+    height: 26px;
+  }
+
   &.ff-btn-fwidth {
     justify-content: center;
   }
