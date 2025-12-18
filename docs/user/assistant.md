@@ -170,7 +170,7 @@ The FlowFuse Assistant plugin also adds a code lens to the FlowFuse Dashboard `u
 to generate CSS and HTML directly within the code editor. It is aware of the context of the node and will
 generate suitable CSS and HTML components for Vuetify and the FlowFuse Dashboard.
 
-## Using the FlowFuse Expert Assistant in your own Node-RED
+## Using the FlowFuse Expert in your own Node-RED
 
 To install the plugin, use the Node-RED Palette Manager and install the package `@flowfuse/nr-assistant` and restart Node-RED.
 
