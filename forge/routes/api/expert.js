@@ -13,7 +13,7 @@ module.exports = async function (app) {
     const serviceEnabled = app.config.expert?.enabled === true
     // todo remove hardcoded url
     // const expertUrl = app.config.expert?.service?.url
-    const expertUrl = 'https://flowfuse-expert-api-dev.flowfuse.cloud/v1/expert'
+    const expertUrl = 'https://flowfuse-expert-api-dev.flowfuse.cloud/v4/expert'
     const serviceToken = app.config.expert?.service?.token
     const requestTimeout = app.config.expert?.service?.requestTimeout || 60000
 
