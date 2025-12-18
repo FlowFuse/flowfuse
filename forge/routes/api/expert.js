@@ -141,9 +141,9 @@ module.exports = async function (app) {
                     context: {
                         type: 'object',
                         properties: {
-                            team: { type: 'string', minLength: 10 }
+                            teamId: { type: 'string', minLength: 10 }
                         },
-                        required: ['team'],
+                        required: ['teamId'],
                         additionalProperties: true
                     }
                 },
