@@ -10,6 +10,22 @@ const state = initialState
 
 const getters = {
     expert: (state, getters, rootState, rootGetters) => {
+        // Return safe defaults when route is not yet initialized
+        if (!state.route) {
+            return {
+                userId: rootState.account?.user?.id || null,
+                teamId: rootState.account?.team?.id || null,
+                teamSlug: rootState.account?.team?.slug || null,
+                instanceId: null,
+                deviceId: null,
+                applicationId: null,
+                isTrialAccount: rootGetters['account/isTrialAccount'] || false,
+                pageName: null,
+                rawRoute: {},
+                scope: 'ff-app'
+            }
+        }
+
         const instanceId = state.route.fullPath.includes('/instance/')
             ? state.route.params?.id
             : null
