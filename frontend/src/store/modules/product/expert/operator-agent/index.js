@@ -57,7 +57,7 @@ const actions = {
     async getCapabilities ({ commit, rootGetters, state }) {
         const payload = {
             context: {
-                team: rootGetters['account/team'].id
+                teamId: rootGetters['account/team'].id
             }
         }
         return expertApi.getCapabilities(payload)
