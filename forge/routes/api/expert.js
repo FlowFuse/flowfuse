@@ -274,4 +274,7 @@ module.exports = async function (app) {
  * @property {string} mcpServerName
  * @property {string} mcpEndpoint
  * @property {string} mcpProtocol
+ * @property {string} [title]
+ * @property {string} [version]
+ * @property {string} [description]
 */
