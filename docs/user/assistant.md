@@ -1,11 +1,14 @@
 ---
-navTitle: FlowFuse Assistant
+navTitle: FlowFuse Expert Assistant
 ---
 
-# FlowFuse Assistant Plugin
+# FlowFuse Expert Assistant Plugin
 
 The FlowFuse Assistant brings the power of AI to the Node-RED editor and FlowFuse. Hosted Instances running
 within FlowFuse Cloud will include the **FlowFuse Assistant**, a plugin that helps you work faster and smarter.
+
+You can also install the FlowFuse Expert Assistant plugin into your own Node-RED instances outside of FlowFuse. This
+requires a FlowFuse Cloud account, but for the current release, it doesn't not require a paid subscription to use.
 
 ## Assistant Features Overview
 
@@ -166,6 +169,13 @@ _Screenshot showing the result of the above FlowFuse Assistant prompt_
 The FlowFuse Assistant plugin also adds a code lens to the FlowFuse Dashboard `ui-template` node that allows you
 to generate CSS and HTML directly within the code editor. It is aware of the context of the node and will
 generate suitable CSS and HTML components for Vuetify and the FlowFuse Dashboard.
+
+## Using the FlowFuse Expert Assistant in your own Node-RED
+
+To install the plugin, use the Node-RED Palette Manager and install the package `@flowfuse/nr-assistant` and restart Node-RED.
+
+Once installed, you'll see the FlowFuse Expert icon in the header. Click on it and follow the option to connect to your FlowFuse Cloud
+account. Once connected, you will be able to use all of the Assistant features.
 
 ## Data Privacy
 
