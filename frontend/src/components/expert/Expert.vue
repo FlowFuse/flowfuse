@@ -26,15 +26,13 @@
                         target="_blank"
                         rel="noopener noreferrer"
                         class="info-link"
-                        >documentation and knowledge</a
-                    >,
+                    >documentation and knowledge</a>,
                     <a
                         href="https://flowfuse.com/blog"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="info-link"
-                        >blogposts</a
-                    >, and more.
+                    >blogposts</a>, and more.
                 </p>
             </div>
             <!-- Insights mode info banner -->
@@ -112,20 +110,20 @@
 </template>
 
 <script>
-import { markRaw } from "vue";
-import { mapActions, mapGetters, mapState } from "vuex";
+import { markRaw } from 'vue'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
-import ToggleButtonGroup from "../elements/ToggleButtonGroup.vue";
+import ToggleButtonGroup from '../elements/ToggleButtonGroup.vue'
 
-import ExpertChatInput from "./ExpertChatInput.vue";
-import ExpertChatMessage from "./ExpertChatMessage.vue";
-import ExpertLoadingDots from "./ExpertLoadingDots.vue";
-import ExpertRichGuide from "./ExpertRichGuide.vue";
-import ExpertRichResources from "./ExpertRichResources.vue";
-import ExpertToolCall from "./ExpertToolCall.vue";
+import ExpertChatInput from './ExpertChatInput.vue'
+import ExpertChatMessage from './ExpertChatMessage.vue'
+import ExpertLoadingDots from './ExpertLoadingDots.vue'
+import ExpertRichGuide from './ExpertRichGuide.vue'
+import ExpertRichResources from './ExpertRichResources.vue'
+import ExpertToolCall from './ExpertToolCall.vue'
 
 export default {
-    name: "ExpertPanel",
+    name: 'ExpertPanel',
     components: {
         ExpertChatInput,
         ExpertChatMessage,
@@ -133,218 +131,218 @@ export default {
         ExpertRichGuide,
         ExpertRichResources,
         ExpertToolCall,
-        ToggleButtonGroup,
+        ToggleButtonGroup
     },
     inject: {
         togglePinWithWidth: {
-            from: "togglePinWithWidth",
-            default: () => () => {}, // No-op function when not provided
-        },
+            from: 'togglePinWithWidth',
+            default: () => () => {} // No-op function when not provided
+        }
     },
-    data() {
+    data () {
         return {
             scrollCheckDebounce: null,
             richContentComponentMap: {
                 guide: markRaw(ExpertRichGuide),
                 resources: markRaw(ExpertRichResources),
-                tool_calls: markRaw(ExpertToolCall),
-            },
-        };
+                tool_calls: markRaw(ExpertToolCall)
+            }
+        }
     },
     computed: {
-        ...mapState("product/expert", [
-            "isGenerating",
-            "autoScrollEnabled",
-            "abortController",
-            "streamingTimer",
-            "streamingWordIndex",
-            "agentMode",
+        ...mapState('product/expert', [
+            'isGenerating',
+            'autoScrollEnabled',
+            'abortController',
+            'streamingTimer',
+            'streamingWordIndex',
+            'agentMode'
         ]),
-        ...mapGetters("product/expert", [
-            "messages",
-            "hasMessages",
-            "hasUserMessages",
-            "lastMessage",
-            "isSessionExpired",
-            "isFfAgent",
-            "isOperatorAgent",
-            "hasSelectedCapabilities",
+        ...mapGetters('product/expert', [
+            'messages',
+            'hasMessages',
+            'hasUserMessages',
+            'lastMessage',
+            'isSessionExpired',
+            'isFfAgent',
+            'isOperatorAgent',
+            'hasSelectedCapabilities'
         ]),
-        isPinned() {
-            return this.$store.state.ux.drawers.rightDrawer.fixed;
+        isPinned () {
+            return this.$store.state.ux.drawers.rightDrawer.fixed
         },
-        isEditorContext() {
+        isEditorContext () {
             // In editor context, the route name includes 'editor'
-            return this.$route?.name?.includes("editor") || false;
+            return this.$route?.name?.includes('editor') || false
         },
         agentModeWrapper: {
-            get() {
-                return this.agentMode;
+            get () {
+                return this.agentMode
             },
-            set(value) {
-                this.$store.dispatch("product/expert/setAgentMode", value);
-            },
+            set (value) {
+                this.$store.dispatch('product/expert/setAgentMode', value)
+            }
         },
-        agentModeButtons() {
+        agentModeButtons () {
             return [
-                { title: "Support", value: "ff-agent" },
-                { title: "Insights", value: "operator-agent" },
-            ];
-        },
+                { title: 'Support', value: 'ff-agent' },
+                { title: 'Insights', value: 'operator-agent' }
+            ]
+        }
     },
     watch: {
         messages: {
-            handler() {
+            handler () {
                 // Auto-scroll when new messages arrive
                 if (this.autoScrollEnabled) {
                     this.$nextTick(() => {
-                        this.scrollToBottom();
-                    });
+                        this.scrollToBottom()
+                    })
                 }
             },
-            deep: true,
+            deep: true
         },
         agentMode: {
             immediate: true,
-            async handler(newMode) {
+            async handler (newMode) {
                 if (this.isOperatorAgent) {
                     await this.$store.dispatch(
-                        `product/expert/${newMode}/getCapabilities`,
-                    );
+                        `product/expert/${newMode}/getCapabilities`
+                    )
                 }
                 await this.$store.dispatch(
-                    "product/expert/addWelcomeMessageIfNeeded",
-                );
-            },
-        },
+                    'product/expert/addWelcomeMessageIfNeeded'
+                )
+            }
+        }
     },
-    mounted() {
+    mounted () {
         // Add welcome message when opening in editor (immersive) context
         if (this.isEditorContext) {
             // Delay to ensure drawer is open and visible before typing animation starts
             setTimeout(() => {
                 this.$store.dispatch(
-                    "product/expert/addWelcomeMessageIfNeeded",
-                );
-            }, 1000);
+                    'product/expert/addWelcomeMessageIfNeeded'
+                )
+            }, 1000)
         }
     },
-    beforeUnmount() {
+    beforeUnmount () {
         // Clean up timers
         if (this.streamingTimer) {
-            this.clearStreamingTimer();
+            this.clearStreamingTimer()
         }
         if (this.scrollCheckDebounce) {
-            clearTimeout(this.scrollCheckDebounce);
+            clearTimeout(this.scrollCheckDebounce)
         }
         // Clean up session timer
-        this.resetSessionTimer();
+        this.resetSessionTimer()
     },
     methods: {
-        ...mapActions("product/expert", [
-            "handleMessage",
-            "handleMessageResponse",
-            "addMessage",
-            "updateLastMessage",
-            "clearConversation",
-            "startOver",
-            "setAutoScroll",
-            "clearStreamingTimer",
-            "streamMessage",
-            "setStreamingWordIndex",
-            "setStreamingWords",
-            "setAbortController",
-            "resetSessionTimer",
+        ...mapActions('product/expert', [
+            'handleMessage',
+            'handleMessageResponse',
+            'addMessage',
+            'updateLastMessage',
+            'clearConversation',
+            'startOver',
+            'setAutoScroll',
+            'clearStreamingTimer',
+            'streamMessage',
+            'setStreamingWordIndex',
+            'setStreamingWords',
+            'setAbortController',
+            'resetSessionTimer'
         ]),
 
-        async handleSendMessage(query) {
-            if (!query.trim()) return;
+        async handleSendMessage (query) {
+            if (!query.trim()) return
 
             // Auto-pin drawer on first message
             if (!this.isPinned && this.messages.length === 0) {
-                this.togglePinWithWidth();
+                this.togglePinWithWidth()
             }
 
             // Call Vuex action to handle API logic
             const result = await this.handleMessage({
                 query,
-                instanceId: null,
-            });
+                instanceId: null
+            })
 
             // Handle UI-specific processing if successful
-            await this.handleMessageResponse(result);
+            await this.handleMessageResponse(result)
 
             // Errors are already handled in the Vuex action
         },
 
-        handleStopGeneration() {
+        handleStopGeneration () {
             if (this.abortController) {
-                this.abortController.abort();
-                this.setAbortController(null);
+                this.abortController.abort()
+                this.setAbortController(null)
             }
 
             // Stop streaming effect
             if (this.streamingTimer) {
-                this.clearStreamingTimer();
+                this.clearStreamingTimer()
             }
 
             // Complete the streaming message
             if (this.streamingWordIndex >= 0 && this.lastMessage?.isStreaming) {
-                this.lastMessage.isStreaming = false;
-                this.setStreamingWordIndex(-1);
-                this.setStreamingWords([]);
+                this.lastMessage.isStreaming = false
+                this.setStreamingWordIndex(-1)
+                this.setStreamingWords([])
             }
         },
 
-        handleStartOver() {
+        handleStartOver () {
             // Confirm before clearing
             if (this.hasMessages) {
-                this.startOver();
+                this.startOver()
             }
         },
 
-        handleScroll() {
+        handleScroll () {
             // Debounce scroll detection
             if (this.scrollCheckDebounce) {
-                clearTimeout(this.scrollCheckDebounce);
+                clearTimeout(this.scrollCheckDebounce)
             }
 
             this.scrollCheckDebounce = setTimeout(() => {
-                const container = this.$refs.messagesContainer;
-                if (!container) return;
+                const container = this.$refs.messagesContainer
+                if (!container) return
 
                 // Check if user has scrolled away from bottom
                 const scrolledToBottom =
                     container.scrollHeight -
                         container.scrollTop -
                         container.clientHeight <
-                    100;
+                    100
 
                 if (scrolledToBottom && !this.autoScrollEnabled) {
                     // Re-enable auto-scroll if user scrolls back to bottom
-                    this.setAutoScroll(true);
+                    this.setAutoScroll(true)
                 } else if (!scrolledToBottom && this.autoScrollEnabled) {
                     // Disable auto-scroll if user scrolls up
-                    this.setAutoScroll(false);
+                    this.setAutoScroll(false)
                 }
-            }, 100);
+            }, 100)
         },
 
-        scrollToBottom() {
-            const anchor = this.$refs.scrollAnchor;
+        scrollToBottom () {
+            const anchor = this.$refs.scrollAnchor
             if (anchor) {
-                anchor.scrollIntoView({ behavior: "smooth" });
+                anchor.scrollIntoView({ behavior: 'smooth' })
             }
         },
 
-        isStreaming(index) {
+        isStreaming (index) {
             return (
                 index === this.messages.length - 1 &&
                 this.messages[index]?.isStreaming === true
-            );
-        },
-    },
-};
+            )
+        }
+    }
+}
 </script>
 
 <style lang="scss" scoped>

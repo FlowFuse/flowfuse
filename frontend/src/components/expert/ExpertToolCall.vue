@@ -34,6 +34,7 @@
                             <span class="ff-expert-tool-call--section-label">Input</span>
                         </div>
                         <div v-if="isSectionExpanded(tool.id, 'input')" class="ff-expert-tool-call--code">
+                            <!-- eslint-disable-next-line vue/no-v-html -->
                             <pre><code v-html="highlightJson(tool.args)" /></pre>
                         </div>
                     </div>
@@ -51,6 +52,7 @@
                             <span class="ff-expert-tool-call--section-duration">{{ tool.durationMs || 0 }} ms</span>
                         </div>
                         <div v-if="isSectionExpanded(tool.id, 'output')" class="ff-expert-tool-call--code">
+                            <!-- eslint-disable-next-line vue/no-v-html -->
                             <pre><code v-html="highlightJson(tool.output)" /></pre>
                         </div>
                     </div>
