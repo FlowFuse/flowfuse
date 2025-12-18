@@ -172,7 +172,7 @@ describe('Expert API', function () {
                     url: '/api/v1/expert/chat',
                     cookies: { sid: token },
                     headers: { 'x-chat-transaction-id': 'abc' },
-                    payload: { context: { team: team.hashid }, query: 'test' }
+                    payload: { context: { teamId: team.hashid }, query: 'test' }
                 })
                 response.statusCode.should.equal(200)
                 response.json().should.have.property('result', 'ok')
@@ -186,7 +186,7 @@ describe('Expert API', function () {
                     url: '/api/v1/expert/chat',
                     cookies: { sid: token },
                     headers: { 'x-chat-transaction-id': 'right' },
-                    payload: { context: { team: team.hashid }, query: 'test' }
+                    payload: { context: { teamId: team.hashid }, query: 'test' }
                 })
                 response.statusCode.should.equal(500)
             })
@@ -199,7 +199,7 @@ describe('Expert API', function () {
                     method: 'POST',
                     url: '/api/v1/expert/mcp/features',
                     cookies: { sid: token },
-                    payload: { context: { team: 'not-a-team' }, query: 'test' },
+                    payload: { context: { teamId: 'not-a-team' }, query: 'test' },
                     headers: { 'x-chat-transaction-id': 'abc' }
                 })
                 response.statusCode.should.equal(401)
@@ -211,7 +211,7 @@ describe('Expert API', function () {
                     method: 'POST',
                     url: '/api/v1/expert/mcp/features',
                     cookies: { sid: token },
-                    payload: { context: { team: 'not-a-team' }, query: 'test' },
+                    payload: { context: { teamId: 'not-a-team' }, query: 'test' },
                     headers: { 'x-chat-transaction-id': 'abc' }
                 })
                 response.statusCode.should.equal(401)
@@ -223,7 +223,7 @@ describe('Expert API', function () {
                     method: 'POST',
                     url: '/api/v1/expert/mcp/features',
                     cookies: { sid: token },
-                    payload: { context: { team: team.hashid } },
+                    payload: { context: { teamId: team.hashid } },
                     headers: { 'x-chat-transaction-id': 'abc' }
                 })
                 response.statusCode.should.equal(404)
@@ -271,7 +271,7 @@ describe('Expert API', function () {
                     method: 'POST',
                     url: '/api/v1/expert/mcp/features',
                     cookies: { sid: token },
-                    payload: { context: { team: team.hashid } },
+                    payload: { context: { teamId: team.hashid } },
                     headers: { 'x-chat-transaction-id': 'abc' }
                 })
                 response.statusCode.should.equal(200)
@@ -368,7 +368,7 @@ describe('Expert API', function () {
                     url: '/api/v1/expert/mcp/features',
                     cookies: { sid: token },
                     headers: { 'x-chat-transaction-id': 'abc' },
-                    payload: { context: { team: team.hashid } }
+                    payload: { context: { teamId: team.hashid } }
                 })
                 response.statusCode.should.equal(200)
 
@@ -428,7 +428,7 @@ describe('Expert API', function () {
                     url: '/api/v1/expert/mcp/features',
                     cookies: { sid: token },
                     headers: { 'x-chat-transaction-id': 'right' },
-                    payload: { context: { team: team.hashid } }
+                    payload: { context: { teamId: team.hashid } }
                 })
                 response.statusCode.should.equal(500)
             })
