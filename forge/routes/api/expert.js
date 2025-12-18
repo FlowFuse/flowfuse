@@ -44,7 +44,7 @@ module.exports = async function (app) {
                 })
             }
             // Ensure users team access is valid
-            const teamId = request.body.context?.teamId || request.body.context?.team?.id
+            const teamId = request.body.context?.team // `context.team` is the hash provided in the body context by the client
             if (!teamId) {
                 return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
