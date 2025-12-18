@@ -100,29 +100,29 @@ module.exports = async function (app) {
         if (request.body.history) {
             query = ''
         }
-        try {
-            const response = await axios.post(expertUrl, {
-                query,
-                history: request.body.history,
-                context: request.body.context
-            }, {
-                headers: {
-                    Origin: request.headers.origin,
-                    'X-Chat-Session-ID': sessionId,
-                    'X-Chat-Transaction-ID': transactionId,
-                    ...(serviceToken ? { Authorization: `Bearer ${serviceToken}` } : {})
-                },
-                timeout: requestTimeout
-            })
+        // try {
+        const response = await axios.post(expertUrl, {
+            query,
+            history: request.body.history,
+            context: request.body.context
+        }, {
+            headers: {
+                Origin: request.headers.origin,
+                'X-Chat-Session-ID': sessionId,
+                'X-Chat-Transaction-ID': transactionId,
+                ...(serviceToken ? { Authorization: `Bearer ${serviceToken}` } : {})
+            },
+            timeout: requestTimeout
+        })
 
-            if (response.data.transactionId !== transactionId) {
-                throw new Error('Transaction ID mismatch')
-            }
-
-            reply.send(response.data)
-        } catch (error) {
-            reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
+        if (response.data.transactionId !== transactionId) {
+            throw new Error('Transaction ID mismatch')
         }
+
+        reply.send(response.data)
+        // } catch (error) {
+        //     reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
+        // }
     })
     /**
      * an endpoint to retrieve MCP features (prompts/resources/tools) for the users team
@@ -195,74 +195,74 @@ module.exports = async function (app) {
      * @param {import('fastify').FastifyReply} reply
      */
     async (request, reply) => {
-        try {
-            /** @type {MCPServerItem[]} */
-            const runningInstancesWithMCPServer = []
-            const transactionId = request.headers['x-chat-transaction-id']
-            const mcpCapabilitiesUrl = `${expertUrl.split('/').slice(0, -1).join('/')}/mcp/features`
-            const mcpServers = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
+        // try {
+        /** @type {MCPServerItem[]} */
+        const runningInstancesWithMCPServer = []
+        const transactionId = request.headers['x-chat-transaction-id']
+        const mcpCapabilitiesUrl = `${expertUrl.split('/').slice(0, -1).join('/')}/mcp/features`
+        const mcpServers = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
 
-            for (const server of mcpServers) {
-                const { name, protocol, endpointRoute, TeamId, Project, Device, title, version, description } = server
-                if (TeamId !== request.team.id) {
-                    // shouldn't happen due to byTeam filter, but just in case
-                    continue
-                }
-                let owner, ownerId, ownerType
-                if (Device) {
-                    ownerType = 'device'
-                    owner = Device
-                    ownerId = Device.hashid
-                } else if (Project) {
-                    ownerType = 'instance'
-                    owner = Project
-                    ownerId = Project.id
-                } else {
-                    continue
-                }
-
-                const liveState = await owner.liveState({ omitStorageFlows: true })
-                if (liveState?.meta?.state !== 'running') {
-                    continue
-                }
-
-                runningInstancesWithMCPServer.push({
-                    team: request.team.hashid,
-                    instance: ownerId,
-                    instanceType: ownerType,
-                    instanceName: owner.name,
-                    instanceUrl: owner.url,
-                    mcpServerName: name,
-                    mcpEndpoint: endpointRoute,
-                    mcpProtocol: protocol,
-                    title,
-                    version,
-                    description
-                })
+        for (const server of mcpServers) {
+            const { name, protocol, endpointRoute, TeamId, Project, Device, title, version, description } = server
+            if (TeamId !== request.team.id) {
+                // shouldn't happen due to byTeam filter, but just in case
+                continue
             }
-            if (runningInstancesWithMCPServer.length === 0) {
-                return reply.send({ servers: [], transactionId })
+            let owner, ownerId, ownerType
+            if (Device) {
+                ownerType = 'device'
+                owner = Device
+                ownerId = Device.hashid
+            } else if (Project) {
+                ownerType = 'instance'
+                owner = Project
+                ownerId = Project.id
+            } else {
+                continue
             }
-            const response = await axios.post(mcpCapabilitiesUrl, {
-                teamId: request.team.hashid,
-                servers: runningInstancesWithMCPServer
-            }, {
-                headers: {
-                    Origin: request.headers.origin,
-                    'X-Chat-Transaction-ID': transactionId,
-                    ...(serviceToken ? { Authorization: `Bearer ${serviceToken}` } : {})
-                },
-                timeout: requestTimeout
+
+            const liveState = await owner.liveState({ omitStorageFlows: true })
+            if (liveState?.meta?.state !== 'running') {
+                continue
+            }
+
+            runningInstancesWithMCPServer.push({
+                team: request.team.hashid,
+                instance: ownerId,
+                instanceType: ownerType,
+                instanceName: owner.name,
+                instanceUrl: owner.url,
+                mcpServerName: name,
+                mcpEndpoint: endpointRoute,
+                mcpProtocol: protocol,
+                title,
+                version,
+                description
             })
-
-            if (response.data.transactionId !== transactionId) {
-                throw new Error('Transaction ID mismatch')
-            }
-
-            reply.send(response.data)
-        } catch (error) {
-            reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
         }
+        if (runningInstancesWithMCPServer.length === 0) {
+            return reply.send({ servers: [], transactionId })
+        }
+        const response = await axios.post(mcpCapabilitiesUrl, {
+            teamId: request.team.hashid,
+            servers: runningInstancesWithMCPServer
+        }, {
+            headers: {
+                Origin: request.headers.origin,
+                'X-Chat-Transaction-ID': transactionId,
+                ...(serviceToken ? { Authorization: `Bearer ${serviceToken}` } : {})
+            },
+            timeout: requestTimeout
+        })
+
+        if (response.data.transactionId !== transactionId) {
+            throw new Error('Transaction ID mismatch')
+        }
+
+        reply.send(response.data)
+        // } catch (error) {
+        //     reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
+        // }
     })
 }
 
