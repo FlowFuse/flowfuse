@@ -49,9 +49,11 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
                 response.body.type.properties.features.projectHistory = true
                 return response
             })
-        }).as('getTeam')
+        }).as('getTeamWithFeature')
         cy.login('ownerOwen', 'ooPassword')
         cy.home()
+        // Ensure the intercepted team data is fully loaded before navigating
+        cy.wait('@getTeamWithFeature')
     })
 
     // dashboard
