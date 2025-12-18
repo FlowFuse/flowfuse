@@ -73,7 +73,9 @@ const children = [
         meta: {
             title: 'Instance - Version History'
         },
-        // Redirect is handled dynamically in VersionHistory/index.vue based on team features
+        redirect: to => {
+            return { name: 'instance-version-history-timeline', params: { id: to.params.id } }
+        },
         children: [...VersionHistoryRoutes]
     },
     {
