@@ -31,6 +31,9 @@ export default {
                 window.removeEventListener('resize', this.updateItemsPosition)
                 window.removeEventListener('scroll', this.updateItemsPosition, true)
             }
+        },
+        position (value) {
+            console.log('position', value)
         }
     },
     computed: {
@@ -76,51 +79,51 @@ export default {
             let left = rect.left + window.scrollX
             const transform = ''
 
-            // Wait for next tick to ensure menu is rendered, then check for overflow
-            this.$nextTick(() => {
-                if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) return
-
-                const menuRect = this.menuItemsBoundingClientRect
-                const menuWidth = menuRect.width
-                const menuHeight = menuRect.height
-
-                // Check horizontal overflow
-                if (this.areMenuItemsOverflowingRight) {
-                // Align to right edge of trigger
-                    left = rect.right + window.scrollX - menuWidth
-                }
-
-                if (this.areMenuItemsOverflowingLeft) {
-                // Align to left edge of trigger
-                    left = rect.left + window.scrollX
-                }
-
-                // Check vertical overflow
-                if (this.areMenuItemsOverflowingBottom) {
-                // Position above trigger instead of below
-                    top = rect.top + window.scrollY - menuHeight - this.optionsTriggerGap
-                }
-
-                if (this.areMenuItemsOverflowingTop) {
-                // Position below trigger
-                    top = rect.bottom + window.scrollY + this.optionsOffsetTop
-                }
-
-                this.position = {
-                    top,
-                    left,
-                    width: rect.width,
-                    transform
-                }
-            })
-
-            // Set initial position (will be adjusted if overflowing)
+            // Set initial position immediately so the element is rendered and measurable
             this.position = {
                 top,
                 left,
                 width: rect.width,
                 transform
             }
+
+            // Wait for next tick to ensure menu is rendered, then check for overflow
+            this.$nextTick(() => {
+                if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) {
+                    return
+                }
+
+                const menuRect = this.menuItemsBoundingClientRect
+                const menuWidth = menuRect.width
+                const menuHeight = menuRect.height
+
+                // Re-calculate based on actual dimensions
+                if (this.areMenuItemsOverflowingRight) {
+                    // Align to right edge of trigger
+                    left = rect.right + window.scrollX - menuWidth
+                }
+
+                if (this.areMenuItemsOverflowingLeft) {
+                    // Align to left edge of trigger
+                    left = rect.left + window.scrollX
+                }
+
+                // Check vertical overflow
+                if (this.areMenuItemsOverflowingBottom) {
+                    // Position above trigger instead of below
+                    top = rect.top + window.scrollY - menuHeight - this.optionsTriggerGap
+                }
+
+                // Only update if something actually changed to avoid unnecessary cycles
+                if (left !== this.position.left || top !== this.position.top) {
+                    this.position = {
+                        top,
+                        left,
+                        width: rect.width,
+                        transform
+                    }
+                }
+            })
         },
         syncOpenState (state) {
             this._open = state

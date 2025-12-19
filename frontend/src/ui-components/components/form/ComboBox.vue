@@ -30,6 +30,7 @@
                 <teleport to="body">
                     <ComboboxOptions
                         v-if="open && (filteredOptions.length || hasCustomValue)"
+                        ref="menu-items"
                         class="absolute ff-options"
                         data-el="options"
                         :style="{

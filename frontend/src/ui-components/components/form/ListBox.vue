@@ -33,6 +33,7 @@
                 <teleport to="body">
                     <ListboxOptions
                         v-if="open"
+                        ref="menu-items"
                         data-el="listbox-options"
                         class="absolute w-full overflow-auto bg-white py-1 ff-options"
                         :style="{
