@@ -66,18 +66,18 @@ export default {
         updateItemsPosition () {
             if (!this.$refs.trigger || !this.$refs.trigger.$el) return
 
-            const rect = this.$refs.trigger.$el.getBoundingClientRect()
+            const triggerRect = this.$refs.trigger.$el.getBoundingClientRect()
 
             // Use viewport-relative coordinates (no window.scrollX/Y)
-            let top = rect.bottom + this.optionsOffsetTop
-            let left = rect.left
+            let triggerTop = triggerRect.bottom + this.optionsOffsetTop
+            let triggerLeft = triggerRect.left
             const transform = ''
 
             // Set initial position immediately
             this.position = {
-                top,
-                left,
-                width: rect.width,
+                top: triggerTop,
+                left: triggerLeft,
+                width: triggerRect.width,
                 transform
             }
 
@@ -94,26 +94,26 @@ export default {
                 // Re-calculate based on actual dimensions
                 if (this.areMenuItemsOverflowingRight) {
                     // Align to right edge of trigger
-                    left = rect.right - menuWidth
+                    triggerLeft = triggerRect.right - menuWidth
                 }
 
                 if (this.areMenuItemsOverflowingLeft) {
                     // Align to left edge of trigger
-                    left = rect.left
+                    triggerLeft = triggerRect.left
                 }
 
                 // Check vertical overflow
                 if (this.areMenuItemsOverflowingBottom) {
                     // Position above trigger instead of below
-                    top = rect.top - menuHeight - this.optionsTriggerGap
+                    triggerTop = triggerRect.top - menuHeight - this.optionsTriggerGap
                 }
 
                 // Only update if something actually changed
-                if (left !== this.position.left || top !== this.position.top) {
+                if (triggerLeft !== this.position.left || triggerTop !== this.position.top) {
                     this.position = {
-                        top,
-                        left,
-                        width: rect.width,
+                        top: triggerTop,
+                        left: triggerLeft,
+                        width: triggerRect.width,
                         transform
                     }
                 }
