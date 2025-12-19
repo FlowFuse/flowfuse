@@ -21,6 +21,7 @@
         >
             <teleport to="body">
                 <MenuItems
+                    ref="menu-items"
                     class="z-[1000] absolute w-56 mt-1 bg-white divide-y divide-gray-100 rounded overflow-hidden shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none"
                     :style="teleportedStyle"
                 >
@@ -74,7 +75,7 @@ export default {
             return {
                 top: this.position.top + 10 + 'px',
                 left: this.position.left + 'px',
-                width: 'fit-content'
+                'min-width': this.position.width + 'px'
             }
         }
     },

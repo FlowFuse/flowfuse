@@ -4,23 +4,51 @@ export default {
             type: Number,
             default: 0
         },
-        openAbove: {
-            type: Boolean,
-            default: false
-        },
-        minOptionsWidth: {
-            type: Number,
-            default: 0
-        },
         alignRight: {
             type: Boolean,
             default: false
+        },
+        optionsTriggerGap: {
+            type: Number,
+            default: 5
         }
     },
     data () {
         return {
             open: false,
             position: { top: 0, left: 0, width: 0, transform: '' }
+        }
+    },
+    computed: {
+        triggerBoundingClientRect () {
+            return this.$refs.trigger.$el.getBoundingClientRect()
+        },
+        menuItemsBoundingClientRect () {
+            return this.$refs['menu-items'].$el.getBoundingClientRect()
+        },
+        areMenuItemsOverflowingRight () {
+            if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) return false
+            return this.menuItemsBoundingClientRect.right > window.innerWidth
+        },
+        areMenuItemsOverflowingTop () {
+            if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) return false
+            return this.menuItemsBoundingClientRect.top < 0
+        },
+        areMenuItemsOverflowingBottom () {
+            if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) return false
+            return this.menuItemsBoundingClientRect.bottom > window.innerHeight
+        },
+        areMenuItemsOverflowingLeft () {
+            if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) return false
+            return this.menuItemsBoundingClientRect.left < 0
+        },
+        isOverflowing () {
+            return (
+                this.areMenuItemsOverflowingRight ||
+                this.areMenuItemsOverflowingTop ||
+                this.areMenuItemsOverflowingBottom ||
+                this.areMenuItemsOverflowingLeft
+            )
         }
     },
     mounted () {
@@ -36,18 +64,14 @@ export default {
     methods: {
         updatePosition () {
             if (!this.$refs.trigger || !this.$refs.trigger.$el) return
-            const rect = this.$refs.trigger.$el.getBoundingClientRect()
-            const width = Math.max(rect.width, this.minOptionsWidth)
-            const gap = 4 // small gap between dropdown and trigger
+
+            const rect = this.triggerBoundingClientRect
+
             this.position = {
-                top: this.openAbove
-                    ? rect.top + window.scrollY - gap + this.optionsOffsetTop
-                    : rect.bottom + window.scrollY + this.optionsOffsetTop,
-                left: this.alignRight
-                    ? rect.right + window.scrollX - width
-                    : rect.left + window.scrollX,
-                width,
-                transform: this.openAbove ? 'translateY(-100%)' : ''
+                top: rect.bottom + window.scrollY + this.optionsOffsetTop,
+                left: rect.left + window.scrollX,
+                width: rect.left + window.scrollX,
+                transform: ''
             }
         },
         handleClickOutside (e) {
@@ -56,7 +80,7 @@ export default {
                 this.$refs.trigger.value.$el &&
                 !this.$refs.trigger.value.$el.contains(e.target)
             ) {
-                close()
+                this.close()
             }
         },
         close () {
