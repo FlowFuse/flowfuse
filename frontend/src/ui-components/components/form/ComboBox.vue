@@ -1,5 +1,12 @@
 <template>
-    <Combobox v-model="value" class="ff-combobox" data-el="combobox" :by="compareOptions" :disabled="disabled" nullable>
+    <Combobox v-slot="{ open }"
+              v-model="value"
+              class="ff-combobox"
+              data-el="combobox"
+              :by="compareOptions"
+              :disabled="disabled" nullable
+    >
+        <span v-if="syncOpenState(open)" class="hidden" />
         <div class="relative">
             <ComboboxInput
                 ref="trigger"
@@ -8,7 +15,7 @@
                 :display-value="displayValue"
                 :placeholder="placeholder"
                 @input="query = $event.target.value"
-                @focus="() => { $nextTick(() => { updatePosition(); open = true }) }"
+                @focus="() => { $nextTick(() => { updateItemsPosition()}) }"
             />
 
             <ComboboxButton v-if="!disabled" class="absolute inset-y-0 right-0 flex items-center pr-2">

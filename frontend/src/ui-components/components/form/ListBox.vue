@@ -1,11 +1,20 @@
 <template>
-    <Listbox v-model="value" :disabled="disabled" class="ff-listbox" data-el="listbox" :by="compareOptions" :multiple="multiple">
+    <Listbox v-slot="{ open }"
+             v-model="value"
+             :disabled="disabled"
+             class="ff-listbox"
+             data-el="listbox"
+             :by="compareOptions"
+             :multiple="multiple"
+    >
+        <span v-if="syncOpenState(open)" class="hidden" />
+
         <div class="relative">
             <ListboxButton
                 ref="trigger"
                 class="w-full rounded-md flex justify-between ff-button"
                 :class="[disabled ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
-                @click="() => { $nextTick(() => { updatePosition(); open = true }) }"
+                @click="() => { $nextTick(() => { updateItemsPosition() }) }"
             >
                 <input type="text" hidden="hidden" :value="selectedLabel">
                 <slot name="button">
@@ -61,10 +70,10 @@
 
 <script>
 import {
+    Menu as HeadlessUIMenu,
     Listbox,
     ListboxButton,
-    ListboxOption,
-    ListboxOptions
+    ListboxOption, ListboxOptions
 } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/solid'
 
@@ -73,6 +82,7 @@ import BoxOptionsMixin from '../../../mixins/BoxOptionsMixin.js'
 export default {
     name: 'ff-listbox',
     components: {
+        HeadlessUIMenu,
         ChevronDownIcon,
         Listbox,
         ListboxButton,

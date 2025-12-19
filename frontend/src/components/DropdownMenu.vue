@@ -1,26 +1,24 @@
 <template>
-    <HeadlessUIMenu as="div" class="relative inline-block text-left">
+    <HeadlessUIMenu v-slot="{ open }" as="div" class="relative inline-block text-left">
+        <span v-if="syncOpenState(open)" class="hidden" />
         <div>
             <MenuButton
                 ref="trigger"
                 :class="[buttonClass ? buttonClass : 'forge-button', !hasLabel?'px-1':'']" :disabled="disabled"
-                @click="() => { $nextTick(() => { updatePosition(); open = true }) }"
+                @click="() => { $nextTick(() => { updateItemsPosition() }) }"
             >
                 <slot />
                 <span class="sr-only">{{ alt }}</span>
                 <ChevronDownIcon class="ff-btn--icon ff-btn--icon-right" aria-hidden="true" />
             </MenuButton>
         </div>
-        <transition
-            enter-active-class="transition duration-100 ease-out"
-            enter-from-class="transform scale-95 opacity-0"
-            enter-to-class="transform scale-100 opacity-100"
-            leave-active-class="transition duration-75 ease-in"
-            leave-from-class="transform scale-100 opacity-100"
-            leave-to-class="transform scale-95 opacity-0"
-        >
-            <teleport to="body">
+
+        <teleport to="body">
+            <transition
+                name="fade"
+            >
                 <MenuItems
+                    v-if="open"
                     ref="menu-items"
                     class="z-[1000] absolute w-56 mt-1 bg-white divide-y divide-gray-100 rounded overflow-hidden shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none"
                     :style="teleportedStyle"
@@ -29,7 +27,7 @@
                         <MenuItem
                             v-for="(item, $index) in options" v-slot="{ active }"
                             :key="$index"
-                            :disabled="!item || item.disabled == true ? true : false"
+                            :disabled="!item || item.disabled === true"
                         >
                             <template v-if="item == null">
                                 <hr>
@@ -47,8 +45,8 @@
                         </MenuItem>
                     </div>
                 </MenuItems>
-            </teleport>
-        </transition>
+            </transition>
+        </teleport>
     </HeadlessUIMenu>
 </template>
 

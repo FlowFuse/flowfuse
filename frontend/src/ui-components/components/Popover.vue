@@ -1,10 +1,11 @@
 <template>
     <Popover v-slot="{ open }" class="relative">
+        <span v-if="syncOpenState(open)" class="hidden" />
         <PopoverButton ref="trigger"
                        class="ff-btn ff-btn-icon transition-fade--color"
                        :class="{...buttonClass, active: open}"
                        :disabled="disabled"
-                       @click="() => { $nextTick(() => { updatePosition(); open = true }) }"
+                       @click="() => { $nextTick(() => { updateItemsPosition() }) }"
         >
             <span v-if="hasIconLeft" class="ff-btn--icon ff-btn--icon-left">
                 <slot name="icon-left"></slot>
