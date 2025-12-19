@@ -31,7 +31,7 @@
                     <ComboboxOptions
                         v-if="open && (filteredOptions.length || hasCustomValue)"
                         ref="menu-items"
-                        class="absolute ff-options"
+                        class="fixed ff-options"
                         data-el="options"
                         :style="{
                             top: position.top + 'px',

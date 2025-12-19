@@ -20,9 +20,9 @@
                 v-if="open"
                 v-slot="{ close }"
                 ref="menu-items"
-                class="absolute w-full overflow-auto bg-white  border border-gray-200 rounded-md shadow-md z-[200]"
+                class="fixed w-full overflow-auto bg-white border border-gray-200 rounded-md shadow-md z-[200]"
                 :style="{
-                    top: position.top + 10 + 'px',
+                    top: position.top + 'px',
                     left: position.left + 'px',
                     width: 'fit-content'
                 }"

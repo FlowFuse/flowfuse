@@ -37,27 +37,21 @@ export default {
         }
     },
     computed: {
-        triggerBoundingClientRect () {
-            return this.$refs.trigger.$el.getBoundingClientRect()
-        },
-        menuItemsBoundingClientRect () {
-            return this.$refs['menu-items'].$el.getBoundingClientRect()
-        },
         areMenuItemsOverflowingRight () {
             if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) return false
-            return this.menuItemsBoundingClientRect.right > window.innerWidth
+            return this.$refs['menu-items'].$el.getBoundingClientRect().right > window.innerWidth
         },
         areMenuItemsOverflowingTop () {
             if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) return false
-            return this.menuItemsBoundingClientRect.top < 0
+            return this.$refs['menu-items'].$el.getBoundingClientRect().top < 0
         },
         areMenuItemsOverflowingBottom () {
             if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) return false
-            return this.menuItemsBoundingClientRect.bottom > window.innerHeight
+            return this.$refs['menu-items'].$el.getBoundingClientRect().bottom > window.innerHeight
         },
         areMenuItemsOverflowingLeft () {
             if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) return false
-            return this.menuItemsBoundingClientRect.left < 0
+            return this.$refs['menu-items'].$el.getBoundingClientRect().left < 0
         },
         isOverflowing () {
             return (
@@ -72,14 +66,14 @@ export default {
         updateItemsPosition () {
             if (!this.$refs.trigger || !this.$refs.trigger.$el) return
 
-            const rect = this.triggerBoundingClientRect
+            const rect = this.$refs.trigger.$el.getBoundingClientRect()
 
-            // Start with default positioning (below trigger, left-aligned)
-            let top = rect.bottom + window.scrollY + this.optionsOffsetTop
-            let left = rect.left + window.scrollX
+            // Use viewport-relative coordinates (no window.scrollX/Y)
+            let top = rect.bottom + this.optionsOffsetTop
+            let left = rect.left
             const transform = ''
 
-            // Set initial position immediately so the element is rendered and measurable
+            // Set initial position immediately
             this.position = {
                 top,
                 left,
@@ -93,28 +87,28 @@ export default {
                     return
                 }
 
-                const menuRect = this.menuItemsBoundingClientRect
+                const menuRect = this.$refs['menu-items'].$el.getBoundingClientRect()
                 const menuWidth = menuRect.width
                 const menuHeight = menuRect.height
 
                 // Re-calculate based on actual dimensions
                 if (this.areMenuItemsOverflowingRight) {
                     // Align to right edge of trigger
-                    left = rect.right + window.scrollX - menuWidth
+                    left = rect.right - menuWidth
                 }
 
                 if (this.areMenuItemsOverflowingLeft) {
                     // Align to left edge of trigger
-                    left = rect.left + window.scrollX
+                    left = rect.left
                 }
 
                 // Check vertical overflow
                 if (this.areMenuItemsOverflowingBottom) {
                     // Position above trigger instead of below
-                    top = rect.top + window.scrollY - menuHeight - this.optionsTriggerGap
+                    top = rect.top - menuHeight - this.optionsTriggerGap
                 }
 
-                // Only update if something actually changed to avoid unnecessary cycles
+                // Only update if something actually changed
                 if (left !== this.position.left || top !== this.position.top) {
                     this.position = {
                         top,
