@@ -129,6 +129,14 @@ const actions = {
         if (state.rightDrawer.state && component.name === state.rightDrawer.component.name) return
 
         const openDrawer = () => {
+            try {
+                // Hide HubSpot floating bubble while Expert drawer is open
+                if (typeof window.HubSpotConversations?.remove === 'function') {
+                    window.HubSpotConversations.widget.remove()
+                }
+            } catch (_err) {
+                // ignore - non-critical
+            }
             commit('openRightDrawer', {
                 component,
                 header,
@@ -155,6 +163,13 @@ const actions = {
     closeRightDrawer ({ commit, state, rootState }) {
         // Set closing flag to prevent reopens during transition
         state.rightDrawer.closing = true
+        try {
+            if (typeof window.HubSpotConversations?.load === 'function') {
+                window.HubSpotConversations.widget.load()
+            }
+        } catch (_err) {
+            // ignore - non-critical
+        }
 
         // Immediately hide drawer by removing .open class
         commit('closeRightDrawerImmediate')
