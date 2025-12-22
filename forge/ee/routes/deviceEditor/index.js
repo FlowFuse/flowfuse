@@ -229,10 +229,10 @@ module.exports = async function (app) {
         preHandler: async (request, reply) => {
             if (!request.teamMembership) {
                 // Failed authentication. Redirect to the device overview page
-                reply.redirect(303, '/')
+                reply.redirect('/', 303)
             } else if (!request.session?.User) {
                 // Failed authentication. Redirect to the device overview page
-                reply.redirect(303, `/device/${request.params.deviceId}/overview`)
+                reply.redirect(`/device/${request.params.deviceId}/overview`, 303)
             } else {
                 // For a websocket comms request
                 if (/\/comms$/.test(request.url)) {
@@ -282,10 +282,10 @@ module.exports = async function (app) {
         preHandler: async (request, reply) => {
             if (!request.teamMembership) {
                 // Failed authentication. Redirect to the device overview page
-                reply.redirect(303, '/')
+                reply.redirect('/', 303)
             } else if (!request.session?.User) {
                 // Failed authentication. Redirect to the device overview page
-                reply.redirect(303, `/device/${request.params.deviceId}/overview`)
+                reply.redirect(`/device/${request.params.deviceId}/overview`, 303)
             } else {
                 // For a websocket comms request
                 if (/\/comms$/.test(request.url)) {

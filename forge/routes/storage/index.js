@@ -147,8 +147,11 @@ module.exports = async function (app) {
                     }
                 },
                 params: {
-                    // type: { type: 'string', enum: [ 'flows', 'functions', 'templates' ] },
-                    id: { type: 'string' }
+                    type: 'object',
+                    properties: {
+                        // type: { type: 'string', enum: [ 'flows', 'functions', 'templates' ] },
+                        id: { type: 'string' }
+                    }
                 }
             }
         },
@@ -187,11 +190,17 @@ module.exports = async function (app) {
         {
             schema: {
                 query: {
-                    name: { type: 'string' }
+                    type: 'object',
+                    properties: {
+                        name: { type: 'string' }
+                    }
                 },
                 params: {
-                    // type: { type: 'string', enum: [ 'flows', 'functions', 'templates' ]},
-                    id: { type: 'string' }
+                    type: 'object',
+                    properties: {
+                        // type: { type: 'string', enum: [ 'flows', 'functions', 'templates' ]},
+                        id: { type: 'string' }
+                    }
                 }
             }
         },
