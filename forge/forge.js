@@ -143,7 +143,7 @@ module.exports = async (options = {}) => {
         forceCloseConnections: true,
         bodyLimit: 10485760, // 10mb max payload size, set to allow for VERY large flows
         routerOptions: {
-            maxParamLength: 500,
+            maxParamLength: 500
         },
         trustProxy: true,
         logger: loggerConfig,
