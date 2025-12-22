@@ -199,13 +199,13 @@ module.exports = async function (app) {
                 }
                 const tunnelSetupOK = await tunnelManager.initTunnel(request.device, connection)
                 if (!tunnelSetupOK) {
-                    connection.socket.close(4000, 'Tunnel setup failed')
+                    connection.close(4000, 'Tunnel setup failed')
                 }
             } else {
-                connection.socket.close(4001, 'Invalid token')
+                connection.close(4001, 'Invalid token')
             }
         } else {
-            connection.socket.close(4004, 'No tunnel')
+            connection.close(4004, 'No tunnel')
         }
     })
 
