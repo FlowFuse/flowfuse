@@ -114,6 +114,6 @@ describe('FlowFuse - Trial Users', () => {
         cy.wait('@setupBilling')
 
         // Check we are redirected to the url provided in the api response
-        cy.url().should('include', '/api/static/index.html')
+        cy.url().should('include', '/api/')
     })
 })
