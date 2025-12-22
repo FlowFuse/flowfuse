@@ -2,7 +2,7 @@ const should = require('should') // eslint-disable-line
 const FF_UTIL = require('flowforge-test-utils')
 const { LocalTransport } = require('flowforge-test-utils/forge/postoffice/localTransport.js')
 
-describe.only('First run setup', function () {
+describe('First run setup', function () {
     // forge - this will be the running FF application we are testing
     let forge
     // inbox - a local transport we can use to capture email without an SMTP server
