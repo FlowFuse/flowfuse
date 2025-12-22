@@ -38,7 +38,12 @@ describe('Billing routes', function () {
     before(async function () {
         stripe = setup.setupStripe()
 
-        app = await setup()
+        app = await setup({
+            logging: {
+                level: 'error',
+                http: 'fatal'
+            }
+        })
         TestObjects.tokens = {}
 
         TestObjects.alice = app.user
