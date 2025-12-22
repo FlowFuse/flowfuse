@@ -29,7 +29,8 @@ describe('Instance Alerts emails', function () {
             payload: { username, password, remember: false }
         })
         response.cookies.should.have.length(1)
-        response.cookies[0].should.have.property('name', 'sid')
+        const temp = { ...response.cookies[0] }
+        temp.should.have.property('name', 'sid')
         app.TestObjects.tokens[username] = response.cookies[0].value
     }
 
