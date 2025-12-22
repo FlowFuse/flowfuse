@@ -295,7 +295,8 @@ describe('User API', async function () {
                 payload: { username: 'dave', password: 'ddPassword', remember: false }
             })
             secondLoginSession.cookies.should.have.length(1)
-            secondLoginSession.cookies[0].should.have.property('name', 'sid')
+            const secondTemp = { ...secondLoginSession.cookies[0] }
+            secondTemp.should.have.property('name', 'sid')
             const secondLoginSessionId = secondLoginSession.cookies[0].value
 
             const response = await app.inject({

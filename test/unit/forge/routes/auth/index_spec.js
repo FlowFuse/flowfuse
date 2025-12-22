@@ -857,7 +857,8 @@ describe('Accounts API', async function () {
                 // This should have reset the session cookie
                 const responseCookies = verifyResponse.cookies
                 responseCookies.should.have.length(1)
-                responseCookies[0].should.have.property('name', 'sid')
+                const temp = { ...responseCookies[0] }
+                temp.should.have.property('name', 'sid')
                 TestObjects.tokens[user.username] = responseCookies[0].value
 
                 // Now we can finally delete the mfa setup
@@ -900,7 +901,8 @@ describe('Accounts API', async function () {
                 // This should have reset the session cookie
                 const responseCookies = verifyResponse.cookies
                 responseCookies.should.have.length(1)
-                responseCookies[0].should.have.property('name', 'sid')
+                const temp = { ...responseCookies[0] }
+                temp.should.have.property('name', 'sid')
                 TestObjects.tokens[user.username] = responseCookies[0].value
 
                 // Now we try to setup mfa again
@@ -960,7 +962,8 @@ describe('Accounts API', async function () {
                 payload: { username: 'testUser', password: 'ttPassword', remember: false }
             })
             secondLoginSession.cookies.should.have.length(1)
-            secondLoginSession.cookies[0].should.have.property('name', 'sid')
+            const temp = { ...secondLoginSession.cookies[0] }
+            temp.should.have.property('name', 'sid')
             const secondLoginSessionId = secondLoginSession.cookies[0].value
 
             // Submit the reset request
@@ -1055,7 +1058,8 @@ describe('Accounts API', async function () {
                 payload: { username: 'testUser', password: 'ttPassword', remember: false }
             })
             secondLoginSession.cookies.should.have.length(1)
-            secondLoginSession.cookies[0].should.have.property('name', 'sid')
+            const temp = { ...secondLoginSession.cookies[0] }
+            temp.should.have.property('name', 'sid')
             const secondLoginSessionId = secondLoginSession.cookies[0].value
 
             const response = await app.inject({
