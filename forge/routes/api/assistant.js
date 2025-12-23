@@ -146,8 +146,11 @@ module.exports = async function (app) {
         schema: {
             hide: true, // dont show in swagger
             params: {
-                nodeModule: { type: 'string' },
-                nodeType: { type: 'string' }
+                type: 'object',
+                properties: {
+                    nodeModule: { type: 'string' },
+                    nodeType: { type: 'string' }
+                }
             },
             body: {
                 type: 'object',

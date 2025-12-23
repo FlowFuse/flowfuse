@@ -100,7 +100,8 @@ describe('Application Device Groups API', function () {
             payload: { username, password, remember: false }
         })
         response.cookies.should.have.length(1)
-        response.cookies[0].should.have.property('name', 'sid')
+        const temp = { ...response.cookies[0] }
+        temp.should.have.property('name', 'sid')
         return response.cookies[0].value
     }
 

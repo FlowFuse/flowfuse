@@ -58,7 +58,8 @@ describe('First run setup', function () {
 
         const cookies = response.cookies
         cookies.should.have.lengthOf(1)
-        cookies[0].should.have.property('name', '_csrf')
+        const temp = { ...cookies[0] }
+        temp.should.have.property('name', '_csrf')
         CSRF_COOKIE[cookies[0].name] = cookies[0].value
     })
 

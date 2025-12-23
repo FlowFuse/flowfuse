@@ -121,7 +121,8 @@ describe('Team Catalogue', function () {
                 payload: { username, password, remember: false }
             })
             response.cookies.should.have.length(1)
-            response.cookies[0].should.have.property('name', 'sid')
+            const temp = { ...response.cookies[0] }
+            temp.should.have.property('name', 'sid')
             TestObjects.tokens[username] = response.cookies[0].value
         }
         it('Get Team Catalogue (instance)', async function () {
@@ -453,7 +454,8 @@ describe('Team Catalogue', function () {
                 payload: { username, password, remember: false }
             })
             response.cookies.should.have.length(1)
-            response.cookies[0].should.have.property('name', 'sid')
+            const temp = { ...response.cookies[0] }
+            temp.should.have.property('name', 'sid')
             TestObjects.tokens[username] = response.cookies[0].value
         }
 
@@ -505,7 +507,8 @@ describe('Team Catalogue', function () {
                 payload: { username, password, remember: false }
             })
             response.cookies.should.have.length(1)
-            response.cookies[0].should.have.property('name', 'sid')
+            const temp = { ...response.cookies[0] }
+            temp.should.have.property('name', 'sid')
             TestObjects.tokens[username] = response.cookies[0].value
         }
 

@@ -30,14 +30,20 @@ describe('Billing routes', function () {
             payload: { username, password, remember: false }
         })
         response.cookies.should.have.length(1)
-        response.cookies[0].should.have.property('name', 'sid')
+        const temp = { ...response.cookies[0] }
+        temp.should.have.property('name', 'sid')
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
     before(async function () {
         stripe = setup.setupStripe()
 
-        app = await setup()
+        app = await setup({
+            logging: {
+                level: 'error',
+                http: 'fatal'
+            }
+        })
         TestObjects.tokens = {}
 
         TestObjects.alice = app.user
