@@ -202,7 +202,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       (always() && needs.publish_nr_launcher.result == 'success')
-    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.43.0
+    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.45.0
     with:
       image_name: 'node-red'
       dockerfile_path: Dockerfile
