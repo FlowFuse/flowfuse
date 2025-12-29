@@ -71,7 +71,7 @@
         "@flowfuse/flow-renderer": "^0.5.0",
         "@headlessui/vue": "1.7.19",
         "@heroicons/vue": "1.0.6",
-        "@immobiliarelabs/fastify-sentry": "^8.0.0",
+        "@immobiliarelabs/fastify-sentry": "^9.0.1",
         "@levminer/speakeasy": "^1.4.2",
         "@node-red/util": "^4.0.2",
         "@node-saml/passport-saml": "^5.0.0",
