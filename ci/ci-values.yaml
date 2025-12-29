@@ -27,6 +27,7 @@ forge:
     max: 600
     maxAnonymous: 10
     timeWindow: 30000
+  projectSchedulerName: binpack-scheduler
 
 postgresql:
   persistence:
