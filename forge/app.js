@@ -16,8 +16,8 @@ const forge = require('./forge')
   */
 
 ;(async function () {
-    if (!semver.satisfies(process.version, '>=16.0.0')) {
-        console.error(`FlowFuse requires at least NodeJS v16, ${process.version} found`)
+    if (!semver.satisfies(process.version, '>=20.0.0')) {
+        console.error(`FlowFuse requires at least NodeJS v20, ${process.version} found`)
         process.exit(1)
     }
 
