@@ -533,11 +533,13 @@ jobs:
 
     - name: Post to a Slack channel
       id: slack
-      uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
+      uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
       with:
-        channel-id: 'C067BD0377F'
+        method: 'chat.postMessage'
+        token: ${{ secrets.SLACK_GHBOT_TOKEN }}
         payload: |
           {
+            "channel": "C067BD0377F",
             "blocks": [
               {
                 "type": "header",
@@ -591,7 +593,6 @@ jobs:
         PR_TEXT: |
           *Pull Request:*
           <https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
         GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
 
 
