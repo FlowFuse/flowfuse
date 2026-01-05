@@ -1,11 +1,17 @@
 <template>
-    <div class="ff-expert-drawer" data-el="expert-drawer">
+    <div ref="drawer" class="ff-expert-drawer" data-el="expert-drawer" tabindex="-1">
         <div class="header">
-            <div class="flex items-center gap-1">
-                <div class="logo-container">
-                    <img src="/ff-logo--wordmark--light.svg" alt="FlowFuse" class="logo">
-                </div>
+            <div class="flex items-center gap-1.5">
+                <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 flex-shrink-0">
                 <h2 class="title">Expert</h2>
+            </div>
+            <div class="agent-mode">
+                <toggle-button-group
+                    v-model="agentModeWrapper"
+                    :buttons="agentModeButtons"
+                    :usesLinks="false"
+                    :visually-hide-title="true"
+                />
             </div>
             <div class="header-actions">
                 <button
@@ -37,49 +43,56 @@
 import { LockClosedIcon, LockOpenIcon, XIcon } from '@heroicons/vue/solid'
 import { mapActions, mapState } from 'vuex'
 
+import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
+
 import ExpertPanel from '../../expert/Expert.vue'
 
 export default {
     name: 'ExpertDrawer',
     components: {
+        ToggleButtonGroup,
         ExpertPanel,
         XIcon,
         LockClosedIcon,
         LockOpenIcon
     },
     inject: ['togglePinWithWidth', 'shouldAllowPinning'],
-    data () {
-        return {
-            // Future: Add expert state here
-        }
-    },
     computed: {
         ...mapState('ux/drawers', ['rightDrawer']),
+        ...mapState('product/expert', ['agentMode']),
+        agentModeButtons () {
+            return [
+                { title: 'Support', value: 'ff-agent' },
+                { title: 'Insights', value: 'operator-agent' }
+            ]
+        },
         isPinned () {
             return this.rightDrawer.fixed
+        },
+        agentModeWrapper: {
+            get () {
+                return this.agentMode
+            },
+            set (value) {
+                this.setAgentMode(value)
+            }
         }
     },
     mounted () {
-        // Future: Listen for custom events
-        // Example: document.addEventListener('expert:open', this.handleOpenEvent)
-    },
-    beforeUnmount () {
-        // Future: Clean up event listeners
-        // Example: document.removeEventListener('expert:open', this.handleOpenEvent)
+        // Wait for drawer slide-in animation to complete (300ms) before focusing
+        setTimeout(() => {
+            this.$refs.drawer?.focus()
+        }, 350)
     },
     methods: {
         ...mapActions('ux/drawers', ['closeRightDrawer']),
+        ...mapActions('product/expert', ['setAgentMode']),
         closeDrawer () {
             this.closeRightDrawer()
         },
         togglePin () {
             this.togglePinWithWidth()
         }
-        // Future: Handle event-based triggers
-        // handleOpenEvent(event) {
-        //     const context = event.detail
-        //     // Process context and update expert state
-        // }
     }
 }
 </script>
@@ -90,6 +103,10 @@ export default {
     flex-direction: column;
     height: 100%;
     overflow: hidden; // Prevent drawer from scrolling
+
+    &:focus {
+        outline: none;
+    }
 
     .header {
         padding: 1rem 1.5rem;
@@ -104,6 +121,28 @@ export default {
         align-items: center;
         justify-content: space-between;
 
+        // Logo + Expert title on left
+        > .flex:first-child {
+            flex: 1;
+            justify-content: flex-start;
+        }
+
+        // Mode selector in center
+        .agent-mode {
+            flex: 0 0 auto;
+
+            :deep(.ff-btn) {
+                min-width: 5.5rem;
+                justify-content: center;
+            }
+        }
+
+        // Actions on right
+        .header-actions {
+            flex: 1;
+            justify-content: flex-end;
+        }
+
         .flex {
             display: flex;
 
@@ -116,25 +155,12 @@ export default {
             }
         }
 
-        .logo-container {
-            width: 6rem; // w-24
-            height: 1.5rem; // h-6
-            display: flex;
-            align-items: center;
-
-            .logo {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-            }
-        }
-
         .title {
-            font-size: 1rem; // text-base
-            font-weight: 600; // font-semibold
-            color: #374151; // text-gray-700
+            font-size: 1rem;
+            font-weight: 700; // font-bold
+            line-height: 20px;
+            color: #1f2937; // text-gray-800
             margin: 0;
-            line-height: 1.5rem; // Match logo height for proper alignment
         }
 
         .header-actions {
@@ -160,6 +186,11 @@ export default {
                 &:hover {
                     cursor: pointer;
                     background: $ff-grey-100;
+                }
+
+                &:focus-visible {
+                    outline: 2px solid $ff-indigo-700;
+                    outline-offset: 1px;
                 }
 
                 &.pin-button.is-pinned {

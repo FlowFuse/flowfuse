@@ -14,6 +14,7 @@
             </div>
             <ff-data-table
                 v-if="allDeviceStatuses.size > 0"
+                ref="table"
                 data-el="devices-browser"
                 :columns="columns"
                 :rows="devicesWithStatuses"
@@ -381,7 +382,8 @@ import { createPollTimer } from '../utils/timers.js'
 import EmptyState from './EmptyState.vue'
 import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
-import AddDeviceToGroupDialog from './dialogs/_addDeviceToGroupDialog.vue'
+import AddDeviceToGroupDialog from './dialogs/device-group-management/AddDeviceToGroupDialog.vue'
+import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/RemoveDeviceFromGroupDialog.vue'
 
 const POLL_TIME = 10000
 
@@ -457,6 +459,7 @@ export default {
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         ...mapState('ux/tours', ['tours']),
+        ...mapState('ux/dialog', ['dialog']),
         ...mapGetters('account', ['featuresCheck']),
         columns () {
             const columns = [
@@ -592,7 +595,12 @@ export default {
     watch: {
         instance: 'fullReloadOfData',
         application: 'fullReloadOfData',
-        team: 'fullReloadOfData'
+        team: 'fullReloadOfData',
+        checkedDevices (devices) {
+            if (this.dialog?.is?.payload?.devices) {
+                this.dialog.is.payload.devices = devices
+            }
+        }
     },
     mounted () {
         this.fullReloadOfData()
@@ -686,7 +694,7 @@ export default {
             // do the delete
             teamApi.bulkDeviceDelete(this.team?.id, this.checkedDevices.map(device => device.id))
                 .then(() => {
-                    Alerts.emit('Devices successfully deleted.', 'confirmation')
+                    Alerts.emit('Remote Instances successfully deleted.', 'confirmation')
                     this.fullReloadOfData()
                 })
                 .catch((error) => {
@@ -714,10 +722,15 @@ export default {
             Dialog.show({
                 header: 'Remove selected Remote Instances from their respective groups?',
                 kind: 'danger',
-                html: `
-                    <p>These Remote Instances will be cleared of any active pipeline snapshot.</p>
-                    <p>Are you sure you want to continue?</p>
-                `,
+                is: {
+                    component: markRaw(RemoveDeviceFromGroupDialog),
+                    payload: {
+                        devices: this.checkedDevices
+                    },
+                    on: {
+                        'selection-removed': this.removeFromSelection
+                    }
+                },
                 confirmLabel: 'Confirm'
             }, () => teamApi.bulkDeviceMove(this.team.id, this.checkedDevices.map(device => device.id), 'group', '')
                 .then(() => this.fullReloadOfData())
@@ -729,7 +742,7 @@ export default {
             let selectedDeviceGroup
 
             Dialog.show({
-                header: 'Add devices to a group',
+                header: 'Add Remote Instances to a group',
                 kind: 'danger',
                 is: {
                     component: markRaw(AddDeviceToGroupDialog),
@@ -739,13 +752,14 @@ export default {
                     on: {
                         selected (selection) {
                             selectedDeviceGroup = selection
-                        }
+                        },
+                        'selection-removed': this.removeFromSelection
                     }
                 },
                 confirmLabel: 'Confirm'
             }, async () => {
                 return teamApi.bulkDeviceMove(this.team.id, this.checkedDevices.map(device => device.id), 'group', selectedDeviceGroup)
-                    .then(() => Alerts.emit('Successfully assigned devices.', 'confirmation'))
+                    .then(() => Alerts.emit('Successfully assigned Remote Instances.', 'confirmation'))
                     .catch(e => {
                         if (e.response?.data?.code === 'invalid_input' && e.response?.data?.error) {
                             Alerts.emit(e.response.data.error, 'warning')
@@ -764,7 +778,7 @@ export default {
         async assignDevice (device, instanceId) {
             const updatedDevice = await deviceApi.updateDevice(device.id, { instance: instanceId })
 
-            Alerts.emit('Device successfully assigned to instance.', 'confirmation')
+            Alerts.emit('Remote Instance successfully assigned to instance.', 'confirmation')
 
             this.updateLocalCopyOfDevice({ ...device, ...updatedDevice })
         },
@@ -772,7 +786,7 @@ export default {
         async assignDeviceToApplication (device, applicationId) {
             const updatedDevice = await deviceApi.updateDevice(device.id, { application: applicationId, instance: null })
 
-            Alerts.emit('Device successfully assigned to application.', 'confirmation')
+            Alerts.emit('Remote Instance successfully assigned to application.', 'confirmation')
 
             this.updateLocalCopyOfDevice({ ...device, ...updatedDevice })
         },
@@ -785,7 +799,7 @@ export default {
             const deviceIds = devices.map(device => device.id)
             const data = await teamApi.bulkDeviceMove(this.team.id, deviceIds, 'instance', instance)
             if (data?.devices.length) {
-                Alerts.emit('Devices successfully moved.', 'confirmation')
+                Alerts.emit('Remote Instance successfully moved.', 'confirmation')
                 data.devices.forEach(updatedDevice => {
                     const device = this.devices.get(updatedDevice.id)
                     // ensure the updated device has `instance` and `application` set so that the local copy is updated correctly
@@ -802,7 +816,7 @@ export default {
         async moveDevicesToApplication (devices, application) {
             const deviceIds = devices.map(device => device.id)
             teamApi.bulkDeviceMove(this.team.id, deviceIds, 'application', application)
-                .then(() => Alerts.emit('Devices successfully moved.', 'confirmation'))
+                .then(() => Alerts.emit('Remote Instances successfully moved.', 'confirmation'))
                 .catch((e) => {
                     if (e.response?.data?.code === 'invalid_input' && e.response?.data?.error) {
                         Alerts.emit(e.response.data.error, 'warning')
@@ -819,7 +833,7 @@ export default {
         async moveDevicesToUnassigned (devices) {
             const deviceIds = devices.map(device => device.id)
             teamApi.bulkDeviceMove(this.team.id, deviceIds, 'unassigned')
-                .then(() => Alerts.emit('Devices successfully unassigned.', 'confirmation'))
+                .then(() => Alerts.emit('Remote Instances successfully unassigned.', 'confirmation'))
                 .catch((e) => {
                     if (e.response?.data?.code === 'invalid_input' && e.response?.data?.error) {
                         Alerts.emit(e.response.data.error, 'warning')
@@ -941,6 +955,10 @@ export default {
             }
             filters[filter] = this.deviceModeFilters[filter]
             this.deviceModeFilters = filters
+        },
+
+        removeFromSelection (device) {
+            this.$refs.table.toggleRowCheck(device)
         }
     }
 }

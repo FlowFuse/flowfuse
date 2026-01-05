@@ -5,12 +5,13 @@
             <button
                 type="button"
                 class="btn-start-over"
-                :disabled="!hasMessages || (isGenerating && !isSessionExpired)"
+                :disabled="!hasUserMessages || (isGenerating && !isSessionExpired)"
                 @click="handleStartOver"
             >
                 Start over
             </button>
             <div class="right-buttons">
+                <capabilities-selector v-if="isOperatorAgent" />
                 <button
                     v-if="isGenerating && !isSessionExpired"
                     type="button"
@@ -36,16 +37,21 @@
             ref="textarea"
             v-model="inputText"
             class="chat-input"
-            placeholder="Tell us what you need help with"
-            :disabled="isGenerating"
+            :placeholder="placeholderText"
+            :disabled="isInputDisabled"
             @keydown="handleKeydown"
         />
     </div>
 </template>
 
 <script>
+import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
+
 export default {
     name: 'ExpertChatInput',
+    components: {
+        CapabilitiesSelector
+    },
     props: {
         isGenerating: {
             type: Boolean,
@@ -55,7 +61,19 @@ export default {
             type: Boolean,
             default: false
         },
+        hasUserMessages: {
+            type: Boolean,
+            default: false
+        },
         isSessionExpired: {
+            type: Boolean,
+            default: false
+        },
+        isOperatorAgent: {
+            type: Boolean,
+            default: false
+        },
+        hasSelectedCapabilities: {
             type: Boolean,
             default: false
         }
@@ -67,8 +85,22 @@ export default {
         }
     },
     computed: {
+        isInputDisabled () {
+            if (this.isSessionExpired) return true
+            if (this.isGenerating) return true
+            if (this.isOperatorAgent && !this.hasSelectedCapabilities) return true
+            return false
+        },
         canSend () {
-            return this.inputText.trim().length > 0 && !this.isGenerating
+            return this.inputText.trim().length > 0 && !this.isInputDisabled
+        },
+        placeholderText () {
+            if (this.isOperatorAgent && !this.hasSelectedCapabilities) {
+                return 'Select a resource to get started'
+            }
+            return this.isOperatorAgent
+                ? 'Tell us what you want to know about'
+                : 'Tell us what you need help with'
         }
     },
     methods: {

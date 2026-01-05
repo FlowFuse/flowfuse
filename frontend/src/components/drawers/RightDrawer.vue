@@ -374,7 +374,7 @@ export default {
 
 <style scoped lang="scss">
 #right-drawer {
-    position: absolute;
+    position: fixed;
     border-left: 1px solid $ff-grey-300;
     background: $ff-grey-50;
     height: calc(100% - 60px);

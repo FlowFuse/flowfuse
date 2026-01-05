@@ -76,6 +76,6 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('project:read'),
         websocket: true
     }, async (socket, request) => {
-        await app.containers.resourcesStream(request.project, socket.socket)
+        await app.containers.resourcesStream(request.project, socket)
     })
 }

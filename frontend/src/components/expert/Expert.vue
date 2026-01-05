@@ -1,26 +1,74 @@
 <template>
     <div class="ff-expert">
+        <!-- Floating mode switcher (editor context only) -->
+        <div v-if="isEditorContext" class="mode-switcher-floating">
+            <toggle-button-group
+                v-model="agentModeWrapper"
+                :buttons="agentModeButtons"
+                :uses-links="false"
+                :visually-hide-title="true"
+            />
+        </div>
+
         <!-- Messages Container -->
         <div
             ref="messagesContainer"
-            class="messages-container"
+            class="messages-container pt-10"
+            :class="{ 'has-mode-switcher': isEditorContext }"
             @scroll="handleScroll"
         >
             <!-- Info Banner -->
-            <div class="info-banner">
+            <div v-if="isFfAgent" class="info-banner">
                 <p class="info-text">
                     AI agent has access to all of FlowFuse's
-                    <a href="https://flowfuse.com/docs" target="_blank" rel="noopener noreferrer" class="info-link">documentation and knowledge</a>,
-                    <a href="https://flowfuse.com/blog" target="_blank" rel="noopener noreferrer" class="info-link">blogposts</a>, and more.
+                    <a
+                        href="https://flowfuse.com/docs"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="info-link"
+                    >documentation and knowledge</a>,
+                    <a
+                        href="https://flowfuse.com/blog"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="info-link"
+                    >blogposts</a>, and more.
+                </p>
+            </div>
+            <!-- Insights mode info banner -->
+            <div v-if="isOperatorAgent" class="info-banner">
+                <p class="info-text">
+                    <span
+                        title="This feature is still under development"
+                        class="beta-badge"
+                    >BETA</span>
+                    AI agent can access
+                    <a
+                        href="https://flowfuse.com/node-red/flowfuse/mcp/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="info-link"
+                    >MCP server tools</a>
+                    configured in your hosted Node-RED instances.
                 </p>
             </div>
 
             <!-- Messages -->
-            <div v-for="(message, index) in messages" :key="index" class="message-wrapper">
+            <div
+                v-for="(message, index) in messages"
+                :key="index"
+                class="message-wrapper"
+            >
                 <!-- Loading indicator for AI -->
                 <expert-loading-dots
                     v-if="message.type === 'loading'"
                     :variant="message.variant || 'default'"
+                />
+
+                <!-- Tool calls - rendered without message bubble -->
+                <expert-tool-call
+                    v-else-if="message.kind === 'tool_calls'"
+                    :message="message"
                 />
 
                 <!-- Regular message -->
@@ -30,7 +78,10 @@
                     :is-streaming="isStreaming(index)"
                 >
                     <!-- Rich resources content slot -->
-                    <template v-if="richContentComponentMap[message.kind]" #rich-content>
+                    <template
+                        v-if="richContentComponentMap[message.kind]"
+                        #rich-content
+                    >
                         <component
                             :is="richContentComponentMap[message.kind]"
                             :message="message"
@@ -47,7 +98,10 @@
         <expert-chat-input
             :is-generating="isGenerating"
             :has-messages="hasMessages"
+            :has-user-messages="hasUserMessages"
             :is-session-expired="isSessionExpired"
+            :is-operator-agent="isOperatorAgent"
+            :has-selected-capabilities="hasSelectedCapabilities"
             @send="handleSendMessage"
             @stop="handleStopGeneration"
             @start-over="handleStartOver"
@@ -59,11 +113,14 @@
 import { markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
+import ToggleButtonGroup from '../elements/ToggleButtonGroup.vue'
+
 import ExpertChatInput from './ExpertChatInput.vue'
 import ExpertChatMessage from './ExpertChatMessage.vue'
 import ExpertLoadingDots from './ExpertLoadingDots.vue'
 import ExpertRichGuide from './ExpertRichGuide.vue'
 import ExpertRichResources from './ExpertRichResources.vue'
+import ExpertToolCall from './ExpertToolCall.vue'
 
 export default {
     name: 'ExpertPanel',
@@ -72,7 +129,9 @@ export default {
         ExpertChatMessage,
         ExpertLoadingDots,
         ExpertRichGuide,
-        ExpertRichResources
+        ExpertRichResources,
+        ExpertToolCall,
+        ToggleButtonGroup
     },
     inject: {
         togglePinWithWidth: {
@@ -85,28 +144,50 @@ export default {
             scrollCheckDebounce: null,
             richContentComponentMap: {
                 guide: markRaw(ExpertRichGuide),
-                resources: markRaw(ExpertRichResources)
+                resources: markRaw(ExpertRichResources),
+                tool_calls: markRaw(ExpertToolCall)
             }
         }
     },
     computed: {
         ...mapState('product/expert', [
-            'messages',
             'isGenerating',
             'autoScrollEnabled',
-            'sessionId',
-            'context',
             'abortController',
             'streamingTimer',
-            'streamingWordIndex'
+            'streamingWordIndex',
+            'agentMode'
         ]),
         ...mapGetters('product/expert', [
+            'messages',
             'hasMessages',
+            'hasUserMessages',
             'lastMessage',
-            'isSessionExpired'
+            'isSessionExpired',
+            'isFfAgent',
+            'isOperatorAgent',
+            'hasSelectedCapabilities'
         ]),
         isPinned () {
             return this.$store.state.ux.drawers.rightDrawer.fixed
+        },
+        isEditorContext () {
+            // In editor context, the route name includes 'editor'
+            return this.$route?.name?.includes('editor') || false
+        },
+        agentModeWrapper: {
+            get () {
+                return this.agentMode
+            },
+            set (value) {
+                this.$store.dispatch('product/expert/setAgentMode', value)
+            }
+        },
+        agentModeButtons () {
+            return [
+                { title: 'Support', value: 'ff-agent' },
+                { title: 'Insights', value: 'operator-agent' }
+            ]
         }
     },
     watch: {
@@ -120,10 +201,31 @@ export default {
                 }
             },
             deep: true
+        },
+        agentMode: {
+            immediate: true,
+            async handler (newMode) {
+                if (this.isOperatorAgent) {
+                    await this.$store.dispatch(
+                        `product/expert/${newMode}/getCapabilities`
+                    )
+                }
+                await this.$store.dispatch(
+                    'product/expert/addWelcomeMessageIfNeeded'
+                )
+            }
         }
     },
     mounted () {
-        // Session ID is now auto-initialized in Vuex store when first message is sent
+        // Add welcome message when opening in editor (immersive) context
+        if (this.isEditorContext) {
+            // Delay to ensure drawer is open and visible before typing animation starts
+            setTimeout(() => {
+                this.$store.dispatch(
+                    'product/expert/addWelcomeMessageIfNeeded'
+                )
+            }, 1000)
+        }
     },
     beforeUnmount () {
         // Clean up timers
@@ -210,7 +312,11 @@ export default {
                 if (!container) return
 
                 // Check if user has scrolled away from bottom
-                const scrolledToBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100
+                const scrolledToBottom =
+                    container.scrollHeight -
+                        container.scrollTop -
+                        container.clientHeight <
+                    100
 
                 if (scrolledToBottom && !this.autoScrollEnabled) {
                     // Re-enable auto-scroll if user scrolls back to bottom
@@ -230,8 +336,10 @@ export default {
         },
 
         isStreaming (index) {
-            return index === this.messages.length - 1 &&
-                   this.messages[index]?.isStreaming === true
+            return (
+                index === this.messages.length - 1 &&
+                this.messages[index]?.isStreaming === true
+            )
         }
     }
 }
@@ -244,6 +352,7 @@ export default {
     height: 100%;
     background: white;
     overflow: hidden; // Prevent this container from scrolling
+    position: relative;
 }
 
 .messages-container {
@@ -273,13 +382,13 @@ export default {
 }
 
 .info-banner {
-    background-color: #EEF2FF; // indigo-100
+    background-color: #eef2ff; // indigo-100
     border-radius: 0.5rem;
     margin-bottom: 1.5rem;
     padding: 0.75rem 1rem;
 
     .info-text {
-        color: #4338CA; // indigo-700
+        color: #4338ca; // indigo-700
         font-size: 0.875rem;
         margin: 0;
         line-height: 1.5;
@@ -290,8 +399,22 @@ export default {
         text-decoration: underline;
 
         &:hover {
-            color: #3730A3; // indigo-800
+            color: #3730a3; // indigo-800
         }
+    }
+
+    .beta-badge {
+        display: inline-block;
+        background-color: #818cf8; // indigo-400
+        color: white;
+        font-size: 0.625rem;
+        font-weight: 600;
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        cursor: help;
+        vertical-align: text-top;
     }
 }
 
@@ -337,5 +460,20 @@ export default {
 
 .scroll-anchor {
     height: 1px;
+}
+
+.mode-switcher-floating {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.messages-container.has-mode-switcher {
+    padding-top: 4rem; // Extra padding to account for floating mode switcher
 }
 </style>

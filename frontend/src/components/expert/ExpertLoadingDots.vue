@@ -18,7 +18,7 @@ export default {
         variant: {
             type: String,
             default: 'default',
-            validator: (value) => ['default', 'transfer'].includes(value)
+            validator: (value) => ['default', 'transfer', 'insights'].includes(value)
         }
     },
     data () {
@@ -38,6 +38,15 @@ export default {
                     'Syncing your conversation...',
                     'Loading existing history...',
                     'Preparing your chat...'
+                ],
+                insights: [
+                    'Connecting to MCP resources...',
+                    'Querying your Node-RED instances...',
+                    'Instructing MCP tooling...',
+                    'Ingesting responses...',
+                    'Gathering insights...',
+                    'Considering instructions...',
+                    'Processing user response...'
                 ]
             },
             messageTimer: null,
