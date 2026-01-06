@@ -188,6 +188,54 @@ module.exports = {
                 const deviceIds = [...options.where.id]
                 const deviceIdsStrings = deviceIds.map(id => '' + id)
 
+                // clean up related models
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'device',
+                        ownerId: {
+                            [Op.in]: deviceIdsStrings
+                        }
+                    }
+                })
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'npm',
+                        ownerId: {
+                            [Op.in]: deviceIds.map(id => `d-${M.Device.encodeHashid(id)}@%`)
+                        }
+                    }
+                })
+                await M.DeviceSettings.destroy({
+                    where: {
+                        DeviceId: {
+                            [Op.in]: deviceIds
+                        }
+                    }
+                })
+                await M.BrokerClient.destroy({
+                    where: {
+                        ownerType: 'device',
+                        ownerId: {
+                            [Op.in]: deviceIdsStrings
+                        }
+                    }
+                })
+                await M.AuthClient.destroy({
+                    where: {
+                        ownerType: 'device',
+                        ownerId: {
+                            [Op.in]: deviceIdsStrings
+                        }
+                    }
+                })
+                await M.TeamBrokerClient.destroy({
+                    where: {
+                        ownerType: 'device',
+                        ownerId: {
+                            [Op.in]: deviceIdsStrings
+                        }
+                    }
+                })
                 // if MCPRegistration model is available (EE mode), remove any registrations for these devices
                 if (app.db.models.MCPRegistration?.destroy) {
                     await app.db.models.MCPRegistration.destroy({
