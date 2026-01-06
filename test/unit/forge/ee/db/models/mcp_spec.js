@@ -77,4 +77,38 @@ describe('MCPRegistration Model', function () {
         const mcpServer = await app.db.models.MCPRegistration.findByPk(mcpRegistrationId)
         should.not.exist(mcpServer)
     })
+
+    it('bulk deleting devices should remove associated MCP entries', async function () {
+        // First, create a sacrificial device and MCP entry
+        const sacrificialDevice1 = await app.factory.createDevice({ name: 'device1 to be deleted' }, app.team, null, app.application)
+        const sacrificialDevice2 = await app.factory.createDevice({ name: 'device2 to be deleted' }, app.team, null, app.application)
+
+        const mcpRegistration1 = await app.db.models.MCPRegistration.create({
+            name: 'to-be-deleted-device',
+            protocol: 'http',
+            endpointRoute: '/mcp',
+            targetType: 'device',
+            targetId: '' + sacrificialDevice1.id,
+            nodeId: 'yyyyy',
+            TeamId: app.team.id
+        })
+        const mcpRegistration2 = await app.db.models.MCPRegistration.create({
+            name: 'to-be-deleted-device',
+            protocol: 'http',
+            endpointRoute: '/mcp',
+            targetType: 'device',
+            targetId: '' + sacrificialDevice2.id,
+            nodeId: 'yyyyy',
+            TeamId: app.team.id
+        })
+        const mcpRegistration1Id = mcpRegistration1.id
+        const mcpRegistration2Id = mcpRegistration2.id
+        // Now bulk delete the devices
+        await app.db.models.Device.destroy({ where: { id: [sacrificialDevice1.id, sacrificialDevice2.id] } })
+        // Now check the MCP entry is gone
+        const mcpServer1 = await app.db.models.MCPRegistration.findByPk(mcpRegistration1Id)
+        should.not.exist(mcpServer1)
+        const mcpServer2 = await app.db.models.MCPRegistration.findByPk(mcpRegistration2Id)
+        should.not.exist(mcpServer2)
+    })
 })
