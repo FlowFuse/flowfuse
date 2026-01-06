@@ -241,19 +241,13 @@ module.exports = {
                     }
                 })
                 // if MCPRegistration model is available (EE mode), remove any registrations for this instance
-                if (app.db.models.MCPRegistration) {
-                    try {
-                        await app.db.models.MCPRegistration.destroy({
-                            where: {
-                                targetType: 'instance',
-                                targetId: project.id
-                            }
-                        })
-                    } catch (err) {
-                        // Ignore errors that occur while attempting to clean up MCPRegistration
-                        // to avoid test flakiness where destroy hooks run after shutdown.
-                        app.log && app.log.debug && app.log.debug('Ignoring MCPRegistration cleanup error during project destroy:', err && err.message)
-                    }
+                if (app.db.models.MCPRegistration?.destroy) {
+                    await app.db.models.MCPRegistration.destroy({
+                        where: {
+                            targetType: 'instance',
+                            targetId: project.id
+                        }
+                    })
                 }
             }
         }
