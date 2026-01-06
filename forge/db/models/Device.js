@@ -169,12 +169,18 @@ module.exports = {
                 })
                 // if MCPRegistration model is available (EE mode), remove any registrations for this device
                 if (app.db.models.MCPRegistration?.destroy) {
-                    await app.db.models.MCPRegistration.destroy({
-                        where: {
-                            targetType: 'device',
-                            targetId: '' + device.id
-                        }
-                    })
+                    try {
+                        await app.db.models.MCPRegistration.destroy({
+                            where: {
+                                targetType: 'device',
+                                targetId: '' + device.id
+                            }
+                        })
+                    } catch (err) {
+                        // The destroy may fail if the DB connection is closed (e.g. during tests)!
+                        // Log the error but proceed as the instance has been deleted anyway
+                        app.log.error(`Error removing MCPRegistrations for deleted device ${device.id}: ${err.message}`)
+                    }
                 }
             },
             afterBulkDestroy: async (options) => {
@@ -238,14 +244,20 @@ module.exports = {
                 })
                 // if MCPRegistration model is available (EE mode), remove any registrations for these devices
                 if (app.db.models.MCPRegistration?.destroy) {
-                    await app.db.models.MCPRegistration.destroy({
-                        where: {
-                            targetType: 'device',
-                            targetId: {
-                                [Op.in]: deviceIdsStrings
+                    try {
+                        await app.db.models.MCPRegistration.destroy({
+                            where: {
+                                targetType: 'device',
+                                targetId: {
+                                    [Op.in]: deviceIdsStrings
+                                }
                             }
-                        }
-                    })
+                        })
+                    } catch (err) {
+                        // The destroy may fail if the DB connection is closed (e.g. during tests)!
+                        // Log the error but proceed as the instance has been deleted anyway
+                        app.log.error(`Error removing MCPRegistrations for deleted devices ${deviceIdsStrings.join(', ')}: ${err.message}`)
+                    }
                 }
             }
         }

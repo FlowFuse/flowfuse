@@ -242,12 +242,18 @@ module.exports = {
                 })
                 // if MCPRegistration model is available (EE mode), remove any registrations for this instance
                 if (app.db.models.MCPRegistration?.destroy) {
-                    await app.db.models.MCPRegistration.destroy({
-                        where: {
-                            targetType: 'instance',
-                            targetId: project.id
-                        }
-                    })
+                    try {
+                        await app.db.models.MCPRegistration.destroy({
+                            where: {
+                                targetType: 'instance',
+                                targetId: project.id
+                            }
+                        })
+                    } catch (err) {
+                        // The destroy may fail if the DB connection is closed (e.g. during tests)!
+                        // Log the error but proceed as the instance has been deleted anyway
+                        app.log.error(`Error removing MCPRegistrations for deleted instance ${project.id}: ${err.message}`)
+                    }
                 }
             }
         }
