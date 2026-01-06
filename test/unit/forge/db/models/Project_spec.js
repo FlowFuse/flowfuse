@@ -1,4 +1,5 @@
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
 const { v4: uuidv4 } = require('uuid')
 
 const setup = require('../setup')
@@ -414,6 +415,16 @@ describe('Project model', function () {
     })
 
     describe('Counting Projects by State', function () {
+        before(async function () {
+            // Due to how EE models are loaded/required in the test setup, app.db.models.MCPRegistration will be the instance
+            // first loaded.  e.g. [APP-1].db.models.models.MCPRegistration will be the same instance as [APP-2].db.models.models.MCPRegistration
+            // This will cause the error "ConnectionManager.getConnection was called after the connection manager was closed!" to be thrown
+            // in the below tests because the previous describe blocks close the DB connection effectively invalidating the MCPRegistration model
+            // for subsequent tests. For that reason, the below tests will mock out the MCPRegistration.destroy call
+            // The ideal fix is to refactor the model loading in the test setup or to split the tests into separate processes
+            // but for now this stub will suffice
+            sinon.stub(app.db.models.MCPRegistration, 'destroy').resolves()
+        })
         beforeEach(async () => {
             app.license.defaults.teams = 20
             app.license.defaults.instances = 20
