@@ -168,19 +168,36 @@ module.exports = {
                     }
                 })
                 // if MCPRegistration model is available (EE mode), remove any registrations for this device
-                if (app.db.models.MCPRegistration) {
-                    try {
-                        await app.db.models.MCPRegistration.destroy({
-                            where: {
-                                targetType: 'device',
-                                targetId: '' + device.id
+                if (app.db.models.MCPRegistration?.destroy) {
+                    await app.db.models.MCPRegistration.destroy({
+                        where: {
+                            targetType: 'device',
+                            targetId: '' + device.id
+                        }
+                    })
+                }
+            },
+            afterBulkDestroy: async (options) => {
+                // Note: options.where may be empty, meaning all records are being deleted
+                // however, since the bulk device deletion is initiated via a `where in [...]` clause,
+                // we can assume that if options.where is empty, there are no devices to clean up.
+                // i.e. only clean up if options.where contains an array `.id`
+                if (!options.where || !options.where.id || !Array.isArray(options.where.id) || options.where.id.length === 0) {
+                    return
+                }
+                const deviceIds = [...options.where.id]
+                const deviceIdsStrings = deviceIds.map(id => '' + id)
+
+                // if MCPRegistration model is available (EE mode), remove any registrations for these devices
+                if (app.db.models.MCPRegistration?.destroy) {
+                    await app.db.models.MCPRegistration.destroy({
+                        where: {
+                            targetType: 'device',
+                            targetId: {
+                                [Op.in]: deviceIdsStrings
                             }
-                        })
-                    } catch (err) {
-                        // Ignore errors that occur while attempting to clean up MCPRegistration
-                        // to avoid test flakiness where destroy hooks run after shutdown.
-                        app.log && app.log.debug && app.log.debug('Ignoring MCPRegistration cleanup error during device destroy:', err && err.message)
-                    }
+                        }
+                    })
                 }
             }
         }
