@@ -425,6 +425,9 @@ describe('Project model', function () {
             // but for now this stub will suffice
             sinon.stub(app.db.models.MCPRegistration, 'destroy').resolves()
         })
+        after(async function () {
+            sinon.restore()
+        })
         beforeEach(async () => {
             app.license.defaults.teams = 20
             app.license.defaults.instances = 20

@@ -696,6 +696,7 @@ describe('Device model', function () {
             sinon.stub(app.db.models.MCPRegistration, 'destroy').resolves()
         })
         after(async function () {
+            sinon.restore()
             await app.close()
         })
         beforeEach(async () => {
