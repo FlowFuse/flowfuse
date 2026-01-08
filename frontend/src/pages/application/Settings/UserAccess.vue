@@ -72,9 +72,8 @@ export default defineComponent({
     },
     mounted () {
         if (
-            !this.isAdminUser &&
-            (!this.featuresCheck.isRBACApplicationFeatureEnabled ||
-            !this.hasPermission('application:access-control', { application: this.application }))
+            !this.featuresCheck.isRBACApplicationFeatureEnabled ||
+            (!this.isAdminUser && !this.hasPermission('application:access-control', { application: this.application }))
         ) {
             return this.$router.push({ name: 'application-settings', params: { id: this.application.id } })
         }
