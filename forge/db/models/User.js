@@ -377,6 +377,10 @@ module.exports = {
                 // `teamId` can be either a number (the raw id) or a string (the hashid).
                 // TODO: standardize on using hashids externally
                 getTeamMembership: async function (teamId, includeTeam) {
+                    // mock admin users to be a member of any team since the 'hasPermission' method first checks for
+                    // teamMembership and would exclude admins otherwise
+                    if (this.admin) return { role: Roles.Admin }
+
                     return M.TeamMember.getTeamMembership(this.id, teamId, includeTeam)
                 },
                 getTeamsOwned: async function () {
