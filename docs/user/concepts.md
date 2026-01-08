@@ -66,7 +66,7 @@ Within your Application, you can have one or more instances of Node-RED. FlowFus
 
 | Feature | Hosted Instance | Remote Instance (Device) |
 |--------|-----------------|--------------------------|
-| Where it runs | On FlowFuse-managed infrastructure (cloud or self-hosted). | On user-provided hardware (Edge, VM, Pi, PLC). |
+| Where it runs | On FlowFuse-managed infrastructure (cloud or self-hosted) | On user-provided hardware (Edge, VM, Pi, PLC) |
 | Provisioning | Automatic via the FlowFuse UI. | Manual installation of the FlowFuse Device Agent. |
 | Lifecycle | Fully managed by FlowFuse. | Managed by FlowFuse via the Device Agent. |
 | Common Use | Core logic, APIs, dashboards, development, testing. | Local data processing, IO, edge control. |
