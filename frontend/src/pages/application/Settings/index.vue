@@ -41,7 +41,7 @@ export default {
         return { hasPermission }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapGetters('account', ['featuresCheck', 'isAdminUser']),
         sideNavigation () {
             return [
                 {
@@ -60,8 +60,8 @@ export default {
                     path: {
                         name: 'application-settings-user-access'
                     },
-                    hidden: !this.hasPermission('application:access-control', { application: this.application }) ||
-                        !this.featuresCheck.isRBACApplicationFeatureEnabled
+                    hidden: (!this.hasPermission('application:access-control', { application: this.application }) ||
+                        !this.featuresCheck.isRBACApplicationFeatureEnabled) && !this.isAdminUser
                 }
             ]
         }
