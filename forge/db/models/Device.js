@@ -167,6 +167,98 @@ module.exports = {
                         ownerId: '' + device.id
                     }
                 })
+                // if MCPRegistration model is available (EE mode), remove any registrations for this device
+                if (app.db.models.MCPRegistration?.destroy) {
+                    try {
+                        await app.db.models.MCPRegistration.destroy({
+                            where: {
+                                targetType: 'device',
+                                targetId: '' + device.id
+                            }
+                        })
+                    } catch (err) {
+                        // The destroy may fail if the DB connection is closed (e.g. during tests)!
+                        // Log the error but proceed as the instance has been deleted anyway
+                        app.log.error(`Error removing MCPRegistrations for deleted device ${device.id}: ${err.message}`)
+                    }
+                }
+            },
+            afterBulkDestroy: async (options) => {
+                // Note: options.where may be empty, meaning all records are being deleted
+                // however, since the bulk device deletion is initiated via a `where in [...]` clause,
+                // we can assume that if options.where is empty, there are no devices to clean up.
+                // i.e. only clean up if options.where contains an array `.id`
+                if (!options.where || !options.where.id || !Array.isArray(options.where.id) || options.where.id.length === 0) {
+                    return
+                }
+                const deviceIds = [...options.where.id]
+                const deviceIdsStrings = deviceIds.map(id => '' + id)
+
+                // clean up related models
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'device',
+                        ownerId: {
+                            [Op.in]: deviceIdsStrings
+                        }
+                    }
+                })
+                await M.AccessToken.destroy({
+                    where: {
+                        ownerType: 'npm',
+                        ownerId: {
+                            [Op.in]: deviceIds.map(id => `d-${M.Device.encodeHashid(id)}@%`)
+                        }
+                    }
+                })
+                await M.DeviceSettings.destroy({
+                    where: {
+                        DeviceId: {
+                            [Op.in]: deviceIds
+                        }
+                    }
+                })
+                await M.BrokerClient.destroy({
+                    where: {
+                        ownerType: 'device',
+                        ownerId: {
+                            [Op.in]: deviceIdsStrings
+                        }
+                    }
+                })
+                await M.AuthClient.destroy({
+                    where: {
+                        ownerType: 'device',
+                        ownerId: {
+                            [Op.in]: deviceIdsStrings
+                        }
+                    }
+                })
+                await M.TeamBrokerClient.destroy({
+                    where: {
+                        ownerType: 'device',
+                        ownerId: {
+                            [Op.in]: deviceIdsStrings
+                        }
+                    }
+                })
+                // if MCPRegistration model is available (EE mode), remove any registrations for these devices
+                if (app.db.models.MCPRegistration?.destroy) {
+                    try {
+                        await app.db.models.MCPRegistration.destroy({
+                            where: {
+                                targetType: 'device',
+                                targetId: {
+                                    [Op.in]: deviceIdsStrings
+                                }
+                            }
+                        })
+                    } catch (err) {
+                        // The destroy may fail if the DB connection is closed (e.g. during tests)!
+                        // Log the error but proceed as the instance has been deleted anyway
+                        app.log.error(`Error removing MCPRegistrations for deleted devices ${deviceIdsStrings.join(', ')}: ${err.message}`)
+                    }
+                }
             }
         }
     },

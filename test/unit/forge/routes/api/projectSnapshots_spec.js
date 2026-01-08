@@ -71,9 +71,6 @@ describe('Project Snapshots API', function () {
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
     })
-    after(async function () {
-        await TestObjects.project2.destroy()
-    })
 
     async function login (username, password) {
         const response = await app.inject({
@@ -88,6 +85,7 @@ describe('Project Snapshots API', function () {
     }
 
     after(async function () {
+        await TestObjects.project2.destroy()
         await app.close()
     })
 
