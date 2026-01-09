@@ -3,7 +3,6 @@
     <ff-loading v-if="loading" message="Loading Team..." />
     <form v-else>
         <div class="text-right" />
-        <h1>Is Admin: {{ isAdminUser }}</h1>
         <ff-data-table
             data-el="members-table"
             :columns="columns"
