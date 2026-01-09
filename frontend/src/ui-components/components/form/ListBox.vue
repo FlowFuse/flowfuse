@@ -4,6 +4,7 @@
              :disabled="disabled"
              class="ff-listbox"
              data-el="listbox"
+             as="section"
              :by="compareOptions"
              :multiple="multiple"
     >
@@ -50,12 +51,12 @@
                                 :key="option[labelKey]"
                                 :value="option"
                                 as="template"
-                                class="ff-option"
-                                :data-option="option[labelKey]"
-                                :title="optionTitleKey ? option[optionTitleKey] : null"
-                                @click="close"
                             >
-                                <li>
+                                <li
+                                    class="ff-option"
+                                    :data-option="option[labelKey]"
+                                    :title="optionTitleKey ? option[optionTitleKey] : null"
+                                >
                                     <div class="ff-option-content" :class="{selected, active}" data-click-exclude="right-drawer">
                                         {{ option[labelKey] }}
                                     </div>

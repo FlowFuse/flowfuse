@@ -5,6 +5,7 @@
               data-el="combobox"
               :by="compareOptions"
               :disabled="disabled" nullable
+              as="div"
     >
         <span v-if="syncOpenState(open)" class="hidden" />
         <div class="relative">
@@ -22,12 +23,12 @@
                 <ChevronDownIcon class="h-5 w-5 text-gray-700 ff-icon" aria-hidden="true" />
             </ComboboxButton>
 
-            <transition
-                leave-active-class="transition duration-100 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <teleport to="body">
+            <teleport to="body">
+                <transition
+                    leave-active-class="transition duration-100 ease-in"
+                    leave-from-class="opacity-100"
+                    leave-to-class="opacity-0"
+                >
                     <ComboboxOptions
                         v-if="open && (filteredOptions.length || hasCustomValue)"
                         ref="menu-items"
@@ -66,8 +67,8 @@
                             </slot>
                         </ComboboxOption>
                     </ComboboxOptions>
-                </teleport>
-            </transition>
+                </transition>
+            </teleport>
         </div>
     </Combobox>
 </template>
