@@ -72,7 +72,6 @@
 
 <script>
 import {
-    Menu as HeadlessUIMenu,
     Listbox,
     ListboxButton,
     ListboxOption, ListboxOptions
@@ -84,7 +83,6 @@ import BoxOptionsMixin from '../../../mixins/BoxOptionsMixin.js'
 export default {
     name: 'ff-listbox',
     components: {
-        HeadlessUIMenu,
         ChevronDownIcon,
         Listbox,
         ListboxButton,
