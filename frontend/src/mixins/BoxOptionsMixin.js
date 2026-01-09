@@ -21,7 +21,6 @@ export default {
     },
     watch: {
         _open (isOpened) {
-            console.log('staaate', isOpened)
             if (isOpened) {
                 document.addEventListener('click', this.handleClickOutside)
                 window.addEventListener('resize', this.updateItemsPosition)
@@ -31,9 +30,6 @@ export default {
                 window.removeEventListener('resize', this.updateItemsPosition)
                 window.removeEventListener('scroll', this.updateItemsPosition, true)
             }
-        },
-        position (value) {
-            console.log('position', value)
         }
     },
     computed: {
