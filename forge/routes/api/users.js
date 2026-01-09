@@ -1,3 +1,5 @@
+const { completeUserSignup } = require('../../lib/userTeam')
+
 const sharedUser = require('./shared/users')
 
 /**
@@ -202,27 +204,8 @@ module.exports = async function (app) {
             logUserInfo.id = newUser.id
             await app.auditLog.User.users.userCreated(request.session.User, null, logUserInfo)
             if (request.body.createDefaultTeam) {
-                // Check to see if user:team:auto-create:teamType is set
-                let teamTypeId = app.settings.get('user:team:auto-create:teamType')
-                if (!teamTypeId) {
-                    // No team type set - pick the 'first' one based on 'order'
-                    const teamTypes = await app.db.models.TeamType.findAll({ where: { active: true }, order: [['order', 'ASC']], limit: 1 })
-                    teamTypeId = teamTypes[0].id
-                } else {
-                    teamTypeId = app.db.models.TeamType.decodeHashid(teamTypeId)
-                }
-                const teamProperties = {
-                    name: `Team ${request.body.name}`,
-                    slug: request.body.username,
-                    TeamTypeId: teamTypeId
-                }
-                const personalTeam = await app.db.controllers.Team.createTeamForUser(teamProperties, newUser)
-                await app.auditLog.Platform.platform.team.created(request.session.User, null, personalTeam)
-                await app.auditLog.User.users.teamAutoCreated(request.session.User, null, personalTeam, logUserInfo)
-                if (app.license.active() && app.billing) {
-                    // This checks to see if the team should be in trial mode
-                    await app.billing.setupTrialTeamSubscription(personalTeam, newUser)
-                }
+                // Create the default team for this user, include application and instance
+                await completeUserSignup(app, newUser, { createTeamOverride: true })
             }
             reply.send(await app.db.views.User.userProfile(newUser))
         } catch (err) {
