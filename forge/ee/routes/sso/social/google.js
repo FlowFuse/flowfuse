@@ -61,7 +61,7 @@ module.exports = fp(async function (app, opts) {
                 reply.send({
                     url: '/'
                 })
-            } else {
+            } else if (app.settings.get('platform:sso:google:auto-create') === true) {
                 // Create a new user for this email address
                 const userProperties = {
                     name: googleUserInfo.name || googleUserInfo.email.split('@')[0],
@@ -98,6 +98,10 @@ module.exports = fp(async function (app, opts) {
                         error: `Failed to create user via Google SSO: ${err}`
                     })
                 }
+                reply.send({
+                    url: '/'
+                })
+            } else {
                 reply.send({
                     url: '/'
                 })
