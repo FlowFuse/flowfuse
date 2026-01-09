@@ -21,6 +21,8 @@ html {
 body {
     margin: 0;
     color: $ff-grey-800;
+    position: relative;
+    overflow: hidden;
 }
 
 h1 {

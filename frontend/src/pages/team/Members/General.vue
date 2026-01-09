@@ -145,9 +145,10 @@ export default {
             ]
         },
         collapsibleRow () {
-            if (!this.featuresCheck.isRBACApplicationFeatureEnabled && (!this.isAdminUser || !this.hasPermission('application:access-control'))) {
+            if (!this.featuresCheck.isRBACApplicationFeatureEnabled || (!this.isAdminUser && !this.hasPermission('application:access-control'))) {
                 return null
             }
+
             return {
                 is: markRaw(ApplicationPermissionRow),
                 props: {

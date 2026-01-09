@@ -1,11 +1,21 @@
 <template>
-    <Listbox v-model="value" :disabled="disabled" class="ff-listbox" data-el="listbox" :by="compareOptions" :multiple="multiple">
+    <Listbox v-slot="{ open }"
+             v-model="value"
+             :disabled="disabled"
+             class="ff-listbox"
+             data-el="listbox"
+             as="section"
+             :by="compareOptions"
+             :multiple="multiple"
+    >
+        <span v-if="syncOpenState(open)" class="hidden" />
+
         <div class="relative">
             <ListboxButton
                 ref="trigger"
                 class="w-full rounded-md flex justify-between ff-button"
                 :class="[disabled ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
-                @click="() => { $nextTick(() => { updatePosition(); open = true }) }"
+                @click="() => { $nextTick(() => { updateItemsPosition() }) }"
             >
                 <input type="text" hidden="hidden" :value="selectedLabel">
                 <slot name="button">
@@ -24,8 +34,9 @@
                 <teleport to="body">
                     <ListboxOptions
                         v-if="open"
+                        ref="menu-items"
                         data-el="listbox-options"
-                        class="absolute w-full overflow-auto bg-white py-1 ff-options"
+                        class="fixed w-full overflow-auto bg-white py-1 ff-options"
                         :style="{
                             top: position.top + 'px',
                             left: position.left + 'px',
@@ -40,12 +51,12 @@
                                 :key="option[labelKey]"
                                 :value="option"
                                 as="template"
-                                class="ff-option"
-                                :data-option="option[labelKey]"
-                                :title="optionTitleKey ? option[optionTitleKey] : null"
-                                @click="close"
                             >
-                                <li>
+                                <li
+                                    class="ff-option"
+                                    :data-option="option[labelKey]"
+                                    :title="optionTitleKey ? option[optionTitleKey] : null"
+                                >
                                     <div class="ff-option-content" :class="{selected, active}" data-click-exclude="right-drawer">
                                         {{ option[labelKey] }}
                                     </div>
@@ -63,8 +74,7 @@
 import {
     Listbox,
     ListboxButton,
-    ListboxOption,
-    ListboxOptions
+    ListboxOption, ListboxOptions
 } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/solid'
 

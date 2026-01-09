@@ -4,63 +4,120 @@ export default {
             type: Number,
             default: 0
         },
-        openAbove: {
-            type: Boolean,
-            default: false
-        },
-        minOptionsWidth: {
-            type: Number,
-            default: 0
-        },
         alignRight: {
             type: Boolean,
             default: false
+        },
+        optionsTriggerGap: {
+            type: Number,
+            default: 5
         }
     },
     data () {
         return {
-            open: false,
+            _open: false,
             position: { top: 0, left: 0, width: 0, transform: '' }
         }
     },
-    mounted () {
-        document.addEventListener('click', this.handleClickOutside)
-        window.addEventListener('resize', this.updatePosition)
-        window.addEventListener('scroll', this.updatePosition, true)
+    watch: {
+        _open (isOpened) {
+            if (isOpened) {
+                document.addEventListener('click', this.handleClickOutside)
+                window.addEventListener('resize', this.updateItemsPosition)
+                window.addEventListener('scroll', this.updateItemsPosition, true)
+            } else {
+                document.removeEventListener('click', this.handleClickOutside)
+                window.removeEventListener('resize', this.updateItemsPosition)
+                window.removeEventListener('scroll', this.updateItemsPosition, true)
+            }
+        }
     },
-    beforeUnmount () {
-        document.removeEventListener('click', this.handleClickOutside)
-        window.removeEventListener('resize', this.updatePosition)
-        window.removeEventListener('scroll', this.updatePosition, true)
+    computed: {
+        areMenuItemsOverflowingRight () {
+            if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) return false
+            return this.$refs['menu-items'].$el.getBoundingClientRect().right > window.innerWidth
+        },
+        areMenuItemsOverflowingTop () {
+            if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) return false
+            return this.$refs['menu-items'].$el.getBoundingClientRect().top < 0
+        },
+        areMenuItemsOverflowingBottom () {
+            if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) return false
+            return this.$refs['menu-items'].$el.getBoundingClientRect().bottom > window.innerHeight
+        },
+        areMenuItemsOverflowingLeft () {
+            if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) return false
+            return this.$refs['menu-items'].$el.getBoundingClientRect().left < 0
+        },
+        isOverflowing () {
+            return (
+                this.areMenuItemsOverflowingRight ||
+                this.areMenuItemsOverflowingTop ||
+                this.areMenuItemsOverflowingBottom ||
+                this.areMenuItemsOverflowingLeft
+            )
+        }
     },
     methods: {
-        updatePosition () {
+        updateItemsPosition () {
             if (!this.$refs.trigger || !this.$refs.trigger.$el) return
-            const rect = this.$refs.trigger.$el.getBoundingClientRect()
-            const width = Math.max(rect.width, this.minOptionsWidth)
-            const gap = 4 // small gap between dropdown and trigger
+
+            const triggerRect = this.$refs.trigger.$el.getBoundingClientRect()
+
+            // Use viewport-relative coordinates (no window.scrollX/Y)
+            let triggerTop = triggerRect.bottom + this.optionsOffsetTop
+            let triggerLeft = triggerRect.left
+            const transform = ''
+
+            // Set initial position immediately
             this.position = {
-                top: this.openAbove
-                    ? rect.top + window.scrollY - gap + this.optionsOffsetTop
-                    : rect.bottom + window.scrollY + this.optionsOffsetTop,
-                left: this.alignRight
-                    ? rect.right + window.scrollX - width
-                    : rect.left + window.scrollX,
-                width,
-                transform: this.openAbove ? 'translateY(-100%)' : ''
+                top: triggerTop,
+                left: triggerLeft,
+                width: triggerRect.width,
+                transform
             }
+
+            // Wait for next tick to ensure menu is rendered, then check for overflow
+            this.$nextTick(() => {
+                if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) {
+                    return
+                }
+
+                const menuRect = this.$refs['menu-items'].$el.getBoundingClientRect()
+                const menuWidth = menuRect.width
+                const menuHeight = menuRect.height
+
+                // Re-calculate based on actual dimensions
+                if (this.areMenuItemsOverflowingRight) {
+                    // Align to right edge of trigger
+                    triggerLeft = triggerRect.right - menuWidth
+                }
+
+                if (this.areMenuItemsOverflowingLeft) {
+                    // Align to left edge of trigger
+                    triggerLeft = triggerRect.left
+                }
+
+                // Check vertical overflow
+                if (this.areMenuItemsOverflowingBottom) {
+                    // Position above trigger instead of below
+                    triggerTop = triggerRect.top - menuHeight - this.optionsTriggerGap
+                }
+
+                // Only update if something actually changed
+                if (triggerLeft !== this.position.left || triggerTop !== this.position.top) {
+                    this.position = {
+                        top: triggerTop,
+                        left: triggerLeft,
+                        width: triggerRect.width,
+                        transform
+                    }
+                }
+            })
         },
-        handleClickOutside (e) {
-            if (
-                this.$refs.trigger.value &&
-                this.$refs.trigger.value.$el &&
-                !this.$refs.trigger.value.$el.contains(e.target)
-            ) {
-                close()
-            }
-        },
-        close () {
-            this.open = false
+        syncOpenState (state) {
+            this._open = state
+            return state
         }
     }
 }
