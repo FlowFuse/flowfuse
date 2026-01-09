@@ -169,7 +169,7 @@ class DeviceTunnelManager {
         if (tunnel.socket) {
             tunnel.socket.close()
         }
-        tunnel.socket = inboundDeviceConnection.socket
+        tunnel.socket = inboundDeviceConnection
         // Set it on the local model instance
         device.editorConnected = true
         await device.save()
@@ -321,7 +321,7 @@ class DeviceTunnelManager {
                 url: '/comms'
             }))
             /** @type {WebSocket} */
-            const wsToDevice = connection.socket
+            const wsToDevice = connection
             tunnel.forwardedWS[requestId] = wsToDevice
 
             this.app.log.info(`Device ${device.hashid} tunnel id:${tunnel.id} - new editor connection req:${requestId} `)

@@ -529,6 +529,6 @@ module.exports = async function (app) {
             return_url: `${app.config.base_url}/team/${team.slug}/overview`
         })
 
-        response.redirect(303, portal.url)
+        response.redirect(portal.url, 303)
     })
 }

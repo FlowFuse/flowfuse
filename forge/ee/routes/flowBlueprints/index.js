@@ -249,7 +249,10 @@ module.exports = async function (app) {
             summary: 'Export one or more Blueprints',
             tags: ['Flow Blueprints'],
             query: {
-                id: { type: 'array', items: { type: 'string' } }
+                type: 'object',
+                properties: {
+                    id: { type: 'array', items: { type: 'string' } }
+                }
             },
             response: {
                 200: {

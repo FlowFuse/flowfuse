@@ -27,13 +27,13 @@
                     <p class="ff-title">Target Snapshot: </p>
                     <div class="flex gap-2 pr-2" data-el="device-group-target-snapshot">
                         <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">
-                            <ExclamationIcon v-if="!targetSnapshot" class="text-yellow-600 w-4" />
+                            <ExclamationIcon v-if="!targetSnapshot?.name" class="text-yellow-600 w-4" />
                             <CheckCircleIcon v-else class="text-green-700 w-4" />
                         </span>
                         <div class="flex flex-col">
-                            <span v-if="targetSnapshot" data-el="snapshot-name">{{ targetSnapshot.name }}</span>
+                            <span v-if="targetSnapshot?.name" data-el="snapshot-name">{{ targetSnapshot.name }}</span>
                             <span v-else data-el="snapshot-name">No Target Snapshot Set</span>
-                            <span v-if="targetSnapshot" class="text-xs text-gray-500" data-el="snapshot-id">{{ targetSnapshot.id }}</span>
+                            <span v-if="targetSnapshot?.id" class="text-xs text-gray-500" data-el="snapshot-id">{{ targetSnapshot.id }}</span>
                         </div>
                     </div>
                 </div>

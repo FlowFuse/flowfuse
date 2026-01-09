@@ -87,7 +87,8 @@ describe('User API', async function () {
             payload: { username, password, remember: false }
         })
         response.cookies.should.have.length(1)
-        response.cookies[0].should.have.property('name', 'sid')
+        const temp = { ...response.cookies[0] }
+        temp.should.have.property('name', 'sid')
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
@@ -294,7 +295,8 @@ describe('User API', async function () {
                 payload: { username: 'dave', password: 'ddPassword', remember: false }
             })
             secondLoginSession.cookies.should.have.length(1)
-            secondLoginSession.cookies[0].should.have.property('name', 'sid')
+            const secondTemp = { ...secondLoginSession.cookies[0] }
+            secondTemp.should.have.property('name', 'sid')
             const secondLoginSessionId = secondLoginSession.cookies[0].value
 
             const response = await app.inject({
@@ -312,7 +314,8 @@ describe('User API', async function () {
 
             // The response should include a new session token
             response.cookies.should.have.length(1)
-            response.cookies[0].should.have.property('name', 'sid')
+            const temp = { ...response.cookies[0] }
+            temp.should.have.property('name', 'sid')
 
             // The existing session token should no longer work
             const checkOldToken = await app.inject({
