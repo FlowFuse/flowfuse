@@ -3,7 +3,6 @@
     <ff-loading v-if="loading" message="Loading Team..." />
     <form v-else>
         <div class="text-right" />
-        <h1>Is Admin: {{ isAdminUser }}</h1>
         <ff-data-table
             data-el="members-table"
             :columns="columns"
@@ -146,11 +145,9 @@ export default {
             ]
         },
         collapsibleRow () {
-            if (
-                (!this.featuresCheck.isRBACApplicationFeatureEnabled || !this.hasPermission('application:access-control')) &&
-                !this.isAdminUser
-            ) return null
-
+            if (!this.featuresCheck.isRBACApplicationFeatureEnabled && (!this.isAdminUser || !this.hasPermission('application:access-control'))) {
+                return null
+            }
             return {
                 is: markRaw(ApplicationPermissionRow),
                 props: {
