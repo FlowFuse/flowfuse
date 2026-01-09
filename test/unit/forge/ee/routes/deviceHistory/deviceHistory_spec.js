@@ -44,6 +44,7 @@ describe('Devices API (EE)', function () {
             const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
             const defaultTeamTypeProperties = defaultTeamType.properties
             defaultTeamTypeProperties.features.projectHistory = enabled
+            defaultTeamTypeProperties.enableAllFeatures = false
             defaultTeamType.properties = defaultTeamTypeProperties
             await defaultTeamType.save()
         }
@@ -55,7 +56,8 @@ describe('Devices API (EE)', function () {
                 payload: { username, password, remember: false }
             })
             response.cookies.should.have.length(1)
-            response.cookies[0].should.have.property('name', 'sid')
+            const temp = { ...response.cookies[0] }
+            temp.should.have.property('name', 'sid')
             TestObjects.tokens[username] = response.cookies[0].value
         }
 

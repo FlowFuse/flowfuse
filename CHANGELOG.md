@@ -1,3 +1,50 @@
+#### 2.25.0: Release
+
+ - Enable schedule instance restart (#6408) @hardillb
+ - FF tables: add refresh button (#6390) @cstns
+ - style(ui): add padding to TableSchema and CreateTable components for consistency (#6392) @cstns
+ - Add copy buttons for db connection details (#6394) @cstns
+ - Enhance dropdown options in TableColumn with detailed labels and styling (#6398) @cstns
+ - Update "Nullable" label to "Allow null" in TableSchema and CreateTable drawers (#6396) @cstns
+ - Extend MCPRegistration with new MCP server fields (#6427) @cstns
+ - Update wording on Enterprise upgrade page to mention extended trial (#6429) @knolleary
+ - Improve bulk device group assignment (#6379) @cstns
+ - Allow default TeamType to enabled all feats default (#6339) @hardillb
+ - Add MCP registration views and update API response structure (#6425) @Steve-Mcl
+ - build(deps): bump flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml from 0.43.0 to 0.44.0 (#6421) @app/dependabot
+ - build(deps): bump cypress-io/github-action from 6.10.4 to 6.10.7 (#6419) @app/dependabot
+ - build(deps): bump codecov/codecov-action from 5.5.1 to 5.5.2 (#6422) @app/dependabot
+ - build(deps): bump actions/upload-artifact from 5.0.0 to 6.0.0 (#6420) @app/dependabot
+ - Add teleport support and position updates for DropdownMenu component (#6401) @cstns
+ - ci: Introduce SAST scan GitHub Actions workflow (#6409) @ppawlowski
+ - Allow SSO Team managed users to use G-RBAC (#6406) @hardillb
+ - Ensure that npm catalogue only generated if configured (#6389) @hardillb
+ - Update empty message from contrib-postgres to FlowFuse Node (align wording with our node naming) (#6383) @cstns
+ - Add ability to override features for teamtype (#6247) @hardillb
+ - Update ff-tables.md (#6381) @Esmewieringa
+
+#### 2.24.5: Release
+
+ - build(deps): bump aws-actions/configure-aws-credentials (#6354)
+ - build(deps): bump @modelcontextprotocol/sdk from 1.23.0 to 1.24.0 (#6359) @app/dependabot
+ - docs(instances): add detailed instance states list (#6365) @cstns
+ - Allow initial Admin to modify default stack (#6326) @hardillb
+ - build(deps): bump actions/checkout from 6.0.0 to 6.0.1 (#6376) @app/dependabot
+ - build(deps): bump actions/setup-node from 6.0.0 to 6.1.0 (#6377) @app/dependabot
+ - Intercept kebab menu item click to close the menu (#6372) @cstns
+ - Update group entry display for non-assignable devices and permissions (#6371) @cstns
+ - Add Seprate RBAC Document (#6370) @sumitshinde-84
+ - Force plain links to open in new tabs (#6334) @cstns
+ - Align device snapshots ux (#6358) @cstns
+ - build(deps): bump jws (#6368) @app/dependabot
+ - Devices full height pages and scrolling behavior (#6324) @cstns
+ - Update FlowFuse Concept Section (#6366) @sumitshinde-84
+ - Show broker client limit notification and disable client creation when limit is reached (#6363) @cstns
+ - Add note that Suspend/Delete team removes billing Subscription (#6362) @hardillb
+ - build(deps): bump validator from 13.15.20 to 13.15.23 (#6360) @app/dependabot
+ - build(deps): bump express (#6355) @app/dependabot
+ - build(deps): bump nodemailer from 7.0.10 to 7.0.11 (#6356) @app/dependabot
+
 #### 2.24.4: Release
 
  - Ensure TeamType passed to instanceCount (#6351) @hardillb

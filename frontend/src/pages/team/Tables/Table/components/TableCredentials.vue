@@ -9,19 +9,27 @@
                 <dl>
                     <div class="flex item">
                         <dt>Database ID:</dt>
-                        <dd>{{ database.credentials.database }}</dd>
+                        <dd>
+                            <text-copier :text="database.credentials.database" class="ff-text-copier" />
+                        </dd>
                     </div>
                     <div class="flex item">
                         <dt>Host:</dt>
-                        <dd>{{ database.credentials.host }}</dd>
+                        <dd>
+                            <text-copier :text="database.credentials.host" class="ff-text-copier" />
+                        </dd>
                     </div>
                     <div class="flex item">
                         <dt>Port</dt>
-                        <dd>{{ database.credentials.port }}</dd>
+                        <dd>
+                            <text-copier :text="database.credentials.port" class="ff-text-copier" />
+                        </dd>
                     </div>
                     <div v-if="database.credentials.ssl" class="flex item">
                         <dt>SSL</dt>
-                        <dd>{{ database.credentials.ssl }}</dd>
+                        <dd>
+                            <text-copier :text="database.credentials.ssl" class="ff-text-copier" />
+                        </dd>
                     </div>
                 </dl>
             </div>
@@ -35,7 +43,9 @@
                 <dl>
                     <div class="flex item">
                         <dt>Username:</dt>
-                        <dd>{{ database.credentials.user }}</dd>
+                        <dd>
+                            <text-copier :text="database.credentials.user" class="ff-text-copier" />
+                        </dd>
                     </div>
                     <div class="flex item">
                         <dt>Password:</dt>
@@ -60,11 +70,13 @@ import { DatabaseIcon, LockClosedIcon } from '@heroicons/vue/outline'
 import { defineComponent } from 'vue'
 import { mapGetters, mapState } from 'vuex'
 
+import TextCopier from '../../../../../components/TextCopier.vue'
+
 import PasswordField from '../../../../../ui-components/components/PasswordField.vue'
 
 export default defineComponent({
     name: 'TableCredentials',
-    components: { PasswordField, DatabaseIcon, LockClosedIcon },
+    components: { TextCopier, PasswordField, DatabaseIcon, LockClosedIcon },
     computed: {
         ...mapState('product/tables', ['databases']),
         ...mapGetters('product/tables', ['database'])

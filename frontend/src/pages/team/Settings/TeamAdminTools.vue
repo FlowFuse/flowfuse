@@ -149,6 +149,29 @@
                         </div>
                     </td>
                 </tr>
+                <tr>
+                    <th>Features:</th>
+                    <td>
+                        <span v-if="featureOverrideCount > 0">
+                            * {{ featureOverrideCount }} override<span v-if="featureOverrideCount > 1">s</span> applied
+                        </span>
+                        <span v-else>
+                            &nbsp;
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <div class="grid grid-cols-2 gap-2 my-2">
+                            <div v-for="(feature, index) in featureList" :key="index">
+                                <FormRow v-model="editableLimits.features[feature]" :disabled="!editingLimits" type="checkbox">
+                                    {{ featureNames[feature] }}
+                                    <span v-if="editableLimits.features[feature] !== teamTypeDefaultFeatures[feature]" class="text-sm text-gray-500">*</span>
+                                </FormRow>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
             </table>
         </div>
     </div>
@@ -159,6 +182,7 @@
 <script>
 import { mapState } from 'vuex'
 
+import { featureList, featureNames } from '../../../../../forge/lib/features.js'
 import billingApi from '../../../api/billing.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import teamApi from '../../../api/team.js'
@@ -191,11 +215,14 @@ export default {
     },
     data () {
         return {
+            featureList,
+            featureNames,
             instanceTypes: [],
             deviceFreeOptions: [],
             editingLimits: false,
             editableLimits: {
-                users: {}
+                users: {},
+                features: {}
             }
         }
     },
@@ -230,6 +257,32 @@ export default {
                 return `https://dashboard.stripe.com/subscriptions/${this.team.billing.subscription}`
             }
             return null
+        },
+        teamTypeDefaultFeatures () {
+            const result = {}
+            // The current api implementation modifies team.type.properties.features to already include
+            // the overrides. To identify which are actual overrides, we need to check for their presence
+            // in team.properties.features (which only includes overrides) and apply the inverse
+            this.featureList.forEach(feature => {
+                result[feature] = getObjectValue(this.team.type.properties, `features_${feature}`)
+                if (getObjectValue(this.team.properties, `features_${feature}`) !== undefined) {
+                    // There is an override - invert the value
+                    result[feature] = !result[feature]
+                } else if (result[feature] === undefined) {
+                    result[feature] = false
+                }
+            })
+            return result
+        },
+
+        featureOverrideCount () {
+            let count = 0
+            this.featureList.forEach(feature => {
+                if (this.editableLimits.features[feature] !== this.teamTypeDefaultFeatures[feature]) {
+                    count++
+                }
+            })
+            return count
         }
     },
     async created () {
@@ -243,6 +296,9 @@ export default {
             }
         })
         this.deviceFreeOptions.unshift({ value: '_', label: 'None - use own free limit' })
+        this.featureList.forEach(feature => {
+            this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`) || false
+        })
     },
     methods: {
         getTeamProperty (property) {
@@ -325,6 +381,10 @@ export default {
             this.editableLimits.teamBroker = {
                 clients: { limit: this.getTeamProperty('teamBroker_clients_limit') ?? '' }
             }
+            this.featureList.forEach(feature => {
+                this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`) || false
+            })
+
             this.editingLimits = true
         },
         async saveOverrides () {
@@ -346,7 +406,8 @@ export default {
                 users: { ...this.editableLimits.users },
                 instances: {},
                 devices: { ...this.editableLimits.devices },
-                teamBroker: { clients: { ...this.editableLimits.teamBroker.clients } }
+                teamBroker: { clients: { ...this.editableLimits.teamBroker.clients } },
+                features: {}
             }
             Object.keys(this.editableLimits.instances).forEach(instanceTypeId => {
                 properties.instances[instanceTypeId] = { ...this.editableLimits.instances[instanceTypeId] }
@@ -380,6 +441,23 @@ export default {
                 // Have selected own limit, or same as the team type - delete the override
                 delete properties.devices.combinedFreeType
             }
+
+            Object.keys(this.editableLimits.features).forEach(feature => {
+                // only store the delta from the TeamType
+                // The current API modifies team.type.properties.features to already include the overrides.
+                // We first need to infer the default value by checking for an override in team.properties.features
+                let teamTypeValue = this.team.type.properties.features[feature] || false
+                if (getObjectValue(this.team.properties, `features_${feature}`) !== undefined) {
+                    // There is an override - invert the value
+                    teamTypeValue = !teamTypeValue
+                }
+
+                if (teamTypeValue !== this.editableLimits.features[feature]) {
+                    properties.features[feature] = this.editableLimits.features[feature]
+                } else {
+                    delete properties.features[feature]
+                }
+            })
 
             await teamApi.updateTeam(this.team.id, { properties })
             await this.$store.dispatch('account/refreshTeam')

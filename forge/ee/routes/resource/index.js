@@ -10,8 +10,8 @@ module.exports = async function (app) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             return
         }
-        const teamType = await request.project.Team.getTeamType()
-        if (!teamType.getFeatureProperty('instanceResources', false)) {
+        await request.project.Team.ensureTeamTypeExists()
+        if (!request.project.Team.getFeatureProperty('instanceResources', false)) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             return // eslint-disable-line no-useless-return
         }
@@ -76,6 +76,6 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('project:read'),
         websocket: true
     }, async (socket, request) => {
-        await app.containers.resourcesStream(request.project, socket.socket)
+        await app.containers.resourcesStream(request.project, socket)
     })
 }

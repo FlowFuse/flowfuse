@@ -8,8 +8,8 @@ module.exports.init = function (app) {
      * Check if Protected status allowed
      */
     async function isProtectedInstanceAllowed (team, projectType) {
-        const teamType = await team.getTeamType()
-        if (teamType.getFeatureProperty('protectedInstance', false)) {
+        await team.ensureTeamTypeExists()
+        if (team.getFeatureProperty('protectedInstance', false)) {
             return true
         }
         return false

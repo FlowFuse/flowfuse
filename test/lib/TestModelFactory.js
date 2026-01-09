@@ -201,7 +201,7 @@ module.exports = class TestModelFactory {
      * @param {Object} team - team that this device will belong to
      * @param {Object} [project] - (optional) project that this device will belong to
      * @param {Object} [application] - (optional) application that this device will belong to
-     * @returns {Object} - the created device
+     * @returns {Promise<Object>} - the created device
      */
     async createDevice (deviceDetails, team, project = null, application = null) {
         const defaultDeviceDetails = {

@@ -14,8 +14,8 @@ module.exports = async function (app) {
                     return
                 }
 
-                const teamType = await request.team.getTeamType()
-                if (!teamType.getFeatureProperty('npm', false)) {
+                await request.team.ensureTeamTypeExists()
+                if (!request.team.getFeatureProperty('npm', false)) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                     return // eslint-disable-line no-useless-return
                 }
@@ -40,26 +40,30 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
-            const packageList = await axios.get(`${app.config.npmRegistry?.url}/-/all`, {
-                // If we can swap this for a teams creds or token then the
-                // filtering will all be done in the npm repo
-                auth: {
-                    username: app.config.npmRegistry.admin.username,
-                    password: app.config.npmRegistry.admin.password
-                }
-            })
+            if (app.config.npmRegistry?.url) {
+                const packageList = await axios.get(`${app.config.npmRegistry?.url}/-/all`, {
+                    // If we can swap this for a teams creds or token then the
+                    // filtering will all be done in the npm repo
+                    auth: {
+                        username: app.config.npmRegistry.admin.username,
+                        password: app.config.npmRegistry.admin.password
+                    }
+                })
 
-            const packages = {}
-            for (const package in packageList.data) {
-                if (package === '_updated') {
-                    continue
+                const packages = {}
+                for (const package in packageList.data) {
+                    if (package === '_updated') {
+                        continue
+                    }
+                    if (package.startsWith(`@flowfuse-${request.params.teamId}/`)) {
+                        packages[package] = packageList.data[package]
+                    }
                 }
-                if (package.startsWith(`@flowfuse-${request.params.teamId}/`)) {
-                    packages[package] = packageList.data[package]
-                }
+
+                reply.send(packages)
+            } else {
+                reply.status(412).send({ error: 'npm_not_configured', message: 'NPM not configured' })
             }
-
-            reply.send(packages)
         } catch (err) {
             reply.status(500).send({ error: 'unknown_error', message: err.toString() })
         }

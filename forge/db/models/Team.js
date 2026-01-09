@@ -465,6 +465,13 @@ module.exports = {
                     }
                     return teamValue
                 },
+                getFeatureProperty: function (key, defaultValue) {
+                    if (this.properties?.features && Object.hasOwn(this.properties.features, key)) {
+                        return this.properties.features[key]
+                    } else {
+                        return this.TeamType.getFeatureProperty(key, defaultValue)
+                    }
+                },
                 getInstanceTypeProperty: function (instanceType, property, defaultValue) {
                     // instanceType can be:
                     // - number (raw id)

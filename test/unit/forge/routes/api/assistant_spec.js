@@ -45,6 +45,7 @@ describe('Assistant API', async function () {
         const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: teamTypeName } })
         const defaultTeamTypeProperties = defaultTeamType.properties
         defaultTeamTypeProperties.features[featureName] = enabled
+        defaultTeamTypeProperties.enableAllFeatures = false
         defaultTeamType.properties = defaultTeamTypeProperties
         await defaultTeamType.save()
     }
@@ -123,7 +124,8 @@ describe('Assistant API', async function () {
                 payload: { username, password, remember: false }
             })
             response.cookies.should.have.length(1)
-            response.cookies[0].should.have.property('name', 'sid')
+            const temp = { ...response.cookies[0] }
+            temp.should.have.property('name', 'sid')
             return response.cookies[0].value
         }
         describe('method constraints', async function () {

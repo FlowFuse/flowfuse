@@ -28,7 +28,8 @@ module.exports = async function (app) {
                     request.userRole = await request.user.getTeamMembership(request.params.teamId)
                 }
                 if (app.config.features.enabled('sso')) {
-                    if (await app.sso.isUserMembershipManaged(request.user, request.team)) {
+                    const noPermissions = request.body?.permissions === undefined
+                    if (await app.sso.isUserMembershipManaged(request.user, request.team) && noPermissions) {
                         // The user's membership for this team is sso managed - do not allow api changes to be applied
                         reply.code(400).send({ code: 'invalid_request', error: 'Cannot modify team membershipt for an SSO managed user' })
                         // eslint-disable-next-line no-useless-return
@@ -122,7 +123,7 @@ module.exports = async function (app) {
     /**
      * Change member role
      *  - only admins or owner should be able to do this
-     * POST [/api/v1/teams/:teamId/members]/:userId
+     * PUT [/api/v1/teams/:teamId/members/:userId]
      */
     app.put('/:userId', {
         preHandler: app.needsPermission('team:user:change-role'),
@@ -189,7 +190,7 @@ module.exports = async function (app) {
                 reply.code(400).send({ code: 'invalid_team_role', error: 'invalid role' })
             }
         } else if (hasPermissions) {
-            if (!app.config.features.enabled('rbacApplication') || request.team.TeamType.getFeatureProperty('rbacApplication', false) !== true) {
+            if (!app.config.features.enabled('rbacApplication') || request.team.getFeatureProperty('rbacApplication', false) !== true) {
                 reply.code(400).send({ code: 'invalid_request', error: 'Invalid request - Application RBAC not enabled for team' })
                 return
             }

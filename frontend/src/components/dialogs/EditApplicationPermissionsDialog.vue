@@ -87,6 +87,8 @@ export default defineComponent({
                 })
                 .catch((e) => {
                     console.warn(e)
+                    console.warn(e.request)
+                    console.warn(e.response?.data)
                     alerts.emit('Something went wrong. Failed to update user permissions', 'warning')
                 })
         },

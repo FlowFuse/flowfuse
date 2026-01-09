@@ -82,6 +82,7 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
 import ToggleButtonGroup from '../../../components/elements/ToggleButtonGroup.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import featuresMixin from '../../../mixins/Features.js'
 
 import Alerts from '../../../services/alerts.js'
 
@@ -97,6 +98,7 @@ export default {
         UploadIcon,
         SectionTopMenu
     },
+    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         instance: {

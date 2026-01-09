@@ -46,6 +46,11 @@ describe('Team Members API', function () {
         await TestObjects.BTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
 
+        if (TestObjects.DTeam) {
+            await TestObjects.DTeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            await TestObjects.DTeam.addUser(TestObjects.chris, { through: { role: Roles.Member } })
+        }
+
         await TestObjects.chris.setDefaultTeam(TestObjects.ATeam)
 
         TestObjects.tokens = {}
@@ -60,7 +65,8 @@ describe('Team Members API', function () {
             payload: { username, password, remember: false }
         })
         response.cookies.should.have.length(1)
-        response.cookies[0].should.have.property('name', 'sid')
+        const temp = { ...response.cookies[0] }
+        temp.should.have.property('name', 'sid')
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
@@ -515,6 +521,15 @@ describe('Team Members API', function () {
             defaultTeamTypeProperties.features.rbacApplication = true
             app.defaultTeamType.properties = defaultTeamTypeProperties
             await app.defaultTeamType.save()
+
+            const overrideTeamType = await app.db.models.TeamType.create({
+                name: 'TeamOverridesType',
+                active: true,
+                order: 99
+            })
+
+            TestObjects.DTeam = await app.db.models.Team.create({ name: 'DTeam', TeamTypeId: overrideTeamType.id })
+            TestObjects.applicationD = await app.factory.createApplication({ name: 'application-1' }, TestObjects.DTeam)
         })
         after(async function () {
             await app.close()
@@ -588,6 +603,38 @@ describe('Team Members API', function () {
             response.statusCode.should.equal(400)
             const result = response.json()
             result.should.have.property('code', 'invalid_request')
+        })
+
+        it('Enable Team Override', async function () {
+            // Bob changes Chris to DTeam owner
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/teams/${TestObjects.DTeam.hashid}/members/${TestObjects.chris.hashid}`,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: {
+                    permissions: { applications: { [TestObjects.applicationD.hashid]: Roles.Viewer } }
+                }
+            })
+            response.statusCode.should.equal(400)
+            const result = response.json()
+            result.should.have.property('code', 'invalid_request')
+
+            TestObjects.DTeam.properties = {
+                features: {
+                    rbacApplication: true
+                }
+            }
+            await TestObjects.DTeam.save()
+
+            const secondResponse = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/teams/${TestObjects.DTeam.hashid}/members/${TestObjects.chris.hashid}`,
+                cookies: { sid: TestObjects.tokens.bob },
+                payload: {
+                    permissions: { applications: { [TestObjects.applicationD.hashid]: Roles.Viewer } }
+                }
+            })
+            secondResponse.statusCode.should.equal(200)
         })
     })
 })
