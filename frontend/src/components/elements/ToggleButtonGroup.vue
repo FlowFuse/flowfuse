@@ -76,7 +76,7 @@ export default {
             if (this.selectedIndex < 0) return { opacity: 0 }
             return {
                 transform: `translateX(${this.selectedIndex * 100}%)`,
-                width: `${100 / this.buttons.length}%`
+                width: `calc(${100 / this.buttons.length}% - 0.5px)`
             }
         }
     },
