@@ -1,8 +1,5 @@
 <template>
-    <FeatureUnavailableToTeam
-        v-if="teamUserLimitReached" fullMessage="You have reached the user limit for this team."
-        class="mt-0"
-    />
+    <FeatureUnavailableToTeam v-if="teamUserLimitReached" fullMessage="You have reached the user limit for this team." class="mt-0" />
     <ff-loading v-if="loading" message="Loading Team..." />
     <form v-else>
         <div class="text-right" />
@@ -16,13 +13,8 @@
             :collapsible-row="collapsibleRow"
         >
             <template v-if="hasPermission('team:user:invite')" #actions>
-                <ff-button
-                    data-action="member-invite-button" :disabled="teamUserLimitReached" kind="primary"
-                    @click="inviteMember"
-                >
-                    <template #icon-left>
-                        <UserAddIcon class="w-4" />
-                    </template>
+                <ff-button data-action="member-invite-button" :disabled="teamUserLimitReached" kind="primary" @click="inviteMember">
+                    <template #icon-left><UserAddIcon class="w-4" /></template>
                     Invite Members
                 </ff-button>
             </template>
@@ -77,7 +69,6 @@ import InviteMemberDialog from '../dialogs/InviteMemberDialog.vue'
 import ApplicationPermissionOverride from './components/ApplicationPermissionOverride.vue'
 
 import ApplicationPermissionRow from './components/ApplicationPermissionsRow.vue'
-
 export default {
     name: 'TeamUsersGeneral',
     components: {
@@ -234,10 +225,7 @@ export default {
                     alerts.emit('Failed to fetch applications: ' + err.toString(), 'warning')
                 })
         },
-        onApplicationRoleClick ({
-            application,
-            user
-        }) {
+        onApplicationRoleClick ({ application, user }) {
             this.$refs.editApplicationPermissionsDialog.show(user, application)
         }
     }
