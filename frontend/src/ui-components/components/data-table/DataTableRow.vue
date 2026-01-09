@@ -33,9 +33,9 @@
                 <slot name="row-actions" :row="data" />
             </div>
         </ff-data-table-cell>
-        <ff-data-table-cell v-if="hasContextMenu" style="width: 50px" @click="$refs.kebab.openOptions()">
+        <ff-data-table-cell v-if="hasContextMenu" style="width: 50px">
             <ff-kebab-menu v-if="!data.hideContextMenu" ref="kebab">
-                <slot name="context-menu" :row="data" message="hello world" />
+                <slot name="context-menu" :row="data" />
             </ff-kebab-menu>
         </ff-data-table-cell>
     </tr>
