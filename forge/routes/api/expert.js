@@ -52,6 +52,7 @@ module.exports = async function (app) {
             if (!existingRole) {
                 return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
+            request.teamMembership = existingRole
             request.team = await app.db.models.Team.byId(teamId)
             if (!request.team) {
                 return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
