@@ -312,6 +312,8 @@ describe('Expert API', function () {
                         Project: {
                             id: 'acbd-1234',
                             name: 'offline-instance',
+                            ApplicationId: application.id,
+                            state: '',
                             liveState: () => ({ meta: { state: 'suspended' } })
                         },
                         title: 'the title 2',
@@ -330,6 +332,8 @@ describe('Expert API', function () {
                         Project: {
                             id: 'wxyz-6789',
                             name: 'offline-instance',
+                            ApplicationId: application.id,
+                            state: 'running',
                             liveState: () => ({ meta: { state: 'running' } })
                         },
                         title: 'the title 3',
@@ -346,6 +350,7 @@ describe('Expert API', function () {
                         servers: [
                             {
                                 team: team.hashid,
+                                application: application.hashid,
                                 instance: instance.id,
                                 instanceType: 'instance',
                                 instanceName: instance.name,
@@ -379,8 +384,9 @@ describe('Expert API', function () {
                 axiosPost.should.have.property('servers').which.is.an.Array().and.has.length(1)
                 // since only 1 instance was correct and online, get index 0 and check its properties
                 const reg = axiosPost.servers[0]
-                reg.should.only.have.keys('team', 'instance', 'instanceType', 'instanceName', 'instanceUrl', 'mcpServerName', 'mcpEndpoint', 'mcpProtocol', 'title', 'version', 'description')
+                reg.should.only.have.keys('team', 'application', 'instance', 'instanceType', 'instanceName', 'instanceUrl', 'mcpServerName', 'mcpEndpoint', 'mcpProtocol', 'title', 'version', 'description')
                 reg.should.have.property('team', team.hashid)
+                reg.should.have.property('application', application.hashid)
                 reg.should.have.property('instance', instance.id)
                 reg.should.have.property('instanceType', 'instance')
                 reg.should.have.property('instanceName', instance.name)
@@ -396,8 +402,9 @@ describe('Expert API', function () {
                 const result = response.json()
                 result.should.have.property('transactionId', 'abc')
                 result.should.have.property('servers').which.is.an.Array().and.has.length(1)
-                result.servers[0].should.only.have.keys('team', 'instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol', 'mcpServerUrl', 'title', 'version', 'description')
+                result.servers[0].should.only.have.keys('team', 'application', 'instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol', 'mcpServerUrl', 'title', 'version', 'description')
                 result.servers[0].should.have.property('team', team.hashid)
+                result.servers[0].should.have.property('application', application.hashid)
                 result.servers[0].should.have.property('instance', instance.id)
                 result.servers[0].should.have.property('instanceType', 'instance')
                 result.servers[0].should.have.property('instanceName', instance.name)
