@@ -26,12 +26,12 @@
                 </span>
             </ListboxButton>
 
-            <transition
-                leave-active-class="transition duration-100 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <teleport to="body">
+            <teleport to="body">
+                <transition
+                    leave-active-class="transition duration-100 ease-in"
+                    leave-from-class="opacity-100"
+                    leave-to-class="opacity-0"
+                >
                     <ListboxOptions
                         v-if="open"
                         ref="menu-items"
@@ -64,8 +64,8 @@
                             </ListboxOption>
                         </slot>
                     </ListboxOptions>
-                </teleport>
-            </transition>
+                </transition>
+            </teleport>
         </div>
     </Listbox>
 </template>
