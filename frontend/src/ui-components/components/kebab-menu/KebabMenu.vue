@@ -40,7 +40,7 @@ import {
 } from '@headlessui/vue'
 import { DotsVerticalIcon } from '@heroicons/vue/solid'
 
-import BoxOptionsMixin from '../../../mixins/BoxOptionsMixin.js'
+import TeleportedMenuMixin from '../../mixins/TeleportedMenuMixin.js'
 
 export default {
     name: 'ff-kebab-menu',
@@ -50,7 +50,7 @@ export default {
         MenuButton,
         MenuItems
     },
-    mixins: [BoxOptionsMixin],
+    mixins: [TeleportedMenuMixin],
     props: {
         disabled: {
             default: false,

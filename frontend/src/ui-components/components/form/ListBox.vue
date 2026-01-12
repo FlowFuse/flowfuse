@@ -78,7 +78,7 @@ import {
 } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/solid'
 
-import BoxOptionsMixin from '../../../mixins/BoxOptionsMixin.js'
+import TeleportedMenuMixin from '../../../mixins/TeleportedMenuMixin.js'
 
 export default {
     name: 'ff-listbox',
@@ -89,7 +89,7 @@ export default {
         ListboxOption,
         ListboxOptions
     },
-    mixins: [BoxOptionsMixin],
+    mixins: [TeleportedMenuMixin],
     props: {
         modelValue: {
             required: false,
