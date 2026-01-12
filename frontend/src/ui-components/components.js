@@ -4,10 +4,8 @@ import FFCheck from './components/Check.vue'
 import FFDialogBox from './components/DialogBox.vue'
 import FFDivider from './components/Divider.vue'
 import FFHelpTooltip from './components/Help.vue'
-import FFKebabMenu from './components/KebabMenu.vue'
 
 // Data Table
-import FFListItem from './components/ListItem.vue'
 import FFMarkdownViewer from './components/Markdown.vue'
 import FFNotificationPill from './components/NotificationPill.vue'
 import FFNotificationToast from './components/NotificationToast.vue'
@@ -29,6 +27,8 @@ import FFTextInput from './components/form/TextInput.vue'
 import FFTileSelection from './components/form/TileSelection.vue'
 import FFTileSelectionOption from './components/form/TileSelectionOption.vue'
 import FFToggleSwitch from './components/form/ToggleSwitch.vue'
+import FFKebabItem from './components/kebab-menu/KebabItem.vue'
+import FFKebabMenu from './components/kebab-menu/KebabMenu.vue'
 
 // Notifications
 
@@ -42,9 +42,10 @@ export default {
     FFKebabMenu,
     FFNavBreadcrumb,
     FFDialogBox,
+
     FFDivider,
     FFHelpTooltip,
-    FFListItem,
+    FFKebabItem,
     FFCheck,
     FFMarkdownViewer,
     FFSpinner,

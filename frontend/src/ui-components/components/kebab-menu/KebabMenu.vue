@@ -40,7 +40,7 @@ import {
 } from '@headlessui/vue'
 import { DotsVerticalIcon } from '@heroicons/vue/solid'
 
-import BoxOptionsMixin from '../../mixins/BoxOptionsMixin.js'
+import BoxOptionsMixin from '../../../mixins/BoxOptionsMixin.js'
 
 export default {
     name: 'ff-kebab-menu',
