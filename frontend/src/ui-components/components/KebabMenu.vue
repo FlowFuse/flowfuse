@@ -9,19 +9,25 @@
             <DotsVerticalIcon class="ff-icon ff-icon-lg" />
         </MenuButton>
         <teleport to="body">
-            <MenuItems
-                ref="menu-items"
-                as="ul"
-                class="ff-kebab-options"
-                data-el="kebab-options"
-                :style="{
-                    position: 'fixed',
-                    top: position.top + 'px',
-                    left: position.left + 'px'
-                }"
+            <transition
+                leave-active-class="transition duration-100 ease-in"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
             >
-                <slot></slot>
-            </MenuItems>
+                <MenuItems
+                    ref="menu-items"
+                    as="ul"
+                    class="ff-kebab-options"
+                    data-el="kebab-options"
+                    :style="{
+                        position: 'fixed',
+                        top: position.top + 'px',
+                        left: position.left + 'px'
+                    }"
+                >
+                    <slot></slot>
+                </MenuItems>
+            </transition>
         </teleport>
     </KebabMenu>
 </template>
