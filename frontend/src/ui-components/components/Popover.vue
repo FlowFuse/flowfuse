@@ -16,19 +16,25 @@
             </span>
         </PopoverButton>
         <teleport to="body">
-            <PopoverPanel
-                v-if="open"
-                v-slot="{ close }"
-                ref="menu-items"
-                class="fixed w-full overflow-auto bg-white border border-gray-200 rounded-md shadow-md z-[200]"
-                :style="{
-                    top: position.top + 'px',
-                    left: position.left + 'px',
-                    width: 'fit-content'
-                }"
+            <transition
+                leave-active-class="transition duration-100 ease-in"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
             >
-                <slot name="panel" :close="close" />
-            </PopoverPanel>
+                <PopoverPanel
+                    v-if="open"
+                    v-slot="{ close }"
+                    ref="menu-items"
+                    class="fixed w-full overflow-auto bg-white border border-gray-200 rounded-md shadow-md z-[200]"
+                    :style="{
+                        top: position.top + 'px',
+                        left: position.left + 'px',
+                        width: 'fit-content'
+                    }"
+                >
+                    <slot name="panel" :close="close" />
+                </PopoverPanel>
+            </transition>
         </teleport>
     </Popover>
 </template>
