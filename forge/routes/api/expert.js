@@ -98,6 +98,32 @@ module.exports = async function (app) {
     async (request, reply) => {
         const sessionId = request.headers['x-chat-session-id'] ?? uuidv4()
         const transactionId = request.headers['x-chat-transaction-id']
+        const context = request.body.context || {}
+
+        // If MCP capabilities are provided in the context, filter them based on user access
+        const selectedCapabilities = context.selectedCapabilities
+        if (selectedCapabilities && Array.isArray(selectedCapabilities) && selectedCapabilities.length > 0) {
+            const applications = {}
+            const mcpServersList = []
+
+            // first pass - get associated applications for the MCP servers selected by user
+            for (const server of selectedCapabilities || []) {
+                const applicationId = server.application
+                if (!applicationId) { continue }
+
+                if (!Object.hasOwnProperty.call(applications, applicationId)) {
+                    applications[applicationId] = await app.db.models.Application.byId(applicationId)
+                }
+                const application = applications[applicationId]
+                if (application) {
+                    mcpServersList.push({ server, application })
+                }
+            }
+            // second pass - filter features per MCP server based on user access to features (e.g. a tool with the destructive hint requires extra permission than a read-only tool)
+            const filteredServers = filterAccessibleMCPServerFeatures(app, mcpServersList, request.team, request.teamMembership)
+            context.selectedCapabilities = filteredServers?.length > 0 ? filteredServers : undefined
+        }
+
         let query = request.body.query
         if (request.body.history) {
             query = ''
