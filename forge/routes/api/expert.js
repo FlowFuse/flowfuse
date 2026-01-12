@@ -220,7 +220,10 @@ module.exports = async function (app) {
                     continue
                 }
 
-                const liveState = await owner.liveState({ omitStorageFlows: true })
+                // if instance is not expected to be running, skip it (avoids unnecessary timeouts)
+                if (instance?.state !== 'running') {
+                    continue
+                }
                 if (liveState?.meta?.state !== 'running') {
                     continue
                 }
