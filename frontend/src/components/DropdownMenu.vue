@@ -55,7 +55,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/solid'
 import { ref } from 'vue'
 
-import BoxOptionsMixin from '../mixins/BoxOptionsMixin.js'
+import TeleportedMenuMixin from '../mixins/TeleportedMenuMixin.js'
 
 export default {
     name: 'DropdownMenu',
@@ -67,7 +67,7 @@ export default {
         MenuItem,
         ChevronDownIcon
     },
-    mixins: [BoxOptionsMixin],
+    mixins: [TeleportedMenuMixin],
     computed: {
         teleportedStyle () {
             return {
