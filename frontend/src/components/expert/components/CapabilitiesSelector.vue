@@ -123,33 +123,33 @@ export default {
                         option.description
                     ]
                     : []),
-                (option.tools
+                (option.tools?.length
                     ? [
                         'Tools:',
                         ...option.tools.map(t => t.name)
                     ]
-                    : []),
+                    : null),
                 // (option.prompts
                 //     ? [
                 //         'Prompts:',
-                //         ...option.prompts.map(p => p.name)
+                //         ...option.prompts?.map(p => p.name)
                 //     ]
                 //     : []),
-                (option.resources
+                (option.resources?.length
                     ? [
                         'Resources:',
                         ...option.resources.map(r => r.name)
                     ]
-                    : []),
-                (option.resourceTemplates
+                    : null),
+                (option.resourceTemplates?.length
                     ? [
                         'Resource Templates:',
                         ...option.resourceTemplates.map(r => r.name)
                     ]
-                    : [])
+                    : null)
             ]
 
-            return lines.map(e => e.join('\n')).join('\n\n')
+            return lines.filter(Boolean).map(e => e.join('\n')).join('\n\n')
         }
     }
 }
