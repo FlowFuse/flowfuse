@@ -1,5 +1,5 @@
 <template>
-    <KebabMenu class="relative" as="div">
+    <KebabMenu class="relative ff-kebab-menu" as="div" data-el="kebab-menu">
         <MenuButton
             ref="trigger"
             class="ff-btn ff-btn-icon transition-fade--color"

@@ -1020,10 +1020,6 @@ describe('FlowFuse - RBAC Viewer Contextual permissions', () => {
                 cy.get('[data-el="kebab-menu"]').click()
             })
         })
-        cy.get('[data-el="row-device-snapshot-1"]').should('exist')
-        cy.get('[data-el="row-device-snapshot-1"]').within(() => {
-            cy.get('[data-el="kebab-menu"]').click()
-        })
         cy.get('[data-el="kebab-item-edit-snapshot"]').should('have.class', 'disabled')
         cy.get('[data-el="kebab-item-view-snapshot"]').should('have.class', 'disabled')
         cy.get('[data-el="kebab-item-compare-snapshot"]').should('have.class', 'disabled')
@@ -1123,10 +1119,6 @@ describe('FlowFuse - RBAC Viewer Contextual permissions', () => {
             cy.get('[data-el="row-device-snapshot-1"]').within(() => {
                 cy.get('[data-el="kebab-menu"]').click()
             })
-        })
-        cy.get('[data-el="row-device-snapshot-1"]').should('exist')
-        cy.get('[data-el="row-device-snapshot-1"]').within(() => {
-            cy.get('[data-el="kebab-menu"]').click()
         })
         cy.get('[data-el="kebab-item-edit-snapshot"]').should('have.class', 'disabled')
         cy.get('[data-el="kebab-item-view-snapshot"]').should('not.have.class', 'disabled')
@@ -1242,10 +1234,6 @@ describe('FlowFuse - RBAC Viewer Contextual permissions', () => {
             cy.get('[data-el="row-device-snapshot-1"]').within(() => {
                 cy.get('[data-el="kebab-menu"]').click()
             })
-        })
-        cy.get('[data-el="row-device-snapshot-1"]').should('exist')
-        cy.get('[data-el="row-device-snapshot-1"]').within(() => {
-            cy.get('[data-el="kebab-menu"]').click()
         })
         cy.get('[data-el="kebab-item-edit-snapshot"]').should('not.have.class', 'disabled')
         cy.get('[data-el="kebab-item-view-snapshot"]').should('not.have.class', 'disabled')
