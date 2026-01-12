@@ -44,7 +44,7 @@ import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/solid'
 import { defineComponent } from 'vue'
 
-import BoxOptionsMixin from '../../mixins/BoxOptionsMixin.js'
+import TeleportedMenuMixin from '../../mixins/TeleportedMenuMixin.js'
 
 export default defineComponent({
     name: 'ff-popover',
@@ -54,7 +54,7 @@ export default defineComponent({
         PopoverButton,
         PopoverPanel
     },
-    mixins: [BoxOptionsMixin],
+    mixins: [TeleportedMenuMixin],
     props: {
         buttonText: {
             type: String,
