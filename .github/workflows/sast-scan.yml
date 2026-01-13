@@ -15,5 +15,5 @@ concurrency:
 
 jobs:
   scan:
-    name: Scan
+    name: SAST Scan
     uses : flowfuse/github-actions-workflows/.github/workflows/sast_scan.yaml@feat-sast-reusable-workflow
