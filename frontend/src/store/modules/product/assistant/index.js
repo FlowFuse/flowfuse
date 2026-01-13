@@ -84,6 +84,37 @@ const actions = {
     },
     reset: ({ commit }) => {
         commit('RESET')
+    },
+    sendFlowsToImport: async ({ getters, state }, flowsJson) => {
+        const service = messagingService()
+        service.sendMessage({
+            message: {
+                type: 'invoke-action',
+                action: 'custom:import-flow',
+                params: {
+                    flow: flowsJson // parameters to accompany the action
+                },
+                ...state.scope // includes target, source, scope
+            },
+            target: window.frames['immersive-editor-iframe'],
+            targetOrigin: getters.immersiveInstance?.url
+        })
+    },
+    installNodePackage: async ({ getters, state }, packageName) => {
+        const service = messagingService()
+        service.sendMessage({
+            message: {
+                type: 'invoke-action',
+                action: 'core:manage-palette',
+                params: {
+                    view: 'install',
+                    filter: packageName
+                },
+                ...state.scope // includes target, source, scope
+            },
+            target: window.frames['immersive-editor-iframe'],
+            targetOrigin: getters.immersiveInstance?.url
+        })
     }
 }
 
