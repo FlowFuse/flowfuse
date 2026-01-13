@@ -14,6 +14,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  trivy-scan:
-    name: Trivy Security Scan
+  scan:
+    name: Scan
     uses : flowfuse/github-actions-workflows/.github/workflows/sast_scan.yaml@feat-sast-reusable-workflow
