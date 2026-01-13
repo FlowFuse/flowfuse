@@ -1,7 +1,11 @@
 const DATA_SOURCE_FLOWFUSE_WEBSITE = 'flowfuse-website'
+const DATA_SOURCE_ASSISTANT = 'nr-assistant'
 
 const dataSourceScopes = {
     [DATA_SOURCE_FLOWFUSE_WEBSITE]: {
+        FLOWFUSE_EXPERT: 'flowfuse-expert'
+    },
+    [DATA_SOURCE_ASSISTANT]: {
         FLOWFUSE_EXPERT: 'flowfuse-expert'
     }
 }
@@ -73,8 +77,21 @@ class MessagingService {
 
     setupMessageHandlers () {
         window.addEventListener('message', async (event) => {
-            if (event.data.source === DATA_SOURCE_FLOWFUSE_WEBSITE && event.data.scope === dataSourceScopes[DATA_SOURCE_FLOWFUSE_WEBSITE].FLOWFUSE_EXPERT) {
-                await this.handleFlowFuseExpertMessage(event)
+            const isSourceWebsite = event.data.source === DATA_SOURCE_FLOWFUSE_WEBSITE
+            const isWebsiteExpertScope = event.data.scope === dataSourceScopes[DATA_SOURCE_FLOWFUSE_WEBSITE].FLOWFUSE_EXPERT
+            const shouldHandleWebsiteExpertMessages = isSourceWebsite && isWebsiteExpertScope
+
+            const isSourceAssistant = event.data.source === DATA_SOURCE_ASSISTANT
+            const isAssistantScope = event.data.scope === dataSourceScopes[DATA_SOURCE_ASSISTANT].FLOWFUSE_EXPERT
+            const shouldHandleAssistantMessages = isSourceAssistant && isAssistantScope
+
+            switch (true) {
+            case shouldHandleWebsiteExpertMessages:
+                return await this.handleFlowFuseExpertMessage(event)
+            case shouldHandleAssistantMessages:
+                return await this.handleAssistantMessage(event)
+            default:
+                // do nothing
             }
         })
     }
@@ -87,6 +104,10 @@ class MessagingService {
         default:
             console.warn('Unknown message received:', event.data.action)
         }
+    }
+
+    async handleAssistantMessage (event) {
+        await this.$store.dispatch('product/assistant/handleMessage', event)
     }
 
     sendReadyMessage () {
@@ -114,8 +135,16 @@ class MessagingService {
 
     sendMessage ({
         message,
+        target,
         targetOrigin
     }) {
+        // If we have a target, we aim at that target
+        if (target) {
+            target.postMessage(message, targetOrigin)
+            return
+        }
+
+        // if we don't have a target, we aim at our opener or parent while checking for the whitelisted target origin
         if (targetOrigin && !allowedOrigins.includes(targetOrigin)) {
             console.warn('Invalid target origin:', targetOrigin)
             return
@@ -199,7 +228,7 @@ export function createMessagingService ({
     store,
     router,
     services = {}
-}) {
+} = {}) {
     if (!MessagingServiceInstance) {
         MessagingServiceInstance = new MessagingService({
             app,

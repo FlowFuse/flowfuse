@@ -64,7 +64,7 @@ class BootstrapService {
     }
 
     async waitForAppMount () {
-        if (this.$app._container.children.length > 0) {
+        if (this.$app._container?.children?.length > 0) {
             return Promise.resolve()
         }
 
@@ -136,7 +136,7 @@ export function createBootstrapService ({
     store,
     router,
     services = {}
-}) {
+} = {}) {
     if (!BootstrapServiceInstance) {
         BootstrapServiceInstance = new BootstrapService({
             app,

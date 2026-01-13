@@ -34,6 +34,13 @@ const app = createApp(App)
 
 const serviceFactory = getServiceFactory()
 
+// Boot all services before mounting
+await serviceFactory.bootAllServices(app, store, router)
+    .then((services) => services.bootstrap.init())
+    .catch((error) => {
+        console.error('Bootstrap initialization failed:', error)
+    })
+
 // Error tracking
 setupSentry(app, router)
 
@@ -65,10 +72,3 @@ app.config.globalProperties.$filters = {
 }
 
 app.mount('#app')
-
-// Boot all services after mounting
-serviceFactory.bootAllServices(app, store, router)
-    .then((services) => services.bootstrap.init())
-    .catch((error) => {
-        console.error('Bootstrap initialization failed:', error)
-    })
