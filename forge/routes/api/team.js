@@ -1138,7 +1138,13 @@ module.exports = async function (app) {
                 ? app.db.models.Project
                 : app.db.models.Device
             const membership = request.teamMembership
-            const stateCounters = await model.countByState(request.query.state, request.team, request.query.applicationId, membership) ?? []
+            const stateCounters = await model.countByState(
+                request.query.state,
+                request.team,
+                request.query.applicationId,
+                membership,
+                request.session.User.admin
+            ) ?? []
             const response = {}
 
             stateCounters.forEach(res => {
