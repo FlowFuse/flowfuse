@@ -19,6 +19,8 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
     name: 'PackageResourceCard',
     props: {
@@ -26,6 +28,10 @@ export default {
             type: Object,
             required: true
         }
+    },
+    computed: {
+        // todo this is where we should add a button to install a module
+        ...mapGetters('product/expert', ['canManagePalette'])
     },
     methods: {
         getPackageName (pkg) {
