@@ -2,7 +2,12 @@ import messagingService from '../../../../services/messaging.service.js'
 
 const initialState = () => ({
     version: null,
-    supportedActions: {}
+    supportedActions: {},
+    scope: {
+        target: 'nr-assistant',
+        scope: 'flowfuse-expert',
+        source: 'flowfuse-expert'
+    }
 })
 
 const meta = {
@@ -54,15 +59,15 @@ const actions = {
     requestVersion: async ({ getters }) => {
         const service = messagingService()
         service.sendMessage({
-            message: { type: 'get-assistant-version' },
+            message: { type: 'get-assistant-version', ...state.scope },
             target: window.frames['immersive-editor-iframe'],
             targetOrigin: getters.immersiveInstance?.url
         })
     },
-    requestSupportedActions: async ({ getters }) => {
+    requestSupportedActions: async ({ getters, state }) => {
         const service = messagingService()
         const spreadElements = {
-            message: { type: 'get-supported-actions' },
+            message: { type: 'get-supported-actions', ...state.scope },
             target: window.frames['immersive-editor-iframe'],
             targetOrigin: getters.immersiveInstance?.url
         }
