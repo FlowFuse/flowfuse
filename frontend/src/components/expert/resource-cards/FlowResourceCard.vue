@@ -23,8 +23,8 @@
                             <chevron-down-icon v-if="flowsExpanded" class="h-4 w-4" />
                             <chevron-up-icon v-if="!flowsExpanded" class="h-4 w-4" />
                         </button>
-                        <!--                        <text-copier :text="flowsJson" :showText="false" />-->
-                        <ff-button :disabled="!canImportFlows">Import</ff-button>
+                        <text-copier v-if="!canImportFlows" :text="flowsJson" :showText="false" />
+                        <ff-button v-else size="small" kind="secondary" @click="importFlows">Import</ff-button>
                     </div>
                 </div>
                 <div class="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap">
@@ -40,7 +40,7 @@
 
 <script>
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/solid'
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 import TextCopier from '../../TextCopier.vue'
 import FlowViewer from '../../flow-viewer/FlowViewer.vue'
@@ -60,10 +60,16 @@ export default {
         }
     },
     computed: {
-        // todo this is where we update the import button state
         ...mapGetters('product/expert', ['canImportFlows']),
         flowsJson () {
             return JSON.stringify(this.flow.metadata.flows, null, 2)
+        }
+    },
+    methods: {
+        ...mapActions('product/assistant', ['sendFlowsToImport']),
+        importFlows () {
+            this.sendFlowsToImport(this.flowsJson)
+            // TODO: hide the ff-expert panel after importing. Ideally after a "success" message is received from the assistant
         }
     }
 }
