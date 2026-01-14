@@ -58,8 +58,9 @@ class BootstrapService {
     async init () {
         return this.waitForAppMount()
             .then(() => this.waitForStoreHydration())
-            .then(() => this.waitForRouterReady())
             .then(() => this.checkUser())
+            .then(() => this.mountApp())
+            .then(() => this.waitForRouterReady())
             .then(async () => this.markAsReady())
     }
 
@@ -103,6 +104,10 @@ class BootstrapService {
         }
 
         return Promise.resolve()
+    }
+
+    async mountApp () {
+        this.$app.mount('#app')
     }
 
     markAsReady () {
