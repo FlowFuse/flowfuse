@@ -5,6 +5,7 @@
             class="ff-btn ff-btn-icon transition-fade--color"
             :disabled="disabled"
             @click="() => { $nextTick(() => { updateItemsPosition() } ) }"
+            @keydown.space="() => { $nextTick(() => { updateItemsPosition() } ) }"
         >
             <DotsVerticalIcon class="ff-icon ff-icon-lg" />
         </MenuButton>

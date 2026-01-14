@@ -680,7 +680,7 @@ module.exports = {
                         })
                     }
                 },
-                countByState: async (states, team, applicationId, membership) => {
+                countByState: async (states, team, applicationId, membership, isAdmin) => {
                     let teamId = team.id
 
                     if (typeof teamId === 'string') {
@@ -735,7 +735,7 @@ module.exports = {
                     findAll.forEach((device) => {
                         const applicationId = device.Application?.hashid ?? device.Project?.Application?.hashid
 
-                        if (rbacEnabled && applicationId && !app.hasPermission(membership, 'device:read', { applicationId })) {
+                        if (rbacEnabled && applicationId && !app.hasPermission(membership, 'device:read', { applicationId }) && !isAdmin) {
                             // This device is not accessible to this user, do not include in states map
                             return
                         }
