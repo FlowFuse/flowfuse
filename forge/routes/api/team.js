@@ -1143,7 +1143,7 @@ module.exports = async function (app) {
                 request.team,
                 request.query.applicationId,
                 membership,
-                request.session.User.admin
+                request.session.User?.admin
             ) ?? []
             const response = {}
 
