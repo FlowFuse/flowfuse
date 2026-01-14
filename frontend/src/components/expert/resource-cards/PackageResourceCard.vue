@@ -96,8 +96,6 @@ export default {
     width: 1rem;
     height: 1rem;
     margin-top: 0.125rem;
-    // width: 20px;
-    // height: 20px;
     vertical-align: middle;
     margin-right: 0.5rem;
 }
