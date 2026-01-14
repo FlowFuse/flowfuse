@@ -17,8 +17,8 @@
             </ff-button>
         </template>
         <template #context-menu="{row}">
-            <ff-list-item label="Edit" @click.stop="providerSelected(row)" />
-            <ff-list-item label="Delete" kind="danger" @click.stop="deleteProvider(row)" />
+            <ff-kebab-item label="Edit" @click.stop="providerSelected(row)" />
+            <ff-kebab-item label="Delete" kind="danger" @click.stop="deleteProvider(row)" />
         </template>
     </ff-data-table>
 </template>

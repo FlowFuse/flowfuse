@@ -14,39 +14,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  trivy-scan:
-    name: Trivy Security Scan
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-
-      - name: Cache vulnerability database
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
-        with:
-          path: .cache/trivy
-          key: ${{ runner.os }}-trivy-db-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-trivy-db-
-
-      - name: Perform SAST scan
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          trivy-config: '.github/trivy.yaml'
-          output: 'trivy-results.sarif'
-        env:
-          TRIVY_FAIL_ON_SEVERITY: ${{ vars.TRIVY_FAIL_ON_SEVERITY || 'NONE' }}
-
-      - name: Upload scan results to GitHub
-        uses: github/codeql-action/upload-sarif@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4.31.9
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
-          category: 'trivy-sast'
+  scan:
+    name: SAST Scan
+    uses : flowfuse/github-actions-workflows/.github/workflows/sast_scan.yaml@v0.46.0

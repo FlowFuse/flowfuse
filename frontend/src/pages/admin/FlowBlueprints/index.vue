@@ -42,8 +42,8 @@
             <SectionTopMenu hero="Inactive Blueprints" />
             <ff-data-table :columns="columns" :rows="inactiveFlowBlueprints" data-el="inactive-flow-blueprints">
                 <template #context-menu="{row}">
-                    <ff-list-item label="Edit Flow Blueprint" @click="showBlueprintForm(row)" />
-                    <ff-list-item label="Delete Flow Blueprint" kind="danger" @click="showDeleteBlueprint(row)" />
+                    <ff-kebab-item label="Edit Flow Blueprint" @click="showBlueprintForm(row)" />
+                    <ff-kebab-item label="Delete Flow Blueprint" kind="danger" @click="showDeleteBlueprint(row)" />
                 </template>
             </ff-data-table>
             <div v-if="nextCursor">

@@ -68,21 +68,21 @@
                     <template
                         #context-menu="{row}"
                     >
-                        <ff-list-item
+                        <ff-kebab-item
                             v-if="row.canChangeStatus"
                             :disabled="row.pendingStateChange || row.running || row.optimisticStateChange"
                             label="Start"
                             @click.stop="instanceStart(row)"
                         />
 
-                        <ff-list-item
+                        <ff-kebab-item
                             v-if="row.canChangeStatus"
                             :disabled="!row.notSuspended"
                             label="Restart"
                             @click.stop="instanceRestart(row)"
                         />
 
-                        <ff-list-item
+                        <ff-kebab-item
                             v-if="row.canChangeStatus"
                             :disabled="!row.notSuspended"
                             kind="danger"
@@ -90,7 +90,7 @@
                             @click.stop="instanceShowConfirmSuspend(row)"
                         />
 
-                        <ff-list-item
+                        <ff-kebab-item
                             v-if="row.canDelete"
                             kind="danger"
                             label="Delete"
