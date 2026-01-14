@@ -70,6 +70,7 @@ export default [
         modalOverlayOpeningRadius: 6
     },
     { // last step for teams that already have an instance created when signing up
+        id: 'final-step-with-hosted-instance',
         title: 'You’re All Set',
         text: `
             <p>There is lots more on offer with FlowFuse, but let's dive into your newly created Hosted Instance and get building some flows. Click the <b>Open Editor</b> button now to dive in and start building.</p>
@@ -109,6 +110,7 @@ export default [
         modalOverlayOpeningRadius: 6
     },
     {
+        id: 'final-step-without-hosted-instance',
         title: 'You’re All Set',
         text: `
             <p>There’s much more you can do with FlowFuse, but first, let’s get you started by creating your Hosted Instance. Click the <b>Create Instance</b> button to set one up and begin building your flows.</p>
