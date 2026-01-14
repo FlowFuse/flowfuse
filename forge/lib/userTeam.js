@@ -5,7 +5,7 @@ const crypto = require('crypto')
  *   - creates user team (if `user:team:auto-create` is enabled
  *   - accepts any invitations matching the email
  */
-async function completeUserSignup (app, user) {
+async function completeUserSignup (app, user, { createTeamOverride = false } = {}) {
     // Process invites first to see if user is in any teams
     const pendingInvitations = await app.db.models.Invitation.forExternalEmail(user.email)
     for (let i = 0; i < pendingInvitations.length; i++) {
@@ -22,7 +22,7 @@ async function completeUserSignup (app, user) {
     }
 
     let personalTeam
-    if (app.settings.get('user:team:auto-create')) {
+    if (createTeamOverride || app.settings.get('user:team:auto-create')) {
         const teamLimit = app.license.get('teams')
         const teamCount = await app.db.models.Team.count()
         if (teamCount >= teamLimit) {
