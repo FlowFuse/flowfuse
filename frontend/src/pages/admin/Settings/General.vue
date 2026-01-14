@@ -187,6 +187,9 @@
                     The Client ID for the Google SSO application
                 </template>
             </FormRow>
+            <FormRow v-if="input['platform:sso:google']" v-model="input['platform:sso:google:auto-create']" containerClass="max-w-sm ml-9" type="checkbox" data-el="google-sso-auto-create">
+                Create new users automatically
+            </FormRow>
         </template>
 
         <template v-if="ssoEnabled">
@@ -237,6 +240,7 @@ const validSettings = [
     'branding:account:signUpLeftBanner',
     'platform:stats:token',
     'platform:sso:google',
+    'platform:sso:google:auto-create',
     'platform:sso:google:clientId',
     'platform:sso:direct'
 ]
