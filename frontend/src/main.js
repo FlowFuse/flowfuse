@@ -37,6 +37,13 @@ const serviceFactory = getServiceFactory()
 // Error tracking
 setupSentry(app, router)
 
+// Boot all services before mounting
+await serviceFactory.bootAllServices(app, store, router)
+    .then((services) => services.bootstrap.init())
+    .catch((error) => {
+        console.error('Bootstrap initialization failed:', error)
+    })
+
 // Globally available FF Components
 app.component('lottie-animation', LottieAnimation)
 app.component('ff-page', PageLayout)
@@ -63,12 +70,3 @@ app.config.errorHandler = function (err, vm, info) {
 app.config.globalProperties.$filters = {
     pluralize (amount, singular, plural = `${singular}s`) { return amount === 1 ? singular : plural }
 }
-
-app.mount('#app')
-
-// Boot all services after mounting
-serviceFactory.bootAllServices(app, store, router)
-    .then((services) => services.bootstrap.init())
-    .catch((error) => {
-        console.error('Bootstrap initialization failed:', error)
-    })

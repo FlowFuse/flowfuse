@@ -58,13 +58,14 @@ class BootstrapService {
     async init () {
         return this.waitForAppMount()
             .then(() => this.waitForStoreHydration())
-            .then(() => this.waitForRouterReady())
             .then(() => this.checkUser())
+            .then(() => this.mountApp())
+            .then(() => this.waitForRouterReady())
             .then(async () => this.markAsReady())
     }
 
     async waitForAppMount () {
-        if (this.$app._container.children.length > 0) {
+        if (this.$app._container?.children?.length > 0) {
             return Promise.resolve()
         }
 
@@ -105,6 +106,10 @@ class BootstrapService {
         return Promise.resolve()
     }
 
+    async mountApp () {
+        this.$app.mount('#app')
+    }
+
     markAsReady () {
         this.isReady = true
         if (this.readyResolve) {
@@ -136,7 +141,7 @@ export function createBootstrapService ({
     store,
     router,
     services = {}
-}) {
+} = {}) {
     if (!BootstrapServiceInstance) {
         BootstrapServiceInstance = new BootstrapService({
             app,
