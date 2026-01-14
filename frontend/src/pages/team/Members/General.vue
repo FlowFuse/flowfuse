@@ -216,7 +216,7 @@ export default {
                 })
         },
         fetchApplications () {
-            return teamApi.getTeamApplications(this.team.id)
+            return teamApi.getTeamApplications(this.team.id, { excludeOwnerFiltering: true })
                 .then(response => {
                     this.applications = response.applications
                 })
