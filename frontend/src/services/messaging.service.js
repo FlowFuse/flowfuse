@@ -1,5 +1,6 @@
 const DATA_SOURCE_FLOWFUSE_WEBSITE = 'flowfuse-website'
 const DATA_SOURCE_ASSISTANT = 'nr-assistant'
+const DATA_TARGET_ASSISTANT = 'flowfuse-expert'
 
 const dataSourceScopes = {
     [DATA_SOURCE_FLOWFUSE_WEBSITE]: {
@@ -18,7 +19,7 @@ const sourceActions = {
     [DATA_SOURCE_FLOWFUSE_WEBSITE]: ACTIONS_FLOWFUSE_EXPERT
 }
 
-const allowedOrigins = ['https://flowfuse.com', 'https://app.flowfuse.com', 'https://forge.flowfuse.dev']
+const allowedOrigins = ['https://flowfuse.com', 'https://app.flowfuse.com', 'https://forge.flowfuse.dev', 'http://localhost:8080', 'http://localhost:3000']
 
 /**
  * Messaging Service - Handles postMessage communication
@@ -81,9 +82,10 @@ class MessagingService {
             const isWebsiteExpertScope = event.data.scope === dataSourceScopes[DATA_SOURCE_FLOWFUSE_WEBSITE].FLOWFUSE_EXPERT
             const shouldHandleWebsiteExpertMessages = isSourceWebsite && isWebsiteExpertScope
 
+            const isAssistantTargettingFlowFuseExpert = event.data.target === DATA_TARGET_ASSISTANT
             const isSourceAssistant = event.data.source === DATA_SOURCE_ASSISTANT
-            const isAssistantScope = event.data.scope === dataSourceScopes[DATA_SOURCE_ASSISTANT].FLOWFUSE_EXPERT
-            const shouldHandleAssistantMessages = isSourceAssistant && isAssistantScope
+            const isAssistantScope = isAssistantTargettingFlowFuseExpert && event.data.scope === dataSourceScopes[DATA_SOURCE_ASSISTANT].FLOWFUSE_EXPERT
+            const shouldHandleAssistantMessages = isAssistantTargettingFlowFuseExpert && isSourceAssistant && isAssistantScope
 
             switch (true) {
             case shouldHandleWebsiteExpertMessages:
