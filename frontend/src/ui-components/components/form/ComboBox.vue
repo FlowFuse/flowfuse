@@ -1,5 +1,13 @@
 <template>
-    <Combobox v-model="value" class="ff-combobox" data-el="combobox" :by="compareOptions" :disabled="disabled" nullable>
+    <Combobox v-slot="{ open }"
+              v-model="value"
+              class="ff-combobox"
+              data-el="combobox"
+              :by="compareOptions"
+              :disabled="disabled" nullable
+              as="div"
+    >
+        <span v-if="syncOpenState(open)" class="hidden" />
         <div class="relative">
             <ComboboxInput
                 ref="trigger"
@@ -8,22 +16,23 @@
                 :display-value="displayValue"
                 :placeholder="placeholder"
                 @input="query = $event.target.value"
-                @focus="() => { $nextTick(() => { updatePosition(); open = true }) }"
+                @focus="() => { $nextTick(() => { updateItemsPosition()}) }"
             />
 
             <ComboboxButton v-if="!disabled" class="absolute inset-y-0 right-0 flex items-center pr-2">
                 <ChevronDownIcon class="h-5 w-5 text-gray-700 ff-icon" aria-hidden="true" />
             </ComboboxButton>
 
-            <transition
-                leave-active-class="transition duration-100 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <teleport to="body">
+            <teleport to="body">
+                <transition
+                    leave-active-class="transition duration-100 ease-in"
+                    leave-from-class="opacity-100"
+                    leave-to-class="opacity-0"
+                >
                     <ComboboxOptions
                         v-if="open && (filteredOptions.length || hasCustomValue)"
-                        class="absolute ff-options"
+                        ref="menu-items"
+                        class="fixed ff-options"
                         data-el="options"
                         :style="{
                             top: position.top + 'px',
@@ -58,8 +67,8 @@
                             </slot>
                         </ComboboxOption>
                     </ComboboxOptions>
-                </teleport>
-            </transition>
+                </transition>
+            </teleport>
         </div>
     </Combobox>
 </template>
@@ -74,7 +83,7 @@ import {
 } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/solid'
 
-import BoxOptionsMixin from '../../../mixins/BoxOptionsMixin.js'
+import TeleportedMenuMixin from '../../../mixins/TeleportedMenuMixin.js'
 import { debounce } from '../../../utils/eventHandling.js'
 
 export default {
@@ -87,7 +96,7 @@ export default {
         ComboboxOption,
         ChevronDownIcon
     },
-    mixins: [BoxOptionsMixin],
+    mixins: [TeleportedMenuMixin],
     props: {
         modelValue: {
             required: false,
