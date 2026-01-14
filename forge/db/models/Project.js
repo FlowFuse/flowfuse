@@ -669,7 +669,7 @@ module.exports = {
                         ]
                     })
                 },
-                countByState: async (states, team, applicationId, membership) => {
+                countByState: async (states, team, applicationId, membership, isAdmin) => {
                     let teamId = team.id
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
@@ -714,7 +714,7 @@ module.exports = {
                     const rbacEnabled = platformRbacEnabled && teamRbacEnabled
 
                     for (const project of results) {
-                        if (rbacEnabled && !app.hasPermission(membership, 'project:read', { applicationId: project.Application.hashid })) {
+                        if (rbacEnabled && !app.hasPermission(membership, 'project:read', { applicationId: project.Application.hashid }) && !isAdmin) {
                             // This instance is not accessible to this user, do not include in states map
                             continue
                         }
