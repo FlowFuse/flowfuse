@@ -40,7 +40,7 @@ module.exports.filterAccessibleMCPServerFeatures = function (app, serverList, te
         const result = { ...server }
 
         if (result.resources && Array.isArray(result.resources)) {
-            result.resources = result.resources?.filter(_resource => {
+            result.resources = result.resources.filter(_resource => {
                 return defaultResourcePermission
             })
         }
