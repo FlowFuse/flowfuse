@@ -8,6 +8,9 @@
  */
 const { default: axios } = require('axios')
 const { v4: uuidv4 } = require('uuid')
+
+const { filterAccessibleMCPServerFeatures } = require('../../services/expert.js')
+
 module.exports = async function (app) {
     // Get the assistant service configuration
     const serviceEnabled = app.config.expert?.enabled === true
@@ -52,6 +55,7 @@ module.exports = async function (app) {
             if (!existingRole) {
                 return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
+            request.teamMembership = existingRole
             request.team = await app.db.models.Team.byId(teamId)
             if (!request.team) {
                 return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
@@ -94,6 +98,32 @@ module.exports = async function (app) {
     async (request, reply) => {
         const sessionId = request.headers['x-chat-session-id'] ?? uuidv4()
         const transactionId = request.headers['x-chat-transaction-id']
+        const context = request.body.context || {}
+
+        // If MCP capabilities are provided in the context, filter them based on user access
+        const selectedCapabilities = context.selectedCapabilities
+        if (selectedCapabilities && Array.isArray(selectedCapabilities) && selectedCapabilities.length > 0) {
+            const applications = {}
+            const mcpServersList = []
+
+            // first pass - get associated applications for the MCP servers selected by user
+            for (const server of selectedCapabilities || []) {
+                const applicationId = server.application
+                if (!applicationId) { continue }
+
+                if (!Object.hasOwnProperty.call(applications, applicationId)) {
+                    applications[applicationId] = await app.db.models.Application.byId(applicationId)
+                }
+                const application = applications[applicationId]
+                if (application) {
+                    mcpServersList.push({ server, application })
+                }
+            }
+            // second pass - filter features per MCP server based on user access to features (e.g. a tool with the destructive hint requires extra permission than a read-only tool)
+            const filteredServers = filterAccessibleMCPServerFeatures(app, mcpServersList, request.team, request.teamMembership)
+            context.selectedCapabilities = filteredServers?.length > 0 ? filteredServers : undefined
+        }
+
         let query = request.body.query
         if (request.body.history) {
             query = ''
@@ -160,6 +190,7 @@ module.exports = async function (app) {
                                 type: 'object',
                                 properties: {
                                     team: { type: 'string' },
+                                    application: { type: 'string' },
                                     instance: { type: 'string' },
                                     instanceType: { type: 'string', enum: ['instance', 'device'] },
                                     instanceName: { type: 'string' },
@@ -198,38 +229,73 @@ module.exports = async function (app) {
             const runningInstancesWithMCPServer = []
             const transactionId = request.headers['x-chat-transaction-id']
             const mcpCapabilitiesUrl = `${expertUrl.split('/').slice(0, -1).join('/')}/mcp/features`
+
+            // Get the MCP servers registered for this team
             const mcpServers = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
 
+            // Scan each MCP server and ensure the user has access to the associated application and that the instance is running
+            // then collect the MCP server info for the running instances MCP servers
+            // filter out any that the user doesn't have access to
+            const applicationCache = {}
+            const instanceToApplicationLookup = {}
             for (const server of mcpServers) {
                 const { name, protocol, endpointRoute, TeamId, Project, Device, title, version, description } = server
                 if (TeamId !== request.team.id) {
                     // shouldn't happen due to byTeam filter, but just in case
                     continue
                 }
-                let owner, ownerId, ownerType
+                let instance, instanceId, instanceType
                 if (Device) {
-                    ownerType = 'device'
-                    owner = Device
-                    ownerId = Device.hashid
+                    instanceType = 'device'
+                    instance = Device
+                    instanceId = Device.hashid
                 } else if (Project) {
-                    ownerType = 'instance'
-                    owner = Project
-                    ownerId = Project.id
+                    instanceType = 'instance'
+                    instance = Project
+                    instanceId = Project.id
                 } else {
                     continue
                 }
 
-                const liveState = await owner.liveState({ omitStorageFlows: true })
+                // if instance is not expected to be running, skip it (avoids unnecessary timeouts)
+                if (instance?.state !== 'running') {
+                    continue
+                }
+
+                // Ensure an application is linked to this instance
+                const applicationId = app.db.models.Application.encodeHashid(instance.ApplicationId)
+                if (!applicationId) {
+                    continue // e.g. skip devices without an application as they can't be validated for access
+                }
+                if (!applicationCache[applicationId]) {
+                    const applicationModel = await app.db.models.Application.byId(applicationId)
+                    applicationCache[applicationId] = applicationModel
+                }
+                const application = applicationCache[applicationId]
+                if (!application) {
+                    continue // skip - application not found
+                }
+                instanceToApplicationLookup[instanceId] = application
+
+                // Now we have the application & know it is supposed to be running, check user actually has access
+                // before bothering to check instance live state or calling backend for MCP features!
+                if (!app.hasPermission(request.teamMembership, 'expert:insights:mcp:allow', { application })) {
+                    continue // user doesn't have access to this instance
+                }
+
+                // Now we have confirmed access is allowed, double check instance is running before offering MCP features (will avoid timeouts)
+                const liveState = await instance.liveState({ omitStorageFlows: true })
                 if (liveState?.meta?.state !== 'running') {
                     continue
                 }
 
                 runningInstancesWithMCPServer.push({
                     team: request.team.hashid,
-                    instance: ownerId,
-                    instanceType: ownerType,
-                    instanceName: owner.name,
-                    instanceUrl: owner.url,
+                    application: application.hashid,
+                    instance: instanceId,
+                    instanceType,
+                    instanceName: instance.name,
+                    instanceUrl: instance.url,
                     mcpServerName: name,
                     mcpEndpoint: endpointRoute,
                     mcpProtocol: protocol,
@@ -238,9 +304,18 @@ module.exports = async function (app) {
                     description
                 })
             }
+
+            // if no running instances with MCP server, return early
             if (runningInstancesWithMCPServer.length === 0) {
                 return reply.send({ servers: [], transactionId })
             }
+
+            // Call to backend to request MCP capabilities from expert service
+            // For reference - this POST:
+            // * calls the backend expert service endpoint /mcp/features
+            // * it connects to each MCP server registered
+            // * retrieves the prompts/resources/tools
+            // * adds them to the response along with the MCP server info
             const response = await axios.post(mcpCapabilitiesUrl, {
                 teamId: request.team.hashid,
                 servers: runningInstancesWithMCPServer
@@ -256,6 +331,22 @@ module.exports = async function (app) {
             if (response.data.transactionId !== transactionId) {
                 throw new Error('Transaction ID mismatch')
             }
+            const mcpServersResponse = response.data.servers || []
+            const serverList = []
+            // load the associate application models so that we can filter features based on user access
+            for (const serverItem of mcpServersResponse) {
+                const application = applicationCache[serverItem.application]
+                if (application) {
+                    // should allays be an application due to prior checks
+                    // skip this as bad data
+                    serverList.push({
+                        server: serverItem,
+                        application
+                    })
+                }
+            }
+            // now check tools/resources/prompts access per server based on team membership
+            response.data.servers = filterAccessibleMCPServerFeatures(app, serverList, request.team, request.teamMembership)
 
             reply.send(response.data)
         } catch (error) {
@@ -267,6 +358,7 @@ module.exports = async function (app) {
 /**
  * @typedef {Object} MCPServerItem MCP server info for a team
  * @property {string} team
+ * @property {string} application
  * @property {string} instance
  * @property {string} instanceType
  * @property {string} instanceName
