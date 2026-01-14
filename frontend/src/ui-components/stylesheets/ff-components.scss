@@ -275,7 +275,7 @@
   li {
     min-width: 150px;
     white-space: nowrap;
-    &.ff-list-item--danger {
+    &.ff-kebab-item--danger {
       color: $ff-red-500;
     }
   }
@@ -290,7 +290,7 @@
 /*
   FF List Item
 */
-li.ff-list-item {
+li.ff-kebab-item {
   padding: 12px 48px 12px 12px;
   background-color: white;
   &:hover {

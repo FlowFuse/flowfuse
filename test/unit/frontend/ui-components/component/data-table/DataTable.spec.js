@@ -2,11 +2,11 @@ import { mount } from '@vue/test-utils'
 import { expect } from 'vitest'
 
 import FfCheck from '../../../../../../frontend/src/ui-components/components/Check.vue'
-import FfKebabMenu from '../../../../../../frontend/src/ui-components/components/KebabMenu.vue'
 import DataTable from '../../../../../../frontend/src/ui-components/components/data-table/DataTable.vue'
 import FfDataTableCell from '../../../../../../frontend/src/ui-components/components/data-table/DataTableCell.vue'
 import FfDataTableRow from '../../../../../../frontend/src/ui-components/components/data-table/DataTableRow.vue'
 import FfTextInput from '../../../../../../frontend/src/ui-components/components/form/TextInput.vue'
+import FfKebabMenu from '../../../../../../frontend/src/ui-components/components/kebab-menu/KebabMenu.vue'
 
 describe('Data-Table > DataTable', () => {
     it('supports searching rows by values', async () => {

@@ -1,7 +1,7 @@
 <template>
     <MenuItem v-slot="{ active }" as="template" :disabled="disabled">
         <li
-            class="ff-list-item"
+            class="ff-kebab-item"
             :class="{[className]: kind.length, active, disabled: disabled}"
             :data-el="'kebab-item-' + slugify(label)"
         >
@@ -14,10 +14,10 @@
 <script>
 import { MenuItem } from '@headlessui/vue'
 
-import { slugify } from '../../composables/String.js'
+import { slugify } from '../../../composables/String.js'
 
 export default {
-    name: 'ff-list-item',
+    name: 'ff-kebab-item',
     components: {
         MenuItem
     },
@@ -41,7 +41,7 @@ export default {
     },
     computed: {
         className () {
-            return 'ff-list-item--' + this.kind
+            return 'ff-kebab-item--' + this.kind
         }
     },
     methods: { slugify }

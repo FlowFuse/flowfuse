@@ -41,7 +41,7 @@ import {
 } from '@headlessui/vue'
 import { DotsVerticalIcon } from '@heroicons/vue/solid'
 
-import TeleportedMenuMixin from '../../mixins/TeleportedMenuMixin.js'
+import TeleportedMenuMixin from '../../../mixins/TeleportedMenuMixin.js'
 
 export default {
     name: 'ff-kebab-menu',

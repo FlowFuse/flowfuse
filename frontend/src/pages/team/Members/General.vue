@@ -18,12 +18,12 @@
                 </ff-button>
             </template>
             <template v-if="canEditUser" #context-menu="{row}">
-                <ff-list-item
+                <ff-kebab-item
                     v-if="(hasPermission('team:user:change-role') && !requiresBilling) || isAdminUser"
                     data-action="member-change-role"
                     label="Change Role" @click="changeRoleDialog(row)"
                 />
-                <ff-list-item
+                <ff-kebab-item
                     v-if="hasPermission('team:user:remove') || isAdminUser"
                     data-action="member-remove-from-team"
                     label="Remove From Team"
