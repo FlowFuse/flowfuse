@@ -67,13 +67,14 @@ export default {
             // Use viewport-relative coordinates (no window.scrollX/Y)
             let triggerTop = triggerRect.bottom + this.optionsOffsetTop
             let triggerLeft = triggerRect.left
+            let width = triggerRect.width
             const transform = ''
 
             // Set initial position immediately
             this.position = {
                 top: triggerTop,
                 left: triggerLeft,
-                width: triggerRect.width,
+                width,
                 transform
             }
 
@@ -83,8 +84,17 @@ export default {
                     return
                 }
 
-                const menuRect = this.$refs['menu-items'].$el.getBoundingClientRect()
-                const menuWidth = menuRect.width
+                const menuEl = this.$refs['menu-items'].$el
+                const firstChild = menuEl.firstElementChild
+                if (firstChild) {
+                    const firstChildWidth = firstChild.getBoundingClientRect().width
+                    if (firstChildWidth > width) {
+                        width = firstChildWidth
+                    }
+                }
+
+                const menuRect = menuEl.getBoundingClientRect()
+                const menuWidth = width // Use the calculated width
                 const menuHeight = menuRect.height
 
                 // Re-calculate based on actual dimensions
@@ -105,11 +115,11 @@ export default {
                 }
 
                 // Only update if something actually changed
-                if (triggerLeft !== this.position.left || triggerTop !== this.position.top) {
+                if (triggerLeft !== this.position.left || triggerTop !== this.position.top || width !== this.position.width) {
                     this.position = {
                         top: triggerTop,
                         left: triggerLeft,
-                        width: triggerRect.width,
+                        width,
                         transform
                     }
                 }

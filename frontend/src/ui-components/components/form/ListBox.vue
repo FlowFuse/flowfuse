@@ -36,7 +36,7 @@
                         v-if="open"
                         ref="menu-items"
                         data-el="listbox-options"
-                        class="fixed w-full overflow-auto bg-white py-1 ff-options"
+                        class="fixed w-full overflow-y-auto overflow-x-hidden bg-white py-1 ff-options"
                         :style="{
                             top: position.top + 'px',
                             left: position.left + 'px',
