@@ -1,14 +1,26 @@
 <template>
-    <li class="ff-list-item" :class="[className, disabled ? 'disabled' : ''] " :data-el="'kebab-item-' + slugify(label)">
-        <component :is="icon" />
-        <label>{{ label }}</label>
-    </li>
+    <MenuItem v-slot="{ active }" as="template" :disabled="disabled">
+        <li
+            class="ff-list-item"
+            :class="{[className]: kind.length, active, disabled: disabled}"
+            :data-el="'kebab-item-' + slugify(label)"
+        >
+            <component :is="icon" />
+            <label>{{ label }}</label>
+        </li>
+    </MenuItem>
 </template>
 
 <script>
+import { MenuItem } from '@headlessui/vue'
+
 import { slugify } from '../../composables/String.js'
+
 export default {
     name: 'ff-list-item',
+    components: {
+        MenuItem
+    },
     props: {
         icon: {
             type: Function,

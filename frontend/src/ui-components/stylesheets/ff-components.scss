@@ -270,7 +270,7 @@
   position: absolute;
   top: 24px;
   border: 1px solid $ff-grey-300;
-  z-index: 10;
+  z-index: 1000;
   box-shadow: 0px 6px 9px 0px #00000038;
   li {
     min-width: 150px;
@@ -296,6 +296,9 @@ li.ff-list-item {
   &:hover {
     cursor: pointer;
     background-color: $ff-grey-200;
+  }
+  &.active {
+    background-color: $ff-grey-100;
   }
   &.disabled, :disabled {
     pointer-events: none;
