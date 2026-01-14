@@ -50,7 +50,13 @@ const getters = {
     isSessionExpired: (state) => state[state.agentMode].sessionExpiredShown,
     isFfAgent: (state) => state.agentMode === FF_AGENT,
     isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT,
-    hasSelectedCapabilities: (state) => state[OPERATOR_AGENT].selectedCapabilities?.length > 0
+    hasSelectedCapabilities: (state) => state[OPERATOR_AGENT].selectedCapabilities?.length > 0,
+    canImportFlows: (state, getters, rootState, rootGetters) => {
+        return !!rootGetters['product/assistant/immersiveInstance'] && !!rootState.product.assistant.supportedActions['custom:import-flow']
+    },
+    canManagePalette: (state, getters, rootState, rootGetters) => {
+        return !!rootGetters['product/assistant/immersiveInstance'] && !!rootState.product.assistant.supportedActions['core:manage-palette']
+    }
 }
 
 const mutations = {

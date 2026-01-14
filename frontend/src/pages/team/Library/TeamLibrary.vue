@@ -17,7 +17,7 @@
                     <ff-data-table-cell>{{ row.name }}</ff-data-table-cell>
                     <ff-data-table-cell>{{ formatDateTime(row.updatedAt) }}</ff-data-table-cell>
                     <template #context-menu>
-                        <ff-list-item class="ff-list-item--danger" label="Delete" @click.stop="deleteFile(row)" />
+                        <ff-kebab-item class="ff-kebab-item--danger" label="Delete" @click.stop="deleteFile(row)" />
                     </template>
                 </ff-data-table-row>
             </template>

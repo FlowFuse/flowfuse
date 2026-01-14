@@ -220,7 +220,19 @@ const Permissions = {
     // MCP
     'team:mcp:list': { description: 'List the team MCP endpoints', role: Roles.Member },
 
-    'assistant:call': { description: 'Call the Assistant service' }
+    'assistant:call': { description: 'Call the Assistant service' },
+
+    // FF Expert
+    // MCP RBACs
+    'expert:insights:mcp:allow': { description: 'Can use the MCP', role: Roles.Viewer },
+    'expert:insights:mcp:prompt:allow': { description: 'Can use MCP Prompts', role: Roles.Viewer }, // FUTURE - ff expert MCP prompts not yet implemented
+    'expert:insights:mcp:resource:allow': { description: 'Can use MCP Resources', role: Roles.Viewer },
+    'expert:insights:mcp:resourcetemplate:allow': { description: 'Can use MCP Resource Templates', role: Roles.Viewer },
+    'expert:insights:mcp:tool:allow': { description: 'Can use readonly MCP Tools', role: Roles.Viewer }, // By default, viewer can use readonly tools,non-destructive, non-open-world tools
+    'expert:insights:mcp:tool:write': { description: 'Can use readonly MCP Tools', role: Roles.Member }, // readonly=false: implies it may modify data (though not necessarily destructive)
+    'expert:insights:mcp:tool:destructive': { description: 'Can use destructive MCP Tools', role: Roles.Owner }, // destructive true implies it may perform destructive actions
+    'expert:insights:mcp:tool:open-world': { description: 'Can use open-world MCP Tools', role: Roles.Member }, // open-world true implies it interacts with external entities
+    'expert:insights:mcp:tool:non-idempotent': { description: 'Can use non-idempotent MCP Tools', role: Roles.Member } // non-idempotent true implies it can NOT be safely called multiple times without side-effects. Only matters if readonly is false or destructive is true
 }
 
 module.exports = {

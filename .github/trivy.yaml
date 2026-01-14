@@ -22,7 +22,7 @@ pkg:
   types:
     - os
     - library
-
+  include-dev-deps: true
 
 format: "sarif"
 ignorefile: ".github/.trivyignore.yaml"
