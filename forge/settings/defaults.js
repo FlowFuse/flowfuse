@@ -69,6 +69,8 @@ module.exports = {
 
     'platform:sso:google': false, // Is Google SSO enabled?
     'platform:sso:google:clientId': null, // Client ID for Google SSO
+    'platform:sso:google:auto-create': false, // Auto-provision users on Google SSO
+
     'platform:sso:direct': false, // Direct SSO Login
 
     // FlowFuse npm registry

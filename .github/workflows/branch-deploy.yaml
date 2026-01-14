@@ -36,6 +36,8 @@ on:
       - synchronize
       - reopened
       - closed
+    branches-ignore:
+      - 'release-**'
     paths-ignore:
       - 'docs/**'
 
