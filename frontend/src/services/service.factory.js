@@ -43,6 +43,8 @@ class ServiceFactory {
             services: this.$serviceInstances
         })
 
+        app.provide('$services', this.$serviceInstances)
+
         return this.$serviceInstances
     }
 
