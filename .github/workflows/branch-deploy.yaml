@@ -36,8 +36,6 @@ on:
       - synchronize
       - reopened
       - closed
-    branches-ignore:
-      - 'release-**'
     paths-ignore:
       - 'docs/**'
 
@@ -57,7 +55,8 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') &&
-      github.actor != 'dependabot[bot]'
+      github.actor != 'dependabot[bot]' &&
+      (!startsWith(github.head_ref, 'release-') || !startsWith(github.head_ref, 'ci-'))
     outputs:
       is_org_member: ${{ steps.validate.outputs.is_member }}
     steps:
