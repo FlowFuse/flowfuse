@@ -56,7 +56,7 @@ jobs:
     if: |
       (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') &&
       github.actor != 'dependabot[bot]' &&
-      (!startsWith(github.head_ref, 'release-') && !startsWith(github.head_ref, 'ci-'))
+      !startsWith(github.head_ref, 'release-')
     outputs:
       is_org_member: ${{ steps.validate.outputs.is_member }}
     steps:
