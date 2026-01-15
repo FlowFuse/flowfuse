@@ -24,7 +24,7 @@
                     :data-option="option.mcpServerName"
                     :title="getResourceTooltip(option)"
                 >
-                    <li>
+                    <li style="min-width: 300px;">
                         <div
                             class="ff-option-content flex truncate justify-start !items-start !gap-2 !p-2"
                             :class="{ active }"

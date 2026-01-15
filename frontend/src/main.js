@@ -38,35 +38,39 @@ const serviceFactory = getServiceFactory()
 setupSentry(app, router)
 
 // Boot all services before mounting
-await serviceFactory.bootAllServices(app, store, router)
+serviceFactory.bootAllServices(app, store, router)
     .then((services) => services.bootstrap.init())
     .catch((error) => {
         console.error('Bootstrap initialization failed:', error)
     })
+    .then(() => {
+        // Globally available FF Components
+        app.component('lottie-animation', LottieAnimation)
+        app.component('ff-page', PageLayout)
+        app.component('ff-page-header', SectionNavigationHeader)
+        app.component('ff-loading', Loading)
+        app.component('ff-team-link', TeamLink)
 
-// Globally available FF Components
-app.component('lottie-animation', LottieAnimation)
-app.component('ff-page', PageLayout)
-app.component('ff-page-header', SectionNavigationHeader)
-app.component('ff-loading', Loading)
-app.component('ff-team-link', TeamLink)
+        app.config.errorHandler = function (err, vm, info) {
+            // Uncaught XHR errors bubble to here
+            if (err instanceof AxiosError) {
+                // API has returned error details
+                const errorMessage =
+                    err.response?.data?.message ?? // deprecated format
+                    err.response?.data?.error // new format
+                if (errorMessage) {
+                    return Alerts.emit(`Request Failed: ${errorMessage}`, 'warning')
+                }
 
-app.config.errorHandler = function (err, vm, info) {
-    // Uncaught XHR errors bubble to here
-    if (err instanceof AxiosError) {
-        // API has returned error details
-        const errorMessage =
-            err.response?.data?.message ?? // deprecated format
-            err.response?.data?.error // new format
-        if (errorMessage) {
-            return Alerts.emit(`Request Failed: ${errorMessage}`, 'warning')
+                // HTTP error only
+                return Alerts.emit(`${err.message ?? 'Request Failed: Unknown error'}`, 'warning')
+            }
         }
 
-        // HTTP error only
-        return Alerts.emit(`${err.message ?? 'Request Failed: Unknown error'}`, 'warning')
-    }
-}
-
-app.config.globalProperties.$filters = {
-    pluralize (amount, singular, plural = `${singular}s`) { return amount === 1 ? singular : plural }
-}
+        app.config.globalProperties.$filters = {
+            pluralize (amount, singular, plural = `${singular}s`) { return amount === 1 ? singular : plural }
+        }
+    })
+    .catch((error) => {
+        console.error('Vue app binding error: ', error)
+    })
