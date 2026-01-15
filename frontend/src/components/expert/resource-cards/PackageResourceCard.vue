@@ -15,7 +15,7 @@
             <div class="package-name">{{ getPackageName(nodePackage) }}</div>
             <div class="package-url">{{ getPackageUrl(nodePackage) }}</div>
             <div class="package-actions">
-                <ff-button :enabled="canManagePalette" size="small" kind="secondary" @click.stop.prevent="installPackage(nodePackage)">Install</ff-button>
+                <ff-button v-if="canManagePalette" size="small" kind="secondary" @click.stop.prevent="installPackage(nodePackage)">Install</ff-button>
             </div>
         </div>
     </a>
