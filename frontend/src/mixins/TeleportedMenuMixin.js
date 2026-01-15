@@ -70,6 +70,17 @@ export default {
             let width = triggerRect.width
             const transform = ''
 
+            const menuEl = this.$refs['menu-items']?.$el
+            if (menuEl) {
+                const firstChild = menuEl.firstElementChild
+                if (firstChild) {
+                    const firstChildWidth = firstChild.getBoundingClientRect().width
+                    if (firstChildWidth > width) {
+                        width = firstChildWidth
+                    }
+                }
+            }
+
             // Set initial position immediately
             this.position = {
                 top: triggerTop,
@@ -82,15 +93,6 @@ export default {
             this.$nextTick(() => {
                 if (!this.$refs['menu-items'] || !this.$refs['menu-items'].$el) {
                     return
-                }
-
-                const menuEl = this.$refs['menu-items'].$el
-                const firstChild = menuEl.firstElementChild
-                if (firstChild) {
-                    const firstChildWidth = firstChild.getBoundingClientRect().width
-                    if (firstChildWidth > width) {
-                        width = firstChildWidth
-                    }
                 }
 
                 const menuRect = menuEl.getBoundingClientRect()
