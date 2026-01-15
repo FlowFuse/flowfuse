@@ -61,13 +61,13 @@ module.exports = {
                     if (includeInstance) {
                         include.push({
                             model: M.Project,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url', 'ApplicationId'],
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url', 'ApplicationId', 'state'],
                             required: false,
                             on: instanceOwnershipJoin
                         })
                         include.push({
                             model: M.Device,
-                            attributes: ['hashid', 'id', 'name', 'type', 'ApplicationId'],
+                            attributes: ['hashid', 'id', 'name', 'type', 'ApplicationId', 'state'],
                             required: false,
                             on: deviceOwnershipJoin,
                             include: {
