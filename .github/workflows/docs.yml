@@ -49,7 +49,7 @@ jobs:
           path: 'blueprint-library'
           token: ${{ steps.generate_token.outputs.token }}
       - name: Cache image pipeline output
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
         with:
           key: img-pipeline-cache
           path: website/_site/img         
