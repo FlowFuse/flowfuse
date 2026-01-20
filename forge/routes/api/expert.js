@@ -11,6 +11,9 @@ const { v4: uuidv4 } = require('uuid')
 
 const { filterAccessibleMCPServerFeatures } = require('../../services/expert.js')
 
+/**
+ * @param {import('../../forge.js').ForgeApplication} app
+ */
 module.exports = async function (app) {
     // Get the assistant service configuration
     const serviceEnabled = app.config.expert?.enabled === true
