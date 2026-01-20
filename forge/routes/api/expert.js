@@ -60,6 +60,9 @@ module.exports = async function (app) {
             if (!request.team) {
                 return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
+            const teamType = await request.team.getTeamType()
+            const teamHttpSecurityFeature = !!teamType.properties.features?.teamHttpSecurity
+            request.teamHttpSecurityFeature = teamHttpSecurityFeature
         }
     })
 
