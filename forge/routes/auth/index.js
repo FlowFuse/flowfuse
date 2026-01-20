@@ -138,6 +138,13 @@ async function init (app, opts) {
                             return
                         }
                     }
+                    if (accessToken.scope?.includes('ff-expert:mcp')) {
+                        // must be a http token for expert MCP access
+                        if (accessToken.ownerType !== 'http') {
+                            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                            return
+                        }
+                    }
                     return
                 }
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
