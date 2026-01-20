@@ -109,7 +109,7 @@ module.exports = async function (app) {
         // If MCP capabilities are provided in the context, filter them based on user access
         const selectedCapabilities = context.selectedCapabilities
         if (selectedCapabilities && Array.isArray(selectedCapabilities) && selectedCapabilities.length > 0) {
-            const applications = {}
+            const applicationCache = {}
             const mcpServersList = []
 
             // first pass - get associated applications for the MCP servers selected by user
@@ -117,10 +117,10 @@ module.exports = async function (app) {
                 const applicationId = server.application
                 if (!applicationId) { continue }
 
-                if (!Object.hasOwnProperty.call(applications, applicationId)) {
-                    applications[applicationId] = await app.db.models.Application.byId(applicationId)
+                if (!Object.hasOwnProperty.call(applicationCache, applicationId)) {
+                    applicationCache[applicationId] = await app.db.models.Application.byId(applicationId)
                 }
-                const application = applications[applicationId]
+                const application = applicationCache[applicationId]
                 if (application) {
                     mcpServersList.push({ server, application })
                 }
