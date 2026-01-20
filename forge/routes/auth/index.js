@@ -42,7 +42,7 @@ module.exports = fp(init, { name: 'app.routes.auth' })
 
 /**
  * Initialize the auth plugin
- * @param {import('forge/forge').ForgeApplication} app
+ * @param {import('../../forge').ForgeApplication} app
  * @param {Object} opts
  * @param {Function} done
  */
