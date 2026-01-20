@@ -267,16 +267,17 @@ module.exports = async function (app) {
                     continue
                 }
 
-                // Ensure an application is linked to this instance
-                const applicationId = app.db.models.Application.encodeHashid(instance.ApplicationId)
-                if (!applicationId) {
+                // Ensure instance has an associated application
+                if (!instance?.ApplicationId) {
                     continue // e.g. skip devices without an application as they can't be validated for access
                 }
-                if (!applicationCache[applicationId]) {
-                    const applicationModel = await app.db.models.Application.byId(applicationId)
-                    applicationCache[applicationId] = applicationModel
+
+                // Get the application from local cache or db (an application can appear multiple times if multiple instances are registered)
+                const applicationHashid = app.db.models.Application.encodeHashid(instance.ApplicationId)
+                if (!Object.hasOwnProperty.call(applicationCache, applicationHashid)) {
+                    applicationCache[applicationHashid] = await app.db.models.Application.byId(applicationHashid)
                 }
-                const application = applicationCache[applicationId]
+                const application = applicationCache[applicationHashid]
                 if (!application) {
                     continue // skip - application not found
                 }
