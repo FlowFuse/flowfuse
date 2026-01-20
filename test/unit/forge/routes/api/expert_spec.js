@@ -1,13 +1,17 @@
 const { default: axios } = require('axios')
+const LRUCache = require('lru-cache')
 const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 
+const { sha256 } = require('../../../../../forge/db/utils.js')
 const { Roles } = require('../../../../../forge/lib/roles.js')
 // eslint-disable-next-line no-unused-vars
 const TestModelFactory = require('../../../../lib/TestModelFactory')
 const setup = require('../setup')
 
 describe('Expert API', function () {
+    /** @type {LRUCache.LRUCache} */
+    let expertMCPAccessTokenCache = null
     async function setupApp (config = {}) {
         const defaultConfig = {
             // Enable dev license for granular rbac tests
@@ -39,36 +43,29 @@ describe('Expert API', function () {
         return response.cookies[0].value
     }
 
-    describe('service disabled', async function () {
-        let app
-        afterEach(async function () {
-            if (app) await app.close()
+    async function setFeatureForTeam (app, featureName, enabled) {
+        // modify the teamType to enable teamHttpSecurity feature
+        const defaultTeamTypeProperties = app.defaultTeamType.properties
+        defaultTeamTypeProperties.features[featureName] = enabled
+        app.defaultTeamType.properties = defaultTeamTypeProperties
+        await app.defaultTeamType.save()
+    }
+
+    before(function () {
+        // wrap the class LRUCache.LRUCache so that any calls to new LRUCache() in the app code
+        // will create an instance of LRUCache.LRUCache that I we can access and clear between tests
+        const LRUCacheOriginal = LRUCache.LRUCache
+        sinon.stub(LRUCache, 'LRUCache').callsFake(function (options) {
+            const c = new LRUCacheOriginal(options)
+            if (options && options.name === 'ExpertMCPAccessTokenCache') {
+                expertMCPAccessTokenCache = c
+            }
+            return c
         })
-        it('should return 501 if expert service is disabled', async function () {
-            app = await setupApp({ expert: { enabled: false } })
-            const instance = app.project
-            const token = (await instance.refreshAuthTokens()).token
-            sinon.stub(app.config.expert, 'enabled').get(() => false)
-            const response = await app.inject({
-                method: 'POST',
-                url: '/api/v1/expert/chat',
-                headers: { authorization: 'Bearer ' + token },
-                payload: { context: { team: 'teamid' }, query: 'test' }
-            })
-            response.statusCode.should.equal(501)
-        })
-        it('should return 501 if expert service url is not set', async function () {
-            app = await setupApp({ expert: { enabled: true, service: { url: null } } })
-            const instance = app.project
-            const token = (await instance.refreshAuthTokens()).token
-            const response = await app.inject({
-                method: 'POST',
-                url: '/api/v1/expert/chat',
-                headers: { authorization: 'Bearer ' + token },
-                payload: { context: { team: 'teamid' }, query: 'test' }
-            })
-            response.statusCode.should.equal(501)
-        })
+    })
+
+    afterEach(async function () {
+        sinon.restore()
     })
 
     describe('service enabled', function () {
@@ -108,7 +105,15 @@ describe('Expert API', function () {
         })
 
         after(async function () { await app.close() })
-        afterEach(function () { sinon.restore() })
+        afterEach(function () {
+            sinon.restore()
+            // clear the expert MCP access token cache
+            if (expertMCPAccessTokenCache) {
+                expertMCPAccessTokenCache.clear()
+            }
+            // remove all access tokens
+            return app.db.models.AccessToken.destroy({ where: {} })
+        })
 
         describe('Chat Endpoint', function () {
             it('should return 401 for missing session', async function () {
@@ -195,6 +200,45 @@ describe('Expert API', function () {
         })
 
         describe('MCP features Endpoint', function () {
+            let mockMcpRegistration1, mockMcpResponseServer1
+            beforeEach(async function () {
+                await setFeatureForTeam(app, 'teamHttpSecurity', true)
+                // create an common reusable MCP registration
+                mockMcpRegistration1 = {
+                    id: 1,
+                    name: 'mcp-server-1',
+                    protocol: 'http',
+                    targetType: 'instance',
+                    targetId: instance.id,
+                    nodeId: 'mcp:node:1',
+                    endpointRoute: '/mcp1',
+                    TeamId: team.id,
+                    Project: instance,
+                    title: 'the title 1',
+                    version: '1.0.0-beta',
+                    description: 'the description 1'
+
+                }
+                mockMcpResponseServer1 = {
+                    team: team.hashid,
+                    application: application.hashid,
+                    instance: instance.id,
+                    instanceType: 'instance',
+                    instanceName: instance.name,
+                    mcpServerName: 'mcp-server-1',
+                    mcpServerUrl: 'http://instance-url/mcp1',
+                    prompts: [{}],
+                    resources: [{}],
+                    resourceTemplates: [{}],
+                    tools: [{}],
+                    mcpProtocol: 'http',
+                    title: 'the title 1',
+                    version: '1.0.0-beta',
+                    description: 'the description 1',
+                    notInSchema: 'should not cause error or be included in response due to swagger schema'
+                }
+            })
+
             it('should return 401 for instance token', async function () {
                 const token = instanceToken
                 const response = await app.inject({
@@ -315,7 +359,8 @@ describe('Expert API', function () {
                             name: 'offline-instance',
                             ApplicationId: application.id,
                             state: '',
-                            liveState: () => ({ meta: { state: 'suspended' } })
+                            liveState: () => ({ meta: { state: 'suspended' } }),
+                            getSetting: sinon.stub().resolves({}) // no special settings
                         },
                         title: 'the title 2',
                         version: '2.0.0-beta',
@@ -335,7 +380,8 @@ describe('Expert API', function () {
                             name: 'offline-instance',
                             ApplicationId: application.id,
                             state: 'running',
-                            liveState: () => ({ meta: { state: 'running' } })
+                            liveState: () => ({ meta: { state: 'running' } }),
+                            getSetting: sinon.stub().resolves({}) // no special settings
                         },
                         title: 'the title 3',
                         version: '3.0.0-beta',
@@ -385,7 +431,7 @@ describe('Expert API', function () {
                 axiosPost.should.have.property('servers').which.is.an.Array().and.has.length(1)
                 // since only 1 instance was correct and online, get index 0 and check its properties
                 const reg = axiosPost.servers[0]
-                reg.should.only.have.keys('team', 'application', 'instance', 'instanceType', 'instanceName', 'instanceUrl', 'mcpServerName', 'mcpEndpoint', 'mcpProtocol', 'title', 'version', 'description')
+                reg.should.only.have.keys('team', 'application', 'instance', 'instanceType', 'instanceName', 'instanceUrl', 'mcpAccessToken', 'mcpServerName', 'mcpEndpoint', 'mcpProtocol', 'title', 'version', 'description')
                 reg.should.have.property('team', team.hashid)
                 reg.should.have.property('application', application.hashid)
                 reg.should.have.property('instance', instance.id)
@@ -509,7 +555,8 @@ describe('Expert API', function () {
                             name: 'alice',
                             state: 'running',
                             ApplicationId: applicationAlice2.id,
-                            liveState: () => ({ meta: { state: 'running' } })
+                            liveState: () => ({ meta: { state: 'running' } }),
+                            getSetting: sinon.stub().resolves({}) // no special settings
                         },
                         title: 'Alices MCP Server',
                         version: '1.0.0-beta',
@@ -529,7 +576,8 @@ describe('Expert API', function () {
                             name: 'bob',
                             state: 'running',
                             ApplicationId: applicationBob2.id,
-                            liveState: () => ({ meta: { state: 'running' } })
+                            liveState: () => ({ meta: { state: 'running' } }),
+                            getSetting: sinon.stub().resolves({}) // no special settings
                         },
                         title: 'Bobs MCP Server',
                         version: '2.0.0-beta',
@@ -549,7 +597,8 @@ describe('Expert API', function () {
                             name: 'chris',
                             state: 'running',
                             ApplicationId: applicationChris2.id,
-                            liveState: () => ({ meta: { state: 'running' } })
+                            liveState: () => ({ meta: { state: 'running' } }),
+                            getSetting: sinon.stub().resolves({}) // no special settings
                         },
                         title: 'Chris MCP Server',
                         version: '3.0.0-beta',
@@ -687,6 +736,257 @@ describe('Expert API', function () {
                 checkTools(chris2Result.servers.find(s => s.instance === 'bob'), ['read_tool'])
                 checkTools(chris2Result.servers.find(s => s.instance === 'chris'), ['destructive_tool', 'write_tool', 'read_tool', 'openworld_tool'])
             })
+
+            it('should not generate an access token for MCP server when feature teamHttpSecurity is disabled', async function () {
+                await setFeatureForTeam(app, 'teamHttpSecurity', false)
+                const token = bobToken
+                // Stub MCP registration to return 1 online instance
+                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([mockMcpRegistration1])
+                sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
+                sinon.stub(instance, 'getSetting').resolves({ httpNodeAuth: { type: 'flowforge-user' } })
+
+                // fake the axios post response - capture post data and return resolved promise
+                let capturedPostData = null
+                sinon.stub(axios, 'post').callsFake((url, data) => {
+                    capturedPostData = data
+                    return Promise.resolve({
+                        data: {
+                            transactionId: 'abc',
+                            servers: [mockMcpResponseServer1]
+                        }
+                    })
+                })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/mcp/features',
+                    cookies: { sid: token },
+                    headers: { 'x-chat-transaction-id': 'abc' },
+                    payload: { context: { teamId: team.hashid } }
+                })
+                response.statusCode.should.equal(200)
+
+                // read AccessToken from DB and check it is valid
+                const tokens = await app.db.models.AccessToken.findAll({ where: { ownerType: 'http', ownerId: instance.id } })
+                tokens.should.be.an.Array()
+                tokens.should.have.length(0)
+
+                // Now assert the axios post payload (captured async)
+                capturedPostData.should.be.an.Object()
+                capturedPostData.servers[0].should.have.property('mcpAccessToken').and.be.an.Object()
+                capturedPostData.servers[0].mcpAccessToken.should.deepEqual({ token: null, scheme: '', scope: ['ff-expert:mcp', 'instance'] })
+            })
+
+            it('should not generate an access token for MCP server when instance setting httpNodeAuth is not set', async function () {
+                await setFeatureForTeam(app, 'teamHttpSecurity', true)
+                const token = bobToken
+                // Stub MCP registration to return 1 online instance
+                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([mockMcpRegistration1])
+                sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
+                sinon.stub(instance, 'getSetting').resolves({}) // no httpNodeAuth settings
+                // fake the axios post response - capture post data and return resolved promise
+                let capturedPostData = null
+                sinon.stub(axios, 'post').callsFake((url, data) => {
+                    capturedPostData = data
+                    return Promise.resolve({
+                        data: {
+                            transactionId: 'abc',
+                            servers: [mockMcpResponseServer1]
+                        }
+                    })
+                })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/mcp/features',
+                    cookies: { sid: token },
+                    headers: { 'x-chat-transaction-id': 'abc' },
+                    payload: { context: { teamId: team.hashid } }
+                })
+                response.statusCode.should.equal(200)
+
+                // should not have created any access tokens
+                const tokens = await app.db.models.AccessToken.findAll({ where: { ownerType: 'http', ownerId: instance.id } })
+                tokens.should.be.an.Array()
+                tokens.should.have.length(0)
+                // Now assert the axios post payload (captured async)
+                capturedPostData.should.be.an.Object()
+                capturedPostData.servers[0].should.have.property('mcpAccessToken').and.be.an.Object()
+                capturedPostData.servers[0].mcpAccessToken.should.deepEqual({ token: null, scheme: '', scope: ['ff-expert:mcp', 'instance'] })
+            })
+
+            it('should generate an access token for MCP server access when feature teamHttpSecurity is enabled', async function () {
+                const token = bobToken
+                // Stub MCP registration to return 1 online instance
+                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([mockMcpRegistration1])
+                sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
+                sinon.stub(instance, 'getSetting').resolves({ httpNodeAuth: { type: 'flowforge-user' } })
+
+                // fake the axios post response - capture post data and return resolved promise
+                let capturedPostData = null
+                sinon.stub(axios, 'post').callsFake((url, data) => {
+                    capturedPostData = data
+                    return Promise.resolve({
+                        data: {
+                            transactionId: 'abc',
+                            servers: [mockMcpResponseServer1]
+                        }
+                    })
+                })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/mcp/features',
+                    cookies: { sid: token },
+                    headers: { 'x-chat-transaction-id': 'abc' },
+                    payload: { context: { teamId: team.hashid } }
+                })
+                response.statusCode.should.equal(200)
+
+                // read AccessToken from DB and check it is valid
+                const tokens = await app.db.models.AccessToken.findAll({ where: { ownerType: 'http', ownerId: instance.id } })
+                tokens.should.be.an.Array()
+                tokens.should.have.length(1)
+                const dbToken = /* get newest token */ tokens.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
+                dbToken.should.have.property('scope').which.is.an.Array().and.have.length(2)
+                dbToken.scope.should.containEql('ff-expert:mcp')
+                dbToken.scope.should.containEql('instance')
+                dbToken.should.have.property('ownerType', 'http')
+                dbToken.should.have.property('ownerId', instance.id)
+                dbToken.should.have.property('expiresAt').which.is.a.Date()
+                const fiveMinsFromNow = Date.now() + (5 * 60 * 1000)
+                dbToken.expiresAt.getTime().should.be.approximately(fiveMinsFromNow, 2000) // check expiry (with grace period)
+
+                // get the cached token and check it matches DB token
+                const cachedToken = expertMCPAccessTokenCache.get(instance.id)
+                should.exist(cachedToken)
+                cachedToken.should.have.property('token').and.be.a.String()
+                cachedToken.should.have.property('scheme', 'Bearer')
+                cachedToken.should.have.property('scope').which.is.an.Array().and.have.length(2)
+                cachedToken.scope.should.containEql('ff-expert:mcp')
+                cachedToken.scope.should.containEql('instance')
+
+                // db token should be a hash of the cached token
+                const hash = sha256(cachedToken.token)
+                hash.should.equal(dbToken.token)
+
+                // Now assert the axios post payload (captured async)
+                capturedPostData.should.be.an.Object()
+                capturedPostData.servers[0].should.have.property('mcpAccessToken').and.be.an.Object()
+                capturedPostData.servers[0].mcpAccessToken.should.deepEqual({
+                    token: cachedToken.token,
+                    scheme: 'Bearer',
+                    scope: ['ff-expert:mcp', 'instance']
+                })
+            })
+
+            it('should get MCP server access token from cache', async function () {
+                const token = bobToken
+                // Stub MCP registration to return 1 online instance
+                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([mockMcpRegistration1])
+                sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
+                sinon.stub(instance, 'getSetting').resolves({ httpNodeAuth: { type: 'flowforge-user' } })
+                const createHTTPNodeTokenSpy = sinon.spy(app.db.controllers.AccessToken, 'createHTTPNodeToken')
+
+                // fake the axios post response - check that the access token is included in the post data
+                sinon.stub(axios, 'post').callsFake((url, data) => {
+                    return Promise.resolve({
+                        data: {
+                            transactionId: 'abc',
+                            servers: [mockMcpResponseServer1]
+                        }
+                    })
+                })
+                const response1 = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/mcp/features',
+                    cookies: { sid: token },
+                    headers: { 'x-chat-transaction-id': 'abc' },
+                    payload: { context: { teamId: team.hashid } }
+                })
+                response1.statusCode.should.equal(200)
+
+                createHTTPNodeTokenSpy.calledOnce.should.be.true()
+
+                const response2 = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/mcp/features',
+                    cookies: { sid: token },
+                    headers: { 'x-chat-transaction-id': 'abc' },
+                    payload: { context: { teamId: team.hashid } }
+                })
+                response2.statusCode.should.equal(200)
+
+                createHTTPNodeTokenSpy.calledOnce.should.be.true() // should still be called only once
+            })
+
+            // basic auth tests
+            it('should use basic auth for MCP server access when httpNodeAuth is set to basic', async function () {
+                const token = bobToken
+                // Stub MCP registration to return 1 online instance
+                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([mockMcpRegistration1])
+                sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
+                sinon.stub(instance, 'getSetting').resolves({ httpNodeAuth: { type: 'basic', user: 'nodeUser', pass: 'nodePass' } })
+
+                // fake the axios post response - capture post data and return resolved promise
+                let capturedPostData = null
+                sinon.stub(axios, 'post').callsFake((url, data) => {
+                    capturedPostData = data
+                    return Promise.resolve({
+                        data: {
+                            transactionId: 'abc',
+                            servers: [mockMcpResponseServer1]
+                        }
+                    })
+                })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/mcp/features',
+                    cookies: { sid: token },
+                    headers: { 'x-chat-transaction-id': 'abc' },
+                    payload: { context: { teamId: team.hashid } }
+                })
+                response.statusCode.should.equal(200)
+                // Now assert the axios post payload (captured async)
+                capturedPostData.should.be.an.Object()
+                capturedPostData.should.have.property('servers').which.is.an.Array()
+                capturedPostData.servers[0].should.have.property('mcpAccessToken')
+                capturedPostData.servers[0].mcpAccessToken.should.be.an.Object()
+                capturedPostData.servers[0].mcpAccessToken.should.have.property('token', Buffer.from('nodeUser:nodePass').toString('base64'))
+                capturedPostData.servers[0].mcpAccessToken.should.have.property('scheme', 'Basic')
+                capturedPostData.servers[0].mcpAccessToken.should.have.property('scope').and.be.an.Array().and.have.length(2)
+                capturedPostData.servers[0].mcpAccessToken.scope.should.containEql('ff-expert:mcp')
+                capturedPostData.servers[0].mcpAccessToken.scope.should.containEql('instance')
+            })
+        })
+    })
+
+    describe('service disabled', async function () {
+        let app
+        afterEach(async function () {
+            if (app) await app.close()
+        })
+        it('should return 501 if expert service is disabled', async function () {
+            app = await setupApp({ expert: { enabled: false } })
+            const instance = app.project
+            const token = (await instance.refreshAuthTokens()).token
+            sinon.stub(app.config.expert, 'enabled').get(() => false)
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/expert/chat',
+                headers: { authorization: 'Bearer ' + token },
+                payload: { context: { team: 'teamid' }, query: 'test' }
+            })
+            response.statusCode.should.equal(501)
+        })
+        it('should return 501 if expert service url is not set', async function () {
+            app = await setupApp({ expert: { enabled: true, service: { url: null } } })
+            const instance = app.project
+            const token = (await instance.refreshAuthTokens()).token
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/expert/chat',
+                headers: { authorization: 'Bearer ' + token },
+                payload: { context: { team: 'teamid' }, query: 'test' }
+            })
+            response.statusCode.should.equal(501)
         })
     })
 })
