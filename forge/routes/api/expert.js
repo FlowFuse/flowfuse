@@ -243,7 +243,6 @@ module.exports = async function (app) {
             // then collect the MCP server info for the running instances MCP servers
             // filter out any that the user doesn't have access to
             const applicationCache = {}
-            const instanceToApplicationLookup = {}
             for (const server of mcpServers) {
                 const { name, protocol, endpointRoute, TeamId, Project, Device, title, version, description } = server
                 if (TeamId !== request.team.id) {
@@ -281,7 +280,6 @@ module.exports = async function (app) {
                 if (!application) {
                     continue // skip - application not found
                 }
-                instanceToApplicationLookup[instanceId] = application
 
                 // Now we have the application & know it is supposed to be running, check user actually has access
                 // before bothering to check instance live state or calling backend for MCP features!
