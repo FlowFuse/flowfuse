@@ -343,8 +343,6 @@ module.exports = async function (app) {
             for (const serverItem of mcpServersResponse) {
                 const application = applicationCache[serverItem.application]
                 if (application) {
-                    // should allays be an application due to prior checks
-                    // skip this as bad data
                     serverList.push({
                         server: serverItem,
                         application
