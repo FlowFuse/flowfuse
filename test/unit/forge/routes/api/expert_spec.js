@@ -652,6 +652,37 @@ describe('Expert API', function () {
                     scope: ['ff-expert:mcp', 'instance']
                 })
             })
+
+            it('should clear cached MCP server access token when project setting httpNodeAuth is changed', async function () {
+                const token = bobToken
+                // mock get setting to return httpNodeAuth with flowforge-user
+                sinon.stub(app.db.models.ProjectSettings, 'findOne').callsFake(async (options) => {
+                    if (options.where.ProjectId === instance.id && options.where.key === 'settings') {
+                        return { value: { httpNodeAuth: { type: 'flowforge-user' } } }
+                    }
+                    return this.wrappedMethod.apply(this, arguments)
+                })
+                await app.expert.mcp.getOrCreateToken(instance, 'instance', instance.id, true) // creates and caches a token
+                const cachedToken1 = app.expert.mcp.getCachedToken(instance.id)
+                should.exist(cachedToken1)
+
+                // change the instance setting httpNodeAuth via API to invalidate the cached token
+                const response2 = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/projects/' + instance.id,
+                    cookies: { sid: token },
+                    payload: {
+                        settings: {
+                            httpNodeAuth: { type: 'basic', user: 'newUser', pass: 'newPass' }
+                        }
+                    }
+                })
+                response2.statusCode.should.equal(200)
+
+                // now cached token should be cleared
+                const cachedToken2 = app.expert.mcp.getCachedToken(instance.id)
+                should.not.exist(cachedToken2)
+            })
         })
 
         describe('MCP features Endpoint', function () {
@@ -1370,6 +1401,37 @@ describe('Expert API', function () {
                 response2.statusCode.should.equal(200)
 
                 createHTTPNodeTokenSpy.calledOnce.should.be.true() // should still be called only once
+            })
+
+            it('should clear cached MCP server access token when project setting httpNodeAuth is changed', async function () {
+                const token = bobToken
+                // mock get setting to return httpNodeAuth with flowforge-user
+                sinon.stub(app.db.models.ProjectSettings, 'findOne').callsFake(async (options) => {
+                    if (options.where.ProjectId === instance.id && options.where.key === 'settings') {
+                        return { value: { httpNodeAuth: { type: 'flowforge-user' } } }
+                    }
+                    return this.wrappedMethod.apply(this, arguments)
+                })
+                await app.expert.mcp.getOrCreateToken(instance, 'instance', instance.id, true) // creates and caches a token
+                const cachedToken1 = app.expert.mcp.getCachedToken(instance.id)
+                should.exist(cachedToken1)
+
+                // change the instance setting httpNodeAuth via API to invalidate the cached token
+                const response2 = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/projects/' + instance.id,
+                    cookies: { sid: token },
+                    payload: {
+                        settings: {
+                            httpNodeAuth: { type: 'basic', user: 'newUser', pass: 'newPass' }
+                        }
+                    }
+                })
+                response2.statusCode.should.equal(200)
+
+                // now cached token should be cleared
+                const cachedToken2 = app.expert.mcp.getCachedToken(instance.id)
+                should.not.exist(cachedToken2)
             })
 
             // basic auth tests
