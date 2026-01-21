@@ -105,12 +105,18 @@ describe('Expert API', function () {
         })
 
         after(async function () { await app.close() })
-        afterEach(function () {
-            sinon.restore()
+
+        afterEach(async function () {
             // clear the expert MCP access token cache
             if (expertMCPAccessTokenCache) {
                 expertMCPAccessTokenCache.clear()
             }
+            // delete all extra users, applications, instances created during tests
+            await app.db.models.Project.destroy({ where: { name: ['alice2-instance', 'bob2-instance', 'chris2-instance'] } })
+            await app.db.models.Application.destroy({ where: { name: ['application-alice', 'application-bob', 'application-chris'] } })
+            await app.db.models.User.destroy({ where: { username: ['alice2', 'bob2', 'chris2'] } })
+
+            sinon.restore()
             // remove all access tokens
             return app.db.models.AccessToken.destroy({ where: {} })
         })
@@ -196,6 +202,472 @@ describe('Expert API', function () {
                     payload: { context: { teamId: team.hashid }, query: 'test' }
                 })
                 response.statusCode.should.equal(500)
+            })
+
+            it('should include only permitted mcp features when granular RBACs is enabled', async function () {
+                // PREMISE: 3 applications (appAlice2, appBob2, appChris), 3 users (userAlice2, userBob2, userChris2), 1 team
+                // - Each application has mcp tool "destructive_tool", "write_tool", "read_tool", "openworld_tool"
+                // - each user is an owner of same named application (userAlice2 owns appAlice2, etc)
+                // - Alice2 is a owner of appBob2 and downgraded to be a member of appChris2
+                // - Bob2 is downgraded to member of appChris2 and viewer to appAlice2
+                // - Chris2 is upgraded to owner of appChris2 and a downgraded to viewer to appBob2 (has no access to appAlice2)
+                // EXPECTATION:
+                // - when Alice2 requests MCP features, she should get all features in appBob2 plus any non-destructive features from appChris2
+                // - when Bob2 requests MCP features, he should get all features in appBob2 plus write and openworld features from appChris2 and read features from appAlice2
+                // - when Chris2 requests MCP features, he should only features from appChris2 plus read features from appBob2 (nothing from appAlice2)
+
+                // create 3 applications
+                const applicationAlice2 = await app.factory.createApplication({ name: 'application-alice' }, team)
+                const applicationBob2 = await app.factory.createApplication({ name: 'application-bob' }, team)
+                const applicationChris2 = await app.factory.createApplication({ name: 'application-chris' }, team)
+
+                // create users
+                const alice2 = await await app.db.models.User.create({ username: 'alice2', name: 'Alice Two', email: 'alice2@example.com', email_verified: true, password: 'aaPassword' })
+                const bob2 = await app.db.models.User.create({ username: 'bob2', name: 'Bob Two', email: 'bob2@example.com', email_verified: true, password: 'bbPassword' })
+                const chris2 = await app.db.models.User.create({ username: 'chris2', name: 'Chris Two', email: 'chris2@example.com', email_verified: true, password: 'ccPassword' })
+
+                // set alice2 as an owner of ATeam
+                await team.addUser(alice2, { through: { role: Roles.Owner } })
+                // set bob as an owner of ATeam
+                await team.addUser(bob2, { through: { role: Roles.Owner } })
+                // set chris as a member of ATeam
+                await team.addUser(chris2, { through: { role: Roles.Member } })
+
+                const alice2Token = await login(app, 'alice2', 'aaPassword')
+                const bob2Token = await login(app, 'bob2', 'bbPassword')
+                const chris2Token = await login(app, 'chris2', 'ccPassword')
+
+                const alice2TeamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: team.id, UserId: alice2.id } })
+                alice2TeamMembership.permissions = {
+                    applications: { [applicationAlice2.hashid]: Roles.Owner, [applicationBob2.hashid]: Roles.Owner, [applicationChris2.hashid]: Roles.Member }
+                }
+                await alice2TeamMembership.save()
+
+                const bob2TeamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: team.id, UserId: bob2.id } })
+                bob2TeamMembership.permissions = {
+                    applications: { [applicationAlice2.hashid]: Roles.Viewer, [applicationBob2.hashid]: Roles.Owner, [applicationChris2.hashid]: Roles.Member }
+                }
+                await bob2TeamMembership.save()
+
+                const chris2TeamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: team.id, UserId: chris2.id } })
+                chris2TeamMembership.permissions = {
+                    applications: { [applicationAlice2.hashid]: Roles.None, [applicationBob2.hashid]: Roles.Viewer, [applicationChris2.hashid]: Roles.Owner }
+                }
+                await chris2TeamMembership.save()
+
+                // create instances for each application
+                const instanceAlice2 = await await app.factory.createInstance(
+                    { name: 'alice2-instance' },
+                    applicationAlice2,
+                    app.stack,
+                    app.template,
+                    app.projectType,
+                    { start: true }
+                )
+                const instanceBob2 = await app.factory.createInstance(
+                    { name: 'bob2-instance' },
+                    applicationBob2,
+                    app.stack,
+                    app.template,
+                    app.projectType,
+                    { start: true }
+                )
+                const instanceChris2 = await app.factory.createInstance(
+                    { name: 'chris2-instance' },
+                    applicationChris2,
+                    app.stack,
+                    app.template,
+                    app.projectType,
+                    { start: true }
+                )
+
+                const buildMcpServerFeaturesResponse = (name, applicationHashid, instance, instanceType) => ({
+                    team: team.hashid,
+                    application: applicationHashid,
+                    instance: instanceType === 'instance' ? instance.id : instance.hashid,
+                    instanceType,
+                    instanceName: instance.name,
+                    mcpProtocol: 'http',
+                    mcpServerName: name,
+                    mcpServerUrl: `http://${name}/mcp`,
+                    prompts: [],
+                    resources: [],
+                    resourceTemplates: [],
+                    tools: [
+                        {
+                            name: 'destructive_tool',
+                            annotations: {
+                                destructiveHint: true,
+                                readOnlyHint: false,
+                                openWorldHint: false,
+                                idempotentHint: false
+                            }
+                        },
+                        {
+                            name: 'write_tool',
+                            annotations: {
+                                destructiveHint: false,
+                                readOnlyHint: false,
+                                openWorldHint: false,
+                                idempotentHint: false
+                            }
+                        },
+                        {
+                            name: 'read_tool',
+                            annotations: {
+                                destructiveHint: false,
+                                readOnlyHint: true,
+                                openWorldHint: false,
+                                idempotentHint: false
+                            }
+                        },
+                        {
+                            name: 'openworld_tool',
+                            description: 'An openworld tool',
+                            type: 'tool',
+                            annotations: {
+                                destructiveHint: false,
+                                readOnlyHint: false,
+                                openWorldHint: true,
+                                idempotentHint: false
+                            }
+                        }
+                    ],
+                    title: `${name} MCP Server`,
+                    version: '1.0.0-beta',
+                    description: `${name} MCP Server`
+                })
+
+                const buildChatRequestPayload = (user, application, instance, query = 'test query') => ({
+                    query,
+                    context: {
+                        agent: 'operator-agent',
+                        userId: user.hashid,
+                        teamId: team.hashid,
+                        instanceId: instance.hashid,
+                        deviceId: null,
+                        applicationId: application.hashid,
+                        pageName: 'instance-editor-expert',
+                        scope: 'immersive',
+                        selectedCapabilities: [
+                            buildMcpServerFeaturesResponse('alice2', applicationAlice2.hashid, instanceAlice2, 'instance'), // an mcp server on alice2 instance
+                            buildMcpServerFeaturesResponse('bob2', applicationBob2.hashid, instanceBob2, 'instance'), // an mcp server on bob2 instance
+                            buildMcpServerFeaturesResponse('chris2', applicationChris2.hashid, instanceChris2, 'instance') // an mcp server on chris2 instance
+                        ]
+                    }
+                })
+
+                // Stub axios to return chat response and capture posted data
+                const capturedPosts = {}
+                sinon.stub(axios, 'post').callsFake((url, data) => {
+                    capturedPosts[data.context.userId] = data
+                    return Promise.resolve({
+                        data: {
+                            transactionId: 'right',
+                            answer: []
+                        }
+                    })
+                })
+
+                // Helper function to check that the returned tools match expected tool names
+                const checkTools = (serverResult, expectedToolNames) => {
+                    const toolNames = serverResult.tools.map(t => t.name)
+                    toolNames.should.have.length(expectedToolNames.length)
+                    expectedToolNames.forEach(name => {
+                        toolNames.should.containEql(name)
+                    })
+                }
+
+                // --- Alice2 Request ---
+                const alice2ChatResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/chat',
+                    cookies: { sid: alice2Token },
+                    headers: { 'x-chat-transaction-id': 'right' },
+                    payload: buildChatRequestPayload(alice2, applicationAlice2, instanceAlice2)
+                })
+
+                alice2ChatResponse.statusCode.should.equal(200)
+
+                // analyse capturedPostData to see what MCP features were sent
+                const alice2CapturedPost = capturedPosts[alice2.hashid]
+                should.exist(alice2CapturedPost)
+                alice2CapturedPost.should.have.property('context').which.is.an.Object()
+                alice2CapturedPost.context.should.have.property('selectedCapabilities').which.is.an.Array()
+                alice2CapturedPost.context.selectedCapabilities.should.have.length(3) // alice has access to all 3 servers
+                // alice2 should get all tools from bob-instance plus non-destructive tools from chris-instance
+                checkTools(alice2CapturedPost.context.selectedCapabilities.find(s => s.instance === instanceAlice2.id), ['destructive_tool', 'write_tool', 'read_tool', 'openworld_tool'])
+                checkTools(alice2CapturedPost.context.selectedCapabilities.find(s => s.instance === instanceBob2.id), ['destructive_tool', 'write_tool', 'read_tool', 'openworld_tool'])
+                checkTools(alice2CapturedPost.context.selectedCapabilities.find(s => s.instance === instanceChris2.id), ['write_tool', 'read_tool', 'openworld_tool'])
+
+                // --- Bob2 Request ---
+                const bob2ChatResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/chat',
+                    cookies: { sid: bob2Token },
+                    headers: { 'x-chat-transaction-id': 'right' },
+                    payload: buildChatRequestPayload(bob2, applicationBob2, instanceBob2)
+                })
+
+                bob2ChatResponse.statusCode.should.equal(200)
+
+                // analyse capturedPostData to see what MCP features were sent
+                const bob2CapturedPost = capturedPosts[bob2.hashid]
+                should.exist(bob2CapturedPost)
+                bob2CapturedPost.should.have.property('context').which.is.an.Object()
+                bob2CapturedPost.context.should.have.property('selectedCapabilities').which.is.an.Array()
+                bob2CapturedPost.context.selectedCapabilities.should.have.length(3) // bob2 has access to all 3 servers
+                // bob2 should get all tools from bob-instance plus write/openworld tools from chris-instance plus read tool from alice-instance
+                checkTools(bob2CapturedPost.context.selectedCapabilities.find(s => s.instance === instanceAlice2.id), ['read_tool'])
+                checkTools(bob2CapturedPost.context.selectedCapabilities.find(s => s.instance === instanceBob2.id), ['destructive_tool', 'write_tool', 'read_tool', 'openworld_tool'])
+                checkTools(bob2CapturedPost.context.selectedCapabilities.find(s => s.instance === instanceChris2.id), ['write_tool', 'read_tool', 'openworld_tool'])
+
+                // --- Chris2 Request ---
+                const chris2ChatResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/chat',
+                    cookies: { sid: chris2Token },
+                    headers: { 'x-chat-transaction-id': 'right' },
+                    payload: buildChatRequestPayload(chris2, applicationChris2, instanceChris2)
+                })
+
+                chris2ChatResponse.statusCode.should.equal(200)
+
+                // analyse capturedPostData to see what MCP features were sent
+                const chris2CapturedPost = capturedPosts[chris2.hashid]
+                should.exist(chris2CapturedPost)
+                chris2CapturedPost.should.have.property('context').which.is.an.Object()
+                chris2CapturedPost.context.should.have.property('selectedCapabilities').which.is.an.Array()
+                chris2CapturedPost.context.selectedCapabilities.should.have.length(2) // chris2 should have owner access to chris server and viewer access to bob server
+                // chris2 should get all tools from chris-instance plus read tool from bob-instance
+                checkTools(chris2CapturedPost.context.selectedCapabilities.find(s => s.instance === instanceBob2.id), ['read_tool'])
+                checkTools(chris2CapturedPost.context.selectedCapabilities.find(s => s.instance === instanceChris2.id), ['destructive_tool', 'write_tool', 'read_tool', 'openworld_tool'])
+            })
+
+            it('should not generate an access token for MCP server when feature teamHttpSecurity is disabled', async function () {
+                await setFeatureForTeam(app, 'teamHttpSecurity', false)
+                const token = bobToken
+                // Stub MCP registration to return 1 online instance
+                sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
+                sinon.stub(app.db.models.ProjectSettings, 'findOne').callsFake(async (options) => {
+                    if (options.where.ProjectId === instance.id && options.where.key === 'settings') {
+                        return { value: { httpNodeAuth: { type: 'flowforge-user' } } }
+                    }
+                    return this.wrappedMethod.apply(this, arguments)
+                })
+
+                // sanity checks - instance setting is set
+                const projectSettings = await instance.getSetting('settings')
+                should.exist(projectSettings)
+                projectSettings.should.have.property('httpNodeAuth')
+                projectSettings.httpNodeAuth.should.have.property('type', 'flowforge-user')
+
+                // fake the axios post response - capture post data and return resolved promise
+                let capturedPostData = null
+                sinon.stub(axios, 'post').callsFake((url, data) => {
+                    capturedPostData = data
+                    return Promise.resolve({
+                        data: {
+                            transactionId: 'abc',
+                            context: { }
+                        }
+                    })
+                })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/chat',
+                    cookies: { sid: token },
+                    headers: { 'x-chat-transaction-id': 'abc' },
+                    payload: {
+                        context: {
+                            teamId: team.hashid,
+                            query: 'test',
+                            selectedCapabilities: [
+                                {
+                                    team: team.hashid,
+                                    application: application.hashid,
+                                    instance: instance.id,
+                                    instanceType: 'instance',
+                                    instanceName: instance.name,
+                                    mcpServerName: 'mcp-server-1',
+                                    mcpServerUrl: 'http://instance-url/mcp1',
+                                    mcpProtocol: 'http',
+                                    prompts: [{}],
+                                    resources: [{}],
+                                    resourceTemplates: [{}],
+                                    tools: [{}],
+                                    title: 'the title 1',
+                                    version: '1.0.0-beta',
+                                    description: 'the description 1'
+                                }
+                            ]
+                        }
+                    }
+                })
+                response.statusCode.should.equal(200)
+
+                // read AccessToken from DB and check it is valid
+                const tokens = await app.db.models.AccessToken.findAll({ where: { ownerType: 'http', ownerId: instance.id } })
+                tokens.should.be.an.Array()
+                tokens.should.have.length(0)
+
+                // Now assert the axios post payload (captured async)
+                capturedPostData.should.be.an.Object()
+                capturedPostData.context.selectedCapabilities[0].should.have.property('mcpAccessToken').and.be.an.Object()
+                capturedPostData.context.selectedCapabilities[0].mcpAccessToken.should.deepEqual({ token: null, scheme: '', scope: ['ff-expert:mcp', 'instance'] })
+            })
+
+            it('should not generate an access token for MCP server when instance setting httpNodeAuth is not set', async function () {
+                const token = bobToken
+                // Stub MCP registration to return 1 online instance
+                sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
+
+                // fake the axios post response - capture post data and return resolved promise
+                let capturedPostData = null
+                sinon.stub(axios, 'post').callsFake((url, data) => {
+                    capturedPostData = data
+                    return Promise.resolve({
+                        data: {
+                            transactionId: 'abc',
+                            context: { }
+                        }
+                    })
+                })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/chat',
+                    cookies: { sid: token },
+                    headers: { 'x-chat-transaction-id': 'abc' },
+                    payload: {
+                        context: {
+                            teamId: team.hashid,
+                            query: 'test',
+                            selectedCapabilities: [
+                                {
+                                    team: team.hashid,
+                                    application: application.hashid,
+                                    instance: instance.id,
+                                    instanceType: 'instance',
+                                    instanceName: instance.name,
+                                    mcpServerName: 'mcp-server-1',
+                                    mcpServerUrl: 'http://instance-url/mcp1',
+                                    mcpProtocol: 'http',
+                                    prompts: [{}],
+                                    resources: [{}],
+                                    resourceTemplates: [{}],
+                                    tools: [{}],
+                                    title: 'the title 1',
+                                    version: '1.0.0-beta',
+                                    description: 'the description 1'
+                                }
+                            ]
+                        }
+                    }
+                })
+                response.statusCode.should.equal(200)
+
+                // read AccessToken from DB and check it is valid
+                const tokens = await app.db.models.AccessToken.findAll({ where: { ownerType: 'http', ownerId: instance.id } })
+                tokens.should.be.an.Array()
+                tokens.should.have.length(0)
+
+                // Now assert the axios post payload (captured async)
+                capturedPostData.should.be.an.Object()
+                capturedPostData.context.selectedCapabilities[0].should.have.property('mcpAccessToken').and.be.an.Object()
+                capturedPostData.context.selectedCapabilities[0].mcpAccessToken.should.deepEqual({ token: null, scheme: '', scope: ['ff-expert:mcp', 'instance'] })
+            })
+
+            it('should generate an access token for MCP server access when feature teamHttpSecurity is enabled', async function () {
+                const token = bobToken
+                await setFeatureForTeam(app, 'teamHttpSecurity', true)
+                // Stub MCP registration to return 1 online instance
+                sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
+                sinon.stub(app.db.models.ProjectSettings, 'findOne').callsFake(async (options) => {
+                    if (options.where.ProjectId === instance.id && options.where.key === 'settings') {
+                        return { value: { httpNodeAuth: { type: 'flowforge-user' } } }
+                    }
+                    return this.wrappedMethod.apply(this, arguments)
+                })
+
+                // fake the axios post response - capture post data and return resolved promise
+                let capturedPostData = null
+                sinon.stub(axios, 'post').callsFake((url, data) => {
+                    capturedPostData = data
+                    return Promise.resolve({
+                        data: {
+                            transactionId: 'abc',
+                            context: { }
+                        }
+                    })
+                })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/chat',
+                    cookies: { sid: token },
+                    headers: { 'x-chat-transaction-id': 'abc' },
+                    payload: {
+                        context: {
+                            teamId: team.hashid,
+                            query: 'test',
+                            selectedCapabilities: [
+                                {
+                                    team: team.hashid,
+                                    application: application.hashid,
+                                    instance: instance.id,
+                                    instanceType: 'instance',
+                                    instanceName: instance.name,
+                                    mcpServerName: 'mcp-server-1',
+                                    mcpServerUrl: 'http://instance-url/mcp1',
+                                    mcpProtocol: 'http',
+                                    prompts: [{}],
+                                    resources: [{}],
+                                    resourceTemplates: [{}],
+                                    tools: [{}],
+                                    title: 'the title 1',
+                                    version: '1.0.0-beta',
+                                    description: 'the description 1'
+                                }
+                            ]
+                        }
+                    }
+                })
+                response.statusCode.should.equal(200)
+
+                // read AccessToken from DB and check it is valid
+                const tokens = await app.db.models.AccessToken.findAll({ where: { ownerType: 'http', ownerId: instance.id } })
+                tokens.should.be.an.Array()
+                tokens.should.have.length(1)
+                const dbToken = /* get newest token */ tokens.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
+                dbToken.should.have.property('scope').which.is.an.Array().and.have.length(2)
+                dbToken.scope.should.containEql('ff-expert:mcp')
+                dbToken.scope.should.containEql('instance')
+                dbToken.should.have.property('ownerType', 'http')
+                dbToken.should.have.property('ownerId', instance.id)
+                dbToken.should.have.property('expiresAt').which.is.a.Date()
+                const fiveMinsFromNow = Date.now() + (5 * 60 * 1000)
+                dbToken.expiresAt.getTime().should.be.approximately(fiveMinsFromNow, 2000) // check expiry (with grace period)
+
+                // get the cached token and check it matches DB token
+                const cachedToken = expertMCPAccessTokenCache.get(instance.id)
+                should.exist(cachedToken)
+                cachedToken.should.have.property('token').and.be.a.String()
+                cachedToken.should.have.property('scheme', 'Bearer')
+                cachedToken.should.have.property('scope').which.is.an.Array().and.have.length(2)
+                cachedToken.scope.should.containEql('ff-expert:mcp')
+                cachedToken.scope.should.containEql('instance')
+
+                // db token should be a hash of the cached token
+                const hash = sha256(cachedToken.token)
+                hash.should.equal(dbToken.token)
+
+                // Now assert the axios post payload (captured async)
+                capturedPostData.should.be.an.Object()
+                capturedPostData.context.selectedCapabilities[0].should.have.property('mcpAccessToken').and.be.an.Object()
+                capturedPostData.context.selectedCapabilities[0].mcpAccessToken.should.deepEqual({
+                    token: cachedToken.token,
+                    scheme: 'Bearer',
+                    scope: ['ff-expert:mcp', 'instance']
+                })
             })
         })
 
