@@ -7,7 +7,7 @@
  * @memberof forge.routes.api
  */
 const { default: axios } = require('axios')
-const LRUCache = require('lru-cache')
+// const LRUCache = require('lru-cache')
 const { v4: uuidv4 } = require('uuid')
 
 const { filterAccessibleMCPServerFeatures } = require('../../services/expert.js')
@@ -16,67 +16,71 @@ const { filterAccessibleMCPServerFeatures } = require('../../services/expert.js'
  * @param {import('../../forge.js').ForgeApplication} app
  */
 module.exports = async function (app) {
-    // Get the assistant service configuration
-    const serviceEnabled = app.config.expert?.enabled === true
-    const expertUrl = app.config.expert?.service?.url
-    const serviceToken = app.config.expert?.service?.token
-    const requestTimeout = app.config.expert?.service?.requestTimeout || 60000
+    // // Get the assistant service configuration
+    // const serviceEnabled = app.config.expert?.enabled === true
+    // const expertUrl = app.config.expert?.service?.url
+    // const serviceToken = app.config.expert?.service?.token
+    // const requestTimeout = app.config.expert?.service?.requestTimeout || 60000
 
-    const TOKEN_TTL = app.config.expert?.tokenCache?.ttl || 5 * 60 * 1000 // Default 5 minutes
-    const TOKEN_REMAINING_LIMIT = 15000 // token life edge window (avoid using tokens about to expire)
-    const accessTokenCache = new LRUCache.LRUCache({
-        name: 'ExpertMCPAccessTokenCache', // for testing purposes
-        max: app.config.expert?.tokenCache?.max || 1000,
-        ttl: TOKEN_TTL,
-        updateAgeOnGet: false // do not update the age on get, we want it to expire after the original ttl
-    })
+    // const TOKEN_TTL = app.config.expert?.tokenCache?.ttl || 5 * 60 * 1000 // Default 5 minutes
+    // const TOKEN_REMAINING_LIMIT = 15000 // token life edge window (avoid using tokens about to expire)
+    // const accessTokenCache = new LRUCache.LRUCache({
+    //     name: 'ExpertMCPAccessTokenCache', // for testing purposes
+    //     max: app.config.expert?.tokenCache?.max || 1000,
+    //     ttl: TOKEN_TTL,
+    //     updateAgeOnGet: false // do not update the age on get, we want it to expire after the original ttl
+    // })
 
-    async function getMcpAccessToken (instance, instanceType, instanceId, teamHttpSecurityFeatureEnabled) {
-        let mcpAccessToken
-        if (accessTokenCache.has(instanceId)) {
-            const remainingTTL = accessTokenCache.getRemainingTTL(instanceId)
-            if (remainingTTL > TOKEN_REMAINING_LIMIT) { // only use cached token if it has more than 5 second remaining
-                mcpAccessToken = accessTokenCache.get(instanceId)
-            }
-        }
+    // app.decorate('expert', {
+    //     accessTokenCache
+    // })
 
-        if (!mcpAccessToken) {
-            const instanceSettings = await instance.getSetting('settings')
-            const httpNodeAuth = instanceSettings?.httpNodeAuth
-            const tokenName = 'FlowFuse Expert MCP Access Token'
-            const scope = ['ff-expert:mcp', instanceType]
-            if (httpNodeAuth?.type === 'flowforge-user' && teamHttpSecurityFeatureEnabled) {
-                // FlowFuse auth is enabled for this instance
-                const expiresAt = new Date(Date.now() + (TOKEN_TTL))
-                const token = await app.db.controllers.AccessToken.createHTTPNodeToken(instance, tokenName, scope, expiresAt)
-                mcpAccessToken = {
-                    scheme: 'Bearer',
-                    scope,
-                    token: token.token
-                }
-            } else if (httpNodeAuth?.type === 'basic') {
-                // Basic auth is enabled - MCP client will need to use basic auth
-                mcpAccessToken = {
-                    scheme: 'Basic',
-                    scope,
-                    token: Buffer.from(`${httpNodeAuth.user}:${httpNodeAuth.pass}`).toString('base64')
-                }
-            } else {
-                // default - no auth
-                mcpAccessToken = {
-                    scheme: '',
-                    scope,
-                    token: null
-                }
-            }
-            accessTokenCache.set(instanceId, mcpAccessToken)
-        }
-        return mcpAccessToken
-    }
+    // async function getMcpAccessToken (instance, instanceType, instanceId, teamHttpSecurityFeatureEnabled) {
+    //     let mcpAccessToken
+    //     if (accessTokenCache.has(instanceId)) {
+    //         const remainingTTL = accessTokenCache.getRemainingTTL(instanceId)
+    //         if (remainingTTL > TOKEN_REMAINING_LIMIT) { // only use cached token if it has more than 5 second remaining
+    //             mcpAccessToken = accessTokenCache.get(instanceId)
+    //         }
+    //     }
+
+    //     if (!mcpAccessToken) {
+    //         const instanceSettings = await instance.getSetting('settings')
+    //         const httpNodeAuth = instanceSettings?.httpNodeAuth
+    //         const tokenName = 'FlowFuse Expert MCP Access Token'
+    //         const scope = ['ff-expert:mcp', instanceType]
+    //         if (httpNodeAuth?.type === 'flowforge-user' && teamHttpSecurityFeatureEnabled) {
+    //             // FlowFuse auth is enabled for this instance
+    //             const expiresAt = new Date(Date.now() + (TOKEN_TTL))
+    //             const token = await app.db.controllers.AccessToken.createHTTPNodeToken(instance, tokenName, scope, expiresAt)
+    //             mcpAccessToken = {
+    //                 scheme: 'Bearer',
+    //                 scope,
+    //                 token: token.token
+    //             }
+    //         } else if (httpNodeAuth?.type === 'basic') {
+    //             // Basic auth is enabled - MCP client will need to use basic auth
+    //             mcpAccessToken = {
+    //                 scheme: 'Basic',
+    //                 scope,
+    //                 token: Buffer.from(`${httpNodeAuth.user}:${httpNodeAuth.pass}`).toString('base64')
+    //             }
+    //         } else {
+    //             // default - no auth
+    //             mcpAccessToken = {
+    //                 scheme: '',
+    //                 scope,
+    //                 token: null
+    //             }
+    //         }
+    //         accessTokenCache.set(instanceId, mcpAccessToken)
+    //     }
+    //     return mcpAccessToken
+    // }
 
     app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, reply) => {
-        if (!serviceEnabled || !expertUrl) {
+        if (!app.expert.serviceEnabled || !app.expert.expertUrl) {
             return reply.code(501).send({
                 code: 'service_disabled',
                 error: 'Expert service is not enabled'
@@ -199,12 +203,9 @@ module.exports = async function (app) {
                 if (!application || !instanceId || !instanceType) { continue }
 
                 // short cut - if the token cache has an entry, use it (avoid loading the instance model)
-                if (accessTokenCache.has(instanceId)) {
-                    const remainingTTL = accessTokenCache.getRemainingTTL(instanceId)
-                    if (remainingTTL > TOKEN_REMAINING_LIMIT) { // only use cached token if it is not about to expire
-                        server.mcpAccessToken = accessTokenCache.get(instanceId)
-                        continue
-                    }
+                server.mcpAccessToken = app.expert.mcp.getCachedToken(instanceId)
+                if (server.mcpAccessToken) {
+                    continue
                 }
 
                 // load instance from local cache or db (an instance can appear multiple times if multiple MCP servers are registered)
@@ -228,7 +229,7 @@ module.exports = async function (app) {
                         server._invalid = true // flag the server as invalid to be filtered out later
                         continue
                     }
-                    server.mcpAccessToken = await getMcpAccessToken(instance, instanceType, instanceId, request.teamHttpSecurityFeature)
+                    server.mcpAccessToken = await app.expert.mcp.getOrCreateToken(instance, instanceType, instanceId, request.teamHttpSecurityFeature)
                 }
             }
             const filteredAccessibleServers = accessibleServers.filter(s => !s._invalid)
@@ -240,7 +241,7 @@ module.exports = async function (app) {
             query = ''
         }
         try {
-            const response = await axios.post(expertUrl, {
+            const response = await axios.post(app.expert.expertUrl, {
                 query,
                 history: request.body.history,
                 context: request.body.context
@@ -249,9 +250,9 @@ module.exports = async function (app) {
                     Origin: request.headers.origin,
                     'X-Chat-Session-ID': sessionId,
                     'X-Chat-Transaction-ID': transactionId,
-                    ...(serviceToken ? { Authorization: `Bearer ${serviceToken}` } : {})
+                    ...(app.expert.serviceToken ? { Authorization: `Bearer ${app.expert.serviceToken}` } : {})
                 },
-                timeout: requestTimeout
+                timeout: app.expert.requestTimeout
             })
 
             if (response.data.transactionId !== transactionId) {
@@ -353,7 +354,7 @@ module.exports = async function (app) {
             /** @type {MCPServerItem[]} */
             const runningInstancesWithMCPServer = []
             const transactionId = request.headers['x-chat-transaction-id']
-            const mcpCapabilitiesUrl = `${expertUrl.split('/').slice(0, -1).join('/')}/mcp/features`
+            const mcpCapabilitiesUrl = `${app.expert.expertUrl.split('/').slice(0, -1).join('/')}/mcp/features`
 
             // Get the MCP servers registered for this team
             const mcpServers = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
@@ -416,7 +417,7 @@ module.exports = async function (app) {
 
                 // Check instance settings for node security. If FlowFuse auth is enabled, generate a short-lived (5 mins)
                 // auth token for the instance with a scope limited to MCP access and cache it in memory for subsequent requests
-                const mcpAccessToken = await getMcpAccessToken(instance, instanceType, instanceId, request.teamHttpSecurityFeature)
+                const mcpAccessToken = await app.expert.mcp.getOrCreateToken(instance, instanceType, instanceId, request.teamHttpSecurityFeature)
 
                 runningInstancesWithMCPServer.push({
                     team: request.team.hashid,
@@ -453,9 +454,9 @@ module.exports = async function (app) {
                 headers: {
                     Origin: request.headers.origin,
                     'X-Chat-Transaction-ID': transactionId,
-                    ...(serviceToken ? { Authorization: `Bearer ${serviceToken}` } : {})
+                    ...(app.expert.serviceToken ? { Authorization: `Bearer ${app.expert.serviceToken}` } : {})
                 },
-                timeout: requestTimeout
+                timeout: app.expert.requestTimeout
             })
 
             if (response.data.transactionId !== transactionId) {
