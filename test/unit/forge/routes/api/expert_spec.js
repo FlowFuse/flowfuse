@@ -1,5 +1,5 @@
 const { default: axios } = require('axios')
-const LRUCache = require('lru-cache')
+
 const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 
@@ -10,8 +10,6 @@ const TestModelFactory = require('../../../../lib/TestModelFactory')
 const setup = require('../setup')
 
 describe('Expert API', function () {
-    /** @type {LRUCache.LRUCache} */
-    let expertMCPAccessTokenCache = null
     async function setupApp (config = {}) {
         const defaultConfig = {
             // Enable dev license for granular rbac tests
@@ -50,19 +48,6 @@ describe('Expert API', function () {
         app.defaultTeamType.properties = defaultTeamTypeProperties
         await app.defaultTeamType.save()
     }
-
-    before(function () {
-        // wrap the class LRUCache.LRUCache so that any calls to new LRUCache() in the app code
-        // will create an instance of LRUCache.LRUCache that I we can access and clear between tests
-        const LRUCacheOriginal = LRUCache.LRUCache
-        sinon.stub(LRUCache, 'LRUCache').callsFake(function (options) {
-            const c = new LRUCacheOriginal(options)
-            if (options && options.name === 'ExpertMCPAccessTokenCache') {
-                expertMCPAccessTokenCache = c
-            }
-            return c
-        })
-    })
 
     afterEach(async function () {
         sinon.restore()
@@ -108,9 +93,7 @@ describe('Expert API', function () {
 
         afterEach(async function () {
             // clear the expert MCP access token cache
-            if (expertMCPAccessTokenCache) {
-                expertMCPAccessTokenCache.clear()
-            }
+            app.expert.mcp.clearTokenCache()
             // delete all extra users, applications, instances created during tests
             await app.db.models.Project.destroy({ where: { name: ['alice2-instance', 'bob2-instance', 'chris2-instance'] } })
             await app.db.models.Application.destroy({ where: { name: ['application-alice', 'application-bob', 'application-chris'] } })
@@ -648,7 +631,7 @@ describe('Expert API', function () {
                 dbToken.expiresAt.getTime().should.be.approximately(fiveMinsFromNow, 2000) // check expiry (with grace period)
 
                 // get the cached token and check it matches DB token
-                const cachedToken = expertMCPAccessTokenCache.get(instance.id)
+                const cachedToken = app.expert.mcp.getCachedToken(instance.id)
                 should.exist(cachedToken)
                 cachedToken.should.have.property('token').and.be.a.String()
                 cachedToken.should.have.property('scheme', 'Bearer')
@@ -1327,7 +1310,7 @@ describe('Expert API', function () {
                 dbToken.expiresAt.getTime().should.be.approximately(fiveMinsFromNow, 2000) // check expiry (with grace period)
 
                 // get the cached token and check it matches DB token
-                const cachedToken = expertMCPAccessTokenCache.get(instance.id)
+                const cachedToken = app.expert.mcp.getCachedToken(instance.id)
                 should.exist(cachedToken)
                 cachedToken.should.have.property('token').and.be.a.String()
                 cachedToken.should.have.property('scheme', 'Bearer')
