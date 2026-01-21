@@ -7,7 +7,6 @@
  * @memberof forge.routes.api
  */
 const { default: axios } = require('axios')
-
 const { v4: uuidv4 } = require('uuid')
 
 const { filterAccessibleMCPServerFeatures } = require('../../services/expert.js')
