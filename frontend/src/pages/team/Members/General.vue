@@ -50,7 +50,7 @@
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
@@ -177,6 +177,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions('account', ['refreshTeamMembership']),
         inviteMember () {
             this.$refs.inviteMemberDialog.show()
         },
@@ -200,6 +201,8 @@ export default {
                     this.userCount = response.count
                     this.users = response.members
                     this.ownerCount = 0
+
+                    this.refreshTeamMembership()
 
                     if (this.users) {
                         this.users.forEach(u => {
