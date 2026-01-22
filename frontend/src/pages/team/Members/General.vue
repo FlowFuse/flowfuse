@@ -127,7 +127,7 @@ export default {
                     component: { is: markRaw(UserCell) }
                 },
                 {
-                    label: 'Role',
+                    label: 'Access',
                     key: 'role',
                     sortable: true,
                     class: ['w-40'],
