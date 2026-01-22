@@ -1434,8 +1434,9 @@ describe('Expert API', function () {
                 should.not.exist(cachedToken2)
             })
 
-            // basic auth tests
-            it('should use basic auth for MCP server access when httpNodeAuth is set to basic', async function () {
+            // basic auth is not currently supported for MCP server access.
+            // Instead, an empty token is sent with scheme 'Basic' to allow the backend to ignore basic auth entries.
+            it('should send empty token in auth for MCP servers when httpNodeAuth is set to basic', async function () {
                 const token = bobToken
                 // Stub MCP registration to return 1 online instance
                 sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([mockMcpRegistration1])
@@ -1466,7 +1467,10 @@ describe('Expert API', function () {
                 capturedPostData.should.have.property('servers').which.is.an.Array()
                 capturedPostData.servers[0].should.have.property('mcpAccessToken')
                 capturedPostData.servers[0].mcpAccessToken.should.be.an.Object()
-                capturedPostData.servers[0].mcpAccessToken.should.have.property('token', Buffer.from('nodeUser:nodePass').toString('base64'))
+                // For now, there no support for basic auth. The password is not available.
+                // Instead, we send an empty token with scheme 'Basic' to permit the backend to
+                // ignore basic auth entries (they are still sent so that they can be returned and listed for user awareness)
+                capturedPostData.servers[0].mcpAccessToken.should.have.property('token', '')
                 capturedPostData.servers[0].mcpAccessToken.should.have.property('scheme', 'Basic')
                 capturedPostData.servers[0].mcpAccessToken.should.have.property('scope').and.be.an.Array().and.have.length(2)
                 capturedPostData.servers[0].mcpAccessToken.scope.should.containEql('ff-expert:mcp')

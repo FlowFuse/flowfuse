@@ -54,7 +54,7 @@ module.exports = fp(async function (app, _opts) {
                 mcpAccessToken = {
                     scheme: 'Basic',
                     scope,
-                    token: Buffer.from(`${httpNodeAuth.user}:${httpNodeAuth.pass}`).toString('base64')
+                    token: '' // basic auth is not supported - we have no access to the password. For now, just return an empty string.
                 }
             } else {
                 // default - no auth
