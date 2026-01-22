@@ -10,7 +10,8 @@ const setup = require('../setup')
 describe('Expert API', function () {
     async function setupApp (config = {}) {
         const defaultConfig = {
-            license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A',
+            // Enable dev license for granular rbac tests
+            license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg',
             expert: {
                 enabled: true,
                 service: {
@@ -312,6 +313,8 @@ describe('Expert API', function () {
                         Project: {
                             id: 'acbd-1234',
                             name: 'offline-instance',
+                            ApplicationId: application.id,
+                            state: '',
                             liveState: () => ({ meta: { state: 'suspended' } })
                         },
                         title: 'the title 2',
@@ -330,6 +333,8 @@ describe('Expert API', function () {
                         Project: {
                             id: 'wxyz-6789',
                             name: 'offline-instance',
+                            ApplicationId: application.id,
+                            state: 'running',
                             liveState: () => ({ meta: { state: 'running' } })
                         },
                         title: 'the title 3',
@@ -346,6 +351,7 @@ describe('Expert API', function () {
                         servers: [
                             {
                                 team: team.hashid,
+                                application: application.hashid,
                                 instance: instance.id,
                                 instanceType: 'instance',
                                 instanceName: instance.name,
@@ -379,8 +385,9 @@ describe('Expert API', function () {
                 axiosPost.should.have.property('servers').which.is.an.Array().and.has.length(1)
                 // since only 1 instance was correct and online, get index 0 and check its properties
                 const reg = axiosPost.servers[0]
-                reg.should.only.have.keys('team', 'instance', 'instanceType', 'instanceName', 'instanceUrl', 'mcpServerName', 'mcpEndpoint', 'mcpProtocol', 'title', 'version', 'description')
+                reg.should.only.have.keys('team', 'application', 'instance', 'instanceType', 'instanceName', 'instanceUrl', 'mcpServerName', 'mcpEndpoint', 'mcpProtocol', 'title', 'version', 'description')
                 reg.should.have.property('team', team.hashid)
+                reg.should.have.property('application', application.hashid)
                 reg.should.have.property('instance', instance.id)
                 reg.should.have.property('instanceType', 'instance')
                 reg.should.have.property('instanceName', instance.name)
@@ -396,8 +403,9 @@ describe('Expert API', function () {
                 const result = response.json()
                 result.should.have.property('transactionId', 'abc')
                 result.should.have.property('servers').which.is.an.Array().and.has.length(1)
-                result.servers[0].should.only.have.keys('team', 'instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol', 'mcpServerUrl', 'title', 'version', 'description')
+                result.servers[0].should.only.have.keys('team', 'application', 'instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol', 'mcpServerUrl', 'title', 'version', 'description')
                 result.servers[0].should.have.property('team', team.hashid)
+                result.servers[0].should.have.property('application', application.hashid)
                 result.servers[0].should.have.property('instance', instance.id)
                 result.servers[0].should.have.property('instanceType', 'instance')
                 result.servers[0].should.have.property('instanceName', instance.name)
@@ -432,6 +440,252 @@ describe('Expert API', function () {
                     payload: { context: { teamId: team.hashid } }
                 })
                 response.statusCode.should.equal(500)
+            })
+
+            it('should only get permitted mcp features when granular RBACs is enabled', async function () {
+                // PREMISE: 3 applications (appAlice2, appBob2, appChris), 3 users (userAlice2, userBob2, userChris2), 1 team
+                // - Each application has mcp tool "destructive_tool", "write_tool", "read_tool", "openworld_tool"
+                // - each user is an owner of same named application (userAlice2 owns appAlice2, etc)
+                // - Alice2 is a owner of appBob2 and downgraded to be a member of appChris2
+                // - Bob2 is downgraded to member of appChris2 and viewer to appAlice2
+                // - Chris2 is upgraded to owner of appChris2 and a downgraded to viewer to appBob2 (has no access to appAlice2)
+                // EXPECTATION:
+                // - when Alice2 requests MCP features, she should get all features in appBob2 plus any non-destructive features from appChris2
+                // - when Bob2 requests MCP features, he should get all features in appBob2 plus write and openworld features from appChris2 and read features from appAlice2
+                // - when Chris2 requests MCP features, he should only features from appChris2 plus read features from appBob2 (nothing from appAlice2)
+
+                // create 3 applications
+                const applicationAlice2 = await app.factory.createApplication({ name: 'application-alice' }, team)
+                const applicationBob2 = await app.factory.createApplication({ name: 'application-bob' }, team)
+                const applicationChris2 = await app.factory.createApplication({ name: 'application-chris' }, team)
+
+                // create users
+                const alice2 = await await app.db.models.User.create({ username: 'alice2', name: 'Alice Two', email: 'alice2@example.com', email_verified: true, password: 'aaPassword' })
+                const bob2 = await app.db.models.User.create({ username: 'bob2', name: 'Bob Two', email: 'bob2@example.com', email_verified: true, password: 'bbPassword' })
+                const chris2 = await app.db.models.User.create({ username: 'chris2', name: 'Chris Two', email: 'chris2@example.com', email_verified: true, password: 'ccPassword' })
+
+                // set alice2 as an owner of ATeam
+                await team.addUser(alice2, { through: { role: Roles.Owner } })
+                // set bob as an owner of ATeam
+                await team.addUser(bob2, { through: { role: Roles.Owner } })
+                // set chris as a member of ATeam
+                await team.addUser(chris2, { through: { role: Roles.Member } })
+
+                const alice2Token = await login(app, 'alice2', 'aaPassword')
+                const bob2Token = await login(app, 'bob2', 'bbPassword')
+                const chris2Token = await login(app, 'chris2', 'ccPassword')
+
+                const alice2TeamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: team.id, UserId: alice2.id } })
+                alice2TeamMembership.permissions = {
+                    applications: { [applicationAlice2.hashid]: Roles.Owner, [applicationBob2.hashid]: Roles.Owner, [applicationChris2.hashid]: Roles.Member }
+                }
+                await alice2TeamMembership.save()
+
+                const bob2TeamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: team.id, UserId: bob2.id } })
+                bob2TeamMembership.permissions = {
+                    applications: { [applicationAlice2.hashid]: Roles.Viewer, [applicationBob2.hashid]: Roles.Owner, [applicationChris2.hashid]: Roles.Member }
+                }
+                await bob2TeamMembership.save()
+
+                const chris2TeamMembership = await app.db.models.TeamMember.findOne({ where: { TeamId: team.id, UserId: chris2.id } })
+                chris2TeamMembership.permissions = {
+                    applications: { [applicationAlice2.hashid]: Roles.None, [applicationBob2.hashid]: Roles.Viewer, [applicationChris2.hashid]: Roles.Owner }
+                }
+                await chris2TeamMembership.save()
+
+                // Stub MCP registration table data to return the 3 application instances MCP servers
+                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([
+                    {
+                        id: 1,
+                        name: 'mcp-server-alice',
+                        protocol: 'http',
+                        targetType: 'instance',
+                        targetId: 'alice',
+                        nodeId: 'mcp:node:1',
+                        endpointRoute: '/mcp',
+                        TeamId: team.id,
+                        Project: {
+                            id: 'alice',
+                            name: 'alice',
+                            state: 'running',
+                            ApplicationId: applicationAlice2.id,
+                            liveState: () => ({ meta: { state: 'running' } })
+                        },
+                        title: 'Alices MCP Server',
+                        version: '1.0.0-beta',
+                        description: 'Alices MCP Server'
+
+                    }, {
+                        id: 2, // should be excluded since it is offline
+                        name: 'mcp-server-bob',
+                        protocol: 'http',
+                        targetType: 'instance',
+                        targetId: 'bob',
+                        nodeId: 'mcp:node:1',
+                        endpointRoute: '/mcp',
+                        TeamId: team.id,
+                        Project: {
+                            id: 'bob',
+                            name: 'bob',
+                            state: 'running',
+                            ApplicationId: applicationBob2.id,
+                            liveState: () => ({ meta: { state: 'running' } })
+                        },
+                        title: 'Bobs MCP Server',
+                        version: '2.0.0-beta',
+                        description: 'Bobs MCP Server'
+
+                    }, {
+                        id: 3, // should be excluded since it is for other team
+                        name: 'mcp-server-chris',
+                        protocol: 'http',
+                        targetType: 'instance',
+                        targetId: 'chris',
+                        nodeId: 'mcp:node:1',
+                        endpointRoute: '/mcp',
+                        TeamId: team.id,
+                        Project: {
+                            id: 'chris',
+                            name: 'chris',
+                            state: 'running',
+                            ApplicationId: applicationChris2.id,
+                            liveState: () => ({ meta: { state: 'running' } })
+                        },
+                        title: 'Chris MCP Server',
+                        version: '3.0.0-beta',
+                        description: 'Chris MCP Server'
+                    }
+                ])
+
+                const buildMcpServerFeaturesResponse = (name, applicationHashid) => ({
+                    team: team.hashid,
+                    application: applicationHashid,
+                    instance: name,
+                    instanceType: 'instance',
+                    instanceName: name,
+                    mcpServerName: name,
+                    mcpServerUrl: `http://${name}/mcp`,
+                    prompts: [],
+                    resources: [],
+                    resourceTemplates: [],
+                    tools: [
+                        {
+                            name: 'destructive_tool',
+                            annotations: {
+                                destructiveHint: true,
+                                readOnlyHint: false,
+                                openWorldHint: false,
+                                idempotentHint: false
+                            }
+                        },
+                        {
+                            name: 'write_tool',
+                            annotations: {
+                                destructiveHint: false,
+                                readOnlyHint: false,
+                                openWorldHint: false,
+                                idempotentHint: false
+                            }
+                        },
+                        {
+                            name: 'read_tool',
+                            annotations: {
+                                destructiveHint: false,
+                                readOnlyHint: true,
+                                openWorldHint: false,
+                                idempotentHint: false
+                            }
+                        },
+                        {
+                            name: 'openworld_tool',
+                            description: 'An openworld tool',
+                            type: 'tool',
+                            annotations: {
+                                destructiveHint: false,
+                                readOnlyHint: false,
+                                openWorldHint: true,
+                                idempotentHint: false
+                            }
+                        }
+                    ],
+                    mcpProtocol: 'http',
+                    title: `${name} MCP Server`,
+                    version: '1.0.0-beta',
+                    description: `${name} MCP Server`
+                })
+
+                // Stub axios to return servers
+                sinon.stub(axios, 'post').callsFake((url, data) => {
+                    return Promise.resolve({
+                        data: {
+                            transactionId: 'right',
+                            servers: [
+                                { ...buildMcpServerFeaturesResponse('alice', applicationAlice2.hashid) },
+                                { ...buildMcpServerFeaturesResponse('bob', applicationBob2.hashid) },
+                                { ...buildMcpServerFeaturesResponse('chris', applicationChris2.hashid) }
+                            ]
+                        }
+                    })
+                })
+
+                // Helper function to check that the returned tools match expected tool names
+                const checkTools = (serverResult, expectedToolNames) => {
+                    const toolNames = serverResult.tools.map(t => t.name)
+                    toolNames.should.have.length(expectedToolNames.length)
+                    expectedToolNames.forEach(name => {
+                        toolNames.should.containEql(name)
+                    })
+                }
+
+                // --- Alice2 Request ---
+                const alice2Response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/mcp/features',
+                    cookies: { sid: alice2Token },
+                    headers: { 'x-chat-transaction-id': 'right' },
+                    payload: { context: { teamId: team.hashid } }
+                })
+                alice2Response.statusCode.should.equal(200)
+                const alice2Results = alice2Response.json()
+                alice2Results.servers.should.be.an.Array()
+                alice2Results.servers.should.have.length(3) // alice2 has access to all 3 servers
+                // alice2 should get all tools from bob-instance plus non-destructive tools from chris-instance
+                checkTools(alice2Results.servers.find(s => s.instance === 'alice'), ['destructive_tool', 'write_tool', 'read_tool', 'openworld_tool'])
+                checkTools(alice2Results.servers.find(s => s.instance === 'bob'), ['destructive_tool', 'write_tool', 'read_tool', 'openworld_tool'])
+                checkTools(alice2Results.servers.find(s => s.instance === 'chris'), ['write_tool', 'read_tool', 'openworld_tool'])
+
+                // --- Bob2 Request ---
+                const bob2Response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/mcp/features',
+                    cookies: { sid: bob2Token },
+                    headers: { 'x-chat-transaction-id': 'right' },
+                    payload: { context: { teamId: team.hashid } }
+                })
+                bob2Response.statusCode.should.equal(200)
+                const bob2Result = bob2Response.json()
+                bob2Result.servers.should.be.an.Array()
+                bob2Result.servers.should.have.length(3) // bob2 has access to all 3 servers
+                // bob2 should get all tools from bob-instance plus write/openworld tools from chris-instance plus read tool from alice-instance
+                checkTools(bob2Result.servers.find(s => s.instance === 'alice'), ['read_tool'])
+                checkTools(bob2Result.servers.find(s => s.instance === 'bob'), ['destructive_tool', 'write_tool', 'read_tool', 'openworld_tool'])
+                checkTools(bob2Result.servers.find(s => s.instance === 'chris'), ['write_tool', 'read_tool', 'openworld_tool'])
+
+                // --- Chris2 Request ---
+                const chris2Response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/mcp/features',
+                    cookies: { sid: chris2Token },
+                    headers: { 'x-chat-transaction-id': 'right' },
+                    payload: { context: { teamId: team.hashid } }
+                })
+                chris2Response.statusCode.should.equal(200)
+                const chris2Result = chris2Response.json()
+                chris2Result.servers.should.be.an.Array()
+                chris2Result.servers.should.have.length(2) // chris2 should have owner access to chris server and viewer access to bob server
+                // chris2 should get all tools from chris-instance plus read tool from bob-instance
+                checkTools(chris2Result.servers.find(s => s.instance === 'bob'), ['read_tool'])
+                checkTools(chris2Result.servers.find(s => s.instance === 'chris'), ['destructive_tool', 'write_tool', 'read_tool', 'openworld_tool'])
             })
         })
     })

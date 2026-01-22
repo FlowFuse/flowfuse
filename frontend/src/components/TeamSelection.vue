@@ -1,19 +1,17 @@
 <template>
     <ff-listbox v-if="hasAvailableTeams" :options="teamOptions" v-model="selection" class="ff-team-selection">
         <template #button>
-            <ListboxButton>
-                <div v-if="team" class="flex grow items-center">
-                    <div class="ff-team-selection-name">
-                        <label>TEAM:</label>
-                        <h5>{{ team.name }}</h5>
-                    </div>
+            <div v-if="team" class="flex grow items-center">
+                <div class="ff-team-selection-name">
+                    <label>TEAM:</label>
+                    <h5>{{ team.name }}</h5>
                 </div>
-                <div v-else class="flex grow items-center">
-                    <div class="ff-team-selection-name">
-                        <h5>Select a team</h5>
-                    </div>
+            </div>
+            <div v-else class="flex grow items-center">
+                <div class="ff-team-selection-name">
+                    <h5>Select a team</h5>
                 </div>
-            </ListboxButton>
+            </div>
         </template>
         <template #options="{options}">
             <ListboxOption

@@ -22,7 +22,7 @@
                 </ff-button>
             </template>
             <template #context-menu="{row}">
-                <ff-list-item label="Edit User" @click.stop="showEditUserDialog(row)" />
+                <ff-kebab-item label="Edit User" @click.stop="showEditUserDialog(row)" />
             </template>
         </ff-data-table>
         <AdminUserEditDialog ref="adminUserEditDialog" @user-updated="userUpdated" @user-deleted="userDeleted" />

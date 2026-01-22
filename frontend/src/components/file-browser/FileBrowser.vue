@@ -52,11 +52,11 @@
         </template>
         <template #context-menu="{row}">
             <template v-if="!isReadOnly && row.type === 'directory'">
-                <ff-list-item label="Edit Folder" data-action="edit-folder" @click.stop="editFolder(row)" />
-                <ff-list-item kind="danger" data-action="delete-folder" label="Delete Folder" @click.stop="deleteFolder(row)" />
+                <ff-kebab-item label="Edit Folder" data-action="edit-folder" @click.stop="editFolder(row)" />
+                <ff-kebab-item kind="danger" data-action="delete-folder" label="Delete Folder" @click.stop="deleteFolder(row)" />
             </template>
             <template v-if="!isReadOnly && row.type === 'file'">
-                <ff-list-item kind="danger" data-action="delete-file" label="Delete File" @click.stop="deleteFile(row)" />
+                <ff-kebab-item kind="danger" data-action="delete-file" label="Delete File" @click.stop="deleteFile(row)" />
             </template>
         </template>
     </ff-data-table>

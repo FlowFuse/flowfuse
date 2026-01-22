@@ -240,6 +240,21 @@ module.exports = {
                         ownerId: project.id
                     }
                 })
+                // if MCPRegistration model is available (EE mode), remove any registrations for this instance
+                if (app.db.models.MCPRegistration?.destroy) {
+                    try {
+                        await app.db.models.MCPRegistration.destroy({
+                            where: {
+                                targetType: 'instance',
+                                targetId: project.id
+                            }
+                        })
+                    } catch (err) {
+                        // The destroy may fail if the DB connection is closed (e.g. during tests)!
+                        // Log the error but proceed as the instance has been deleted anyway
+                        app.log.error(`Error removing MCPRegistrations for deleted instance ${project.id}: ${err.message}`)
+                    }
+                }
             }
         }
     },
@@ -669,7 +684,7 @@ module.exports = {
                         ]
                     })
                 },
-                countByState: async (states, team, applicationId, membership) => {
+                countByState: async (states, team, applicationId, membership, isAdmin) => {
                     let teamId = team.id
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
@@ -714,7 +729,7 @@ module.exports = {
                     const rbacEnabled = platformRbacEnabled && teamRbacEnabled
 
                     for (const project of results) {
-                        if (rbacEnabled && !app.hasPermission(membership, 'project:read', { applicationId: project.Application.hashid })) {
+                        if (rbacEnabled && !app.hasPermission(membership, 'project:read', { applicationId: project.Application.hashid }) && !isAdmin) {
                             // This instance is not accessible to this user, do not include in states map
                             continue
                         }

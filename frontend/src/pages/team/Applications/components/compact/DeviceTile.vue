@@ -21,24 +21,24 @@
         <div class="actions">
             <FinishSetupButton v-if="neverConnected && hasPermission('device:edit')" :device="device" :minimal-view="minimalView" />
             <ff-kebab-menu v-else-if="shouldDisplayKebabMenu">
-                <ff-list-item
+                <ff-kebab-item
                     v-if="hasPermission('device:edit')"
                     label="Edit Details"
                     @click.stop="$emit('device-action',{action: 'edit', id: device.id})"
                 />
-                <ff-list-item
+                <ff-kebab-item
                     v-if="displayingApplication && hasPermission('device:edit')"
                     label="Remove from Application"
                     data-action="device-remove-from-application"
                     @click.stop="$emit('device-action',{action: 'removeFromApplication', id: device.id})"
                 />
-                <ff-list-item
+                <ff-kebab-item
                     v-if="hasPermission('device:edit')"
                     kind="danger"
                     label="Regenerate Configuration"
                     @click.stop="$emit('device-action',{action: 'updateCredentials', id: device.id})"
                 />
-                <ff-list-item
+                <ff-kebab-item
                     v-if="hasPermission('device:delete')"
                     kind="danger"
                     label="Delete Device"
@@ -55,7 +55,7 @@ import StatusBadge from '../../../../../components/StatusBadge.vue'
 import usePermissions from '../../../../../composables/Permissions.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
-import FfKebabMenu from '../../../../../ui-components/components/KebabMenu.vue'
+import FfKebabMenu from '../../../../../ui-components/components/kebab-menu/KebabMenu.vue'
 import DaysSince from '../../../../application/Snapshots/components/cells/DaysSince.vue'
 import InstanceMinimalStatusBadge from '../../../../instance/components/InstanceMinimalStatusBadge.vue'
 

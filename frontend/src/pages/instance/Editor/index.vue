@@ -63,7 +63,7 @@
 
 <script>
 import { ArrowLeftIcon, XIcon } from '@heroicons/vue/solid'
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
 import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
@@ -103,6 +103,7 @@ export default {
         ResizeBar
     },
     mixins: [instanceMixin, featuresMixin],
+    inject: ['$services'],
     setup () {
         const { hasAMinimumTeamRoleOf, isVisitingAdmin } = usePermissions()
 
@@ -201,6 +202,11 @@ export default {
             return this.$route.name === 'instance-editor-expert'
         }
     },
+    watch: {
+        instance (instance) {
+            this.setInstance(instance)
+        }
+    },
     mounted () {
         // Auto-open drawer after initial load, then close it to tease availability
         setTimeout(() => {
@@ -224,8 +230,10 @@ export default {
         if (this.teaseCloseTimeout) {
             clearTimeout(this.teaseCloseTimeout)
         }
+        this.clearInstance()
     },
     methods: {
+        ...mapActions('context', ['setInstance', 'clearInstance']),
         toggleDrawer () {
             if (this.drawer.open) {
                 this.drawer.open = false
@@ -245,10 +253,14 @@ export default {
             if (iframe && iframe.contentWindow) {
                 // Use instance URL origin for security instead of wildcard
                 const targetOrigin = this.instance.url || window.location.origin
-                iframe.contentWindow.postMessage({
-                    type: 'drawer-state',
-                    payload: { open: this.drawer.open }
-                }, targetOrigin)
+                this.$services.messaging.sendMessage({
+                    message: {
+                        type: 'drawer-state',
+                        payload: { open: this.drawer.open }
+                    },
+                    target: iframe.contentWindow,
+                    targetOrigin
+                })
             }
         },
         startResize (e) {

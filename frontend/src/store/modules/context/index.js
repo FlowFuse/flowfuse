@@ -1,5 +1,6 @@
 const initialState = () => ({
-    route: null
+    route: null,
+    instance: null
 })
 
 const meta = {
@@ -61,14 +62,17 @@ const getters = {
 const mutations = {
     UPDATE_ROUTE (state, route) {
         state.route = route
-    }
+    },
+    SET_INSTANCE (state, instance) { state.instance = instance },
+    CLEAR_INSTANCE (state) { state.instance = null }
 }
 
 const actions = {
     updateRoute ({ commit }, route) {
         commit('UPDATE_ROUTE', route)
-    }
-
+    },
+    setInstance ({ commit }, instance) { commit('SET_INSTANCE', instance) },
+    clearInstance ({ commit }) { commit('CLEAR_INSTANCE') }
 }
 
 export default {
