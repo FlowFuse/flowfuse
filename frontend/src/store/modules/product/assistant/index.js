@@ -104,6 +104,16 @@ const actions = {
             }
         })
     },
+    manageNodePackage: async ({ dispatch }, packageName) => {
+        return dispatch('sendMessage', {
+            type: 'invoke-action',
+            action: 'core:manage-palette',
+            params: {
+                view: 'nodes',
+                filter: packageName
+            }
+        })
+    },
     sendMessage ({ getters }, payload) {
         const service = messagingService()
         return service.sendMessage({
