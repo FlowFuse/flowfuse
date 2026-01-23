@@ -108,6 +108,7 @@ export default {
                 }
                 return {
                     id: team.id,
+                    value: team.id,
                     label: team.name,
                     slug: team.slug,
                     role: RoleNames[team.role],
