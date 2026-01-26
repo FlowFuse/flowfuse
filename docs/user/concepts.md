@@ -5,7 +5,7 @@ navOrder: 2
 
 # FlowFuse Concepts
 
-FlowFuse makes it easy to create, manage, and scale Node-RED instances. The platform introduces a few core concepts to help you organize and work with it effectively. Throughout the platform, you’ll also see ⓘ icons that you can click on to get pop-up explanations for different features and terms.
+FlowFuse makes it easy to create, manage, and scale Node-RED instances. The platform introduces a few core concepts to help you organize and work with it effectively. Throughout the platform, you'll also see ⓘ icons that you can click on to get pop-up explanations for different features and terms.
 
 ## Table of Contents
 
@@ -25,7 +25,11 @@ FlowFuse makes it easy to create, manage, and scale Node-RED instances. The plat
     - [Template](#template)
     - [Snapshot](#snapshot)
       - [Hosted Instance Snapshot](#hosted-instance-snapshot)
-      - [Remote Instances (Device Snapshot)](#remote-instance-snapshot)
+      - [Remote Instance Snapshot](#remote-instance-snapshot)
+    - [Assigning Remote Instances to Hosted Instances](#assigning-remote-instances-to-hosted-instances)
+      - [How It Works](#how-it-works)
+      - [Assignment Rules](#assignment-rules)
+      - [When to Use Instance Assignment vs DevOps Pipelines](#when-to-use-instance-assignment-vs-devops-pipelines)
   - [Device](#device)
     - [Device Agent](#device-agent)
     - [Fleet Mode vs Developer Mode](#fleet-mode-vs-developer-mode)
@@ -50,7 +54,7 @@ To organize your Node-RED instances, they are grouped within Applications. With 
 
 Applications provide logical organization of related instances, support for DevOps pipeline workflows, simplified device group management, application-level audit logging, and clear organizational boundaries for managing multiple instances and devices.
 
-With FlowFuse’s Granular RBAC, Applications can now also act as an authorization boundary. This means user roles and permissions can be managed at the application level, providing finer control over access to instances, snapshots, and devices within a given application.
+With FlowFuse's Granular RBAC, Applications can now also act as an authorization boundary. This means user roles and permissions can be managed at the application level, providing finer control over access to instances, snapshots, and devices within a given application.
 
 ### DevOps Pipeline
 
@@ -117,6 +121,35 @@ A user can create an hosted instance snapshot and then mark it as the *target* s
 #### Remote Instance Snapshot
 
 Similar to instance snapshots, a device snapshot is a point-in-time backup of a Node-RED instance running on a remote device. It captures the flows, credentials, and runtime settings. The difference is that local changes made on a device during developer mode are pulled into the FlowFuse platform and stored as a snapshot. The dashboard also allows you to see and manage these snapshots. With devices assigned to an application, a user can create a device snapshot from the remote device.
+
+### Assigning Remote Instances to Hosted Instances
+
+**Note:** This is a legacy feature that predates DevOps Pipelines. For new deployments, consider using [DevOps Pipelines](#devops-pipeline) instead, which provide more flexible and powerful deployment workflows.
+
+Instance assignment establishes a parent-child deployment relationship between a hosted instance and remote instances. When assigned, the hosted instance becomes the source of truth and automatically pushes snapshots to the remote instance. You can only push nodes and flows that are supported by both Hosted and Remote Instances. For more information on how this works, see [How Instance Assignment Works](/docs/user/concepts.md#how-it-works).
+
+#### How It Works
+
+Instance assignment creates a parent-child deployment relationship with the following behavior:
+
+- **Hosted Instance (Parent)**: Acts as the deployment controller and source of truth for snapshots
+- **Remote Instance (Child)**: Receives and applies snapshot updates from the parent
+- **Deployment Flow**: When you set a [Target Snapshot](/docs/user/snapshots/#instance-owned-devices) on the hosted instance, all assigned remote instances automatically restart on that snapshot
+- **One-Way Relationship**: Changes flow exclusively from the hosted instance to remote instances, ensuring consistent deployments across your fleet
+
+#### Assignment Rules
+
+FlowFuse enforces specific constraints on instance assignment:
+
+- Remote instances can be assigned to hosted instances
+- Remote instances cannot be assigned to other remote instances
+- Hosted instances cannot be assigned to any other instances
+
+#### When to Use Instance Assignment vs DevOps Pipelines
+
+Instance assignment suits straightforward scenarios where you need to push snapshots from a single hosted instance directly to one or more remote instances. It works well for maintaining existing deployments or when you simply need one hosted instance deploying to multiple remote instances without staging environments.
+
+DevOps Pipelines are recommended for most deployment workflows. They support staged environments for testing changes in development before promoting to production, enable deployment to device groups for easier fleet management, and offer more flexibility aligned with modern development practices. If you're setting up a new deployment process, use DevOps Pipelines.
 
 ## Device
 
