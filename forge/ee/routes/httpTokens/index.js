@@ -40,8 +40,11 @@ module.exports = async function (app) {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
         const tokens = await app.db.models.AccessToken.getProjectHTTPTokens(request.project)
+        // exclude FF-Expert auto generated HTTP MCP tokens from listing
+        const withoutExpertMcpTokens = tokens.filter(token => !isExpertMcpToken(token))
+        const tokensView = app.db.views.AccessToken.instanceHTTPTokenSummaryList(withoutExpertMcpTokens)
         reply.send({
-            tokens: app.db.views.AccessToken.instanceHTTPTokenSummaryList(tokens),
+            tokens: tokensView,
             count: tokens.length
         })
     })
@@ -51,6 +54,10 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         try {
             const body = request.body
+            // Prevent creation of Expert MCP Access Tokens via this route
+            if (isExpertMcpToken({ scope: body.scope })) {
+                throw new Error('Cannot create Expert MCP Access Token via this route')
+            }
             const token = await app.db.controllers.AccessToken.createHTTPNodeToken(request.project, body.name, body.scope, body.expiresAt)
             // token has already been sanitised via views.AccessToken.instanceHTTPTokenSummary
             await app.auditLog.Project.project.httpToken.created(request.session.User, null, request.project, body)
@@ -67,6 +74,10 @@ module.exports = async function (app) {
         try {
             const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'http', request.project.id)
             if (oldToken) {
+                // Prevent modification of Expert MCP Access Tokens via this route
+                if (isExpertMcpToken(oldToken)) {
+                    throw new Error('Cannot modify Expert MCP Access Token')
+                }
                 const body = request.body
                 const token = await app.db.controllers.AccessToken.updateHTTPNodeToken(request.project, request.params.id, body.scope, body.expiresAt)
                 const updates = new app.auditLog.formatters.UpdatesCollection()
@@ -99,4 +110,11 @@ module.exports = async function (app) {
             reply.code(400).send(resp)
         }
     })
+
+    function isExpertMcpToken (token) {
+        if (!token || !token.scope) {
+            return false
+        }
+        return token.scope.includes('ff-expert:mcp')
+    }
 }
