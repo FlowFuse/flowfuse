@@ -11,16 +11,13 @@ const { v4: uuidv4 } = require('uuid')
 
 const { filterAccessibleMCPServerFeatures } = require('../../services/expert.js')
 
+/**
+ * @param {import('../../forge.js').ForgeApplication} app
+ */
 module.exports = async function (app) {
-    // Get the assistant service configuration
-    const serviceEnabled = app.config.expert?.enabled === true
-    const expertUrl = app.config.expert?.service?.url
-    const serviceToken = app.config.expert?.service?.token
-    const requestTimeout = app.config.expert?.service?.requestTimeout || 60000
-
     app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, reply) => {
-        if (!serviceEnabled || !expertUrl) {
+        if (!app.expert.serviceEnabled || !app.expert.expertUrl) {
             return reply.code(501).send({
                 code: 'service_disabled',
                 error: 'Expert service is not enabled'
@@ -60,6 +57,9 @@ module.exports = async function (app) {
             if (!request.team) {
                 return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
+            const teamType = await request.team.getTeamType()
+            const teamHttpSecurityFeature = !!teamType.properties.features?.teamHttpSecurity
+            request.teamHttpSecurityFeature = teamHttpSecurityFeature
         }
     })
 
@@ -103,25 +103,74 @@ module.exports = async function (app) {
         // If MCP capabilities are provided in the context, filter them based on user access
         const selectedCapabilities = context.selectedCapabilities
         if (selectedCapabilities && Array.isArray(selectedCapabilities) && selectedCapabilities.length > 0) {
-            const applications = {}
+            const applicationCache = {}
+            const instanceCache = {}
             const mcpServersList = []
+
+            // Premise:
+            // If the user has provided a list of MCP servers they wish to use in the chat session,
+            // in order of computational cost, we need to:
+            // 1. filter out any MCP servers the user does not have access to at all (application level)
+            // 2. filter out any MCP server features (prompts/resources/tools) the user does not have access to (feature level)
+            // 3. for the remaining MCP servers, load (and cache) the instance and get/create access token as needed
+            //    based on the instance's node security settings
 
             // first pass - get associated applications for the MCP servers selected by user
             for (const server of selectedCapabilities || []) {
                 const applicationId = server.application
                 if (!applicationId) { continue }
 
-                if (!Object.hasOwnProperty.call(applications, applicationId)) {
-                    applications[applicationId] = await app.db.models.Application.byId(applicationId)
+                if (!Object.hasOwnProperty.call(applicationCache, applicationId)) {
+                    applicationCache[applicationId] = await app.db.models.Application.byId(applicationId)
                 }
-                const application = applications[applicationId]
+                const application = applicationCache[applicationId]
                 if (application) {
                     mcpServersList.push({ server, application })
                 }
             }
+
             // second pass - filter features per MCP server based on user access to features (e.g. a tool with the destructive hint requires extra permission than a read-only tool)
-            const filteredServers = filterAccessibleMCPServerFeatures(app, mcpServersList, request.team, request.teamMembership)
-            context.selectedCapabilities = filteredServers?.length > 0 ? filteredServers : undefined
+            const accessibleServers = filterAccessibleMCPServerFeatures(app, mcpServersList, request.team, request.teamMembership)
+
+            // final pass - now that we have list of accessible servers, apply access tokens as needed
+            for (const server of accessibleServers) {
+                const instanceId = server.instance
+                const instanceType = server.instanceType
+                const application = applicationCache[server.application]
+                if (!application || !instanceId || !instanceType) { continue }
+
+                // short cut - if the token cache has an entry, use it (avoid loading the instance model)
+                server.mcpAccessToken = app.expert.mcp.getCachedToken(instanceId)
+                if (server.mcpAccessToken) {
+                    continue
+                }
+
+                // load instance from local cache or db (an instance can appear multiple times if multiple MCP servers are registered)
+                if (!Object.hasOwnProperty.call(instanceCache, instanceId)) {
+                    switch (instanceType) {
+                    case 'instance':
+                        instanceCache[instanceId] = await app.db.models.Project.byId(instanceId)
+                        break
+                    case 'device':
+                        instanceCache[instanceId] = await app.db.models.Device.byId(instanceId)
+                        break
+                    default:
+                        continue
+                    }
+                }
+
+                const instance = instanceCache[instanceId]
+                if (instance) {
+                    // sanity check - ensure instance is linked to application
+                    if (instance.ApplicationId !== application.id) {
+                        server._invalid = true // flag the server as invalid to be filtered out later
+                        continue
+                    }
+                    server.mcpAccessToken = await app.expert.mcp.getOrCreateToken(instance, instanceType, instanceId, request.teamHttpSecurityFeature)
+                }
+            }
+            const filteredAccessibleServers = accessibleServers.filter(s => !s._invalid)
+            context.selectedCapabilities = filteredAccessibleServers?.length > 0 ? filteredAccessibleServers : undefined
         }
 
         let query = request.body.query
@@ -129,7 +178,7 @@ module.exports = async function (app) {
             query = ''
         }
         try {
-            const response = await axios.post(expertUrl, {
+            const response = await axios.post(app.expert.expertUrl, {
                 query,
                 history: request.body.history,
                 context: request.body.context
@@ -138,9 +187,9 @@ module.exports = async function (app) {
                     Origin: request.headers.origin,
                     'X-Chat-Session-ID': sessionId,
                     'X-Chat-Transaction-ID': transactionId,
-                    ...(serviceToken ? { Authorization: `Bearer ${serviceToken}` } : {})
+                    ...(app.expert.serviceToken ? { Authorization: `Bearer ${app.expert.serviceToken}` } : {})
                 },
-                timeout: requestTimeout
+                timeout: app.expert.requestTimeout
             })
 
             if (response.data.transactionId !== transactionId) {
@@ -225,10 +274,24 @@ module.exports = async function (app) {
      */
     async (request, reply) => {
         try {
+            // Premise:
+            // In order to get the MCP features (prompts/resources/tools) available to the user for their
+            // team / application RBACs, in order of computational cost, we need do the following:
+            // 1. Get the MCP servers registered for this team
+            // 2. For each MCP server
+            //    1. Ensure the instance is supposed to be running (i.e. state is 'running')
+            //    2. Get the application and check RBAC permits access
+            //    3. Ensure the instance is actually running (live state check)
+            //    5. For each running instance with MCP server, get/create access token as needed
+            //       based on the instance's node security settings
+            //    6. Call to backend expert service to get the MCP features for the accessible MCP servers
+            //    7. Filter the MCP features based on user RBACs (e.g. destructive tool access)
+            // 3. Return the filtered MCP features to the client
+
             /** @type {MCPServerItem[]} */
             const runningInstancesWithMCPServer = []
             const transactionId = request.headers['x-chat-transaction-id']
-            const mcpCapabilitiesUrl = `${expertUrl.split('/').slice(0, -1).join('/')}/mcp/features`
+            const mcpCapabilitiesUrl = `${app.expert.expertUrl.split('/').slice(0, -1).join('/')}/mcp/features`
 
             // Get the MCP servers registered for this team
             const mcpServers = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
@@ -237,7 +300,6 @@ module.exports = async function (app) {
             // then collect the MCP server info for the running instances MCP servers
             // filter out any that the user doesn't have access to
             const applicationCache = {}
-            const instanceToApplicationLookup = {}
             for (const server of mcpServers) {
                 const { name, protocol, endpointRoute, TeamId, Project, Device, title, version, description } = server
                 if (TeamId !== request.team.id) {
@@ -262,32 +324,37 @@ module.exports = async function (app) {
                     continue
                 }
 
-                // Ensure an application is linked to this instance
-                const applicationId = app.db.models.Application.encodeHashid(instance.ApplicationId)
-                if (!applicationId) {
+                // Ensure instance has an associated application
+                if (!instance?.ApplicationId) {
                     continue // e.g. skip devices without an application as they can't be validated for access
                 }
-                if (!applicationCache[applicationId]) {
-                    const applicationModel = await app.db.models.Application.byId(applicationId)
-                    applicationCache[applicationId] = applicationModel
+
+                // Get the application from local cache or db (an application can appear multiple times if multiple instances are registered)
+                const applicationHashid = app.db.models.Application.encodeHashid(instance.ApplicationId)
+                if (!Object.hasOwnProperty.call(applicationCache, applicationHashid)) {
+                    applicationCache[applicationHashid] = await app.db.models.Application.byId(applicationHashid)
                 }
-                const application = applicationCache[applicationId]
+                const application = applicationCache[applicationHashid]
                 if (!application) {
                     continue // skip - application not found
                 }
-                instanceToApplicationLookup[instanceId] = application
 
-                // Now we have the application & know it is supposed to be running, check user actually has access
-                // before bothering to check instance live state or calling backend for MCP features!
+                // Now we have the application & know the instance is supposed to be running, check user actually
+                // has access before bothering to check instance live state or calling backend for MCP features!
                 if (!app.hasPermission(request.teamMembership, 'expert:insights:mcp:allow', { application })) {
                     continue // user doesn't have access to this instance
                 }
 
-                // Now we have confirmed access is allowed, double check instance is running before offering MCP features (will avoid timeouts)
+                // Now we have confirmed access is allowed, check instance is actually running before offering
+                // MCP features (querying a non-running instance would cause timeouts)
                 const liveState = await instance.liveState({ omitStorageFlows: true })
                 if (liveState?.meta?.state !== 'running') {
                     continue
                 }
+
+                // Check instance settings for node security. If FlowFuse auth is enabled, generate a short-lived (5 mins)
+                // auth token for the instance with a scope limited to MCP access and cache it in memory for subsequent requests
+                const mcpAccessToken = await app.expert.mcp.getOrCreateToken(instance, instanceType, instanceId, request.teamHttpSecurityFeature)
 
                 runningInstancesWithMCPServer.push({
                     team: request.team.hashid,
@@ -299,6 +366,7 @@ module.exports = async function (app) {
                     mcpServerName: name,
                     mcpEndpoint: endpointRoute,
                     mcpProtocol: protocol,
+                    mcpAccessToken,
                     title,
                     version,
                     description
@@ -323,9 +391,9 @@ module.exports = async function (app) {
                 headers: {
                     Origin: request.headers.origin,
                     'X-Chat-Transaction-ID': transactionId,
-                    ...(serviceToken ? { Authorization: `Bearer ${serviceToken}` } : {})
+                    ...(app.expert.serviceToken ? { Authorization: `Bearer ${app.expert.serviceToken}` } : {})
                 },
-                timeout: requestTimeout
+                timeout: app.expert.requestTimeout
             })
 
             if (response.data.transactionId !== transactionId) {
@@ -337,8 +405,6 @@ module.exports = async function (app) {
             for (const serverItem of mcpServersResponse) {
                 const application = applicationCache[serverItem.application]
                 if (application) {
-                    // should allays be an application due to prior checks
-                    // skip this as bad data
                     serverList.push({
                         server: serverItem,
                         application

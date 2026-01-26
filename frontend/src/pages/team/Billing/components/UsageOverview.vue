@@ -12,7 +12,10 @@
                                     <tr v-for="instance in usedInstancesByType" :key="instance.type.id">
                                         <td class="font-medium">{{ instance.type.name }}</td>
                                         <td class="py-2 text-right">
-                                            <usage-value :used="instance.count" :limit="instance.limit" />
+                                            <usage-value
+                                                :used="instance.count"
+                                                :limit="getTeamProperty(`instances_${instance.type.id}_limit`)"
+                                            />
                                         </td>
                                     </tr>
                                 </tbody>
@@ -22,7 +25,10 @@
                     <tr>
                         <td><FormHeading><ChipIcon />Remote Instances</FormHeading></td>
                         <td class="text-right">
-                            <usage-value :used="team.deviceCount" :limit="team?.type?.properties?.devices?.limit ?? null" />
+                            <usage-value
+                                :used="team.deviceCount"
+                                :limit="getTeamProperty('devices_limit') ?? null"
+                            />
                         </td>
                     </tr>
                 </tbody>
@@ -32,11 +38,11 @@
         <div class="ff-instance-info w-full md:w-auto">
             <FormHeading>Team</FormHeading>
             <table class="table-fixed w-full border border-separate rounded">
-                <tbody v-if="team.deviceCount > 0">
+                <tbody>
                     <tr class="border-b">
                         <td class="font-medium flex items-center gap-2"><UsersIcon class="ff-icon ff-icon-md" /> Users</td>
                         <td class="py-2 text-right">
-                            <usage-value :used="team.memberCount" :limit="team?.type?.properties?.users?.limit ?? null" />
+                            <usage-value :used="team.memberCount" :limit="getTeamProperty('users_limit') ?? null" />
                         </td>
                     </tr>
                     <tr class="border-b">
@@ -48,12 +54,9 @@
                     <tr class="border-b">
                         <td class="font-medium flex items-center gap-2"><IdentificationIcon class="ff-icon ff-icon-md" /> Broker Clients</td>
                         <td class="py-2 text-right">
-                            <usage-value :used="team.teamBrokerClientsCount" :limit="team?.type?.properties?.teamBroker?.clients?.limit ?? null" />
+                            <usage-value :used="team.teamBrokerClientsCount" :limit="getTeamProperty('teamBroker_clients_limit') ?? null" />
                         </td>
                     </tr>
-                </tbody>
-                <tbody v-else>
-                    <tr><td class="text-center text-gray-400">None</td></tr>
                 </tbody>
             </table>
         </div>
@@ -68,6 +71,7 @@ import instanceTypesApi from '../../../../api/instanceTypes.js'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import ProjectsIcon from '../../../../components/icons/Projects.js'
+import { getObjectValue } from '../../../admin/Template/utils.js'
 
 import UsageValue from './UsageValue.vue'
 
@@ -105,7 +109,16 @@ export default {
         await this.refreshTeam()
     },
     methods: {
-        ...mapActions('account', ['refreshTeam'])
+        ...mapActions('account', ['refreshTeam']),
+        getTeamProperty (property) {
+            if (this.team.properties) {
+                const teamProperty = getObjectValue(this.team.properties, property)
+                if (teamProperty !== undefined) {
+                    return teamProperty
+                }
+            }
+            return getObjectValue(this.team.type.properties, property)
+        }
     }
 }
 </script>

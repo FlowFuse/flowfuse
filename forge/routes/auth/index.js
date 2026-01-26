@@ -42,7 +42,7 @@ module.exports = fp(init, { name: 'app.routes.auth' })
 
 /**
  * Initialize the auth plugin
- * @param {import('forge/forge').ForgeApplication} app
+ * @param {import('../../forge').ForgeApplication} app
  * @param {Object} opts
  * @param {Function} done
  */
@@ -134,6 +134,13 @@ async function init (app, opts) {
                     if (accessToken.ownerType === 'teamBrokerAgent') {
                         request.session.TeamBrokerAgent = await app.db.models.TeamBrokerAgent.byId(parseInt(accessToken.ownerId))
                         if (!request.session.TeamBrokerAgent) {
+                            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                            return
+                        }
+                    }
+                    if (accessToken.scope?.includes('ff-expert:mcp')) {
+                        // must be a http token for expert MCP access
+                        if (accessToken.ownerType !== 'http') {
                             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                             return
                         }

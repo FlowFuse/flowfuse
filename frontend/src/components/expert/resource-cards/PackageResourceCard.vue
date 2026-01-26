@@ -15,7 +15,10 @@
             <div class="package-name">{{ getPackageName(nodePackage) }}</div>
             <div class="package-url">{{ getPackageUrl(nodePackage) }}</div>
             <div class="package-actions">
-                <ff-button v-if="canManagePalette" size="small" kind="secondary" @click.stop.prevent="installPackage(nodePackage)">Install</ff-button>
+                <template v-if="canManagePalette">
+                    <ff-button v-if="isPackageInstalled(nodePackage)" class="w-20" size="small" kind="secondary" @click.stop.prevent="managePackage(nodePackage)">Manage</ff-button>
+                    <ff-button v-else class="w-20" size="small" kind="secondary" @click.stop.prevent="installPackage(nodePackage)">Install</ff-button>
+                </template>
             </div>
         </div>
     </a>
@@ -37,7 +40,7 @@ export default {
         ...mapGetters('product/expert', ['canManagePalette'])
     },
     methods: {
-        ...mapActions('product/assistant', ['installNodePackage']),
+        ...mapActions('product/assistant', ['installNodePackage', 'manageNodePackage']),
         getPackageName (pkg) {
             // Handle both object format {id: "..." or name: "..."} and string format
             return typeof pkg === 'object' ? (pkg.id || pkg.name) : pkg
@@ -45,6 +48,9 @@ export default {
         getPackageUrl (pkg) {
             const packageName = this.getPackageName(pkg)
             return `https://flows.nodered.org/node/${packageName}`
+        },
+        isPackageInstalled (pkg) {
+            return !!this.$store.state.product.assistant?.palette?.[pkg.id]
         },
         addUTMTracking (url) {
             try {
@@ -66,6 +72,11 @@ export default {
             const packageName = this.getPackageName(nodePackage)
             this.installNodePackage(packageName)
             // TODO: hide the ff-expert panel after installing. Ideally after a "success" message is received from the assistant
+        },
+        managePackage (nodePackage) {
+            const packageName = this.getPackageName(nodePackage)
+            this.manageNodePackage(packageName)
+            // TODO: hide the ff-expert panel after managing. Ideally after a "success" message is received from the assistant
         }
     }
 }
