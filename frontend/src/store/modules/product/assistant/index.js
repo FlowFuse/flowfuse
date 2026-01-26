@@ -8,7 +8,8 @@ const initialState = () => ({
         target: 'nr-assistant',
         scope: 'flowfuse-expert',
         source: 'flowfuse-expert'
-    }
+    },
+    selectedNodes: []
 })
 
 const meta = {
@@ -33,6 +34,9 @@ const mutations = {
     SET_PALETTE (state, palette) {
         state.palette = palette ?? []
     },
+    SET_SELECTED_NODES (state, selection) {
+        state.selectedNodes = selection
+    },
     RESET (state) {
         const newState = initialState()
         Object.keys(newState).forEach(key => {
@@ -47,12 +51,12 @@ const actions = {
             console.warn('Received message from unknown origin. Ignoring.')
             return
         }
-
         switch (true) {
         case payload.data.type === 'assistant-ready':
             commit('SET_VERSION', payload.data.version)
             commit('SET_PALETTE', payload.data.palette)
             dispatch('requestSupportedActions')
+            dispatch('requestSelectedNodes')
             return await dispatch('requestPalette')
         case payload.data.type === 'get-assistant-version':
             return dispatch('setVersion', payload.data.version)
@@ -60,6 +64,8 @@ const actions = {
             return dispatch('setSupportedActions', payload.data.supportedActions)
         case payload.data.type === 'set-palette':
             return dispatch('setPalette', payload.data.palette)
+        case payload.data.type === 'set-selection':
+            return dispatch('setSelectedNodes', payload.data.selection)
         default:
             // do nothing
         }
@@ -73,6 +79,9 @@ const actions = {
     requestPalette: async ({ dispatch }) => {
         return dispatch('sendMessage', { type: 'get-palette' })
     },
+    requestSelectedNodes: async ({ dispatch }) => {
+        return dispatch('sendMessage', { type: 'get-selection' })
+    },
     setVersion: ({ commit }, version) => {
         commit('SET_VERSION', version)
     },
@@ -81,6 +90,9 @@ const actions = {
     },
     setPalette: ({ commit }, palette) => {
         commit('SET_PALETTE', palette)
+    },
+    setSelectedNodes: async ({ commit }, selection) => {
+        commit('SET_SELECTED_NODES', selection)
     },
     reset: ({ commit }) => {
         commit('RESET')
