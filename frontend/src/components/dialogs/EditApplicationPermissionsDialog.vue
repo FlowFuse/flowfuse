@@ -50,7 +50,7 @@ export default defineComponent({
                 })
         },
         roles () {
-            return { ...RoleNames, [Roles.None]: 'no access' }
+            return { ...RoleNames, [Roles.None]: 'No Access' }
         },
         isDirty () {
             return this.selection !== this.original

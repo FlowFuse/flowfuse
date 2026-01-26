@@ -7,13 +7,13 @@
                 :class="style.iconClass"
                 class="ff-icon ff-icon-sm"
             />
-            <span :class="style.roleClass" class="capitalize">
+            <span :class="style.roleClass" class="">
                 {{ role }}
             </span>
         </span>
         <span v-if="showOverrideRole" class="text-gray-500 italic flex gap-1">
             <span>Team Role:</span>
-            <span :class="style.roleClass" class="capitalize">
+            <span :class="style.roleClass">
                 {{ readableBaseRole }}
             </span>
         </span>
@@ -48,7 +48,7 @@ export default {
             return this.capitalize(this.roles[this.overrideRole] || 'unknown')
         },
         roles () {
-            return { ...RoleNames, [Roles.None]: 'no access' }
+            return { ...RoleNames, [Roles.None]: 'No Access' }
         },
         readableBaseRole () {
             return this.roles[this.baseRole] || 'unknown'
