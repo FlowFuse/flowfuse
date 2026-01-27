@@ -1,3 +1,24 @@
+#### 2.26.1: Release
+
+ - Bump cypress-io/github-action from 6.10.8 to 7.1.0 (#6577)
+ - Bump actions/cache from 5.0.1 to 5.0.2 (#6542)
+ - Bump JS-DevTools/npm-publish from 4.1.3 to 4.1.4 (#6543)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml (#6541)
+ - Bump actions/setup-node from 6.1.0 to 6.2.0 (#6544)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml (#6545)
+ - Bump actions/checkout from 6.0.1 to 6.0.2 (#6573) @app/dependabot
+ - Update list of NR versions for devices (#6572) @hardillb
+ - Add selected nodes support and enhance assistant messaging logic (#6570) @cstns
+ - Add support for expert access to mcp servers with auth (#6549) @Steve-Mcl
+ - Show manage button for already installed packages (#6556) @Steve-Mcl
+ - Add `value` property to team selection options in Settings page (#6534) @cstns
+ - docs: Add FlowFuse Tables feature beta status note (#6560) @ppawlowski
+ - Add palette support and refactor assistant messaging logic (#6551) @cstns
+ - Enhance theme selection with support for custom themes (#6539) @cstns
+ - Update `UsageOverview` to use `getTeamProperty` for dynamic property access which include team overrides (#6552) @cstns
+ - fix: Expert should only show install button if nr-assistant support is detected (#6525) @Steve-Mcl
+ - ci: No pre-staging deployment for a release branch (#6518) @ppawlowski
+
 #### 2.26.0: Release
 
  - Cover development dependecies in SAST scan (#6495)
