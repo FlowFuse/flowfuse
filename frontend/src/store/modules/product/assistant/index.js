@@ -21,6 +21,9 @@ const state = initialState()
 const getters = {
     immersiveInstance: (state, getters, rootState) => {
         return rootState.context.instance
+    },
+    hasUserSelection: (state) => {
+        return state.selectedNodes.length
     }
 }
 

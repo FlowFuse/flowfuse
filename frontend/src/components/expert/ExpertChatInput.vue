@@ -12,44 +12,60 @@
             </button>
             <div class="right-buttons">
                 <capabilities-selector v-if="isOperatorAgent" />
-                <button
-                    v-if="isGenerating && !isSessionExpired"
-                    type="button"
-                    class="btn-stop"
-                    @click="handleStop"
-                >
-                    Stop
-                </button>
-                <button
-                    v-else-if="!isSessionExpired"
-                    type="button"
-                    class="btn-send"
-                    :disabled="!canSend"
-                    @click="handleSend"
-                >
-                    Send
-                </button>
             </div>
         </div>
+        <div class="input-wrapper" :class="{ 'focused': isTextareaFocused }">
+            <!-- Textarea -->
+            <textarea
+                ref="textarea"
+                v-model="inputText"
+                class="chat-input"
+                :placeholder="placeholderText"
+                :disabled="isInputDisabled"
+                @keydown="handleKeydown"
+                @focus="isTextareaFocused = true"
+                @blur="isTextareaFocused = false"
+            />
 
-        <!-- Textarea -->
-        <textarea
-            ref="textarea"
-            v-model="inputText"
-            class="chat-input"
-            :placeholder="placeholderText"
-            :disabled="isInputDisabled"
-            @keydown="handleKeydown"
-        />
+            <div class="actions">
+                <div class="left">
+                    <include-selection-button v-if="hasUserSelection" v-model="includeSelection" />
+                </div>
+
+                <div class="right">
+                    <button
+                        v-if="isGenerating && !isSessionExpired"
+                        type="button"
+                        class="btn-stop"
+                        @click="handleStop"
+                    >
+                        Stop
+                    </button>
+                    <button
+                        v-else-if="!isSessionExpired"
+                        type="button"
+                        class="btn-send"
+                        :disabled="!canSend"
+                        @click="handleSend"
+                    >
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
+import IncludeSelectionButton from './components/IncludeSelectionButton.vue'
 
 export default {
     name: 'ExpertChatInput',
     components: {
+        IncludeSelectionButton,
         CapabilitiesSelector
     },
     props: {
@@ -81,10 +97,13 @@ export default {
     emits: ['send', 'stop', 'start-over'],
     data () {
         return {
-            inputText: ''
+            inputText: '',
+            includeSelection: true,
+            isTextareaFocused: false
         }
     },
     computed: {
+        ...mapGetters('product/assistant', ['hasUserSelection']),
         isInputDisabled () {
             if (this.isSessionExpired) return true
             if (this.isGenerating) return true
@@ -148,7 +167,7 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem; // pb-4
+    margin-bottom: 0.5rem;
 }
 
 .right-buttons {
@@ -174,6 +193,8 @@ button {
     background-color: white;
     color: inherit;
     border-color: #C7D2FE; // indigo-300
+    padding: 0.25rem 0.50rem;
+    border-radius: 5px;
 
     &:hover:not(:disabled) {
         background-color: #F9FAFB; // gray-50
@@ -184,6 +205,8 @@ button {
     background-color: $ff-indigo-600;
     color: white;
     border-color: $ff-indigo-600;
+    border-radius: 5px;
+    padding: 0.25rem 0.50rem;
 
     &:hover:not(:disabled) {
         background-color: $ff-indigo-700;
@@ -197,6 +220,8 @@ button {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    border-radius: 5px;
+    padding: 0.25rem 0.50rem;
 
     &::before {
         content: '';
@@ -211,33 +236,62 @@ button {
     }
 }
 
-.chat-input {
-    width: 100%;
-    height: 6rem; // h-24
-    padding: 1rem; // p-4
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 10vh;
     border: 2px solid #D1D5DB; // border-2 border-gray-300
     border-radius: 0.5rem; // rounded-lg
-    font-size: 0.875rem; // text-sm
-    line-height: 1.5;
-    color: #111827; // text-gray-900
-    resize: none;
-    outline: none;
-    font-family: inherit;
-    background: white;
+    transition: border-color 0.2s ease;
 
-    &:focus {
-        border-color: $ff-indigo-500; // focus:border-indigo-500
+    &.focused {
+        border-color: $ff-indigo-500;
+    }
+
+    .chat-input {
+        flex: 1;
+        width: 100%;
+        padding: 1rem; // p-4
+        box-sizing: border-box;
+        overflow-y: auto;
+        border: none;
         outline: none;
+        font-size: 0.875rem; // text-sm
+        line-height: 1.5;
+        color: #111827; // text-gray-900
+        resize: none;
+        font-family: inherit;
+        background: white;
+
+        &:focus {
+            outline: none;
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            background-color: #F9FAFB; // bg-gray-50
+            color: #6B7280; // text-gray-500
+        }
+
+        &::placeholder {
+            color: #9CA3AF; // placeholder gray
+        }
     }
 
-    &:disabled {
-        cursor: not-allowed;
-        background-color: #F9FAFB; // bg-gray-50
-        color: #6B7280; // text-gray-500
-    }
+    .actions {
+        padding: .5rem;
+        display: flex;
+        justify-content: space-between;
 
-    &::placeholder {
-        color: #9CA3AF; // placeholder gray
+        .left {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .right {
+            display: flex;
+            justify-content: flex-end;
+        }
     }
 }
 </style>
