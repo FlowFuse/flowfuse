@@ -1,5 +1,9 @@
 <template>
-    <div class="ff-expert-input">
+    <div class="ff-expert-input" :style="{height: componentHeight + 'px'}">
+        <resize-bar
+            direction="horizontal"
+            @mousedown="startResize"
+        />
         <!-- Action buttons row -->
         <div class="action-buttons">
             <button
@@ -59,12 +63,19 @@
 <script>
 import { mapGetters } from 'vuex'
 
+import ResizeBar from '../../pages/instance/Editor/components/drawer/ResizeBar.vue'
+
 import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
 import IncludeSelectionButton from './components/IncludeSelectionButton.vue'
+
+// todo.... something
+const DRAWER_MOBILE_BREAKPOINT = 640 // Viewport width below which mobile layout applies
+const DRAWER_MAX_WIDTH_RATIO = 0.9 // Maximum drawer width as percentage of viewport (desktop)
 
 export default {
     name: 'ExpertChatInput',
     components: {
+        ResizeBar,
         IncludeSelectionButton,
         CapabilitiesSelector
     },
@@ -99,7 +110,18 @@ export default {
         return {
             inputText: '',
             includeSelection: true,
-            isTextareaFocused: false
+            isTextareaFocused: false,
+            viewportWidth: window.innerWidth,
+            viewportHeight: window.innerHeight,
+            component: {
+                resizing: false,
+                startX: 0,
+                startY: 0,
+                startWidth: 0,
+                startHeight: 0,
+                width: 0,
+                height: 0
+            }
         }
     },
     computed: {
@@ -120,6 +142,14 @@ export default {
             return this.isOperatorAgent
                 ? 'Tell us what you want to know about'
                 : 'Tell us what you need help with'
+        },
+        componentHeight () {
+            if (this.viewportHeight < DRAWER_MOBILE_BREAKPOINT) {
+                // Mobile: drawer takes up full viewport
+                return Math.min(this.component.height, this.viewportHeight)
+            }
+            // Desktop: drawer can't exceed specified percentage of viewport
+            return Math.min(this.component.height, this.viewportHeight * DRAWER_MAX_WIDTH_RATIO)
         }
     },
     methods: {
@@ -147,6 +177,47 @@ export default {
                 this.handleSend()
             }
             // Shift+Enter = new line (default behavior)
+        },
+        startResize (e) {
+            this.component.resizing = true
+
+            this.component.startX = e.clientX
+            this.component.startY = e.clientY
+
+            this.component.startWidth = this.component.width
+            this.component.startHeight = this.component.height
+
+            document.addEventListener('mousemove', this.resize)
+            document.addEventListener('mouseup', this.stopResize)
+        },
+        resize (e) {
+            if (this.component.resizing) {
+                const widthChange = e.clientX - this.component.startX
+                const heightChange = e.clientY - this.component.startY
+
+                const newWidth = this.component.startWidth + widthChange
+                const newHeight = this.component.startHeight - heightChange
+
+                // todo figure out what to do with these
+                const COMPONENT_MIN_WIDTH = 0
+                const COMPONENT_MIN_HEIGHT = 0
+                const DRAWER_MAX_VIEWPORT_MARGIN_X = 0
+                const DRAWER_MAX_VIEWPORT_MARGIN_Y = 0
+
+                this.component.width = Math.min(
+                    Math.max(COMPONENT_MIN_WIDTH, newWidth),
+                    this.viewportWidth - DRAWER_MAX_VIEWPORT_MARGIN_X
+                )
+                this.component.height = Math.min(
+                    Math.max(COMPONENT_MIN_HEIGHT, newHeight),
+                    this.viewportHeight - DRAWER_MAX_VIEWPORT_MARGIN_Y
+                )
+            }
+        },
+        stopResize () {
+            this.component.resizing = false
+            document.removeEventListener('mousemove', this.resize)
+            document.removeEventListener('mouseup', this.stopResize)
         }
     }
 }
@@ -161,6 +232,8 @@ export default {
     border-top: 1px solid #E5E7EB; // border-gray-200
     background: white;
     flex-shrink: 0; // Prevent input area from shrinking
+    position: relative;
+    min-height: 15vh;
 }
 
 .action-buttons {
@@ -237,6 +310,7 @@ button {
 }
 
 .input-wrapper {
+    flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 10vh;
