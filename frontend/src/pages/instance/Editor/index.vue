@@ -2,56 +2,6 @@
     <div class="ff-editor-wrapper" :class="{resizing: drawer.resizing}">
         <EditorWrapper :instance="instance" :disable-events="drawer.resizing" @toggle-drawer="toggleDrawer" @iframe-loaded="notifyDrawerState" @request-drawer-state="notifyDrawerState" />
 
-        <DrawerTrigger :is-hidden="drawer.open" @toggle="toggleDrawer" />
-
-        <section
-            class="tabs-wrapper drawer"
-            :class="{'open': drawer.open, resizing: drawer.resizing}"
-            :style="{ width: drawerWidth + 'px' }"
-            data-el="tabs-drawer"
-            @mouseenter="handleDrawerMouseEnter"
-            @mouseleave="handleDrawerMouseLeave"
-        >
-            <resize-bar
-                @mousedown="startResize"
-            />
-
-            <div class="header">
-                <div class="logo">
-                    <router-link title="Back to instance overview" :to="{ name: 'instance-overview', params: {id: instance.id} }">
-                        <ArrowLeftIcon class="ff-btn--icon" />
-                    </router-link>
-                </div>
-                <ff-tabs :tabs="navigation" class="tabs" />
-                <div class="side-actions">
-                    <DashboardLink
-                        v-if="instance.settings?.dashboard2UI" :instance="instance"
-                        :disabled="!editorAvailable"
-                    />
-                    <InstanceActionsButton :instance="instance" @instance-deleted="onInstanceDelete" />
-                    <button
-                        title="Close drawer"
-                        type="button"
-                        class="close-drawer-button"
-                        aria-label="Close drawer"
-                        @click="toggleDrawer"
-                    >
-                        <XIcon class="ff-btn--icon" />
-                    </button>
-                </div>
-            </div>
-
-            <ff-page :no-padding="isExpertRoute">
-                <router-view
-                    :instance="instance"
-                    :is-visiting-admin="isVisitingAdmin"
-                    @instance-updated="loadInstance"
-                    @instance-confirm-delete="showConfirmDeleteDialog"
-                    @instance-confirm-suspend="showConfirmSuspendDialog"
-                />
-            </ff-page>
-        </section>
-
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" :instance="instance" @confirm="onInstanceDelete" />
 
         <InstanceStatusPolling
