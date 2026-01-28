@@ -17,7 +17,7 @@
                     </span>
                     <RoleCompare :baseRole="data.role" :overrideRole="application.role" class="w-40" />
                     <span class="item action w-40 pl-5" data-action="update-role">
-                        <PencilAltIcon v-if="!application.disabled" class="ff-icon ff-icon-sm ff-link" @click.prevent="onUpdateRole(application)" />
+                        <PencilAltIcon class="ff-icon ff-icon-sm ff-link" @click.prevent="onUpdateRole(application)" />
                     </span>
                 </li>
             </ul>

@@ -117,7 +117,7 @@ describe('FlowFuse - RBAC GUI Management', () => {
             cy.get('[data-nav="team-members"]').click()
 
             // check that bob has an owner role
-            cy.get('[data-el="row-no-role-barry"]').contains('None')
+            cy.get('[data-el="row-no-role-barry"]').contains('No Access')
 
             // expand the row for bob
             cy.get('[data-el="row-no-role-barry"] [data-el="collapsible-row-toggle"]').click()
@@ -127,13 +127,13 @@ describe('FlowFuse - RBAC GUI Management', () => {
             // find the next collapsible row which is the application permissions row
             cy.get('[data-el="row-no-role-barry"]').next('.collapsible')
                 .within(() => {
-                    cy.get('[data-el="app-item-application-6"]').contains('None')
+                    cy.get('[data-el="app-item-application-6"]').contains('No Access')
                     cy.get('[data-el="app-item-application-6"] [data-action="update-role"] svg').click()
                 })
 
             // set the application role viewer to bob
             cy.get('[data-el="application-permission-dialog"]').should('be.visible')
-            cy.get('[data-el="application-permission-dialog"] button').contains('None').click()
+            cy.get('[data-el="application-permission-dialog"] button').contains('No Access').click()
             cy.get('[data-el="application-permission-dialog"] [data-action="dialog-confirm"]').should('be.disabled')
             cy.get('[data-el=listbox-options] [data-option="Viewer"]').click()
             cy.get('[data-el="application-permission-dialog"] [data-action="dialog-confirm"]').click()
@@ -150,7 +150,7 @@ describe('FlowFuse - RBAC GUI Management', () => {
                     cy.get('[data-el="app-item-application-6"] [data-action="update-role"] svg').click()
                 })
             cy.get('[data-el="application-permission-dialog"] button').contains('Viewer').click()
-            cy.get('[data-el=listbox-options] [data-option="None"]').click()
+            cy.get('[data-el=listbox-options] [data-option="No Access"]').click()
             cy.get('[data-el="application-permission-dialog"] [data-action="dialog-confirm"]').click()
             cy.wait('@putTeamMember')
         })
@@ -184,7 +184,7 @@ describe('FlowFuse - RBAC GUI Management', () => {
             cy.get('[data-nav="team-members"]').click()
 
             // check that noRoleBarry has no role
-            cy.get('[data-el="row-no-role-barry"]').contains('None')
+            cy.get('[data-el="row-no-role-barry"]').contains('No Access')
 
             // expand the row for noRoleBarry
             cy.get('[data-el="row-no-role-barry"] [data-el="collapsible-row-toggle"]').click()
@@ -194,13 +194,13 @@ describe('FlowFuse - RBAC GUI Management', () => {
             // find the next collapsible row which is the application permissions row
             cy.get('[data-el="row-no-role-barry"]').next('.collapsible')
                 .within(() => {
-                    cy.get('[data-el="app-item-application-6"]').contains('None')
+                    cy.get('[data-el="app-item-application-6"]').contains('No Access')
                     cy.get('[data-el="app-item-application-6"] [data-action="update-role"] svg').click()
                 })
 
             // set the application role viewer to noRoleBarry
             cy.get('[data-el="application-permission-dialog"]').should('be.visible')
-            cy.get('[data-el="application-permission-dialog"] button').contains('None').click()
+            cy.get('[data-el="application-permission-dialog"] button').contains('No Access').click()
             cy.get('[data-el="application-permission-dialog"] [data-action="dialog-confirm"]').should('be.disabled')
             cy.get('[data-el=listbox-options] [data-option="Viewer"]').click()
             cy.get('[data-el="application-permission-dialog"] [data-action="dialog-confirm"]').click()
@@ -217,7 +217,7 @@ describe('FlowFuse - RBAC GUI Management', () => {
                     cy.get('[data-el="app-item-application-6"] [data-action="update-role"] svg').click()
                 })
             cy.get('[data-el="application-permission-dialog"] button').contains('Viewer').click()
-            cy.get('[data-el=listbox-options] [data-option="None"]').click()
+            cy.get('[data-el=listbox-options] [data-option="No Access"]').click()
             cy.get('[data-el="application-permission-dialog"] [data-action="dialog-confirm"]').click()
             cy.wait('@putTeamMember')
         })

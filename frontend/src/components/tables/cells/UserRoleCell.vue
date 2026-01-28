@@ -3,7 +3,7 @@
 </template>
 <script>
 import { capitalize } from '../../../composables/String.js'
-import { RoleNames } from '../../../utils/roles.js'
+import { RoleNames, Roles } from '../../../utils/roles.js'
 export default {
     name: 'UserRoleCell',
     props: ['role'],
@@ -12,11 +12,11 @@ export default {
     },
     computed: {
         formattedRole () {
-            return this.capitalize(this.formatRole(this.role))
+            return this.capitalize(this.roles[this.role])
+        },
+        roles () {
+            return { ...RoleNames, [Roles.None]: 'No Access' }
         }
-    },
-    methods: {
-        formatRole: r => RoleNames[r] || 'unknown'
     }
 }
 </script>

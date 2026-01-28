@@ -7,13 +7,13 @@
                 :class="style.iconClass"
                 class="ff-icon ff-icon-sm"
             />
-            <span :class="style.roleClass" class="capitalize">
+            <span :class="style.roleClass" class="">
                 {{ role }}
             </span>
         </span>
         <span v-if="showOverrideRole" class="text-gray-500 italic flex gap-1">
             <span>Team Role:</span>
-            <span :class="style.roleClass" class="capitalize">
+            <span :class="style.roleClass">
                 {{ readableBaseRole }}
             </span>
         </span>
@@ -25,7 +25,7 @@ import { ArrowDownIcon, ArrowUpIcon, BanIcon } from '@heroicons/vue/outline'
 
 import { capitalize } from '../../composables/String.js'
 
-import { RoleNames } from '../../utils/roles.js'
+import { RoleNames, Roles } from '../../utils/roles.js'
 
 export default {
     name: 'RoleCompare',
@@ -45,10 +45,13 @@ export default {
     },
     computed: {
         role () {
-            return this.capitalize(RoleNames[this.overrideRole] || 'unknown')
+            return this.capitalize(this.roles[this.overrideRole] || 'unknown')
+        },
+        roles () {
+            return { ...RoleNames, [Roles.None]: 'No Access' }
         },
         readableBaseRole () {
-            return RoleNames[this.baseRole] || 'unknown'
+            return this.roles[this.baseRole] || 'unknown'
         },
         style () {
             if (parseInt(this.baseRole) === 0) {
