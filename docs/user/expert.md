@@ -4,11 +4,10 @@ navTitle: FlowFuse Expert
 
 # FlowFuse Expert
 
-The FlowFuse Expert brings the power of AI to the Node-RED editor and FlowFuse. Hosted Instances running
-within FlowFuse Cloud will include the **FlowFuse Expert**, a plugin that helps you work faster and smarter.
+The FlowFuse Expert brings the power of AI to the Node-RED editor and FlowFuse. **FlowFuse Expert is automatically installed and available in all hosted instances running within FlowFuse Cloud** - no manual installation or configuration required.
 
 You can also install the FlowFuse Expert plugin into your own Node-RED instances outside of FlowFuse. This
-requires a FlowFuse Cloud account, but for the current release, it doesn't not require a paid subscription to use.
+requires a FlowFuse Cloud account, but for the current release, it does not require a paid subscription to use.
 
 ## FlowFuse Expert Features Overview
 
@@ -78,11 +77,11 @@ The FlowFuse Expert currently supports the following features:
 2. **Inline Code Completions:** Inline code completions for Function node, Tables Query node and FlowFuse Dashboard `ui-template` node
 3. **Flow Explainer:** Get detailed explanations of the selected nodes in your flow
 4. **Function Node Creation:** Create a new function node directly, driven by natural language.
-5. **Function Code Generation:** Within the scope of an eisting function node, ask the assistant to write code for you.
+5. **Function Code Generation:** Within the scope of an existing function node, ask the assistant to write code for you.
 6. **JSON Generation:** In-editor JSON generation within the JSON editor for all typed inputs and JSON editors.
 7. **CSS and HTML Generation:** In-editor CSS and HTML generation for FlowFuse Dashboard `ui-template` nodes
 
-To enable the FlowFuse Expert and any new features, ensure your Instance is running the latest Stack and the FlowFuse Expert (`@flowfuse/nr-assistant`) is updated to the latest version.
+To enable the latest FlowFuse Expert features, ensure your Instance is running the latest Stack. **For FlowFuse Cloud instances, FlowFuse Expert (`@flowfuse/nr-assistant`) is automatically updated to the latest version.**
 
 ### FlowFuse Expert for self-hosted customers
 
@@ -158,7 +157,7 @@ _Screenshot showing a FlowFuse Expert prompt for JSON generation_
 This is useful when you want to quickly generate JSON for a prototype, or test
 a piece of functionality in your flows.
 
-He we can see the result of the above prompt, requesting simulated data for progress on
+Here we can see the result of the above prompt, requesting simulated data for progress on
 lines in a manufacturing plant:
 
 ![json generation](./images/assistant/json-results.png){data-zoomable width="700px"}
@@ -170,12 +169,17 @@ The FlowFuse Expert plugin also adds a code lens to the FlowFuse Dashboard `ui-t
 to generate CSS and HTML directly within the code editor. It is aware of the context of the node and will
 generate suitable CSS and HTML components for Vuetify and the FlowFuse Dashboard.
 
-## Using the FlowFuse Expert in your own Node-RED
+## Installing FlowFuse Expert in External Node-RED Instances
 
-To install the plugin, use the Node-RED Palette Manager and install the package `@flowfuse/nr-assistant` and restart Node-RED.
+**Note: FlowFuse Cloud instances have FlowFuse Expert automatically installed. Manual installation is only needed for Node-RED instances running outside of FlowFuse.**
 
-Once installed, you'll see the FlowFuse Expert icon in the header. Click on it and follow the option to connect to your FlowFuse Cloud
-account. Once connected, you will be able to use all of the FlowFuse Expert features.
+To install the plugin in your own Node-RED instance:
+
+1. Use the Node-RED Palette Manager to install the package `@flowfuse/nr-assistant`
+2. Restart Node-RED
+3. Click the FlowFuse Expert icon in the header
+4. Follow the prompts to connect to your FlowFuse Cloud account
+5. Once connected, you will be able to use all FlowFuse Expert features
 
 ## Data Privacy
 
