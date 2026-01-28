@@ -103,6 +103,7 @@ module.exports = async function (app) {
             if (app.config.features.enabled('sso') && app.settings.get('platform:sso:google') && app.settings.get('platform:sso:google:clientId')) {
                 response['platform:sso:google'] = true
                 response['platform:sso:google:clientId'] = app.settings.get('platform:sso:google:clientId')
+                response['platform:sso:google:auto-create'] = app.settings.get('platform:sso:google:auto-create')
             }
             if (app.config.features.enabled('sso')) {
                 response['platform:sso:direct'] = app.settings.get('platform:sso:direct')

@@ -31,17 +31,32 @@ function create (id, tourJson, onCloseHook) {
         }
     })
 
-    function onCancel () {
-        const index = tour.steps.indexOf(tour.currentStep)
-        store.dispatch('ux/tours/deactivateTour', id)
-        store.dispatch('ux/tours/clearActiveTour')
-        store.dispatch('ux/tours/withdrawTour')
-        Product.capture('ff-tour-cancel', {
-            tour_id: id,
-            tour_step: index
-        })
-        if (onCloseHook) {
-            onCloseHook()
+    const cancelTour = tour.cancel
+    tour.cancel = function () {
+        const currentStep = tour.getCurrentStep()
+
+        const index = tour.steps.indexOf(currentStep)
+        const finalExitStepIndexExists = tour.steps.findIndex(step => step.options.id?.includes('final-step')) !== -1
+        const allSteps = tour.steps
+        const isLastStep = index === allSteps.length || !!currentStep.options.id?.includes('final-step')
+
+        // highlight the newly created instance only if quitting start- / mid-tour
+        // highlight the newly created instance only for the welcome tour
+        if (tour.options.id === 'welcome' && finalExitStepIndexExists && !isLastStep) {
+            return tour.show('final-step-with-hosted-instance')
+        } else {
+            store.dispatch('ux/tours/deactivateTour', id)
+            store.dispatch('ux/tours/clearActiveTour')
+            store.dispatch('ux/tours/withdrawTour')
+
+            Product.capture('ff-tour-cancel', {
+                tour_id: id,
+                tour_step: index
+            })
+            if (onCloseHook) {
+                onCloseHook()
+            }
+            cancelTour()
         }
     }
 
@@ -75,7 +90,6 @@ function create (id, tourJson, onCloseHook) {
         })
     }
 
-    tour.on('cancel', onCancel)
     tour.on('complete', onComplete)
 
     // loop over steps and add them to the tour

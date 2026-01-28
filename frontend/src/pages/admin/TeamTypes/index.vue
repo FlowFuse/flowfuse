@@ -32,8 +32,8 @@
             <SectionTopMenu hero="Inactive Types" />
             <ff-data-table :columns="columns" :rows="inactiveTeamTypes" data-el="inactive-types">
                 <template #context-menu="{row}">
-                    <ff-list-item label="Edit Team Type" @click="teamTypeAction('edit', row.id)" />
-                    <ff-list-item label="Delete Team Type" kind="danger" @click="teamTypeAction('delete', row.id)" />
+                    <ff-kebab-item label="Edit Team Type" @click="teamTypeAction('edit', row.id)" />
+                    <ff-kebab-item label="Delete Team Type" kind="danger" @click="teamTypeAction('delete', row.id)" />
                 </template>
             </ff-data-table>
             <div v-if="nextCursor">

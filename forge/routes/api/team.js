@@ -238,7 +238,8 @@ module.exports = async function (app) {
                 properties: {
                     associationsLimit: { type: 'number' },
                     includeInstances: { type: 'boolean' },
-                    includeApplicationDevices: { type: 'boolean' }
+                    includeApplicationDevices: { type: 'boolean' },
+                    excludeOwnerFiltering: { type: 'boolean' }
                 }
             },
             params: {
@@ -278,8 +279,11 @@ module.exports = async function (app) {
             includeApplicationSummary
         })
 
+        const shouldExcludeOwnerFiltering = Object.prototype.hasOwnProperty.call(request.query, 'excludeOwnerFiltering') &&
+            app.hasPermission(request.teamMembership, 'project:create') // checking for the owner role not if the user can create a project
+
         // Apply Application level RBAC
-        if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+        if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications && !shouldExcludeOwnerFiltering) {
             applications = applications.filter(application => {
                 return app.hasPermission(request.teamMembership, 'project:read', { application })
             })
@@ -1138,7 +1142,13 @@ module.exports = async function (app) {
                 ? app.db.models.Project
                 : app.db.models.Device
             const membership = request.teamMembership
-            const stateCounters = await model.countByState(request.query.state, request.team, request.query.applicationId, membership) ?? []
+            const stateCounters = await model.countByState(
+                request.query.state,
+                request.team,
+                request.query.applicationId,
+                membership,
+                request.session.User?.admin
+            ) ?? []
             const response = {}
 
             stateCounters.forEach(res => {
