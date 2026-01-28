@@ -33,7 +33,7 @@
 
             <div class="actions">
                 <div class="left">
-                    <include-selection-button v-if="hasUserSelection" v-model="includeSelection" />
+                    <include-selection-button v-if="hasUserSelection" />
                 </div>
 
                 <div class="right">

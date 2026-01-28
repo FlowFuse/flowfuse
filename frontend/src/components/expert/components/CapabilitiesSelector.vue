@@ -165,9 +165,9 @@ export default {
         }
 
         button.ff-button {
-            padding: 0.5rem 0.75rem;
             border: 1px solid #c7d2fe; // indigo-300 to match other buttons
-            border-radius: 9999px; // pill shape
+            border-radius: 5px;
+            padding: 0.25rem 0.50rem;
             background: $ff-white;
             color: #1f2937; // gray-800, explicit dark text
             font-size: 0.875rem;
@@ -201,7 +201,6 @@ export default {
                 background: $ff-indigo-600;
                 border-color: $ff-indigo-600;
                 color: $ff-white;
-                border-radius: 9999px; // keep pill shape when open
 
                 .icon {
                     svg {
