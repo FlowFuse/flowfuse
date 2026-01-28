@@ -347,9 +347,11 @@ module.exports = async function (app) {
 
                 // Now we have confirmed access is allowed, check instance is actually running before offering
                 // MCP features (querying a non-running instance would cause timeouts)
-                const liveState = await instance.liveState({ omitStorageFlows: true })
-                if (liveState?.meta?.state !== 'running') {
-                    continue
+                if (instance.liveState) {
+                    const liveState = await instance.liveState({ omitStorageFlows: true })
+                    if (liveState?.meta?.state !== 'running') {
+                        continue
+                    }
                 }
 
                 // Check instance settings for node security. If FlowFuse auth is enabled, generate a short-lived (5 mins)
