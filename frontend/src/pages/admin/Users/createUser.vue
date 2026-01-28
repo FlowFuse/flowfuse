@@ -32,6 +32,7 @@
                 </ff-button>
             </form>
         </div>
+        <ConfirmAdminGrantDialog ref="confirmAdminDialog" @confirmed="handleAdminConfirmed" @cancel="handleAdminCanceled" />
     </ff-page>
 </template>
 
@@ -40,8 +41,11 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import usersApi from '../../../api/users.js'
+
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+
+import ConfirmAdminGrantDialog from './dialogs/ConfirmAdminGrantDialog.vue'
 
 let zxcvbn
 
@@ -50,7 +54,8 @@ export default {
     components: {
         ChevronRightIcon,
         FormRow,
-        FormHeading
+        FormHeading,
+        ConfirmAdminGrantDialog
     },
     data () {
         return {
@@ -68,7 +73,8 @@ export default {
                 isAdmin: false,
                 createDefaultTeam: false
             },
-            errors: {}
+            errors: {},
+            previousAdminState: false
         }
     },
     computed: {
@@ -125,6 +131,13 @@ export default {
             } else {
                 this.errors.name = ''
             }
+        },
+        'input.isAdmin': function (newValue, oldValue) {
+            // Only show confirmation when checking (false -> true)
+            if (newValue === true && oldValue === false) {
+                this.previousAdminState = oldValue
+                this.$refs.confirmAdminDialog.show()
+            }
         }
     },
     async mounted () {
@@ -152,6 +165,14 @@ export default {
                     }
                 }
             })
+        },
+        handleAdminConfirmed () {
+            // User confirmed - keep checkbox checked
+            this.previousAdminState = true
+        },
+        handleAdminCanceled () {
+            // User canceled - revert checkbox to previous state
+            this.input.isAdmin = this.previousAdminState
         }
     }
 }
