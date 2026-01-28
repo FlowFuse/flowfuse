@@ -1,21 +1,22 @@
 <template>
     <div class="selection-button" :class="{active: modelValue}" @click="toggleSelection">
-        <div class="icon-wrapper">
-            <XIcon v-if="modelValue" class="ff-icon ff-icon-sm" />
-            <PlusIcon v-else class="ff-icon ff-icon-sm" />
+        <div class="text">
+            <span>Selection</span>
+            <span class="counter italic" :title="selectionTitle">( {{ selectedCounter }} {{ pluralize('node', selectedCounter) }} )</span>
         </div>
 
         <span class="separator" />
-        <div class="text">
-            <span>Include Selection</span>
-            <span class="counter italic" :title="selectionTitle">( {{ selectedCounter }} {{ pluralize('node', selectedCounter) }} )</span>
+
+        <div class="icon-wrapper">
+            <XIcon v-if="modelValue" class="ff-icon ff-icon-sm" />
+            <PlusIcon v-else class="ff-icon ff-icon-sm" />
         </div>
     </div>
 </template>
 
 <script>
 import { PlusIcon, XIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import { pluralize } from '../../../composables/String.js'
 
@@ -28,7 +29,8 @@ export default {
     props: {
         modelValue: {
             type: Boolean,
-            required: true
+            required: false,
+            default: true
         }
     },
     emits: ['update:modelValue'],
@@ -47,13 +49,17 @@ export default {
                 map[n.type] = (map[n.type] ?? 0) + 1
             })
 
-            return Object.keys(map).map(k => `${map[k]} x ${k}`).join('\n')
+            const nodesList = Object.keys(map).map(k => `${map[k]} x ${k}`).join('\n')
+
+            return `Selected nodes: \n${nodesList}`
         }
     },
     methods: {
         pluralize,
+        ...mapActions('product/assistant', ['setSelectedNodes']),
         toggleSelection () {
             this.$emit('update:modelValue', !this.modelValue)
+            this.setSelectedNodes([])
         }
     }
 }
@@ -83,7 +89,7 @@ export default {
     .icon-wrapper {
         display: flex;
         align-items: center;
-        margin-left: 5px;
+        margin-right: 5px;
     }
 
     .separator {
@@ -99,6 +105,7 @@ export default {
         font-size: $ff-funit-sm;
         display: flex;
         gap: 2px;
+
         .counter {
             cursor: help;
         }
