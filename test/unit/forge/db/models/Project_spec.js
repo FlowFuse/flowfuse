@@ -1,4 +1,7 @@
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+const { v4: uuidv4 } = require('uuid')
+
 const setup = require('../setup')
 
 describe('Project model', function () {
@@ -140,9 +143,28 @@ describe('Project model', function () {
             const team = await Team.create({ name, TeamTypeId: teamTypeId })
             return team
         }
+        before(async function () {
+            await app.close()
+            // Dev-only Enterprise license - loads ee models
+            const license = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNDFmNmRjLTBmM2QtNGFmNy1hNzk0LWIyNWFhNGJmYTliZCIsInZlciI6IjIwMjQtMDMtMDQiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGdXNlIERldmVsb3BtZW50IiwibmJmIjoxNzMwNjc4NDAwLCJleHAiOjIwNzc3NDcyMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxMCwidGVhbXMiOjEwLCJpbnN0YW5jZXMiOjEwLCJtcXR0Q2xpZW50cyI6NiwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTczMDcyMTEyNH0.02KMRf5kogkpH3HXHVSGprUm0QQFLn21-3QIORhxFgRE9N5DIE8YnTH_f8W_21T6TlYbDUmf4PtWyj120HTM2w'
+            app = await setup({
+                license,
+                broker: {
+                    url: 'mqtt://forge:1883',
+                    teamBroker: {
+                        enabled: true
+                    }
+                }
+            })
+        })
+        after(async function () {
+            await app.close()
+            app = await setup()
+        })
         beforeEach(async () => {
-            app.license.defaults.instances = 20; // override default
-            ({ Application, Project, Team } = app.db.models)
+            app.license.defaults.instances = 20 // override default
+            app.license.defaults.mqttClients = 5 // override default
+            ;({ Application, Project, Team } = app.db.models)
         })
         // RELATION: ([ApplicationId]) REFERENCES [dbo].[Applications] ([id]) ON DELETE CASCADE,
         it('should delete Project on Application delete', async () => {
@@ -350,9 +372,62 @@ describe('Project model', function () {
             // at this point, the id may or may not have been updated however the relationship
             updatedProject.ProjectTemplateId.should.equal(projectTemplate.id)
         })
+
+        // Soft relations - ones linked via application logic rather than actual DDL constraints/cascades
+        it('should delete associated table rows on single Project delete', async () => {
+            // PREMISE: Create a project with associated rows in other tables, then delete it
+            // using project.destroy() and verify associated rows are also deleted
+            // which should occur in the model hook `afterDestroy`
+            // NOTE: access tokens & brokerClients are generated via a call to project.refreshAuthTokens()
+            // NOTE: auth clients are generated via a call to app.db.controllers.AuthClient.createClientForProject(project)
+
+            const project = await app.db.models.Project.create({ name: 'Project with associations', type: '', url: '', TeamId: app.TestObjects.team1.id })
+
+            // create access tokens & brokerClients
+            await project.refreshAuthTokens()
+
+            // create auth clients
+            await app.db.controllers.AuthClient.createClientForProject(project)
+
+            // create other associated rows
+            await app.db.models.ProjectSettings.create({ ProjectId: project.id, key: 'value', value: { test: true }, valueType: 1 })
+            await app.db.models.TeamBrokerClient.create({ username: `project:${project.id}`, password: uuidv4(), acls: '[]', teamId: app.TestObjects.team1.id, ownerId: '' + project.id, ownerType: 'project' })
+            await app.db.models.MCPRegistration.create({ name: `mcp_project_${project.id}`, protocol: 'http', targetType: 'instance', targetId: '' + project.id, nodeId: 'xxx', endpointRoute: '/mcp', TeamId: app.TestObjects.team1.id })
+
+            // test integrity - check tables we expect rows in to actually have them (later we will check they are deleted)
+            ;(await app.db.models.AccessToken.count({ where: { ownerId: project.id, ownerType: 'project' } })).should.equal(1)
+            ;(await app.db.models.BrokerClient.count({ where: { ownerId: project.id, ownerType: 'project' } })).should.be.equal(1)
+            ;(await app.db.models.AuthClient.count({ where: { ownerId: project.id, ownerType: 'project' } })).should.be.equal(1)
+            ;(await app.db.models.ProjectSettings.count({ where: { ProjectId: project.id, key: 'value' } })).should.be.equal(1)
+            ;(await app.db.models.TeamBrokerClient.count({ where: { ownerId: project.id, ownerType: 'project' } })).should.be.equal(1)
+            ;(await app.db.models.MCPRegistration.count({ where: { targetId: project.id, targetType: 'instance' } })).should.be.equal(1)
+            // Delete the project
+            await project.destroy()
+
+            // Verify associated rows are also deleted
+            ;(await app.db.models.AccessToken.count({ where: { ownerId: project.id, ownerType: 'project' } })).should.equal(0)
+            ;(await app.db.models.BrokerClient.count({ where: { ownerId: project.id, ownerType: 'project' } })).should.be.equal(0)
+            ;(await app.db.models.AuthClient.count({ where: { ownerId: project.id, ownerType: 'project' } })).should.be.equal(0)
+            ;(await app.db.models.ProjectSettings.count({ where: { ProjectId: project.id, key: 'value' } })).should.be.equal(0)
+            ;(await app.db.models.TeamBrokerClient.count({ where: { ownerId: project.id, ownerType: 'project' } })).should.be.equal(0)
+            ;(await app.db.models.MCPRegistration.count({ where: { targetId: project.id, targetType: 'instance' } })).should.be.equal(0)
+        })
     })
 
     describe('Counting Projects by State', function () {
+        before(async function () {
+            // Due to how EE models are loaded/required in the test setup, app.db.models.MCPRegistration will be the instance
+            // first loaded.  e.g. [APP-1].db.models.models.MCPRegistration will be the same instance as [APP-2].db.models.models.MCPRegistration
+            // This will cause the error "ConnectionManager.getConnection was called after the connection manager was closed!" to be thrown
+            // in the below tests because the previous describe blocks close the DB connection effectively invalidating the MCPRegistration model
+            // for subsequent tests. For that reason, the below tests will mock out the MCPRegistration.destroy call
+            // The ideal fix is to refactor the model loading in the test setup or to split the tests into separate processes
+            // but for now this stub will suffice
+            sinon.stub(app.db.models.MCPRegistration, 'destroy').resolves()
+        })
+        after(async function () {
+            sinon.restore()
+        })
         beforeEach(async () => {
             app.license.defaults.teams = 20
             app.license.defaults.instances = 20

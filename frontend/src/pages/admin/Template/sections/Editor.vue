@@ -110,9 +110,19 @@
         </div>
         <div class="flex flex-col sm:flex-row">
             <div class="w-full max-w-md sm:mr-8">
-                <FormRow v-model="editable.settings.theme" :disabled="!editTemplate && !editable.policy.theme" type="select" :options="themes">
+                <FormRow v-model="editable.settings.theme" :disabled="!editTemplate && !editable.policy.theme" type="uneditable" :options="themeOptions" wrapper-class="max-w-sm">
                     Editor Theme
                     <template #append><ChangeIndicator :value="editable.changed.settings.theme" /></template>
+                    <template #description>Choose a standard FlowFuse theme or enter the name of a loaded custom theme</template>
+                    <template #input>
+                        <ff-combobox
+                            v-model="editable.settings.theme"
+                            :options="themeOptions"
+                            :disabled="!editTemplate && !editable.policy.theme"
+                            :hasCustomValue="true"
+                            data-el="theme-dropdown"
+                        />
+                    </template>
                 </FormRow>
             </div>
             <LockSetting v-model="editable.policy.theme" class="flex justify-end flex-col" :editTemplate="editTemplate" :changed="editable.changed.policy.theme" />
@@ -231,7 +241,7 @@ export default {
     data () {
         return {
             timezones: timezonesData.timezones,
-            themes: [
+            defaultThemes: [
                 { label: 'FlowFuse Light', value: 'forge-light' },
                 { label: 'FlowFuse Dark', value: 'forge-dark' }
             ] // FUTURE: Get from theme plugins
@@ -278,6 +288,14 @@ export default {
                 return true
             }
             return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.12.0')
+        },
+        themeOptions () {
+            if (this.modelValue?.settings?.theme && !this.defaultThemes.map(th => th.value).includes(this.modelValue.settings.theme)) {
+                // set the custom theme as one of the available options
+                return [...this.defaultThemes, { label: this.modelValue.settings.theme, value: this.modelValue.settings.theme }]
+            }
+
+            return this.defaultThemes
         }
     }
 }

@@ -445,6 +445,13 @@ module.exports = async function (app) {
                     return true
                 })
             }
+
+            // if auth settings have been provided in this update, lets just goa head and
+            // clear the httpNodeAuth MCP access token for this project as a matter of course
+            if (newSettings.httpNodeAuth) {
+                app.expert?.mcp?.clearTokenCache?.(request.project.id)
+            }
+
             const updatedSettings = app.db.controllers.ProjectTemplate.mergeSettings(currentProjectSettings, newSettings)
 
             changesToPersist.settings = { from: currentProjectSettings, to: updatedSettings }

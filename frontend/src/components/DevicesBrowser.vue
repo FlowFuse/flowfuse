@@ -90,40 +90,40 @@
                     </ff-button>
                 </template>
                 <template #context-menu="{row}">
-                    <ff-list-item
+                    <ff-kebab-item
                         label="Edit Details"
                         @click="deviceAction('edit', row.id)"
                     />
-                    <ff-list-item
+                    <ff-kebab-item
                         v-if="!row.ownerType && displayingTeam"
                         label="Add to Application"
                         data-action="device-assign-to-application"
                         @click="deviceAction('assignToApplication', row.id)"
                     />
-                    <ff-list-item
+                    <ff-kebab-item
                         v-else-if="row.ownerType === 'application' && (displayingTeam || displayingApplication)"
                         label="Remove from Application"
                         data-action="device-remove-from-application"
                         @click="deviceAction('removeFromApplication', row.id)"
                     />
-                    <ff-list-item
+                    <ff-kebab-item
                         v-if="!row.ownerType && displayingTeam"
                         label="Add to Instance"
                         data-action="device-assign-to-instance"
                         @click="deviceAction('assignToProject', row.id)"
                     />
-                    <ff-list-item
+                    <ff-kebab-item
                         v-else-if="row.ownerType === 'instance' && (displayingTeam || displayingInstance)"
                         label="Remove from Instance"
                         data-action="device-remove-from-instance"
                         @click="deviceAction('removeFromProject', row.id)"
                     />
-                    <ff-list-item
+                    <ff-kebab-item
                         kind="danger"
                         label="Regenerate Configuration"
                         @click="deviceAction('updateCredentials', row.id)"
                     />
-                    <ff-list-item
+                    <ff-kebab-item
                         v-if="hasPermission('device:delete', applicationContext)"
                         kind="danger"
                         label="Delete Device"
