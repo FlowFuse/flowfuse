@@ -2,7 +2,7 @@
 navTitle: FlowFuse Expert
 ---
 
-# FlowFuse Expert Plugin
+# FlowFuse Expert
 
 The FlowFuse Expert brings the power of AI to the Node-RED editor and FlowFuse. Hosted Instances running
 within FlowFuse Cloud will include the **FlowFuse Expert**, a plugin that helps you work faster and smarter.
