@@ -110,9 +110,20 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
+            let typeId = request.params.typeId
+            if (request.params.type === 'device') {
+                const device = app.db.models.Device.byId(request.params.typeId)
+
+                if (!device) {
+                    throw new Error(`Device ${request.params.typeId} not found`)
+                }
+
+                typeId = device.id
+            }
+
             await app.db.models.MCPRegistration.upsert({
                 targetType: request.params.type,
-                targetId: request.params.typeId,
+                targetId: typeId,
                 nodeId: request.params.nodeId,
                 title: request.body.title,
                 version: request.body.version,
