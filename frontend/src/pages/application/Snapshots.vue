@@ -23,12 +23,12 @@
                     </DropdownMenu>
                 </template>
                 <template #context-menu="{row}">
-                    <ff-list-item :disabled="!hasPermission('snapshot:edit', { application })" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!canViewSnapshot(row)" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!canViewSnapshot(row)" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!canDownload(row)" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
-                    <ff-list-item :disabled="!canDownloadPackage(row)" label="Download package.json" @click="downloadSnapshotPackage(row)" />
-                    <ff-list-item :disabled="!canDelete(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
+                    <ff-kebab-item :disabled="!hasPermission('snapshot:edit', { application })" label="Edit Snapshot" @click="showEditSnapshotDialog(row)" />
+                    <ff-kebab-item :disabled="!canViewSnapshot(row)" label="View Snapshot" @click="showViewSnapshotDialog(row)" />
+                    <ff-kebab-item :disabled="!canViewSnapshot(row)" label="Compare Snapshot..." @click="showCompareSnapshotDialog(row)" />
+                    <ff-kebab-item :disabled="!canDownload(row)" label="Download Snapshot" @click="showDownloadSnapshotDialog(row)" />
+                    <ff-kebab-item :disabled="!canDownloadPackage(row)" label="Download package.json" @click="downloadSnapshotPackage(row)" />
+                    <ff-kebab-item :disabled="!canDelete(row)" label="Delete Snapshot" kind="danger" @click="showDeleteSnapshotDialog(row)" />
                 </template>
             </ff-data-table>
         </template>

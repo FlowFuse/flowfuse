@@ -299,11 +299,6 @@ $nav_height: 60px;
     display: flex;
     align-items: center;
     cursor: pointer;
-    &:hover {
-        label, h5 {
-            color: $ff-teal-200;
-        }
-    }
 }
 .ff-banner {
     background-color: $ff-grey-800;

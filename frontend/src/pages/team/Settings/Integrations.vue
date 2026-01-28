@@ -66,7 +66,7 @@
                     </ff-button>
                 </template>
                 <template v-if="editEnabled || deleteEnabled" #context-menu="{row}">
-                    <ff-list-item :disabled="!deleteEnabled" kind="danger" label="Delete Token" @click="menuAction('delete', row.id)" />
+                    <ff-kebab-item :disabled="!deleteEnabled" kind="danger" label="Delete Token" @click="menuAction('delete', row.id)" />
                 </template>
                 <template v-if="tokens.size === 0" #table>
                     <div class="ff-no-data ff-no-data-large">

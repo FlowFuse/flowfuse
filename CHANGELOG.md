@@ -1,3 +1,64 @@
+#### 2.26.1: Release
+
+ - Bump cypress-io/github-action from 6.10.8 to 7.1.0 (#6577)
+ - Bump actions/cache from 5.0.1 to 5.0.2 (#6542)
+ - Bump JS-DevTools/npm-publish from 4.1.3 to 4.1.4 (#6543)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml (#6541)
+ - Bump actions/setup-node from 6.1.0 to 6.2.0 (#6544)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml (#6545)
+ - Bump actions/checkout from 6.0.1 to 6.0.2 (#6573) @app/dependabot
+ - Update list of NR versions for devices (#6572) @hardillb
+ - Add selected nodes support and enhance assistant messaging logic (#6570) @cstns
+ - Add support for expert access to mcp servers with auth (#6549) @Steve-Mcl
+ - Show manage button for already installed packages (#6556) @Steve-Mcl
+ - Add `value` property to team selection options in Settings page (#6534) @cstns
+ - docs: Add FlowFuse Tables feature beta status note (#6560) @ppawlowski
+ - Add palette support and refactor assistant messaging logic (#6551) @cstns
+ - Enhance theme selection with support for custom themes (#6539) @cstns
+ - Update `UsageOverview` to use `getTeamProperty` for dynamic property access which include team overrides (#6552) @cstns
+ - fix: Expert should only show install button if nr-assistant support is detected (#6525) @Steve-Mcl
+ - ci: No pre-staging deployment for a release branch (#6518) @ppawlowski
+
+#### 2.26.0: Release
+
+ - Cover development dependecies in SAST scan (#6495)
+ - Do not create pre-staging on release (#6482)
+ - Bump JS-DevTools/npm-publish from 4.1.1 to 4.1.3 (#6492)
+ - Improve menu width calculation based on first child width (#6514) @cstns
+ - Clean up related database rows upon device and project deletion (#6424) @Steve-Mcl
+ - Filter MCP features based on granular RBACs (#6494) @Steve-Mcl
+ - Chore: refactor kebab menu item naming (#6490) @cstns
+ - ci: Use reusable workflow in the `SAST Scan` pipeline (#6499) @ppawlowski
+ - Replace kebab menu with headless UI (#6489) @cstns
+ - Facilitate post message communication between the FF App and the NR Assistant (#6498) @cstns
+ - Refactor tour cancel logic and add final step handling for hosted instance tours (#6511) @cstns
+ - Add admin access override to `countByState` checks in projects and devices models (#6500) @cstns
+ - Expose restricted applications for owners listing when team memberships (#6510) @cstns
+ - Teleported menus alignment (#6488) @cstns
+ - Add option to disable provisioning new users via google login (#6485) @knolleary
+ - Enable trial team creation for admin-created users (#6483) @knolleary
+ - Fix/members rbac permission (#6486) @cstns
+ - Allow admins to change grbac roles when he is a member of a team (#6476) @cstns
+ - Corrected the URL for Getting Started HyperLink (#6471) @Lakshita7
+ - ci: Bump slack-github-action to `v2.2.1` in `Publish` and `Tests` (#6464) @ppawlowski
+ - ci: Bump slack-github-action to `v2.2.1` in `Install Test` (#6463) @ppawlowski
+ - ci: Bump `slack-github-action` to `v2.2.1` in `Create pre-staging environment` (#6462) @ppawlowski
+ - Bump sinon from 19.0.2 to 21.0.1 (#6449) @app/dependabot
+ - Bump actions/cache from 4.3.0 to 5.0.1 (#6455) @app/dependabot
+ - Bump sass-loader from 16.0.5 to 16.0.6 (#6450) @app/dependabot
+ - Bump @fastify/static from 8.3.0 to 9.0.0 (#6451) @app/dependabot
+ - Bump github/codeql-action from 4.31.8 to 4.31.9 (#6454) @app/dependabot
+ - Bump cypress-io/github-action from 6.10.7 to 6.10.8 (#6456) @app/dependabot
+ - Bump docker/setup-buildx-action from 3.11.1 to 3.12.0 (#6452) @app/dependabot
+ - Bump @immobiliarelabs/fastify-sentry to support Fastify v5 (#6447) @hardillb
+ - Fastify v5 upgrade (#6442) @hardillb
+ - Bump actions/download-artifact from 6.0.0 to 7.0.0 (#6446) @app/dependabot
+ - Bump flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml from 0.43.0 to 0.45.0 (#6445) @app/dependabot
+ - Bump flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml from 0.44.0 to 0.45.0 (#6444) @app/dependabot
+ - Bump 1password/install-cli-action from 2.0.1 to 2.0.2 (#6443) @app/dependabot
+ - Expert MCP feature branch (#6436) @cstns
+ - Add docs on standalone FF Assistant (#6438) @knolleary
+
 #### 2.25.0: Release
 
  - Enable schedule instance restart (#6408) @hardillb

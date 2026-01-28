@@ -115,7 +115,7 @@
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 import billingApi from '../../../api/billing.js'
 
@@ -200,6 +200,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['team']),
+        ...mapGetters('account', ['isAdminUser']),
         billingSetUp () {
             return !this.missingSubscription && this.team.billing?.active
         },
@@ -242,7 +243,7 @@ export default {
         if (!this.billingSetUp && !this.isUnmanaged) {
             return
         }
-        if (!this.hasPermission('team:edit')) {
+        if (!this.hasPermission('team:edit') && !this.isAdminUser) {
             return this.$router.push({ path: `/team/${this.team.slug}/overview` })
         }
         this.loading = true
