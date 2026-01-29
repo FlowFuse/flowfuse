@@ -1,5 +1,7 @@
 const sinon = require('sinon')
 const should = require('should') // eslint-disable-line
+const { v4: uuidv4 } = require('uuid')
+
 const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -175,10 +177,10 @@ describe('MCP Server Registration', function () {
         const { token } = await app.instance.refreshAuthTokens()
         // stub app.log to capture error message
         const appLogStub = sinon.stub(app.log, 'error')
-
+        const randomId = uuidv4()
         const response = await app.inject({
             method: 'POST',
-            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/xxx-xxx-xxx/abcde`,
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${randomId}/abcde`,
             headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -199,7 +201,7 @@ describe('MCP Server Registration', function () {
         result.should.have.property('error', 'Failed to create mcp entry')
         appLogStub.calledOnce.should.be.true()
         const errMsg = appLogStub.getCall(0).args[0]
-        errMsg.should.match(/Instance 'xxx-xxx-xxx' not found/)
+        errMsg.should.match(new RegExp(`Instance '${randomId}' not found`))
     })
     it('should return 500 and log error for unknown type', async function () {
         const { token } = await app.instance.refreshAuthTokens()
