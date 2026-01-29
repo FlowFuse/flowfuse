@@ -14,8 +14,9 @@ const getters = {
         // Return safe defaults when route is not yet initialized
         if (!state.route) {
             return {
-                assistantVersion: rootGetters['product/assistant/version'],
-                assistantFeatures: rootGetters['product/assistant/assistantFeatures'],
+                assistantVersion: rootState.product.assistant.version,
+                nodeRedVersion: rootState.product.assistant.nodeRedVersion,
+                assistantFeatures: rootState.product.assistant.assistantFeatures,
                 userId: rootState.account?.user?.id || null,
                 teamId: rootState.account?.team?.id || null,
                 teamSlug: rootState.account?.team?.slug || null,
@@ -52,8 +53,9 @@ const getters = {
             selectedNodes = rootState.product.assistant.selectedNodes
         }
         return {
-            assistantVersion: rootGetters['product/assistant/version'],
-            assistantFeatures: rootGetters['product/assistant/assistantFeatures'],
+            assistantVersion: rootState.product.assistant.version,
+            nodeRedVersion: rootState.product.assistant.nodeRedVersion,
+            assistantFeatures: rootState.product.assistant.assistantFeatures,
             userId: rootState.account?.user?.id || null,
             teamId: rootState.account?.team?.id || null,
             teamSlug: rootState.account?.team?.slug || null,
