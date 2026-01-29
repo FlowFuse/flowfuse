@@ -45,7 +45,7 @@ describe('MCP Server Registration', function () {
         const { token } = await app.instance.refreshAuthTokens()
         const response = await app.inject({
             method: 'POST',
-            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.hashid}/abcde`,
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.id}/abcde`,
             headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -61,7 +61,7 @@ describe('MCP Server Registration', function () {
         })
         response.statusCode.should.equal(200)
 
-        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.hashid, 'abcde')
+        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.id, 'abcde')
         should.exist(mcpServer)
         mcpServer.name.should.equal('foo')
         mcpServer.protocol.should.equal('http')
@@ -74,7 +74,7 @@ describe('MCP Server Registration', function () {
         const { token } = await app.instance.refreshAuthTokens()
         const response = await app.inject({
             method: 'POST',
-            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.hashid}/vwxyz`,
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.id}/vwxyz`,
             headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -87,7 +87,7 @@ describe('MCP Server Registration', function () {
         })
         response.statusCode.should.equal(200)
 
-        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.hashid, 'vwxyz')
+        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.id, 'vwxyz')
         should.exist(mcpServer)
         mcpServer.name.should.equal('bar')
         mcpServer.protocol.should.equal('http')
@@ -132,13 +132,13 @@ describe('MCP Server Registration', function () {
         const { token } = await app.instance.refreshAuthTokens()
         const response = await app.inject({
             method: 'DELETE',
-            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.hashid}/abcde`,
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.id}/abcde`,
             headers: {
                 Authorization: `Bearer ${token}`
             }
         })
         response.statusCode.should.equal(200)
-        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.hashid, 'abcde')
+        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.id, 'abcde')
         should.not.exist(mcpServer)
     })
     it('should return 500 and log error for unknown device', async function () {
