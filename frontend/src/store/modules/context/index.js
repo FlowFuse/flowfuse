@@ -52,6 +52,7 @@ const getters = {
             deviceId: deviceId ?? null,
             applicationId: applicationId ?? null,
             isTrialAccount: rootGetters['account/isTrialAccount'] || false,
+            selectedNodes: rootGetters['product/assistant/immersiveInstance'] ? rootState['product/assistant/selectedNodes'] : [],
             pageName: state.route.name,
             rawRoute,
             scope

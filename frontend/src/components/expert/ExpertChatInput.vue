@@ -33,7 +33,7 @@
 
             <div class="actions">
                 <div class="left">
-                    <include-selection-button v-if="hasUserSelection" />
+                    <include-selection-button v-if="hasUserSelection && !isOperatorAgent" />
                 </div>
 
                 <div class="right">
