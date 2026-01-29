@@ -48,7 +48,7 @@ const getters = {
         const { matched, redirectedFrom, ...rawRoute } = state.route ?? {}
         let selectedNodes = null
 
-        if (scope === 'immersive' && rootGetters['product/expert/isFfAgent'] && rootState['product/assistant/selectedNodes'].length > 0) {
+        if (scope === 'immersive' && rootGetters['product/expert/isFfAgent'] && rootState.product.assistant.selectedNodes.length > 0) {
             selectedNodes = rootState['product/assistant/selectedNodes']
         }
         return {
