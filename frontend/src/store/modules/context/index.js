@@ -49,7 +49,7 @@ const getters = {
         let selectedNodes = null
 
         if (scope === 'immersive' && rootGetters['product/expert/isFfAgent'] && rootState.product.assistant.selectedNodes.length > 0) {
-            selectedNodes = rootState['product/assistant/selectedNodes']
+            selectedNodes = rootState.product.assistant.selectedNodes
         }
         return {
             assistantVersion: rootGetters['product/assistant/version'],
