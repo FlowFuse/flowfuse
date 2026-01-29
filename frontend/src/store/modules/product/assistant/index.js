@@ -62,7 +62,6 @@ const actions = {
         case payload.data.type === 'assistant-ready':
             commit('SET_VERSION', payload.data.version)
             commit('SET_PALETTE', payload.data.palette)
-            console.log(payload.data.features)
 
             commit('SET_FEATURES', payload.data.features)
             dispatch('requestSupportedActions')
