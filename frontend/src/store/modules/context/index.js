@@ -15,7 +15,6 @@ const getters = {
         if (!state.route) {
             return {
                 assistantVersion: rootState.product.assistant.version,
-                nodeRedVersion: rootState.product.assistant.nodeRedVersion,
                 assistantFeatures: rootState.product.assistant.assistantFeatures,
                 userId: rootState.account?.user?.id || null,
                 teamId: rootState.account?.team?.id || null,
@@ -24,6 +23,7 @@ const getters = {
                 deviceId: null,
                 applicationId: null,
                 isTrialAccount: rootGetters['account/isTrialAccount'] || false,
+                nodeRedVersion: rootState.product.assistant.nodeRedVersion,
                 pageName: null,
                 rawRoute: {},
                 selectedNodes: null,
@@ -54,7 +54,6 @@ const getters = {
         }
         return {
             assistantVersion: rootState.product.assistant.version,
-            nodeRedVersion: rootState.product.assistant.nodeRedVersion,
             assistantFeatures: rootState.product.assistant.assistantFeatures,
             userId: rootState.account?.user?.id || null,
             teamId: rootState.account?.team?.id || null,
@@ -64,6 +63,7 @@ const getters = {
             applicationId: applicationId ?? null,
             isTrialAccount: rootGetters['account/isTrialAccount'] || false,
             pageName: state.route.name,
+            nodeRedVersion: rootState.product.assistant.nodeRedVersion,
             rawRoute,
             selectedNodes,
             scope
