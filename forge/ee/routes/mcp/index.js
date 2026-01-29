@@ -112,7 +112,7 @@ module.exports = async function (app) {
         try {
             let typeId = request.params.typeId
             if (request.params.type === 'device') {
-                const device = app.db.models.Device.byId(request.params.typeId)
+                const device = await app.db.models.Device.byId(request.params.typeId)
 
                 if (!device) {
                     throw new Error(`Device ${request.params.typeId} not found`)
