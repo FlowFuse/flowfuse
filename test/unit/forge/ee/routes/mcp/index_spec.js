@@ -1,3 +1,4 @@
+const sinon = require('sinon')
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 
@@ -22,6 +23,10 @@ describe('MCP Server Registration', function () {
 
     after(async function () {
         await app.close()
+    })
+
+    afterEach(async function () {
+        sinon.restore()
     })
 
     async function login (username, password) {
@@ -135,5 +140,95 @@ describe('MCP Server Registration', function () {
         response.statusCode.should.equal(200)
         const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.hashid, 'abcde')
         should.not.exist(mcpServer)
+    })
+    it('should return 500 and log error for unknown device', async function () {
+        const { token } = await app.instance.refreshAuthTokens()
+        // stub app.log to capture error message
+        const appLogStub = sinon.stub(app.log, 'error')
+
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/device/99999/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'foo',
+                protocol: 'http',
+                endpointRoute: '/mcp',
+                title: 'FlowFuse MCP',
+                version: '1.2.3',
+                description: 'Test MCP registration entry'
+            }
+        })
+        response.statusCode.should.equal(500)
+        const result = response.json()
+        result.should.be.an.Object()
+        result.should.have.property('code', 'unexpected_error')
+        result.should.have.property('error', 'Failed to create mcp entry')
+        appLogStub.calledOnce.should.be.true()
+        const errMsg = appLogStub.getCall(0).args[0]
+        errMsg.should.match(/Device '99999' not found/)
+    })
+    it('should return 500 and log error for unknown instance', async function () {
+        const { token } = await app.instance.refreshAuthTokens()
+        // stub app.log to capture error message
+        const appLogStub = sinon.stub(app.log, 'error')
+
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/xxx-xxx-xxx/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'foo',
+                protocol: 'http',
+                endpointRoute: '/mcp',
+                title: 'FlowFuse MCP',
+                version: '1.2.3',
+                description: 'Test MCP registration entry'
+            }
+        })
+        response.statusCode.should.equal(500)
+        const result = response.json()
+        result.should.be.an.Object()
+        result.should.have.property('code', 'unexpected_error')
+        result.should.have.property('error', 'Failed to create mcp entry')
+        appLogStub.calledOnce.should.be.true()
+        const errMsg = appLogStub.getCall(0).args[0]
+        errMsg.should.match(/Instance 'xxx-xxx-xxx' not found/)
+    })
+    it('should return 500 and log error for unknown type', async function () {
+        const { token } = await app.instance.refreshAuthTokens()
+        // stub app.log to capture error message
+        const appLogStub = sinon.stub(app.log, 'error')
+
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/blah/zzzzz/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'foo',
+                protocol: 'http',
+                endpointRoute: '/mcp',
+                title: 'FlowFuse MCP',
+                version: '1.2.3',
+                description: 'Test MCP registration entry'
+            }
+        })
+        response.statusCode.should.equal(500)
+        const result = response.json()
+        result.should.be.an.Object()
+        result.should.have.property('code', 'unexpected_error')
+        result.should.have.property('error', 'Failed to create mcp entry')
+        appLogStub.calledOnce.should.be.true()
+        const errMsg = appLogStub.getCall(0).args[0]
+        errMsg.should.match(/Unknown MCP target type 'blah'/)
     })
 })
