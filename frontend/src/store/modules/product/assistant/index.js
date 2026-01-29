@@ -3,6 +3,7 @@ import messagingService from '../../../../services/messaging.service.js'
 const initialState = () => ({
     version: null,
     supportedActions: {},
+    assistantFeatures: {},
     palette: {},
     scope: {
         target: 'nr-assistant',
@@ -40,6 +41,9 @@ const mutations = {
     SET_SELECTED_NODES (state, selection) {
         state.selectedNodes = selection
     },
+    SET_FEATURES (state, features) {
+        state.assistantFeatures = features
+    },
     RESET (state) {
         const newState = initialState()
         Object.keys(newState).forEach(key => {
@@ -58,6 +62,9 @@ const actions = {
         case payload.data.type === 'assistant-ready':
             commit('SET_VERSION', payload.data.version)
             commit('SET_PALETTE', payload.data.palette)
+            console.log(payload.data.features)
+
+            commit('SET_FEATURES', payload.data.features)
             dispatch('requestSupportedActions')
             dispatch('requestSelectedNodes')
             return await dispatch('requestPalette')

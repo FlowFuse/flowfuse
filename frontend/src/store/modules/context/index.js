@@ -14,6 +14,8 @@ const getters = {
         // Return safe defaults when route is not yet initialized
         if (!state.route) {
             return {
+                assistantVersion: rootGetters['product/assistant/version'],
+                assistantFeatures: rootGetters['product/assistant/assistantFeatures'],
                 userId: rootState.account?.user?.id || null,
                 teamId: rootState.account?.team?.id || null,
                 teamSlug: rootState.account?.team?.slug || null,
@@ -23,6 +25,7 @@ const getters = {
                 isTrialAccount: rootGetters['account/isTrialAccount'] || false,
                 pageName: null,
                 rawRoute: {},
+                selectedNodes: null,
                 scope: 'ff-app'
             }
         }
@@ -43,8 +46,14 @@ const getters = {
                 : 'ff-app'
 
         const { matched, redirectedFrom, ...rawRoute } = state.route ?? {}
+        let selectedNodes = null
 
+        if (scope === 'immersive' && rootGetters['product/expert/isFfAgent'] && rootState['product/assistant/selectedNodes'].length > 0) {
+            selectedNodes = rootState['product/assistant/selectedNodes']
+        }
         return {
+            assistantVersion: rootGetters['product/assistant/version'],
+            assistantFeatures: rootGetters['product/assistant/assistantFeatures'],
             userId: rootState.account?.user?.id || null,
             teamId: rootState.account?.team?.id || null,
             teamSlug: rootState.account?.team?.slug || null,
@@ -52,9 +61,9 @@ const getters = {
             deviceId: deviceId ?? null,
             applicationId: applicationId ?? null,
             isTrialAccount: rootGetters['account/isTrialAccount'] || false,
-            selectedNodes: rootGetters['product/assistant/immersiveInstance'] ? rootState['product/assistant/selectedNodes'] : [],
             pageName: state.route.name,
             rawRoute,
+            selectedNodes,
             scope
         }
     }
