@@ -10,6 +10,7 @@ const initialState = () => ({
         scope: 'flowfuse-expert',
         source: 'flowfuse-expert'
     },
+    nodeRedVersion: null,
     selectedNodes: []
 })
 
@@ -44,6 +45,9 @@ const mutations = {
     SET_FEATURES (state, features) {
         state.assistantFeatures = features
     },
+    SET_NODE_RED_VERSION (state, version) {
+        state.nodeRedVersion = version
+    },
     RESET (state) {
         const newState = initialState()
         Object.keys(newState).forEach(key => {
@@ -64,6 +68,7 @@ const actions = {
             commit('SET_PALETTE', payload.data.palette)
 
             commit('SET_FEATURES', payload.data.features)
+            commit('SET_NODE_RED_VERSION', payload.data.nodeRedVersion)
             dispatch('requestSupportedActions')
             dispatch('requestSelectedNodes')
             return await dispatch('requestPalette')
