@@ -1,7 +1,7 @@
 <template>
     <ff-dialog ref="dialog" data-el="add-token-confirmation" header="Token Created">
         <template #default>
-            <p>Your token is <code>{{ token.token }}</code></p>
+            <p>Your token is <code>{{ token?.token }}</code></p>
             <p>This is the only time it will be shown, so please ensure you make a note</p>
         </template>
         <template #actions>
@@ -18,14 +18,6 @@ import Alerts from '../../../../services/alerts.js'
 export default {
     name: 'TokenCreated',
     mixins: [clipboardMixin],
-    setup () {
-        return {
-            showToken (token) {
-                this.token = token
-                this.$refs.dialog.show()
-            }
-        }
-    },
     data () {
         return {
             token: null
@@ -34,7 +26,7 @@ export default {
     methods: {
         close () {
             this.$refs.dialog.close()
-            this.token = undefined
+            this.token = null
         },
         copy () {
             this.copyToClipboard(this.token.token).then(() => {
@@ -43,6 +35,10 @@ export default {
                 console.warn('Clipboard write permission denied: ', err)
                 Alerts.emit('Clipboard write permission denied.', 'warning')
             })
+        },
+        showToken (token) {
+            this.token = token
+            this.$refs.dialog.show()
         }
     }
 }
