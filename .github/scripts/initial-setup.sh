@@ -168,11 +168,11 @@ kubectl run flowfuse-setup-2 \
 
 ### Configure ff-npm-registry token
 echo "Configuring ff-npm-registry token"
-curl -ks -w "\n" -XPOST \
+curl -ks -w "\n" -XPUT \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
-  -d '{"platform:ff-npm-registry:token": false}' \
-  https://$FLOWFUSE_URL/api/v1/platform/settings/
+  -d '{"platform:ff-npm-registry:token": "fake"}' \
+  https://$FLOWFUSE_URL/api/v1/settings/
 
 ### Create project type
 echo "Creating project type"
