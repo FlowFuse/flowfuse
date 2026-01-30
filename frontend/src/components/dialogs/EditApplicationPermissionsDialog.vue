@@ -10,7 +10,7 @@
         @cancel="onCancel"
     >
         <template #default>
-            <p class="mb-4">Set a new role for {{ user.name }} in {{ application.name }}</p>
+            <p class="mb-4">Set a new role for <b>{{ user.name }}</b> in application: <b>{{ application.name }}</b></p>
             <ff-listbox v-model="selection" :options="options" />
         </template>
     </ff-dialog>
@@ -23,7 +23,7 @@ import { mapState } from 'vuex'
 import teamApi from '../../api/team.js'
 import { capitalize } from '../../composables/String.js'
 import alerts from '../../services/alerts.js'
-import { RoleNames } from '../../utils/roles.js'
+import { RoleNames, Roles } from '../../utils/roles.js'
 
 export default defineComponent({
     name: 'EditApplicationPermissionsDialog',
@@ -44,10 +44,13 @@ export default defineComponent({
                 .filter(key => key.toString() !== '99')
                 .map(key => {
                     return {
-                        label: this.capitalize(RoleNames[key]),
+                        label: this.capitalize(this.roles[key]),
                         value: key.toString()
                     }
                 })
+        },
+        roles () {
+            return { ...RoleNames, [Roles.None]: 'No Access' }
         },
         isDirty () {
             return this.selection !== this.original
