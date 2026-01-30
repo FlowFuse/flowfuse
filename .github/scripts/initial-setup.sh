@@ -254,7 +254,7 @@ curl -ks -w "\n" -XPOST \
                         "limit": 10
                     },
                     "features":{
-                        "ha":true,
+                        "ha":false,
                         "shared-library":true,
                         "projectComms":true,
                         "teamHttpSecurity":true,
@@ -267,7 +267,7 @@ curl -ks -w "\n" -XPOST \
                         "instanceAutoSnapshot":true,
                         "protectedInstance":true,
                         "editorLimits":true,
-                        "customHostnames":true,
+                        "customHostnames":false,
                         "staticAssets":true,
                         "projectHistory":true,
                         "teamBroker":true,
