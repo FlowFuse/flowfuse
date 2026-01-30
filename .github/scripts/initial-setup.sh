@@ -336,7 +336,8 @@ curl -ks -w "\n" -XPOST \
                         "ffNodes": true,
                         "rbacApplication": true,
                         "npm": true,
-                        "ffNodes": true
+                        "ffNodes": true,
+                        "tables": true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
