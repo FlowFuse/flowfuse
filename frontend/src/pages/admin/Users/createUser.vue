@@ -73,8 +73,7 @@ export default {
                 isAdmin: false,
                 createDefaultTeam: false
             },
-            errors: {},
-            previousAdminState: false
+            errors: {}
         }
     },
     computed: {
@@ -131,13 +130,6 @@ export default {
             } else {
                 this.errors.name = ''
             }
-        },
-        'input.isAdmin': function (newValue, oldValue) {
-            // Only show confirmation when checking (false -> true)
-            if (newValue === true && oldValue === false) {
-                this.previousAdminState = oldValue
-                this.$refs.confirmAdminDialog.show()
-            }
         }
     },
     async mounted () {
@@ -147,6 +139,14 @@ export default {
     },
     methods: {
         createUser () {
+            // If admin privilege is being granted, show confirmation first
+            if (this.input.isAdmin) {
+                this.$refs.confirmAdminDialog.show()
+            } else {
+                this.submitUser()
+            }
+        },
+        submitUser () {
             const opts = { ...this.input, name: this.input.name || this.input.username }
             delete opts.password_confirm
             usersApi.create(opts).then(result => {
@@ -167,12 +167,11 @@ export default {
             })
         },
         handleAdminConfirmed () {
-            // User confirmed - keep checkbox checked
-            this.previousAdminState = true
+            // User confirmed - proceed with creating admin user
+            this.submitUser()
         },
         handleAdminCanceled () {
-            // User canceled - revert checkbox to previous state
-            this.input.isAdmin = this.previousAdminState
+            // User canceled - do nothing, they can modify the form and try again
         }
     }
 }
