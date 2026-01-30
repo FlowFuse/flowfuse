@@ -7,17 +7,33 @@
             <!-- Regular text content (for chat messages) -->
             <!-- eslint-disable-next-line vue/no-v-html -->
             <div v-if="!hasRichContent" class="message-text" v-html="formattedContent" />
+
+            <div v-if="hasIssues" class="issues">
+                <h4><exclamation-icon class="ff-icon" /> Issues</h4>
+                <ul>
+                    <li v-for="issue in issues" :key="issue">{{ sanitize(issue) }}</li>
+                </ul>
+            </div>
+
+            <div v-if="hasSuggestions" class="suggestions">
+                <h4><information-circle-icon class="ff-icon" /> Suggestions</h4>
+                <ul>
+                    <li v-for="suggestion in suggestions" :key="suggestion">{{ sanitize(suggestion) }}</li>
+                </ul>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
+import { ExclamationIcon, InformationCircleIcon } from '@heroicons/vue/solid'
 import { marked } from 'marked'
 
 import { sanitize } from '../../composables/String.js'
 
 export default {
     name: 'ExpertChatMessage',
+    components: { ExclamationIcon, InformationCircleIcon },
     props: {
         message: {
             type: Object,
@@ -55,16 +71,7 @@ export default {
             // Convert markdown to HTML
             const content = []
             content.push(this.message.content || '')
-            if (this.message.resources?.issues?.length > 0) {
-                content.push('\n\n')
-                content.push('**Issues:**')
-                content.push(this.message.resources.issues.map(issue => `\n- ${this.sanitize(issue)}`).join(''))
-            }
-            if (this.message.resources?.suggestions?.length > 0) {
-                content.push('\n\n')
-                content.push('**Suggestions:**')
-                content.push(this.message.resources.suggestions.map(suggestion => `\n- ${this.sanitize(suggestion)}`).join(''))
-            }
+
             const html = marked(content.join('\n'), {
                 breaks: true,
                 gfm: true
@@ -79,16 +86,16 @@ export default {
             })
         },
         issues () {
-            return this.resources.issues
+            return this.message.resources.issues
         },
         suggestions () {
-            return this.resources.suggestions
+            return this.message.resources.suggestions
         },
         hasIssues () {
-            return (this.resources.issues && this.resources.issues.length > 0)
+            return (this.message.resources?.issues && this.message.resources?.issues.length > 0)
         },
         hasSuggestions () {
-            return (this.resources.suggestions && this.resources.suggestions.length > 0)
+            return (this.message.resources?.suggestions && this.message.resources?.suggestions.length > 0)
         }
     }
 }
@@ -119,6 +126,30 @@ export default {
             color: #1F2937; // gray-800
             border-radius: 0.5rem;
             border-bottom-left-radius: 0.125rem;
+        }
+
+        .issues, .suggestions {
+            margin-top: 1.25rem;
+            h4 {
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                color: $ff-grey-600;
+
+                .ff-icon {
+                    color: $ff-grey-500;
+                }
+            }
+
+            ul {
+                list-style: disc;
+                padding-left: 1.4rem;
+
+                li {
+                    margin-top: .5rem;
+                }
+            }
         }
     }
 
