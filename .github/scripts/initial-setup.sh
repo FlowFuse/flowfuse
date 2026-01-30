@@ -271,7 +271,9 @@ curl -ks -w "\n" -XPOST \
                         "staticAssets":true,
                         "projectHistory":true,
                         "teamBroker":true,
-                        "generatedSnapshotDescription":true
+                        "generatedSnapshotDescription":true,
+                        "assistantInlineCompletions": true,
+                        "npm": true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
@@ -319,7 +321,12 @@ curl -ks -w "\n" -XPOST \
                         "teamBroker":true,
                         "gitIntegration": true,
                         "instanceResources":true,
-                        "generatedSnapshotDescription":true
+                        "generatedSnapshotDescription":true,
+                        "assistantInlineCompletions": true,
+                        "ffNodes": true,
+                        "rbacApplication": true,
+                        "npm": true,
+                        "ffNodes": true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
