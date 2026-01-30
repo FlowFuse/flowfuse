@@ -220,22 +220,23 @@ curl -ks -w "\n" -XPOST \
                       "limit": 10
                   },
                   "features": {
-                       "shared-library": false,
-                       "projectComms": false,
+                       "shared-library": true,
+                       "projectComms": true,
                        "ha": false,
                        "teamHttpSecurity": false,
                        "customCatalogs": false,
                        "deviceGroups": false,
                        "emailAlerts": false,
                        "protectedInstance": false,
-                       "deviceAutoSnapshot": false,
+                       "deviceAutoSnapshot": true,
                        "instanceAutoSnapshot": false,
                        "editorLimits": false,
                        "fileStorageLimit": null,
                        "contextLimit": null,
                        "customHostnames":false,
                        "staticAssets":false,
-                       "teamBroker":false
+                       "teamBroker":false,
+                       "ffNodes": true
                   },
                   "instances": {
                       "'"$projectTypeId"'": {
