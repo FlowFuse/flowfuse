@@ -147,7 +147,6 @@ flowfuse-device-agent
 You will see the Device Agent start and perform a 'call-home' where it connects back
 to the platform to check what it should be running.
 
-
 #### Additional Information
 
 If you copy or download a **Device Provisioning Configuration** file to your hardware,
@@ -164,11 +163,11 @@ you've followed [Single Device Registration](#single-remote-instance-registratio
 [Bulk Registration](#bulk-registration) to register your device, it will
 automatically be assigned to an Application or Instance.
 
-### Applications (Recommended)
-
-#### Assign to Application
+### Applications
 
 This step will permit you to push Snapshots to your Remote Instance via [DevOps Pipelines](/docs/user/devops-pipelines.md), or via a [Target Snapshot](/docs/user/snapshots/#application-owned-devices) from the Application.
+
+#### Assign to Application
 
 1. Go to your teams's **Remote Instances** page.
 2. Open the dropdown menu to the right of the Remote Instance you want to assign and
@@ -206,14 +205,17 @@ NOTE: If you wish to keep the flows currently running on the Remote Instance, it
 
 ### Hosted Instances
 
-This method permits you to set a [Target Snapshot](/docs/user/snapshots/#instance-owned-devices) from the Hosted Instance to the Remote Instance. Note though, you can only push nodes and flows that are supported by _both_ Hosted and Remote Instances. The best use case for Remote Instances are generally to be assigned by an Application instead.
+This method establishes a deployment relationship where a Hosted Instance becomes the source for snapshot deployments to your Remote Instance(s).
+
+**Important:** This is a legacy feature; [assigning to Applications](./register.md#applications) is the recommended approach as it provides better fleet management and DevOps Pipeline capabilities. For guidance, see [when to use each approach](/docs/user/concepts.md#when-to-use-instance-assignment-vs-devops-pipelines).
 
 #### Assign to Hosted Instance
 
-1. Go to your teams's **Remote Instances** page.
-2. Open the dropdown menu to the right of the Remote Instance you want to assign and
-   select the **Add to Hosted Instance** option.
-3. Select the instance in the dialog and click **Add** to continue.
+1. Go to your team's **Remote Instances** page.
+2. Open the dropdown menu to the right of the Remote Instance you want to assign and select the **Add to Instance** option.
+3. Select the Hosted Instance in the dialog and click **Add** to continue.
+
+**Note:** There are constraints on which instances can be assigned to each other. For detailed information, refer to [Assignment Rules and Constraints](/docs/user/concepts.md#assignment-rules).
 
 ### Remove from Hosted Instance
 
