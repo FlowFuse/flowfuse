@@ -308,9 +308,10 @@ module.exports = async function (app) {
                 }
                 let instance, instanceId, instanceType
                 if (Device) {
-                    instanceType = 'device'
-                    instance = Device
-                    instanceId = Device.hashid
+                    // instanceType = 'device'
+                    // instance = Device
+                    // instanceId = Device.hashid
+                    continue // Devices are not yet supported for MCP servers
                 } else if (Project) {
                     instanceType = 'instance'
                     instance = Project
