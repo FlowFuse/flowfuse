@@ -8,7 +8,8 @@ INIT_CONFIG_PASSWORD_HASH=$2
 INIT_CONFIG_ACCESS_TOKEN_HASH=$3
 INIT_CONFIG_ACCESS_TOKEN=$4
 INIT_CONFIG_PASSWORD=$5
-FLOWFUSE_URL="${6:-$PR_NUMBER.flowfuse.dev}"
+FF_NODES_TOKEN=$6
+FLOWFUSE_URL="${7:-$PR_NUMBER.flowfuse.dev}"
 
 
 create_user() {
@@ -166,6 +167,14 @@ kubectl run flowfuse-setup-2 \
   "INSERT INTO public.\"AccessTokens\" (token,\"expiresAt\",scope,\"ownerId\",\"ownerType\",\"refreshToken\",name,\"createdAt\",\"updatedAt\") \
     VALUES ('$INIT_CONFIG_ACCESS_TOKEN_HASH',NULL,'','1','user',NULL,'setup','2024-03-18 10:46:54.055+01','2024-03-18 10:46:54.055+01');"
 
+### Configure ff-npm-registry token
+echo "Configuring ff-npm-registry token"
+curl -ks -w "\n" -XPUT \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
+  -d '{"platform:ff-npm-registry:token": "'"$FF_NODES_TOKEN"'"}' \
+  https://$FLOWFUSE_URL/api/v1/settings/
+
 ### Create project type
 echo "Creating project type"
 curl -ks -w "\n" -XPOST \
@@ -211,22 +220,23 @@ curl -ks -w "\n" -XPOST \
                       "limit": 10
                   },
                   "features": {
-                       "shared-library": false,
-                       "projectComms": false,
+                       "shared-library": true,
+                       "projectComms": true,
                        "ha": false,
                        "teamHttpSecurity": false,
                        "customCatalogs": false,
                        "deviceGroups": false,
                        "emailAlerts": false,
                        "protectedInstance": false,
-                       "deviceAutoSnapshot": false,
+                       "deviceAutoSnapshot": true,
                        "instanceAutoSnapshot": false,
                        "editorLimits": false,
                        "fileStorageLimit": null,
                        "contextLimit": null,
                        "customHostnames":false,
                        "staticAssets":false,
-                       "teamBroker":false
+                       "teamBroker":false,
+                       "ffNodes": true
                   },
                   "instances": {
                       "'"$projectTypeId"'": {
@@ -254,7 +264,7 @@ curl -ks -w "\n" -XPOST \
                         "limit": 10
                     },
                     "features":{
-                        "ha":true,
+                        "ha":false,
                         "shared-library":true,
                         "projectComms":true,
                         "teamHttpSecurity":true,
@@ -267,11 +277,14 @@ curl -ks -w "\n" -XPOST \
                         "instanceAutoSnapshot":true,
                         "protectedInstance":true,
                         "editorLimits":true,
-                        "customHostnames":true,
+                        "customHostnames":false,
                         "staticAssets":true,
                         "projectHistory":true,
                         "teamBroker":true,
-                        "generatedSnapshotDescription":true
+                        "generatedSnapshotDescription":true,
+                        "assistantInlineCompletions": true,
+                        "npm": true,
+                        "ffNodes": true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
@@ -319,7 +332,13 @@ curl -ks -w "\n" -XPOST \
                         "teamBroker":true,
                         "gitIntegration": true,
                         "instanceResources":true,
-                        "generatedSnapshotDescription":true
+                        "generatedSnapshotDescription":true,
+                        "assistantInlineCompletions": true,
+                        "ffNodes": true,
+                        "rbacApplication": true,
+                        "npm": true,
+                        "ffNodes": true,
+                        "tables": true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
