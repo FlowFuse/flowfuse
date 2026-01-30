@@ -273,7 +273,8 @@ curl -ks -w "\n" -XPOST \
                         "teamBroker":true,
                         "generatedSnapshotDescription":true,
                         "assistantInlineCompletions": true,
-                        "npm": true
+                        "npm": true,
+                        "ffNodes": true
                     },
                     "instances": {
                         "'"$projectTypeId"'": {
