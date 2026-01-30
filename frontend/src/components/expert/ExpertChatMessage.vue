@@ -98,14 +98,6 @@ export default {
         hasSuggestions () {
             return (this.message.resources?.suggestions && this.message.resources?.suggestions.length > 0)
         }
-    },
-    methods: {
-        renderIconToHtml (component) {
-            const vnode = h(component, { class: 'inline-block w-5 h-5 mr-1 align-text-bottom' })
-            const container = document.createElement('div')
-            render(vnode, container)
-            return container.innerHTML
-        }
     }
 }
 </script>
