@@ -28,7 +28,6 @@
 <script>
 import { ExclamationIcon, InformationCircleIcon } from '@heroicons/vue/solid'
 import { marked } from 'marked'
-import { h, render } from 'vue'
 
 import { sanitize } from '../../composables/String.js'
 
