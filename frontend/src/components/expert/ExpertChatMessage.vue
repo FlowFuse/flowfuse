@@ -53,7 +53,19 @@ export default {
                 return this.sanitize(this.message.content)
             }
             // Convert markdown to HTML
-            const html = marked(this.message.content || '', {
+            const content = []
+            content.push(this.message.content || '')
+            if (this.message.resources?.issues?.length > 0) {
+                content.push('\n\n')
+                content.push('**Issues:**')
+                content.push(this.message.resources.issues.map(issue => `\n- ${this.sanitize(issue)}`).join(''))
+            }
+            if (this.message.resources?.suggestions?.length > 0) {
+                content.push('\n\n')
+                content.push('**Suggestions:**')
+                content.push(this.message.resources.suggestions.map(suggestion => `\n- ${this.sanitize(suggestion)}`).join(''))
+            }
+            const html = marked(content.join('\n'), {
                 breaks: true,
                 gfm: true
             })
@@ -65,6 +77,18 @@ export default {
                     utm_campaign: 'expert-chat'
                 }
             })
+        },
+        issues () {
+            return this.resources.issues
+        },
+        suggestions () {
+            return this.resources.suggestions
+        },
+        hasIssues () {
+            return (this.resources.issues && this.resources.issues.length > 0)
+        },
+        hasSuggestions () {
+            return (this.resources.suggestions && this.resources.suggestions.length > 0)
         }
     }
 }
@@ -149,6 +173,7 @@ export default {
     :deep(ul), :deep(ol) {
         margin: 0.5rem 0;
         padding-left: 1.5rem;
+        list-style: square;
     }
 
     :deep(li) {

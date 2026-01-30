@@ -1,16 +1,79 @@
 import messagingService from '../../../../services/messaging.service.js'
 
-const initialState = () => ({
-    version: null,
-    supportedActions: {},
-    palette: {},
-    scope: {
-        target: 'nr-assistant',
-        scope: 'flowfuse-expert',
-        source: 'flowfuse-expert'
+const eventsRegistry = {
+    'editor:open': {
+        nodeRedEvent: 'editor:open', // this is the Node-RED event
+        propertyBag: 'editorState',
+        propertyName: 'editorOpen',
+        propertyValue: true
     },
-    selectedNodes: []
-})
+    'editor:close': {
+        nodeRedEvent: 'testing stuff matey',
+        propertyBag: 'editorState',
+        propertyName: 'editorOpen',
+        propertyValue: false
+    },
+    'search:open': {
+        nodeRedEvent: 'search:open',
+        propertyBag: 'editorState',
+        propertyName: 'searchOpen',
+        propertyValue: true
+    },
+    'search:close': {
+        nodeRedEvent: 'search:close',
+        propertyBag: 'editorState',
+        propertyName: 'searchOpen',
+        propertyValue: false
+    },
+    'actionList:open': {
+        nodeRedEvent: 'actionList:open',
+        propertyBag: 'editorState',
+        propertyName: 'actionListOpen',
+        propertyValue: true
+    },
+    'actionList:close': {
+        nodeRedEvent: 'actionList:close',
+        propertyBag: 'editorState',
+        propertyName: 'actionListOpen',
+        propertyValue: false
+    },
+    'type-search:open': {
+        nodeRedEvent: 'type-search:open',
+        propertyBag: 'editorState',
+        propertyName: 'typeSearchOpen',
+        propertyValue: true
+    },
+    'type-search:close': {
+        nodeRedEvent: 'type-search:close',
+        propertyBag: 'editorState',
+        propertyName: 'typeSearchOpen',
+        propertyValue: false
+    }
+}
+
+const initialState = () => {
+    const initialEditorState = {}
+    Object.values(eventsRegistry).forEach(eventDetails => {
+        if (eventDetails.propertyBag === 'editorState') {
+            initialEditorState[eventDetails.propertyName] = false // default to false
+        }
+    })
+
+    return {
+        version: null,
+        supportedActions: {},
+        assistantFeatures: {},
+        palette: {},
+        scope: {
+            target: 'nr-assistant',
+            scope: 'flowfuse-expert',
+            source: 'flowfuse-expert'
+        },
+        nodeRedVersion: null,
+        selectedNodes: [],
+        editorState: { ...initialEditorState }
+    }
+}
 
 const meta = {
     persistence: {}
@@ -21,6 +84,9 @@ const state = initialState()
 const getters = {
     immersiveInstance: (state, getters, rootState) => {
         return rootState.context.instance
+    },
+    hasUserSelection: (state) => {
+        return state.selectedNodes.length
     }
 }
 
@@ -32,10 +98,28 @@ const mutations = {
         state.supportedActions = supportedActions
     },
     SET_PALETTE (state, palette) {
-        state.palette = palette ?? []
+        state.palette = palette ?? {}
     },
     SET_SELECTED_NODES (state, selection) {
         state.selectedNodes = selection
+    },
+    SET_FEATURES (state, features) {
+        state.assistantFeatures = features
+    },
+    SET_NODE_RED_VERSION (state, version) {
+        state.nodeRedVersion = version
+    },
+    SET_REGISTERED_EVENT_PROPERTY (state, { registeredEvent, data }) {
+        const propertyBag = registeredEvent.propertyBag
+        if (!propertyBag || !Object.prototype.hasOwnProperty.call(state, propertyBag)) {
+            return
+        }
+        const propertyName = registeredEvent.propertyName
+        const propertyValue = registeredEvent.propertyValue || false
+        if (!propertyName) {
+            return
+        }
+        state[propertyBag][propertyName] = propertyValue
     },
     RESET (state) {
         const newState = initialState()
@@ -55,15 +139,25 @@ const actions = {
         case payload.data.type === 'assistant-ready':
             commit('SET_VERSION', payload.data.version)
             commit('SET_PALETTE', payload.data.palette)
+            commit('SET_FEATURES', payload.data.features)
+            commit('SET_NODE_RED_VERSION', payload.data.nodeRedVersion)
             dispatch('requestSupportedActions')
             dispatch('requestSelectedNodes')
+            dispatch('registerEventListeners')
             return await dispatch('requestPalette')
+        case typeof eventsRegistry[payload.data.type] === 'object':
+            return dispatch('setRegisteredEventProperty', {
+                registeredEvent: eventsRegistry[payload.data.type],
+                data: payload.data
+            })
         case payload.data.type === 'get-assistant-version':
             return dispatch('setVersion', payload.data.version)
         case payload.data.type === 'get-supported-actions':
             return dispatch('setSupportedActions', payload.data.supportedActions)
         case payload.data.type === 'set-palette':
             return dispatch('setPalette', payload.data.palette)
+        case payload.data.type === 'set-assistant-features':
+            return dispatch('setFeatures', payload.data.features)
         case payload.data.type === 'set-selection':
             return dispatch('setSelectedNodes', payload.data.selection)
         default:
@@ -82,11 +176,23 @@ const actions = {
     requestSelectedNodes: async ({ dispatch }) => {
         return dispatch('sendMessage', { type: 'get-selection' })
     },
+    registerEventListeners: async ({ dispatch }) => {
+        return dispatch('sendMessage', {
+            type: 'register-event-listeners',
+            params: eventsRegistry
+        })
+    },
+    setRegisteredEventProperty: ({ commit }, { registeredEvent, data }) => {
+        commit('SET_REGISTERED_EVENT_PROPERTY', { registeredEvent, data })
+    },
     setVersion: ({ commit }, version) => {
         commit('SET_VERSION', version)
     },
     setSupportedActions: ({ commit }, supportedActions) => {
         commit('SET_SUPPORTED_ACTIONS', supportedActions)
+    },
+    setFeatures: ({ commit }, features) => {
+        commit('SET_FEATURES', features)
     },
     setPalette: ({ commit }, palette) => {
         commit('SET_PALETTE', palette)
