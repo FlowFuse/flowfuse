@@ -110,9 +110,25 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         try {
+            let typeId = request.params.typeId
+            if (request.params.type === 'device') {
+                const device = await app.db.models.Device.byId(request.params.typeId)
+                if (!device) {
+                    throw new Error(`Device '${request.params.typeId}' not found`)
+                }
+                typeId = device.id
+            } else if (request.params.type === 'instance') {
+                const project = await app.db.models.Project.byId(request.params.typeId)
+                if (!project) {
+                    throw new Error(`Instance '${request.params.typeId}' not found`)
+                }
+            } else {
+                throw new Error(`Unknown MCP target type '${request.params.type}'`)
+            }
+
             await app.db.models.MCPRegistration.upsert({
                 targetType: request.params.type,
-                targetId: request.params.typeId,
+                targetId: typeId,
                 nodeId: request.params.nodeId,
                 title: request.body.title,
                 version: request.body.version,
