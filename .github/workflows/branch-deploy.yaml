@@ -462,6 +462,9 @@ jobs:
             --set forge.assistant.service.token=$(op read op://ci/staging_flowfuse/assistant_token) \
             --set forge.expert.service.url=$(op read op://ci/prestaging_flowfuse/expert_url) \
             --set forge.expert.service.token=$(op read op://ci/prestaging_flowfuse/expert_token) \
+            --set forge.tables.driver.options.database.user=$(op read op://ci/prestaging_flowfuse/local_postgres_admin_username) \
+            --set forge.tables.driver.options.database.password=$(op read op://ci/prestaging_flowfuse/local_postgres_admin_password) \
+            --set forge.tables.driver.options.database.host=flowfuse-pr-${{ env.PR_NUMBER }}-postgresql.pr-${{ env.PR_NUMBER }}.svc.cluster.local \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowfuse
 
       - name: Initial setup
