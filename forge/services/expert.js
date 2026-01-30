@@ -3,7 +3,7 @@
  * If a user does not have access to a specific feature (e.g. a tool with destructive hint), it is removed from the server's feature list.
  * If a server has no accessible features after filtering, it is removed from the list.
  * @param {ForgeApplication} app
- * @param {Array<{server: object, application: import('sequelize').Model, applicationId: string, instanceId: string}>} serverList
+ * @param {Array<{server: object, application: import('sequelize').Model}>} serverList
  * @param {import('sequelize').Model} team
  * @param {import('sequelize').Model} teamMembership
  * @returns {MCPServerItem[]}

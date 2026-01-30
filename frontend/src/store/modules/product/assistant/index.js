@@ -3,11 +3,13 @@ import messagingService from '../../../../services/messaging.service.js'
 const initialState = () => ({
     version: null,
     supportedActions: {},
+    palette: {},
     scope: {
         target: 'nr-assistant',
         scope: 'flowfuse-expert',
         source: 'flowfuse-expert'
-    }
+    },
+    selectedNodes: []
 })
 
 const meta = {
@@ -29,6 +31,12 @@ const mutations = {
     SET_SUPPORTED_ACTIONS (state, supportedActions) {
         state.supportedActions = supportedActions
     },
+    SET_PALETTE (state, palette) {
+        state.palette = palette ?? []
+    },
+    SET_SELECTED_NODES (state, selection) {
+        state.selectedNodes = selection
+    },
     RESET (state) {
         const newState = initialState()
         Object.keys(newState).forEach(key => {
@@ -43,38 +51,36 @@ const actions = {
             console.warn('Received message from unknown origin. Ignoring.')
             return
         }
-
         switch (true) {
         case payload.data.type === 'assistant-ready':
             commit('SET_VERSION', payload.data.version)
-            return await dispatch('requestSupportedActions')
+            commit('SET_PALETTE', payload.data.palette)
+            dispatch('requestSupportedActions')
+            dispatch('requestSelectedNodes')
+            return await dispatch('requestPalette')
         case payload.data.type === 'get-assistant-version':
             return dispatch('setVersion', payload.data.version)
         case payload.data.type === 'get-supported-actions':
             return dispatch('setSupportedActions', payload.data.supportedActions)
+        case payload.data.type === 'set-palette':
+            return dispatch('setPalette', payload.data.palette)
+        case payload.data.type === 'set-selection':
+            return dispatch('setSelectedNodes', payload.data.selection)
         default:
             // do nothing
         }
     },
-    requestVersion: async ({ getters }) => {
-        const service = messagingService()
-        service.sendMessage({
-            message: { type: 'get-assistant-version', ...state.scope },
-            target: window.frames['immersive-editor-iframe'],
-            targetOrigin: getters.immersiveInstance?.url
-        })
+    requestVersion: async ({ dispatch }) => {
+        return dispatch('sendMessage', 'get-assistant-version')
     },
-    requestSupportedActions: async ({ getters, state }) => {
-        const service = messagingService()
-        const spreadElements = {
-            message: { type: 'get-supported-actions', ...state.scope },
-            target: window.frames['immersive-editor-iframe'],
-            targetOrigin: getters.immersiveInstance?.url
-        }
-
-        service.sendMessage({
-            ...spreadElements
-        })
+    requestSupportedActions: async ({ dispatch }) => {
+        return dispatch('sendMessage', { type: 'get-supported-actions' })
+    },
+    requestPalette: async ({ dispatch }) => {
+        return dispatch('sendMessage', { type: 'get-palette' })
+    },
+    requestSelectedNodes: async ({ dispatch }) => {
+        return dispatch('sendMessage', { type: 'get-selection' })
     },
     setVersion: ({ commit }, version) => {
         commit('SET_VERSION', version)
@@ -82,34 +88,49 @@ const actions = {
     setSupportedActions: ({ commit }, supportedActions) => {
         commit('SET_SUPPORTED_ACTIONS', supportedActions)
     },
+    setPalette: ({ commit }, palette) => {
+        commit('SET_PALETTE', palette)
+    },
+    setSelectedNodes: async ({ commit }, selection) => {
+        commit('SET_SELECTED_NODES', selection)
+    },
     reset: ({ commit }) => {
         commit('RESET')
     },
-    sendFlowsToImport: async ({ getters, state }, flowsJson) => {
-        const service = messagingService()
-        service.sendMessage({
-            message: {
-                type: 'invoke-action',
-                action: 'custom:import-flow',
-                params: {
-                    flow: flowsJson // parameters to accompany the action
-                },
-                ...state.scope // includes target, source, scope
-            },
-            target: window.frames['immersive-editor-iframe'],
-            targetOrigin: getters.immersiveInstance?.url
+    sendFlowsToImport: async ({ dispatch }, flowsJson) => {
+        return dispatch('sendMessage', {
+            type: 'invoke-action',
+            action: 'custom:import-flow',
+            params: {
+                flow: flowsJson // parameters to go with the action
+            }
         })
     },
-    installNodePackage: async ({ getters, state }, packageName) => {
+    installNodePackage: async ({ dispatch }, packageName) => {
+        return dispatch('sendMessage', {
+            type: 'invoke-action',
+            action: 'core:manage-palette',
+            params: {
+                view: 'install',
+                filter: packageName
+            }
+        })
+    },
+    manageNodePackage: async ({ dispatch }, packageName) => {
+        return dispatch('sendMessage', {
+            type: 'invoke-action',
+            action: 'core:manage-palette',
+            params: {
+                view: 'nodes',
+                filter: packageName
+            }
+        })
+    },
+    sendMessage ({ getters }, payload) {
         const service = messagingService()
-        service.sendMessage({
+        return service.sendMessage({
             message: {
-                type: 'invoke-action',
-                action: 'core:manage-palette',
-                params: {
-                    view: 'install',
-                    filter: packageName
-                },
+                ...payload,
                 ...state.scope // includes target, source, scope
             },
             target: window.frames['immersive-editor-iframe'],
