@@ -447,6 +447,15 @@ const actions = {
                         content: item.title || 'Resources',
                         timestamp: Date.now()
                     })
+                } else if (item.kind === 'chat' && ((Array.isArray(item.issues) && item.issues.length > 0) || (Array.isArray(item.suggestions) && item.suggestions.length > 0))) {
+                    // Add chat message with issues and suggestions
+                    commit('ADD_MESSAGE', {
+                        type: 'ai',
+                        kind: 'chat',
+                        resources: item,
+                        content: item.content || 'Response',
+                        timestamp: Date.now()
+                    })
                 } else if (item.kind === 'chat') {
                     // Add chat message with streaming effect
                     await dispatch('streamMessage', item.content)
