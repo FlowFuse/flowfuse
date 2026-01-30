@@ -8,6 +8,7 @@ INIT_CONFIG_PASSWORD_HASH=$2
 INIT_CONFIG_ACCESS_TOKEN_HASH=$3
 INIT_CONFIG_ACCESS_TOKEN=$4
 INIT_CONFIG_PASSWORD=$5
+FF_NODES_TOKEN=$7
 FLOWFUSE_URL="${6:-$PR_NUMBER.flowfuse.dev}"
 
 
@@ -171,7 +172,7 @@ echo "Configuring ff-npm-registry token"
 curl -ks -w "\n" -XPUT \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
-  -d '{"platform:ff-npm-registry:token": "fake"}' \
+  -d '{"platform:ff-npm-registry:token": "'"$FF_NODES_TOKEN"'"}' \
   https://$FLOWFUSE_URL/api/v1/settings/
 
 ### Create project type
