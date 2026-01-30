@@ -68,6 +68,13 @@ DevOps Pipelines allow you to manage staged development environments, pushing fr
 
 Within your Application, you can have one or more instances of Node-RED. FlowFuse supports two types of instances based on where they run.
 
+| Feature | Hosted Instance | Remote Instance (Device) |
+|--------|-----------------|--------------------------|
+| Where it runs | On FlowFuse-managed infrastructure (cloud or self-hosted) | On user-provided hardware (Edge, VM, Pi, PLC) |
+| Provisioning | Automatic via the FlowFuse UI | Manual installation of the FlowFuse Device Agent |
+| Lifecycle | Fully managed by FlowFuse | Managed by FlowFuse via the Device Agent |
+| Common Use | Core logic, APIs, dashboards, development, testing | Local data processing, IO, edge control |
+
 ### Hosted Instance
 
 A **Hosted Instance** is a Node-RED environment that runs within the FlowFuse infrastructure, whether in the cloud or on a self-hosted FlowFuse platform. These instances run on FlowFuse-managed infrastructure and benefit from automatic scaling and high availability. They are accessed via HTTPS with TLS/SSL encryption, making them ideal for centralized data processing and transformation, dashboard hosting, cloud service integration, and development or testing environments.
