@@ -166,6 +166,14 @@ kubectl run flowfuse-setup-2 \
   "INSERT INTO public.\"AccessTokens\" (token,\"expiresAt\",scope,\"ownerId\",\"ownerType\",\"refreshToken\",name,\"createdAt\",\"updatedAt\") \
     VALUES ('$INIT_CONFIG_ACCESS_TOKEN_HASH',NULL,'','1','user',NULL,'setup','2024-03-18 10:46:54.055+01','2024-03-18 10:46:54.055+01');"
 
+### Configure ff-npm-registry token
+echo "Configuring ff-npm-registry token"
+curl -ks -w "\n" -XPOST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $INIT_CONFIG_ACCESS_TOKEN" \
+  -d '{"platform:ff-npm-registry:token": false}' \
+  https://$FLOWFUSE_URL/api/v1/platform/settings/
+
 ### Create project type
 echo "Creating project type"
 curl -ks -w "\n" -XPOST \
