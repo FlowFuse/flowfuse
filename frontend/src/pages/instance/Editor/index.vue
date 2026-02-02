@@ -93,7 +93,6 @@ const DRAWER_MIN_WIDTH = 310 // Minimum drawer width in pixels
 const DRAWER_DEFAULT_WIDTH = 550 // Default drawer width in pixels
 const DRAWER_MAX_VIEWPORT_MARGIN = 200 // Space to preserve when drawer is at max width
 const DRAWER_MAX_WIDTH_RATIO = 0.9 // Maximum drawer width as percentage of viewport (desktop)
-const DRAWER_MOBILE_BREAKPOINT = 640 // Viewport width below which mobile layout applies
 
 export default {
     name: 'InstanceEditor',
@@ -136,7 +135,6 @@ export default {
             drawer: {
                 open: false
             },
-            viewportWidth: window.innerWidth,
             isMouseInDrawer: false,
             teaseCloseTimeout: null,
             isInitialTease: false
@@ -206,14 +204,6 @@ export default {
         },
         editorAvailable () {
             return !this.isHA && this.instanceRunning
-        },
-        drawerWidth () {
-            if (this.viewportWidth < DRAWER_MOBILE_BREAKPOINT) {
-                // Mobile: drawer takes up full viewport
-                return Math.min(this.drawer.width, this.viewportWidth)
-            }
-            // Desktop: drawer can't exceed specified percentage of viewport
-            return Math.min(this.drawer.width, this.viewportWidth * DRAWER_MAX_WIDTH_RATIO)
         },
         isExpertRoute () {
             return this.$route.name === 'instance-editor-expert'
