@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import InstanceStatusBadge from '../../components/InstanceStatusBadge.vue'
+import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 
 export default {
     name: 'LoadingScreenWrapper',
