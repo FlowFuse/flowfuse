@@ -49,7 +49,7 @@
                                 <ff-checkbox v-model="device.selected" />
                             </ff-data-table-cell>
                             <ff-data-table-cell>
-                                <router-link :to="{name: 'DeviceOverview', params: {id: device.id}}">{{ device.name }}</router-link>
+                                <router-link :to="{name: 'device-overview', params: {id: device.id}}">{{ device.name }}</router-link>
                             </ff-data-table-cell>
                             <ff-data-table-cell>{{ device.type }}</ff-data-table-cell>
                         </ff-data-table-row>
@@ -80,7 +80,7 @@
                                 <ff-checkbox v-model="device.selected" class="inline" />
                             </ff-data-table-cell>
                             <ff-data-table-cell class="w-1/3">
-                                <router-link :to="{name: 'DeviceOverview', params: {id: device.id}}">{{ device.name }}</router-link>
+                                <router-link :to="{name: 'device-overview', params: {id: device.id}}">{{ device.name }}</router-link>
                             </ff-data-table-cell>
                             <ff-data-table-cell class="w-1/3">{{ device.name }}</ff-data-table-cell>
                             <ff-data-table-cell v-if="!editMode" class="w-1/3">

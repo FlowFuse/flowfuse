@@ -247,13 +247,13 @@ export default {
             return [
                 {
                     label: 'Overview',
-                    to: { name: 'DeviceOverview' },
+                    to: { name: 'device-overview' },
                     tag: 'device-overview'
                 },
                 {
                     label: 'Version History',
                     to: {
-                        name: 'DeviceSnapshots',
+                        name: 'device-version-history',
                         params: { id: this.$route.params.id }
                     },
                     tag: 'version-history'
@@ -281,7 +281,7 @@ export default {
                 },
                 {
                     label: 'Developer Mode',
-                    to: { name: 'DeviceDeveloperMode' },
+                    to: { name: 'device-developer-mode' },
                     tag: 'device-devmode',
                     hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')
                 }
@@ -333,7 +333,7 @@ export default {
             // the device status is empty or the device is in a transition state
             // This is to prevent settings pages from refreshing the device state while modifying settings
             // See `watch: { device: { handler () ...  in pages/device/Settings/General.vue for why that happens
-            const settingsPages = ['DeviceOverview', 'DeviceDeveloperMode']
+            const settingsPages = ['device-overview', 'device-developer-mode']
             try {
                 if (settingsPages.includes(this.$route.name)) {
                     await this.loadDevice()
