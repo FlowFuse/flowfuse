@@ -1,6 +1,7 @@
 const initialState = () => ({
     route: null,
-    instance: null
+    instance: null,
+    device: null
 })
 
 const meta = {
@@ -76,6 +77,7 @@ const mutations = {
         state.route = route
     },
     SET_INSTANCE (state, instance) { state.instance = instance },
+    SET_DEVICE (state, device) { state.device = device },
     CLEAR_INSTANCE (state) { state.instance = null }
 }
 
@@ -84,6 +86,7 @@ const actions = {
         commit('UPDATE_ROUTE', route)
     },
     setInstance ({ commit }, instance) { commit('SET_INSTANCE', instance) },
+    setDevice ({ commit }, device) { commit('SET_DEVICE', device) },
     clearInstance ({ commit }) { commit('CLEAR_INSTANCE') }
 }
 
