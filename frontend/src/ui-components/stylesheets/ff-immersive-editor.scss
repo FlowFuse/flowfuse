@@ -4,6 +4,19 @@
   display: flex;
   flex: 1;
 
+  .editor-wrapper {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+  }
+  .editor-wrapper .status-wrapper {
+    margin-top: -64px;
+  }
+
   .tabs-wrapper {
     position: fixed;
     left: 0;
