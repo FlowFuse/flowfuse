@@ -54,10 +54,11 @@
 
 import { ArrowLeftIcon, XIcon } from '@heroicons/vue/solid/index.js'
 import semver from 'semver'
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 import ResizeBar from '../../../components/ResizeBar.vue'
+import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
 import DrawerTrigger from '../../../components/immersive-editor/DrawerTrigger.vue'
 import EditorWrapper from '../../../components/immersive-editor/RemoteInstanceEditorWrapper.vue'
 import { useDrawerHelper } from '../../../composables/DrawerHelper.js'
@@ -127,14 +128,22 @@ export default {
     },
     computed: {
         ...mapState('account', ['features']),
+        ...mapGetters('account', ['featuresCheck']),
         isExpertRoute () {
-            return this.$route.name === 'instance-editor-expert'
+            return this.$route.name === 'device-editor-expert'
         },
         isDevModeAvailable: function () {
             return !!this.features.deviceEditor
         },
         navigation () {
             return [
+                {
+                    label: 'Expert',
+                    to: { name: 'device-editor-expert', params: { id: this.device.id } },
+                    tag: 'device-expert',
+                    icon: ExpertTabIcon,
+                    hidden: !this.featuresCheck.isExpertAssistantFeatureEnabled
+                },
                 {
                     label: 'Overview',
                     to: { name: 'device-editor-overview' },

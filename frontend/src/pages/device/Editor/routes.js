@@ -1,4 +1,4 @@
-// import store from '../../../store/index.js'
+import store from '../../../store/index.js'
 import { children } from '../routes.js'
 
 import DeviceEditor from './index.vue'
@@ -13,15 +13,21 @@ export default [
             layout: 'plain'
         },
         redirect: to => {
-            return { name: 'device-editor-overview', params: { id: to.params.id } }
-
-            // const name = store.getters['account/featuresCheck'].isExpertAssistantFeatureEnabled
-            //     ? 'device-editor-expert'
-            //     : 'device-editor-overview'
-            // return { name, params: { id: to.params.id } }
+            const name = store.getters['account/featuresCheck'].isExpertAssistantFeatureEnabled
+                ? 'device-editor-expert'
+                : 'device-editor-overview'
+            return { name, params: { id: to.params.id } }
         },
         children: [
-            ...children.map(child => ({ ...child, name: child.name.replace('device-', 'device-editor-') }))
+            ...children.map(child => ({ ...child, name: child.name.replace('device-', 'device-editor-') })),
+            {
+                path: 'expert',
+                name: 'device-editor-expert',
+                component: () => import('../../../components/expert/Expert.vue'),
+                meta: {
+                    title: 'Remote Instance - Expert'
+                }
+            }
         ]
     }
 ]
