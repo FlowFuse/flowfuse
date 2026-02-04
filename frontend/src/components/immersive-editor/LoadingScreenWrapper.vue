@@ -66,7 +66,7 @@ export default {
         },
         animationData () {
             try {
-                return require(`../../../../images/lottie/immersive-editor-loading-states/${this.computedState}.json`)
+                return require(`../../images/lottie/immersive-editor-loading-states/${this.computedState}.json`)
             } catch (error) {
                 return null
             }

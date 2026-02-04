@@ -75,7 +75,7 @@ import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue
 import ResizeBar from '../../../components/ResizeBar.vue'
 import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
 import DrawerTrigger from '../../../components/immersive-editor/DrawerTrigger.vue'
-import EditorWrapper from '../../../components/immersive-editor/EditorWrapper.vue'
+import EditorWrapper from '../../../components/immersive-editor/HostedInstanceEditorWrapper.vue'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
 import { useDrawerHelper } from '../../../composables/DrawerHelper.js'
 import usePermissions from '../../../composables/Permissions.js'
