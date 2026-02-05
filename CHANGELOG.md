@@ -1,3 +1,28 @@
+#### 2.26.2: Release
+
+ - Bump cypress-io/github-action from 7.1.0 to 7.1.1 (#6616)
+ - Bump docker/login-action from 3.6.0 to 3.7.0 (#6617)
+ - Bump actions/cache from 5.0.2 to 5.0.3 (#6615)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml (#6574)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml (#6575)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/sast_scan.yaml (#6576)
+ - Bump fastify from 5.6.2 to 5.7.4 (#6620) @app/dependabot
+ - chore: Update features for teams on pre-staging (#6595) @ppawlowski
+ - Add issues and suggestions display to `ExpertChatMessage` component with icon support (#6607) @cstns
+ - Allow team owners to edit their application roles (#6555) @cstns
+ - Update Assistant Link (#6596) @sumitshinde-84
+ - Rename FlowFuse Assistant and related references to FlowFuse Expert (#6571) @sumitshinde-84
+ - Alter the expert's chat input (#6581) @cstns
+ - Create UI component to include selected flows (#6580) @cstns
+ - Add confirmation dialog for administrator privilege grant (#6548) @dimitrieh
+ - Fix Device based MCP error log in app log (#6587) @Steve-Mcl
+ - Fix Expert errors when device are present in MCPRegistrations (#6584) @cstns
+ - docs: add hosted vs remote instance comparison table (#6481) @dgatti0213
+ - Bump jsonwebtoken from 9.0.2 to 9.0.3 (#6469) @app/dependabot
+ - Bump @node-red/util from 4.0.2 to 4.1.2 (#6468) @app/dependabot
+ - Bump nodemailer from 7.0.11 to 7.0.12 (#6467) @app/dependabot
+ - Bump lodash from 4.17.21 to 4.17.23 (#6550) @app/dependabot
+
 #### 2.26.1: Release
 
  - Bump cypress-io/github-action from 6.10.8 to 7.1.0 (#6577)
