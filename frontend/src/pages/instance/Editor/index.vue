@@ -1,19 +1,25 @@
 <template>
-    <div class="ff-editor-wrapper" :class="{resizing: drawer.resizing}">
-        <EditorWrapper :instance="instance" :disable-events="drawer.resizing" @toggle-drawer="toggleDrawer" @iframe-loaded="notifyDrawerState" @request-drawer-state="notifyDrawerState" />
+    <div ref="resizeTarget" class="ff-editor-wrapper" :class="{resizing: isEditorResizing}">
+        <EditorWrapper
+            :instance="instance"
+            :disable-events="isEditorResizing"
+            @toggle-drawer="toggleDrawer"
+            @iframe-loaded="notifyDrawerState"
+            @request-drawer-state="notifyDrawerState"
+        />
 
         <DrawerTrigger :is-hidden="drawer.open" @toggle="toggleDrawer" />
 
         <section
             class="tabs-wrapper drawer"
             :class="{'open': drawer.open, resizing: drawer.resizing}"
-            :style="{ width: drawerWidth + 'px' }"
+            :style="{ width: editorWidthStyle }"
             data-el="tabs-drawer"
             @mouseenter="handleDrawerMouseEnter"
             @mouseleave="handleDrawerMouseLeave"
         >
             <resize-bar
-                @mousedown="startResize"
+                @mousedown="startEditorResize"
             />
 
             <div class="header">
@@ -69,6 +75,7 @@ import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue
 import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 
 import FfPage from '../../../layouts/Page.vue'
 import featuresMixin from '../../../mixins/Features.js'
@@ -86,7 +93,6 @@ const DRAWER_MIN_WIDTH = 310 // Minimum drawer width in pixels
 const DRAWER_DEFAULT_WIDTH = 550 // Default drawer width in pixels
 const DRAWER_MAX_VIEWPORT_MARGIN = 200 // Space to preserve when drawer is at max width
 const DRAWER_MAX_WIDTH_RATIO = 0.9 // Maximum drawer width as percentage of viewport (desktop)
-const DRAWER_MOBILE_BREAKPOINT = 640 // Viewport width below which mobile layout applies
 
 export default {
     name: 'InstanceEditor',
@@ -106,20 +112,29 @@ export default {
     inject: ['$services'],
     setup () {
         const { hasAMinimumTeamRoleOf, isVisitingAdmin } = usePermissions()
+        const {
+            startResize: startEditorResize,
+            widthStyle: editorWidthStyle,
+            bindResizer: bindEditorResizer,
+            isResizing: isEditorResizing,
+            setWidth: setEditorWidth
+        } = useResizingHelper()
 
-        return { hasAMinimumTeamRoleOf, isVisitingAdmin }
+        return {
+            isVisitingAdmin,
+            isEditorResizing,
+            editorWidthStyle,
+            hasAMinimumTeamRoleOf,
+            startEditorResize,
+            bindEditorResizer,
+            setEditorWidth
+        }
     },
     data () {
         return {
             drawer: {
-                open: false,
-                resizing: false,
-                startX: 0,
-                startWidth: 0,
-                width: 0,
-                defaultWidth: DRAWER_DEFAULT_WIDTH
+                open: false
             },
-            viewportWidth: window.innerWidth,
             isMouseInDrawer: false,
             teaseCloseTimeout: null,
             isInitialTease: false
@@ -190,14 +205,6 @@ export default {
         editorAvailable () {
             return !this.isHA && this.instanceRunning
         },
-        drawerWidth () {
-            if (this.viewportWidth < DRAWER_MOBILE_BREAKPOINT) {
-                // Mobile: drawer takes up full viewport
-                return Math.min(this.drawer.width, this.viewportWidth)
-            }
-            // Desktop: drawer can't exceed specified percentage of viewport
-            return Math.min(this.drawer.width, this.viewportWidth * DRAWER_MAX_WIDTH_RATIO)
-        },
         isExpertRoute () {
             return this.$route.name === 'instance-editor-expert'
         }
@@ -208,6 +215,14 @@ export default {
         }
     },
     mounted () {
+        this.bindEditorResizer({
+            component: this.$refs.resizeTarget,
+            initialWidth: DRAWER_DEFAULT_WIDTH,
+            minWidth: DRAWER_MIN_WIDTH,
+            maxViewportMarginX: DRAWER_MAX_VIEWPORT_MARGIN,
+            maxWidthRatio: DRAWER_MAX_WIDTH_RATIO
+
+        })
         // Auto-open drawer after initial load, then close it to tease availability
         setTimeout(() => {
             this.isInitialTease = true
@@ -221,12 +236,8 @@ export default {
                 this.teaseCloseTimeout = null
             }, 2000)
         }, 1200)
-
-        // Listen for viewport resize to update drawer width in real-time
-        window.addEventListener('resize', this.handleResize)
     },
     unmounted () {
-        window.removeEventListener('resize', this.handleResize)
         if (this.teaseCloseTimeout) {
             clearTimeout(this.teaseCloseTimeout)
         }
@@ -240,7 +251,7 @@ export default {
                 // Keep width at current value - drawer will slide off-screen via transform
             } else {
                 this.drawer.open = true
-                this.drawer.width = this.drawer.defaultWidth
+                this.setEditorWidth(DRAWER_DEFAULT_WIDTH)
             }
             // Notify iframe of drawer state change
             this.$nextTick(() => {
@@ -262,31 +273,6 @@ export default {
                     targetOrigin
                 })
             }
-        },
-        startResize (e) {
-            this.drawer.resizing = true
-            this.drawer.startX = e.clientX
-            this.drawer.startWidth = this.drawer.width
-            document.addEventListener('mousemove', this.resize)
-            document.addEventListener('mouseup', this.stopResize)
-        },
-        resize (e) {
-            if (this.drawer.resizing) {
-                const widthChange = e.clientX - this.drawer.startX
-                const newWidth = this.drawer.startWidth + widthChange
-                this.drawer.width = Math.min(
-                    Math.max(DRAWER_MIN_WIDTH, newWidth),
-                    this.viewportWidth - DRAWER_MAX_VIEWPORT_MARGIN
-                )
-            }
-        },
-        stopResize () {
-            this.drawer.resizing = false
-            document.removeEventListener('mousemove', this.resize)
-            document.removeEventListener('mouseup', this.stopResize)
-        },
-        handleResize () {
-            this.viewportWidth = window.innerWidth
         },
         handleDrawerMouseEnter () {
             // Only track mouse during initial tease
