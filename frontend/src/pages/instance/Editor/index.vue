@@ -72,7 +72,10 @@ import { ArrowLeftIcon, XIcon } from '@heroicons/vue/solid'
 import { mapActions, mapGetters } from 'vuex'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
+import ResizeBar from '../../../components/ResizeBar.vue'
 import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
+import DrawerTrigger from '../../../components/immersive-editor/DrawerTrigger.vue'
+import EditorWrapper from '../../../components/immersive-editor/HostedInstanceEditorWrapper.vue'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
 import { useDrawerHelper } from '../../../composables/DrawerHelper.js'
 import usePermissions from '../../../composables/Permissions.js'
@@ -84,10 +87,6 @@ import instanceMixin from '../../../mixins/Instance.js'
 import { Roles } from '../../../utils/roles.js'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from '../components/DashboardLink.vue'
-
-import DrawerTrigger from './components/DrawerTrigger.vue'
-import EditorWrapper from './components/EditorWrapper.vue'
-import ResizeBar from './components/drawer/ResizeBar.vue'
 
 // Drawer size constraints
 const DRAWER_MIN_WIDTH = 310 // Minimum drawer width in pixels

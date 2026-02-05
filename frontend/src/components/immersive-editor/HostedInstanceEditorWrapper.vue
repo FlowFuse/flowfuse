@@ -37,7 +37,7 @@ const States = {
     STOPPING: 'stopping'
 }
 export default {
-    name: 'EditorWrapper',
+    name: 'HostedInstanceEditorWrapper',
     components: { LoadingScreenWrapper },
     inject: ['$services'],
     props: {
@@ -116,18 +116,3 @@ export default {
     }
 }
 </script>
-
-<style scoped lang="scss">
-.editor-wrapper {
-  height: 100%;
-  width: 100%;
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-content: center;
-  justify-content: center;
-}
-.editor-wrapper .status-wrapper {
-    margin-top: -64px;
-}
-</style>
