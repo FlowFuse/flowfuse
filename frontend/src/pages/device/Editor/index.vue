@@ -1,7 +1,6 @@
 <template>
     <div ref="resizeTarget" class="ff--immersive-editor-wrapper" :class="{resizing: isEditorResizing}">
         <EditorWrapper
-            :url="device?.editor?.url"
             :disable-events="isEditorResizing"
             :device="device"
         />
@@ -22,7 +21,10 @@
 
             <div class="header">
                 <div class="logo">
-                    <router-link title="Back to remote instance overview" :to="{ name: 'device-overview', params: {id: device.id} }">
+                    <router-link
+                        title="Back to remote instance overview"
+                        :to="{ name: 'device-overview', params: {id: device.id} }"
+                    >
                         <ArrowLeftIcon class="ff-btn--icon" />
                     </router-link>
                 </div>
@@ -123,7 +125,7 @@ export default {
             agentSupportsActions: null,
             device: null,
             openingTunnel: false,
-            openTunnelTimeout: null
+            ws: null
         }
     },
     computed: {
@@ -135,11 +137,20 @@ export default {
         isDevModeAvailable: function () {
             return !!this.features.deviceEditor
         },
+        isEditorAvailable () {
+            return this.device &&
+                Object.prototype.hasOwnProperty.call(this.device, 'editor') &&
+                Object.prototype.hasOwnProperty.call(this.device.editor, 'connected') &&
+                this.device.editor.connected
+        },
         navigation () {
             return [
                 {
                     label: 'Expert',
-                    to: { name: 'device-editor-expert', params: { id: this.device.id } },
+                    to: {
+                        name: 'device-editor-expert',
+                        params: { id: this.device.id }
+                    },
                     tag: 'device-expert',
                     icon: ExpertTabIcon,
                     hidden: !this.featuresCheck.isExpertAssistantFeatureEnabled
@@ -188,12 +199,14 @@ export default {
     },
     watch: {
         device (device) {
-            if (device && Object.prototype.hasOwnProperty.call(device, 'editor')) {
+            if (device && this.isEditorAvailable) {
                 this.setContextDevice(device)
+                this.pollDeviceComms()
+                this.runInitialTease()
             } else {
-                Alerts.emit('Unable to connect to the Remote Instance', 'warning')
-
-                setTimeout(() => this.$router.push({ name: 'device-overview' }), 2000)
+                this.$router.push({ name: 'device-overview' })
+                    .then(() => Alerts.emit('Unable to connect to the Remote Instance', 'warning'))
+                    .catch(e => e)
             }
         }
     },
@@ -217,9 +230,9 @@ export default {
                 })
             })
             .catch(err => err)
-            .finally(() => {
-                this.runInitialTease()
-            })
+    },
+    beforeUnmount () {
+        this.closeComms()
     },
     methods: {
         ...mapActions('context', { setContextDevice: 'setDevice' }),
@@ -228,10 +241,8 @@ export default {
                 this.device = await deviceApi.getDevice(this.$route.params.id)
             } catch (err) {
                 if (err.status === 403) {
-                    return this.$router.push({ name: 'Home' })
+                    return this.$router.push({ name: 'device-overview' })
                 }
-            } finally {
-                this.loading = false
             }
 
             this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')
@@ -239,11 +250,30 @@ export default {
 
             // todo we first need to get the device and set the team afterwards
             await this.$store.dispatch('account/setTeam', this.device.team.slug)
+        },
+        pollDeviceComms () {
+            if (!this.isEditorAvailable || this.ws) return
+
+            const uri = `/api/v1/devices/${this.device.id}/editor/proxy/comms`
+
+            this.ws = new WebSocket(uri)
+
+            this.ws.addEventListener('error', this.handleCommsDisconnect)
+            this.ws.addEventListener('close', this.handleCommsDisconnect)
+        },
+        handleCommsDisconnect () {
+            this.$router.push({ name: 'device-overview' })
+                .then(() => Alerts.emit('Disconnected from remote instance.', 'warning'))
+                .catch(e => e)
+        },
+        closeComms () {
+            if (this.ws) {
+                this.ws.removeEventListener('error', this.handleCommsDisconnect)
+                this.ws.removeEventListener('close', this.handleCommsDisconnect)
+                this.ws.close()
+                this.ws = null
+            }
         }
     }
 }
 </script>
-
-<style scoped lang="scss">
-
-</style>
