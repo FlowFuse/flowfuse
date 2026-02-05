@@ -95,7 +95,7 @@ export default {
                     routeName = 'instance-overview'
                     break
                 case 'device':
-                    routeName = 'DeviceOverview'
+                    routeName = 'device-overview'
                     break
                 default:
                     routeName = ''

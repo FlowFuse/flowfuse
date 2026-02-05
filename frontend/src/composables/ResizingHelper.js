@@ -13,7 +13,7 @@ export function useResizingHelper () {
     const MAX_WIDTH_RATIO = ref(1)
     const MAX_HEIGHT_RATIO = ref(1)
 
-    let resizing = false
+    const resizing = ref(false)
     let startX = 0
     let startY = 0
     let startWidth = 0
@@ -23,7 +23,7 @@ export function useResizingHelper () {
     const height = ref(0)
 
     function startResize (e) {
-        resizing = true
+        resizing.value = true
         startX = e.clientX
         startY = e.clientY
 
@@ -35,13 +35,13 @@ export function useResizingHelper () {
     }
 
     function stopResize () {
-        resizing = false
+        resizing.value = false
         document.removeEventListener('mousemove', resize)
         document.removeEventListener('mouseup', stopResize)
     }
 
     function resize (e) {
-        if (resizing) {
+        if (resizing.value) {
             const widthChange = e.clientX - startX
             const heightChange = e.clientY - startY
 
@@ -67,7 +67,7 @@ export function useResizingHelper () {
         minHeight,
         maxViewportMarginX,
         maxViewportMarginY,
-        mobileBreakpoint,
+        mobileBreakpoint = 640,
         maxWidthRatio,
         maxHeightRatio
     } = {}) {
@@ -97,6 +97,14 @@ export function useResizingHelper () {
         MAX_HEIGHT_RATIO.value = maxHeightRatio ?? 1
     }
 
+    function setWidth (newWidth) {
+        width.value = newWidth
+    }
+
+    function setHeight (newHeight) {
+        height.value = newHeight
+    }
+
     const heightStyle = computed(() => {
         if (viewportHeight.value < MOBILE_BREAKPOINT.value) {
             return `${Math.min(height.value, viewportHeight.value)}px`
@@ -111,11 +119,16 @@ export function useResizingHelper () {
         return `${Math.min(width.value, viewportWidth.value * MAX_WIDTH_RATIO.value)}px`
     })
 
+    const isResizing = computed(() => resizing.value)
+
     return {
         heightStyle,
         widthStyle,
+        isResizing,
         startResize,
         stopResize,
-        bindResizer
+        bindResizer,
+        setWidth,
+        setHeight
     }
 }
