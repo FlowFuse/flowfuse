@@ -3,6 +3,14 @@ import { children } from '../routes.js'
 
 import DeviceEditor from './index.vue'
 
+const renameRoute = (child) => {
+    return {
+        ...child,
+        name: child.name.replace('device-', 'device-editor-'),
+        ...(child.children ? { children: child.children.map(renameRoute) } : {})
+    }
+}
+
 export default [
     {
         path: '/device/:id/editor',
@@ -19,7 +27,7 @@ export default [
             return { name, params: { id: to.params.id } }
         },
         children: [
-            ...children.map(child => ({ ...child, name: child.name.replace('device-', 'device-editor-') })),
+            ...children.map(child => renameRoute(child)),
             {
                 path: 'expert',
                 name: 'device-editor-expert',
