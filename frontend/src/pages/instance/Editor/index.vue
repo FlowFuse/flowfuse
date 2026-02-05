@@ -12,7 +12,7 @@
 
         <section
             class="tabs-wrapper drawer"
-            :class="{'open': drawer.open, resizing: drawer.resizing}"
+            :class="{'open': drawer.open, resizing: isEditorResizing}"
             :style="{ width: editorWidthStyle }"
             data-el="tabs-drawer"
             @mouseenter="handleDrawerMouseEnter"
@@ -74,6 +74,7 @@ import { mapActions, mapGetters } from 'vuex'
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
 import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
 import InstanceActionsButton from '../../../components/instance/ActionButton.vue'
+import { useDrawerHelper } from '../../../composables/DrawerHelper.js'
 import usePermissions from '../../../composables/Permissions.js'
 import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 
@@ -109,7 +110,6 @@ export default {
         ResizeBar
     },
     mixins: [instanceMixin, featuresMixin],
-    inject: ['$services'],
     setup () {
         const { hasAMinimumTeamRoleOf, isVisitingAdmin } = usePermissions()
         const {
@@ -120,24 +120,33 @@ export default {
             setWidth: setEditorWidth
         } = useResizingHelper()
 
+        const {
+            drawer,
+            toggleDrawer,
+            notifyDrawerState,
+            handleDrawerMouseEnter,
+            handleDrawerMouseLeave,
+            runInitialTease,
+            bindDrawer,
+            cleanup: cleanupDrawer
+        } = useDrawerHelper()
+
         return {
+            drawer,
             isVisitingAdmin,
             isEditorResizing,
             editorWidthStyle,
             hasAMinimumTeamRoleOf,
             startEditorResize,
             bindEditorResizer,
-            setEditorWidth
-        }
-    },
-    data () {
-        return {
-            drawer: {
-                open: false
-            },
-            isMouseInDrawer: false,
-            teaseCloseTimeout: null,
-            isInitialTease: false
+            setEditorWidth,
+            toggleDrawer,
+            notifyDrawerState,
+            handleDrawerMouseEnter,
+            handleDrawerMouseLeave,
+            runInitialTease,
+            bindDrawer,
+            cleanupDrawer
         }
     },
     computed: {
@@ -221,82 +230,23 @@ export default {
             minWidth: DRAWER_MIN_WIDTH,
             maxViewportMarginX: DRAWER_MAX_VIEWPORT_MARGIN,
             maxWidthRatio: DRAWER_MAX_WIDTH_RATIO
-
         })
-        // Auto-open drawer after initial load, then close it to tease availability
-        setTimeout(() => {
-            this.isInitialTease = true
-            this.toggleDrawer()
-            // Close drawer after a brief moment to tease it, but only if mouse is not in drawer
-            this.teaseCloseTimeout = setTimeout(() => {
-                if (!this.isMouseInDrawer) {
-                    this.toggleDrawer()
-                }
-                this.isInitialTease = false
-                this.teaseCloseTimeout = null
-            }, 2000)
-        }, 1200)
+
+        this.bindDrawer({
+            containerEl: this.$el,
+            getInstance: () => this.instance,
+            setEditorWidth: this.setEditorWidth,
+            defaultWidth: DRAWER_DEFAULT_WIDTH
+        })
+
+        this.runInitialTease()
     },
     unmounted () {
-        if (this.teaseCloseTimeout) {
-            clearTimeout(this.teaseCloseTimeout)
-        }
+        this.cleanupDrawer()
         this.clearInstance()
     },
     methods: {
-        ...mapActions('context', ['setInstance', 'clearInstance']),
-        toggleDrawer () {
-            if (this.drawer.open) {
-                this.drawer.open = false
-                // Keep width at current value - drawer will slide off-screen via transform
-            } else {
-                this.drawer.open = true
-                this.setEditorWidth(DRAWER_DEFAULT_WIDTH)
-            }
-            // Notify iframe of drawer state change
-            this.$nextTick(() => {
-                this.notifyDrawerState()
-            })
-        },
-        notifyDrawerState () {
-            // Send drawer state to iframe
-            const iframe = this.$el.querySelector('iframe')
-            if (iframe && iframe.contentWindow) {
-                // Use instance URL origin for security instead of wildcard
-                const targetOrigin = this.instance.url || window.location.origin
-                this.$services.messaging.sendMessage({
-                    message: {
-                        type: 'drawer-state',
-                        payload: { open: this.drawer.open }
-                    },
-                    target: iframe.contentWindow,
-                    targetOrigin
-                })
-            }
-        },
-        handleDrawerMouseEnter () {
-            // Only track mouse during initial tease
-            if (this.isInitialTease) {
-                this.isMouseInDrawer = true
-            }
-        },
-        handleDrawerMouseLeave () {
-            // Only track mouse during initial tease
-            if (this.isInitialTease) {
-                this.isMouseInDrawer = false
-                // If we're within the 3-second tease window and mouse leaves, start a new 3s timer
-                if (this.teaseCloseTimeout) {
-                    clearTimeout(this.teaseCloseTimeout)
-                    this.teaseCloseTimeout = setTimeout(() => {
-                        if (!this.isMouseInDrawer && this.drawer.open) {
-                            this.toggleDrawer()
-                        }
-                        this.isInitialTease = false
-                        this.teaseCloseTimeout = null
-                    }, 2000)
-                }
-            }
-        }
+        ...mapActions('context', ['setInstance', 'clearInstance'])
     }
 }
 </script>
