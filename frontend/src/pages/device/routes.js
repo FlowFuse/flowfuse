@@ -90,9 +90,14 @@ const children = [
         meta: {
             title: 'Device - Version History'
         },
-        redirect: to => {
+        redirect: (to, from) => {
             const features = store.getters['account/featuresCheck']
-            const name = features.isTimelineFeatureEnabled ? 'device-version-history-timeline' : 'device-snapshots'
+            let name = features.isTimelineFeatureEnabled ? 'device-version-history-timeline' : 'device-snapshots'
+
+            if (to.name.startsWith('device-editor-')) { // redirect to immersive mode when needed
+                name = name.replace('device-', 'device-editor-')
+            }
+
             return {
                 name,
                 params: to.params
