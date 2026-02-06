@@ -1,5 +1,5 @@
 <template>
-    <div ref="resizeTarget" class="ff--immersive-editor-wrapper" :class="{resizing: isEditorResizing}">
+    <div ref="resizeTarget" class="ff--immersive-editor-wrapper remote-instance" :class="{resizing: isEditorResizing}">
         <EditorWrapper
             :disable-events="isEditorResizing"
             :device="device"
@@ -28,8 +28,20 @@
                         <ArrowLeftIcon class="ff-btn--icon" />
                     </router-link>
                 </div>
+
                 <ff-tabs :tabs="navigation" class="tabs" />
+
                 <div class="side-actions">
+                    <DropdownMenu
+                        v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length"
+                        :options="actionsDropdownOptions"
+                        :button-style="{padding: '6px 9px'}"
+                        data-el="device-actions-dropdown"
+                        buttonClass="ff-btn ff-btn--primary device-actions-dropdown"
+                    >
+                        <CogIcon class="ff-btn--icon ff-btn--icon-left mr-0" />
+                    </DropdownMenu>
+
                     <button
                         title="Close drawer"
                         type="button"
@@ -54,19 +66,21 @@
 
 <script>
 
-import { ArrowLeftIcon, XIcon } from '@heroicons/vue/solid/index.js'
+import { ArrowLeftIcon, CogIcon, XIcon } from '@heroicons/vue/solid/index.js'
 import semver from 'semver'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
+import DropdownMenu from '../../../components/DropdownMenu.vue'
 import ResizeBar from '../../../components/ResizeBar.vue'
 import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
 import DrawerTrigger from '../../../components/immersive-editor/DrawerTrigger.vue'
 import EditorWrapper from '../../../components/immersive-editor/RemoteInstanceEditorWrapper.vue'
 import { useDrawerHelper } from '../../../composables/DrawerHelper.js'
+import usePermissions from '../../../composables/Permissions.js'
 import { useResizingHelper } from '../../../composables/ResizingHelper.js'
-import FfPage from '../../../layouts/Page.vue'
 import Alerts from '../../../services/alerts.js'
+import { DeviceStateMutator } from '../../../utils/DeviceStateMutator.js'
 
 const DRAWER_DEFAULT_WIDTH = 550 // Default drawer width in pixels
 const DRAWER_MAX_VIEWPORT_MARGIN = 200 // Space to preserve when drawer is at max width
@@ -76,14 +90,16 @@ const DRAWER_MIN_WIDTH = 310 // Minimum drawer width in pixels
 export default {
     name: 'DeviceEditor',
     components: {
+        CogIcon,
+        DropdownMenu,
         XIcon,
         ArrowLeftIcon,
-        FfPage,
         DrawerTrigger,
         ResizeBar,
         EditorWrapper
     },
     setup () {
+        const { hasPermission } = usePermissions()
         const {
             drawer,
             toggleDrawer,
@@ -116,7 +132,8 @@ export default {
             handleDrawerMouseLeave,
             runInitialTease,
             bindDrawer,
-            cleanupDrawer
+            cleanupDrawer,
+            hasPermission
         }
     },
     data () {
@@ -125,7 +142,11 @@ export default {
             agentSupportsActions: null,
             device: null,
             openingTunnel: false,
-            ws: null
+            ws: null,
+            /** @type {DeviceStateMutator} */
+            deviceStateMutator: null,
+            reloadInterval: null,
+            reloadTimeout: null
         }
     },
     computed: {
@@ -195,7 +216,34 @@ export default {
                 //     hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')
                 // }
             ]
+        },
+        permissionContext () {
+            if (this.device?.ownerType === 'application' || this.device?.ownerType === 'instance') {
+                return { application: this.device.application }
+            }
+            return {}
+        },
+        actionsDropdownOptions () {
+            // a copy and paste job from frontend/src/pages/device/index.vue:293
+            const flowActionsDisabled = !(this.device.status !== 'suspended')
+
+            const deviceStateChanging = this.device.pendingStateChange || this.device.optimisticStateChange
+
+            const result = []
+
+            if (this.device.lastSeenAt) {
+                // if we've never connected, we know we can't restart
+                result.push({ name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled })
+            }
+
+            if (this.hasPermission('device:delete', this.permissionContext)) {
+                result.push(null)
+                result.push({ name: 'Delete', class: ['text-red-700'], action: this.showConfirmDeleteDialog })
+            }
+
+            return result
         }
+
     },
     watch: {
         device (device) {
@@ -203,6 +251,7 @@ export default {
                 this.setContextDevice(device)
                 this.pollDeviceComms()
                 this.runInitialTease()
+                this.deviceStateMutator = new DeviceStateMutator(this.device)
             } else {
                 this.closeComms()
                 this.$router.push({ name: 'device-overview' })
@@ -234,6 +283,14 @@ export default {
     },
     beforeUnmount () {
         this.closeComms()
+        if (this.reloadInterval) {
+            clearInterval(this.reloadInterval)
+            this.reloadInterval = null
+        }
+        if (this.reloadTimeout) {
+            clearTimeout(this.reloadTimeout)
+            this.reloadTimeout = null
+        }
     },
     methods: {
         ...mapActions('context', { setContextDevice: 'setDevice' }),
@@ -263,9 +320,11 @@ export default {
             this.ws.addEventListener('close', this.handleCommsDisconnect)
         },
         handleCommsDisconnect () {
-            this.$router.push({ name: 'device-overview' })
-                .then(() => Alerts.emit('Disconnected from remote instance.', 'warning'))
-                .catch(e => e)
+            if (!this.device.optimisticStateChange) {
+                this.$router.push({ name: 'device-overview' })
+                    .then(() => Alerts.emit('Disconnected from remote instance.', 'warning'))
+                    .catch(e => e)
+            }
         },
         closeComms () {
             if (this.ws) {
@@ -274,7 +333,84 @@ export default {
                 this.ws.close()
                 this.ws = null
             }
+        },
+        preActionChecks (message) {
+            if (this.device.agentVersion && !this.agentSupportsActions) {
+                // if agent version is present but is less than required version, show warning and halt
+                Alerts.emit('Device Agent V2.3 or greater is required to perform this action.', 'warning')
+                return false
+            }
+            if (!message) {
+                // no message means silent operation, no need to show confirmation
+                return true
+            }
+            if (!this.device.agentVersion) {
+                // if agent version is missing, be optimistic and give it a go, but show warning
+                Alerts.emit(`${message}.  NOTE: The device agent version is not known, the action may timeout`, 'warning')
+            } else {
+                Alerts.emit(message, 'confirmation')
+            }
+            return true
+        },
+        async restartDevice () {
+            const preCheckOk = this.preActionChecks('Restarting device...')
+            if (!preCheckOk) {
+                return
+            }
+            this.deviceStateMutator.setStateOptimistically('restarting')
+            try {
+                await deviceApi.restartDevice(this.device)
+                this.deviceStateMutator.setStateAsPendingFromServer()
+                this.pollDeviceAfterRestart()
+            } catch (err) {
+                let message = 'Device restart request failed.'
+                if (err.response?.data?.error) {
+                    message = err.response.data.error
+                }
+                console.warn(message, err)
+                Alerts.emit(message, 'warning')
+            }
+        },
+        pollDeviceAfterRestart () {
+            // Clear any existing intervals/timeouts
+            if (this.reloadInterval) {
+                clearInterval(this.reloadInterval)
+            }
+            if (this.reloadTimeout) {
+                clearTimeout(this.reloadTimeout)
+            }
+
+            // Set up interval to reload device every 5 seconds
+            this.reloadInterval = setInterval(async () => {
+                try {
+                    this.device = await deviceApi.getDevice(this.$route.params.id)
+                } catch (err) {
+                    console.warn('Failed to reload device:', err)
+                }
+            }, 5000)
+
+            // Set up timeout to stop polling after 30 seconds
+            this.reloadTimeout = setTimeout(() => {
+                if (this.reloadInterval) {
+                    clearInterval(this.reloadInterval)
+                    this.reloadInterval = null
+                }
+            }, 30000)
         }
     }
 }
 </script>
+
+<style lang="scss">
+.ff--immersive-editor-wrapper {
+    &.remote-instance {
+        .device-actions-dropdown {
+            padding: 6px 9px;
+
+            svg {
+                margin: 0;
+            }
+        }
+    }
+}
+</style>
