@@ -204,6 +204,7 @@ export default {
                 this.pollDeviceComms()
                 this.runInitialTease()
             } else {
+                this.closeComms()
                 this.$router.push({ name: 'device-overview' })
                     .then(() => Alerts.emit('Unable to connect to the Remote Instance', 'warning'))
                     .catch(e => e)
