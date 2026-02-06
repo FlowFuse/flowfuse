@@ -40,7 +40,7 @@ on:
       - 'docs/**'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.number }}
+  group: ${{ github.workflow }}-${{ github.event.number || inputs.pr_number }}
   cancel-in-progress: false
 
 env:
