@@ -41,8 +41,14 @@ export default {
         isDeviceRunning () {
             return this.computedStatus === 'running'
         },
+        isEditorAvailable () {
+            return Object.prototype.hasOwnProperty.call(this.device, 'editor') &&
+                Object.prototype.hasOwnProperty.call(this.device.editor, 'connected') &&
+                this.device.editor.connected
+        },
         computedStatus () {
-            if (!this.device || !Object.prototype.hasOwnProperty.call(this.device, 'editor')) {
+            if (!this.device || !this.isEditorAvailable) {
+                // forces the loading animation while loading
                 return 'loading'
             }
 
