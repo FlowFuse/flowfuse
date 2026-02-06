@@ -10,7 +10,7 @@
             :value-key="['instance', 'mcpServerUrl']"
             placeholder="Resources"
             open-above
-            :min-options-width="280"
+            :options-min-width="280"
             align-right
         >
             <template #options="{ options }">
