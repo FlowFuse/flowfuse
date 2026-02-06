@@ -69,7 +69,7 @@ import { mapActions, mapGetters } from 'vuex'
 
 import { useResizingHelper } from '../../composables/ResizingHelper.js'
 
-import ResizeBar from '../../pages/instance/Editor/components/drawer/ResizeBar.vue'
+import ResizeBar from '../ResizeBar.vue'
 
 import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
 import ContextSelector from './components/ContextSelector.vue'

@@ -103,6 +103,9 @@ const getters = {
     immersiveInstance: (state, getters, rootState) => {
         return rootState.context.instance
     },
+    immersiveDevice: (state, getters, rootState) => {
+        return rootState.context.device
+    },
     hasUserSelection: (state) => {
         return state.selectedNodes.length
     },
@@ -147,6 +150,21 @@ const getters = {
             return null
         }
         return state.debugLog || []
+    },
+    allowedInboundOrigins: (state, getters) => {
+        const allowedOrigins = [window.origin]
+
+        if (getters.immersiveInstance?.url) {
+            allowedOrigins.push(getters.immersiveInstance.url)
+        }
+
+        if (getters.immersiveDevice?.editor?.url) {
+            // todo this might not be needed because it's just the path to the editor tunnel, not an actual origin
+            //   and the only origin we might receive messages is the current window origin
+            allowedOrigins.push(getters.immersiveDevice.editor.url)
+        }
+
+        return allowedOrigins
     }
 }
 
@@ -210,10 +228,11 @@ const mutations = {
 
 const actions = {
     async handleMessage ({ commit, getters, dispatch }, payload) {
-        if (payload.origin !== getters.immersiveInstance.url) {
+        if (!getters.allowedInboundOrigins.includes(payload.origin)) {
             console.warn('Received message from unknown origin. Ignoring.')
             return
         }
+
         switch (true) {
         case payload.data.type === 'assistant-ready':
             commit('SET_VERSION', payload.data.version)

@@ -8,7 +8,7 @@
         type="button"
         @click="$emit('toggle')"
     >
-        <img src="../../../../images/icons/ff-minimal-grey.svg" alt="FlowFuse logo">
+        <img src="../../images/icons/ff-minimal-grey.svg" alt="FlowFuse logo">
         <ChevronRightIcon class="ff-btn--icon" />
     </button>
 </template>
