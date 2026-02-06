@@ -79,8 +79,8 @@ import EditorWrapper from '../../../components/immersive-editor/RemoteInstanceEd
 import { useDrawerHelper } from '../../../composables/DrawerHelper.js'
 import usePermissions from '../../../composables/Permissions.js'
 import { useResizingHelper } from '../../../composables/ResizingHelper.js'
-import FfPage from '../../../layouts/Page.vue'
 import Alerts from '../../../services/alerts.js'
+import { DeviceStateMutator } from '../../../utils/DeviceStateMutator.js'
 
 const DRAWER_DEFAULT_WIDTH = 550 // Default drawer width in pixels
 const DRAWER_MAX_VIEWPORT_MARGIN = 200 // Space to preserve when drawer is at max width
@@ -94,7 +94,6 @@ export default {
         DropdownMenu,
         XIcon,
         ArrowLeftIcon,
-        FfPage,
         DrawerTrigger,
         ResizeBar,
         EditorWrapper
@@ -143,7 +142,11 @@ export default {
             agentSupportsActions: null,
             device: null,
             openingTunnel: false,
-            ws: null
+            ws: null,
+            /** @type {DeviceStateMutator} */
+            deviceStateMutator: null,
+            reloadInterval: null,
+            reloadTimeout: null
         }
     },
     computed: {
@@ -248,6 +251,7 @@ export default {
                 this.setContextDevice(device)
                 this.pollDeviceComms()
                 this.runInitialTease()
+                this.deviceStateMutator = new DeviceStateMutator(this.device)
             } else {
                 this.$router.push({ name: 'device-overview' })
                     .then(() => Alerts.emit('Unable to connect to the Remote Instance', 'warning'))
@@ -278,6 +282,14 @@ export default {
     },
     beforeUnmount () {
         this.closeComms()
+        if (this.reloadInterval) {
+            clearInterval(this.reloadInterval)
+            this.reloadInterval = null
+        }
+        if (this.reloadTimeout) {
+            clearTimeout(this.reloadTimeout)
+            this.reloadTimeout = null
+        }
     },
     methods: {
         ...mapActions('context', { setContextDevice: 'setDevice' }),
@@ -307,9 +319,11 @@ export default {
             this.ws.addEventListener('close', this.handleCommsDisconnect)
         },
         handleCommsDisconnect () {
-            this.$router.push({ name: 'device-overview' })
-                .then(() => Alerts.emit('Disconnected from remote instance.', 'warning'))
-                .catch(e => e)
+            if (!this.device.optimisticStateChange) {
+                this.$router.push({ name: 'device-overview' })
+                    .then(() => Alerts.emit('Disconnected from remote instance.', 'warning'))
+                    .catch(e => e)
+            }
         },
         closeComms () {
             if (this.ws) {
@@ -318,6 +332,69 @@ export default {
                 this.ws.close()
                 this.ws = null
             }
+        },
+        preActionChecks (message) {
+            if (this.device.agentVersion && !this.agentSupportsActions) {
+                // if agent version is present but is less than required version, show warning and halt
+                Alerts.emit('Device Agent V2.3 or greater is required to perform this action.', 'warning')
+                return false
+            }
+            if (!message) {
+                // no message means silent operation, no need to show confirmation
+                return true
+            }
+            if (!this.device.agentVersion) {
+                // if agent version is missing, be optimistic and give it a go, but show warning
+                Alerts.emit(`${message}.  NOTE: The device agent version is not known, the action may timeout`, 'warning')
+            } else {
+                Alerts.emit(message, 'confirmation')
+            }
+            return true
+        },
+        async restartDevice () {
+            const preCheckOk = this.preActionChecks('Restarting device...')
+            if (!preCheckOk) {
+                return
+            }
+            this.deviceStateMutator.setStateOptimistically('restarting')
+            try {
+                await deviceApi.restartDevice(this.device)
+                this.deviceStateMutator.setStateAsPendingFromServer()
+                this.pollDeviceAfterRestart()
+            } catch (err) {
+                let message = 'Device restart request failed.'
+                if (err.response?.data?.error) {
+                    message = err.response.data.error
+                }
+                console.warn(message, err)
+                Alerts.emit(message, 'warning')
+            }
+        },
+        pollDeviceAfterRestart () {
+            // Clear any existing intervals/timeouts
+            if (this.reloadInterval) {
+                clearInterval(this.reloadInterval)
+            }
+            if (this.reloadTimeout) {
+                clearTimeout(this.reloadTimeout)
+            }
+
+            // Set up interval to reload device every 5 seconds
+            this.reloadInterval = setInterval(async () => {
+                try {
+                    this.device = await deviceApi.getDevice(this.$route.params.id)
+                } catch (err) {
+                    console.warn('Failed to reload device:', err)
+                }
+            }, 5000)
+
+            // Set up timeout to stop polling after 30 seconds
+            this.reloadTimeout = setTimeout(() => {
+                if (this.reloadInterval) {
+                    clearInterval(this.reloadInterval)
+                    this.reloadInterval = null
+                }
+            }, 30000)
         }
     }
 }
