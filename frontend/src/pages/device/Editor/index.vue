@@ -187,13 +187,13 @@ export default {
                     label: 'Settings',
                     to: { name: 'device-editor-settings' },
                     tag: 'device-settings'
-                },
-                {
-                    label: 'Developer Mode',
-                    to: { name: 'device-editor-developer-mode' },
-                    tag: 'device-devmode',
-                    hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')
                 }
+                // {
+                //     label: 'Developer Mode',
+                //     to: { name: 'device-editor-developer-mode' },
+                //     tag: 'device-devmode',
+                //     hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')
+                // }
             ]
         }
     },

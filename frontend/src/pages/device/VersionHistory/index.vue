@@ -1,13 +1,13 @@
 <template>
     <SectionTopMenu>
-        <template #hero>
+        <template v-if="!isInImmersiveMode" #hero>
             <toggle-button-group :buttons="pageToggle" data-nav="page-toggle" title="View" :visually-hide-title="true" />
         </template>
-        <template #pictogram>
+        <template v-if="!isInImmersiveMode" #pictogram>
             <img v-if="$route.name.includes('timeline')" alt="info" src="../../../images/pictograms/timeline_red.png">
             <img v-else-if="$route.name.includes('snapshots')" alt="info" src="../../../images/pictograms/snapshot_red.png">
         </template>
-        <template #helptext>
+        <template v-if="!isInImmersiveMode" #helptext>
             <template v-if="$route.name.includes('timeline')">
                 <p>The <b>Timeline</b> provides a concise, chronological view of key activities within your Node-RED instance.</p>
                 <p>It tracks various events such as pipeline stage deployments, snapshot restorations, flow deployments, snapshot creations, and updates to instance settings.</p>
@@ -26,7 +26,7 @@
                     v-ff-tooltip:left="'Untick this to show snapshots from other Instances within this application'"
                     data-form="device-only-snapshots"
                     label="Instance Snapshots Only"
-                    class="truncate device-only-snapshots"
+                    class="truncate"
                 />
                 <ff-button
                     v-if="hasPermission('snapshot:import', { application: device.application })"
@@ -181,6 +181,9 @@ export default {
                 return 'Instance must be owned by an Application to create a Snapshot'
             }
             return !this.canCreateSnapshot ? 'Instance must be in \'Developer Mode\' to create a Snapshot' : 'Capture a Snapshot of this Instance.'
+        },
+        isInImmersiveMode () {
+            return this.$route.name.startsWith('device-editor-')
         }
     },
     methods: {
@@ -234,8 +237,7 @@ export default {
 // Hide button text on narrow viewports (< 640px)
 @media (max-width: 639px) {
     .upload-snapshot-text,
-    .create-snapshot-text,
-    .device-only-snapshots {
+    .create-snapshot-text {
         display: none;
     }
 }
@@ -254,8 +256,7 @@ export default {
 @container drawer (max-width: 639px) {
     // Hide text when drawer is narrow - icon-only mode
     .upload-snapshot-text,
-    .create-snapshot-text,
-    .device-only-snapshots {
+    .create-snapshot-text {
         display: none;
     }
 }
@@ -263,8 +264,7 @@ export default {
 @container drawer (min-width: 640px) {
     // Show text when drawer is wide enough
     .upload-snapshot-text,
-    .create-snapshot-text,
-    .device-only-snapshots {
+    .create-snapshot-text {
         display: inline;
     }
 }
