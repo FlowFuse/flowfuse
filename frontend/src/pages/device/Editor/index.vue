@@ -1,5 +1,5 @@
 <template>
-    <div ref="resizeTarget" class="ff--immersive-editor-wrapper" :class="{resizing: isEditorResizing}">
+    <div ref="resizeTarget" class="ff--immersive-editor-wrapper remote-instance" :class="{resizing: isEditorResizing}">
         <EditorWrapper
             :disable-events="isEditorResizing"
             :device="device"
@@ -28,8 +28,20 @@
                         <ArrowLeftIcon class="ff-btn--icon" />
                     </router-link>
                 </div>
+
                 <ff-tabs :tabs="navigation" class="tabs" />
+
                 <div class="side-actions">
+                    <DropdownMenu
+                        v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length"
+                        :options="actionsDropdownOptions"
+                        :button-style="{padding: '6px 9px'}"
+                        data-el="device-actions-dropdown"
+                        buttonClass="ff-btn ff-btn--primary device-actions-dropdown"
+                    >
+                        <CogIcon class="ff-btn--icon ff-btn--icon-left mr-0" />
+                    </DropdownMenu>
+
                     <button
                         title="Close drawer"
                         type="button"
@@ -54,16 +66,18 @@
 
 <script>
 
-import { ArrowLeftIcon, XIcon } from '@heroicons/vue/solid/index.js'
+import { ArrowLeftIcon, CogIcon, XIcon } from '@heroicons/vue/solid/index.js'
 import semver from 'semver'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
+import DropdownMenu from '../../../components/DropdownMenu.vue'
 import ResizeBar from '../../../components/ResizeBar.vue'
 import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
 import DrawerTrigger from '../../../components/immersive-editor/DrawerTrigger.vue'
 import EditorWrapper from '../../../components/immersive-editor/RemoteInstanceEditorWrapper.vue'
 import { useDrawerHelper } from '../../../composables/DrawerHelper.js'
+import usePermissions from '../../../composables/Permissions.js'
 import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 import FfPage from '../../../layouts/Page.vue'
 import Alerts from '../../../services/alerts.js'
@@ -76,6 +90,8 @@ const DRAWER_MIN_WIDTH = 310 // Minimum drawer width in pixels
 export default {
     name: 'DeviceEditor',
     components: {
+        CogIcon,
+        DropdownMenu,
         XIcon,
         ArrowLeftIcon,
         FfPage,
@@ -84,6 +100,7 @@ export default {
         EditorWrapper
     },
     setup () {
+        const { hasPermission } = usePermissions()
         const {
             drawer,
             toggleDrawer,
@@ -116,7 +133,8 @@ export default {
             handleDrawerMouseLeave,
             runInitialTease,
             bindDrawer,
-            cleanupDrawer
+            cleanupDrawer,
+            hasPermission
         }
     },
     data () {
@@ -195,7 +213,34 @@ export default {
                     hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')
                 }
             ]
+        },
+        permissionContext () {
+            if (this.device?.ownerType === 'application' || this.device?.ownerType === 'instance') {
+                return { application: this.device.application }
+            }
+            return {}
+        },
+        actionsDropdownOptions () {
+            // a copy and paste job from frontend/src/pages/device/index.vue:293
+            const flowActionsDisabled = !(this.device.status !== 'suspended')
+
+            const deviceStateChanging = this.device.pendingStateChange || this.device.optimisticStateChange
+
+            const result = []
+
+            if (this.device.lastSeenAt) {
+                // if we've never connected, we know we can't restart
+                result.push({ name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled })
+            }
+
+            if (this.hasPermission('device:delete', this.permissionContext)) {
+                result.push(null)
+                result.push({ name: 'Delete', class: ['text-red-700'], action: this.showConfirmDeleteDialog })
+            }
+
+            return result
         }
+
     },
     watch: {
         device (device) {
@@ -277,3 +322,17 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+.ff--immersive-editor-wrapper {
+    &.remote-instance {
+        .device-actions-dropdown {
+            padding: 6px 9px;
+
+            svg {
+                margin: 0;
+            }
+        }
+    }
+}
+</style>
