@@ -1,6 +1,7 @@
 <template>
     <div ref="resizeTarget" class="ff-expert-input" :style="{height: heightStyle}">
         <resize-bar
+            :is-resizing="isInputResizing"
             direction="horizontal"
             @mousedown="startResize"
         />
@@ -105,12 +106,13 @@ export default {
     },
     emits: ['send', 'stop', 'start-over'],
     setup () {
-        const { startResize, heightStyle, bindResizer } = useResizingHelper()
+        const { startResize, heightStyle, bindResizer, isResizing: isInputResizing } = useResizingHelper()
 
         return {
             startResize,
             bindResizer,
-            heightStyle
+            heightStyle,
+            isInputResizing
         }
     },
     data () {
