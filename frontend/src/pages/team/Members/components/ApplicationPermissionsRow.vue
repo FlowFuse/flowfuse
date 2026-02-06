@@ -10,9 +10,10 @@
                 >
                     <span class="item" />
                     <span class="item name" data-el="application-name">
-                        <ff-team-link :to="{name: 'application-settings-user-access', params: {id: application.id}}" class="ff-link">
+                        <ff-team-link v-if="!application.disabled" :to="{name: 'application-settings-user-access', params: {id: application.id}}" class="ff-link">
                             {{ application.name }}
                         </ff-team-link>
+                        <span v-else>{{ application.name }}</span>
                     </span>
                     <RoleCompare :baseRole="data.role" :overrideRole="application.role" class="w-40" />
                     <span class="item action w-40 pl-5" data-action="update-role">
@@ -30,6 +31,7 @@ import { defineComponent } from 'vue'
 
 import RoleCompare from '../../../../components/permissions/RoleCompare.vue'
 import FfTeamLink from '../../../../components/router-links/TeamLink.vue'
+import usePermissions from '../../../../composables/Permissions.js'
 
 import { slugify } from '../../../../composables/String.js'
 
@@ -53,7 +55,8 @@ export default defineComponent({
     },
     emits: ['application-role-updated'],
     setup () {
-        return { ArrowDownIcon, ArrowUpIcon, BanIcon, slugify }
+        const { hasPermission } = usePermissions()
+        return { ArrowDownIcon, ArrowUpIcon, BanIcon, slugify, hasPermission }
     },
     computed: {
         rows () {
@@ -64,7 +67,8 @@ export default defineComponent({
                 return {
                     id: application.id,
                     name: application.name,
-                    role: customRole ?? teamRole
+                    role: customRole ?? teamRole,
+                    disabled: !this.hasPermission('project:read', { application })
                 }
             })
         }

@@ -5,7 +5,7 @@
             data-el="user-access-table"
         >
             <template v-if="hasPermission('team:user:change-role') || isAdminUser" #context-menu="{row}">
-                <ff-list-item data-action="edit-token" label="Edit Permissions" @click="editUserPermissions(row)" />
+                <ff-kebab-item data-action="edit-token" label="Edit Permissions" @click="editUserPermissions(row)" />
             </template>
         </ff-data-table>
 

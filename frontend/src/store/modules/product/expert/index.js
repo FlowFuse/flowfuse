@@ -50,7 +50,13 @@ const getters = {
     isSessionExpired: (state) => state[state.agentMode].sessionExpiredShown,
     isFfAgent: (state) => state.agentMode === FF_AGENT,
     isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT,
-    hasSelectedCapabilities: (state) => state[OPERATOR_AGENT].selectedCapabilities?.length > 0
+    hasSelectedCapabilities: (state) => state[OPERATOR_AGENT].selectedCapabilities?.length > 0,
+    canImportFlows: (state, getters, rootState, rootGetters) => {
+        return !!rootGetters['product/assistant/immersiveInstance'] && !!rootState.product.assistant.supportedActions['custom:import-flow']
+    },
+    canManagePalette: (state, getters, rootState, rootGetters) => {
+        return !!rootGetters['product/assistant/immersiveInstance'] && !!rootState.product.assistant.supportedActions['core:manage-palette']
+    }
 }
 
 const mutations = {
@@ -439,6 +445,15 @@ const actions = {
                         kind: 'resources',
                         resources: item,
                         content: item.title || 'Resources',
+                        timestamp: Date.now()
+                    })
+                } else if (item.kind === 'chat' && ((Array.isArray(item.issues) && item.issues.length > 0) || (Array.isArray(item.suggestions) && item.suggestions.length > 0))) {
+                    // Add chat message with issues and suggestions
+                    commit('ADD_MESSAGE', {
+                        type: 'ai',
+                        kind: 'chat',
+                        resources: item,
+                        content: item.content || 'Response',
                         timestamp: Date.now()
                     })
                 } else if (item.kind === 'chat') {

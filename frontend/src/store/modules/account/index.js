@@ -579,6 +579,11 @@ const actions = {
             .then(user => {
                 commit('login', user)
             })
+    },
+    async refreshTeamMembership ({ commit, state }) {
+        const teamMembership = await teamApi.getTeamUserMembership(state.team.id)
+
+        commit('setTeamMembership', teamMembership)
     }
 }
 

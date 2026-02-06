@@ -3,7 +3,6 @@
     <ff-loading v-if="loading" message="Loading Team..." />
     <form v-else>
         <div class="text-right" />
-        <h1>Is Admin: {{ isAdminUser }}</h1>
         <ff-data-table
             data-el="members-table"
             :columns="columns"
@@ -19,12 +18,12 @@
                 </ff-button>
             </template>
             <template v-if="canEditUser" #context-menu="{row}">
-                <ff-list-item
+                <ff-kebab-item
                     v-if="(hasPermission('team:user:change-role') && !requiresBilling) || isAdminUser"
                     data-action="member-change-role"
                     label="Change Role" @click="changeRoleDialog(row)"
                 />
-                <ff-list-item
+                <ff-kebab-item
                     v-if="hasPermission('team:user:remove') || isAdminUser"
                     data-action="member-remove-from-team"
                     label="Remove From Team"
@@ -51,7 +50,7 @@
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
 import { markRaw } from 'vue'
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
@@ -128,7 +127,7 @@ export default {
                     component: { is: markRaw(UserCell) }
                 },
                 {
-                    label: 'Role',
+                    label: 'Access',
                     key: 'role',
                     sortable: true,
                     class: ['w-40'],
@@ -146,10 +145,9 @@ export default {
             ]
         },
         collapsibleRow () {
-            if (
-                (!this.featuresCheck.isRBACApplicationFeatureEnabled || !this.hasPermission('application:access-control')) &&
-                !this.isAdminUser
-            ) return null
+            if (!this.featuresCheck.isRBACApplicationFeatureEnabled || (!this.isAdminUser && !this.hasPermission('application:access-control'))) {
+                return null
+            }
 
             return {
                 is: markRaw(ApplicationPermissionRow),
@@ -179,6 +177,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions('account', ['refreshTeamMembership']),
         inviteMember () {
             this.$refs.inviteMemberDialog.show()
         },
@@ -203,6 +202,8 @@ export default {
                     this.users = response.members
                     this.ownerCount = 0
 
+                    this.refreshTeamMembership()
+
                     if (this.users) {
                         this.users.forEach(u => {
                             if (u.role === Roles.Owner) {
@@ -219,7 +220,7 @@ export default {
                 })
         },
         fetchApplications () {
-            return teamApi.getTeamApplications(this.team.id)
+            return teamApi.getTeamApplications(this.team.id, { excludeOwnerFiltering: true })
                 .then(response => {
                     this.applications = response.applications
                 })

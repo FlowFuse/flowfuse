@@ -1,0 +1,145 @@
+.ff--immersive-editor-wrapper {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex: 1;
+
+  .editor-wrapper {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+  }
+  .editor-wrapper .status-wrapper {
+    margin-top: -64px;
+  }
+
+  .tabs-wrapper {
+    position: fixed;
+    left: 0;
+    top: 60px;
+    width: 0;
+    height: calc(100% - 60px);
+    background: white;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    container-type: inline-size;
+    container-name: drawer;
+    z-index: 1;
+
+    .header, main {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    main {
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .header {
+      padding: 0 15px 0 0;
+      display: flex;
+      line-height: 1.5;
+      border-bottom: 1px solid $ff-grey-200;
+      background: white;
+      z-index: 10;
+
+      .logo {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-left: 15px;
+
+        a {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color: $ff-grey-500;
+          gap: 4px;
+
+          .ff-btn--icon {
+            width: 16px;
+            height: 16px;
+          }
+
+          img {
+            height: 20px;
+          }
+
+          &:hover {
+            opacity: 0.8;
+          }
+        }
+      }
+
+      .tabs {
+        flex: 1;
+        padding: 0 15px;
+        min-width: 0;
+
+        .ff-tab-option {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+
+      .side-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        align-items: center;
+        color: $ff-grey-500;
+        flex-shrink: 0;
+
+        .close-drawer-button {
+          background: none;
+          border: none;
+          padding: 0;
+          color: inherit;
+          font: inherit;
+          display: flex;
+          align-items: center;
+
+          &:hover {
+            cursor: pointer;
+          }
+        }
+      }
+    }
+
+    &.open {
+      transform: translateX(0);
+      box-shadow: 5px 0 8px rgba(0, 0, 0, 0.10);
+
+      .header, main {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+  }
+
+  &.resizing {
+    cursor: ew-resize;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+
+    .resize-bar {
+      background-color: $ff-blue-500;
+    }
+
+    .tabs-wrapper {
+      transition: none;
+    }
+  }
+}

@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import InstanceStatusBadge from '../../components/InstanceStatusBadge.vue'
+import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 
 export default {
     name: 'LoadingScreenWrapper',
@@ -66,7 +66,7 @@ export default {
         },
         animationData () {
             try {
-                return require(`../../../../images/lottie/immersive-editor-loading-states/${this.computedState}.json`)
+                return require(`../../images/lottie/immersive-editor-loading-states/${this.computedState}.json`)
             } catch (error) {
                 return null
             }

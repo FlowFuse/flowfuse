@@ -186,10 +186,10 @@ including what Instance Types are available and any limits that should be applie
     Provides a Team scoped shared SQL Relational Database (Requires specific configuration). More details [here](../user/ff-tables.md)
  - **Assistant Inline Code Completion**
  
-    Allows LLM assistance when writing Functions nodes (requires a token from FlowFuse Support and available to Enterprise License holders). More details [here](../user/assistant.md)
+    Allows LLM assistance when writing Functions nodes (requires a token from FlowFuse Support and available to Enterprise License holders). More details [here](../user/expert.md)
  - **Generated Snapshot Descriptions**
 
-    Enables the creation of Generative AI descriptions of Snapshots (requires a token from FlowFuse Support and available to Enterprise License holders). More details [here](../user/assistant.md)
+    Enables the creation of Generative AI descriptions of Snapshots (requires a token from FlowFuse Support and available to Enterprise License holders). More details [here](../user/expert.md)
 
 ### Managing Instance Types
 

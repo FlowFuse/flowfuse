@@ -15,8 +15,8 @@
             </ff-button>
         </template>
         <template #context-menu="{row}">
-            <ff-list-item data-action="edit-token" label="Edit" @click="editToken(row)" />
-            <ff-list-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
+            <ff-kebab-item data-action="edit-token" label="Edit" @click="editToken(row)" />
+            <ff-kebab-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
         </template>
         <template v-if="tokens.length === 0" #table>
             <div class="ff-no-data ff-no-data-large">

@@ -8,16 +8,16 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           token: ${{ secrets.MAINTENANCE_SYNC_TOKEN }}
           fetch-depth: 0
-      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: 18
       - run: npm ci
       - run: npm run build
       # - run: npm run test
-      - uses: JS-DevTools/npm-publish@7f8fe47b3bea1be0c3aec2b717c5ec1f3e03410b # v4.1.1
+      - uses: JS-DevTools/npm-publish@4ce4bd0f334d5316473155078da1955d42148494 # v4.1.4
         with:
           token: ${{ secrets.NPM_PUBLISH_TOKEN }}

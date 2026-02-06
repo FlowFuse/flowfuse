@@ -125,7 +125,13 @@ controller:
     configNameSpace: $(POD_NAMESPACE)/udp-services
   config:
     proxy-body-size: "0"
+    annotations-risk-level: "Critical"
+    use-gzip: true
     use-proxy-protocol: true
+    enable-real-ip: true
+    use-forwarded-headers: true
+    server-snippet: |
+      real_ip_header X-Forwarded-For;
   service:
     # AWS Annotations for LoadBalaner with Certificate ARN
     annotations:
@@ -141,6 +147,7 @@ controller:
     externalTrafficPolicy: Cluster
   ingressClassResource:
     default: true
+  allowSnippetAnnotations: true
 ```
 
 > The `proxy-body-size: "0"` removes the `1m` nginx default limit, you can set this to a 

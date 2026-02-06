@@ -24,9 +24,9 @@
                     </ff-button>
                 </template>
                 <template #context-menu="{row}">
-                    <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)" />
-                    <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)" />
-                    <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)" />
+                    <ff-kebab-item label="Create New Version" @click="stackAction('createNewVersion', row.id)" />
+                    <ff-kebab-item label="Edit Properties" @click="stackAction('editProperties', row.id)" />
+                    <ff-kebab-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)" />
                 </template>
             </ff-data-table>
             <div v-if="nextActiveCursor">
@@ -44,9 +44,9 @@
                 no-data-message="No Inactive Stacks Found"
             >
                 <template #context-menu="{row}">
-                    <ff-list-item label="Create New Version" @click="stackAction('createNewVersion', row.id)" />
-                    <ff-list-item label="Edit Properties" @click="stackAction('editProperties', row.id)" />
-                    <ff-list-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)" />
+                    <ff-kebab-item label="Create New Version" @click="stackAction('createNewVersion', row.id)" />
+                    <ff-kebab-item label="Edit Properties" @click="stackAction('editProperties', row.id)" />
+                    <ff-kebab-item label="Delete Stack" kind="danger" @click="stackAction('delete', row.id)" />
                 </template>
             </ff-data-table>
             <div v-if="nextInactiveCursor">
