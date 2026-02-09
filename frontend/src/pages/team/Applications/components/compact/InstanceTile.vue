@@ -1,5 +1,5 @@
 <template>
-    <div class="instance-tile" data-el="instance-tile">
+    <div class="instance-tile" data-el="instance-tile" role="link" @click="navigateToInstance">
         <div class="status">
             <InstanceStatusBadge
                 v-if="!minimalView"
@@ -14,27 +14,12 @@
         </div>
         <div class="details">
             <div class="detail-wrapper">
-                <router-link
-                    :to="{ name: 'Instance', params: { id: localInstance.id } }"
-                    :title="localInstance.name"
-                    class="name"
-                    :class="{'no-highlight': isHoveringInstanceUrl}"
-                >
+                <span class="name" :title="localInstance.name">
                     {{ localInstance.name }}
-                </router-link>
+                </span>
             </div>
             <div class="detail-wrapper detail">
-                <a
-                    v-if="isInstanceRunning"
-                    :href="localInstance.url"
-                    target="_blank"
-                    class="editor-link"
-                    @click.stop @mouseover="isHoveringInstanceUrl = true"
-                    @mouseleave="isHoveringInstanceUrl = false"
-                >
-                    {{ localInstance.url }}
-                </a>
-                <span v-else class="editor-link inactive">
+                <span class="editor-link" :class="{ inactive: !isInstanceRunning }">
                     {{ localInstance.url }}
                 </span>
             </div>
@@ -143,8 +128,7 @@ export default {
     },
     data () {
         return {
-            localInstance: this.instance,
-            isHoveringInstanceUrl: false
+            localInstance: this.instance
         }
     },
     computed: {
@@ -174,6 +158,9 @@ export default {
         }
     },
     methods: {
+        navigateToInstance () {
+            this.$router.push({ name: 'Instance', params: { id: this.localInstance.id } })
+        },
         openInstance () {
             if (!this.localInstance.url) return
             const target = `_${this.localInstance.id}`

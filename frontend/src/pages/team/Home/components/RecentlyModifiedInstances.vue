@@ -113,15 +113,17 @@ export default {
             justify-content: space-between;
             align-items: center;
             gap: 10px;
-            will-change: border-color;
+            will-change: border-color, background-color;
             transition: ease-in-out .3s;
+            cursor: pointer;
 
             &.has-more {
                 padding: 10px;
             }
 
             &:hover {
-                border-color: $ff-grey-200;
+                border-color: $ff-grey-300;
+                background-color: $ff-indigo-50;
             }
 
             .details {
@@ -131,11 +133,6 @@ export default {
                     &.detail {
                         font-size: $ff-funit-sm;
                         color: $ff-grey-400;
-                    }
-                    .name, .editor-link:not(.inactive) {
-                        &:hover {
-                            color: $ff-indigo-700;
-                        }
                     }
                 }
             }
