@@ -62,7 +62,7 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .ff-kebab-menu__trigger {
     border: 1px solid transparent;
 }
