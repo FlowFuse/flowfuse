@@ -46,7 +46,7 @@
             <ff-kebab-menu v-if="shouldDisplayKebabMenu" @click.stop>
                 <ff-kebab-item
                     :disabled="!isInstanceRunning"
-                    label="Open Instance"
+                    label="Open Default URL"
                     @click.stop="openInstance"
                 />
                 <li class="ff-kebab-divider" />

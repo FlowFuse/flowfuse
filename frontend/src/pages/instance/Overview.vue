@@ -9,22 +9,19 @@
                         <tr class="border-b">
                             <td class="w-48 font-medium">Default URL</td>
                             <td>
-                                <div v-if="editorAvailable">
-                                    <div v-if="isVisitingAdmin || instance.settings.disableEditor" class="my-2">
-                                        {{ instance.url }}
+                                <div class="info-row">
+                                    <div v-if="instance.url" class="info-row__content">
+                                        <TextCopier :text="instance.url" class="url-copier" />
                                     </div>
-                                    <a v-else :href="instance.url" target="_blank" class="ff-link flex" data-el="editor-link">
-                                        <span class="ml-r">{{ instance.url }}</span>
-                                        <ExternalLinkIcon class="w-4 ml-3" />
-                                    </a>
-                                </div>
-                                <div v-else class="my-2">
-                                    <router-link v-if="isHA" :to="{name: 'instance-settings-ha', params: { id: instance.id }}" @click.stop>
-                                        <StatusBadge class="text-gray-400 hover:text-blue-600" status="high-availability" />
-                                    </router-link>
-                                    <template v-else>
-                                        Unavailable
-                                    </template>
+                                    <span v-else class="text-gray-400 italic">Unavailable</span>
+                                    <button
+                                        v-if="instance.url"
+                                        class="info-row__action"
+                                        :disabled="!editorAvailable"
+                                        @click="openUrl(instance.url)"
+                                    >
+                                        <ExternalLinkIcon class="ff-icon" />
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -54,60 +51,66 @@
 
                         <tr class="border-b">
                             <td class="font-medium">Security</td>
-                            <td class="py-2">
-                                <div class="flex">
-                                    <template v-if="httpNodeAuthType == 'basic'">
-                                        HTTP basic authentication
-                                    </template>
-                                    <template v-else-if="httpNodeAuthType == 'flowforge-user'">
-                                        FlowFuse User Authentication
-                                    </template>
-                                    <template v-else>
-                                        None
-                                    </template>
-                                    <router-link v-if="canEditProject" class="mt-0.5 ml-3" :to="{ name: 'instance-settings-security' }"><LinkIcon class="w-4" /></router-link>
+                            <td>
+                                <div class="info-row">
+                                    <span class="info-row__content">
+                                        <template v-if="httpNodeAuthType == 'basic'">
+                                            HTTP basic authentication
+                                        </template>
+                                        <template v-else-if="httpNodeAuthType == 'flowforge-user'">
+                                            FlowFuse User Authentication
+                                        </template>
+                                        <template v-else>
+                                            None
+                                        </template>
+                                    </span>
+                                    <router-link v-if="canEditProject" class="info-row__action" :to="{ name: 'instance-settings-security' }">
+                                        <ChevronRightIcon class="ff-icon" />
+                                    </router-link>
                                 </div>
                             </td>
                         </tr>
                         <tr class="border-b">
                             <td class="font-medium">Scheduled Maintenance</td>
-                            <td class="py-2">
-                                <div class="flex">
-                                    <template v-if="autoStackUpgrade">
+                            <td>
+                                <div class="info-row">
+                                    <span class="info-row__content">
                                         <StatusBadge
-                                            class="forge-status-running hover:text-blue-600"
+                                            v-if="autoStackUpgrade"
+                                            class="forge-status-running"
                                             status="Enabled"
                                         />
-                                    </template>
-                                    <template v-else>
                                         <StatusBadge
-                                            class="text-gray-400 hover:text-blue-600"
+                                            v-else
+                                            class="text-gray-400"
                                             status="Disabled"
                                         />
-                                    </template>
-                                    <router-link v-if="canEditProject" :to="{ name: 'instance-settings-maintenance' }" @click.stop>
-                                        <LinkIcon class="mt-0.5 ml-3 w-4" />
+                                    </span>
+                                    <router-link v-if="canEditProject" class="info-row__action" :to="{ name: 'instance-settings-maintenance' }">
+                                        <ChevronRightIcon class="ff-icon" />
                                     </router-link>
                                 </div>
                             </td>
                         </tr>
                         <tr class="border-b">
                             <td class="font-medium">High Availability</td>
-                            <td class="py-2">
-                                <div class="flex">
-                                    <StatusBadge
-                                        v-if="isHA"
-                                        class="forge-status-running hover:text-blue-600"
-                                        status="Enabled"
-                                    />
-                                    <StatusBadge
-                                        v-else
-                                        class="text-gray-400 hover:text-blue-600"
-                                        status="Disabled"
-                                        :text="!!features.ha ? 'Disabled' : 'Not Available'"
-                                    />
-                                    <router-link v-if="canEditProject && !!features.ha" :to="{ name: 'instance-settings-ha' }" @click.stop>
-                                        <LinkIcon class="mt-0.5 ml-3 w-4" />
+                            <td>
+                                <div class="info-row">
+                                    <span class="info-row__content">
+                                        <StatusBadge
+                                            v-if="isHA"
+                                            class="forge-status-running"
+                                            status="Enabled"
+                                        />
+                                        <StatusBadge
+                                            v-else
+                                            class="text-gray-400"
+                                            status="Disabled"
+                                            :text="!!features.ha ? 'Disabled' : 'Not Available'"
+                                        />
+                                    </span>
+                                    <router-link v-if="canEditProject && !!features.ha" class="info-row__action" :to="{ name: 'instance-settings-ha' }">
+                                        <ChevronRightIcon class="ff-icon" />
                                     </router-link>
                                 </div>
                             </td>
@@ -160,12 +163,14 @@
 </template>
 
 <script>
-import { ExternalLinkIcon, LinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
+import { ExternalLinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import InstanceApi from '../../api/instances.js'
 import FormHeading from '../../components/FormHeading.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
+import TextCopier from '../../components/TextCopier.vue'
 import AuditLog from '../../components/audit-log/AuditLog.vue'
 import usePermissions from '../../composables/Permissions.js'
 
@@ -175,13 +180,14 @@ export default {
     name: 'InstanceOverview',
     components: {
         AuditLog,
+        ChevronRightIcon,
         ExternalLinkIcon,
         FormHeading,
         InstanceStatusBadge,
-        LinkIcon,
         ServerIcon,
         StatusBadge,
         TemplateIcon,
+        TextCopier,
         TrendingUpIcon
     },
     inheritAttrs: false,
@@ -238,6 +244,9 @@ export default {
         this.getUpdateSchedule(this.instance.id)
     },
     methods: {
+        openUrl (url) {
+            window.open(url, '_blank')
+        },
         loadLogs () {
             if (this.instance && this.instance.id) {
                 this.loading = true
@@ -288,14 +297,62 @@ export default {
   }
 }
 
-// Editor URL overflow - truncate with ellipsis
-.ff-instance-info a.ff-link.flex {
-  min-width: 0;
+// Info row: content left, action button(s) pushed right
+.info-row {
+  display: flex;
+  align-items: center;
 
-  span {
+  &__content {
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  &__action {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    color: $ff-color--action;
+    transition: color 0.15s ease, background-color 0.15s ease;
+
+    .ff-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    &:hover {
+      background-color: $ff-color--highlight;
+      color: $ff-white;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      color: $ff-grey-300;
+
+      &:hover {
+        background-color: transparent;
+        color: $ff-grey-300;
+      }
+    }
+  }
+
+  .url-copier {
+    min-width: 0;
+
+    .text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
   }
 }
 

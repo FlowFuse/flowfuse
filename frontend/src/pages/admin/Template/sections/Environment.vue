@@ -53,17 +53,26 @@
                 <template #rows>
                     <ff-data-table-row v-for="(item) in filteredRows" :key="item.index" :data-row="'row-' + item.name">
                         <td class="ff-data-table--cell !pl-1 !pr-0 !py-1 border min-w-max max-w-sm align-top">
-                            <FormRow
-                                v-model="item.name"
-                                v-ff-tooltip:left="'Cannot be renamed'"
-                                class="font-mono"
-                                :containerClass="'w-full' + (!readOnly && (editTemplate || item.policy === undefined)) ? ' env-cell-uneditable':''"
-                                :inputClass="item.deprecated ? 'w-full text-yellow-700 italic' : 'w-full'"
-                                :error="errors[item.index] ? errors[item.index].error : null"
-                                :disabled="isDisabledName(item)"
-                                value-empty-text=""
+                            <template v-if="(!readOnly && (editTemplate || item.policy === undefined))">
+                                <FormRow
+                                    v-model="item.name"
+                                    v-ff-tooltip:left="'Cannot be renamed'"
+                                    class="font-mono"
+                                    :containerClass="'w-full env-cell-uneditable'"
+                                    :inputClass="item.deprecated ? 'w-full text-yellow-700 italic' : 'w-full'"
+                                    :error="errors[item.index] ? errors[item.index].error : null"
+                                    :disabled="isDisabledName(item)"
+                                    value-empty-text=""
+                                    data-el="var-name"
+                                    type="text"
+                                />
+                            </template>
+                            <TextCopier
+                                v-else
+                                :text="item.name"
+                                class="font-mono env-cell-uneditable w-full"
+                                :class="item.deprecated ? 'text-yellow-700 italic' : ''"
                                 data-el="var-name"
-                                :type="(!readOnly && (editTemplate || item.policy === undefined)) ? 'text' : 'uneditable'"
                             />
                         </td>
                         <td class="ff-data-table--cell !p-1 border w-3/5 max-w-xl" :class="{'align-middle':item.encrypted, 'align-top': !item.hidden}">
@@ -162,6 +171,7 @@ import { DocumentDownloadIcon, ExclamationIcon, EyeIcon, EyeOffIcon, Information
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+import TextCopier from '../../../../components/TextCopier.vue'
 import Alerts from '../../../../services/alerts.js'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
@@ -181,7 +191,8 @@ export default {
         ExclamationIcon,
         InformationCircleIcon,
         EyeIcon,
-        EyeOffIcon
+        EyeOffIcon,
+        TextCopier
     },
     props: {
         editTemplate: {

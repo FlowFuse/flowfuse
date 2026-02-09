@@ -114,15 +114,15 @@ export default {
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: $ff-grey-600;
+    color: $ff-color--action;
 
     &:hover {
-      color: $ff-indigo-600;
-      background-color: $ff-indigo-50;
+      color: $ff-white;
+      background-color: $ff-color--highlight;
     }
 
     &:active {
-      background-color: $ff-indigo-100;
+      background-color: $ff-color--highlight;
     }
 
     .ff-icon {

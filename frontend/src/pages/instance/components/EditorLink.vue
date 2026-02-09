@@ -58,7 +58,7 @@
                                         data-action="open-instance"
                                         @click="openInstance"
                                     >
-                                        Open Instance
+                                        Open Default URL
                                     </a>
                                 </MenuItem>
                             </div>
