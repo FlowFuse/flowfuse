@@ -35,8 +35,9 @@
                 <team-link
                     :to="{ name: 'CreateInstance' }"
                     class="text-indigo-500"
-                    >Create a Hosted Instance</team-link
                 >
+                    Create a Hosted Instance
+                </team-link>
                 to get started.
             </p>
         </div>
@@ -44,67 +45,67 @@
 </template>
 
 <script>
-import { ChevronRightIcon } from "@heroicons/vue/outline";
-import { mapGetters } from "vuex";
+import { ChevronRightIcon } from '@heroicons/vue/outline'
+import { mapGetters } from 'vuex'
 
-import teamAPI from "../../../../api/team.js";
-import TeamLink from "../../../../components/router-links/TeamLink.vue";
-import InstanceTile from "../../Applications/components/compact/InstanceTile.vue";
+import teamAPI from '../../../../api/team.js'
+import TeamLink from '../../../../components/router-links/TeamLink.vue'
+import InstanceTile from '../../Applications/components/compact/InstanceTile.vue'
 
 export default {
-    name: "RecentlyModifiedInstances",
+    name: 'RecentlyModifiedInstances',
     components: { TeamLink, InstanceTile, ChevronRightIcon },
     props: {
         totalInstances: {
             type: Number,
-            required: true,
-        },
+            required: true
+        }
     },
-    emits: ["delete-instance"],
-    data() {
+    emits: ['delete-instance'],
+    data () {
         return {
             hasMore: false,
-            instances: [],
-        };
+            instances: []
+        }
     },
     computed: {
-        ...mapGetters("account", ["team"]),
-        instancesLeft() {
-            return this.totalInstances - this.instances.length;
-        },
+        ...mapGetters('account', ['team']),
+        instancesLeft () {
+            return this.totalInstances - this.instances.length
+        }
     },
     watch: {
-        totalInstances() {
+        totalInstances () {
             // if the no. of total instances changed, it must mean one was deleted, so we need to refresh our list
-            this.getInstances();
-        },
+            this.getInstances()
+        }
     },
-    mounted() {
-        this.getInstances().catch((e) => e);
+    mounted () {
+        this.getInstances().catch((e) => e)
     },
     methods: {
-        getInstances() {
-            let limit;
+        getInstances () {
+            let limit
 
             if (this.totalInstances <= 4) {
-                limit = 3;
-                this.hasMore = this.totalInstances === 4;
+                limit = 3
+                this.hasMore = this.totalInstances === 4
             } else {
-                limit = 3;
-                this.hasMore = true;
+                limit = 3
+                this.hasMore = true
             }
             return teamAPI
                 .getInstances(this.team.id, {
                     limit,
                     includeMeta: true,
-                    orderByMostRecentFlows: true,
+                    orderByMostRecentFlows: true
                 })
                 .then((res) => {
-                    this.instances = res.projects;
-                });
-        },
-    },
-};
+                    this.instances = res.projects
+                })
+        }
+    }
+}
 </script>
 
 <style lang="scss">
