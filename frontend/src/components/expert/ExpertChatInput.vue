@@ -152,8 +152,7 @@ export default {
             if (this.isOperatorAgent) {
                 return []
             }
-            const sc = this.getSelectedContext
-            return sc
+            return this.getSelectedContext
         }
     },
     mounted () {
