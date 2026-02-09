@@ -7,7 +7,7 @@
 
                     <table class="table-fixed w-full border border-separate rounded">
                         <tr class="border-b">
-                            <td class="w-48 font-medium">Editor</td>
+                            <td class="w-48 font-medium">Default URL</td>
                             <td>
                                 <div v-if="editorAvailable">
                                     <div v-if="isVisitingAdmin || instance.settings.disableEditor" class="my-2">
