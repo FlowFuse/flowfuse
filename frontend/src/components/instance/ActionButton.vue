@@ -2,7 +2,7 @@
     <div class="action-button" data-el="action-button">
         <DropdownMenu
             v-if="hasPermission('project:change-status', { application: instance.application })"
-            buttonClass="ff-btn ff-btn--primary ff-btn-icon"
+            buttonClass="ff-btn ff-btn--secondary ff-btn-icon"
             :options="actionsDropdownOptions"
         >
             <CogIcon class="ff-btn--icon ff-btn--icon-left" />

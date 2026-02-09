@@ -47,6 +47,7 @@
                             :disabled="!editorAvailable"
                             :disabled-reason="disabledReason"
                             :instance="instance"
+                            primary
                         />
                         <InstanceActionsButton :instance="instance" @instance-deleted="onInstanceDelete" />
                     </div>

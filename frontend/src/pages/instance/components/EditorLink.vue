@@ -19,7 +19,7 @@
             </ff-button>
 
             <!-- Full view: split dropdown button -->
-            <HeadlessUIMenu v-else v-slot="{ open }" as="div" class="editor-link-split">
+            <HeadlessUIMenu v-else v-slot="{ open }" as="div" class="editor-link-split" :class="{ 'editor-link-split--primary': primary }">
                 <span v-if="syncOpenState(open)" class="hidden" />
                 <button
                     v-ff-tooltip:left="buttonDisabled ? disabledReason : undefined"
@@ -116,6 +116,10 @@ export default {
             type: Boolean
         },
         minimalView: {
+            type: Boolean,
+            default: false
+        },
+        primary: {
             type: Boolean,
             default: false
         }
@@ -257,6 +261,29 @@ export default {
     &:disabled,
     &.editor-link-split--disabled {
         border-left-color: $ff-grey-300;
+    }
+}
+
+// Primary variant: filled indigo background with white text
+.editor-link-split--primary {
+    .editor-link-split__action,
+    .editor-link-split__toggle {
+        background-color: $ff-color--action;
+        border-color: $ff-color--action;
+        color: $ff-white;
+
+        &:hover:not(:disabled) {
+            background-color: $ff-color--highlight;
+            border-color: $ff-color--highlight;
+        }
+    }
+
+    .editor-link-split__toggle {
+        border-left-color: rgba($ff-white, 0.3);
+
+        &:hover:not(:disabled) {
+            border-left-color: rgba($ff-white, 0.3);
+        }
     }
 }
 
