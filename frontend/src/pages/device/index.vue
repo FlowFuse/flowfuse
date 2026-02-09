@@ -427,7 +427,8 @@ export default {
         },
         openEditor () {
             this.$store.dispatch('ux/validateUserAction', 'hasOpenedDeviceEditor')
-            this.$router.push({ name: 'device-editor' })
+            window.open(this.deviceEditorURL, `device-editor-${this.device.id}`)
+            // this.$router.push({ name: 'device-editor' })
         },
         async openTunnel (launchEditor = false) {
             try {
