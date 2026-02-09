@@ -60,6 +60,11 @@
 
             <ff-kebab-menu v-if="shouldDisplayKebabMenu" @click.stop>
                 <ff-kebab-item
+                    :disabled="!isInstanceRunning"
+                    label="Open Instance"
+                    @click.stop="openInstance"
+                />
+                <ff-kebab-item
                     :disabled="localInstance.pendingStateChange || instanceRunning "
                     label="Start"
                     @click.stop="instanceStart(localInstance)"
@@ -91,6 +96,7 @@
 import { mapGetters } from 'vuex'
 
 import InstanceStatusPolling from '../../../../../components/InstanceStatusPolling.vue'
+import { useNavigationHelper } from '../../../../../composables/NavigationHelper.js'
 import usePermissions from '../../../../../composables/Permissions.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import instanceActionsMixin from '../../../../../mixins/InstanceActions.js'
@@ -130,8 +136,9 @@ export default {
     emits: ['delete-instance'],
     setup () {
         const { hasPermission } = usePermissions()
+        const { openInANewTab } = useNavigationHelper()
 
-        return { hasPermission }
+        return { hasPermission, openInANewTab }
     },
     data () {
         return {
@@ -166,6 +173,11 @@ export default {
         }
     },
     methods: {
+        openInstance () {
+            if (!this.localInstance.url) return
+            const target = `_${this.localInstance.id}`
+            this.openInANewTab(this.localInstance.url, target)
+        },
         instanceUpdated (instanceData) {
             const mutator = new InstanceStateMutator(instanceData)
             mutator.clearState()

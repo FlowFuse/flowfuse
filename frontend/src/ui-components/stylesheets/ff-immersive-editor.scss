@@ -64,6 +64,9 @@
           align-items: center;
           color: $ff-grey-500;
           gap: 4px;
+          padding: 4px;
+          border-radius: 4px;
+          transition: all 0.2s ease;
 
           .ff-btn--icon {
             width: 16px;
@@ -75,7 +78,12 @@
           }
 
           &:hover {
-            opacity: 0.8;
+            background: $ff-grey-100;
+            color: $ff-grey-700;
+          }
+
+          &:active {
+            background: $ff-grey-200;
           }
         }
       }
@@ -103,14 +111,22 @@
         .close-drawer-button {
           background: none;
           border: none;
-          padding: 0;
+          padding: 4px;
+          border-radius: 4px;
           color: inherit;
           font: inherit;
           display: flex;
           align-items: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
 
           &:hover {
-            cursor: pointer;
+            background: $ff-grey-100;
+            color: $ff-grey-700;
+          }
+
+          &:active {
+            background: $ff-grey-200;
           }
         }
       }
