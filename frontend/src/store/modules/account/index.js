@@ -113,7 +113,7 @@ const getters = {
         !state.team?.billing?.active
     },
     isBillingEnabled (state) {
-        return state.features.billing
+        return !!state.features.billing
     },
     isTrialAccount (state) {
         return !!state.team?.billing?.trial
