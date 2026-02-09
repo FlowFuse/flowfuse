@@ -64,6 +64,7 @@
                     label="Open Instance"
                     @click.stop="openInstance"
                 />
+                <li class="ff-kebab-divider" />
                 <ff-kebab-item
                     :disabled="localInstance.pendingStateChange || instanceRunning "
                     label="Start"

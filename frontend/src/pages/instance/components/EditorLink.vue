@@ -8,7 +8,7 @@
                 kind="tertiary"
                 data-action="open-editor"
                 :disabled="buttonDisabled"
-                class="whitespace-nowrap ff-btn-icon"
+                class="whitespace-nowrap ff-btn-icon editor-link-minimal"
                 :emit-instead-of-navigate="true"
                 @click.stop.prevent="openEditor"
                 @click.middle.stop.prevent="openEditor"
@@ -155,9 +155,8 @@ export default {
         },
         teleportedStyle () {
             return {
-                top: this.position.top + 10 + 'px',
-                left: this.position.left + 'px',
-                'min-width': this.position.width + 'px'
+                top: this.position.top + 5 + 'px',
+                right: (window.innerWidth - this.position.left - this.position.width) + 'px'
             }
         }
     },
@@ -204,7 +203,7 @@ export default {
     align-items: center;
     gap: $ff-unit-xs;
     font-size: $ff-funit-sm;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 20px;
     background-color: $ff-white;
     color: $ff-color--action;
@@ -234,30 +233,37 @@ export default {
 
 // Left half: main action button
 .editor-link-split__action {
-    padding: $ff-unit-sm 16px;
+    padding: $ff-unit-sm 12px $ff-unit-sm $ff-unit-sm;
     border-radius: $ff-unit-sm 0 0 $ff-unit-sm;
     border-right: none;
 }
 
-// Right half: chevron dropdown trigger
+// Right half: chevron dropdown trigger (square)
 .editor-link-split__toggle {
-    padding: $ff-unit-sm $ff-unit-sm;
+    justify-content: center;
+    padding: $ff-unit-sm;
     border-radius: 0 $ff-unit-sm $ff-unit-sm 0;
-    border-left: 1px solid rgba($ff-color--action, 0.3);
+    border-left: 1px solid $ff-color--action;
 
     .ff-btn--icon {
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
     }
 
     &:hover:not(:disabled) {
-        border-left-color: rgba($ff-white, 0.3);
+        border-left-color: $ff-color--highlight;
     }
 
     &:disabled,
     &.editor-link-split--disabled {
         border-left-color: $ff-grey-300;
     }
+}
+
+// Icon-only minimal button: remove icon margins added by .ff-btn--icon-left
+.editor-link-minimal :deep(.ff-btn--icon-left) {
+    margin-left: 0;
+    margin-right: 0;
 }
 
 // Container query for drawer context - responsive button behavior
