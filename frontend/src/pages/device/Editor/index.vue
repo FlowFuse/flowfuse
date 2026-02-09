@@ -262,7 +262,8 @@ export default {
             this.ws.addEventListener('error', this.handleCommsDisconnect)
             this.ws.addEventListener('close', this.handleCommsDisconnect)
         },
-        handleCommsDisconnect () {
+        handleCommsDisconnect (event) {
+            console.warn(event)
             this.$router.push({ name: 'device-overview' })
                 .then(() => Alerts.emit('Disconnected from remote instance.', 'warning'))
                 .catch(e => e)
