@@ -1,6 +1,6 @@
 <template>
-    <div class="ff-device-overview grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="flex flex-col gap-4">
+    <div class="ff-device-overview flex gap-4 flex-wrap">
+        <div class="flex flex-1 flex-col gap-4">
             <InfoCard header="Connection:">
                 <template #icon>
                     <WifiIcon />
@@ -154,7 +154,7 @@
                 </template>
             </InfoCard>
         </div>
-        <div>
+        <div class="flex-1">
             <FormHeading>
                 <div class="flex gap-2 items-center text-xl">
                     <TrendingUpIcon class="ff-icon" />Recent Activity

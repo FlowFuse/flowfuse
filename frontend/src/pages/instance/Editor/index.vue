@@ -19,6 +19,7 @@
             @mouseleave="handleDrawerMouseLeave"
         >
             <resize-bar
+                :is-resizing="isEditorResizing"
                 @mousedown="startEditorResize"
             />
 
