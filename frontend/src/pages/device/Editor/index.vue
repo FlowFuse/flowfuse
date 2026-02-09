@@ -201,10 +201,8 @@ export default {
         device (device) {
             if (device && this.isEditorAvailable) {
                 this.setContextDevice(device)
-                this.pollDeviceComms()
                 this.runInitialTease()
             } else {
-                this.closeComms()
                 this.$router.push({ name: 'device-overview' })
                     .then(() => Alerts.emit('Unable to connect to the Remote Instance', 'warning'))
                     .catch(e => e)
@@ -232,9 +230,6 @@ export default {
             })
             .catch(err => err)
     },
-    beforeUnmount () {
-        this.closeComms()
-    },
     methods: {
         ...mapActions('context', { setContextDevice: 'setDevice' }),
         loadDevice: async function () {
@@ -251,30 +246,6 @@ export default {
 
             // todo we first need to get the device and set the team afterwards
             await this.$store.dispatch('account/setTeam', this.device.team.slug)
-        },
-        pollDeviceComms () {
-            if (!this.isEditorAvailable || this.ws) return
-
-            const uri = `/api/v1/devices/${this.device.id}/editor/proxy/comms`
-
-            this.ws = new WebSocket(uri)
-
-            this.ws.addEventListener('error', this.handleCommsDisconnect)
-            this.ws.addEventListener('close', this.handleCommsDisconnect)
-        },
-        handleCommsDisconnect (event) {
-            console.warn(event)
-            this.$router.push({ name: 'device-overview' })
-                .then(() => Alerts.emit('Disconnected from remote instance.', 'warning'))
-                .catch(e => e)
-        },
-        closeComms () {
-            if (this.ws) {
-                this.ws.removeEventListener('error', this.handleCommsDisconnect)
-                this.ws.removeEventListener('close', this.handleCommsDisconnect)
-                this.ws.close()
-                this.ws = null
-            }
         }
     }
 }
