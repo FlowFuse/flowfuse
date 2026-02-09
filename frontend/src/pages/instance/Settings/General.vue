@@ -43,7 +43,7 @@
         </FormRow>
         <FormHeading class="mb-6">Hosting</FormHeading>
         <FormRow type="uneditable">
-            Default URL
+            Direct URL
             <template #input>
                 <TextCopier :text="url" class="w-full uneditable text-gray-800" />
             </template>

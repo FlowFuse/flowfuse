@@ -54,11 +54,12 @@
                             <div>
                                 <MenuItem v-slot="{ active }">
                                     <a
+                                        :href="editorURL"
                                         :class="[active ? 'bg-gray-200' : '', 'block px-4 py-2 text-sm text-gray-700 cursor-pointer whitespace-nowrap']"
                                         data-action="open-instance"
-                                        @click="openInstance"
+                                        @click.prevent="openInstance"
                                     >
-                                        Open Default URL
+                                        Open Direct URL
                                     </a>
                                 </MenuItem>
                             </div>
@@ -125,10 +126,11 @@ export default {
         }
     },
     setup () {
-        const { openInANewTab } = useNavigationHelper()
+        const { openInANewTab, navigateTo } = useNavigationHelper()
 
         return {
-            openInANewTab
+            openInANewTab,
+            navigateTo
         }
     },
     computed: {
@@ -158,9 +160,11 @@ export default {
             return this.disabled || !this.editorURL
         },
         teleportedStyle () {
+            const triggerEl = this.$refs.trigger?.$el
+            const triggerRight = triggerEl ? triggerEl.getBoundingClientRect().right : 0
             return {
-                top: this.position.top + 5 + 'px',
-                right: (window.innerWidth - this.position.left - this.position.width) + 'px'
+                top: (this.position.top + 10) + 'px',
+                right: (window.innerWidth - triggerRight) + 'px'
             }
         }
     },
@@ -170,24 +174,17 @@ export default {
                 return false
             }
 
-            const target = `_${this.instance.id}`
             if (!this.isImmersiveEditor) {
-                return this.openInANewTab(this.editorURL, target)
-            } else {
-                if (evt.button === 1) {
-                    // open in a new tab when using the middle mouse button
-                    return this.openInANewTab(this.url, target)
-                } else {
-                    return this.$router.push({ name: 'instance-editor', params: { id: this.instance.id } })
-                }
+                return this.navigateTo(this.editorURL, evt)
             }
+
+            return this.navigateTo({ name: 'instance-editor', params: { id: this.instance.id } }, evt)
         },
-        openInstance () {
+        openInstance (evt) {
             if (this.instanceLinkDisabled) {
                 return false
             }
-            const target = `_${this.instance.id}`
-            this.openInANewTab(this.editorURL, target)
+            return this.navigateTo(this.editorURL, evt)
         }
     }
 }

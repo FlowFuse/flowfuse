@@ -7,7 +7,7 @@
 
                     <table class="table-fixed w-full border border-separate rounded">
                         <tr class="border-b">
-                            <td class="w-48 font-medium">Default URL</td>
+                            <td class="w-48 font-medium">Direct URL</td>
                             <td>
                                 <div class="info-row">
                                     <div v-if="instance.url" class="info-row__content">
@@ -65,7 +65,7 @@
                                         </template>
                                     </span>
                                     <router-link v-if="canEditProject" class="info-row__action" :to="{ name: 'instance-settings-security' }">
-                                        <ChevronRightIcon class="ff-icon" />
+                                        <ArrowRightIcon class="ff-icon ff-icon-sm" />
                                     </router-link>
                                 </div>
                             </td>
@@ -87,7 +87,7 @@
                                         />
                                     </span>
                                     <router-link v-if="canEditProject" class="info-row__action" :to="{ name: 'instance-settings-maintenance' }">
-                                        <ChevronRightIcon class="ff-icon" />
+                                        <ArrowRightIcon class="ff-icon ff-icon-sm" />
                                     </router-link>
                                 </div>
                             </td>
@@ -110,7 +110,7 @@
                                         />
                                     </span>
                                     <router-link v-if="canEditProject && !!features.ha" class="info-row__action" :to="{ name: 'instance-settings-ha' }">
-                                        <ChevronRightIcon class="ff-icon" />
+                                        <ArrowRightIcon class="ff-icon ff-icon-sm" />
                                     </router-link>
                                 </div>
                             </td>
@@ -164,7 +164,7 @@
 
 <script>
 import { ExternalLinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
-import { ChevronRightIcon } from '@heroicons/vue/solid'
+import { ArrowRightIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import InstanceApi from '../../api/instances.js'
@@ -180,7 +180,7 @@ export default {
     name: 'InstanceOverview',
     components: {
         AuditLog,
-        ChevronRightIcon,
+        ArrowRightIcon,
         ExternalLinkIcon,
         FormHeading,
         InstanceStatusBadge,
@@ -326,6 +326,11 @@ export default {
     .ff-icon {
       width: 20px;
       height: 20px;
+
+      &.ff-icon-sm {
+        width: 16px;
+        height: 16px;
+      }
     }
 
     &:hover {
