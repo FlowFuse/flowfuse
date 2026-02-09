@@ -38,7 +38,7 @@
                     class="editor-link-split__toggle"
                     :class="{ 'editor-link-split--disabled': instanceLinkDisabled }"
                     :disabled="instanceLinkDisabled"
-                    @click="() => { $nextTick(() => { updateItemsPosition() }) }"
+                    @click.stop="() => { $nextTick(() => { updateItemsPosition() }) }"
                 >
                     <ChevronDownIcon class="ff-btn--icon" />
                 </MenuButton>
@@ -240,6 +240,7 @@ export default {
     padding: $ff-unit-sm 12px $ff-unit-sm $ff-unit-sm;
     border-radius: $ff-unit-sm 0 0 $ff-unit-sm;
     border-right: none;
+    white-space: nowrap;
 }
 
 // Right half: chevron dropdown trigger (square)

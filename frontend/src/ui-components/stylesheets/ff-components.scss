@@ -774,6 +774,10 @@ li.ff-kebab-item {
       .ff-icon-lg {
         margin: -3px 0;
       }
+      .ff-btn .ff-icon,
+      .ff-btn .ff-icon-lg {
+        margin: 0;
+      }
       &:first-child {
         padding-left: 16px;
       }
@@ -867,6 +871,10 @@ li.ff-kebab-item {
         cursor: pointer;
         color: $ff-blue-600;
         background-color: $ff-grey-50;
+      }
+      .selectable:hover .ff-data-table--cell button svg.ff-icon {
+        background-color: transparent;
+        color: inherit;
       }
     }
   }

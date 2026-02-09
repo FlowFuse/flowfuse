@@ -1,11 +1,11 @@
 <template>
     <span class="ff-text-copier">
-        <span v-if="showText" @click="copyPath">
+        <span v-if="showText" @click.stop="copyPath">
             <slot name="default">
                 <span class="text">{{ text }}</span>
             </slot>
         </span>
-        <button v-if="hasText" class="ff-icon-button" @click="copyPath">
+        <button v-if="hasText" class="ff-icon-button" @click.stop="copyPath">
             <DuplicateIcon v-if="!copied" class="ff-icon" />
             <CheckIcon v-else class="ff-icon ff-icon-check" />
         </button>

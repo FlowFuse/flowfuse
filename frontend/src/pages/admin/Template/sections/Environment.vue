@@ -70,7 +70,7 @@
                             <TextCopier
                                 v-else
                                 :text="item.name"
-                                class="font-mono env-cell-uneditable w-full"
+                                class="font-mono env-cell-uneditable w-full pl-2"
                                 :class="item.deprecated ? 'text-yellow-700 italic' : ''"
                                 data-el="var-name"
                             />
