@@ -19,8 +19,7 @@
             </ff-button>
 
             <!-- Full view: split dropdown button -->
-            <HeadlessUIMenu v-else v-slot="{ open }" as="div" class="editor-link-split" :class="{ 'editor-link-split--primary': primary }">
-                <span v-if="syncOpenState(open)" class="hidden" />
+            <div v-else class="editor-link-split" :class="{ 'editor-link-split--primary': primary }">
                 <button
                     v-ff-tooltip:left="buttonDisabled ? disabledReason : undefined"
                     class="editor-link-split__action"
@@ -33,67 +32,34 @@
                     <ProjectIcon class="ff-btn--icon" />
                     <span class="hidden sm:inline editor-link-text">{{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}</span>
                 </button>
-                <MenuButton
-                    ref="trigger"
-                    class="editor-link-split__toggle"
-                    :class="{ 'editor-link-split--disabled': instanceLinkDisabled }"
+                <DropdownMenu
+                    class="editor-link-split__dropdown"
+                    :buttonClass="'editor-link-split__toggle' + (instanceLinkDisabled ? ' editor-link-split--disabled' : '')"
+                    :options="dropdownOptions"
                     :disabled="instanceLinkDisabled"
-                    @click.stop="() => { $nextTick(() => { updateItemsPosition() }) }"
-                >
-                    <ChevronDownIcon class="ff-btn--icon" />
-                </MenuButton>
-
-                <teleport to="body">
-                    <transition name="fade">
-                        <MenuItems
-                            v-if="open"
-                            ref="menu-items"
-                            class="z-[1000] fixed bg-white rounded overflow-hidden shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none"
-                            :style="teleportedStyle"
-                        >
-                            <div>
-                                <MenuItem v-slot="{ active }">
-                                    <a
-                                        :href="editorURL"
-                                        :class="[active ? 'bg-gray-200' : '', 'block px-4 py-2 text-sm text-gray-700 cursor-pointer whitespace-nowrap']"
-                                        data-action="open-instance"
-                                        @click.prevent="openInstance"
-                                    >
-                                        Open Direct URL
-                                    </a>
-                                </MenuItem>
-                            </div>
-                        </MenuItems>
-                    </transition>
-                </teleport>
-            </HeadlessUIMenu>
+                    @click.stop
+                />
+            </div>
         </slot>
     </div>
 </template>
 
 <script>
 
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { ChevronDownIcon } from '@heroicons/vue/solid'
 import SemVer from 'semver'
 
 import { mapState } from 'vuex'
 
+import DropdownMenu from '../../../components/DropdownMenu.vue'
 import ProjectIcon from '../../../components/icons/Projects.js'
 import { useNavigationHelper } from '../../../composables/NavigationHelper.js'
-import TeleportedMenuMixin from '../../../mixins/TeleportedMenuMixin.js'
 
 export default {
     name: 'InstanceEditorLink',
     components: {
         ProjectIcon,
-        HeadlessUIMenu: Menu,
-        MenuButton,
-        MenuItem,
-        MenuItems,
-        ChevronDownIcon
+        DropdownMenu
     },
-    mixins: [TeleportedMenuMixin],
     inheritAttrs: false,
     props: {
         editorDisabled: {
@@ -159,13 +125,10 @@ export default {
         instanceLinkDisabled () {
             return this.disabled || !this.editorURL
         },
-        teleportedStyle () {
-            const triggerEl = this.$refs.trigger?.$el
-            const triggerRight = triggerEl ? triggerEl.getBoundingClientRect().right : 0
-            return {
-                top: (this.position.top + 10) + 'px',
-                right: (window.innerWidth - triggerRight) + 'px'
-            }
+        dropdownOptions () {
+            return [
+                { name: 'Open Direct URL', action: this.openInstance }
+            ]
         }
     },
     methods: {
@@ -192,7 +155,7 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 // Split dropdown button: two halves styled as one cohesive element
 .editor-link-split {
     display: inline-flex;
@@ -242,6 +205,14 @@ export default {
     white-space: nowrap;
 }
 
+// DropdownMenu wrapper: make all wrapper divs invisible to flex layout
+// so the MenuButton becomes a direct flex child of .editor-link-split
+.editor-link-split__dropdown,
+.editor-link-split__dropdown > div,
+.editor-link-split__dropdown > div > div {
+    display: contents;
+}
+
 // Right half: chevron dropdown trigger (square)
 .editor-link-split__toggle {
     justify-content: center;
@@ -288,7 +259,13 @@ export default {
 }
 
 // Icon-only minimal button: remove icon margins added by .ff-btn--icon-left
-.editor-link-minimal :deep(.ff-btn--icon-left) {
+.editor-link-minimal .ff-btn--icon-left {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+// Override icon-right margin from DropdownMenu's ChevronDownIcon
+.editor-link-split__toggle .ff-btn--icon-right {
     margin-left: 0;
     margin-right: 0;
 }

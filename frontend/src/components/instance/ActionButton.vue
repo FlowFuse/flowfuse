@@ -2,7 +2,7 @@
     <div class="action-button" data-el="action-button">
         <DropdownMenu
             v-if="hasPermission('project:change-status', { application: instance.application })"
-            :buttonClass="`ff-btn ${editorUsable ? 'ff-btn--secondary' : 'ff-btn--primary'} ff-btn-icon`"
+            :buttonClass="`ff-btn ${isEditorUsable ? 'ff-btn--secondary' : 'ff-btn--primary'} ff-btn-icon`"
             :options="actionsDropdownOptions"
         >
             <CogIcon class="ff-btn--icon ff-btn--icon-left" />
@@ -85,7 +85,7 @@ export default {
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },
-        editorUsable () {
+        isEditorUsable () {
             const isHA = this.instance?.ha?.replicas !== undefined
             return this.instanceRunning && !isHA && !this.instance?.settings?.disableEditor
         }

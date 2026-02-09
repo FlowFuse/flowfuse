@@ -19,7 +19,14 @@
                 </span>
             </div>
             <div class="detail-wrapper detail">
-                <span class="editor-link" :class="{ inactive: !isInstanceRunning }">
+                <TextCopier
+                    v-if="localInstance.url"
+                    :text="localInstance.url"
+                    class="editor-link"
+                    :class="{ inactive: !isInstanceRunning }"
+                    @click.stop
+                />
+                <span v-else class="editor-link inactive">
                     {{ localInstance.url }}
                 </span>
             </div>
@@ -82,6 +89,7 @@
 import { mapGetters } from 'vuex'
 
 import InstanceStatusPolling from '../../../../../components/InstanceStatusPolling.vue'
+import TextCopier from '../../../../../components/TextCopier.vue'
 import { useNavigationHelper } from '../../../../../composables/NavigationHelper.js'
 import usePermissions from '../../../../../composables/Permissions.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
@@ -102,7 +110,8 @@ export default {
         InstanceStatusBadge,
         InstanceStatusPolling,
         InstanceEditorLink,
-        InstanceMinimalStatusBadge
+        InstanceMinimalStatusBadge,
+        TextCopier
     },
     mixins: [AuditMixin, instanceActionsMixin],
     props: {

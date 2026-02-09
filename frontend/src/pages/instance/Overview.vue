@@ -10,15 +10,13 @@
                             <td class="w-48 font-medium">Direct URL</td>
                             <td>
                                 <div class="info-row">
-                                    <div v-if="instance.url" class="info-row__content">
+                                    <div class="info-row__content">
                                         <TextCopier :text="instance.url" class="url-copier" />
                                     </div>
-                                    <span v-else class="text-gray-400 italic">Unavailable</span>
                                     <button
-                                        v-if="instance.url"
                                         class="info-row__action"
                                         :disabled="!editorAvailable"
-                                        @click="openUrl(instance.url)"
+                                        @click="openUrl"
                                     >
                                         <ExternalLinkIcon class="ff-icon" />
                                     </button>
@@ -172,6 +170,7 @@ import FormHeading from '../../components/FormHeading.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
 import TextCopier from '../../components/TextCopier.vue'
 import AuditLog from '../../components/audit-log/AuditLog.vue'
+import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
@@ -199,10 +198,12 @@ export default {
     },
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
+        const { openInANewTab } = useNavigationHelper()
 
         return {
             hasPermission,
-            isVisitingAdmin
+            isVisitingAdmin,
+            openInANewTab
         }
     },
     data () {
@@ -244,8 +245,8 @@ export default {
         this.getUpdateSchedule(this.instance.id)
     },
     methods: {
-        openUrl (url) {
-            window.open(url, '_blank')
+        openUrl () {
+            this.openInANewTab(this.instance.url, `_${this.instance.id}`)
         },
         loadLogs () {
             if (this.instance && this.instance.id) {

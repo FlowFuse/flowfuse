@@ -2,23 +2,11 @@
     <div class="recently-modified">
         <p class="text-gray-400 text-sm">Recently Modified</p>
         <ul v-if="instances.length" class="flex flex-1 flex-col gap-1">
-            <li
-                v-for="instance in instances"
-                :key="instance.id"
-                class="instance-wrapper flex"
-            >
-                <InstanceTile
-                    :instance="instance"
-                    :minimal-view="true"
-                    @delete-instance="$emit('delete-instance', $event)"
-                />
+            <li v-for="instance in instances" :key="instance.id" class="instance-wrapper flex">
+                <InstanceTile :instance="instance" :minimal-view="true" @delete-instance="$emit('delete-instance', $event)" />
             </li>
             <li v-if="hasMore" class="instance-wrapper flex">
-                <team-link
-                    :to="{ name: 'Instances' }"
-                    class="instance-tile has-more hover:text-indigo-700"
-                    data-el="has-more"
-                >
+                <team-link :to="{name: 'Instances'}" class="instance-tile has-more hover:text-indigo-700" data-el="has-more">
                     <span>{{ instancesLeft }} More</span>
                     <span>
                         <ChevronRightIcon class="ff-icon ff-icon-sm" />
@@ -26,18 +14,10 @@
                 </team-link>
             </li>
         </ul>
-        <div
-            v-else
-            class="no-instances flex flex-col flex-1 justify-center text-gray-500 italic"
-        >
+        <div v-else class="no-instances flex flex-col flex-1 justify-center text-gray-500 italic">
             <p class="text-center self-center">
                 It's looking a little empty.
-                <team-link
-                    :to="{ name: 'CreateInstance' }"
-                    class="text-indigo-500"
-                >
-                    Create a Hosted Instance
-                </team-link>
+                <team-link :to="{name: 'CreateInstance'}" class="text-indigo-500">Create a Hosted Instance</team-link>
                 to get started.
             </p>
         </div>
@@ -81,7 +61,8 @@ export default {
         }
     },
     mounted () {
-        this.getInstances().catch((e) => e)
+        this.getInstances()
+            .catch(e => e)
     },
     methods: {
         getInstances () {
@@ -94,13 +75,12 @@ export default {
                 limit = 3
                 this.hasMore = true
             }
-            return teamAPI
-                .getInstances(this.team.id, {
-                    limit,
-                    includeMeta: true,
-                    orderByMostRecentFlows: true
-                })
-                .then((res) => {
+            return teamAPI.getInstances(this.team.id, {
+                limit,
+                includeMeta: true,
+                orderByMostRecentFlows: true
+            })
+                .then(res => {
                     this.instances = res.projects
                 })
         }
