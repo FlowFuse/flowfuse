@@ -17,8 +17,8 @@
 </template>
 
 <script>
-import IconNodeRedSolid from '../../../../components/icons/NodeRedSolid.js'
 import TextCopier from '../../../../components/TextCopier.vue'
+import IconNodeRedSolid from '../../../../components/icons/NodeRedSolid.js'
 
 export default {
     name: 'DeploymentName',
