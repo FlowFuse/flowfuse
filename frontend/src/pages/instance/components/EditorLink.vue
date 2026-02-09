@@ -174,17 +174,19 @@ export default {
                 return false
             }
 
+            const target = { target: `_${this.instance.id}` }
+
             if (!this.isImmersiveEditor) {
-                return this.navigateTo(this.editorURL, evt)
+                return this.navigateTo(this.editorURL, evt, target)
             }
 
-            return this.navigateTo({ name: 'instance-editor', params: { id: this.instance.id } }, evt)
+            return this.navigateTo({ name: 'instance-editor', params: { id: this.instance.id } }, evt, target)
         },
         openInstance (evt) {
             if (this.instanceLinkDisabled) {
                 return false
             }
-            return this.navigateTo(this.editorURL, evt)
+            return this.navigateTo(this.editorURL, evt, { target: `_${this.instance.id}` })
         }
     }
 }
