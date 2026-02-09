@@ -141,6 +141,21 @@ export default {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                gap: 4px;
+
+                .ff-kebab-menu .ff-btn {
+                    color: $ff-color--action;
+
+                    .ff-icon {
+                        width: 20px;
+                        height: 20px;
+                    }
+
+                    &:hover {
+                        background-color: $ff-color--highlight;
+                        color: $ff-white;
+                    }
+                }
             }
         }
     }
