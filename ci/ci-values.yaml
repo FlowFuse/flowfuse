@@ -27,6 +27,15 @@ forge:
     max: 600
     maxAnonymous: 10
     timeWindow: 30000
+  tables:
+    enabled: true
+    driver:
+      type: postgres-localfs
+      options:
+        database:
+          port: 5432
+          database: postgres
+          ssl: false
 
 postgresql:
   persistence:
