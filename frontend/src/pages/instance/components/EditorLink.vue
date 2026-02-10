@@ -29,7 +29,7 @@
                     @click.stop.prevent="openEditor"
                     @click.middle.stop.prevent="openEditor"
                 >
-                    <ProjectIcon class="ff-btn--icon" />
+                    <ProjectIcon class="ff-btn--icon mr-2" />
                     <span class="hidden sm:inline editor-link-text">{{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}</span>
                 </button>
                 <DropdownMenu

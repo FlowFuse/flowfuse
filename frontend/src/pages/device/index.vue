@@ -52,9 +52,10 @@
                     <DropdownMenu
                         v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length"
                         data-el="device-actions-dropdown"
-                        :buttonClass="`ff-btn ${ editorAvailable ? 'ff-btn ff-btn--secondary' : 'ff-btn ff-btn--primary'}`"
+                        :buttonClass="`ff-btn ff-btn-icon ${ editorAvailable ? 'ff-btn--secondary' : 'ff-btn--primary'}`"
                         :options="actionsDropdownOptions"
                     >
+                        <CogIcon class="ff-btn--icon ff-btn--icon-left" />
                         Actions
                     </DropdownMenu>
                 </div>
@@ -120,6 +121,7 @@
 
 <script>
 
+import { CogIcon } from '@heroicons/vue/solid/index.js'
 import semver from 'semver'
 import { mapState } from 'vuex'
 
@@ -165,6 +167,7 @@ const deviceTransitionStates = [
 export default {
     name: 'DevicePage',
     components: {
+        CogIcon,
         DeviceEditorLink,
         FinishSetupButton,
         DeveloperModeToggle,
