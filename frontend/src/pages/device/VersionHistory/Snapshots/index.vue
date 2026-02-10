@@ -359,10 +359,17 @@ export default {
                     canSetDeviceTarget: false,
                     canRestore: this.canDeploy(snapshot),
                     canRestoreReason: this.canDeployReason(snapshot),
-                    isDevice: true
+                    isDevice: true,
+                    isDeviceDevMode: this.developerMode
                 },
                 on: {
                     updatedSnapshot: () => this.fetchData(true),
+                    restoredSnapshot: () => {
+                        setTimeout(() => {
+                            this.$emit('device-updated')
+                        }, 100)
+                        this.fetchData(true)
+                    },
                     deletedSnapshot: () => {
                         this.closeRightDrawer()
                         this.fetchData(true)
