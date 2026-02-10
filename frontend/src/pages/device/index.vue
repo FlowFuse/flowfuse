@@ -38,15 +38,26 @@
                 <div class="flex gap-2 align-center" style="height: 34px;">
                     <template v-if="isDevModeAvailable">
                         <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
-                        <button v-if="!isVisitingAdmin" v-ff-tooltip:left="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
-                            Open Editor
-                            <span class="ff-btn--icon ff-btn--icon-right">
-                                <ExternalLinkIcon />
-                            </span>
-                        </button>
+                        <device-editor-link
+                            :device="device"
+                            :title="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'"
+                            :disabled="!editorAvailable"
+                            :primary="editorAvailable"
+                            data-action="open-editor"
+                            @open-immersive-editor="openTunnel({launchEditor: true, event: $event, immersive: true})"
+                            @open-editor="openTunnel({launchEditor: true, event: $event, immersive: false})"
+                        />
                     </template>
                     <FinishSetupButton v-if="hasPermission('device:create', {application: device.application}) && neverConnected" :device="device" />
-                    <DropdownMenu v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
+                    <DropdownMenu
+                        v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length"
+                        data-el="device-actions-dropdown"
+                        :buttonClass="`ff-btn ff-btn-icon ${ editorAvailable ? 'ff-btn--secondary' : 'ff-btn--primary'}`"
+                        :options="actionsDropdownOptions"
+                    >
+                        <CogIcon class="ff-btn--icon ff-btn--icon-left" />
+                        Actions
+                    </DropdownMenu>
                 </div>
             </template>
         </SectionNavigationHeader>
@@ -110,8 +121,7 @@
 
 <script>
 
-import { ExternalLinkIcon } from '@heroicons/vue/outline'
-// import { TerminalIcon } from '@heroicons/vue/solid'
+import { CogIcon } from '@heroicons/vue/solid/index.js'
 import semver from 'semver'
 import { mapState } from 'vuex'
 
@@ -122,6 +132,7 @@ import SectionNavigationHeader from '../../components/SectionNavigationHeader.vu
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 import deviceActionsMixin from '../../mixins/DeviceActions.js'
 
@@ -136,6 +147,7 @@ import DeviceAssignInstanceDialog from '../team/Devices/dialogs/DeviceAssignInst
 import AssignDeviceDialog from './components/AssignDeviceDialog.vue'
 
 import DeveloperModeToggle from './components/DeveloperModeToggle.vue'
+import DeviceEditorLink from './components/DeviceEditorLink.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
 
@@ -155,8 +167,9 @@ const deviceTransitionStates = [
 export default {
     name: 'DevicePage',
     components: {
+        CogIcon,
+        DeviceEditorLink,
         FinishSetupButton,
-        ExternalLinkIcon,
         DeveloperModeToggle,
         DeviceModeBadge,
         DeviceLastSeenBadge,
@@ -172,8 +185,9 @@ export default {
     mixins: [deviceActionsMixin],
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
+        const { navigateTo, openInANewTab } = useNavigationHelper()
 
-        return { hasPermission, isVisitingAdmin }
+        return { hasPermission, isVisitingAdmin, navigateTo, openInANewTab }
     },
     data: function () {
         return {
@@ -425,16 +439,23 @@ export default {
 
             Alerts.emit('Device successfully assigned to application.', 'confirmation')
         },
-        openEditor () {
+        openEditor ({ event = null, immersive = false } = {}) {
             this.$store.dispatch('ux/validateUserAction', 'hasOpenedDeviceEditor')
-            window.open(this.deviceEditorURL, `device-editor-${this.device.id}`)
-            // this.$router.push({ name: 'device-editor' })
+            if (!immersive) {
+                this.openInANewTab(this.deviceEditorURL, `device-editor-${this.device.id}`)
+            } else {
+                this.navigateTo('editor', event, { target: `device-editor-${this.device.id}` })
+            }
         },
-        async openTunnel (launchEditor = false) {
+        async openTunnel ({
+            event,
+            immersive = true,
+            launchEditor = false
+        } = {}) {
             try {
                 if (this.deviceRunning) {
                     if (this.device.editor?.enabled && this.device.editor?.connected && this.device.editor?.local) {
-                        this.openEditor()
+                        this.openEditor({ event, immersive })
                     } else {
                         this.openingTunnel = true
                         this.$refs.dialog.show()
@@ -448,7 +469,7 @@ export default {
                                     if (this.device.editor?.enabled && this.device.editor?.connected) {
                                         if (this.device.editor?.local) {
                                             if (launchEditor) {
-                                                this.openEditor()
+                                                this.openEditor({ event, immersive })
                                             }
                                         } else {
                                             pollTunnelStatus(done, attempt + 1, 200)
