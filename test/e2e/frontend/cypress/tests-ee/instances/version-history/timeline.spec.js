@@ -129,7 +129,7 @@ describe('FlowFuse - Version History', () => {
             cy.get('[data-el="timeline-list"] li').contains('Mon Mothma')
         })
 
-        it.only('can interact with timeline events', () => {
+        it('can interact with timeline events', () => {
             cy.intercept('GET', '/api/*/projects/*/history?*', {
                 meta: {},
                 count: 0,
