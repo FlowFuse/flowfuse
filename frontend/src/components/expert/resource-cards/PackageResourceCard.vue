@@ -88,8 +88,7 @@ export default {
             // TODO: hide the ff-expert panel after managing. Ideally after a "success" message is received from the assistant
         },
         isCorePackage (nodePackage) {
-            const packageName = this.getPackageName(nodePackage)
-            return packageName.startsWith('node-red:') || nodePackage.type === 'core-node'
+            return nodePackage.type === 'core-node' || this.getPackageName(nodePackage).startsWith('node-red:')
         }
     }
 }
