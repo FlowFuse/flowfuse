@@ -30,7 +30,9 @@ const children = [
         meta: {
             title: 'Device - Settings'
         },
-        redirect: { name: 'device-settings-general' },
+        redirect: to => {
+            return to.name.startsWith('device-editor-') ? { name: 'device-editor-settings-general' } : { name: 'device-settings-general' }
+        },
         children: [
             {
                 name: 'device-settings-general',
@@ -92,7 +94,12 @@ const children = [
         },
         redirect: to => {
             const features = store.getters['account/featuresCheck']
-            const name = features.isTimelineFeatureEnabled ? 'device-version-history-timeline' : 'device-snapshots'
+            let name = features.isTimelineFeatureEnabled ? 'device-version-history-timeline' : 'device-snapshots'
+
+            if (to.name.startsWith('device-editor-')) { // redirect to immersive mode when needed
+                name = name.replace('device-', 'device-editor-')
+            }
+
             return {
                 name,
                 params: to.params

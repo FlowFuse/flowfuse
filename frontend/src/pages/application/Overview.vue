@@ -169,7 +169,7 @@ export default {
         ...mapGetters('account', ['featuresCheck']),
         cloudColumns () {
             return [
-                { label: 'Name', class: ['w-1/2'], component: { is: markRaw(DeploymentName) } },
+                { label: 'Name', class: ['w-1/2'], component: { is: markRaw(DeploymentName), map: { url: 'url' } } },
                 {
                     label: 'Instance Status',
                     class: ['w-1/5'],

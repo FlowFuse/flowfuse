@@ -2,12 +2,12 @@
     <KebabMenu class="relative ff-kebab-menu" as="div" data-el="kebab-menu">
         <MenuButton
             ref="trigger"
-            class="ff-btn ff-btn-icon transition-fade--color"
+            class="ff-btn ff-btn--tertiary ff-btn-icon transition-fade--color ff-kebab-menu__trigger"
             :disabled="disabled"
             @click="() => { $nextTick(() => { updateItemsPosition() } ) }"
             @keydown.space="() => { $nextTick(() => { updateItemsPosition() } ) }"
         >
-            <DotsVerticalIcon class="ff-icon ff-icon-lg" />
+            <DotsVerticalIcon class="ff-icon" />
         </MenuButton>
         <teleport to="body">
             <transition
@@ -61,3 +61,9 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+.ff-kebab-menu__trigger {
+    border: 1px solid transparent;
+}
+</style>
