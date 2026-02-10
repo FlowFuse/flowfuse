@@ -105,6 +105,7 @@
 
 <script>
 import { FilterIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
+import SemVer from 'semver'
 import { markRaw } from 'vue'
 import { mapActions, mapState } from 'vuex'
 
@@ -334,7 +335,19 @@ export default {
         },
         // enable/disable snapshot actions
         canDeploy (_row) {
-            return !this.developerMode && this.hasPermission('device:edit', { application: this.device.application })
+            return (!this.developerMode || this.supportsDevModeSnapshotRestore()) && this.hasPermission('device:edit', { application: this.device.application })
+        },
+        canDeployReason (snapshot) {
+            if (!this.hasPermission('device:edit', { application: this.device.application })) {
+                return 'You do not have permission to deploy snapshots to this Remote Instance'
+            }
+            if (this.developerMode && !this.supportsDevModeSnapshotRestore()) {
+                return 'Snapshots deploys to Developer Mode Remote Instances requires Device Agent v3.8.0 or later'
+            }
+            return ''
+        },
+        supportsDevModeSnapshotRestore () {
+            return this.device.agentVersion && SemVer.gte(this.device.agentVersion, '3.8.0')
         },
         onRowSelected (snapshot) {
             this.openRightDrawer({
@@ -345,6 +358,7 @@ export default {
                     instance: this.device,
                     canSetDeviceTarget: false,
                     canRestore: this.canDeploy(snapshot),
+                    canRestoreReason: this.canDeployReason(snapshot),
                     isDevice: true
                 },
                 on: {

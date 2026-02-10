@@ -24,7 +24,7 @@
                 </information-well>
             </section>
 
-            <div class="flex-1">
+            <div class="flex flex-col flex-1 gap-4">
                 <section class="name">
                     <div class="header flex flex-row justify-between">
                         <span class="title font-bold">Name:</span>
@@ -195,6 +195,11 @@ export default defineComponent({
             type: Boolean,
             required: false,
             default: true
+        },
+        canRestoreReason: {
+            type: String,
+            required: false,
+            default: ''
         },
         instance: {
             type: Object,
@@ -370,6 +375,9 @@ export default defineComponent({
                         },
                         disabled: function () {
                             return !context.canRestore
+                        },
+                        tooltip: function () {
+                            return context.canRestoreReason || ''
                         },
                         bind: {
                             'data-action': 'restore'
