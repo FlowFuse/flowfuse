@@ -25,7 +25,7 @@
                         title="Back to remote instance overview"
                         :to="{ name: 'device-overview', params: {id: device.id} }"
                     >
-                        <ArrowLeftIcon class="ff-btn--icon" />
+                        <HomeIcon class="ff-btn--icon" style="width: 18px; height: 18px;" />
                     </router-link>
                 </div>
                 <ff-tabs :tabs="navigation" class="tabs" />
@@ -54,7 +54,7 @@
 
 <script>
 
-import { ArrowLeftIcon, XIcon } from '@heroicons/vue/solid/index.js'
+import { HomeIcon, XIcon } from '@heroicons/vue/solid/index.js'
 import semver from 'semver'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
@@ -77,7 +77,7 @@ export default {
     name: 'DeviceEditor',
     components: {
         XIcon,
-        ArrowLeftIcon,
+        HomeIcon,
         FfPage,
         DrawerTrigger,
         ResizeBar,

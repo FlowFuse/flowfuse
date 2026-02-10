@@ -1,7 +1,7 @@
 <template>
     <div class="ff-box" :data-el="`dashboard-section-${type}`">
         <div class="ff-box-header">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 ml-1">
                 <span v-if="$slots.icon" class="icon">
                     <slot name="icon" />
                 </span>
