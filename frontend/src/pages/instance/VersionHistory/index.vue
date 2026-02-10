@@ -121,8 +121,24 @@ export default {
         pageToggle () {
             if (this.$route.name.includes('editor')) {
                 return [
-                    { title: 'Snapshots', to: { path: './snapshots', params: this.$route.params } },
-                    { title: 'Timeline', to: { path: './timeline', params: this.$route.params } }
+                    {
+                        title: 'Snapshots',
+                        to: {
+                            name: (() => (this.$route.name.startsWith('instance-editor')
+                                ? 'instance-editor-snapshots'
+                                : 'instance-snapshots'))(),
+                            params: this.$route.params
+                        }
+                    },
+                    {
+                        title: 'Timeline',
+                        to: {
+                            name: (() => (this.$route.name.startsWith('instance-editor')
+                                ? 'instance-editor-version-history-timeline'
+                                : 'instance-version-history-timeline'))(),
+                            params: this.$route.params
+                        }
+                    }
                 ]
             }
 

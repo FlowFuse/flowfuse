@@ -25,7 +25,7 @@
                         title="Back to remote instance overview"
                         :to="{ name: 'device-overview', params: {id: device.id} }"
                     >
-                        <ArrowLeftIcon class="ff-btn--icon" />
+                        <HomeIcon class="ff-btn--icon" style="width: 18px; height: 18px;" />
                     </router-link>
                 </div>
 
@@ -66,7 +66,7 @@
 
 <script>
 
-import { ArrowLeftIcon, CogIcon, XIcon } from '@heroicons/vue/solid/index.js'
+import { HomeIcon, XIcon, CogIcon } from '@heroicons/vue/solid/index.js'
 import semver from 'semver'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
@@ -93,7 +93,7 @@ export default {
         CogIcon,
         DropdownMenu,
         XIcon,
-        ArrowLeftIcon,
+        HomeIcon,
         DrawerTrigger,
         ResizeBar,
         EditorWrapper
@@ -208,13 +208,13 @@ export default {
                     label: 'Settings',
                     to: { name: 'device-editor-settings' },
                     tag: 'device-settings'
-                },
-                {
-                    label: 'Developer Mode',
-                    to: { name: 'device-editor-developer-mode' },
-                    tag: 'device-devmode',
-                    hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')
                 }
+                // {
+                //     label: 'Developer Mode',
+                //     to: { name: 'device-editor-developer-mode' },
+                //     tag: 'device-devmode',
+                //     hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')
+                // }
             ]
         },
         permissionContext () {
@@ -249,7 +249,6 @@ export default {
         device (device) {
             if (device && this.isEditorAvailable) {
                 this.setContextDevice(device)
-                this.pollDeviceComms()
                 this.runInitialTease()
                 this.deviceStateMutator = new DeviceStateMutator(this.device)
             } else {
@@ -280,17 +279,6 @@ export default {
             })
             .catch(err => err)
     },
-    beforeUnmount () {
-        this.closeComms()
-        if (this.reloadInterval) {
-            clearInterval(this.reloadInterval)
-            this.reloadInterval = null
-        }
-        if (this.reloadTimeout) {
-            clearTimeout(this.reloadTimeout)
-            this.reloadTimeout = null
-        }
-    },
     methods: {
         ...mapActions('context', { setContextDevice: 'setDevice' }),
         loadDevice: async function () {
@@ -307,94 +295,6 @@ export default {
 
             // todo we first need to get the device and set the team afterwards
             await this.$store.dispatch('account/setTeam', this.device.team.slug)
-        },
-        pollDeviceComms () {
-            if (!this.isEditorAvailable || this.ws) return
-
-            const uri = `/api/v1/devices/${this.device.id}/editor/proxy/comms`
-
-            this.ws = new WebSocket(uri)
-
-            this.ws.addEventListener('error', this.handleCommsDisconnect)
-            this.ws.addEventListener('close', this.handleCommsDisconnect)
-        },
-        handleCommsDisconnect () {
-            if (!this.device.optimisticStateChange) {
-                this.$router.push({ name: 'device-overview' })
-                    .then(() => Alerts.emit('Disconnected from remote instance.', 'warning'))
-                    .catch(e => e)
-            }
-        },
-        closeComms () {
-            if (this.ws) {
-                this.ws.removeEventListener('error', this.handleCommsDisconnect)
-                this.ws.removeEventListener('close', this.handleCommsDisconnect)
-                this.ws.close()
-                this.ws = null
-            }
-        },
-        preActionChecks (message) {
-            if (this.device.agentVersion && !this.agentSupportsActions) {
-                // if agent version is present but is less than required version, show warning and halt
-                Alerts.emit('Device Agent V2.3 or greater is required to perform this action.', 'warning')
-                return false
-            }
-            if (!message) {
-                // no message means silent operation, no need to show confirmation
-                return true
-            }
-            if (!this.device.agentVersion) {
-                // if agent version is missing, be optimistic and give it a go, but show warning
-                Alerts.emit(`${message}.  NOTE: The device agent version is not known, the action may timeout`, 'warning')
-            } else {
-                Alerts.emit(message, 'confirmation')
-            }
-            return true
-        },
-        async restartDevice () {
-            const preCheckOk = this.preActionChecks('Restarting device...')
-            if (!preCheckOk) {
-                return
-            }
-            this.deviceStateMutator.setStateOptimistically('restarting')
-            try {
-                await deviceApi.restartDevice(this.device)
-                this.deviceStateMutator.setStateAsPendingFromServer()
-                this.pollDeviceAfterRestart()
-            } catch (err) {
-                let message = 'Device restart request failed.'
-                if (err.response?.data?.error) {
-                    message = err.response.data.error
-                }
-                console.warn(message, err)
-                Alerts.emit(message, 'warning')
-            }
-        },
-        pollDeviceAfterRestart () {
-            // Clear any existing intervals/timeouts
-            if (this.reloadInterval) {
-                clearInterval(this.reloadInterval)
-            }
-            if (this.reloadTimeout) {
-                clearTimeout(this.reloadTimeout)
-            }
-
-            // Set up interval to reload device every 5 seconds
-            this.reloadInterval = setInterval(async () => {
-                try {
-                    this.device = await deviceApi.getDevice(this.$route.params.id)
-                } catch (err) {
-                    console.warn('Failed to reload device:', err)
-                }
-            }, 5000)
-
-            // Set up timeout to stop polling after 30 seconds
-            this.reloadTimeout = setTimeout(() => {
-                if (this.reloadInterval) {
-                    clearInterval(this.reloadInterval)
-                    this.reloadInterval = null
-                }
-            }, 30000)
         }
     }
 }
