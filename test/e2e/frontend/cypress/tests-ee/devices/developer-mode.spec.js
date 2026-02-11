@@ -16,7 +16,7 @@ describe('FlowFuse - Devices - With Billing', () => {
         cy.visit('/team/bteam/devices')
     })
 
-    it.only('provides an option to enable "Developer Mode" when deviceEditor feature is enabled and device is owned by an Application', () => {
+    it('provides an option to enable "Developer Mode" when deviceEditor feature is enabled and device is owned by an Application', () => {
         cy.contains('span', 'application-device-a').click()
         cy.get('[data-el="device-devmode-toggle"]').should('exist')
     })
