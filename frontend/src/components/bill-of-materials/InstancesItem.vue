@@ -3,7 +3,7 @@
         <div class="title truncate">
             <h6 v-if="isDevice">
                 <IconDeviceSolid class="ff-icon text-teal-700" />
-                <router-link :to="{name: 'DeviceOverview', params: {id: instance.id}}" class="ff-link">
+                <router-link :to="{name: 'device-overview', params: {id: instance.id}}" class="ff-link">
                     {{ instance.name }}
                 </router-link>
             </h6>

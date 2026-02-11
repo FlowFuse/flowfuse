@@ -1,5 +1,5 @@
 <template>
-    <div class="resize-bar" :class="{horizontal: isHorizontal}" />
+    <div class="resize-bar" :class="{horizontal: isHorizontal, resizing: isResizing}" />
 </template>
 
 <script>
@@ -9,6 +9,10 @@ export default {
         direction: {
             type: String,
             default: 'vertical' // vertical || horizontal
+        },
+        isResizing: {
+            type: Boolean,
+            default: false
         }
     },
     computed: {

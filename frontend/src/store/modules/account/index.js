@@ -112,6 +112,9 @@ const getters = {
         !state.team?.type?.properties?.billing?.disabled &&
         !state.team?.billing?.active
     },
+    isBillingEnabled (state) {
+        return !!state.features.billing
+    },
     isTrialAccount (state) {
         return !!state.team?.billing?.trial
     },

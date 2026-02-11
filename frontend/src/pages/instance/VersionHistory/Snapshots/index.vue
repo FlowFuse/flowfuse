@@ -243,6 +243,7 @@ export default {
                 props: { snapshot, snapshotList: this.snapshotList, instance: this.instance },
                 on: {
                     updatedSnapshot: () => this.fetchData(true),
+                    restoredSnapshot: () => this.fetchData(true),
                     deletedSnapshot: () => {
                         this.closeRightDrawer()
                         this.fetchData(true)
