@@ -64,6 +64,7 @@
                 @show-import-snapshot-dialog="showImportSnapshotDialog"
                 @show-create-snapshot-dialog="showCreateSnapshotDialog"
                 @instance-updated="$emit('instance-updated')"
+                @device-updated="$emit('device-updated')"
             />
         </transition>
     </router-view>
@@ -120,7 +121,7 @@ export default {
             required: true
         }
     },
-    emits: ['instance-updated'],
+    emits: ['instance-updated', 'device-updated'],
     setup () {
         const { hasPermission } = usePermissions()
 
