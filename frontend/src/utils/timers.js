@@ -50,15 +50,12 @@ function createPollTimer (callback, interval = 5000, autoStart = true) {
     }
 
     function start () {
-        console.log('PollTimer: start')
         if (pollTimer.running) {
-            console.log('PollTimer: already running')
             return
         }
         _timer = setInterval(() => {
             if (!_paused) {
                 if (typeof _callback === 'function' && _timer) {
-                    // console.log('PollTimer: callback')
                     _callback()
                 }
             }
@@ -66,18 +63,15 @@ function createPollTimer (callback, interval = 5000, autoStart = true) {
     }
 
     function stop () {
-        // console.log('PollTimer: stop')
         clearInterval(_timer)
         _timer = null
     }
 
     function pause () {
-        // console.log('PollTimer: pause')
         _paused = true
     }
 
     function resume () {
-        // console.log('PollTimer: resume')
         _paused = false
     }
 
