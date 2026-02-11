@@ -17,6 +17,8 @@ const getters = {
             return {
                 assistantVersion: rootState.product.assistant.version,
                 assistantFeatures: rootState.product.assistant.assistantFeatures,
+                palette: null,
+                debugLog: null,
                 userId: rootState.account?.user?.id || null,
                 teamId: rootState.account?.team?.id || null,
                 teamSlug: rootState.account?.team?.slug || null,
@@ -53,9 +55,21 @@ const getters = {
         if (scope === 'immersive' && rootGetters['product/expert/isFfAgent'] && rootState.product.assistant.selectedNodes.length > 0) {
             selectedNodes = rootState.product.assistant.selectedNodes
         }
+
+        let palette = null
+        if (rootState.product.assistant.selectedContext?.some(e => e.value === 'palette')) {
+            palette = rootGetters['product/assistant/paletteContribOnly']
+        }
+        let debugLog = null
+        if (rootState.product.assistant.selectedContext?.some(e => e.value === 'debug')) {
+            debugLog = rootGetters['product/assistant/debugLog']
+        }
+
         return {
             assistantVersion: rootState.product.assistant.version,
             assistantFeatures: rootState.product.assistant.assistantFeatures,
+            palette,
+            debugLog,
             userId: rootState.account?.user?.id || null,
             teamId: rootState.account?.team?.id || null,
             teamSlug: rootState.account?.team?.slug || null,

@@ -45,7 +45,7 @@
     }
 
     .header {
-      padding: 0 15px 0 0;
+      padding: 0;
       display: flex;
       line-height: 1.5;
       border-bottom: 1px solid $ff-grey-200;
@@ -54,16 +54,14 @@
 
       .logo {
         display: flex;
-        flex-direction: column;
-        justify-content: center;
-        padding-left: 15px;
 
         a {
           display: flex;
-          justify-content: center;
           align-items: center;
           color: $ff-grey-500;
           gap: 4px;
+          padding: 0 15px;
+          transition: all 0.2s ease;
 
           .ff-btn--icon {
             width: 16px;
@@ -75,14 +73,19 @@
           }
 
           &:hover {
-            opacity: 0.8;
+            background: $ff-grey-100;
+            color: $ff-grey-700;
+          }
+
+          &:active {
+            background: $ff-grey-200;
           }
         }
       }
 
       .tabs {
         flex: 1;
-        padding: 0 15px;
+        padding: 0 15px 0 0;
         min-width: 0;
 
         .ff-tab-option {
@@ -95,22 +98,29 @@
       .side-actions {
         display: flex;
         justify-content: flex-end;
-        gap: 10px;
         align-items: center;
         color: $ff-grey-500;
         flex-shrink: 0;
 
         .close-drawer-button {
+          align-self: stretch;
           background: none;
           border: none;
-          padding: 0;
+          padding: 0 15px;
           color: inherit;
           font: inherit;
           display: flex;
           align-items: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
 
           &:hover {
-            cursor: pointer;
+            background: $ff-grey-100;
+            color: $ff-grey-700;
+          }
+
+          &:active {
+            background: $ff-grey-200;
           }
         }
       }
