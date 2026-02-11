@@ -76,19 +76,23 @@ export default {
         pluralize,
         ...mapActions('product/assistant', ['setSelectedContext']),
         selectItem (option) {
-            const cleanOption = (option) => ({
-                value: option.value,
-                name: option.name,
-                title: option.title,
-                icon: option.icon
-            })
-            const cleanedOption = cleanOption(option)
-            const currentSelection = this.selectedContext || []
-            const exists = currentSelection.some(c => c.value === cleanedOption.value)
-            if (exists) {
-                return // already selected, do nothing
+            if (option.onSelectAction) {
+                this.$store.dispatch(`product/assistant/${option.onSelectAction}`)
+            } else {
+                const cleanOption = (option) => ({
+                    value: option.value,
+                    name: option.name,
+                    title: option.title,
+                    icon: option.icon
+                })
+                const cleanedOption = cleanOption(option)
+                const currentSelection = this.selectedContext || []
+                const exists = currentSelection.some(c => c.value === cleanedOption.value)
+                if (exists) {
+                    return // already selected, do nothing
+                }
+                this.setSelectedContext([...currentSelection, cleanedOption].filter(Boolean))
             }
-            this.setSelectedContext([...currentSelection, cleanedOption].filter(Boolean))
         }
     }
 }

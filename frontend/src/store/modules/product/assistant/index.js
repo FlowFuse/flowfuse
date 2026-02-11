@@ -1,5 +1,5 @@
 import messagingService from '../../../../services/messaging.service.js'
-const MAX_DEBUG_LOG_ENTRIES = 10 // maximum number of debug log entries to keep
+const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep
 
 const eventsRegistry = {
     'editor:open': {
@@ -60,10 +60,11 @@ const ALL_CONTEXT_OPTIONS = [
         menuIcon: 'CubeIcon'
     },
     {
-        value: 'debug',
-        name: 'Debug',
-        title: 'Include debug messages logs in context (last 10 messages)',
-        menuIcon: 'ViewListIcon'
+        value: 'visible-debug-logs',
+        name: 'Visible Debug Logs',
+        title: 'Include visible debug messages logs in context',
+        menuIcon: 'ViewListIcon',
+        onSelectAction: 'sendDebugLogContextGetVisibleEntries'
     }
 ]
 
@@ -112,6 +113,9 @@ const getters = {
     hasContextSelection: (state) => {
         return state.selectedContext.length
     },
+    hasDebugLogsSelected: (state) => {
+        return !!(state.debugLog?.length)
+    },
     isFeaturePaletteEnabled: (state) => {
         return state.assistantFeatures.commands?.['get-palette']?.enabled ?? false
     },
@@ -120,7 +124,7 @@ const getters = {
     },
     availableContextOptions: (state, getters) => {
         const options = ALL_CONTEXT_OPTIONS.filter(option => {
-            if (option.value === 'debug' && getters.isFeatureDebugLogEnabled === false) {
+            if (option.value === 'visible-debug-logs' && getters.isFeatureDebugLogEnabled === false) {
                 return false
             }
             if (option.value === 'palette' && getters.isFeaturePaletteEnabled === false) {
@@ -184,21 +188,46 @@ const mutations = {
     SET_SELECTED_CONTEXT (state, context) {
         state.selectedContext = context || []
     },
-    ADD_DEBUG_LOG_ENTRY (state, entry) {
-        if (!entry) {
+    ADD_DEBUG_LOG_CONTEXT (state, debugLog) {
+        console.log('Add debug log request received for entry/entries:', debugLog)
+        if (!debugLog) {
             return
         }
-        const entries = (Array.isArray(entry) ? entry : [entry]).filter(Boolean)
+        const entries = (Array.isArray(debugLog) ? debugLog : [debugLog]).filter(Boolean)
         if (entries.length === 0) {
             return
         }
-        // if the new len + existing len > max, trim the oldest entries
-        const totalEntries = state.debugLog.length + entries.length
-        if (totalEntries > MAX_DEBUG_LOG_ENTRIES) {
-            const excess = totalEntries - MAX_DEBUG_LOG_ENTRIES
-            state.debugLog.splice(0, excess)
+
+        // so long as the uuid of the entry is not already present, add it.
+        entries.forEach(e => {
+            if (!state.debugLog.some(logEntry => logEntry.uuid === e.uuid)) {
+                state.debugLog.push(e) // push will add to the end of the array, which is the most recent entries at the end
+            }
+        })
+        // remove any excess entries beyond the max, keeping the most recent ones
+        if (state.debugLog.length > MAX_DEBUG_LOG_ENTRIES) {
+            state.debugLog.splice(0, state.debugLog.length - MAX_DEBUG_LOG_ENTRIES) // splice will remove the oldest entries at the start of the array
         }
-        state.debugLog.push(...entries)
+    },
+    REMOVE_DEBUG_LOG_CONTEXT (state, debugLog) {
+        console.log('Attempting to remove debug log entry/entries:', debugLog)
+        if (!debugLog) {
+            return
+        }
+        const entries = (Array.isArray(debugLog) ? debugLog : [debugLog]).filter(Boolean)
+        if (entries.length === 0) {
+            return
+        }
+        // for each entry, get the uuid and find the matching log entry & remove it
+        entries.forEach(e => {
+            const index = state.debugLog.findIndex(logEntry => logEntry.uuid === e.uuid)
+            if (index !== -1) {
+                state.debugLog.splice(index, 1)
+            }
+        })
+    },
+    RESET_DEBUG_LOG_CONTEXT (state) {
+        state.debugLog = []
     },
     SET_FEATURES (state, features) {
         state.assistantFeatures = features
@@ -232,6 +261,7 @@ const actions = {
             console.warn('Received message from unknown origin. Ignoring.')
             return
         }
+        console.log('Received message from assistant:', payload)
 
         switch (true) {
         case payload.data.type === 'assistant-ready':
@@ -258,11 +288,36 @@ const actions = {
             return dispatch('setFeatures', payload.data.features)
         case payload.data.type === 'set-selection':
             return dispatch('setSelectedNodes', payload.data.selection)
-        case payload.data.type === 'debug-log-entry':
-            return dispatch('addDebugLogEntry', payload.data.entry)
+        // case payload.data.type === 'debug-log-entry':
+        case payload.data.type === 'debug-log-context-add':
+            console.log('Received debug log from assistant:', payload.data.debugLog)
+            dispatch('addDebugLogContext', payload.data.debugLog)
+            return dispatch('sendDebugLogRegister')
+        case payload.data.type === 'debug-log-context-remove':
+            console.log('Received debug log remove request from assistant:', payload.data.debugLog)
+            dispatch('removeDebugLogContext', payload.data.debugLog)
+            return dispatch('sendDebugLogRegister')
+        case payload.data.type === 'debug-log-context-clear':
+            console.log('Received debug log clear request from assistant')
+            dispatch('resetDebugLogContext')
+            return
         default:
             // do nothing
         }
+    },
+    sendDebugLogRegister: async ({ dispatch, state }) => {
+        // get a list of uuids from state.debugLog and send them to assistant
+        const register = state.debugLog.map(entry => entry.uuid)
+        return dispatch('sendMessage', {
+            type: 'debug-log-context-registered',
+            params: { register }
+        })
+    },
+    sendDebugLogContextGetVisibleEntries: async ({ dispatch, state }) => {
+        // request that all visible debug log entries requested, which will prompt the assistant to respond with the entries that are currently visible in the debug sidebar (which may be a subset of all entries that have been registered, based on what the user has filtered to show in the sidebar)
+        return dispatch('sendMessage', {
+            type: 'debug-log-context-get-visible-entries'
+        })
     },
     requestVersion: async ({ dispatch }) => {
         return dispatch('sendMessage', 'get-assistant-version')
@@ -303,8 +358,15 @@ const actions = {
     setSelectedContext: async ({ commit }, context) => {
         commit('SET_SELECTED_CONTEXT', context)
     },
-    addDebugLogEntry: async ({ commit }, entry) => {
-        commit('ADD_DEBUG_LOG_ENTRY', entry)
+    addDebugLogContext: async ({ commit }, debugLog) => {
+        commit('ADD_DEBUG_LOG_CONTEXT', debugLog)
+    },
+    removeDebugLogContext: async ({ commit }, debugLog) => {
+        commit('REMOVE_DEBUG_LOG_CONTEXT', debugLog)
+    },
+    resetDebugLogContext: async ({ commit, dispatch }) => {
+        commit('RESET_DEBUG_LOG_CONTEXT')
+        dispatch('sendDebugLogRegister')
     },
     reset: ({ commit }) => {
         commit('RESET')
