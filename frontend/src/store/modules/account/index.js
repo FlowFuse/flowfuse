@@ -276,7 +276,7 @@ const getters = {
             // external broker must be enabled for platform, and share the same team-level feature flag as the team broker
             isExternalMqttBrokerFeatureEnabled: preCheck.isExternalMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
             devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
-            isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups || state.team?.type?.properties?.enableAllFeatures,
+            isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups || !!state.team?.type?.properties?.enableAllFeatures,
             isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!state.team?.type?.properties?.features?.gitIntegration,
             isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam,
             isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam,
