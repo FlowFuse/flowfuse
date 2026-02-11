@@ -22,6 +22,7 @@
             <div class="header">
                 <div class="logo">
                     <router-link
+                        v-if="device"
                         title="Back to remote instance overview"
                         :to="{ name: 'device-overview', params: {id: device.id} }"
                     >
@@ -57,7 +58,7 @@
             <ff-page :no-padding="isExpertRoute">
                 <router-view
                     :device="device"
-                    :instance="device.instance"
+                    :instance="device?.instance"
                 />
             </ff-page>
         </section>
@@ -66,21 +67,19 @@
 
 <script>
 
-import { HomeIcon, XIcon, CogIcon } from '@heroicons/vue/solid/index.js'
-import semver from 'semver'
+import { CogIcon, HomeIcon, XIcon } from '@heroicons/vue/solid/index.js'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
-import deviceApi from '../../../api/devices.js'
 import DropdownMenu from '../../../components/DropdownMenu.vue'
 import ResizeBar from '../../../components/ResizeBar.vue'
 import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
 import DrawerTrigger from '../../../components/immersive-editor/DrawerTrigger.vue'
 import EditorWrapper from '../../../components/immersive-editor/RemoteInstanceEditorWrapper.vue'
+import { useDeviceHelper } from '../../../composables/DeviceHelper.js'
 import { useDrawerHelper } from '../../../composables/DrawerHelper.js'
 import usePermissions from '../../../composables/Permissions.js'
 import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 import Alerts from '../../../services/alerts.js'
-import { DeviceStateMutator } from '../../../utils/DeviceStateMutator.js'
 
 const DRAWER_DEFAULT_WIDTH = 550 // Default drawer width in pixels
 const DRAWER_MAX_VIEWPORT_MARGIN = 200 // Space to preserve when drawer is at max width
@@ -119,13 +118,23 @@ export default {
             setEditorWidth: setDeviceEditorWidth
         } = useResizingHelper()
 
+        const {
+            device,
+            bindDevice,
+            fetchDevice,
+            restartDevice,
+            startPoling,
+            stopPoling
+        } = useDeviceHelper()
+
         return {
-            startEditorResize,
-            setDeviceEditorWidth,
-            bindDrawerResizer,
-            editorWidthStyle,
+            device,
             drawer,
+            setDeviceEditorWidth,
+            editorWidthStyle,
             isEditorResizing,
+            startEditorResize,
+            bindDrawerResizer,
             toggleDrawer,
             notifyDrawerState,
             handleDrawerMouseEnter,
@@ -133,20 +142,17 @@ export default {
             runInitialTease,
             bindDrawer,
             cleanupDrawer,
-            hasPermission
+            hasPermission,
+            restartDevice,
+            bindDevice,
+            fetchDevice,
+            startPoling,
+            stopPoling
         }
     },
     data () {
         return {
-            agentSupportsDeviceAccess: null,
-            agentSupportsActions: null,
-            device: null,
-            openingTunnel: false,
-            ws: null,
-            /** @type {DeviceStateMutator} */
-            deviceStateMutator: null,
-            reloadInterval: null,
-            reloadTimeout: null
+            mounted: false
         }
     },
     computed: {
@@ -165,6 +171,8 @@ export default {
                 this.device.editor.connected
         },
         navigation () {
+            if (!this.device) return []
+
             return [
                 {
                     label: 'Expert',
@@ -224,24 +232,31 @@ export default {
             return {}
         },
         actionsDropdownOptions () {
-            // a copy and paste job from frontend/src/pages/device/index.vue:293
-            const flowActionsDisabled = !(this.device.status !== 'suspended')
+            if (!this.device) return []
 
+            const flowActionsDisabled = !(this.device.status !== 'suspended')
             const deviceStateChanging = this.device.pendingStateChange || this.device.optimisticStateChange
 
-            const result = []
+            const result = [
+                {
+                    name: 'Restart',
+                    action: this.restartDevice,
+                    disabled: deviceStateChanging || flowActionsDisabled,
+                    hidden: !this.device.lastSeenAt
+                },
+                {
+                    type: 'hr',
+                    hidden: !this.hasPermission('device:delete', this.permissionContext)
+                },
+                {
+                    name: 'Delete',
+                    class: ['text-red-700'],
+                    action: this.showConfirmDeleteDialog,
+                    hidden: !this.hasPermission('device:delete', this.permissionContext)
+                }
+            ]
 
-            if (this.device.lastSeenAt) {
-                // if we've never connected, we know we can't restart
-                result.push({ name: 'Restart', action: this.restartDevice, disabled: deviceStateChanging || flowActionsDisabled })
-            }
-
-            if (this.hasPermission('device:delete', this.permissionContext)) {
-                result.push(null)
-                result.push({ name: 'Delete', class: ['text-red-700'], action: this.showConfirmDeleteDialog })
-            }
-
-            return result
+            return result.filter(res => !res.hidden)
         }
 
     },
@@ -249,8 +264,11 @@ export default {
         device (device) {
             if (device && this.isEditorAvailable) {
                 this.setContextDevice(device)
-                this.runInitialTease()
-                this.deviceStateMutator = new DeviceStateMutator(this.device)
+                this.bindDevice(device)
+
+                if (!this.mounted) {
+                    this.runInitialTease()
+                }
             } else {
                 this.$router.push({ name: 'device-overview' })
                     .then(() => Alerts.emit('Unable to connect to the Remote Instance', 'warning'))
@@ -282,19 +300,17 @@ export default {
     methods: {
         ...mapActions('context', { setContextDevice: 'setDevice' }),
         loadDevice: async function () {
-            try {
-                this.device = await deviceApi.getDevice(this.$route.params.id)
-            } catch (err) {
-                if (err.status === 403) {
-                    return this.$router.push({ name: 'device-overview' })
-                }
-            }
+            await this.fetchDevice(this.$route.params.id)
 
-            this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')
-            this.agentSupportsActions = this.device.agentVersion && semver.gte(this.device.agentVersion, '2.3.0')
+            this.startPoling()
+
+            this.mounted = true
 
             // todo we first need to get the device and set the team afterwards
             await this.$store.dispatch('account/setTeam', this.device.team.slug)
+        },
+        showConfirmDeleteDialog () {
+            console.log('showConfirmDeleteDialog')
         }
     }
 }

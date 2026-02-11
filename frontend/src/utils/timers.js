@@ -50,9 +50,9 @@ function createPollTimer (callback, interval = 5000, autoStart = true) {
     }
 
     function start () {
-        // console.log('PollTimer: start')
+        console.log('PollTimer: start')
         if (pollTimer.running) {
-            // console.log('PollTimer: already running')
+            console.log('PollTimer: already running')
             return
         }
         _timer = setInterval(() => {
