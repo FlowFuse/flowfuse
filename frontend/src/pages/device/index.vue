@@ -37,22 +37,36 @@
                 -->
                 <div class="flex gap-2 align-center" style="height: 34px;">
                     <template v-if="isDevModeAvailable">
-                        <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
-                        <device-editor-link
-                            :device="device"
-                            :title="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'"
-                            :disabled="!editorAvailable"
-                            :primary="editorAvailable"
-                            data-action="open-editor"
-                            @open-immersive-editor="openTunnel({launchEditor: true, event: $event, immersive: true})"
-                            @open-editor="openTunnel({launchEditor: true, event: $event, immersive: false})"
-                        />
+                        <template v-if="neverConnected">
+                            <FinishSetupButton
+                                v-if="hasPermission('device:create', {application: device.application})"
+                                :is-primary="neverConnected"
+                                :device="device"
+                            />
+                        </template>
+                        <template v-else>
+                            <DeveloperModeToggle
+                                data-el="device-devmode-toggle"
+                                :device="device"
+                                :disabled="disableModeToggle"
+                                :disabledReason="disableModeToggleReason"
+                                @mode-change="setDeviceMode"
+                            />
+                            <device-editor-link
+                                :device="device"
+                                :title="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'"
+                                :disabled="!editorAvailable"
+                                :primary="editorAvailable"
+                                data-action="open-editor"
+                                @open-immersive-editor="openTunnel({launchEditor: true, event: $event, immersive: true})"
+                                @open-editor="openTunnel({launchEditor: true, event: $event, immersive: false})"
+                            />
+                        </template>
                     </template>
-                    <FinishSetupButton v-if="hasPermission('device:create', {application: device.application}) && neverConnected" :device="device" />
                     <DropdownMenu
                         v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length"
                         data-el="device-actions-dropdown"
-                        :buttonClass="`ff-btn ff-btn-icon ${ editorAvailable ? 'ff-btn--secondary' : 'ff-btn--primary'}`"
+                        :buttonClass="`ff-btn ff-btn-icon ${ actionsButtonKind }`"
                         :options="actionsDropdownOptions"
                     >
                         <CogIcon class="ff-btn--icon ff-btn--icon-left" />
@@ -205,6 +219,16 @@ export default {
     },
     computed: {
         ...mapState('account', ['teamMembership', 'team', 'features', 'settings']),
+        actionsButtonKind () {
+            switch (true) {
+            case this.neverConnected:
+                return 'ff-btn--secondary'
+            case this.editorAvailable:
+                return 'ff-btn--secondary'
+            default:
+                return 'ff-btn--primary'
+            }
+        },
         permissionContext () {
             if (this.device?.ownerType === 'application' || this.device?.ownerType === 'instance') {
                 return { application: this.device.application }

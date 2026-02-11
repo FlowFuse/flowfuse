@@ -1,9 +1,11 @@
 import semver from 'semver'
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 
 import deviceApi from '../api/devices.js'
 import Alerts from '../services/alerts.js'
+import Dialog from '../services/dialog.js'
 import { DeviceStateMutator } from '../utils/DeviceStateMutator.js'
 import { createPollTimer } from '../utils/timers.js'
 
@@ -20,11 +22,13 @@ const deviceTransitionStates = [
 ]
 
 export function useDeviceHelper () {
+    const $store = useStore()
+    const $route = useRoute()
+    const $router = useRouter()
+
     let deviceStateMutator = null
     const device = ref(null)
     const pollTimer = createPollTimer(pollDevice, POLL_TIME, false)
-    const $route = useRoute()
-    const $router = useRouter()
 
     const agentSupportsDeviceAccess = computed(() =>
         device.value?.agentVersion && semver.gte(device.value?.agentVersion, '0.8.0')
@@ -120,6 +124,25 @@ export function useDeviceHelper () {
         pollTimer.stop()
     }
 
+    function showDeleteDialog () {
+        Dialog.show({
+            header: 'Delete Device',
+            kind: 'danger',
+            text: 'Are you sure you want to delete this device? Once deleted, there is no going back.',
+            confirmLabel: 'Delete'
+        }, async () => {
+            try {
+                await deviceApi.deleteDevice(device.value.id)
+                Alerts.emit('Successfully deleted the device', 'confirmation')
+                // Trigger a refresh of team info to resync following device changes
+                await $store.dispatch('account/refreshTeam')
+                await $router.push({ name: 'TeamDevices', params: { team_slug: $store.state.account.team.slug } })
+            } catch (err) {
+                Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
+            }
+        })
+    }
+
     return {
         agentSupportsDeviceAccess,
         agentSupportsActions,
@@ -127,6 +150,7 @@ export function useDeviceHelper () {
         restartDevice,
         bindDevice,
         fetchDevice,
+        showDeleteDialog,
         startPoling,
         stopPoling
     }

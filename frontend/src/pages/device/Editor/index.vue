@@ -124,6 +124,7 @@ export default {
             fetchDevice,
             restartDevice,
             startPoling: startDevicePolling,
+            showDeleteDialog: showDeleteDeviceDialog,
             stopPoling
         } = useDeviceHelper()
 
@@ -147,7 +148,8 @@ export default {
             bindDevice,
             fetchDevice,
             startDevicePolling,
-            stopPoling
+            stopPoling,
+            showDeleteDeviceDialog
         }
     },
     data () {
@@ -310,7 +312,7 @@ export default {
             await this.$store.dispatch('account/setTeam', this.device.team.slug)
         },
         showConfirmDeleteDialog () {
-            console.log('showConfirmDeleteDialog')
+            this.showDeleteDeviceDialog()
         }
     }
 }
