@@ -113,12 +113,10 @@ export function useDeviceHelper () {
     }
 
     function startPoling () {
-        console.log('jaja', pollTimer)
         pollTimer.start()
     }
 
     function stopPoling () {
-        console.trace()
         pollTimer.stop()
     }
 

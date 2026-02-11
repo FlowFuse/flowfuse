@@ -123,7 +123,7 @@ export default {
             bindDevice,
             fetchDevice,
             restartDevice,
-            startPoling,
+            startPoling: startDevicePolling,
             stopPoling
         } = useDeviceHelper()
 
@@ -146,7 +146,7 @@ export default {
             restartDevice,
             bindDevice,
             fetchDevice,
-            startPoling,
+            startDevicePolling,
             stopPoling
         }
     },
@@ -302,7 +302,7 @@ export default {
         loadDevice: async function () {
             await this.fetchDevice(this.$route.params.id)
 
-            this.startPoling()
+            this.startDevicePolling()
 
             this.mounted = true
 
