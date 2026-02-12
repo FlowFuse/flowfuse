@@ -186,23 +186,23 @@ const getters = {
 
             // Shared Library
             isSharedLibraryFeatureEnabledForTeam: ((state) => {
-                const flag = state.team?.type?.properties?.features?.['shared-library'] || state.team?.type?.properties?.enableAllFeatures
-                return flag === undefined || flag
+                const flag = state.team?.type?.properties?.features?.['shared-library']
+                return (flag === undefined || flag) || state.team?.type?.properties?.enableAllFeatures
             })(state),
             isSharedLibraryFeatureEnabledForPlatform: state.features?.['shared-library'],
 
             // Blueprints
             isBlueprintsFeatureEnabledForTeam: ((state) => {
-                const flag = state.team?.type?.properties?.features?.flowBlueprints || state.team?.type?.properties?.enableAllFeatures
-                return flag === undefined || flag
+                const flag = state.team?.type?.properties?.features?.flowBlueprints
+                return (flag === undefined || flag) || state.team?.type?.properties?.enableAllFeatures
             })(state),
             isBlueprintsFeatureEnabledForPlatform: !!state.features?.flowBlueprints,
 
             // Custom Catalogs
             isCustomCatalogsFeatureEnabledForPlatform: !!state.features?.customCatalogs,
             isCustomCatalogsFeatureEnabledForTeam: ((state) => {
-                const flag = state.team?.type?.properties.features?.customCatalogs || state.team?.type?.properties?.enableAllFeatures
-                return flag === undefined || flag
+                const flag = state.team?.type?.properties.features?.customCatalogs
+                return (flag === undefined || flag) || state.team?.type?.properties?.enableAllFeatures
             })(state),
 
             // Private NPM Registry (Custom Nodes)
