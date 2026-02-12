@@ -230,8 +230,8 @@ export default {
             availableNrVersions: [
                 '3.1.15',
                 '4.0.9',
-                '4.1.3',
-                '4.1.4'
+                '4.1.4',
+                '4.1.5'
 
             ]
         }
