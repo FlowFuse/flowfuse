@@ -326,6 +326,9 @@ export default {
                 this.activeBrokerId = 'team-broker'
                 break
 
+            case !this.hasFfUnsClients && this.hasBrokers && this.isCreationPage:
+                // prevent redirect if no clients and accessing the create broker page directly
+                break
             case !this.hasFfUnsClients && this.hasBrokers:
                 this.activeBrokerId = brokerId ?? this.brokers[0].id
                 break

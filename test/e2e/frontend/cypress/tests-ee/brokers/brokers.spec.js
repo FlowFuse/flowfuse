@@ -62,6 +62,18 @@ describe('FlowFuse - Brokers', () => {
     })
 
     it('should show the choose broker page when no team or 3rd party brokers exist', () => {
+        // we deduce that the team broker is configured based on the presents of clients on the clients api response
+        cy.intercept('GET', '/api/*/teams/*/broker/clients', {
+            clients: [],
+            meta: {},
+            count: 0
+        })
+        cy.intercept('GET', '/api/*/teams/*/brokers', {
+            brokers: [],
+            meta: {},
+            count: 0
+        })
+
         cy.get('[data-nav="team-brokers"]').click()
 
         cy.get('[data-cy="page-name"]').contains('Add a new Broker')
@@ -138,6 +150,18 @@ describe('FlowFuse - Brokers', () => {
     })
 
     it('should allow users to configure third party brokers when no brokers exist and then delete it', () => {
+        // we deduce that the team broker is configured based on the presents of clients on the clients api response
+        cy.intercept('GET', '/api/*/teams/*/broker/clients', {
+            clients: [],
+            meta: {},
+            count: 0
+        })
+        cy.intercept('GET', '/api/*/teams/*/brokers', {
+            brokers: [],
+            meta: {},
+            count: 0
+        })
+
         cy.get('[data-nav="team-brokers"]').click()
 
         // check that the toolbox is not present
@@ -270,7 +294,7 @@ describe('FlowFuse - Brokers', () => {
             meta: {},
             count: 0
         })
-        cy.intercept('GET', '/api/*/teams/*/broker', {
+        cy.intercept('GET', '/api/*/teams/*/brokers', {
             brokers: [{
                 id: '1',
                 name: 'external-broker',
@@ -348,6 +372,12 @@ describe('FlowFuse - Brokers', () => {
     })
 
     it('should redirect users to the add broker page when no brokers configured and accessing via menu link or url', () => {
+        cy.intercept('GET', '/api/*/teams/*/brokers', {
+            brokers: [],
+            meta: {},
+            count: 0
+        })
+
         cy.home()
         cy.get('[data-nav="team-brokers"]').click()
         cy.get('[data-el="choose-broker"]').should('exist')
