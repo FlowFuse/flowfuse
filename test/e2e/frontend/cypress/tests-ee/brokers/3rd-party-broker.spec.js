@@ -175,16 +175,18 @@ describe('FlowFuse - Brokers', () => {
             cy.get('[data-el="listbox-options"] [data-option="5.0"]').click()
 
             cy.get('[data-select="ssl"]').click()
-            cy.get('[data-el="listbox-options"]')
-                .should('be.visible')
-                .within(() => {
-                    cy.get('[data-option="Yes"]')
-                        .should('be.visible')
-                        .click()
-                })
+            cy.get('[data-el="listbox-options"]').should('be.visible')
+            cy.get('[data-el="listbox-options"]').within(() => {
+                cy.get('[data-option="Yes"]').should('be.visible')
+                cy.get('[data-option="Yes"]').click()
+            })
 
             cy.get('[data-select="verifySSL"]').click()
-            cy.get('[data-el="listbox-options"] [data-option="No"]').click()
+            cy.get('[data-el="listbox-options"]').should('be.visible')
+            cy.get('[data-el="listbox-options"]').within(() => {
+                cy.get('[data-option="No"]').should('be.visible')
+                cy.get('[data-option="No"]').click()
+            })
 
             cy.get('[data-input="topicPrefix"] input').clear()
             cy.get('[data-input="topicPrefix"] input').type('hitchhikers_guide/dont_panic/helpful_statement/first_of_day')
@@ -232,15 +234,18 @@ describe('FlowFuse - Brokers', () => {
             cy.get('[data-el="listbox-options"] [data-option="3.0"]').click()
 
             cy.get('[data-select="ssl"]').click()
-            cy.get('[data-el="listbox-options"] [data-option="No"]').click()
+            cy.get('[data-el="listbox-options"]').should('be.visible')
+            cy.get('[data-el="listbox-options"]').within(() => {
+                cy.get('[data-option="No"]').should('be.visible')
+                cy.get('[data-option="No"]').click()
+            })
 
             cy.get('[data-select="verifySSL"]').click()
+            cy.get('[data-el="listbox-options"]').should('be.visible')
             cy.get('[data-el="listbox-options"]')
-                .should('be.visible')
                 .within(() => {
-                    cy.get('[data-option="Yes"]')
-                        .should('be.visible')
-                        .click()
+                    cy.get('[data-option="Yes"]').should('be.visible')
+                    cy.get('[data-option="Yes"]').click()
                 })
 
             cy.get('[data-input="topicPrefix"] input').clear()
