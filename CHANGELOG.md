@@ -1,3 +1,38 @@
+#### 2.27.0: Release
+
+ - Bump JS-DevTools/npm-publish from 4.1.4 to 4.1.5 (#6614)
+ - Bump aws-actions/configure-aws-credentials from 5.1.1 to 6.0.0 (#6673)
+ - Bump cypress-io/github-action from 7.1.1 to 7.1.2 (#6674)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml (#6676)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml (#6675)
+ - Fix concurrency group setting in `Create pre-staging environment` workflow (#6656)
+ - Add X-Forwarded headers to nginx ingress docs (#6630)
+ - Ensure UI honors TeamType Enable All flag (#6686) @hardillb
+ - Bump @modelcontextprotocol/sdk from 1.25.3 to 1.26.0 (#6632) @app/dependabot
+ - Update device editor navigation to use named route configuration (#6690) @cstns
+ - Add 4.1.5 to Device Agent Node-RED versions (#6688) @hardillb
+ - Improve clarity of instance assignment in docs (#6554) @sumitshinde-84
+ - Allow snapshot to be restored to a remote instance in dev mode (#6679) @knolleary
+ - Hide billing selector when billing is disabled (#6671) @cstns
+ - fix(ui): wrap DialogBox in Teleport to fix positioning in drawer cont… (#6255) @dimitrieh
+ - Reenable immersive mode for remote instances (#6684) @cstns
+ - Use correct favicon and use provided link to package (#6678) @Steve-Mcl
+ - Ensure consistent Open Editor behavior — always default to immersive experience (#6670) @dimitrieh
+ - FlowFuse Expert context UI (#6631) @Steve-Mcl
+ - Remove WebSocket communication handling and associated methods from the immersive device editor (#6668) @cstns
+ - Add WebSocket disconnection details by logging event details (#6667) @cstns
+ - Enhance remote instance editor with connection polling, communication… (#6647) @cstns
+ - Add the drawer sub routes and the FF Expert to the immersive remote instance (#6629) @cstns
+ - Add the embedded remote instance editor route (#6628) @cstns
+ - Relocate immersive editor components to a common namespace (#6624) @cstns
+ - ci: Update NR versions on pre-staging stacks (#6641) @ppawlowski
+ - Refactor device routes and update references to use consistent naming convention (#6623) @cstns
+ - Chore: extract common immersive styling (#6622) @cstns
+ - Refactor drawer: extract reusable functionality into composable (#6621) @cstns
+ - Chore/use the resizing helper to resize the instance immersive drawer (#6610) @cstns
+ - Bump @isaacs/brace-expansion from 5.0.0 to 5.0.1 (#6627) @app/dependabot
+ - Bump dompurify from 3.3.0 to 3.3.1 (#6612) @app/dependabot
+
 #### 2.26.2: Release
 
  - Bump cypress-io/github-action from 7.1.0 to 7.1.1 (#6616)
