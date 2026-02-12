@@ -9,10 +9,10 @@
             :hide-chevron="true"
             :icon-only="true"
             return-model
-            label-key="name"
+            label-key="label"
             placeholder="Context"
             open-above
-            :min-options-width="220"
+            :options-min-width="250"
             align-right
             @option-selected="selectItem"
         >
@@ -82,7 +82,7 @@ export default {
                 const cleanOption = (option) => ({
                     value: option.value,
                     name: option.name,
-                    title: option.title,
+                    label: option.label,
                     icon: option.icon
                 })
                 const cleanedOption = cleanOption(option)
