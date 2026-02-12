@@ -19,13 +19,14 @@
             @mouseleave="handleDrawerMouseLeave"
         >
             <resize-bar
+                :is-resizing="isEditorResizing"
                 @mousedown="startEditorResize"
             />
 
             <div class="header">
                 <div class="logo">
                     <router-link title="Back to instance overview" :to="{ name: 'instance-overview', params: {id: instance.id} }">
-                        <ArrowLeftIcon class="ff-btn--icon" />
+                        <HomeIcon class="ff-btn--icon" style="width: 18px; height: 18px;" />
                     </router-link>
                 </div>
                 <ff-tabs :tabs="navigation" class="tabs" />
@@ -68,7 +69,7 @@
 </template>
 
 <script>
-import { ArrowLeftIcon, XIcon } from '@heroicons/vue/solid'
+import { HomeIcon, XIcon } from '@heroicons/vue/solid'
 import { mapActions, mapGetters } from 'vuex'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
@@ -97,7 +98,7 @@ const DRAWER_MAX_WIDTH_RATIO = 0.9 // Maximum drawer width as percentage of view
 export default {
     name: 'InstanceEditor',
     components: {
-        ArrowLeftIcon,
+        HomeIcon,
         ConfirmInstanceDeleteDialog,
         InstanceActionsButton,
         DashboardLink,

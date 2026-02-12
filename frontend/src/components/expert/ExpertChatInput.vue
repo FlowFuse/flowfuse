@@ -1,6 +1,7 @@
 <template>
     <div ref="resizeTarget" class="ff-expert-input" :style="{height: heightStyle}">
         <resize-bar
+            :is-resizing="isInputResizing"
             direction="horizontal"
             @mousedown="startResize"
         />
@@ -33,7 +34,11 @@
 
             <div class="actions">
                 <div class="left">
-                    <include-selection-button v-if="hasUserSelection && !isOperatorAgent" />
+                    <context-selector v-if="!isOperatorAgent" />
+                    <div class="context-items-container" @wheel="horizontalScrolling">
+                        <include-context-item v-for="(context, index) in selectedContext" :key="index" :contextItem="context" />
+                        <include-selection-button v-if="hasUserSelection && !isOperatorAgent" />
+                    </div>
                 </div>
 
                 <div class="right">
@@ -61,21 +66,25 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 import { useResizingHelper } from '../../composables/ResizingHelper.js'
 
 import ResizeBar from '../ResizeBar.vue'
 
 import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
+import ContextSelector from './components/ContextSelector.vue'
+import IncludeContextItem from './components/IncludeContextItem.vue'
 import IncludeSelectionButton from './components/IncludeSelectionButton.vue'
 
 export default {
     name: 'ExpertChatInput',
     components: {
-        ResizeBar,
+        CapabilitiesSelector,
+        ContextSelector,
+        IncludeContextItem,
         IncludeSelectionButton,
-        CapabilitiesSelector
+        ResizeBar
     },
     props: {
         isGenerating: {
@@ -105,12 +114,13 @@ export default {
     },
     emits: ['send', 'stop', 'start-over'],
     setup () {
-        const { startResize, heightStyle, bindResizer } = useResizingHelper()
+        const { startResize, heightStyle, bindResizer, isResizing: isInputResizing } = useResizingHelper()
 
         return {
             startResize,
             bindResizer,
-            heightStyle
+            heightStyle,
+            isInputResizing
         }
     },
     data () {
@@ -121,7 +131,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('product/assistant', ['hasUserSelection']),
+        ...mapGetters('product/assistant', ['hasUserSelection', 'getSelectedContext']),
         isInputDisabled () {
             if (this.isSessionExpired) return true
             if (this.isGenerating) return true
@@ -138,6 +148,13 @@ export default {
             return this.isOperatorAgent
                 ? 'Tell us what you want to know about'
                 : 'Tell us what you need help with'
+        },
+        selectedContext () {
+            // for insights mode, return empty array
+            if (this.isOperatorAgent) {
+                return []
+            }
+            return this.getSelectedContext
         }
     },
     mounted () {
@@ -150,6 +167,7 @@ export default {
         })
     },
     methods: {
+        ...mapActions('product/assistant', ['resetContextSelection']),
         handleSend () {
             if (!this.canSend) return
 
@@ -166,6 +184,10 @@ export default {
         handleStartOver () {
             this.$emit('start-over')
             this.inputText = ''
+            // When in support mode, reset/restore assistant context selection (opt-out by default)
+            if (!this.isOperatorAgent) {
+                this.resetContextSelection()
+            }
         },
         handleKeydown (event) {
             // Enter without Shift = send message
@@ -174,6 +196,12 @@ export default {
                 this.handleSend()
             }
             // Shift+Enter = new line (default behavior)
+        },
+        horizontalScrolling (event) {
+            const target = event.currentTarget
+            if (event.deltaY === 0) return
+            event.preventDefault()
+            target.scrollLeft += event.deltaY / 2
         }
     }
 }
@@ -313,10 +341,22 @@ button {
         padding: .5rem;
         display: flex;
         justify-content: space-between;
+        gap: 0.75rem;
 
         .left {
             display: flex;
             justify-content: flex-start;
+
+            // scroll for overflow of selected chips
+            overflow: auto;
+            flex: 1;
+            .context-items-container {
+                flex: 1;
+                overflow-x: auto;
+                scrollbar-width: none;
+                display: flex;
+                gap: 0.5rem;
+            }
         }
 
         .right {

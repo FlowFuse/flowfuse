@@ -475,6 +475,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         let sendDeviceUpdate = false
+        let forceUpdate = false
         const device = request.device
         /** @type {import('../../auditLog/formatters').UpdatesCollection} */
         const updates = new app.auditLog.formatters.UpdatesCollection()
@@ -610,6 +611,10 @@ module.exports = async function (app) {
                 await app.auditLog.Device.device.snapshot.targetSet(request.session.User, null, device, targetSnapshot)
                 updates.push('targetSnapshotId', originalSnapshotId, device.targetSnapshotId)
                 sendDeviceUpdate = true
+                // If in developer mode, set the force flag to true otherwise the agent will ignore the update
+                if (device.mode === 'developer') {
+                    forceUpdate = true
+                }
             }
             if (request.body.name !== undefined && request.body.name !== device.name) {
                 updates.push('name', device.name, request.body.name)
@@ -627,7 +632,7 @@ module.exports = async function (app) {
         await device.save()
         const updatedDevice = await app.db.models.Device.byId(device.id)
         if (sendDeviceUpdate) {
-            await app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice)
+            await app.db.controllers.Device.sendDeviceUpdateCommand(updatedDevice, forceUpdate)
         }
 
         // check post op audit log action - create audit log entry if required
