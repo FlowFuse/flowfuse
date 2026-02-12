@@ -7,9 +7,10 @@ import PageNotFound from './pages/PageNotFound.vue'
 
 import AccountRoutes from './pages/account/routes.js'
 import AdminRoutes from './pages/admin/routes.js'
+import DeviceEditorRoutes from './pages/device/Editor/routes.js'
 import DeviceRoutes from './pages/device/routes.js'
 import HelpRoutes from './pages/help/routes.js'
-import EditorRoutes from './pages/instance/Editor/routes.js'
+import InstanceEditorRoutes from './pages/instance/Editor/routes.js'
 import InstanceRoutes from './pages/instance/routes.js'
 import TeamRoutes from './pages/team/routes.js'
 
@@ -30,7 +31,8 @@ const routes = [
     ...TeamRoutes,
     ...AdminRoutes,
     ...HelpRoutes,
-    ...EditorRoutes,
+    ...InstanceEditorRoutes,
+    ...DeviceEditorRoutes,
     {
         name: 'page-not-found',
         path: '/:pathMatch(.*)*',

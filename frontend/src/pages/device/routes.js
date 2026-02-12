@@ -17,86 +17,122 @@ import VersionHistoryRoutes from './VersionHistory/routes.js'
 
 import Device from './index.vue'
 
+const children = [
+    {
+        name: 'device-overview',
+        path: 'overview',
+        component: DeviceOverview
+    },
+    {
+        path: 'settings',
+        name: 'device-settings',
+        component: DeviceSettings,
+        meta: {
+            title: 'Device - Settings'
+        },
+        redirect: to => {
+            return to.name.startsWith('device-editor-') ? { name: 'device-editor-settings-general' } : { name: 'device-settings-general' }
+        },
+        children: [
+            {
+                name: 'device-settings-general',
+                path: 'general',
+                component: DeviceSettingsGeneral
+            },
+            {
+                name: 'device-settings-environment',
+                path: 'environment',
+                component: DeviceSettingsEnvironment
+            },
+            {
+                name: 'device-settings-security',
+                path: 'security',
+                component: DeviceSettingsSecurity
+            },
+            {
+                name: 'device-settings-palette',
+                path: 'palette',
+                component: DeviceSettingsPalette
+            },
+            {
+                name: 'device-settings-danger',
+                path: 'danger',
+                component: DeviceSettingsDanger
+            }
+        ]
+    },
+    {
+        path: 'audit-log',
+        name: 'device-audit-log',
+        component: DeviceAuditLog,
+        meta: {
+            title: 'Device - Audit Log'
+        }
+    },
+    {
+        path: 'logs',
+        name: 'device-logs',
+        component: DeviceLogs,
+        meta: {
+            title: 'Device - Logs'
+        }
+    },
+    {
+        path: 'performance',
+        name: 'device-performance',
+        component: DevicePerformance,
+        meta: {
+            title: 'Device - Performance'
+        }
+    },
+    {
+        path: 'version-history',
+        name: 'device-version-history',
+        component: VersionHistory,
+        meta: {
+            title: 'Device - Version History'
+        },
+        redirect: to => {
+            const features = store.getters['account/featuresCheck']
+            let name = features.isTimelineFeatureEnabled ? 'device-version-history-timeline' : 'device-snapshots'
+
+            if (to.name.startsWith('device-editor-')) { // redirect to immersive mode when needed
+                name = name.replace('device-', 'device-editor-')
+            }
+
+            return {
+                name,
+                params: to.params
+            }
+        },
+        children: [...VersionHistoryRoutes]
+    },
+    {
+        path: 'developer-mode',
+        name: 'device-developer-mode',
+        component: DeviceDeveloperMode,
+        meta: {
+            title: 'Device - Developer Mode'
+        }
+    }
+]
+
+export { children }
+
 export default [
     {
         path: '/device/:id',
         redirect: to => {
-            return { name: 'DeviceOverview', params: to.params }
+            return {
+                name: 'device-overview',
+                params: to.params
+            }
         },
         name: 'Device',
         component: Device,
         meta: {
             title: 'Device - Overview'
         },
-        children: [
-            { path: 'overview', component: DeviceOverview, name: 'DeviceOverview' },
-            {
-                path: 'settings',
-                name: 'device-settings',
-                component: DeviceSettings,
-                meta: {
-                    title: 'Device - Settings'
-                },
-                redirect: to => {
-                    return `/device/${to.params.id}/settings/general`
-                },
-                children: [
-                    { path: 'general', component: DeviceSettingsGeneral },
-                    { path: 'environment', component: DeviceSettingsEnvironment },
-                    { path: 'security', component: DeviceSettingsSecurity },
-                    { path: 'palette', component: DeviceSettingsPalette },
-                    { path: 'danger', component: DeviceSettingsDanger }
-                ]
-            },
-            {
-                path: 'audit-log',
-                name: 'device-audit-log',
-                component: DeviceAuditLog,
-                meta: {
-                    title: 'Device - Audit Log'
-                }
-            },
-            {
-                path: 'logs',
-                name: 'device-logs',
-                component: DeviceLogs,
-                meta: {
-                    title: 'Device - Logs'
-                }
-            },
-            {
-                path: 'performance',
-                name: 'device-performance',
-                component: DevicePerformance,
-                meta: {
-                    title: 'Device - Performance'
-                }
-            },
-            {
-                path: 'version-history',
-                name: 'DeviceSnapshots',
-                component: VersionHistory,
-                meta: {
-                    title: 'Device - Version History'
-                },
-                redirect: to => {
-                    const features = store.getters['account/featuresCheck']
-                    const name = features.isTimelineFeatureEnabled ? 'device-version-history-timeline' : 'device-snapshots'
-                    return {
-                        name,
-                        params: to.params
-                    }
-                },
-                children: [...VersionHistoryRoutes]
-            },
-            {
-                path: 'developer-mode',
-                name: 'DeviceDeveloperMode',
-                component: DeviceDeveloperMode,
-                meta: {
-                    title: 'Device - Developer Mode'
-                }
-            }
-        ]
+        children
     }
 ]
