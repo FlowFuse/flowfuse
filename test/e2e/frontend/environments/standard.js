@@ -93,6 +93,7 @@ module.exports = async function (settings = {}, config = {}) {
     // Ensure projectTypes are allowed to be used by the default team type
     const teamType = await forge.db.models.TeamType.findOne({ where: { id: 1 } })
     const teamTypeProperties = { ...teamType.properties }
+    teamTypeProperties.enableAllFeatures = false
     teamTypeProperties.instances = {
         [projectType.hashid]: { active: true },
         [spareProjectType.hashid]: { active: true }
