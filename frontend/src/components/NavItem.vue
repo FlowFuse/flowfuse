@@ -4,10 +4,10 @@
             <component v-if="icon" :is="icon" class="ff-icon transition-fade--color" />
             <img v-if="avatar" :src="avatar" class="ff-avatar">
             <label class="transition-fade--color flex-grow">{{ label }}</label>
-            <span v-if="featureUnavailable" data-el="premium-feature" v-ff-tooltip="'Not available in this Tier'">
+            <span v-if="featureUnavailable" data-el="premium-feature" :title="'Not available in this Tier'">
                 <SparklesIcon class="ff-icon transition-fade--color hollow" style="stroke-width: 1;" />
             </span>
-            <span v-if="alert" data-el="nav-alert" v-ff-tooltip="alert.title ?? 'Attention required'" @click="onAlertClick">
+            <span v-if="alert" data-el="nav-alert" :title="alert.title ?? 'Attention required'" @click.prevent.stop="onAlertClick">
                 <ExclamationCircleIcon class="ff-icon transition-fade--color hollow " style="stroke-width: 1.5;" />
             </span>
         </div>

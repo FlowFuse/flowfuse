@@ -68,6 +68,7 @@ describe('FlowFuse platform admin users', () => {
         // Not a member of BTeam
         cy.get('[data-el="teams-table"]').contains('BTeam').click()
 
+        cy.get('[data-nav="team-applications"]').should('be.visible')
         cy.get('[data-nav="team-applications"]').click()
 
         cy.get('[data-el="banner-team-as-admin"]').should('exist')

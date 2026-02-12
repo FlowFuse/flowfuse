@@ -11,7 +11,7 @@
                             :to="entry.to"
                             :data-nav="entry.tag"
                             :class="{ disabled: entry.disabled }"
-                            @click="onMenuItemClick"
+                            @click.prevent.stop="onMenuItemClick"
                         >
                             <nav-item
                                 :label="entry.label"
