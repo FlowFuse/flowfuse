@@ -208,8 +208,7 @@ module.exports = class TestModelFactory {
             name: 'unnamed-device',
             type: 'unnamed-type',
             credentialSecret: '',
-            agentVersion: '1.11.0',
-            lastSeenAt: Date.now()
+            agentVersion: '1.11.0'
         }
         const device = await this.forge.db.models.Device.create({
             ...defaultDeviceDetails,
