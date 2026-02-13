@@ -39,26 +39,26 @@
                     v-if="hasPermission('project:change-status', { application })"
                     #context-menu="{row}"
                 >
-                    <ff-list-item
+                    <ff-kebab-item
                         :disabled="row.pendingStateChange || row.running"
                         label="Start"
                         @click.stop="$emit('instance-start', row)"
                     />
 
-                    <ff-list-item
+                    <ff-kebab-item
                         :disabled="!row.notSuspended"
                         label="Restart"
                         @click.stop="$emit('instance-restart', row)"
                     />
 
-                    <ff-list-item
+                    <ff-kebab-item
                         :disabled="!row.notSuspended"
                         kind="danger"
                         label="Suspend"
                         @click.stop="$emit('instance-suspend', row)"
                     />
 
-                    <ff-list-item
+                    <ff-kebab-item
                         v-if="hasPermission('project:delete')"
                         kind="danger"
                         label="Delete"
@@ -169,7 +169,7 @@ export default {
         ...mapGetters('account', ['featuresCheck']),
         cloudColumns () {
             return [
-                { label: 'Name', class: ['w-1/2'], component: { is: markRaw(DeploymentName) } },
+                { label: 'Name', class: ['w-1/2'], component: { is: markRaw(DeploymentName), map: { url: 'url' } } },
                 {
                     label: 'Instance Status',
                     class: ['w-1/5'],

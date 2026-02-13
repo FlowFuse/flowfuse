@@ -68,21 +68,21 @@
                     <template
                         #context-menu="{row}"
                     >
-                        <ff-list-item
+                        <ff-kebab-item
                             v-if="row.canChangeStatus"
                             :disabled="row.pendingStateChange || row.running || row.optimisticStateChange"
                             label="Start"
                             @click.stop="instanceStart(row)"
                         />
 
-                        <ff-list-item
+                        <ff-kebab-item
                             v-if="row.canChangeStatus"
                             :disabled="!row.notSuspended"
                             label="Restart"
                             @click.stop="instanceRestart(row)"
                         />
 
-                        <ff-list-item
+                        <ff-kebab-item
                             v-if="row.canChangeStatus"
                             :disabled="!row.notSuspended"
                             kind="danger"
@@ -90,7 +90,7 @@
                             @click.stop="instanceShowConfirmSuspend(row)"
                         />
 
-                        <ff-list-item
+                        <ff-kebab-item
                             v-if="row.canDelete"
                             kind="danger"
                             label="Delete"
@@ -171,6 +171,7 @@ import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 import instanceActionsMixin from '../../mixins/InstanceActions.js'
 import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
+import ApplicationLink from '../application/components/cells/ApplicationLink.vue'
 import DeploymentName from '../application/components/cells/DeploymentName.vue'
 import SimpleTextCell from '../application/components/cells/SimpleTextCell.vue'
 import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
@@ -209,7 +210,7 @@ export default {
             loading: false,
             instancesMap: new Map(),
             columns: [
-                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName) } },
+                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName), map: { url: 'url' }, extraProps: { copyable: true } } },
                 {
                     label: 'Status',
                     class: ['w-44'],
@@ -227,7 +228,19 @@ export default {
                         }
                     }
                 },
-                { label: 'Application', class: ['flex-grow-[0.25]'], key: 'application.name', sortable: true },
+                {
+                    label: 'Application',
+                    class: ['flex-grow-[0.25]'],
+                    key: 'application.name',
+                    sortable: true,
+                    component: {
+                        is: markRaw(ApplicationLink),
+                        map: {
+                            id: 'application.id',
+                            name: 'application.name'
+                        }
+                    }
+                },
                 {
                     label: 'Last Updated',
                     class: ['w-60'],

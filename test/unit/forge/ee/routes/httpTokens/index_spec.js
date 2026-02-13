@@ -72,7 +72,8 @@ describe('NR HTTP Bearer Tokens', function () {
             payload: { username, password, remember: false }
         })
         response.cookies.should.have.length(1)
-        response.cookies[0].should.have.property('name', 'sid')
+        const temp = { ...response.cookies[0] }
+        temp.should.have.property('name', 'sid')
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
@@ -142,6 +143,56 @@ describe('NR HTTP Bearer Tokens', function () {
             }
         })
         authFailResponse.statusCode.should.equal(401)
+    })
+
+    it('cannot create Expert MCP HTTP token via API', async function () {
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/projects/${TestObjects.project.id}/httpTokens`,
+            payload: {
+                name: 'expert-mcp-token',
+                scope: 'ff-expert:mcp'
+            },
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        response.statusCode.should.equal(400)
+    })
+
+    it('cannot modify an existing Expert MCP HTTP token via API', async function () {
+        // create an Expert MCP token directly via the controller
+        const scope = ['ff-expert:mcp', 'instance']
+        const expiresAt = new Date(Date.now() + 1000 * 60 * 5) // expires in 5 minutes
+        const tokenName = 'FlowFuse Expert MCP Access Token'
+        const token = await app.db.controllers.AccessToken.createHTTPNodeToken(TestObjects.project, tokenName, scope, expiresAt)
+        // attempt to modify via the API
+        const modifyResponse = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/projects/${TestObjects.project.id}/httpTokens/${token.id}`,
+            payload: {
+                scope: '',
+                expiresAt: null
+            },
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        modifyResponse.statusCode.should.equal(400)
+    })
+
+    it('does not list Expert MCP tokens via API', async function () {
+        // create an Expert MCP token directly via the controller
+        const scope = ['ff-expert:mcp', 'instance']
+        const tokenName = 'FlowFuse Expert MCP Access Token'
+        await app.db.controllers.AccessToken.createHTTPNodeToken(TestObjects.project, tokenName, scope, null)
+        await app.db.controllers.AccessToken.createHTTPNodeToken(TestObjects.project, 'other', 'test', null)
+        // list tokens via the API
+        const listResponse = await app.inject({
+            method: 'GET',
+            url: `/api/v1/projects/${TestObjects.project.id}/httpTokens`,
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        listResponse.statusCode.should.equal(200)
+        const body = listResponse.json()
+        body.tokens.should.be.an.Array().and.have.length(1)
+        body.tokens[0].name.should.equal('other')
     })
 
     it('non-team owner cannot modify/delete token', async function () {

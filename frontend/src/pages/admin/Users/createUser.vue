@@ -32,6 +32,7 @@
                 </ff-button>
             </form>
         </div>
+        <ConfirmAdminGrantDialog ref="confirmAdminDialog" @confirmed="handleAdminConfirmed" @cancel="handleAdminCanceled" />
     </ff-page>
 </template>
 
@@ -40,8 +41,11 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/solid'
 import { mapState } from 'vuex'
 
 import usersApi from '../../../api/users.js'
+
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+
+import ConfirmAdminGrantDialog from './dialogs/ConfirmAdminGrantDialog.vue'
 
 let zxcvbn
 
@@ -50,7 +54,8 @@ export default {
     components: {
         ChevronRightIcon,
         FormRow,
-        FormHeading
+        FormHeading,
+        ConfirmAdminGrantDialog
     },
     data () {
         return {
@@ -134,6 +139,14 @@ export default {
     },
     methods: {
         createUser () {
+            // If admin privilege is being granted, show confirmation first
+            if (this.input.isAdmin) {
+                this.$refs.confirmAdminDialog.show()
+            } else {
+                this.submitUser()
+            }
+        },
+        submitUser () {
             const opts = { ...this.input, name: this.input.name || this.input.username }
             delete opts.password_confirm
             usersApi.create(opts).then(result => {
@@ -152,6 +165,13 @@ export default {
                     }
                 }
             })
+        },
+        handleAdminConfirmed () {
+            // User confirmed - proceed with creating admin user
+            this.submitUser()
+        },
+        handleAdminCanceled () {
+            // User canceled - do nothing, they can modify the form and try again
         }
     }
 }

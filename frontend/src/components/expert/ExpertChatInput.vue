@@ -1,5 +1,10 @@
 <template>
-    <div class="ff-expert-input">
+    <div ref="resizeTarget" class="ff-expert-input" :style="{height: heightStyle}">
+        <resize-bar
+            :is-resizing="isInputResizing"
+            direction="horizontal"
+            @mousedown="startResize"
+        />
         <!-- Action buttons row -->
         <div class="action-buttons">
             <button
@@ -12,45 +17,74 @@
             </button>
             <div class="right-buttons">
                 <capabilities-selector v-if="isOperatorAgent" />
-                <button
-                    v-if="isGenerating && !isSessionExpired"
-                    type="button"
-                    class="btn-stop"
-                    @click="handleStop"
-                >
-                    Stop
-                </button>
-                <button
-                    v-else-if="!isSessionExpired"
-                    type="button"
-                    class="btn-send"
-                    :disabled="!canSend"
-                    @click="handleSend"
-                >
-                    Send
-                </button>
             </div>
         </div>
+        <div class="input-wrapper" :class="{ 'focused': isTextareaFocused }">
+            <!-- Textarea -->
+            <textarea
+                ref="textarea"
+                v-model="inputText"
+                class="chat-input"
+                :placeholder="placeholderText"
+                :disabled="isInputDisabled"
+                @keydown="handleKeydown"
+                @focus="isTextareaFocused = true"
+                @blur="isTextareaFocused = false"
+            />
 
-        <!-- Textarea -->
-        <textarea
-            ref="textarea"
-            v-model="inputText"
-            class="chat-input"
-            :placeholder="placeholderText"
-            :disabled="isInputDisabled"
-            @keydown="handleKeydown"
-        />
+            <div class="actions">
+                <div class="left">
+                    <context-selector v-if="!isOperatorAgent" />
+                    <div class="context-items-container" @wheel="horizontalScrolling">
+                        <include-context-item v-for="(context, index) in selectedContext" :key="index" :contextItem="context" />
+                        <include-selection-button v-if="hasUserSelection && !isOperatorAgent" />
+                    </div>
+                </div>
+
+                <div class="right">
+                    <button
+                        v-if="isGenerating && !isSessionExpired"
+                        type="button"
+                        class="btn-stop"
+                        @click="handleStop"
+                    >
+                        Stop
+                    </button>
+                    <button
+                        v-else-if="!isSessionExpired"
+                        type="button"
+                        class="btn-send"
+                        :disabled="!canSend"
+                        @click="handleSend"
+                    >
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
+import { mapActions, mapGetters } from 'vuex'
+
+import { useResizingHelper } from '../../composables/ResizingHelper.js'
+
+import ResizeBar from '../ResizeBar.vue'
+
 import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
+import ContextSelector from './components/ContextSelector.vue'
+import IncludeContextItem from './components/IncludeContextItem.vue'
+import IncludeSelectionButton from './components/IncludeSelectionButton.vue'
 
 export default {
     name: 'ExpertChatInput',
     components: {
-        CapabilitiesSelector
+        CapabilitiesSelector,
+        ContextSelector,
+        IncludeContextItem,
+        IncludeSelectionButton,
+        ResizeBar
     },
     props: {
         isGenerating: {
@@ -79,12 +113,25 @@ export default {
         }
     },
     emits: ['send', 'stop', 'start-over'],
+    setup () {
+        const { startResize, heightStyle, bindResizer, isResizing: isInputResizing } = useResizingHelper()
+
+        return {
+            startResize,
+            bindResizer,
+            heightStyle,
+            isInputResizing
+        }
+    },
     data () {
         return {
-            inputText: ''
+            inputText: '',
+            includeSelection: true,
+            isTextareaFocused: false
         }
     },
     computed: {
+        ...mapGetters('product/assistant', ['hasUserSelection', 'getSelectedContext']),
         isInputDisabled () {
             if (this.isSessionExpired) return true
             if (this.isGenerating) return true
@@ -101,9 +148,26 @@ export default {
             return this.isOperatorAgent
                 ? 'Tell us what you want to know about'
                 : 'Tell us what you need help with'
+        },
+        selectedContext () {
+            // for insights mode, return empty array
+            if (this.isOperatorAgent) {
+                return []
+            }
+            return this.getSelectedContext
         }
     },
+    mounted () {
+        this.bindResizer({
+            component: this.$refs.resizeTarget,
+            mobileBreakpoint: 640, // match your app breakpoint
+            maxHeightRatio: 0.9, // whatever you want the cap to be
+            minHeight: 120, // optional: stop it collapsing to 0
+            maxViewportMarginY: 80 // optional: keep some space
+        })
+    },
     methods: {
+        ...mapActions('product/assistant', ['resetContextSelection']),
         handleSend () {
             if (!this.canSend) return
 
@@ -120,6 +184,10 @@ export default {
         handleStartOver () {
             this.$emit('start-over')
             this.inputText = ''
+            // When in support mode, reset/restore assistant context selection (opt-out by default)
+            if (!this.isOperatorAgent) {
+                this.resetContextSelection()
+            }
         },
         handleKeydown (event) {
             // Enter without Shift = send message
@@ -128,6 +196,12 @@ export default {
                 this.handleSend()
             }
             // Shift+Enter = new line (default behavior)
+        },
+        horizontalScrolling (event) {
+            const target = event.currentTarget
+            if (event.deltaY === 0) return
+            event.preventDefault()
+            target.scrollLeft += event.deltaY / 2
         }
     }
 }
@@ -142,13 +216,16 @@ export default {
     border-top: 1px solid #E5E7EB; // border-gray-200
     background: white;
     flex-shrink: 0; // Prevent input area from shrinking
+    position: relative;
+    min-height: 15vh;
+    max-height: 40vh;
 }
 
 .action-buttons {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem; // pb-4
+    margin-bottom: 0.5rem;
 }
 
 .right-buttons {
@@ -174,6 +251,8 @@ button {
     background-color: white;
     color: inherit;
     border-color: #C7D2FE; // indigo-300
+    padding: 0.25rem 0.50rem;
+    border-radius: 5px;
 
     &:hover:not(:disabled) {
         background-color: #F9FAFB; // gray-50
@@ -184,6 +263,8 @@ button {
     background-color: $ff-indigo-600;
     color: white;
     border-color: $ff-indigo-600;
+    border-radius: 5px;
+    padding: 0.25rem 0.50rem;
 
     &:hover:not(:disabled) {
         background-color: $ff-indigo-700;
@@ -197,6 +278,8 @@ button {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    border-radius: 5px;
+    padding: 0.25rem 0.50rem;
 
     &::before {
         content: '';
@@ -211,33 +294,75 @@ button {
     }
 }
 
-.chat-input {
-    width: 100%;
-    height: 6rem; // h-24
-    padding: 1rem; // p-4
+.input-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 10vh;
     border: 2px solid #D1D5DB; // border-2 border-gray-300
     border-radius: 0.5rem; // rounded-lg
-    font-size: 0.875rem; // text-sm
-    line-height: 1.5;
-    color: #111827; // text-gray-900
-    resize: none;
-    outline: none;
-    font-family: inherit;
-    background: white;
+    transition: border-color 0.2s ease;
 
-    &:focus {
-        border-color: $ff-indigo-500; // focus:border-indigo-500
+    &.focused {
+        border-color: $ff-indigo-500;
+    }
+
+    .chat-input {
+        flex: 1;
+        width: 100%;
+        padding: 1rem; // p-4
+        box-sizing: border-box;
+        overflow-y: auto;
+        border: none;
         outline: none;
+        font-size: 0.875rem; // text-sm
+        line-height: 1.5;
+        color: #111827; // text-gray-900
+        resize: none;
+        font-family: inherit;
+        background: white;
+
+        &:focus {
+            outline: none;
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            background-color: #F9FAFB; // bg-gray-50
+            color: #6B7280; // text-gray-500
+        }
+
+        &::placeholder {
+            color: #9CA3AF; // placeholder gray
+        }
     }
 
-    &:disabled {
-        cursor: not-allowed;
-        background-color: #F9FAFB; // bg-gray-50
-        color: #6B7280; // text-gray-500
-    }
+    .actions {
+        padding: .5rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
 
-    &::placeholder {
-        color: #9CA3AF; // placeholder gray
+        .left {
+            display: flex;
+            justify-content: flex-start;
+
+            // scroll for overflow of selected chips
+            overflow: auto;
+            flex: 1;
+            .context-items-container {
+                flex: 1;
+                overflow-x: auto;
+                scrollbar-width: none;
+                display: flex;
+                gap: 0.5rem;
+            }
+        }
+
+        .right {
+            display: flex;
+            justify-content: flex-end;
+        }
     }
 }
 </style>

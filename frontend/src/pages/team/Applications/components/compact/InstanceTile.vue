@@ -1,5 +1,5 @@
 <template>
-    <div class="instance-tile" data-el="instance-tile">
+    <div class="instance-tile" data-el="instance-tile" role="link" @click="navigateToInstance">
         <div class="status">
             <InstanceStatusBadge
                 v-if="!minimalView"
@@ -14,26 +14,18 @@
         </div>
         <div class="details">
             <div class="detail-wrapper">
-                <router-link
-                    :to="{ name: 'Instance', params: { id: localInstance.id } }"
-                    :title="localInstance.name"
-                    class="name"
-                    :class="{'no-highlight': isHoveringInstanceUrl}"
-                >
+                <span class="name" :title="localInstance.name">
                     {{ localInstance.name }}
-                </router-link>
+                </span>
             </div>
             <div class="detail-wrapper detail">
-                <a
-                    v-if="isInstanceRunning"
-                    :href="localInstance.url"
-                    target="_blank"
+                <TextCopier
+                    v-if="localInstance.url"
+                    :text="localInstance.url"
                     class="editor-link"
-                    @click.stop @mouseover="isHoveringInstanceUrl = true"
-                    @mouseleave="isHoveringInstanceUrl = false"
-                >
-                    {{ localInstance.url }}
-                </a>
+                    :class="{ inactive: !isInstanceRunning }"
+                    @click.stop
+                />
                 <span v-else class="editor-link inactive">
                     {{ localInstance.url }}
                 </span>
@@ -59,23 +51,29 @@
             />
 
             <ff-kebab-menu v-if="shouldDisplayKebabMenu" @click.stop>
-                <ff-list-item
+                <ff-kebab-item
+                    :disabled="!isInstanceRunning"
+                    label="Open Direct URL"
+                    @click.stop="openInstance"
+                />
+                <li class="ff-kebab-divider" />
+                <ff-kebab-item
                     :disabled="localInstance.pendingStateChange || instanceRunning "
                     label="Start"
                     @click.stop="instanceStart(localInstance)"
                 />
-                <ff-list-item
+                <ff-kebab-item
                     :disabled="instanceSuspended"
                     label="Restart"
                     @click.stop="instanceRestart(localInstance)"
                 />
-                <ff-list-item
+                <ff-kebab-item
                     :disabled="instanceSuspended"
                     kind="danger"
                     label="Suspend"
                     @click.stop="instanceShowConfirmSuspend(localInstance)"
                 />
-                <ff-list-item
+                <ff-kebab-item
                     v-if="hasPermission('project:delete')"
                     kind="danger"
                     label="Delete"
@@ -91,11 +89,13 @@
 import { mapGetters } from 'vuex'
 
 import InstanceStatusPolling from '../../../../../components/InstanceStatusPolling.vue'
+import TextCopier from '../../../../../components/TextCopier.vue'
+import { useNavigationHelper } from '../../../../../composables/NavigationHelper.js'
 import usePermissions from '../../../../../composables/Permissions.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import instanceActionsMixin from '../../../../../mixins/InstanceActions.js'
 
-import FfKebabMenu from '../../../../../ui-components/components/KebabMenu.vue'
+import FfKebabMenu from '../../../../../ui-components/components/kebab-menu/KebabMenu.vue'
 import { InstanceStateMutator } from '../../../../../utils/InstanceStateMutator.js'
 import DashboardLink from '../../../../instance/components/DashboardLink.vue'
 import InstanceEditorLink from '../../../../instance/components/EditorLink.vue'
@@ -110,7 +110,8 @@ export default {
         InstanceStatusBadge,
         InstanceStatusPolling,
         InstanceEditorLink,
-        InstanceMinimalStatusBadge
+        InstanceMinimalStatusBadge,
+        TextCopier
     },
     mixins: [AuditMixin, instanceActionsMixin],
     props: {
@@ -130,13 +131,13 @@ export default {
     emits: ['delete-instance'],
     setup () {
         const { hasPermission } = usePermissions()
+        const { openInANewTab } = useNavigationHelper()
 
-        return { hasPermission }
+        return { hasPermission, openInANewTab }
     },
     data () {
         return {
-            localInstance: this.instance,
-            isHoveringInstanceUrl: false
+            localInstance: this.instance
         }
     },
     computed: {
@@ -166,6 +167,14 @@ export default {
         }
     },
     methods: {
+        navigateToInstance () {
+            this.$router.push({ name: 'Instance', params: { id: this.localInstance.id } })
+        },
+        openInstance () {
+            if (!this.localInstance.url) return
+            const target = `_${this.localInstance.id}`
+            this.openInANewTab(this.localInstance.url, target)
+        },
         instanceUpdated (instanceData) {
             const mutator = new InstanceStateMutator(instanceData)
             mutator.clearState()

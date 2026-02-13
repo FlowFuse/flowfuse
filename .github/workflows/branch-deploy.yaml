@@ -40,7 +40,7 @@ on:
       - 'docs/**'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.number }}
+  group: ${{ github.workflow }}-${{ github.event.number || inputs.pr_number }}
   cancel-in-progress: false
 
 env:
@@ -55,7 +55,8 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') &&
-      github.actor != 'dependabot[bot]'
+      github.actor != 'dependabot[bot]' &&
+      !startsWith(github.head_ref, 'release-')
     outputs:
       is_org_member: ${{ steps.validate.outputs.is_member }}
     steps:
@@ -88,7 +89,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.driver_k8s_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.44.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.48.0'
     with:
       package_name: driver-k8s
       publish_package: true
@@ -105,7 +106,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_project_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.44.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.48.0'
     with:
       package_name: nr-project-nodes
       publish_package: true
@@ -122,7 +123,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_file_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.44.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.48.0'
     with:
       package_name: nr-file-nodes
       publish_package: true
@@ -139,7 +140,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_assistant_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.44.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.48.0'
     with:
       package_name: nr-assistant
       publish_package: true
@@ -156,7 +157,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_tables_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.44.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.48.0'
     with:
       package_name: nr-tables-nodes
       publish_package: true
@@ -178,7 +179,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       (always() && inputs.nr_launcher_branch != 'main') || needs.publish_nr_project_nodes.result == 'success' || needs.publish_nr_file_nodes.result == 'success' || needs.publish_nr_assistant.result == 'success' || needs.publish_nr_tables_nodes.result == 'success'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.44.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.48.0'
     with:
       package_name: flowfuse-nr-launcher
       publish_package: true
@@ -202,7 +203,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       (always() && needs.publish_nr_launcher.result == 'success')
-    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.43.0
+    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.48.0
     with:
       image_name: 'node-red'
       dockerfile_path: Dockerfile
@@ -242,11 +243,11 @@ jobs:
           echo "timestamp=$(date +%s)" >> $GITHUB_ENV
 
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
   
       - name: Configure AWS credentials for ECR interaction
         id: aws-config
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_ECR_PUSH_ROLE }}
           role-session-name: GithubActionsRoleSession
@@ -261,7 +262,7 @@ jobs:
           mask-password: true
 
       - name: Login to GHCR
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -295,7 +296,7 @@ jobs:
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set variables
         run: | 
@@ -305,7 +306,7 @@ jobs:
         uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
   
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Set build-args if branch is not main
         id: set-build-args
@@ -359,7 +360,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set variables
         run: | 
@@ -367,7 +368,7 @@ jobs:
           echo "timestamp=$(date +%s)" >> $GITHUB_ENV
 
       - name: Download artifact
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: k8s-forge
           path: /tmp
@@ -385,7 +386,7 @@ jobs:
 
       - name: Configure AWS credentials for ECR interaction
         id: aws-config
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_ECR_PUSH_ROLE }}
           role-session-name: GithubActionsRoleSession
@@ -405,7 +406,7 @@ jobs:
           docker push ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
 
       - name: Configure AWS credentials for EKS interaction
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_EKS_DEPLOY_ROLE }}
           role-session-name: GithubActionsRoleSessio
@@ -417,12 +418,12 @@ jobs:
           aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
 
       - name: Install 1Password CLI
-        uses: 1password/install-cli-action@f5d505685ccf986ef535da41cd180792c8ac3a36 # v2.0.1
+        uses: 1password/install-cli-action@9a0c9dd934086b7ab1d90115d455bda1c53c2bdb # v2.0.2
         with:
           version: 2.25.0
 
       - name: Check out FlowFuse/helm repository (to access latest helm chart)
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: 'FlowFuse/helm'
           ref: 'main'
@@ -459,14 +460,17 @@ jobs:
             --set forge.email.ses.sourceArn=arn:aws:ses:eu-west-1:${{ secrets.AWS_ACCOUNT_ID }}:identity/flowfuse.com \
             --set forge.assistant.service.url=$(op read op://ci/staging_flowfuse/assistant_url) \
             --set forge.assistant.service.token=$(op read op://ci/staging_flowfuse/assistant_token) \
-            --set forge.expert.service.url=$(op read op://ci/staging_flowfuse/expert_url) \
-            --set forge.expert.service.token=$(op read op://ci/staging_flowfuse/expert_token) \
+            --set forge.expert.service.url=$(op read op://ci/prestaging_flowfuse/expert_url) \
+            --set forge.expert.service.token=$(op read op://ci/prestaging_flowfuse/expert_token) \
+            --set forge.tables.driver.options.database.user=$(op read op://ci/prestaging_flowfuse/local_postgres_admin_username) \
+            --set forge.tables.driver.options.database.password=$(op read op://ci/prestaging_flowfuse/local_postgres_admin_password) \
+            --set forge.tables.driver.options.database.host=flowfuse-pr-${{ env.PR_NUMBER }}-postgresql.pr-${{ env.PR_NUMBER }}.svc.cluster.local \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowfuse
 
       - name: Initial setup
         if: ${{ env.initialSetup == 'true' }}
         run: |
-          ./.github/scripts/initial-setup.sh ${{ env.PR_NUMBER }} ${{ secrets.INIT_CONFIG_PASSWORD_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }} ${{ secrets.INIT_CONFIG_PASSWORD }}
+          ./.github/scripts/initial-setup.sh ${{ env.PR_NUMBER }} ${{ secrets.INIT_CONFIG_PASSWORD_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN_HASH }} ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }} ${{ secrets.INIT_CONFIG_PASSWORD }} ${{ secrets.PRE_STAGING_FLOWFUSE_NODES_TOKEN }}
           
       - name: Summary
         run: |
@@ -533,11 +537,13 @@ jobs:
 
     - name: Post to a Slack channel
       id: slack
-      uses: slackapi/slack-github-action@fcfb566f8b0aab22203f066d80ca1d7e4b5d05b3 # v1.27.1
+      uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
       with:
-        channel-id: 'C067BD0377F'
+        method: 'chat.postMessage'
+        token: ${{ secrets.SLACK_GHBOT_TOKEN }}
         payload: |
           {
+            "channel": "C067BD0377F",
             "blocks": [
               {
                 "type": "header",
@@ -591,7 +597,6 @@ jobs:
         PR_TEXT: |
           *Pull Request:*
           <https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
         GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
 
 
@@ -612,7 +617,7 @@ jobs:
       id-token: write
     steps:
       - name: Configure AWS credentials for EKS interaction
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_EKS_DEPLOY_ROLE }}
           role-session-name: GithubActionsRoleSession

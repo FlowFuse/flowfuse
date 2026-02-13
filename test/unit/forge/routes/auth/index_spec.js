@@ -14,7 +14,8 @@ describe('Accounts API', async function () {
         })
         if (response.statusCode === 200) {
             response.cookies.should.have.length(1)
-            response.cookies[0].should.have.property('name', 'sid')
+            const temp = { ...response.cookies[0] }
+            temp.should.have.property('name', 'sid')
             TestObjects.tokens[payload.username] = response.cookies[0].value
         }
         return response
@@ -27,7 +28,8 @@ describe('Accounts API', async function () {
             payload: { username, password, remember: false }
         })
         response.cookies.should.have.length(1)
-        response.cookies[0].should.have.property('name', 'sid')
+        const temp = { ...response.cookies[0] }
+        temp.should.have.property('name', 'sid')
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
@@ -672,7 +674,8 @@ describe('Accounts API', async function () {
                 })
                 response.should.have.property('statusCode', 403)
                 response.cookies.should.have.length(1)
-                response.cookies[0].should.have.property('name', 'sid')
+                const temp = { ...response.cookies[0] }
+                temp.should.have.property('name', 'sid')
                 const result = response.json()
                 result.should.have.property('code', 'mfa_required')
 
@@ -706,8 +709,9 @@ describe('Accounts API', async function () {
                 mfaResponse.should.have.property('statusCode', 401)
                 // Check it clears the old session cookie
                 mfaResponse.cookies.should.have.length(1)
-                mfaResponse.cookies[0].should.have.property('name', 'sid')
-                mfaResponse.cookies[0].should.have.property('value', '')
+                const temp = { ...mfaResponse.cookies[0] }
+                temp.should.have.property('name', 'sid')
+                temp.should.have.property('value', '')
             })
 
             it('rejects access if session does not have mfa verified flag set', async function () {
@@ -729,8 +733,9 @@ describe('Accounts API', async function () {
                 apiResponse.should.have.property('statusCode', 401)
                 // Check it clears the old session cookie
                 apiResponse.cookies.should.have.length(1)
-                apiResponse.cookies[0].should.have.property('name', 'sid')
-                apiResponse.cookies[0].should.have.property('value', '')
+                const temp = { ...apiResponse.cookies[0] }
+                temp.should.have.property('name', 'sid')
+                temp.should.have.property('value', '')
 
                 // Check we cannot continue the mfa auth flow with this session - TODO: real token handling
                 const mfaResponse = await app.inject({
@@ -852,7 +857,8 @@ describe('Accounts API', async function () {
                 // This should have reset the session cookie
                 const responseCookies = verifyResponse.cookies
                 responseCookies.should.have.length(1)
-                responseCookies[0].should.have.property('name', 'sid')
+                const temp = { ...responseCookies[0] }
+                temp.should.have.property('name', 'sid')
                 TestObjects.tokens[user.username] = responseCookies[0].value
 
                 // Now we can finally delete the mfa setup
@@ -895,7 +901,8 @@ describe('Accounts API', async function () {
                 // This should have reset the session cookie
                 const responseCookies = verifyResponse.cookies
                 responseCookies.should.have.length(1)
-                responseCookies[0].should.have.property('name', 'sid')
+                const temp = { ...responseCookies[0] }
+                temp.should.have.property('name', 'sid')
                 TestObjects.tokens[user.username] = responseCookies[0].value
 
                 // Now we try to setup mfa again
@@ -955,7 +962,8 @@ describe('Accounts API', async function () {
                 payload: { username: 'testUser', password: 'ttPassword', remember: false }
             })
             secondLoginSession.cookies.should.have.length(1)
-            secondLoginSession.cookies[0].should.have.property('name', 'sid')
+            const temp = { ...secondLoginSession.cookies[0] }
+            temp.should.have.property('name', 'sid')
             const secondLoginSessionId = secondLoginSession.cookies[0].value
 
             // Submit the reset request
@@ -1050,7 +1058,8 @@ describe('Accounts API', async function () {
                 payload: { username: 'testUser', password: 'ttPassword', remember: false }
             })
             secondLoginSession.cookies.should.have.length(1)
-            secondLoginSession.cookies[0].should.have.property('name', 'sid')
+            const temp = { ...secondLoginSession.cookies[0] }
+            temp.should.have.property('name', 'sid')
             const secondLoginSessionId = secondLoginSession.cookies[0].value
 
             const response = await app.inject({

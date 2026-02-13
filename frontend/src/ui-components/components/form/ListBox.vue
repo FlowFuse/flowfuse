@@ -1,31 +1,52 @@
 <template>
-    <Listbox v-model="value" :disabled="disabled" class="ff-listbox" data-el="listbox" :by="compareOptions" :multiple="multiple">
+    <Listbox v-slot="{ open }"
+             v-model="value"
+             :disabled="disabled"
+             class="ff-listbox"
+             data-el="listbox"
+             as="section"
+             :by="compareOptions"
+             :multiple="multiple"
+    >
+        <span v-if="syncOpenState(open)" class="hidden" />
+
         <div class="relative">
             <ListboxButton
                 ref="trigger"
                 class="w-full rounded-md flex justify-between ff-button"
                 :class="[disabled ? 'cursor-not-allowed bg-gray-200 text-gray-500' : '']"
-                @click="() => { $nextTick(() => { updatePosition(); open = true }) }"
+                @click="() => { $nextTick(() => { updateItemsPosition() }) }"
             >
                 <input type="text" hidden="hidden" :value="selectedLabel">
                 <slot name="button">
-                    <span class="block truncate">{{ selectedLabel }}</span>
+                    <div class="flex items-center">
+                        <template v-if="$slots.icon">
+                            <span class="flex items-center">
+                                <slot name="icon" :option="selectedOption" />
+                            </span>
+                            <span v-if="!iconOnly" class="ml-2 block truncate">{{ selectedLabel }}</span>
+                        </template>
+                        <template v-else>
+                            <span class="block truncate">{{ selectedLabel }}</span>
+                        </template>
+                    </div>
                 </slot>
-                <span class="icon pointer-events-none inset-y-0 flex items-center pl-2">
+                <span v-if="!hideChevron" class="icon pointer-events-none inset-y-0 flex items-center pl-2">
                     <ChevronDownIcon :class="['h-5 w-5', disabled ? 'text-gray-500' : 'text-black']" aria-hidden="true" />
                 </span>
             </ListboxButton>
 
-            <transition
-                leave-active-class="transition duration-100 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <teleport to="body">
+            <teleport to="body">
+                <transition
+                    leave-active-class="transition duration-100 ease-in"
+                    leave-from-class="opacity-100"
+                    leave-to-class="opacity-0"
+                >
                     <ListboxOptions
                         v-if="open"
+                        ref="menu-items"
                         data-el="listbox-options"
-                        class="absolute w-full overflow-auto bg-white py-1 ff-options"
+                        class="fixed w-full overflow-y-auto overflow-x-hidden bg-white py-1 ff-options"
                         :style="{
                             top: position.top + 'px',
                             left: position.left + 'px',
@@ -40,21 +61,23 @@
                                 :key="option[labelKey]"
                                 :value="option"
                                 as="template"
-                                class="ff-option"
-                                :data-option="option[labelKey]"
-                                :title="optionTitleKey ? option[optionTitleKey] : null"
-                                @click="close"
                             >
-                                <li>
+                                <li
+                                    class="ff-option"
+                                    :style="{'min-width': optionsMinWidth ? optionsMinWidth + 'px' : 'auto'}"
+                                    :data-option="option[labelKey]"
+                                    :title="optionTitleKey ? option[optionTitleKey] : null"
+                                >
                                     <div class="ff-option-content" :class="{selected, active}" data-click-exclude="right-drawer">
+                                        <component :is="option.icon" v-if="option.icon" class="ff-icon ff-icon-sm" />
                                         {{ option[labelKey] }}
                                     </div>
                                 </li>
                             </ListboxOption>
                         </slot>
                     </ListboxOptions>
-                </teleport>
-            </transition>
+                </transition>
+            </teleport>
         </div>
     </Listbox>
 </template>
@@ -63,12 +86,11 @@
 import {
     Listbox,
     ListboxButton,
-    ListboxOption,
-    ListboxOptions
+    ListboxOption, ListboxOptions
 } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/solid'
 
-import BoxOptionsMixin from '../../../mixins/BoxOptionsMixin.js'
+import TeleportedMenuMixin from '../../../mixins/TeleportedMenuMixin.js'
 
 export default {
     name: 'ff-listbox',
@@ -79,7 +101,7 @@ export default {
         ListboxOption,
         ListboxOptions
     },
-    mixins: [BoxOptionsMixin],
+    mixins: [TeleportedMenuMixin],
     props: {
         modelValue: {
             required: false,
@@ -125,9 +147,24 @@ export default {
             required: false,
             default: false,
             type: Boolean
+        },
+        hideChevron: {
+            required: false,
+            default: false,
+            type: Boolean
+        },
+        iconOnly: {
+            required: false,
+            default: false,
+            type: Boolean
+        },
+        optionsMinWidth: {
+            required: false,
+            default: 200,
+            type: [null, Number]
         }
     },
-    emits: ['update:modelValue'],
+    emits: ['update:modelValue', 'option-selected'],
     computed: {
         value: {
             get () {
@@ -145,6 +182,8 @@ export default {
                                 .filter(v => v !== undefined)
                     )
                     return
+                } else {
+                    this.$emit('option-selected', value)
                 }
                 this.$emit('update:modelValue', this.returnModel ? value : this.extractModelValueFromOption(value))
             }

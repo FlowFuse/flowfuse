@@ -90,7 +90,7 @@ It covers everything from setup, to usage, and development. All [contributions](
 
 ### Getting Started
 
-Here are some quick reference links to our most popular topics. You can also view the full documentation available for FlowFuse in our [Getting Started](http://localhost:8080/docs/user/introduction) guide.
+Here are some quick reference links to our most popular topics. You can also view the full documentation available for FlowFuse in our [Getting Started](https://flowfuse.com/docs/user/introduction/) guide.
 
 <div class="ff-product-feature-tiles grid-cols-1 md:grid-cols-2">
    <a class="ff-tile ff-product-feature-tile" href="/docs/user/instance-settings/">
@@ -225,7 +225,7 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
       <label>FlowFuse Assistant</label>
       <p>AI in the Node-RED Editor to help build your flows.<p>
       <ul>
-         <li><a href="/docs/user/assistant/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="/docs/user/expert/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
       </ul>
    </div>
 </div>

@@ -1,3 +1,5 @@
+const { completeUserSignup } = require('../../lib/userTeam')
+
 const sharedUser = require('./shared/users')
 
 /**
@@ -202,13 +204,8 @@ module.exports = async function (app) {
             logUserInfo.id = newUser.id
             await app.auditLog.User.users.userCreated(request.session.User, null, logUserInfo)
             if (request.body.createDefaultTeam) {
-                const team = await app.db.controllers.Team.createTeamForUser({
-                    name: `Team ${request.body.name}`,
-                    slug: request.body.username,
-                    TeamTypeId: (await app.db.models.TeamType.byName('starter')).id
-                }, newUser)
-                await app.auditLog.Platform.platform.team.created(request.session.User, null, team)
-                await app.auditLog.User.users.teamAutoCreated(request.session.User, null, team, logUserInfo)
+                // Create the default team for this user, include application and instance
+                await completeUserSignup(app, newUser, { createTeamOverride: true })
             }
             reply.send(await app.db.views.User.userProfile(newUser))
         } catch (err) {

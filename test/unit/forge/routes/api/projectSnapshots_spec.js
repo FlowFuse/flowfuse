@@ -71,9 +71,6 @@ describe('Project Snapshots API', function () {
         TestObjects.template1 = app.template
         TestObjects.stack1 = app.stack
     })
-    after(async function () {
-        await TestObjects.project2.destroy()
-    })
 
     async function login (username, password) {
         const response = await app.inject({
@@ -82,11 +79,13 @@ describe('Project Snapshots API', function () {
             payload: { username, password, remember: false }
         })
         response.cookies.should.have.length(1)
-        response.cookies[0].should.have.property('name', 'sid')
+        const temp = { ...response.cookies[0] }
+        temp.should.have.property('name', 'sid')
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
     after(async function () {
+        await TestObjects.project2.destroy()
         await app.close()
     })
 

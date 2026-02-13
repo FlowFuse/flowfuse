@@ -12,6 +12,7 @@
             ref="iframe"
             width="100%"
             height="100%"
+            name="immersive-editor-iframe"
             :src="instance.url"
             referrerpolicy="strict-origin-when-cross-origin"
             allowfullscreen
@@ -22,6 +23,8 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+
 import LoadingScreenWrapper from './LoadingScreenWrapper.vue'
 const States = {
     STOPPED: 'stopped',
@@ -34,8 +37,9 @@ const States = {
     STOPPING: 'stopping'
 }
 export default {
-    name: 'EditorWrapper',
+    name: 'HostedInstanceEditorWrapper',
     components: { LoadingScreenWrapper },
+    inject: ['$services'],
     props: {
         instance: {
             type: Object,
@@ -69,8 +73,13 @@ export default {
     },
     unmounted () {
         window.removeEventListener('message', this.eventListener)
+        this.resetAssistant()
     },
     methods: {
+        ...mapActions('product/assistant', {
+            resetAssistant: 'reset'
+        }),
+        // todo this event listener should be moved in the messaging.service.js
         eventListener (event) {
             if (event.origin === this.instance.url) {
                 switch (event.data.type) {
@@ -95,23 +104,15 @@ export default {
             }
         },
         emitMessage (type, payload = {}) {
-            this.$refs.iframe.contentWindow.postMessage({ type, payload }, '*')
+            this.$services.messaging.sendMessage({
+                message: {
+                    type,
+                    payload
+                },
+                target: this.$refs.iframe.contentWindow,
+                targetOrigin: this.instance.url
+            })
         }
     }
 }
 </script>
-
-<style scoped lang="scss">
-.editor-wrapper {
-  height: 100%;
-  width: 100%;
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-content: center;
-  justify-content: center;
-}
-.editor-wrapper .status-wrapper {
-    margin-top: -64px;
-}
-</style>

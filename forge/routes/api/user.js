@@ -304,7 +304,10 @@ module.exports = async function (app) {
             summary: 'Delete user Personal Access Token',
             tags: ['Tokens'],
             params: {
-                id: { type: 'string' }
+                type: 'object',
+                properties: {
+                    id: { type: 'string' }
+                }
             },
             response: {
                 204: {
@@ -343,11 +346,17 @@ module.exports = async function (app) {
             summary: 'Update users Personal Access Token',
             tags: ['Tokens'],
             params: {
-                id: { type: 'string' }
+                type: 'object',
+                properties: {
+                    id: { type: 'string' }
+                }
             },
             body: {
-                scope: { type: 'string' },
-                expiresAt: { type: 'number' }
+                type: 'object',
+                properties: {
+                    scope: { type: 'string' },
+                    expiresAt: { type: 'number' }
+                }
             },
             response: {
                 200: {

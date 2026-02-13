@@ -234,9 +234,13 @@ module.exports = async function (app) {
             summary: 'Get a list of the teams applications',
             tags: ['Teams'],
             query: {
-                associationsLimit: { type: 'number' },
-                includeInstances: { type: 'boolean' },
-                includeApplicationDevices: { type: 'boolean' }
+                type: 'object',
+                properties: {
+                    associationsLimit: { type: 'number' },
+                    includeInstances: { type: 'boolean' },
+                    includeApplicationDevices: { type: 'boolean' },
+                    excludeOwnerFiltering: { type: 'boolean' }
+                }
             },
             params: {
                 type: 'object',
@@ -275,8 +279,11 @@ module.exports = async function (app) {
             includeApplicationSummary
         })
 
+        const shouldExcludeOwnerFiltering = Object.prototype.hasOwnProperty.call(request.query, 'excludeOwnerFiltering') &&
+            app.hasPermission(request.teamMembership, 'project:create') // checking for the owner role not if the user can create a project
+
         // Apply Application level RBAC
-        if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications) {
+        if (!request.session?.User?.admin && request.teamMembership && request.teamMembership.permissions?.applications && !shouldExcludeOwnerFiltering) {
             applications = applications.filter(application => {
                 return app.hasPermission(request.teamMembership, 'project:read', { application })
             })
@@ -299,7 +306,10 @@ module.exports = async function (app) {
             summary: 'Get a list of the teams applications statuses',
             tags: ['Teams'],
             query: {
-                associationsLimit: { type: 'number' }
+                type: 'object',
+                properties: {
+                    associationsLimit: { type: 'number' }
+                }
             },
             params: {
                 type: 'object',
@@ -355,19 +365,22 @@ module.exports = async function (app) {
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list'),
         query: {
-            limit: {
-                type: 'number',
-                nullable: true
-            },
-            includeMeta: {
-                type: 'boolean',
-                nullable: true,
-                default: false
-            },
-            orderByMostRecentFlows: {
-                type: 'boolean',
-                nullable: true,
-                default: false
+            type: 'object',
+            properties: {
+                limit: {
+                    type: 'number',
+                    nullable: true
+                },
+                includeMeta: {
+                    type: 'boolean',
+                    nullable: true,
+                    default: false
+                },
+                orderByMostRecentFlows: {
+                    type: 'boolean',
+                    nullable: true,
+                    default: false
+                }
             }
         }
     }, async (request, reply) => {
@@ -1098,14 +1111,17 @@ module.exports = async function (app) {
                 }
             },
             query: {
-                instanceType: { type: 'string' },
-                state: {
-                    type: 'array',
-                    items: { type: 'string' },
-                    default: []
-                },
-                applicationId: {
-                    type: 'string'
+                type: 'object',
+                properties: {
+                    instanceType: { type: 'string' },
+                    state: {
+                        type: 'array',
+                        items: { type: 'string' },
+                        default: []
+                    },
+                    applicationId: {
+                        type: 'string'
+                    }
                 }
             },
             response: {
@@ -1126,7 +1142,13 @@ module.exports = async function (app) {
                 ? app.db.models.Project
                 : app.db.models.Device
             const membership = request.teamMembership
-            const stateCounters = await model.countByState(request.query.state, request.team, request.query.applicationId, membership) ?? []
+            const stateCounters = await model.countByState(
+                request.query.state,
+                request.team,
+                request.query.applicationId,
+                membership,
+                request.session.User?.admin
+            ) ?? []
             const response = {}
 
             stateCounters.forEach(res => {

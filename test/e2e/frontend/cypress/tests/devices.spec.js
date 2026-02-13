@@ -55,7 +55,7 @@ describe('FlowFuse - Team Devices', () => {
             // click kebab menu in row 1
             cy.get('[data-el="devices-browser"] tbody').find('.ff-kebab-menu').eq(0).click()
             // click the 4th option (Delete Device)
-            cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-list-item')
+            cy.get('[data-el="kebab-options"].ff-kebab-options').find('.ff-kebab-item')
                 .contains('Delete Device')
                 .parent()
                 .click()

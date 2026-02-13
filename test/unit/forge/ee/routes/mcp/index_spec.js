@@ -1,4 +1,7 @@
+const sinon = require('sinon')
 const should = require('should') // eslint-disable-line
+const { v4: uuidv4 } = require('uuid')
+
 const setup = require('../../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -24,6 +27,10 @@ describe('MCP Server Registration', function () {
         await app.close()
     })
 
+    afterEach(async function () {
+        sinon.restore()
+    })
+
     async function login (username, password) {
         const response = await app.inject({
             method: 'POST',
@@ -31,7 +38,8 @@ describe('MCP Server Registration', function () {
             payload: { username, password, remember: false }
         })
         response.cookies.should.have.length(1)
-        response.cookies[0].should.have.property('name', 'sid')
+        const temp = { ...response.cookies[0] }
+        temp.should.have.property('name', 'sid')
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
@@ -39,7 +47,7 @@ describe('MCP Server Registration', function () {
         const { token } = await app.instance.refreshAuthTokens()
         const response = await app.inject({
             method: 'POST',
-            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.hashid}/abcde`,
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.id}/abcde`,
             headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -55,7 +63,7 @@ describe('MCP Server Registration', function () {
         })
         response.statusCode.should.equal(200)
 
-        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.hashid, 'abcde')
+        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.id, 'abcde')
         should.exist(mcpServer)
         mcpServer.name.should.equal('foo')
         mcpServer.protocol.should.equal('http')
@@ -68,7 +76,7 @@ describe('MCP Server Registration', function () {
         const { token } = await app.instance.refreshAuthTokens()
         const response = await app.inject({
             method: 'POST',
-            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.hashid}/vwxyz`,
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.id}/vwxyz`,
             headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -81,7 +89,7 @@ describe('MCP Server Registration', function () {
         })
         response.statusCode.should.equal(200)
 
-        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.hashid, 'vwxyz')
+        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.id, 'vwxyz')
         should.exist(mcpServer)
         mcpServer.name.should.equal('bar')
         mcpServer.protocol.should.equal('http')
@@ -108,26 +116,121 @@ describe('MCP Server Registration', function () {
         result.should.have.property('servers')
         result.servers.should.be.an.Array()
         result.servers.should.have.length(2)
-        const names = result.servers.map(s => s.name)
-        names.should.containEql('foo')
-        names.should.containEql('bar')
-        const routes = result.servers.map(s => s.endpointRoute)
-        routes.should.containEql('/mcp')
-        routes.should.containEql('/mcp2')
-        const protocols = result.servers.map(s => s.protocol)
-        protocols.should.containEql('http')
+        result.servers[0].should.have.property('id')
+        result.servers[0].id.should.be.a.String() // ensure id is string (hashid) not a number
+        result.servers[0].should.have.property('name', 'foo')
+        result.servers[0].should.have.property('endpointRoute', '/mcp')
+        result.servers[0].should.have.property('protocol', 'http')
+        result.servers[0].should.have.property('teamId', app.team.hashid)
+
+        result.servers[1].should.have.property('id')
+        result.servers[1].id.should.be.a.String() // ensure id is string (hashid) not a number
+        result.servers[1].should.have.property('name', 'bar')
+        result.servers[1].should.have.property('endpointRoute', '/mcp2')
+        result.servers[1].should.have.property('protocol', 'http')
+        result.servers[1].should.have.property('teamId', app.team.hashid)
     })
     it('should delete MCP entry', async function () {
         const { token } = await app.instance.refreshAuthTokens()
         const response = await app.inject({
             method: 'DELETE',
-            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.hashid}/abcde`,
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.id}/abcde`,
             headers: {
                 Authorization: `Bearer ${token}`
             }
         })
         response.statusCode.should.equal(200)
-        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.hashid, 'abcde')
+        const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.id, 'abcde')
         should.not.exist(mcpServer)
+    })
+    it('should return 500 and log error for unknown device', async function () {
+        const { token } = await app.instance.refreshAuthTokens()
+        // stub app.log to capture error message
+        const appLogStub = sinon.stub(app.log, 'error')
+
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/device/99999/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'foo',
+                protocol: 'http',
+                endpointRoute: '/mcp',
+                title: 'FlowFuse MCP',
+                version: '1.2.3',
+                description: 'Test MCP registration entry'
+            }
+        })
+        response.statusCode.should.equal(500)
+        const result = response.json()
+        result.should.be.an.Object()
+        result.should.have.property('code', 'unexpected_error')
+        result.should.have.property('error', 'Failed to create mcp entry')
+        appLogStub.calledOnce.should.be.true()
+        const errMsg = appLogStub.getCall(0).args[0]
+        errMsg.should.match(/Device '99999' not found/)
+    })
+    it('should return 500 and log error for unknown instance', async function () {
+        const { token } = await app.instance.refreshAuthTokens()
+        // stub app.log to capture error message
+        const appLogStub = sinon.stub(app.log, 'error')
+        const randomId = uuidv4()
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${randomId}/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'foo',
+                protocol: 'http',
+                endpointRoute: '/mcp',
+                title: 'FlowFuse MCP',
+                version: '1.2.3',
+                description: 'Test MCP registration entry'
+            }
+        })
+        response.statusCode.should.equal(500)
+        const result = response.json()
+        result.should.be.an.Object()
+        result.should.have.property('code', 'unexpected_error')
+        result.should.have.property('error', 'Failed to create mcp entry')
+        appLogStub.calledOnce.should.be.true()
+        const errMsg = appLogStub.getCall(0).args[0]
+        errMsg.should.match(new RegExp(`Instance '${randomId}' not found`))
+    })
+    it('should return 500 and log error for unknown type', async function () {
+        const { token } = await app.instance.refreshAuthTokens()
+        // stub app.log to capture error message
+        const appLogStub = sinon.stub(app.log, 'error')
+
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/blah/zzzzz/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'foo',
+                protocol: 'http',
+                endpointRoute: '/mcp',
+                title: 'FlowFuse MCP',
+                version: '1.2.3',
+                description: 'Test MCP registration entry'
+            }
+        })
+        response.statusCode.should.equal(500)
+        const result = response.json()
+        result.should.be.an.Object()
+        result.should.have.property('code', 'unexpected_error')
+        result.should.have.property('error', 'Failed to create mcp entry')
+        appLogStub.calledOnce.should.be.true()
+        const errMsg = appLogStub.getCall(0).args[0]
+        errMsg.should.match(/Unknown MCP target type 'blah'/)
     })
 })

@@ -139,6 +139,7 @@ export default {
             display: flex;
             width: 100%;
             height: fit-content;
+            min-height: 55px;
             justify-content: space-between;
             align-items: center;
             gap: 10px;
