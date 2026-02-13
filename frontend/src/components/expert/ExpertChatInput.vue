@@ -160,10 +160,9 @@ export default {
     mounted () {
         this.bindResizer({
             component: this.$refs.resizeTarget,
-            mobileBreakpoint: 640, // match your app breakpoint
-            maxHeightRatio: 0.9, // whatever you want the cap to be
-            minHeight: 120, // optional: stop it collapsing to 0
-            maxViewportMarginY: 80 // optional: keep some space
+            maxHeightRatio: 0.9,
+            minHeight: 120,
+            maxViewportMarginY: 80
         })
     },
     methods: {
@@ -217,7 +216,7 @@ export default {
     background: white;
     flex-shrink: 0; // Prevent input area from shrinking
     position: relative;
-    min-height: 15vh;
+    min-height: 150px;
     max-height: 40vh;
 }
 
