@@ -1,5 +1,5 @@
 <template>
-    <div ref="resizeTarget" class="ff--immersive-editor-wrapper" :class="{resizing: isEditorResizing}">
+    <div ref="resizeTarget" class="ff--immersive-editor-wrapper remote-instance" :class="{resizing: isEditorResizing}">
         <EditorWrapper
             :disable-events="isEditorResizing"
             :device="device"
@@ -22,14 +22,27 @@
             <div class="header">
                 <div class="logo">
                     <router-link
+                        v-if="device"
                         title="Back to remote instance overview"
                         :to="{ name: 'device-overview', params: {id: device.id} }"
                     >
                         <HomeIcon class="ff-btn--icon" style="width: 18px; height: 18px;" />
                     </router-link>
                 </div>
+
                 <ff-tabs :tabs="navigation" class="tabs" />
+
                 <div class="side-actions">
+                    <DropdownMenu
+                        v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length"
+                        :options="actionsDropdownOptions"
+                        :button-style="{padding: '6px 9px'}"
+                        data-el="device-actions-dropdown"
+                        buttonClass="ff-btn ff-btn--primary device-actions-dropdown"
+                    >
+                        <CogIcon class="ff-btn--icon ff-btn--icon-left mr-0" />
+                    </DropdownMenu>
+
                     <button
                         title="Close drawer"
                         type="button"
@@ -45,7 +58,7 @@
             <ff-page :no-padding="isExpertRoute">
                 <router-view
                     :device="device"
-                    :instance="device.instance"
+                    :instance="device?.instance"
                 />
             </ff-page>
         </section>
@@ -54,18 +67,18 @@
 
 <script>
 
-import { HomeIcon, XIcon } from '@heroicons/vue/solid/index.js'
-import semver from 'semver'
+import { CogIcon, HomeIcon, XIcon } from '@heroicons/vue/solid/index.js'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
-import deviceApi from '../../../api/devices.js'
+import DropdownMenu from '../../../components/DropdownMenu.vue'
 import ResizeBar from '../../../components/ResizeBar.vue'
 import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
 import DrawerTrigger from '../../../components/immersive-editor/DrawerTrigger.vue'
 import EditorWrapper from '../../../components/immersive-editor/RemoteInstanceEditorWrapper.vue'
+import { useDeviceHelper } from '../../../composables/DeviceHelper.js'
 import { useDrawerHelper } from '../../../composables/DrawerHelper.js'
+import usePermissions from '../../../composables/Permissions.js'
 import { useResizingHelper } from '../../../composables/ResizingHelper.js'
-import FfPage from '../../../layouts/Page.vue'
 import Alerts from '../../../services/alerts.js'
 
 const DRAWER_DEFAULT_WIDTH = 550 // Default drawer width in pixels
@@ -76,14 +89,16 @@ const DRAWER_MIN_WIDTH = 310 // Minimum drawer width in pixels
 export default {
     name: 'DeviceEditor',
     components: {
+        CogIcon,
+        DropdownMenu,
         XIcon,
         HomeIcon,
-        FfPage,
         DrawerTrigger,
         ResizeBar,
         EditorWrapper
     },
     setup () {
+        const { hasPermission } = usePermissions()
         const {
             drawer,
             toggleDrawer,
@@ -103,29 +118,46 @@ export default {
             setEditorWidth: setDeviceEditorWidth
         } = useResizingHelper()
 
+        const {
+            device,
+            bindDevice,
+            fetchDevice,
+            restartDevice,
+            showDeleteDialog: showDeleteDeviceDialog,
+            isPolling,
+            isInTransitionState: isDeviceInTransitionState,
+            startPolling,
+            stopPolling,
+            resumePolling,
+            pausePolling
+        } = useDeviceHelper()
+
         return {
-            startEditorResize,
-            setDeviceEditorWidth,
-            bindDrawerResizer,
-            editorWidthStyle,
+            device,
             drawer,
+            setDeviceEditorWidth,
+            editorWidthStyle,
             isEditorResizing,
+            startEditorResize,
+            bindDrawerResizer,
             toggleDrawer,
             notifyDrawerState,
             handleDrawerMouseEnter,
             handleDrawerMouseLeave,
             runInitialTease,
             bindDrawer,
-            cleanupDrawer
-        }
-    },
-    data () {
-        return {
-            agentSupportsDeviceAccess: null,
-            agentSupportsActions: null,
-            device: null,
-            openingTunnel: false,
-            ws: null
+            cleanupDrawer,
+            hasPermission,
+            restartDevice,
+            bindDevice,
+            fetchDevice,
+            isPolling,
+            isDeviceInTransitionState,
+            startPolling,
+            stopPolling,
+            resumePolling,
+            pausePolling,
+            showDeleteDeviceDialog
         }
     },
     computed: {
@@ -144,6 +176,8 @@ export default {
                 this.device.editor.connected
         },
         navigation () {
+            if (!this.device) return []
+
             return [
                 {
                     label: 'Expert',
@@ -195,17 +229,56 @@ export default {
                 //     hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')
                 // }
             ]
+        },
+        permissionContext () {
+            if (this.device?.ownerType === 'application' || this.device?.ownerType === 'instance') {
+                return { application: this.device.application }
+            }
+            return {}
+        },
+        actionsDropdownOptions () {
+            if (!this.device) return []
+
+            const flowActionsDisabled = !(this.device.status !== 'suspended')
+            const deviceStateChanging = this.device.pendingStateChange || this.device.optimisticStateChange
+
+            const result = [
+                {
+                    name: 'Restart',
+                    action: this.restartDevice,
+                    disabled: deviceStateChanging || flowActionsDisabled,
+                    hidden: !this.device.lastSeenAt
+                },
+                {
+                    type: 'hr',
+                    hidden: !this.hasPermission('device:delete', this.permissionContext)
+                },
+                {
+                    name: 'Delete',
+                    class: ['text-red-700'],
+                    action: this.showConfirmDeleteDialog,
+                    hidden: !this.hasPermission('device:delete', this.permissionContext)
+                }
+            ]
+
+            return result.filter(res => !res.hidden)
         }
+
     },
     watch: {
-        device (device) {
-            if (device && this.isEditorAvailable) {
-                this.setContextDevice(device)
-                this.runInitialTease()
-            } else {
-                this.$router.push({ name: 'device-overview' })
-                    .then(() => Alerts.emit('Unable to connect to the Remote Instance', 'warning'))
-                    .catch(e => e)
+        '$route.name': 'handlePolling',
+        device: {
+            deep: true,
+            handler (device) {
+                if (device && this.isEditorAvailable) {
+                    this.setContextDevice(device)
+                    this.bindDevice(device, true)
+                    this.handlePolling()
+                } else {
+                    this.$router.push({ name: 'device-overview' })
+                        .then(() => Alerts.emit('Unable to connect to the Remote Instance', 'warning'))
+                        .catch(e => e)
+                }
             }
         }
     },
@@ -228,25 +301,54 @@ export default {
                     maxWidthRatio: DRAWER_MAX_WIDTH_RATIO
                 })
             })
+            .then(() => {
+                this.runInitialTease()
+            })
             .catch(err => err)
+    },
+    unmounted () {
+        this.stopPolling()
     },
     methods: {
         ...mapActions('context', { setContextDevice: 'setDevice' }),
         loadDevice: async function () {
-            try {
-                this.device = await deviceApi.getDevice(this.$route.params.id)
-            } catch (err) {
-                if (err.status === 403) {
-                    return this.$router.push({ name: 'device-overview' })
-                }
-            }
-
-            this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')
-            this.agentSupportsActions = this.device.agentVersion && semver.gte(this.device.agentVersion, '2.3.0')
-
-            // todo we first need to get the device and set the team afterwards
+            await this.fetchDevice(this.$route.params.id)
             await this.$store.dispatch('account/setTeam', this.device.team.slug)
+        },
+        showConfirmDeleteDialog () {
+            this.showDeleteDeviceDialog()
+        },
+        handlePolling () {
+            const pollingRoutes = [
+                'device-editor-overview',
+                'device-editor-developer-mode'
+            ]
+
+            switch (true) {
+            case typeof this.device?.status === 'undefined':
+            case this.device?.status === 'stopped':
+            case this.isDeviceInTransitionState:
+            case pollingRoutes.includes(this.$route.name):
+                this.resumePolling()
+                break
+            default:
+                this.pausePolling()
+            }
         }
     }
 }
 </script>
+
+<style lang="scss">
+.ff--immersive-editor-wrapper {
+    &.remote-instance {
+        .device-actions-dropdown {
+            padding: 6px 9px;
+
+            svg {
+                margin: 0;
+            }
+        }
+    }
+}
+</style>

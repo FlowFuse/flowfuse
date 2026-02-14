@@ -172,7 +172,8 @@ module.exports = async function (forge) {
         // Create devices
         const appDevice = await factory.createDevice({
             name: `${name}-app-device`,
-            type: 'type2'
+            type: 'type2',
+            lastSeenAt: Date.now()
         }, rbacTeam, null, application)
 
         const instanceDevice = await factory.createDevice({
@@ -182,7 +183,7 @@ module.exports = async function (forge) {
 
         // Create snapshots
         await factory.createSnapshot({ name: 'snapshot 1' }, instance, ownerOwen)
-        await factory.createDeviceSnapshot({ name: 'device snapshot 1' }, appDevice, ownerOwen)
+        await factory.createDeviceSnapshot({ name: 'device snapshot 1', lastSeenAt: Date.now() }, appDevice, ownerOwen)
 
         // create Device Groups
         await factory.createApplicationDeviceGroup({

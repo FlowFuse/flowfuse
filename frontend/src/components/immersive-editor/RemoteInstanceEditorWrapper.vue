@@ -47,12 +47,15 @@ export default {
                 this.device.editor.connected
         },
         computedStatus () {
-            if (!this.device || !this.isEditorAvailable) {
-                // forces the loading animation while loading
+            switch (true) {
+            case !this.device:
+            case !this.isEditorAvailable:
+            case this.device?.status === 'stopped':
+                // forces the loading animation
                 return 'loading'
+            default:
+                return this.device.status
             }
-
-            return this.device.status
         }
     }
 }
