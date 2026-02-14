@@ -1,6 +1,6 @@
 import semver from 'semver'
 import { computed, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
 import deviceApi from '../api/devices.js'
@@ -23,12 +23,16 @@ const deviceTransitionStates = [
 
 export function useDeviceHelper () {
     const $store = useStore()
-    const $route = useRoute()
     const $router = useRouter()
 
     let deviceStateMutator = null
     const device = ref(null)
-    const pollTimer = createPollTimer(pollDevice, POLL_TIME, false)
+    const pollTimer = createPollTimer(onPoll, POLL_TIME, false)
+
+    // duplicated functionality because the pollTimer is not reactive
+    const isPolling = ref(false)
+
+    const isInTransitionState = computed(() => deviceTransitionStates.includes(device.value.status))
 
     const agentSupportsDeviceAccess = computed(() =>
         device.value?.agentVersion && semver.gte(device.value?.agentVersion, '0.8.0')
@@ -36,6 +40,37 @@ export function useDeviceHelper () {
     const agentSupportsActions = computed(() =>
         device.value?.agentVersion && semver.gte(device.value?.agentVersion, '2.3.0')
     )
+
+    function startPolling () {
+        isPolling.value = true
+        pollTimer.start()
+    }
+
+    function stopPolling () {
+        isPolling.value = false
+        pollTimer.stop()
+    }
+
+    function resumePolling () {
+        isPolling.value = true
+        pollTimer.resume()
+    }
+
+    function pausePolling () {
+        isPolling.value = false
+        pollTimer.pause()
+    }
+
+    async function onPoll () {
+        try {
+            return await fetchDevice()
+        } catch (err) {
+            if (err.response?.status === 404) {
+                stopPolling()
+            }
+            throw err
+        }
+    }
 
     function preActionChecks (message) {
         if (device.value.agentVersion && !agentSupportsActions.value) {
@@ -77,9 +112,10 @@ export function useDeviceHelper () {
         }
     }
 
-    function bindDevice (binding) {
+    function bindDevice (binding, shouldStartPolling = false) {
         device.value = binding
         deviceStateMutator = new DeviceStateMutator(binding)
+        if (shouldStartPolling) { startPolling() }
     }
 
     async function fetchDevice (deviceId = null) {
@@ -87,41 +123,11 @@ export function useDeviceHelper () {
             device.value = await deviceApi.getDevice(deviceId || device.value?.id)
         } catch (err) {
             if (err.status === 403) {
-                stopPoling()
+                stopPolling()
 
                 return $router.push({ name: 'device-overview' })
             }
         }
-    }
-
-    async function pollDevice () {
-        // Only refresh device via the timer if we are on the overview page, developer mode page
-        // the device status is empty or the device is in a transition state
-        // This is to prevent settings pages from refreshing the device state while modifying settings
-        // See `watch: { device: { handler () ...  in pages/device/Settings/General.vue for why that happens
-        const settingsPages = ['device-overview', 'device-developer-mode']
-        try {
-            switch (true) {
-            case settingsPages.includes($route.name):
-            case typeof device.value?.status === 'undefined':
-            case deviceTransitionStates.includes(device.value?.status):
-                await fetchDevice()
-                break
-            default:
-            }
-        } catch (err) {
-            if (err.response.status === 404) {
-                stopPoling()
-            }
-        }
-    }
-
-    function startPoling () {
-        pollTimer.start()
-    }
-
-    function stopPoling () {
-        pollTimer.stop()
     }
 
     function showDeleteDialog () {
@@ -147,11 +153,15 @@ export function useDeviceHelper () {
         agentSupportsDeviceAccess,
         agentSupportsActions,
         device,
-        restartDevice,
+        isPolling,
+        isInTransitionState,
         bindDevice,
+        startPolling,
+        stopPolling,
+        pausePolling,
+        resumePolling,
+        restartDevice,
         fetchDevice,
-        showDeleteDialog,
-        startPoling,
-        stopPoling
+        showDeleteDialog
     }
 }

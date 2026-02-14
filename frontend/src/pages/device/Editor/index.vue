@@ -123,9 +123,13 @@ export default {
             bindDevice,
             fetchDevice,
             restartDevice,
-            startPoling: startDevicePolling,
             showDeleteDialog: showDeleteDeviceDialog,
-            stopPoling
+            isPolling,
+            isInTransitionState: isDeviceInTransitionState,
+            startPolling,
+            stopPolling,
+            resumePolling,
+            pausePolling
         } = useDeviceHelper()
 
         return {
@@ -147,14 +151,13 @@ export default {
             restartDevice,
             bindDevice,
             fetchDevice,
-            startDevicePolling,
-            stopPoling,
+            isPolling,
+            isDeviceInTransitionState,
+            startPolling,
+            stopPolling,
+            resumePolling,
+            pausePolling,
             showDeleteDeviceDialog
-        }
-    },
-    data () {
-        return {
-            mounted: false
         }
     },
     computed: {
@@ -263,18 +266,19 @@ export default {
 
     },
     watch: {
-        device (device) {
-            if (device && this.isEditorAvailable) {
-                this.setContextDevice(device)
-                this.bindDevice(device)
-
-                if (!this.mounted) {
-                    this.runInitialTease()
+        '$route.name': 'handlePolling',
+        device: {
+            deep: true,
+            handler (device) {
+                if (device && this.isEditorAvailable) {
+                    this.setContextDevice(device)
+                    this.bindDevice(device, true)
+                    this.handlePolling()
+                } else {
+                    this.$router.push({ name: 'device-overview' })
+                        .then(() => Alerts.emit('Unable to connect to the Remote Instance', 'warning'))
+                        .catch(e => e)
                 }
-            } else {
-                this.$router.push({ name: 'device-overview' })
-                    .then(() => Alerts.emit('Unable to connect to the Remote Instance', 'warning'))
-                    .catch(e => e)
             }
         }
     },
@@ -297,22 +301,39 @@ export default {
                     maxWidthRatio: DRAWER_MAX_WIDTH_RATIO
                 })
             })
+            .then(() => {
+                this.runInitialTease()
+            })
             .catch(err => err)
+    },
+    unmounted () {
+        this.stopPolling()
     },
     methods: {
         ...mapActions('context', { setContextDevice: 'setDevice' }),
         loadDevice: async function () {
             await this.fetchDevice(this.$route.params.id)
-
-            this.startDevicePolling()
-
-            this.mounted = true
-
-            // todo we first need to get the device and set the team afterwards
             await this.$store.dispatch('account/setTeam', this.device.team.slug)
         },
         showConfirmDeleteDialog () {
             this.showDeleteDeviceDialog()
+        },
+        handlePolling () {
+            const pollingRoutes = [
+                'device-editor-overview',
+                'device-editor-developer-mode'
+            ]
+
+            switch (true) {
+            case typeof this.device?.status === 'undefined':
+            case this.device?.status === 'stopped':
+            case this.isDeviceInTransitionState:
+            case pollingRoutes.includes(this.$route.name):
+                this.resumePolling()
+                break
+            default:
+                this.pausePolling()
+            }
         }
     }
 }
