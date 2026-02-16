@@ -112,6 +112,9 @@ const getters = {
         !state.team?.type?.properties?.billing?.disabled &&
         !state.team?.billing?.active
     },
+    isBillingEnabled (state) {
+        return !!state.features.billing
+    },
     isTrialAccount (state) {
         return !!state.team?.billing?.trial
     },
@@ -184,14 +187,14 @@ const getters = {
             // Shared Library
             isSharedLibraryFeatureEnabledForTeam: ((state) => {
                 const flag = state.team?.type?.properties?.features?.['shared-library']
-                return flag === undefined || flag
+                return (flag === undefined || flag) || state.team?.type?.properties?.enableAllFeatures
             })(state),
             isSharedLibraryFeatureEnabledForPlatform: state.features?.['shared-library'],
 
             // Blueprints
             isBlueprintsFeatureEnabledForTeam: ((state) => {
                 const flag = state.team?.type?.properties?.features?.flowBlueprints
-                return flag === undefined || flag
+                return (flag === undefined || flag) || state.team?.type?.properties?.enableAllFeatures
             })(state),
             isBlueprintsFeatureEnabledForPlatform: !!state.features?.flowBlueprints,
 
@@ -199,12 +202,12 @@ const getters = {
             isCustomCatalogsFeatureEnabledForPlatform: !!state.features?.customCatalogs,
             isCustomCatalogsFeatureEnabledForTeam: ((state) => {
                 const flag = state.team?.type?.properties.features?.customCatalogs
-                return flag === undefined || flag
+                return (flag === undefined || flag) || state.team?.type?.properties?.enableAllFeatures
             })(state),
 
             // Private NPM Registry (Custom Nodes)
             isPrivateRegistryFeatureEnabledForPlatform: !!state.features?.npm,
-            isPrivateRegistryFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.npm,
+            isPrivateRegistryFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.npm || state.team?.type?.properties?.enableAllFeatures,
 
             // Certified Nodes
             isCertifiedNodesFeatureEnabledForPlatform: !!state.features?.certifiedNodes,
@@ -213,23 +216,23 @@ const getters = {
 
             // Static Assets
             isStaticAssetFeatureEnabledForPlatform: !!state.features?.staticAssets,
-            isStaticAssetsFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.staticAssets,
+            isStaticAssetsFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.staticAssets || state.team?.type?.properties?.enableAllFeatures,
 
             // HTTP BearerTokens
             isHTTPBearerTokensFeatureEnabledForPlatform: !!state.settings?.features.httpBearerTokens,
-            isHTTPBearerTokensFeatureEnabledForTeam: !!state.team?.type?.properties.features.teamHttpSecurity,
+            isHTTPBearerTokensFeatureEnabledForTeam: !!state.team?.type?.properties.features.teamHttpSecurity || state.team?.type?.properties?.enableAllFeatures,
 
             // BOM
             isBOMFeatureEnabledForPlatform: !!state.features?.bom,
-            isBOMFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.bom,
+            isBOMFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.bom || state.team?.type?.properties?.enableAllFeatures,
 
             // Timeline
             isTimelineFeatureEnabledForPlatform: !!state.features?.projectHistory,
-            isTimelineFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.projectHistory,
+            isTimelineFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.projectHistory || state.team?.type?.properties?.enableAllFeatures,
 
             // Mqtt Broker
             isMqttBrokerFeatureEnabledForPlatform: !!state.features?.teamBroker,
-            isMqttBrokerFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.teamBroker,
+            isMqttBrokerFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.teamBroker || state.team?.type?.properties?.enableAllFeatures,
 
             isExternalMqttBrokerFeatureEnabledForPlatform: !!state.features?.externalBroker,
 
@@ -240,19 +243,19 @@ const getters = {
 
             // Instance Resources
             isInstanceResourcesFeatureEnabledForPlatform: !!state.features?.instanceResources,
-            isInstanceResourcesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.instanceResources,
+            isInstanceResourcesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.instanceResources || state.team?.type?.properties?.enableAllFeatures,
 
             // Tables
             isTablesFeatureEnabledForPlatform: !!state.features.tables,
-            isTablesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.tables,
+            isTablesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.tables || state.team?.type?.properties?.enableAllFeatures,
 
             // Generate Snapshot Descriptions with AI
             isGeneratedSnapshotDescriptionFeatureEnabledForPlatform: !!state.features.generatedSnapshotDescription,
-            isGeneratedSnapshotDescriptionFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.generatedSnapshotDescription,
+            isGeneratedSnapshotDescriptionFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.generatedSnapshotDescription || state.team?.type?.properties?.enableAllFeatures,
 
             // Applications Role Based Access Control
             isApplicationsRBACFeatureEnabledForPlatform: !!state.features.rbacApplication,
-            isApplicationsRBACFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.rbacApplication,
+            isApplicationsRBACFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.rbacApplication || state.team?.type?.properties?.enableAllFeatures,
 
             // Expert Assistant
             isExpertAssistantFeatureEnabledForPlatform: !!state.features.expertAssistant,
@@ -273,7 +276,7 @@ const getters = {
             // external broker must be enabled for platform, and share the same team-level feature flag as the team broker
             isExternalMqttBrokerFeatureEnabled: preCheck.isExternalMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
             devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
-            isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups,
+            isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups || !!state.team?.type?.properties?.enableAllFeatures,
             isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!state.team?.type?.properties?.features?.gitIntegration,
             isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam,
             isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam,

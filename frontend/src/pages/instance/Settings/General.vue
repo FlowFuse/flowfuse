@@ -1,12 +1,18 @@
 <template>
     <FormHeading class="mb-6">Instance Details</FormHeading>
     <div class="space-y-6" data-el="instance-settings-general">
-        <FormRow id="projectId" v-model="input.projectId" type="uneditable" inputClass="font-mono">
+        <FormRow id="projectId" type="uneditable">
             Instance ID
+            <template #input>
+                <TextCopier :text="input.projectId" class="w-full uneditable font-mono text-gray-800" />
+            </template>
         </FormRow>
 
-        <FormRow id="projectName" v-model="input.projectName" type="uneditable">
+        <FormRow id="projectName" type="uneditable">
             Name
+            <template #input>
+                <TextCopier :text="input.projectName" class="w-full uneditable text-gray-800" />
+            </template>
         </FormRow>
 
         <FormRow v-model="input.projectTypeName" type="uneditable">
@@ -36,8 +42,11 @@
             Template
         </FormRow>
         <FormHeading class="mb-6">Hosting</FormHeading>
-        <FormRow v-model="url" type="uneditable">
-            Default URL
+        <FormRow type="uneditable">
+            Direct URL
+            <template #input>
+                <TextCopier :text="url" class="w-full uneditable text-gray-800" />
+            </template>
         </FormRow>
         <div v-if="customHostnameAvailable">
             <FormRow v-model="input.customHostname" :error="errors.customHostname">
@@ -93,6 +102,7 @@ import instanceAPI from '../../../api/instances.js'
 
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+import TextCopier from '../../../components/TextCopier.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 
 import Dialog from '../../../services/dialog.js'
@@ -107,6 +117,7 @@ export default {
         RefreshIcon,
         FormRow,
         FormHeading,
+        TextCopier,
         FeatureUnavailableToTeam,
         DangerSettings
     },

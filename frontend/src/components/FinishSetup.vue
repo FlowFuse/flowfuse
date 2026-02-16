@@ -1,5 +1,5 @@
 <template>
-    <ff-button :kind="minimalView ? 'tertiary': 'secondary'" data-action="finish-setup" @click="finishSetup">
+    <ff-button :kind="kind" data-action="finish-setup" @click="finishSetup">
         <template #icon-left><ExclamationIcon class="ff-icon" /></template>
         Finish Setup
     </ff-button>
@@ -24,6 +24,22 @@ export default {
         minimalView: {
             type: Boolean,
             default: false
+        },
+        isPrimary: {
+            type: Boolean,
+            default: false
+        }
+    },
+    computed: {
+        kind () {
+            switch (true) {
+            case this.isPrimary:
+                return 'primary'
+            case this.minimalView:
+                return 'tertiary'
+            default:
+                return 'secondary'
+            }
         }
     },
     methods: {

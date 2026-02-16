@@ -5,7 +5,7 @@
         data-action="open-dashboard"
         :disabled="buttonDisabled"
         class="whitespace-nowrap"
-        @click="openDashboard"
+        @click.stop="openDashboard"
     >
         <template v-if="!minimalView" #icon-left>
             <ChartPieIcon />
