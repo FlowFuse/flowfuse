@@ -468,7 +468,7 @@ export default {
             if (!immersive) {
                 this.openInANewTab(this.deviceEditorURL, `device-editor-${this.device.id}`)
             } else {
-                this.navigateTo('editor', event, { target: `device-editor-${this.device.id}` })
+                this.navigateTo({ name: 'device-editor' }, event, { target: `device-editor-${this.device.id}` })
             }
         },
         async openTunnel ({
