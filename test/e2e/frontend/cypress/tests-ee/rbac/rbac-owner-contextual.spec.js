@@ -838,7 +838,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         // check remote instance actions
         cy.get('[data-el="device-devmode-toggle"] label[disabled="false"]').should('exist')
         cy.get('[data-action="open-editor"]').should('exist').should('be.disabled')
-        cy.get('[data-action="finish-setup"]').should('exist')
+        cy.get('[data-action="finish-setup"]').should('not.exist')
 
         // version history timeline
         cy.get('[data-nav="version-history"]').click()
@@ -1252,7 +1252,7 @@ describe('FlowFuse - RBAC Owner Contextual permissions', () => {
         // application devices
         cy.get('[data-nav="application-devices-overview"]').click()
         cy.get('[data-el="row-application-5-app-device"]').should('exist')
-        cy.get('[data-el="row-application-5-app-device"]').contains('Finish Setup').should('exist')
+        cy.get('[data-el="row-application-5-app-device"]').contains('Finish Setup').should('not.exist')
         cy.get('[data-el="row-application-5-instance-1-device-1"]').should('not.exist')
 
         // application device groups
