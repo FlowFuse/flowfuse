@@ -82,7 +82,7 @@ const forge = require('./forge')
                 await server.close()
             }
         } catch (err) {
-            console.error('Error shutting down:', err.toString())
+            console.error('Fatal ERROR shutting down:', err.toString())
         }
     }
 })()
