@@ -62,6 +62,18 @@ const eventsRegistry = {
  * @prop {string|undefined} [onSelectAction] - an optional action to invoke when this context option is selected.
  */
 
+// Flags that can be used in the assistant to indicate support for features this side in the expert.
+// This will prevent the assistant from offering options that aren't supported
+// e.g. inhibit showing the "Add debug to context" buttons
+// NOTE: Some flags may not be used (since they have no visible effect on NR)
+// NOTE: These flags may one day be set based on user level or team settings, but for now we will just set them to true since we support all features in the expert.
+const supportedFeatures = {
+    debugLogContext: { enabled: true }, // allows the expert to include debug log entries in the expert context
+    flowImport: { enabled: true }, // flag to let assistant know flows can be offered to import onto the workspace
+    flowSelection: { enabled: true }, // allows user to select nodes on workspace and have that selection sent to the expert context
+    paletteManagement: { enabled: true } // allows the expert to send commands to show the palette manager
+}
+
 /**
  * @type {Array<ContextOption>} ALL_CONTEXT_OPTIONS - a list of all available context options. This is used to populate the dropdown menu when selecting context options in the chat ui.
  */
@@ -140,10 +152,10 @@ const getters = {
         return getters.debugLog?.length > 0
     },
     isFeaturePaletteEnabled: (state) => {
-        return state.assistantFeatures.commands?.['get-palette']?.enabled ?? false
+        return (state.assistantFeatures.commands?.['get-palette']?.enabled && supportedFeatures.paletteManagement?.enabled) ?? false
     },
     isFeatureDebugLogContextEnabled: (state) => {
-        return state.assistantFeatures.debugLogContext?.enabled ?? false
+        return (state.assistantFeatures.debugLogContext?.enabled && supportedFeatures.debugLogContext?.enabled) ?? false
     },
     /**
      * Returns the list of context options that are currently available based on the assistant features, filtering out
@@ -297,7 +309,8 @@ const actions = {
             dispatch('requestSupportedActions')
             dispatch('requestSelectedNodes')
             dispatch('registerEventListeners')
-            return await dispatch('requestPalette')
+            dispatch('requestPalette')
+            return await dispatch('confirmExpertReady')
         case typeof eventsRegistry[payload.data.type] === 'object':
             return dispatch('setRegisteredEventProperty', {
                 registeredEvent: eventsRegistry[payload.data.type],
@@ -323,6 +336,12 @@ const actions = {
         default:
             // do nothing
         }
+    },
+    confirmExpertReady: async ({ getters, dispatch }) => {
+        return dispatch('sendMessage', {
+            type: 'expert-ready',
+            params: { supportedFeatures }
+        })
     },
     /**
      * Sends the list of registered debug log entries to the assistant, to sync
