@@ -51,24 +51,24 @@
                     <div class="flex gap-3 md:flex-nowrap flex-wrap">
                         <div class="form-row flex flex-col protocol flex-1">
                             <label for="protocol" class="text-gray-800 block text-sm font-medium mb-1">Protocol</label>
-                            <ff-listbox id="protocol" v-model="form.protocol" :options="protocolOptions" data-select="protocol" />
+                            <ff-listbox id="protocol" v-model="form.protocol" :options="protocolOptions" selector="protocol" />
                         </div>
 
                         <div class="form-row flex flex-col protocolVersion flex-1">
                             <label for="protocolVersion" class="text-gray-800 block text-sm font-medium mb-1">Protocol Version</label>
-                            <ff-listbox id="protocolVersion" v-model="form.protocolVersion" :options="protocolVersionOptions" data-select="protocolVersion" />
+                            <ff-listbox id="protocolVersion" v-model="form.protocolVersion" :options="protocolVersionOptions" selector="protocolVersion" />
                         </div>
                     </div>
 
                     <div class="flex gap-3 md:flex-nowrap flex-wrap">
                         <div class="form-row flex flex-col flex-1 ssl">
                             <label for="ssl" class="text-gray-800 block text-sm font-medium mb-1">SSL</label>
-                            <ff-listbox id="ssl" v-model="form.ssl" :options="booleanOptions" data-select="ssl" />
+                            <ff-listbox id="ssl" v-model="form.ssl" :options="booleanOptions" selector="ssl" />
                         </div>
 
                         <div class="form-row flex flex-col flex-1 verifySSL">
                             <label for="verifySSL" class="text-gray-800 block text-sm font-medium mb-1">Verify SSL</label>
-                            <ff-listbox id="verifySSL" v-model="form.verifySSL" :options="booleanOptions" data-select="verifySSL" />
+                            <ff-listbox id="verifySSL" v-model="form.verifySSL" :options="booleanOptions" selector="verifySSL" />
                         </div>
                     </div>
 
