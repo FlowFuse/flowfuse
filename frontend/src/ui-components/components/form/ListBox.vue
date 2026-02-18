@@ -4,6 +4,7 @@
              :disabled="disabled"
              class="ff-listbox"
              data-el="listbox"
+             :data-select="selector"
              as="section"
              :by="compareOptions"
              :multiple="multiple"
@@ -46,6 +47,7 @@
                         v-if="open"
                         ref="menu-items"
                         data-el="listbox-options"
+                        :data-select="`${selector}-options`"
                         class="fixed w-full overflow-y-auto overflow-x-hidden bg-white py-1 ff-options"
                         :style="{
                             top: position.top + 'px',
@@ -162,6 +164,11 @@ export default {
             required: false,
             default: 200,
             type: [null, Number]
+        },
+        selector: {
+            required: false,
+            default: 'list-box',
+            type: String
         }
     },
     emits: ['update:modelValue', 'option-selected'],
