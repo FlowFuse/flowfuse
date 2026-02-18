@@ -216,7 +216,7 @@ export default {
     background: white;
     flex-shrink: 0; // Prevent input area from shrinking
     position: relative;
-    min-height: 150px;
+    min-height: 180px;
     max-height: 40vh;
 }
 
@@ -297,7 +297,6 @@ button {
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 10vh;
     border: 2px solid #D1D5DB; // border-2 border-gray-300
     border-radius: 0.5rem; // rounded-lg
     transition: border-color 0.2s ease;
