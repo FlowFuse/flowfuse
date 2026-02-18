@@ -37,6 +37,7 @@
                     </ff-button>
                     <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create" data-action="sign-up">Sign Up</ff-button>
                     <ff-button v-if="passwordRequired && settings['user:reset-password']" kind="tertiary" :to="{'name': 'ForgotPassword'}" data-action="forgot-password">Forgot your password?</ff-button>
+                    <ff-button kind="tertiary" href="https://flowfuse.com/get-started/" data-action="get-started">Try it out</ff-button>
                     <template v-if="googleSSOEnabled">
                         <hr class="mb-4">
                         <GoogleLogin class="w-full" :client-id="settings['platform:sso:google:clientId']" popup-type="TOKEN" :callback="ggCallback">
