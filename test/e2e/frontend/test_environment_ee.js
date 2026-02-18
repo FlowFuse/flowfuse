@@ -158,7 +158,7 @@ if (fs.existsSync(configPath)) {
 
     // create a snapshot on DeviceB
     const deviceB = flowforge.applicationDevices.find((device) => device.name === 'application-device-b')
-    await factory.createDeviceSnapshot({ name: 'application-device-b snapshot 1' }, deviceB, userTerry)
+    await factory.createDeviceSnapshot({ name: 'application-device-b snapshot 1', lastSeenAt: Date.now() }, deviceB, userTerry)
 
     rbacTeamFactory(flowforge)
 
