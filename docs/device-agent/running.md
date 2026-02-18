@@ -51,6 +51,7 @@ Options
   -i, --interval secs
   -p, --port number
   -m, --moduleCache     Use local npm module cache rather than install
+  --node-options        Adds NodeJS command line arguments, can be specified multiple times, you must include = between the option and the value
 
 Web UI Options
 
@@ -87,6 +88,12 @@ _Start the agent with a different working directory and the Web UI enabled_
 
 ```bash
 flowfuse-device-agent -d /path/to/working/directory -w --ui-user admin --ui-pass password --ui-port 8081
+```
+
+_Start the agent with a larger NodeJS memory space and using the openssl CA certs_
+
+```bash
+flowfuse-device-agent -d /path/to/working/directory --node-options='--max-old-space-size=1024' --node_options='--use-openssl-ca'
 ```
 
 ## Running behind a HTTP Proxy

@@ -30,6 +30,14 @@ on:
         description: 'flowfuse/nr-tables-nodes branch name'
         required: true
         default: 'main'
+      nr_mqtt_nodes_branch:
+        description: 'flowfuse/nr-mqtt-nodes branch name'
+        required: true
+        default: 'main'
+      nr_subflow_export_branch:
+        description: 'flowfuse/nr-subflow-export branch name'
+        required: true
+        default: 'main'
   pull_request:
     types: 
       - opened
@@ -89,7 +97,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.driver_k8s_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.48.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.49.0'
     with:
       package_name: driver-k8s
       publish_package: true
@@ -106,7 +114,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_project_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.48.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.49.0'
     with:
       package_name: nr-project-nodes
       publish_package: true
@@ -123,7 +131,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_file_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.48.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.49.0'
     with:
       package_name: nr-file-nodes
       publish_package: true
@@ -140,7 +148,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_assistant_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.48.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.49.0'
     with:
       package_name: nr-assistant
       publish_package: true
@@ -157,13 +165,47 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_tables_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.48.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.49.0'
     with:
       package_name: nr-tables-nodes
       publish_package: true
       repository_name: 'FlowFuse/nr-tables-nodes'
       branch_name: ${{ inputs.nr_tables_nodes_branch }}
       release_name: "pre-staging-${{ inputs.nr_tables_nodes_branch }}"
+    secrets:
+      npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+  publish_nr_subflow_export:
+    name: Build and publish nr-subflow-export package
+    needs: validate-user
+    if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
+      github.event_name == 'workflow_dispatch' &&
+      inputs.nr_subflow_export_branch != 'main'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.49.0'
+    with:
+      package_name: nr-subflow-export
+      publish_package: true
+      repository_name: 'FlowFuse/nr-subflow-export'
+      branch_name: ${{ inputs.nr_subflow_export_branch }}
+      release_name: "pre-staging-${{ inputs.nr_subflow_export_branch }}"
+    secrets:
+      npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+  publish_nr_mqtt_nodes:
+    name: Build and publish nr-mqtt-nodes package
+    needs: validate-user
+    if: |
+      needs.validate-user.outputs.is_org_member == 'true' &&
+      github.event_name == 'workflow_dispatch' &&
+      inputs.nr_mqtt_nodes_branch != 'main'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.49.0'
+    with:
+      package_name: nr-mqtt-nodes
+      publish_package: true
+      repository_name: 'FlowFuse/nr-mqtt-nodes'
+      branch_name: ${{ inputs.nr_mqtt_nodes_branch }}
+      release_name: "pre-staging-${{ inputs.nr_mqtt_nodes_branch }}"
     secrets:
       npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
@@ -175,11 +217,19 @@ jobs:
       - publish_nr_file_nodes
       - publish_nr_assistant
       - publish_nr_tables_nodes
+      - publish_nr_mqtt_nodes
+      - publish_nr_subflow_export
     if: |
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
-      (always() && inputs.nr_launcher_branch != 'main') || needs.publish_nr_project_nodes.result == 'success' || needs.publish_nr_file_nodes.result == 'success' || needs.publish_nr_assistant.result == 'success' || needs.publish_nr_tables_nodes.result == 'success'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.48.0'
+      (always() && inputs.nr_launcher_branch != 'main') || 
+      needs.publish_nr_project_nodes.result == 'success' || 
+      needs.publish_nr_file_nodes.result == 'success' || 
+      needs.publish_nr_assistant.result == 'success' || 
+      needs.publish_nr_tables_nodes.result == 'success' || 
+      needs.publish_nr_mqtt_nodes.result == 'success' || 
+      needs.publish_nr_subflow_export.result == 'success'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.49.0'
     with:
       package_name: flowfuse-nr-launcher
       publish_package: true
@@ -191,11 +241,13 @@ jobs:
         @flowfuse/nr-file-nodes=${{ inputs.nr_file_nodes_branch != 'main' && needs.publish_nr_file_nodes.outputs.release_name || 'nightly' }}
         @flowfuse/nr-assistant=${{ inputs.nr_assistant_branch != 'main' && needs.publish_nr_assistant.outputs.release_name || 'nightly' }}
         @flowfuse/nr-tables-nodes=${{ inputs.nr_tables_nodes_branch != 'main' && needs.publish_nr_tables_nodes.outputs.release_name || 'nightly' }}
+        @flowfuse/nr-mqtt-nodes=${{ inputs.nr_mqtt_nodes_branch != 'main' && needs.publish_nr_mqtt_nodes.outputs.release_name || 'nightly' }}
+        @flowfuse/nr-subflow-export=${{ inputs.nr_subflow_export_branch != 'main' && needs.publish_nr_subflow_export.outputs.release_name || 'nightly' }}
     secrets:
       npm_registry_token: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
   build-node-red:
-    name: Build Node-RED 4.0.x container images
+    name: Build Node-RED 4.1.x container images
     needs: 
       - validate-user
       - publish_nr_launcher
@@ -203,11 +255,11 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       (always() && needs.publish_nr_launcher.result == 'success')
-    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.48.0
+    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.49.0
     with:
       image_name: 'node-red'
       dockerfile_path: Dockerfile
-      image_tag_prefix: '4.0.x-'
+      image_tag_prefix: '4.1.x-'
       build_context: './ci/node-red'
       build_arguments: |
         BUILD_TAG=${{ needs.publish_nr_launcher.outputs.release_name }}
@@ -217,7 +269,7 @@ jobs:
       temporary_registry_token: ${{ secrets.GITHUB_TOKEN }}
 
   upload-node-red:
-    name: Publish Node-RED 4.0.x container images
+    name: Publish Node-RED 4.1.x container images
     needs:
       - validate-user 
       - build-node-red
@@ -239,7 +291,7 @@ jobs:
     steps:
       - name: Set variables
         run: | 
-          echo "tagged_image=${{ env.IMAGE_NAME }}:4.0.x-pr-${{ env.PR_NUMBER }}" >> $GITHUB_ENV
+          echo "tagged_image=${{ env.IMAGE_NAME }}:4.1.x-pr-${{ env.PR_NUMBER }}" >> $GITHUB_ENV
           echo "timestamp=$(date +%s)" >> $GITHUB_ENV
 
       - name: Setup Docker buildx
@@ -319,7 +371,7 @@ jobs:
   
       - name: Build container image
         id: build
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
           file: "./ci/Dockerfile"
@@ -495,7 +547,7 @@ jobs:
     steps:
       - name: Create/update stack
         run: |
-          customStackId=$(curl -ks -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/stacks/ | jq -r '.stacks[] | select(.name == "NR-40-Custom") | .id')
+          customStackId=$(curl -ks -XGET -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/stacks/ | jq -r '.stacks[] | select(.name == "NR-41-Custom") | .id')
           if [ -n "$customStackId" ]; then
             echo "Stack already exists, updating..."
             curl -ks -X PUT \
@@ -511,7 +563,7 @@ jobs:
               --fail-with-body \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${{ secrets.INIT_CONFIG_ACCESS_TOKEN }}" \
-              -d '{"name":"'"NR-40-Custom"'","label":"'"4.0.x-custom"'", "projectType":"'"$projectTypeId"'","properties":{ "cpu":'"30"',"memory":'"256"',"container":"'"${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ needs.upload-node-red.outputs.nr_custom_image_tag }}"'"}}' \
+              -d '{"name":"'"NR-41-Custom"'","label":"'"4.1.x-custom"'", "projectType":"'"$projectTypeId"'","properties":{ "cpu":'"30"',"memory":'"256"',"container":"'"${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ needs.upload-node-red.outputs.nr_custom_image_tag }}"'"}}' \
               https://$PR_NUMBER.$FLOWFUSE_DOMAIN/api/v1/stacks/
           fi
   

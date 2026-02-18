@@ -22,6 +22,7 @@
                     :disabled="typeof action.disabled === 'function' ? action.disabled() : action.disabled"
                     :has-left-icon="!!action.iconLeft"
                     v-bind="action.bind"
+                    :title="typeof action.tooltip === 'function' ? action.tooltip() : action.tooltip"
                     @click="action.handler"
                 >
                     <template v-if="!!action.iconLeft" #icon-left>

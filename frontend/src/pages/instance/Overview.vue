@@ -234,34 +234,33 @@ export default {
         }
     },
     watch: {
-        'instance.id': function (old, news) {
-            this.loadLogs()
-            this.getUpdateSchedule(this.instance.id)
+        instance: {
+            handler: function (instance) {
+                if (instance) {
+                    this.loadLogs()
+                    this.getUpdateSchedule(instance.id)
+                }
+            },
+            immediate: true
         }
-    },
-    mounted () {
-        this.loadLogs()
-        this.getUpdateSchedule(this.instance.id)
     },
     methods: {
         openUrl () {
             this.openInANewTab(this.instance.url, `_${this.instance.id}`)
         },
         loadLogs () {
-            if (this.instance && this.instance.id) {
-                this.loading = true
-                this.loadItems(this.instance.id)
-                    .then((data) => {
-                        this.auditLog = data.log
-                    })
-                    .catch((error) => {
-                        console.error('Error loading logs:', error)
-                        this.auditLog = []
-                    })
-                    .finally(() => {
-                        this.loading = false
-                    })
-            }
+            this.loading = true
+            this.loadItems(this.instance.id)
+                .then((data) => {
+                    this.auditLog = data.log
+                })
+                .catch((error) => {
+                    console.error('Error loading logs:', error)
+                    this.auditLog = []
+                })
+                .finally(() => {
+                    this.loading = false
+                })
         },
         loadItems: async function (instanceId, cursor) {
             return await InstanceApi.getInstanceAuditLog(instanceId, null, cursor, 4)
