@@ -359,8 +359,8 @@ const actions = {
      * Requests the debug log entries that are currently visible in the debug sidebar.
      * NOTE: This first clears the current debug log context in state so that incoming entries replace the current context instead of adding to it.
      */
-    requestDebugLogContextVisibleEntries: async ({ dispatch, state }) => {
-        state.debugLog = []
+    requestDebugLogContextVisibleEntries: async ({ dispatch, commit }) => {
+        commit('RESET_DEBUG_LOG_CONTEXT')
         return dispatch('sendMessage', {
             type: 'debug-log-context-get-entries',
             params: { visibleOnly: true, fatal: true, error: true, warn: true, info: true, debug: true, trace: false }
@@ -370,8 +370,8 @@ const actions = {
      * Requests the debug log entries that are currently visible in the debug sidebar, but only errors and fatals.
      * NOTE: This first clears the current debug log context in state so that incoming entries replace the current context instead of adding to it.
      */
-    requestDebugLogContextVisibleErrorEntries: async ({ dispatch, state }) => {
-        state.debugLog = []
+    requestDebugLogContextVisibleErrorEntries: async ({ dispatch, commit }) => {
+        commit('RESET_DEBUG_LOG_CONTEXT')
         return dispatch('sendMessage', {
             type: 'debug-log-context-get-entries',
             params: { visibleOnly: true, fatal: true, error: true, warn: false, info: false, debug: false, trace: false }
