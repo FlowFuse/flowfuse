@@ -1,5 +1,5 @@
 import messagingService from '../../../../services/messaging.service.js'
-const MAX_DEBUG_LOG_ENTRIES = 10 // maximum number of debug log entries to keep
+const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep
 
 const eventsRegistry = {
     'editor:open': {
@@ -52,18 +52,54 @@ const eventsRegistry = {
     }
 }
 
+/**
+ * @typedef {Object} ContextOption
+ * @prop {string} value - the value of the context option, e.g. 'palette'
+ * @prop {string} name - the name of the context option, e.g. 'Palette' - this is what is shown in the selected context chip
+ * @prop {string} label - the label of the context option, e.g. 'Add Palette to context' - this is what is shown in the dropdown menu when selecting context options
+ * @prop {string} menuIcon - the name of the icon to show in the dropdown menu when selecting context options, e.g. 'CubeIcon'
+ * @prop {boolean|undefined} [showAsChip] - whether to show this context option as a chip when selected. Defaults to true. If false, the context option will not be shown as a chip when selected, but will still be included in the context list as an option.
+ * @prop {string|undefined} [onSelectAction] - an optional action to invoke when this context option is selected.
+ */
+
+// Flags that can be used in the assistant to indicate support for features this side in the expert.
+// This will prevent the assistant from offering options that aren't supported
+// e.g. inhibit showing the "Add debug to context" buttons
+// NOTE: Some flags may not be used (since they have no visible effect on NR)
+// NOTE: These flags may one day be set based on user level or team settings, but for now we will just set them to true since we support all features in the expert.
+const supportedFeatures = {
+    debugLogContext: { enabled: true }, // allows the expert to include debug log entries in the expert context
+    flowImport: { enabled: true }, // flag to let assistant know flows can be offered to import onto the workspace
+    flowSelection: { enabled: true }, // allows user to select nodes on workspace and have that selection sent to the expert context
+    paletteManagement: { enabled: true } // allows the expert to send commands to show the palette manager
+}
+
+/**
+ * @type {Array<ContextOption>} ALL_CONTEXT_OPTIONS - a list of all available context options. This is used to populate the dropdown menu when selecting context options in the chat ui.
+ */
 const ALL_CONTEXT_OPTIONS = [
     {
         value: 'palette',
         name: 'Palette',
-        title: 'Include installed palette nodes in context',
-        menuIcon: 'CubeIcon'
+        label: 'Add Palette to context',
+        menuIcon: 'CubeIcon',
+        showAsChip: true
     },
     {
-        value: 'debug',
-        name: 'Debug',
-        title: 'Include debug messages logs in context (last 10 messages)',
-        menuIcon: 'ViewListIcon'
+        value: 'visible-debug-logs',
+        name: 'Debug Logs',
+        label: 'Add Debug Logs (all visible)',
+        menuIcon: 'ViewListIcon',
+        showAsChip: false,
+        onSelectAction: 'requestDebugLogContextVisibleEntries'
+    },
+    {
+        value: 'visible-debug-errors',
+        name: 'Error Logs',
+        label: 'Add Debug Logs (errors only)',
+        menuIcon: 'ViewListIcon',
+        showAsChip: false,
+        onSelectAction: 'requestDebugLogContextVisibleErrorEntries'
     }
 ]
 
@@ -87,7 +123,7 @@ const initialState = () => {
         },
         nodeRedVersion: null,
         selectedNodes: [],
-        selectedContext: [...ALL_CONTEXT_OPTIONS],
+        selectedContext: [...ALL_CONTEXT_OPTIONS].filter(option => !option.onSelectAction), // don't add items with onSelectAction (they are handled differently)
         debugLog: [],
         editorState: { ...initialEditorState }
     }
@@ -112,19 +148,27 @@ const getters = {
     hasContextSelection: (state) => {
         return state.selectedContext.length
     },
+    hasDebugLogsSelected: (state, getters) => {
+        return getters.debugLog?.length > 0
+    },
     isFeaturePaletteEnabled: (state) => {
-        return state.assistantFeatures.commands?.['get-palette']?.enabled ?? false
+        return (state.assistantFeatures.commands?.['get-palette']?.enabled && supportedFeatures.paletteManagement?.enabled) ?? false
     },
-    isFeatureDebugLogEnabled: (state) => {
-        return state.assistantFeatures.debugLog?.enabled ?? false
+    isFeatureDebugLogContextEnabled: (state) => {
+        return (state.assistantFeatures.debugLogContext?.enabled && supportedFeatures.debugLogContext?.enabled) ?? false
     },
+    /**
+     * Returns the list of context options that are currently available based on the assistant features, filtering out
+     * options that are not available. This is used to populate the dropdown menu when selecting context options in the chat ui.
+     */
     availableContextOptions: (state, getters) => {
         const options = ALL_CONTEXT_OPTIONS.filter(option => {
-            if (option.value === 'debug' && getters.isFeatureDebugLogEnabled === false) {
-                return false
-            }
-            if (option.value === 'palette' && getters.isFeaturePaletteEnabled === false) {
-                return false
+            switch (true) {
+            case option.value === 'visible-debug-logs':
+            case option.value === 'visible-debug-errors':
+                return getters.isFeatureDebugLogContextEnabled
+            case option.value === 'palette':
+                return getters.isFeaturePaletteEnabled
             }
             return true
         })
@@ -146,7 +190,7 @@ const getters = {
         return palette
     },
     debugLog: (state, getters) => {
-        if (getters.isFeatureDebugLogEnabled === false) {
+        if (getters.isFeatureDebugLogContextEnabled === false) {
             return null
         }
         return state.debugLog || []
@@ -184,21 +228,44 @@ const mutations = {
     SET_SELECTED_CONTEXT (state, context) {
         state.selectedContext = context || []
     },
-    ADD_DEBUG_LOG_ENTRY (state, entry) {
-        if (!entry) {
+    ADD_DEBUG_LOG_CONTEXT (state, debugLog) {
+        if (!debugLog) {
             return
         }
-        const entries = (Array.isArray(entry) ? entry : [entry]).filter(Boolean)
+        const entries = (Array.isArray(debugLog) ? debugLog : [debugLog]).filter(Boolean)
         if (entries.length === 0) {
             return
         }
-        // if the new len + existing len > max, trim the oldest entries
-        const totalEntries = state.debugLog.length + entries.length
-        if (totalEntries > MAX_DEBUG_LOG_ENTRIES) {
-            const excess = totalEntries - MAX_DEBUG_LOG_ENTRIES
-            state.debugLog.splice(0, excess)
+
+        // so long as the uuid of the entry is not already present, add it.
+        entries.forEach(e => {
+            if (!state.debugLog.some(logEntry => logEntry.uuid === e.uuid)) {
+                state.debugLog.push(e) // push will add to the end of the array, which is the most recent entries at the end
+            }
+        })
+        // remove any excess entries beyond the max, keeping the most recent ones
+        if (state.debugLog.length > MAX_DEBUG_LOG_ENTRIES) {
+            state.debugLog.splice(0, state.debugLog.length - MAX_DEBUG_LOG_ENTRIES) // splice will remove the oldest entries at the start of the array
         }
-        state.debugLog.push(...entries)
+    },
+    REMOVE_DEBUG_LOG_CONTEXT (state, debugLog) {
+        if (!debugLog) {
+            return
+        }
+        const entries = (Array.isArray(debugLog) ? debugLog : [debugLog]).filter(Boolean)
+        if (entries.length === 0) {
+            return
+        }
+        // for each entry, get the uuid and find the matching log entry & remove it
+        entries.forEach(e => {
+            const index = state.debugLog.findIndex(logEntry => logEntry.uuid === e.uuid)
+            if (index !== -1) {
+                state.debugLog.splice(index, 1)
+            }
+        })
+    },
+    RESET_DEBUG_LOG_CONTEXT (state) {
+        state.debugLog = []
     },
     SET_FEATURES (state, features) {
         state.assistantFeatures = features
@@ -242,7 +309,8 @@ const actions = {
             dispatch('requestSupportedActions')
             dispatch('requestSelectedNodes')
             dispatch('registerEventListeners')
-            return await dispatch('requestPalette')
+            dispatch('requestPalette')
+            return await dispatch('confirmExpertReady')
         case typeof eventsRegistry[payload.data.type] === 'object':
             return dispatch('setRegisteredEventProperty', {
                 registeredEvent: eventsRegistry[payload.data.type],
@@ -258,11 +326,56 @@ const actions = {
             return dispatch('setFeatures', payload.data.features)
         case payload.data.type === 'set-selection':
             return dispatch('setSelectedNodes', payload.data.selection)
-        case payload.data.type === 'debug-log-entry':
-            return dispatch('addDebugLogEntry', payload.data.entry)
+        // case payload.data.type === 'debug-log-entry':
+        case payload.data.type === 'debug-log-context-add':
+            return dispatch('addDebugLogContext', payload.data.debugLog)
+        case payload.data.type === 'debug-log-context-remove':
+            return dispatch('removeDebugLogContext', payload.data.debugLog)
+        case payload.data.type === 'debug-log-context-clear':
+            return dispatch('resetDebugLogContext')
         default:
             // do nothing
         }
+    },
+    confirmExpertReady: async ({ getters, dispatch }) => {
+        return dispatch('sendMessage', {
+            type: 'expert-ready',
+            params: { supportedFeatures }
+        })
+    },
+    /**
+     * Sends the list of registered debug log entries to the assistant, to sync
+     * the state of debug log context between Node-RED and the expert.
+     */
+    sendDebugLogRegister: async ({ dispatch, state }) => {
+        // get a list of uuids from state.debugLog and send them to assistant
+        const register = state.debugLog.map(entry => entry.uuid)
+        return dispatch('sendMessage', {
+            type: 'debug-log-context-registered',
+            params: { register }
+        })
+    },
+    /**
+     * Requests the debug log entries that are currently visible in the debug sidebar.
+     * NOTE: This first clears the current debug log context in state so that incoming entries replace the current context instead of adding to it.
+     */
+    requestDebugLogContextVisibleEntries: async ({ dispatch, commit }) => {
+        commit('RESET_DEBUG_LOG_CONTEXT')
+        return dispatch('sendMessage', {
+            type: 'debug-log-context-get-entries',
+            params: { visibleOnly: true, fatal: true, error: true, warn: true, info: true, debug: true, trace: false }
+        })
+    },
+    /**
+     * Requests the debug log entries that are currently visible in the debug sidebar, but only errors and fatals.
+     * NOTE: This first clears the current debug log context in state so that incoming entries replace the current context instead of adding to it.
+     */
+    requestDebugLogContextVisibleErrorEntries: async ({ dispatch, commit }) => {
+        commit('RESET_DEBUG_LOG_CONTEXT')
+        return dispatch('sendMessage', {
+            type: 'debug-log-context-get-entries',
+            params: { visibleOnly: true, fatal: true, error: true, warn: false, info: false, debug: false, trace: false }
+        })
     },
     requestVersion: async ({ dispatch }) => {
         return dispatch('sendMessage', 'get-assistant-version')
@@ -303,8 +416,17 @@ const actions = {
     setSelectedContext: async ({ commit }, context) => {
         commit('SET_SELECTED_CONTEXT', context)
     },
-    addDebugLogEntry: async ({ commit }, entry) => {
-        commit('ADD_DEBUG_LOG_ENTRY', entry)
+    addDebugLogContext: async ({ commit, dispatch }, debugLog) => {
+        commit('ADD_DEBUG_LOG_CONTEXT', debugLog)
+        dispatch('sendDebugLogRegister') // sync node-red state with expert state after adding new entries
+    },
+    removeDebugLogContext: async ({ commit, dispatch }, debugLog) => {
+        commit('REMOVE_DEBUG_LOG_CONTEXT', debugLog)
+        dispatch('sendDebugLogRegister') // sync node-red state with expert state after removing entries
+    },
+    resetDebugLogContext: async ({ commit, dispatch }) => {
+        commit('RESET_DEBUG_LOG_CONTEXT')
+        dispatch('sendDebugLogRegister') // sync node-red state with expert state after clearing entries
     },
     reset: ({ commit }) => {
         commit('RESET')

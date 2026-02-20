@@ -60,16 +60,12 @@ const getters = {
         if (rootState.product.assistant.selectedContext?.some(e => e.value === 'palette')) {
             palette = rootGetters['product/assistant/paletteContribOnly']
         }
-        let debugLog = null
-        if (rootState.product.assistant.selectedContext?.some(e => e.value === 'debug')) {
-            debugLog = rootGetters['product/assistant/debugLog']
-        }
 
         return {
             assistantVersion: rootState.product.assistant.version,
             assistantFeatures: rootState.product.assistant.assistantFeatures,
             palette,
-            debugLog,
+            debugLog: rootGetters['product/assistant/debugLog'],
             userId: rootState.account?.user?.id || null,
             teamId: rootState.account?.team?.id || null,
             teamSlug: rootState.account?.team?.slug || null,
