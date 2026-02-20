@@ -129,7 +129,8 @@ export default {
             startPolling,
             stopPolling,
             resumePolling,
-            pausePolling
+            pausePolling,
+            getDeviceEditorProxy
         } = useDeviceHelper()
 
         return {
@@ -157,7 +158,8 @@ export default {
             stopPolling,
             resumePolling,
             pausePolling,
-            showDeleteDeviceDialog
+            showDeleteDeviceDialog,
+            getDeviceEditorProxy
         }
     },
     computed: {
@@ -312,7 +314,25 @@ export default {
     methods: {
         ...mapActions('context', { setContextDevice: 'setDevice' }),
         loadDevice: async function () {
-            await this.fetchDevice(this.$route.params.id)
+            let tries = 0
+            let device = await this.fetchDevice(this.$route.params.id, false)
+
+            while (tries <= 5) {
+                try {
+                    await this.getDeviceEditorProxy(device)
+                    break
+                } catch (e) {
+                    if (e?.response?.status === 502) {
+                        tries += 1
+                        device = await this.fetchDevice(this.$route.params.id, false)
+                        continue
+                    }
+
+                    break
+                }
+            }
+
+            this.device = device
             await this.$store.dispatch('account/setTeam', this.device.team.slug)
         },
         showConfirmDeleteDialog () {
