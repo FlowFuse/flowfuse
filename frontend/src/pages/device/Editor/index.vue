@@ -324,6 +324,10 @@ export default {
                 } catch (e) {
                     if (e?.response?.status === 502) {
                         tries += 1
+
+                        // 1s interval timeout between tries
+                        await new Promise(resolve => setTimeout(resolve, 1000))
+
                         device = await this.fetchDevice(this.$route.params.id, false)
                         continue
                     }
