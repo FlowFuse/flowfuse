@@ -317,6 +317,9 @@ export default {
             let tries = 0
             let device = await this.fetchDevice(this.$route.params.id, false)
 
+            // When running multiple replicas of the forge app, the affinity token may be missing if the request is routed to a
+            // backend endpoint that didn't initiate the tunnel. If we receive a 502 from the device editor proxy,
+            // we retry the editor API call until the correct affinity token is acquired (200/302).
             while (tries <= 5) {
                 try {
                     await this.getDeviceEditorProxy(device)
