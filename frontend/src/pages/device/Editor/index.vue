@@ -129,7 +129,8 @@ export default {
             startPolling,
             stopPolling,
             resumePolling,
-            pausePolling
+            pausePolling,
+            getDeviceEditorProxy
         } = useDeviceHelper()
 
         return {
@@ -157,7 +158,8 @@ export default {
             stopPolling,
             resumePolling,
             pausePolling,
-            showDeleteDeviceDialog
+            showDeleteDeviceDialog,
+            getDeviceEditorProxy
         }
     },
     computed: {
@@ -312,7 +314,32 @@ export default {
     methods: {
         ...mapActions('context', { setContextDevice: 'setDevice' }),
         loadDevice: async function () {
-            await this.fetchDevice(this.$route.params.id)
+            let tries = 0
+            let device = await this.fetchDevice(this.$route.params.id, false)
+
+            // When running multiple replicas of the forge app, the affinity token may be missing if the request is routed to a
+            // backend endpoint that didn't initiate the tunnel. If we receive a 502 from the device editor proxy,
+            // we retry the editor API call until the correct affinity token is acquired (200/302).
+            while (tries <= 5) {
+                try {
+                    await this.getDeviceEditorProxy(device)
+                    break
+                } catch (e) {
+                    if (e?.response?.status === 502) {
+                        tries += 1
+
+                        // 1s interval timeout between tries
+                        await new Promise(resolve => setTimeout(resolve, 1000))
+
+                        device = await this.fetchDevice(this.$route.params.id, false)
+                        continue
+                    }
+
+                    break
+                }
+            }
+
+            this.device = device
             await this.$store.dispatch('account/setTeam', this.device.team.slug)
         },
         showConfirmDeleteDialog () {
