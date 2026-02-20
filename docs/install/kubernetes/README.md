@@ -51,6 +51,18 @@ meta:
     customElements.define('checklist-item', ChecklistItem);
  </script>
 
+ - [AWS EKS](aws_terraform.md)
+ - [Digital Ocean](digital-ocean.md)
+ - MicroK8s
+ - [Azure AKS](azure.md)
+
+ It should run on any Kubernetes platform, but may require some changes for vendor specific Ingress setup.
+
+ By default the Helm chart assumes that the Kubernetes cluster has at least 2 nodes:
+
+ - One used to run the FlowFuse management infrastructure
+ - One or more used to run the Node-RED Project instances
+
 # Kubernetes Install
 
 This guide walks you through detailed set up of FlowFuse Platform on a container envoronment managed by Kubernetes. Typically suited for large on premise deployments or deployment in Cloud infrastructure.
