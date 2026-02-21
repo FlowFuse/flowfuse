@@ -69,8 +69,7 @@ echo "  Backend: $backend_changed"
 echo "  postgres: $postgres_changed"
 echo "  UI: $ui_changed"
 
-# echo "backend_changed=$backend_changed" >> $GITHUB_OUTPUT
-echo "backend_changed=false" >> $GITHUB_OUTPUT
+echo "backend_changed=$backend_changed" >> $GITHUB_OUTPUT
 echo "postgres_changed=$postgres_changed" >> $GITHUB_OUTPUT
 echo "ui_changed=$ui_changed" >> $GITHUB_OUTPUT
 
