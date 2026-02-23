@@ -118,9 +118,15 @@ export function useDeviceHelper () {
         if (shouldStartPolling) { startPolling() }
     }
 
-    async function fetchDevice (deviceId = null) {
+    async function fetchDevice (deviceId = null, shouldSetDevice = true) {
         try {
-            device.value = await deviceApi.getDevice(deviceId || device.value?.id)
+            const response = await deviceApi.getDevice(deviceId || device.value?.id)
+
+            if (shouldSetDevice) {
+                device.value = response
+            }
+
+            return response
         } catch (err) {
             if (err.status === 403) {
                 stopPolling()
@@ -149,6 +155,14 @@ export function useDeviceHelper () {
         })
     }
 
+    async function getDeviceEditorProxy (device) {
+        if (device.editor.url) {
+            return deviceApi.getDeviceEditorProxy(device.editor.url)
+        }
+
+        return Promise.reject(Error('editor url unavailable'))
+    }
+
     return {
         agentSupportsDeviceAccess,
         agentSupportsActions,
@@ -162,6 +176,7 @@ export function useDeviceHelper () {
         resumePolling,
         restartDevice,
         fetchDevice,
-        showDeleteDialog
+        showDeleteDialog,
+        getDeviceEditorProxy
     }
 }
