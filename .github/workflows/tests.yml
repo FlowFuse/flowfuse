@@ -199,9 +199,45 @@ jobs:
             test/e2e/frontend/cypress/screenshots
             test/e2e/frontend/cypress/videos
 
+  ### We use this job to gather results from all test jobs and determine the final status of the tests execution.
+  ### Jobs executed with the matrix strategy have dynamic names and cannot be referenced in the status checks of the pull request.
+  tests-summary:
+    name: Tests summary
+    if: ${{ always() }}
+    needs:
+      - check-changes
+      - backend-tests
+      - postgres-tests
+      - ui-unit-tests
+      - ui-os-tests
+      - ui-ee-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate test job results
+        run: |
+          results=(
+            '${{ needs.backend-tests.result }}'
+            '${{ needs.postgres-tests.result }}'
+            '${{ needs.ui-unit-tests.result }}'
+            '${{ needs.ui-os-tests.result }}'
+            '${{ needs.ui-ee-tests.result }}'
+          )
+
+          echo 'Test job results:'
+          printf '%s\n' "${results[@]}"
+
+          for result in "${results[@]}"; do
+            if [ "$result" = 'failure' ] || [ "$result" = 'cancelled' ]; then
+              echo 'One or more test jobs failed or were cancelled'
+              exit 1
+            fi
+          done
+
+          echo 'All test jobs succeeded or were skipped'
+
   notify-slack:
     name: Notify on failure
-    needs: [backend-tests, postgres-tests, ui-os-tests, ui-ee-tests]
+    needs: tests-summary
     if: failure()
     runs-on: ubuntu-latest
 
