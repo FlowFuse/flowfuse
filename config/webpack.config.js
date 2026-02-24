@@ -18,7 +18,7 @@ function getPath (file) {
 module.exports = function (env, argv) {
     const devMode = argv?.mode === 'development'
     const config = {
-        devtool: process.env.mode === 'production' ? 'hidden-source-map' : 'source-map',
+        devtool: devMode ? 'source-map' : 'hidden-source-map',
         entry: {
             main: getPath('frontend/src/main.js'),
             setup: getPath('frontend/src/setup.js')
@@ -142,7 +142,7 @@ module.exports = function (env, argv) {
             new DotenvPlugin(),
             new DefinePlugin({
                 __VUE_OPTIONS_API__: true,
-                __VUE_PROD_DEVTOOLS__: argv?.mode === 'development'
+                __VUE_PROD_DEVTOOLS__: devMode
             })
         ],
         optimization: {
