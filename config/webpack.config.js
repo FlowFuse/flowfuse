@@ -48,7 +48,7 @@ module.exports = function (env, argv) {
                     include: getPath('frontend/src'),
                     use: [
                         {
-                            loader: MiniCssExtractPlugin.loader,
+                            loader: devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
                             options: {}
                         },
                         {
