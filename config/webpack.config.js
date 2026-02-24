@@ -16,6 +16,7 @@ function getPath (file) {
 }
 
 module.exports = function (env, argv) {
+    const devMode = argv?.mode === 'development'
     const config = {
         devtool: process.env.mode === 'production' ? 'hidden-source-map' : 'source-map',
         entry: {
@@ -79,7 +80,7 @@ module.exports = function (env, argv) {
                 }, {
                     test: /\.scss$/,
                     use: [
-                        'style-loader',
+                        devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
                         {
                             loader: 'css-loader',
                             options: { import: true, url: true }
