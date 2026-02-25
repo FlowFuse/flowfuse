@@ -12,7 +12,12 @@ meta:
 
 # Kubernetes Install
 
-Any deployment on Kubernetes is going to be specific to the environment and requirements of the solution. The following are examples that can be adopted to fit specific needs.
+Any deployment on Kubernetes is going to be specific to the environment and requirements of the solution. The following examples show two common patterns for running the FlowFuse Device Agent on Kubernetes:
+
+- Fixed configuration using a static `device.yml`
+- Automatic provisioning using a FlowFuse Provisioning Token
+
+Choose the approach that matches how you manage device lifecycle and credentials.
 
 ## Fixed Configuration
 
@@ -22,7 +27,7 @@ If you have an existing `device.yml` file containing a set of Device Agent crede
 kubectl create secret generic device-one-secret --from-file=device.yml=./device.yml
 ```
 
-The following manifest will create a Deployment and Service for a device using the supplied Secret as it's credentials
+The following manifest will create a Deployment and Service for a device using the supplied Secret as its credentials
 
 ```yaml
 apiVersion: apps/v1
