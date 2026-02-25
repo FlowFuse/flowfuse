@@ -1,7 +1,7 @@
 ---
 navGroup: DeviceAgentInstallation
 navTitle: Docker Install
-navOrder: 4
+navOrder: 3
 meta:
    description: Run the FlowFuse Device Agent with Docker or Docker Compose, including configuration binding, ports, time zone, and verification steps.
    tags:

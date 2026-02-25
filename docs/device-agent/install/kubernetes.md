@@ -1,7 +1,7 @@
 ---
 navGroup: DeviceAgentInstallation
 navTitle: Kubernetes Install
-navOrder: 5
+navOrder: 4
 meta:
   description: Run the FlowFuse Device Agent in a Kubernetes cluster
   tags:
