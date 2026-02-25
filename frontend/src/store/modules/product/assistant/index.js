@@ -49,6 +49,13 @@ const eventsRegistry = {
         propertyBag: 'editorState',
         propertyName: 'typeSearchOpen',
         propertyValue: false
+    },
+    'registry:updates-available': {
+        nodeRedEvent: 'registry:updates-available',
+        propertyBag: 'editorState',
+        propertyName: 'updatesAvailable',
+        propertyValue: null,
+        useEventData: true // use event data to set this property
     }
 }
 
@@ -206,15 +213,20 @@ const mutations = {
     SET_NODE_RED_VERSION (state, version) {
         state.nodeRedVersion = version
     },
-    SET_REGISTERED_EVENT_PROPERTY (state, { registeredEvent, data }) {
+    SET_REGISTERED_EVENT_PROPERTY (state, { registeredEvent, eventData }) {
         const propertyBag = registeredEvent.propertyBag
         if (!propertyBag || !Object.prototype.hasOwnProperty.call(state, propertyBag)) {
             return
         }
         const propertyName = registeredEvent.propertyName
-        const propertyValue = registeredEvent.propertyValue || false
         if (!propertyName) {
             return
+        }
+        let propertyValue
+        if (registeredEvent.useEventData === true) {
+            propertyValue = eventData
+        } else {
+            propertyValue = registeredEvent.propertyValue
         }
         state[propertyBag][propertyName] = propertyValue
     },
@@ -239,6 +251,10 @@ const actions = {
             commit('SET_PALETTE', payload.data.palette)
             commit('SET_FEATURES', payload.data.features)
             commit('SET_NODE_RED_VERSION', payload.data.nodeRedVersion)
+            commit('SET_REGISTERED_EVENT_PROPERTY', {
+                registeredEvent: eventsRegistry['registry:updates-available'],
+                eventData: payload.data.nodeRedUpdatesAvailable
+            })
             dispatch('requestSupportedActions')
             dispatch('requestSelectedNodes')
             dispatch('registerEventListeners')
@@ -246,7 +262,7 @@ const actions = {
         case typeof eventsRegistry[payload.data.type] === 'object':
             return dispatch('setRegisteredEventProperty', {
                 registeredEvent: eventsRegistry[payload.data.type],
-                data: payload.data
+                eventData: payload.data.eventData
             })
         case payload.data.type === 'get-assistant-version':
             return dispatch('setVersion', payload.data.version)
@@ -282,8 +298,8 @@ const actions = {
             params: eventsRegistry
         })
     },
-    setRegisteredEventProperty: ({ commit }, { registeredEvent, data }) => {
-        commit('SET_REGISTERED_EVENT_PROPERTY', { registeredEvent, data })
+    setRegisteredEventProperty: ({ commit }, { registeredEvent, eventData }) => {
+        commit('SET_REGISTERED_EVENT_PROPERTY', { registeredEvent, eventData })
     },
     setVersion: ({ commit }, version) => {
         commit('SET_VERSION', version)
