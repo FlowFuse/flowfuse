@@ -44,7 +44,7 @@ spec:
     spec:
       containers:
       - name: device-one
-        image: flowfuse/device-agent:v3.8.2
+        image: flowfuse/device-agent:latest
         ports:
         - containerPort: 1880
         volumeMounts:
@@ -113,7 +113,7 @@ spec:
     spec:
       initContainers:
       - name: config-copy
-        image: busybox:1.28
+        image: busybox:latest
         command: 
         - "/bin/sh"
         - "-c"
@@ -127,7 +127,7 @@ spec:
           readOnly: true
       containers:
       - name: device-one
-        image: flowfuse/device-agent:v3.8.2
+        image: flowfuse/device-agent:latest
         ports:
         - containerPort: 1880
         volumeMounts:
