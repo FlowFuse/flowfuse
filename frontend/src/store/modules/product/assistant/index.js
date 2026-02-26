@@ -152,11 +152,11 @@ const getters = {
         return getters.debugLog?.length > 0
     },
     isFeaturePaletteEnabled: (state) => {
-        return (state.assistantFeatures.commands?.['get-palette']?.enabled && supportedFeatures.paletteManagement?.enabled) ?? false
+        return (state.assistantFeatures?.commands?.['get-palette']?.enabled && supportedFeatures.paletteManagement?.enabled) ?? false
     },
     isFeatureDebugLogContextEnabled: (state) => {
-        return (state.assistantFeatures.debugLogContext?.enabled && supportedFeatures.debugLogContext?.enabled) ?? false
-    },
+        return (state.assistantFeatures?.debugLogContext?.enabled && supportedFeatures.debugLogContext?.enabled) ?? false
+    }
     /**
      * Returns the list of context options that are currently available based on the assistant features, filtering out
      * options that are not available. This is used to populate the dropdown menu when selecting context options in the chat ui.
