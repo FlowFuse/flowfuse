@@ -585,8 +585,6 @@ export default {
         border-radius: 0;
         padding: 0.5rem 1rem;
         border-top: 1px solid #E5E7EB;
-        background-color: $ff-blue-100;
-        color: $ff-grey-700;
 
         .expert-update-header {
             font-weight: 600;
@@ -596,7 +594,7 @@ export default {
             overflow: hidden;
             visibility: hidden;
             transition: max-height 0.6s ease-in-out, visibility 0.6s ease-in-out;
-            transition-delay: 250ms; // avoid showing immediately (reduce false expansion on mousing around the chat)
+            transition-delay: 250ms; // avoid showing immediately (minimise false expansion on mousing around the chat)
         }
 
         .banner-badge {
