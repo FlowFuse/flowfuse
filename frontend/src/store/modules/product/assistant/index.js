@@ -120,10 +120,10 @@ const getters = {
         return state.selectedContext.length
     },
     isFeaturePaletteEnabled: (state) => {
-        return state.assistantFeatures.commands?.['get-palette']?.enabled ?? false
+        return state.assistantFeatures?.commands?.['get-palette']?.enabled ?? false
     },
     isFeatureDebugLogEnabled: (state) => {
-        return state.assistantFeatures.debugLog?.enabled ?? false
+        return state.assistantFeatures?.debugLog?.enabled ?? false
     },
     availableContextOptions: (state, getters) => {
         const options = ALL_CONTEXT_OPTIONS.filter(option => {
