@@ -484,13 +484,13 @@ export default {
 }
 
 .info-banner {
-    background-color: $ff-indigo-100;
+    background-color: #e0e7ff; // indigo-100
     border-radius: 0.5rem;
     margin-bottom: 1.5rem;
     padding: 0.75rem 1rem;
 
     .info-text {
-        color: $ff-indigo-700;
+        color: #4338ca; // indigo-700
         font-size: 0.875rem;
         margin: 0;
         line-height: 1.5;
@@ -501,13 +501,13 @@ export default {
         text-decoration: underline;
 
         &:hover {
-            color: $ff-indigo-800;
+            color: #3730a3; // indigo-800
         }
     }
 
     .banner-badge {
         display: inline-block;
-        background-color: $ff-indigo-400;
+        background-color: #818cf8; // indigo-400
         color: white;
         font-size: 0.625rem;
         font-weight: 600;
