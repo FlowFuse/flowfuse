@@ -178,7 +178,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('product/assistant', ['palette', 'editorState']),
+        ...mapState('product/assistant', ['palette', 'editorState', 'version', 'nodeRedVersion']),
         ...mapState('product/expert', [
             'isGenerating',
             'autoScrollEnabled',
@@ -237,13 +237,14 @@ export default {
             return this.editorState?.updatesAvailable?.core
         },
         assistantState () {
+            const loaded = this.version || this.nodeRedVersion // version and nodeRedVersion are set by a message from assistant so we know assistant is loaded when they are set
             const assistantInfoAvailable = !!this.assistantPackage
             const { installed, enabled } = this.assistantPackage || { installed: false, enabled: false }
             const installedVersion = this.assistantPackage?.version
             const isNewerAvailable = !!this.assistantUpdate.latest
 
             const state = {
-                show: assistantInfoAvailable && (!installed || !enabled || isNewerAvailable),
+                show: loaded && assistantInfoAvailable && (!installed || !enabled || isNewerAvailable),
                 statusClass: '',
                 expectedVersion: this.assistantUpdate.latest || minAssistantVersion,
                 installedVersion,
@@ -255,7 +256,7 @@ export default {
                 buttonText: '',
                 buttonAction: null
             }
-            if (!assistantInfoAvailable) {
+            if (!assistantInfoAvailable || !loaded) {
                 state.statusClass = ''
                 state.show = false
             } else if (!installed) {
