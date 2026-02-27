@@ -136,6 +136,7 @@
 </template>
 
 <script>
+import SemVer from 'semver'
 import { markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
@@ -148,7 +149,8 @@ import ExpertRichGuide from './ExpertRichGuide.vue'
 import ExpertRichResources from './ExpertRichResources.vue'
 import ExpertToolCall from './ExpertToolCall.vue'
 
-const minAssistantVersion = '0.11.0' // Minimum version of assistant package that supports update available detection
+const assistantVerWithAvailableUpdatesSupport = '0.11.0' // Minimum version of assistant package that supports update available detection
+const nrVerWithAvailableUpdatesSupport = '4.1.6' // Minimum Node-RED version that provides available updates to editorState
 
 export default {
     name: 'ExpertPanel',
@@ -174,11 +176,12 @@ export default {
                 guide: markRaw(ExpertRichGuide),
                 resources: markRaw(ExpertRichResources),
                 tool_calls: markRaw(ExpertToolCall)
-            }
+            },
+            allowUpdateBanner: false // delay showing for a few seconds to avoid showing during initial load
         }
     },
     computed: {
-        ...mapState('product/assistant', ['palette', 'editorState', 'version', 'nodeRedVersion']),
+        ...mapState('product/assistant', ['palette', 'editorState', 'version', 'nodeRedVersion', 'supportedActions']),
         ...mapState('product/expert', [
             'isGenerating',
             'autoScrollEnabled',
@@ -218,35 +221,45 @@ export default {
                 { title: 'Insights', value: 'operator-agent' }
             ]
         },
+        assistantLoaded () {
+            // If one of version, nodeRedVersion or palette are present, we know it is loaded
+            return !!(this.version || this.nodeRedVersion || this.palette)
+        },
         assistantPackage () {
-            if (!this.palette) {
+            if (!this.palette || Object.keys(this.palette).length === 0) {
                 return null // Palette not loaded yet
             }
             if (!this.palette?.['@flowfuse/nr-assistant']) {
                 return { installed: false }
             }
-            return {
-                installed: true,
-                ...this.palette['@flowfuse/nr-assistant']
+            return { installed: true, ...this.palette['@flowfuse/nr-assistant'] }
+        },
+        availableUpdate () {
+            if (Array.isArray(this.editorState?.updatesAvailable?.palette)) {
+                return this.editorState?.updatesAvailable?.palette?.find(update => update.package === '@flowfuse/nr-assistant')
             }
-        },
-        assistantUpdate () {
-            return this.editorState?.updatesAvailable?.palette?.find(update => update.package === '@flowfuse/nr-assistant') || {}
-        },
-        coreUpdate () {
-            return this.editorState?.updatesAvailable?.core
+            return null
         },
         assistantState () {
-            const loaded = this.version || this.nodeRedVersion // version and nodeRedVersion are set by a message from assistant so we know assistant is loaded when they are set
-            const assistantInfoAvailable = !!this.assistantPackage
-            const { installed, enabled } = this.assistantPackage || { installed: false, enabled: false }
-            const installedVersion = this.assistantPackage?.version
-            const isNewerAvailable = !!this.assistantUpdate.latest
+            if (!this.allowUpdateBanner) {
+                return { show: false }
+            }
+
+            const enabled = this.assistantPackage?.enabled !== false
+            const installed = this.assistantPackage?.installed ?? this.assistantLoaded // default to installed if loaded.
+            const installedVersion = (installed ? this.assistantPackage?.version : '') || this.version || '0.0.0'
+            const nrSupportsUpdateInfo = SemVer.gte(this.nodeRedVersion || '0.0.0', nrVerWithAvailableUpdatesSupport)
+            const nrAvailableUpdatesSupported = nrSupportsUpdateInfo && !!this.availableUpdate
+            let isUpdateAvailable = !!this.availableUpdate?.latest // presence alone indicates and update is available!
+            if (this.assistantLoaded && !nrAvailableUpdatesSupported) {
+                // If we don't have explicit Available Updates data from NR, we can still against min supported version!
+                isUpdateAvailable = SemVer.lt(installedVersion, assistantVerWithAvailableUpdatesSupport)
+            }
 
             const state = {
-                show: loaded && assistantInfoAvailable && (!installed || !enabled || isNewerAvailable),
+                show: (!installed || !enabled || isUpdateAvailable),
                 statusClass: '',
-                expectedVersion: this.assistantUpdate.latest || minAssistantVersion,
+                expectedVersion: this.availableUpdate?.latest || assistantVerWithAvailableUpdatesSupport,
                 installedVersion,
                 installed,
                 enabled,
@@ -256,10 +269,7 @@ export default {
                 buttonText: '',
                 buttonAction: null
             }
-            if (!assistantInfoAvailable || !loaded) {
-                state.statusClass = ''
-                state.show = false
-            } else if (!installed) {
+            if (!installed) {
                 state.statusClass = 'warning'
                 state.chip = 'Not installed'
                 state.title = 'FlowFuse Expert Not Installed'
@@ -273,9 +283,9 @@ export default {
                 state.body = 'FlowFuse Expert is installed but not enabled in the Node-RED palette. Please enable it to access its features.'
                 state.buttonText = 'Enable...'
                 state.buttonAction = this.manageAssistantPackage
-            } else if (isNewerAvailable) {
+            } else if (isUpdateAvailable) {
                 state.statusClass = ''
-                state.chip = `V${this.assistantUpdate.latest} available`
+                state.chip = this.availableUpdate?.latest ? `V${this.availableUpdate.latest} available` : 'Update available'
                 state.title = 'New FlowFuse Expert Version Available'
                 state.body = 'There is an update available for FlowFuse Expert in the Node-RED palette. Please update to the latest version to enjoy new features and improvements.'
                 state.buttonText = 'Update...'
@@ -321,6 +331,10 @@ export default {
                     'product/expert/addWelcomeMessageIfNeeded'
                 )
             }, 1000)
+            // Delay showing update banner to avoid showing during initial load (can be triggered by assistant loading after a few seconds)
+            setTimeout(() => {
+                this.allowUpdateBanner = true
+            }, 5000)
         }
     },
     beforeUnmount () {
@@ -612,7 +626,7 @@ export default {
         &:hover .expert-update-body,
         &:focus-within .expert-update-body,
         &:active .expert-update-body {
-            max-height: 500px; /* Adjust this value to be larger than your content's maximum height */
+            max-height: 500px;
             visibility: visible;
         }
     }
