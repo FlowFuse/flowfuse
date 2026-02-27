@@ -1,0 +1,95 @@
+name: Hubspot Support Triage (Weekly)
+
+on:
+  schedule:
+    # Runs every Friday at 08:00 UTC
+    - cron: "0 8 * * 5"
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+  contents: read
+  pull-requests: read
+  id-token: write
+  projects: write
+
+jobs:
+  open-triage-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create weekly triage issue and add to project
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = "FlowFuse";
+            const repo = "flowfuse";
+            const projectNumber = 1; // 🛠 Development project
+
+            const now = new Date();
+            const yyyy = now.getUTCFullYear();
+            const mm = String(now.getUTCMonth() + 1).padStart(2, "0");
+            const dd = String(now.getUTCDate()).padStart(2, "0");
+            const dateStamp = `${yyyy}-${mm}-${dd}`;
+
+            const title = `Hubspot Support Triage — ${dateStamp}`;
+
+            // Prevent duplicate issue if workflow re-runs
+            const existing = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${owner}/${repo} is:issue in:title "${title}"`
+            });
+
+            if (existing.data.total_count > 0) {
+              core.info(`Issue already exists: ${title}`);
+              return;
+            }
+
+            const body = `
+## HubSpot Support Triage
+
+@flowfuse/engineering
+
+Follow the Support Triage Duty documentation:
+https://flowfuse.com/handbook/engineering/support/triage/#support-triage-duty
+
+**Scope reminder:**
+- Engineering should focus only on engineering-specific tickets.
+- Company-wide triage responsibility applies only if you are the designated triage person for the week.
+`.trim();
+
+            // Create the issue
+            const issue = await github.rest.issues.create({
+              owner,
+              repo,
+              title,
+              body,
+              labels: []
+            });
+
+            // Get Project v2 ID
+            const projectData = await github.graphql(`
+              query {
+                organization(login: "${owner}") {
+                  projectV2(number: ${projectNumber}) {
+                    id
+                  }
+                }
+              }
+            `);
+
+            const projectId = projectData.organization.projectV2.id;
+
+            // Add issue to project
+            await github.graphql(`
+              mutation {
+                addProjectV2ItemById(input: {
+                  projectId: "${projectId}",
+                  contentId: "${issue.data.node_id}"
+                }) {
+                  item {
+                    id
+                  }
+                }
+              }
+            `);
+
+            core.info("Issue created and added to 🛠 Development project.");
