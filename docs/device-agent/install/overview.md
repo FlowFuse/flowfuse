@@ -14,7 +14,7 @@ meta:
 
 ## Choose your install path
 
-Most users should use the Device Agent Installer. Power users can choose Manual ( using `npm`) or Docker deployments.
+**Recommended for most users:** Use the Device Agent Installer (Quick Start), the fastest way to deploy with minimal configuration. Power users can choose Manual (using `npm`), Docker, or Kubernetes deployments.
 
 - Recommended: Use the Device Agent Installer
   - Fastest way to get started with a one-line command in the [Quick Start guide](../quickstart.md)
@@ -23,6 +23,8 @@ Most users should use the Device Agent Installer. Power users can choose Manual 
   - Install the npm package, set working directory, configure, and run as a service. See [Manual install](./manual.md)
 - Alternative: Docker / Docker Compose
   - Run the agent in a container; bind-mount the configuration. See [Docker install](./docker.md)
+- Alternative: Kubernetes
+  - Deploy the agent in a Kubernetes cluster. See [Kubernetes install](./kubernetes.md)
 
 ## Prerequisites
 
