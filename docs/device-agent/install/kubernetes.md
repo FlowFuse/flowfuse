@@ -12,6 +12,18 @@ meta:
 
 # Kubernetes Install
 
+## When to Use Each Option
+
+Running the Device Agent in Kubernetes is appropriate when devices are containerized or managed as part of a Kubernetes-based edge or infrastructure platform.
+
+Choose your deployment pattern based on how you manage device identity:
+
+- **Fixed Configuration**  
+  Use when the device already exists in FlowFuse and you have a `device.yml` with its credentials. One deployment maps to one device identity.
+
+- **Automatic Provisioning**  
+  Use when devices should register themselves at startup using a Provisioning Token. Each instance requires writable persistent storage.
+
 Any deployment on Kubernetes is going to be specific to the environment and requirements of the solution. The following examples show two common patterns for running the FlowFuse Device Agent on Kubernetes:
 
 - Fixed configuration using a static `device.yml`
