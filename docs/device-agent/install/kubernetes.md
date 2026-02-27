@@ -37,7 +37,7 @@ metadata:
   labels:
     app: device-one
 spec:
-  replicas: 1
+  replicas: 1 # there can only be one replica as there is one configuration
   revisionHistoryLimit: 10
   selector:
     matchLabels:
@@ -106,7 +106,7 @@ metadata:
   labels:
     app: device-one
 spec:
-  replicas: 1
+  replicas: 1 # to scale to more than one instance you should modify this to use a StatefulSet
   revisionHistoryLimit: 10
   selector:
     matchLabels:
@@ -116,7 +116,7 @@ spec:
       labels:
         app: device-one
     spec:
-      initContainers:
+      initContainers: # on first run copies the device.yml from Secret to PVC volume
       - name: config-copy
         image: busybox:latest
         command: 
