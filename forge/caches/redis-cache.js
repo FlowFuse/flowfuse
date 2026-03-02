@@ -4,7 +4,7 @@ const caches = {}
 
 let client
 
-async function initCache (options) {
+async function initCache (options, app) {
     const newOptions = {
         ...options,
         socket: {
@@ -19,11 +19,18 @@ async function initCache (options) {
     }
     client = createClient(newOptions)
     // eslint-disable-next-line n/handle-callback-err
-    client.on('error', (err) => {})
+    client.on('error', (err) => {
+        app.log.info(`Valkey Cache error ${err}`)
+    })
     client.on('end', () => {})
-    client.on('reconnecting', () => {})
-    client.on('connected', () => {})
-    client.on('ready', () => {})
+    client.on('reconnecting', () => {
+        app.log.info('Valkey Cache reconnecting')
+    })
+    client.on('connected', () => {
+    })
+    client.on('ready', () => {
+        app.log.info('Valkey Cache connected and ready')
+    })
     try {
         await client.connect()
     } catch (err) {
