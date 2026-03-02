@@ -7,8 +7,8 @@ const { KEY_STACK_UPGRADE_HOUR } = require('../models/ProjectSettings')
 
 module.exports = {
     name: 'fixTeamStackUpdateRules',
-    startup: 5000,
-    schedule: `${randomInt(0, 29)} ${randomInt(0, 23)} * * *`, // random time in the day
+    startup: false,
+    schedule: `${randomInt(0, 29)} ${randomInt(0, 23)} * * *`, // random time every day
     run: async function (app) {
         if (app.config.features.enabled('autoStackUpdate')) {
             app.log.info('Running AutoStackUpgrade Teams Tests')
