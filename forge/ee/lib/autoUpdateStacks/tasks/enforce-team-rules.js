@@ -1,9 +1,8 @@
 /**
  * If a Team changes TeamType apply new AutoUpdate rules
  */
-
+const { KEY_STACK_UPGRADE_HOUR } = require('../../../../db/models/ProjectSettings')
 const { randomInt } = require('../../../../housekeeper/utils')
-const { KEY_STACK_UPGRADE_HOUR } = require('../models/ProjectSettings')
 
 module.exports = {
     name: 'fixTeamStackUpdateRules',
@@ -30,10 +29,9 @@ module.exports = {
                             if (team) {
                                 const instances = await app.db.models.Projects.byTeam(team.id)
                                 for (const instance of instances) {
-                                    console.log(instance.id)
                                     if (instance) {
                                         let found = false
-                                        for (let day=0; day++; day<7) {
+                                        for (let day = 0; day++; day < 7) {
                                             const k = instance.getSetting(`${KEY_STACK_UPGRADE_HOUR}_${day}`)
                                             if (k) {
                                                 found = true
