@@ -1,17 +1,16 @@
 ---
-navTitle: FlowFuse Expert
+navTitle: AI in Node-RED
 ---
 
-# FlowFuse Expert
+# AI in Node-RED
 
-The FlowFuse Expert brings the power of AI to the Node-RED editor and FlowFuse. **FlowFuse Expert is automatically installed and available in all hosted instances running within FlowFuse Cloud** - no manual installation or configuration required.
+FlowFuse Expert brings AI assistance directly into the Node-RED editor itself. Unlike the [Chat Interface](/docs/user/expert/chat/), which is a conversational panel you open separately, FlowFuse Expert's in-editor AI works where you already are - inside node editors, on the canvas, and in the palette.
 
-You can also install the FlowFuse Expert plugin into your own Node-RED instances outside of FlowFuse. This
-requires a FlowFuse Cloud account, but for the current release, it does not require a paid subscription to use.
+> **Note:** FlowFuse Expert can also be installed as a plugin into Node-RED instances running outside of FlowFuse, using the `@flowfuse/nr-assistant` package from the Node-RED Palette Manager. This requires a FlowFuse Cloud account but does not require a paid subscription for the current release.
 
-## FlowFuse Expert Features Overview
+To enable the latest features, ensure your instance is running the latest Stack. **For FlowFuse Cloud instances, FlowFuse Expert (`@flowfuse/nr-assistant`) is automatically updated to the latest version.**
 
-The FlowFuse Expert currently supports the following features:
+## Features
 
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0;">
 
@@ -76,102 +75,71 @@ The FlowFuse Expert currently supports the following features:
 1. **Flow Autocomplete:** Automated, intelligent suggestions for which node should be added next in your flow
 2. **Inline Code Completions:** Inline code completions for Function node, Tables Query node and FlowFuse Dashboard `ui-template` node
 3. **Flow Explainer:** Get detailed explanations of the selected nodes in your flow
-4. **Function Node Creation:** Create a new function node directly, driven by natural language.
-5. **Function Code Generation:** Within the scope of an existing function node, ask the assistant to write code for you.
-6. **JSON Generation:** In-editor JSON generation within the JSON editor for all typed inputs and JSON editors.
+4. **Function Node Creation:** Create a new function node directly, driven by natural language
+5. **Function Code Generation:** Within the scope of an existing function node, ask the assistant to write code for you
+6. **JSON Generation:** In-editor JSON generation within the JSON editor for all typed inputs and JSON editors
 7. **CSS and HTML Generation:** In-editor CSS and HTML generation for FlowFuse Dashboard `ui-template` nodes
-
-To enable the latest FlowFuse Expert features, ensure your Instance is running the latest Stack. **For FlowFuse Cloud instances, FlowFuse Expert (`@flowfuse/nr-assistant`) is automatically updated to the latest version.**
-
-### FlowFuse Expert for self-hosted customers
-
-If you are self-hosting FlowFuse with an Enterprise license, get in touch with [support](https://flowfuse.com/support) who'll be able to help get you setup to use FlowFuse Expert locally.
 
 ### Flow Autocomplete
 
-![Recording of the flow autocomplete in-action, with up/down keys used to toggle suggestions and tab to move to the next suggestion](./images/assistant/node-autocomplete.gif){data-zoomable width="700px"}
+![Recording of the flow autocomplete in-action, with up/down keys used to toggle suggestions and tab to move to the next suggestion](../images/assistant/node-autocomplete.gif){data-zoomable width="700px"}
 _Recording of the flow autocomplete in-action, with up/down keys used to toggle suggestions and tab to move to the next suggestion_
 
-The FlowFuse Expert runs our trained, in-browser, machine learning model that will provide intelligent suggestions
-for which node should be added next in your flow.
+FlowFuse Expert runs a trained, in-browser machine learning model that provides intelligent suggestions for which node should be added next in your flow.
 
-You can accept the suggestion by clicking the suggestion or by pressing the `Tab` key. You can also toggle through the suggestions by pressing the `Up` and `Down` keys.
+You can accept the suggestion by clicking it or by pressing the `Tab` key. You can also toggle through suggestions by pressing the `Up` and `Down` keys.
 
 ### Inline Code Completions
 
-Mimicking the ever-familiar co-pilot assistant in your IDE, the FlowFuse Expert plugin provides
-inline code completions for Function nodes, Tables Query nodes, and FlowFuse Dashboard `ui-template` nodes.
+Mimicking the familiar code assistant in your IDE, FlowFuse Expert provides inline code completions for Function nodes, Tables Query nodes, and FlowFuse Dashboard `ui-template` nodes.
 
-![inline code completions](./images/assistant/inline-completion.png){data-zoomable width="450px"}
+![inline code completions](../images/assistant/inline-completion.png){data-zoomable width="450px"}
 _A simple example of inline code completions for a Function node_
 
-This feature accelerates the writing of custom code and queries by providing intelligent suggestions
-without having to leave the editor. Coding with the FlowFuse Expert is a breeze, and lowers the 
-barrier to entry for non-technical users.
+This feature accelerates the writing of custom code and queries by providing intelligent suggestions without having to leave the editor, lowering the barrier to entry for non-technical users.
 
-Using comments is optional here, the assistant will do it's best to understand the context of the code
-and provide suggestions based on the surrounding code, however, if you do write comments, we've found
-that it really helps to frame the request in a way that is more likely to be understood by the assistant.
+Using comments is optional - the assistant will do its best to understand the context of the code and provide suggestions based on the surrounding code. However, writing comments does help to frame the request in a way that is more likely to produce accurate results.
 
 ### Flow Explainer
 
-The FlowFuse Expert plugin also adds a new button to the Assistant menu that will explain what the selected nodes do.
-To use this feature, simply select the 1 or more nodes that you want to understand and click the "Explain Flows" button in the Assistant menu.
+FlowFuse Expert adds a button to the Assistant menu that will explain what the selected nodes do. To use this feature, select one or more nodes on the canvas and click the "Explain Flows" button in the Assistant menu.
 
 ### Function Node Creation
 
-![FlowFuse Expert dialog](./images/assistant/dialog-function-node-builder.png)
+![FlowFuse Expert dialog](../images/assistant/dialog-function-node-builder.png)
 _Screenshot showing the FlowFuse Expert dialog for creating a function node_
 
-Use natural language to request a _new_ function node be added to the Node-RED flow.
+Use natural language to request a new function node be added to your Node-RED flow. This is useful when you want to quickly add a function node without having to drag it from the palette and write the code yourself.
 
-This is useful when you want to quickly add a function
-node to your flow without having to drag it from the palette and write the code yourself.
-
-If your Instance supports external modules, you can also ask for a function node that uses this
-and it will be added to the function node setup.
-
-If your function node requires multiple outputs, the FlowFuse Expert will know to set the number of outputs
-on the function node setup.
+If your instance supports external modules, you can ask for a function node that uses them and they will be added to the function node setup automatically. If your function node requires multiple outputs, FlowFuse Expert will set the correct number of outputs accordingly.
 
 ### Function Code Generation
 
-#### Ask FlowFuse Expert
+FlowFuse Expert adds a code lens to the function node editor that allows you to generate code directly within the editor.
 
-The FlowFuse Expert plugin also adds a new code lens to the function node editor that allows you
-to generate code directly within the editor. 
+![inline code lens](../images/assistant/function-node-inline-code-lens.png){data-zoomable}
 
-![inline code lens](./images/assistant/function-node-inline-code-lens.png){data-zoomable}
-
-This is useful when you want to quickly add code to an
-existing function node without having to generate a full function node from scratch.
+This is useful when you want to quickly add or rewrite code within an existing function node without generating a full new function node from scratch.
 
 ### JSON Generation
 
-The FlowFuse Expert plugin also adds a code lens to the JSON editor that allows you
-to generate JSON directly within the monaco editor.
+FlowFuse Expert adds a code lens to the JSON editor that allows you to generate JSON directly within the Monaco editor.
 
-![json generation](./images/assistant/json-prompt.png){data-zoomable width="700px"}
+![json generation](../images/assistant/json-prompt.png){data-zoomable width="700px"}
 _Screenshot showing a FlowFuse Expert prompt for JSON generation_
 
-This is useful when you want to quickly generate JSON for a prototype, or test
-a piece of functionality in your flows.
+This is useful when you want to quickly generate JSON for a prototype or to test a piece of functionality in your flows.
 
-Here we can see the result of the above prompt, requesting simulated data for progress on
-lines in a manufacturing plant:
-
-![json generation](./images/assistant/json-results.png){data-zoomable width="700px"}
+![json generation](../images/assistant/json-results.png){data-zoomable width="700px"}
 _Screenshot showing the result of the above FlowFuse Expert prompt_
 
 ### CSS and HTML Generation for FlowFuse Dashboard
 
-The FlowFuse Expert plugin also adds a code lens to the FlowFuse Dashboard `ui-template` node that allows you
-to generate CSS and HTML directly within the code editor. It is aware of the context of the node and will
-generate suitable CSS and HTML components for Vuetify and the FlowFuse Dashboard.
+FlowFuse Expert adds a code lens to the FlowFuse Dashboard `ui-template` node that allows you to generate CSS and HTML directly within the code editor. It is aware of the context of the node and will generate suitable CSS and HTML components for Vuetify and the FlowFuse Dashboard.
 
-## Installing FlowFuse Expert in External Node-RED Instances
+## Installing in External Node-RED Instances
 
-**Note: FlowFuse Cloud instances have FlowFuse Expert automatically installed. Manual installation is only needed for Node-RED instances running outside of FlowFuse.**
+> **Note:** FlowFuse Cloud instances have FlowFuse Expert automatically installed. Manual installation is only needed for Node-RED instances running outside of FlowFuse. Only the in-editor AI features can be installed externally - the Chat Interface is exclusive to FlowFuse.
 
 To install the plugin in your own Node-RED instance:
 
@@ -181,17 +149,9 @@ To install the plugin in your own Node-RED instance:
 4. Follow the prompts to connect to your FlowFuse Cloud account
 5. Once connected, you will be able to use all FlowFuse Expert features
 
-## Data Privacy
+### FlowFuse Expert for self-hosted customers
 
-No data from FlowFuse is used by third-party AI service providers for training models.
-
-### OpenAI API
-
-Some of the above features do utilize the OpenAI API, and as such, some data is sent to OpenAI to process the requests.
-In accordance with the [OpenAI Terms of Service](https://help.openai.com/en/articles/5722486-how-your-data-is-used-to-improve-model-performance?utm_source=chatgpt.com#h_0a0de9d131)
-no data is used for training of future models. 
-
-OpenAI will retain data sent via it's APIs for 30 days for abuse monitoring, it is then permanently deleted.
+If you are self-hosting FlowFuse with an Enterprise license, get in touch with [support](/support) who will be able to help get you set up to use FlowFuse Expert locally.
 
 <style>
   .assistant-feature {

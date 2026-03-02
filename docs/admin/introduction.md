@@ -189,7 +189,7 @@ including what Instance Types are available and any limits that should be applie
     Allows LLM assistance when writing Functions nodes (requires a token from FlowFuse Support and available to Enterprise License holders). More details [here](../user/expert.md)
  - **Generated Snapshot Descriptions**
 
-    Enables the creation of Generative AI descriptions of Snapshots (requires a token from FlowFuse Support and available to Enterprise License holders). More details [here](../user/expert.md)
+    Enables the creation of Generative AI descriptions of Snapshots (requires a token from FlowFuse Support and available to Enterprise License holders). More details [here](../user/expert/index.md)
 
 ### Managing Instance Types
 
