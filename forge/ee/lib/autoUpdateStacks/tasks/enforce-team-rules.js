@@ -20,14 +20,14 @@ module.exports = {
                         const autoStackUpdate = teamType.getProperty('autoStackUpdate')
                         // this TeamType needs to enforce restart rules.
                         // get all teams with this type, then get all instances in those teams
-                        const teams = await app.db.models.Team.find({
+                        const teams = await app.db.models.Team.findAll({
                             where: {
                                 TeamTypeId: teamType.id
                             }
                         })
                         for (const team of teams) {
                             if (team) {
-                                const instances = await app.db.models.Projects.byTeam(team.id)
+                                const instances = await app.db.models.Project.byTeam(team.id)
                                 for (const instance of instances) {
                                     if (instance) {
                                         let found = false
@@ -43,8 +43,8 @@ module.exports = {
                                             const days = autoStackUpdate.days
                                             const hours = autoStackUpdate.hours
                                             // generate random day and hour in ranges
-                                            const day = days[Math.round(days.length * Math.random())]
-                                            const hour = hours[Math.round(hours.length * Math.random())]
+                                            const day = days[Math.floor(days.length * Math.random())]
+                                            const hour = hours[Math.floor(hours.length * Math.random())]
                                             await instance.updateSetting(`${KEY_STACK_UPGRADE_HOUR}_${day}`, { hour })
                                         }
                                     }
