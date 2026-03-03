@@ -41,7 +41,12 @@ module.exports = async function (app) {
                 const apihost = telemetry.frontend.posthog.apiurl || 'https://app.posthog.com'
                 const apikey = telemetry.frontend.posthog.apikey
                 const options = {
-                    api_host: apihost
+                    api_host: apihost,
+                    // Prevent SecurityError when PostHog's rrweb-based session recorder
+                    // tries to access the cross-origin Node-RED editor iframe during teardown
+                    session_recording: {
+                        recordCrossOriginIframes: false
+                    }
                 }
                 if ('capture_pageview' in telemetry.frontend.posthog) {
                     options.capture_pageview = telemetry.frontend.posthog.capture_pageview
