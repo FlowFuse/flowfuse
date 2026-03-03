@@ -70,7 +70,7 @@ import json from 'highlight.js/lib/languages/json'
 hljs.registerLanguage('json', json)
 
 export default {
-    name: 'ExpertToolCall',
+    name: 'ToolCall',
     components: {
         ChevronRightIcon
     },

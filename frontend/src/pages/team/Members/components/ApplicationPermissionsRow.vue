@@ -33,7 +33,7 @@ import RoleCompare from '../../../../components/permissions/RoleCompare.vue'
 import FfTeamLink from '../../../../components/router-links/TeamLink.vue'
 import usePermissions from '../../../../composables/Permissions.js'
 
-import { slugify } from '../../../../composables/String.js'
+import { slugify } from '../../../../composables/strings/String.js'
 
 export default defineComponent({
     name: 'ApplicationPermissionsRow',

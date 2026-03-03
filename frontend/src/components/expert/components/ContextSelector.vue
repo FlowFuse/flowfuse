@@ -30,7 +30,7 @@ import { mapActions } from 'vuex'
 
 import { mapGetters } from 'vuex/dist/vuex.cjs.js'
 
-import { pluralize } from '../../../composables/String.js'
+import { pluralize } from '../../../composables/strings/String.js'
 
 export default {
     name: 'ContextSelector',

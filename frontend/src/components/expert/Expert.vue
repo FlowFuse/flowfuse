@@ -1,137 +1,39 @@
 <template>
     <div class="ff-expert">
-        <!-- Floating mode switcher (editor context only) -->
-        <div v-if="isEditorContext" class="mode-switcher-floating">
-            <toggle-button-group
-                v-model="agentModeWrapper"
-                :buttons="agentModeButtons"
-                :uses-links="false"
-                :visually-hide-title="true"
-            />
-        </div>
+        <expert-mode-switcher v-if="isEditorContext" :isFloating="true" />
 
-        <!-- Messages Container -->
         <div
             ref="messagesContainer"
-            class="messages-container pt-10"
+            class="messages-container"
             :class="{ 'has-mode-switcher': isEditorContext }"
             @scroll="handleScroll"
         >
-            <!-- Info Banner -->
-            <div v-if="isFfAgent" class="info-banner">
-                <p class="info-text">
-                    AI agent has access to all of FlowFuse's
-                    <a
-                        href="https://flowfuse.com/docs"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="info-link"
-                    >documentation and knowledge</a>,
-                    <a
-                        href="https://flowfuse.com/blog"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="info-link"
-                    >blogposts</a>, and more.
-                </p>
-            </div>
-            <!-- Insights mode info banner -->
-            <div v-if="isOperatorAgent" class="info-banner">
-                <p class="info-text">
-                    <span
-                        title="This feature is still under development"
-                        class="beta-badge"
-                    >BETA</span>
-                    AI agent can access
-                    <a
-                        href="https://flowfuse.com/node-red/flowfuse/mcp/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="info-link"
-                    >MCP server tools</a>
-                    configured in your hosted Node-RED instances.
-                </p>
-            </div>
+            <info-banner />
 
-            <!-- Messages -->
-            <div
-                v-for="(message, index) in messages"
-                :key="index"
-                class="message-wrapper"
-            >
-                <!-- Loading indicator for AI -->
-                <expert-loading-dots
-                    v-if="message.type === 'loading'"
-                    :variant="message.variant || 'default'"
-                />
+            <expert-messages />
 
-                <!-- Tool calls - rendered without message bubble -->
-                <expert-tool-call
-                    v-else-if="message.kind === 'tool_calls'"
-                    :message="message"
-                />
-
-                <!-- Regular message -->
-                <expert-chat-message
-                    v-else
-                    :message="message"
-                    :is-streaming="isStreaming(index)"
-                >
-                    <!-- Rich resources content slot -->
-                    <template
-                        v-if="richContentComponentMap[message.kind]"
-                        #rich-content
-                    >
-                        <component
-                            :is="richContentComponentMap[message.kind]"
-                            :message="message"
-                        />
-                    </template>
-                </expert-chat-message>
-            </div>
-
-            <!-- Scroll anchor -->
             <div ref="scrollAnchor" class="scroll-anchor" />
         </div>
 
-        <!-- Input Area -->
-        <expert-chat-input
-            :is-generating="isGenerating"
-            :has-messages="hasMessages"
-            :has-user-messages="hasUserMessages"
-            :is-session-expired="isSessionExpired"
-            :is-operator-agent="isOperatorAgent"
-            :has-selected-capabilities="hasSelectedCapabilities"
-            @send="handleSendMessage"
-            @stop="handleStopGeneration"
-            @start-over="handleStartOver"
-        />
+        <expert-chat-input @stop="handleStopGeneration" />
     </div>
 </template>
 
 <script>
-import { markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
-import ToggleButtonGroup from '../elements/ToggleButtonGroup.vue'
-
-import ExpertChatInput from './ExpertChatInput.vue'
-import ExpertChatMessage from './ExpertChatMessage.vue'
-import ExpertLoadingDots from './ExpertLoadingDots.vue'
-import ExpertRichGuide from './ExpertRichGuide.vue'
-import ExpertRichResources from './ExpertRichResources.vue'
-import ExpertToolCall from './ExpertToolCall.vue'
+import ExpertChatInput from './components/ExpertChatInput.vue'
+import ExpertMessages from './components/ExpertMessages.vue'
+import ExpertModeSwitcher from './components/ExpertModeSwitcher.vue'
+import InfoBanner from './components/InfoBanner.vue'
 
 export default {
     name: 'ExpertPanel',
     components: {
-        ExpertChatInput,
-        ExpertChatMessage,
-        ExpertLoadingDots,
-        ExpertRichGuide,
-        ExpertRichResources,
-        ExpertToolCall,
-        ToggleButtonGroup
+        ExpertModeSwitcher,
+        InfoBanner,
+        ExpertMessages,
+        ExpertChatInput
     },
     inject: {
         togglePinWithWidth: {
@@ -141,53 +43,25 @@ export default {
     },
     data () {
         return {
-            scrollCheckDebounce: null,
-            richContentComponentMap: {
-                guide: markRaw(ExpertRichGuide),
-                resources: markRaw(ExpertRichResources),
-                tool_calls: markRaw(ExpertToolCall)
-            }
+            scrollCheckDebounce: null
         }
     },
     computed: {
         ...mapState('product/expert', [
-            'isGenerating',
             'autoScrollEnabled',
             'abortController',
-            'streamingTimer',
-            'streamingWordIndex',
             'agentMode'
         ]),
         ...mapGetters('product/expert', [
             'messages',
-            'hasMessages',
-            'hasUserMessages',
-            'lastMessage',
             'isSessionExpired',
             'isFfAgent',
             'isOperatorAgent',
             'hasSelectedCapabilities'
         ]),
-        isPinned () {
-            return this.$store.state.ux.drawers.rightDrawer.fixed
-        },
         isEditorContext () {
             // In editor context, the route name includes 'editor'
             return this.$route?.name?.includes('editor') || false
-        },
-        agentModeWrapper: {
-            get () {
-                return this.agentMode
-            },
-            set (value) {
-                this.$store.dispatch('product/expert/setAgentMode', value)
-            }
-        },
-        agentModeButtons () {
-            return [
-                { title: 'Support', value: 'ff-agent' },
-                { title: 'Insights', value: 'operator-agent' }
-            ]
         }
     },
     watch: {
@@ -228,10 +102,6 @@ export default {
         }
     },
     beforeUnmount () {
-        // Clean up timers
-        if (this.streamingTimer) {
-            this.clearStreamingTimer()
-        }
         if (this.scrollCheckDebounce) {
             clearTimeout(this.scrollCheckDebounce)
         }
@@ -240,67 +110,36 @@ export default {
     },
     methods: {
         ...mapActions('product/expert', [
-            'handleMessage',
+            'handleQuery',
             'handleMessageResponse',
-            'addMessage',
-            'updateLastMessage',
-            'clearConversation',
-            'startOver',
             'setAutoScroll',
-            'clearStreamingTimer',
-            'streamMessage',
-            'setStreamingWordIndex',
-            'setStreamingWords',
             'setAbortController',
             'resetSessionTimer'
         ]),
-
-        async handleSendMessage (query) {
-            if (!query.trim()) return
-
-            // Auto-pin drawer on first message
-            if (!this.isPinned && this.messages.length === 0) {
-                this.togglePinWithWidth()
-            }
-
-            // Call Vuex action to handle API logic
-            const result = await this.handleMessage({
-                query,
-                instanceId: null
-            })
-
-            // Handle UI-specific processing if successful
-            await this.handleMessageResponse(result)
-
-            // Errors are already handled in the Vuex action
-        },
+        //
+        // async handleSendMessage (query) {
+        //     if (!query.trim()) return
+        //
+        //     // Auto-pin drawer on first message
+        //     if (!this.isPinned && this.messages.length === 0) {
+        //         this.togglePinWithWidth()
+        //     }
+        //
+        //     // Call Vuex action to handle API logic
+        //     const result = await this.handleQuery({ query })
+        //
+        //     // Handle UI-specific processing if successful
+        //     await this.handleMessageResponse(result)
+        //
+        //     // Errors are already handled in the Vuex action
+        // },
 
         handleStopGeneration () {
             if (this.abortController) {
                 this.abortController.abort()
                 this.setAbortController(null)
             }
-
-            // Stop streaming effect
-            if (this.streamingTimer) {
-                this.clearStreamingTimer()
-            }
-
-            // Complete the streaming message
-            if (this.streamingWordIndex >= 0 && this.lastMessage?.isStreaming) {
-                this.lastMessage.isStreaming = false
-                this.setStreamingWordIndex(-1)
-                this.setStreamingWords([])
-            }
         },
-
-        handleStartOver () {
-            // Confirm before clearing
-            if (this.hasMessages) {
-                this.startOver()
-            }
-        },
-
         handleScroll () {
             // Debounce scroll detection
             if (this.scrollCheckDebounce) {
@@ -318,6 +157,7 @@ export default {
                         container.clientHeight <
                     100
 
+                // todo this should be moved into the component not the store
                 if (scrolledToBottom && !this.autoScrollEnabled) {
                     // Re-enable auto-scroll if user scrolls back to bottom
                     this.setAutoScroll(true)
@@ -333,13 +173,6 @@ export default {
             if (anchor) {
                 anchor.scrollIntoView({ behavior: 'smooth' })
             }
-        },
-
-        isStreaming (index) {
-            return (
-                index === this.messages.length - 1 &&
-                this.messages[index]?.isStreaming === true
-            )
         }
     }
 }
@@ -381,43 +214,6 @@ export default {
     }
 }
 
-.info-banner {
-    background-color: #eef2ff; // indigo-100
-    border-radius: 0.5rem;
-    margin-bottom: 1.5rem;
-    padding: 0.75rem 1rem;
-
-    .info-text {
-        color: #4338ca; // indigo-700
-        font-size: 0.875rem;
-        margin: 0;
-        line-height: 1.5;
-    }
-
-    .info-link {
-        color: inherit;
-        text-decoration: underline;
-
-        &:hover {
-            color: #3730a3; // indigo-800
-        }
-    }
-
-    .beta-badge {
-        display: inline-block;
-        background-color: #818cf8; // indigo-400
-        color: white;
-        font-size: 0.625rem;
-        font-weight: 600;
-        padding: 0.125rem 0.375rem;
-        border-radius: 0.25rem;
-        text-transform: uppercase;
-        letter-spacing: 0.025em;
-        cursor: help;
-        vertical-align: text-top;
-    }
-}
-
 .empty-state {
     display: flex;
     flex-direction: column;
@@ -454,23 +250,8 @@ export default {
     }
 }
 
-.message-wrapper {
-    margin-bottom: 0.5rem;
-}
-
 .scroll-anchor {
     height: 1px;
-}
-
-.mode-switcher-floating {
-    position: absolute;
-    top: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .messages-container.has-mode-switcher {

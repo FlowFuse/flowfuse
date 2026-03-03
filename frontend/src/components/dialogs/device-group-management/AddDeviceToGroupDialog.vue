@@ -82,7 +82,7 @@ import { ChipIcon } from '@heroicons/vue/outline'
 import { mapActions, mapState } from 'vuex'
 
 import ApplicationAPI from '../../../api/application.js'
-import { pluralize } from '../../../composables/String.js'
+import { pluralize } from '../../../composables/strings/String.js'
 import FfLoading from '../../Loading.vue'
 import NoticeBanner from '../../notices/NoticeBanner.vue'
 import DeployNotice from '../../notices/device-groups/DeployNotice.vue'

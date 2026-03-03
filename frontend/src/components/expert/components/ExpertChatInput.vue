@@ -10,7 +10,7 @@
             <button
                 type="button"
                 class="btn-start-over"
-                :disabled="!hasUserMessages || (isGenerating && !isSessionExpired)"
+                :disabled="isWaitingForResponse && !isSessionExpired"
                 @click="handleStartOver"
             >
                 Start over
@@ -36,14 +36,17 @@
                 <div class="left">
                     <context-selector v-if="!isOperatorAgent" />
                     <div class="context-items-container" @wheel="horizontalScrolling">
-                        <include-context-item v-for="(context, index) in selectedContext" :key="index" :contextItem="context" />
+                        <include-context-item
+                            v-for="(context, index) in selectedContext" :key="index"
+                            :contextItem="context"
+                        />
                         <include-selection-button v-if="hasUserSelection && !isOperatorAgent" />
                     </div>
                 </div>
 
                 <div class="right">
                     <button
-                        v-if="isGenerating && !isSessionExpired"
+                        v-if="isWaitingForResponse && !isSessionExpired"
                         type="button"
                         class="btn-stop"
                         @click="handleStop"
@@ -68,14 +71,14 @@
 <script>
 import { mapActions, mapGetters } from 'vuex'
 
-import { useResizingHelper } from '../../composables/ResizingHelper.js'
+import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 
-import ResizeBar from '../ResizeBar.vue'
+import ResizeBar from '../../ResizeBar.vue'
 
-import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
-import ContextSelector from './components/ContextSelector.vue'
-import IncludeContextItem from './components/IncludeContextItem.vue'
-import IncludeSelectionButton from './components/IncludeSelectionButton.vue'
+import CapabilitiesSelector from './CapabilitiesSelector.vue'
+import ContextSelector from './ContextSelector.vue'
+import IncludeContextItem from './IncludeContextItem.vue'
+import IncludeSelectionButton from './IncludeSelectionButton.vue'
 
 export default {
     name: 'ExpertChatInput',
@@ -86,35 +89,20 @@ export default {
         IncludeSelectionButton,
         ResizeBar
     },
-    props: {
-        isGenerating: {
-            type: Boolean,
-            default: false
-        },
-        hasMessages: {
-            type: Boolean,
-            default: false
-        },
-        hasUserMessages: {
-            type: Boolean,
-            default: false
-        },
-        isSessionExpired: {
-            type: Boolean,
-            default: false
-        },
-        isOperatorAgent: {
-            type: Boolean,
-            default: false
-        },
-        hasSelectedCapabilities: {
-            type: Boolean,
-            default: false
+    inject: {
+        togglePinWithWidth: {
+            from: 'togglePinWithWidth',
+            default: () => () => {} // No-op function when not provided
         }
     },
-    emits: ['send', 'stop', 'start-over'],
+    emits: ['send', 'stop'],
     setup () {
-        const { startResize, heightStyle, bindResizer, isResizing: isInputResizing } = useResizingHelper()
+        const {
+            startResize,
+            heightStyle,
+            bindResizer,
+            isResizing: isInputResizing
+        } = useResizingHelper()
 
         return {
             startResize,
@@ -132,11 +120,21 @@ export default {
     },
     computed: {
         ...mapGetters('product/assistant', ['hasUserSelection', 'getSelectedContext']),
+        ...mapGetters('product/expert', [
+            'messages',
+            'isSessionExpired',
+            'isOperatorAgent',
+            'hasSelectedCapabilities',
+            'hasMessages',
+            'isWaitingForResponse'
+        ]),
         isInputDisabled () {
             if (this.isSessionExpired) return true
-            if (this.isGenerating) return true
-            if (this.isOperatorAgent && !this.hasSelectedCapabilities) return true
-            return false
+            if (this.isWaitingForResponse) return true
+            return this.isOperatorAgent && !this.hasSelectedCapabilities
+        },
+        isDrawerPinned () {
+            return this.$store.state.ux.drawers.rightDrawer.fixed
         },
         canSend () {
             return this.inputText.trim().length > 0 && !this.isInputDisabled
@@ -167,11 +165,23 @@ export default {
     },
     methods: {
         ...mapActions('product/assistant', ['resetContextSelection']),
-        handleSend () {
+        ...mapActions('product/expert', ['startOver', 'handleQuery', 'handleMessageResponse']),
+        async handleSend () {
             if (!this.canSend) return
 
             const message = this.inputText.trim()
-            this.$emit('send', message)
+
+            // Auto-pin drawer on first message
+            if (!this.isDrawerPinned && this.messages.length === 0) {
+                this.togglePinWithWidth()
+            }
+
+            // Call Vuex action to handle API logic
+            const result = await this.handleQuery({ query: message })
+
+            // Handle UI-specific processing if successful
+            await this.handleMessageResponse(result)
+
             this.inputText = ''
             this.$nextTick(() => {
                 this.$refs.textarea.focus()
@@ -181,12 +191,15 @@ export default {
             this.$emit('stop')
         },
         handleStartOver () {
-            this.$emit('start-over')
+            if (!this.hasMessages) return
+
             this.inputText = ''
             // When in support mode, reset/restore assistant context selection (opt-out by default)
             if (!this.isOperatorAgent) {
                 this.resetContextSelection()
             }
+
+            this.startOver()
         },
         handleKeydown (event) {
             // Enter without Shift = send message
@@ -348,6 +361,7 @@ button {
             // scroll for overflow of selected chips
             overflow: auto;
             flex: 1;
+
             .context-items-container {
                 flex: 1;
                 overflow-x: auto;

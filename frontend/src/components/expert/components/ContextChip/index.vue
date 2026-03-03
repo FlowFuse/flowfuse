@@ -18,7 +18,7 @@
 <script>
 import { PlusIcon, XIcon } from '@heroicons/vue/outline'
 
-import { pluralize } from '../../../../composables/String.js'
+import { pluralize } from '../../../../composables/strings/String.js'
 
 export default {
     name: 'ContextChip',

@@ -42,8 +42,8 @@
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/solid'
 import { mapActions, mapGetters } from 'vuex'
 
-import TextCopier from '../../TextCopier.vue'
-import FlowViewer from '../../flow-viewer/FlowViewer.vue'
+import TextCopier from '../../../../../TextCopier.vue'
+import FlowViewer from '../../../../../flow-viewer/FlowViewer.vue'
 
 export default {
     name: 'StandardResourceCard',

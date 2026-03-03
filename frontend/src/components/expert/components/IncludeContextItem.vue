@@ -10,7 +10,7 @@
 <script>
 import { mapActions, mapGetters } from 'vuex'
 
-import { pluralize } from '../../../composables/String.js'
+import { pluralize } from '../../../composables/strings/String.js'
 
 import ContextChip from './ContextChip/index.vue'
 
