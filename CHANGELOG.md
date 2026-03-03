@@ -1,3 +1,34 @@
+#### 2.27.1: Release
+
+ - Bump pre-staging node-red custom stack to 4.1.6 (#6770)
+ - Bump reusable workflows in `create pre-staging env` to `0.51.0` (#6768)
+ - Bump cypress-io/github-action from 7.1.2 to 7.1.3 (#6760)
+ - Use Node-RED 4.1 for custom NR stack on pre-staging environment (#6721)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/sast_scan.yaml (#6716)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml (#6717)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml (#6718)
+ - Bump docker/build-push-action from 6.18.0 to 6.19.2 (#6715)
+ - Bump ajv from 6.12.6 to 6.14.0 (#6771) @app/dependabot
+ - Bump hono from 4.11.9 to 4.12.0 (#6751) @app/dependabot
+ - Bump rollup from 4.52.5 to 4.59.0 (#6769) @app/dependabot
+ - Add assistant features guard checks to avoid runtime errors (#6765) @cstns
+ - ci: Add tests-summary job to the `Tests` workflow (#6754) @ppawlowski
+ - Retry device api call when tunnel proxy returns 502 to re-set the device affinity token (#6748) @cstns
+ - Bump fast-xml-parser and @aws-sdk/xml-builder (#6732) @app/dependabot
+ - Bump fast-xml-parser and @aws-sdk/client-sesv2 (#6687) @app/dependabot
+ - Bump google-auth-library from 10.1.0 to 10.5.0 (#6613) @app/dependabot
+ - Adjust input area resizing and update min-height styling in ExpertChatInput component (#6699) @cstns
+ - Refactor Cypress tests and `ListBox` component to improve selector usage (#6727) @cstns
+ - ci: Add `nr-subflow-export` package to the pre-staging environments (#6724) @ppawlowski
+ - Fix _ vs - in device agent nodejs options docs (#6723) @hardillb
+ - ci: Add `nr-mqtt-nodes` package to the pre-staging environments (#6722) @ppawlowski
+ - Add remote instance immersive view instance controls (#6652) @cstns
+ - Add NodeJS options to device agent cmd line args docs (#6704) @hardillb
+ - Switch to immediate watcher to retrieve logs and update schedule (#6701) @cstns
+ - Fix `TokenCreated` dialog for null tokens (#6441) @GogoVega
+ - Bump webpack from 5.94.0 to 5.105.0 (#6657) @app/dependabot
+ - Bump axios from 1.12.1 to 1.13.5 (#6677) @app/dependabot
+
 #### 2.27.0: Release
 
  - Bump JS-DevTools/npm-publish from 4.1.4 to 4.1.5 (#6614)

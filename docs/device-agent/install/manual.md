@@ -1,7 +1,7 @@
 ---
 navGroup: DeviceAgentInstallation
 navTitle: Manual Install with NPM
-navOrder: 3
+navOrder: 5
 meta:
    description: Install the FlowFuse Device Agent using NPM, configure its working directory and service, and verify the setup.
    tags:
