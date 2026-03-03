@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col gap-3">
-        <tool-call v-if="toolCalls" :message="toolCalls" />
+        <tool-calls v-if="toolCalls" :message="toolCalls" />
         <answer-wrapper
             v-for="fAnswer in filteredAnswers"
             :key="slugify(`${fAnswer.kind}-${fAnswer.title}-${fAnswer.summary}-${fAnswer._uuid}`)"
@@ -14,11 +14,11 @@
 import { slugify } from '../../../../composables/strings/String.js'
 
 import AnswerWrapper from './components/AnswerWrapper.vue'
-import ToolCall from './components/ToolCall.vue'
+import ToolCalls from './components/ToolCalls.vue'
 
 export default {
     name: 'AiMessage',
-    components: { ToolCall, AnswerWrapper },
+    components: { ToolCalls, AnswerWrapper },
     props: {
         query: {
             type: String,
