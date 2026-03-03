@@ -50,6 +50,8 @@ driver:
     ## Docker socket path
     # socket: /var/run/docker.sock
 
+    ## Add stuff here
+
     ### K8S options
 
     ## Kubectl conf file to contact the cluster
