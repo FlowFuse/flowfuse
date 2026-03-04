@@ -243,7 +243,7 @@ const actions = {
         }
     },
 
-    hydrateClient ({
+    async hydrateClient ({
         dispatch,
         state,
         rootGetters
@@ -255,10 +255,19 @@ const actions = {
             return Promise.resolve()
         }
 
+        // todo this need to be removed when we have https://github.com/FlowFuse/flowfuse/issues/6520 part of
+        //  https://github.com/FlowFuse/flowfuse/issues/6519 as it's a hacky workaround to the expert drawer opening up
+        //  before we have a team loaded
+        while (!rootGetters['account/team']) {
+            await new Promise(resolve => setTimeout(resolve, 1000))
+        }
+
         return expertApi
             .chat({
                 history: state[state.agentMode].context,
-                context: {},
+                context: {
+                    teamId: rootGetters['account/team'].id
+                },
                 sessionId: state[state.agentMode].sessionId
             })
             .then((response) => {
