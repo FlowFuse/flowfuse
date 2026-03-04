@@ -94,6 +94,9 @@
             <div ref="scrollAnchor" class="scroll-anchor" />
         </div>
 
+        <!-- Updates Available Banner -->
+        <update-banner v-if="isEditorContext && isInstanceRunning" />
+
         <!-- Input Area -->
         <expert-chat-input
             :is-generating="isGenerating"
@@ -121,6 +124,7 @@ import ExpertLoadingDots from './ExpertLoadingDots.vue'
 import ExpertRichGuide from './ExpertRichGuide.vue'
 import ExpertRichResources from './ExpertRichResources.vue'
 import ExpertToolCall from './ExpertToolCall.vue'
+import UpdateBanner from './components/UpdateBanner.vue'
 
 export default {
     name: 'ExpertPanel',
@@ -131,12 +135,25 @@ export default {
         ExpertRichGuide,
         ExpertRichResources,
         ExpertToolCall,
+        'update-banner': UpdateBanner,
         ToggleButtonGroup
     },
     inject: {
         togglePinWithWidth: {
             from: 'togglePinWithWidth',
             default: () => () => {} // No-op function when not provided
+        }
+    },
+    props: {
+        instance: {
+            type: Object,
+            required: false,
+            default: null
+        },
+        device: {
+            type: Object,
+            required: false,
+            default: null
         }
     },
     data () {
@@ -188,6 +205,11 @@ export default {
                 { title: 'Support', value: 'ff-agent' },
                 { title: 'Insights', value: 'operator-agent' }
             ]
+        },
+        isInstanceRunning () {
+            const instanceRunning = this.instance?.meta?.state === 'running'
+            const deviceRunning = this.device?.status === 'running'
+            return instanceRunning || deviceRunning
         }
     },
     watch: {
