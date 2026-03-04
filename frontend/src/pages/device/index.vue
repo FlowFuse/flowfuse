@@ -533,6 +533,9 @@ export default {
                 }
             } catch (err) {
                 console.warn('Error in openTunnel', err)
+                if (Object.hasOwnProperty.call(err, 'context') && err.context === 'openTunnel') {
+                    throw err
+                }
             }
         },
         async closeTunnel () {
