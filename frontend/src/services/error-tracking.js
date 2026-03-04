@@ -19,11 +19,7 @@ export const setupSentry = (app, router) => {
             new BrowserTracing({
                 routingInstrumentation: vueRouterInstrumentation(router)
             }),
-            new Replay({
-                // Prevent SecurityError when Replay tries to access the cross-origin
-                // Node-RED editor iframe's contentWindow during session recording teardown
-                block: ['iframe']
-            })
+            new Replay()
         ],
         sendClientReports: true,
 
