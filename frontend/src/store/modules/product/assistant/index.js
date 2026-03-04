@@ -56,6 +56,19 @@ const eventsRegistry = {
         propertyName: 'updatesAvailable',
         propertyValue: null,
         useEventData: true // use event data to set this property
+    },
+    'flows:loaded': {
+        nodeRedEvent: 'flows:loaded',
+        propertyBag: 'editorState',
+        propertyName: 'flowsLoaded',
+        propertyValue: true
+    },
+    'runtime-state': {
+        nodeRedEvent: 'runtime-state',
+        propertyBag: 'editorState',
+        propertyName: 'runtimeState',
+        propertyValue: null,
+        useEventData: true
     }
 }
 
@@ -172,6 +185,11 @@ const getters = {
         }
 
         return allowedOrigins
+    },
+    isEditorRunning: (state) => {
+        // NOTE: this is achieved via dynamic event registration for 'flows:loaded' and 'runtime-state' events,
+        // which requires nr-assistant version 0.10.1 or later.
+        return state.editorState?.flowsLoaded || state.editorState?.runtimeState?.state === 'start'
     }
 }
 
