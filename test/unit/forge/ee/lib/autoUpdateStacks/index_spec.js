@@ -5,7 +5,7 @@ const { KEY_STACK_UPGRADE_HOUR } = require('../../../../../../forge/db/models/Pr
 const enforceTeamRulesTask = require('../../../../../../forge/ee/lib/autoUpdateStacks/tasks/enforce-team-rules')
 const setup = require('../../setup')
 
-describe('Automatic Stack Upgrade', function () {
+describe.only('Automatic Stack Upgrade', function () {
     let app
 
     before(async function () {
@@ -98,6 +98,32 @@ describe('Automatic Stack Upgrade', function () {
             instanceAfterSettings[0].value.hour.should.be.oneOf([0, 1, 2, 3, 4])
             const day = parseInt(instanceAfterSettings[0].key.split('_')[1])
             day.should.be.oneOf([0, 6])
+        })
+        it('Existing Instance properties not updated', async function () {
+            // depends on previous test
+            const instanceStartSettings = await app.db.models.ProjectSettings.findAll({
+                where: {
+                    ProjectId: app.instance.id,
+                    key: {
+                        [Op.like]: `${KEY_STACK_UPGRADE_HOUR}_%`
+                    }
+                }
+            })
+            instanceStartSettings.should.have.length(1)
+            const day = parseInt(instanceStartSettings[0].key.split('_')[1])
+            const hour = instanceStartSettings[0].value.hour
+            await enforceTeamRulesTask.run(app)
+            const instanceAfterSettings = await app.db.models.ProjectSettings.findAll({
+                where: {
+                    ProjectId: app.instance.id,
+                    key: {
+                        [Op.like]: `${KEY_STACK_UPGRADE_HOUR}_%`
+                    }
+                }
+            })
+            instanceAfterSettings.should.have.length(1)
+            day.should.equal(parseInt(instanceAfterSettings[0].key.split('_')[1]))
+            hour.should.equal(instanceAfterSettings[0].value.hour)
         })
     })
 })

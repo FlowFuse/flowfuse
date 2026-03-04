@@ -31,8 +31,8 @@ module.exports = {
                                 for (const instance of instances) {
                                     if (instance) {
                                         let found = false
-                                        for (let day = 0; day++; day < 7) {
-                                            const k = instance.getSetting(`${KEY_STACK_UPGRADE_HOUR}_${day}`)
+                                        for (let day = 0; day < 7; day++) {
+                                            const k = await instance.getSetting(`${KEY_STACK_UPGRADE_HOUR}_${day}`)
                                             if (k) {
                                                 found = true
                                                 break
@@ -45,6 +45,7 @@ module.exports = {
                                             // generate random day and hour in ranges
                                             const day = days[Math.floor(days.length * Math.random())]
                                             const hour = hours[Math.floor(hours.length * Math.random())]
+                                            app.log.info(`AutoStackUpgrade: applying update schedule ${day}/${hour} to instance ${instance.id} in team ${team.hashid}`)
                                             await instance.updateSetting(`${KEY_STACK_UPGRADE_HOUR}_${day}`, { hour })
                                         }
                                     }
