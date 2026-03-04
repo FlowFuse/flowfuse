@@ -518,6 +518,14 @@ export default {
                         } catch (err) {
                             this.$refs.dialog.close()
                             this.openingTunnel = false
+
+                            const enhancedError = new Error(`Failed to enable device editor tunnel: ${err.message}`)
+                            enhancedError.originalError = err
+                            enhancedError.deviceId = this.device?.id
+                            enhancedError.deviceStatus = this.device?.status
+                            enhancedError.context = 'openTunnel'
+
+                            throw enhancedError
                         }
                     }
                 } else {
