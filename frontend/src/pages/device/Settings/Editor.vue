@@ -1,6 +1,6 @@
 <template>
-    <form class="space-y-4" data-el="instance-editor" @submit.prevent>
-        <FormHeading class="pt-8">Limits</FormHeading>
+    <form class="space-y-6" data-el="instance-editor" @submit.prevent>
+        <FormHeading>Limits</FormHeading>
         <div v-if="limitAvailable">
             <div v-if="limitsLauncherEnabled">
                 <div class="flex flex-col sm:flex-row">
@@ -17,7 +17,7 @@
             </div>
             <div v-else class="flex flex-col sm:flex-row">
                 <div class="space-y-4 w-full max-w-md sm:mr-8">
-                    Please upgrade your Device Agent to v3.8.4 be able to set apiMaxLength or debugMaxLength
+                    Please upgrade your Device Agent to v3.8.4 to be able to set apiMaxLength or debugMaxLength
                 </div>
             </div>
         </div>
@@ -73,7 +73,8 @@ export default {
                 },
                 errors: {
                     apiMaxLength: ''
-                }
+                },
+                hasErrors: false
             },
             original: {
                 apiMaxLength: '',
@@ -146,14 +147,14 @@ export default {
             if (this.editable.settings.apiMaxLength.length > 0) {
                 if (pattern.test(this.editable.settings.apiMaxLength)) {
                     this.editable.errors.apiMaxLength = ''
-                    return true
                 } else {
                     this.editable.errors.apiMaxLength = 'Invalid Value'
-                    return false
                 }
+            } else {
+                this.editable.errors.apiMaxLength = ''
             }
-            this.editable.errors.apiMaxLength = ''
-            return true
+            this.editable.hasErrors = !!this.editable.errors.apiMaxLength
+            return !this.editable.hasErrors
         }
     }
 }
