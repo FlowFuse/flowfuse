@@ -1,6 +1,5 @@
 <template>
     <form class="space-y-4" data-el="instance-editor" @submit.prevent>
-        <FormHeading>Editor</FormHeading>
         <FormHeading class="pt-8">Limits</FormHeading>
         <div v-if="limitAvailable">
             <div v-if="limitsLauncherEnabled">
@@ -18,10 +17,11 @@
             </div>
             <div v-else class="flex flex-col sm:flex-row">
                 <div class="space-y-4 w-full max-w-md sm:mr-8">
-                    Upgrade your Device Agent to be able to set apiMaxLength or debugMaxLength
+                    Please upgrade your Device Agent to v3.8.4 be able to set apiMaxLength or debugMaxLength
                 </div>
             </div>
         </div>
+        <FeatureUnavailableToTeam v-if="!limitAvailable" featureName="Set API Size Limits" />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
             <ff-button data-el="submit" size="small" :disabled="!unsavedChanges || editable.hasErrors" @click="saveSettings()">
                 Save Settings
@@ -43,10 +43,12 @@ import Alerts from '../../../services/alerts.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import ChangeIndicator from '../../admin/Template/components/ChangeIndicator.vue'
+import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 
 export default {
     name: 'DeviceSettingsEditor',
     components: {
+        FeatureUnavailableToTeam,
         FormRow,
         FormHeading,
         ChangeIndicator
@@ -80,7 +82,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState('account', ['features', 'team']),
         limitsLauncherEnabled () {
             if (!this.device.agentVersion) {
                 // Device has not called home yet - so we don't know what agent
@@ -90,7 +92,8 @@ export default {
             return semver.gte(this.device.agentVersion, '3.8.3')
         },
         limitAvailable () {
-            return true
+            const flag = this.features.editorLimits && this.team.type.properties.features?.editorLimits
+            return !!flag
         },
         unsavedChanges () {
             return this.editable.changed.apiMaxLength
