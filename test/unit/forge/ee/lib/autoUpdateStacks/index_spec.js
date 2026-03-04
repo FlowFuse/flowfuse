@@ -5,7 +5,7 @@ const { KEY_STACK_UPGRADE_HOUR } = require('../../../../../../forge/db/models/Pr
 const enforceTeamRulesTask = require('../../../../../../forge/ee/lib/autoUpdateStacks/tasks/enforce-team-rules')
 const setup = require('../../setup')
 
-describe.only('Automatic Stack Upgrade', function () {
+describe('Automatic Stack Upgrade', function () {
     let app
 
     before(async function () {
