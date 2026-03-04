@@ -40,7 +40,7 @@
                 <p class="info-text">
                     <span
                         title="This feature is still under development"
-                        class="banner-badge"
+                        class="beta-badge"
                     >BETA</span>
                     AI agent can access
                     <a
@@ -95,30 +95,7 @@
         </div>
 
         <!-- Updates Available Banner -->
-        <div
-            v-if="isEditorContext && assistantState.show"
-            class="info-banner expert-update-banner"
-            :class="assistantState.statusClass"
-        >
-            <div class="info-text expert-update-header flex items-center justify-between">
-                <span class="truncate flex-1 pr-4" :title="assistantState.title">
-                    {{ assistantState.title }}
-                </span>
-                <span class="banner-badge ml-4 flex-shrink-0">{{ assistantState.chip }}</span>
-            </div>
-            <div class="info-text expert-update-body" tabindex="0">
-                <p class="mb-2">{{ assistantState.body }}</p>
-                <div class="flex justify-end">
-                    <ff-button
-                        kind="secondary"
-                        size="small"
-                        @click="assistantState.buttonAction"
-                    >
-                        {{ assistantState.buttonText }}
-                    </ff-button>
-                </div>
-            </div>
-        </div>
+        <update-banner v-if="isEditorContext && isInstanceRunning" />
 
         <!-- Input Area -->
         <expert-chat-input
@@ -136,7 +113,6 @@
 </template>
 
 <script>
-import SemVer from 'semver'
 import { markRaw } from 'vue'
 import { mapActions, mapGetters, mapState } from 'vuex'
 
@@ -148,9 +124,7 @@ import ExpertLoadingDots from './ExpertLoadingDots.vue'
 import ExpertRichGuide from './ExpertRichGuide.vue'
 import ExpertRichResources from './ExpertRichResources.vue'
 import ExpertToolCall from './ExpertToolCall.vue'
-
-const assistantVerWithAvailableUpdatesSupport = '0.11.0' // Minimum version of assistant package that supports update available detection
-const nrVerWithAvailableUpdatesSupport = '4.1.6' // Minimum Node-RED version that provides available updates to editorState
+import UpdateBanner from './components/UpdateBanner.vue'
 
 export default {
     name: 'ExpertPanel',
@@ -161,12 +135,25 @@ export default {
         ExpertRichGuide,
         ExpertRichResources,
         ExpertToolCall,
+        'update-banner': UpdateBanner,
         ToggleButtonGroup
     },
     inject: {
         togglePinWithWidth: {
             from: 'togglePinWithWidth',
             default: () => () => {} // No-op function when not provided
+        }
+    },
+    props: {
+        instance: {
+            type: Object,
+            required: false,
+            default: null
+        },
+        device: {
+            type: Object,
+            required: false,
+            default: null
         }
     },
     data () {
@@ -176,12 +163,10 @@ export default {
                 guide: markRaw(ExpertRichGuide),
                 resources: markRaw(ExpertRichResources),
                 tool_calls: markRaw(ExpertToolCall)
-            },
-            allowUpdateBanner: false // delay showing for a few seconds to avoid showing during initial load
+            }
         }
     },
     computed: {
-        ...mapState('product/assistant', ['palette', 'editorState', 'version', 'nodeRedVersion', 'supportedActions']),
         ...mapState('product/expert', [
             'isGenerating',
             'autoScrollEnabled',
@@ -221,79 +206,10 @@ export default {
                 { title: 'Insights', value: 'operator-agent' }
             ]
         },
-        assistantLoaded () {
-            // If one of version, nodeRedVersion or palette are present, we know it is loaded
-            return !!(this.version || this.nodeRedVersion || this.palette)
-        },
-        assistantPackage () {
-            if (!this.palette || Object.keys(this.palette).length === 0) {
-                return null // Palette not loaded yet
-            }
-            if (!this.palette?.['@flowfuse/nr-assistant']) {
-                return { installed: false }
-            }
-            return { installed: true, ...this.palette['@flowfuse/nr-assistant'] }
-        },
-        availableUpdate () {
-            if (Array.isArray(this.editorState?.updatesAvailable?.palette)) {
-                return this.editorState?.updatesAvailable?.palette?.find(update => update.package === '@flowfuse/nr-assistant')
-            }
-            return null
-        },
-        assistantState () {
-            if (!this.allowUpdateBanner) {
-                return { show: false }
-            }
-
-            const enabled = this.assistantPackage?.enabled !== false
-            const installed = this.assistantPackage?.installed ?? this.assistantLoaded // default to installed if loaded.
-            const installedVersion = (installed ? this.assistantPackage?.version : '') || this.version || '0.0.0'
-            const nrSupportsUpdateInfo = SemVer.gte(this.nodeRedVersion || '0.0.0', nrVerWithAvailableUpdatesSupport)
-            const nrAvailableUpdatesSupported = nrSupportsUpdateInfo && !!this.availableUpdate
-            let isUpdateAvailable = !!this.availableUpdate?.latest // presence alone indicates and update is available!
-            if (this.assistantLoaded && !nrAvailableUpdatesSupported) {
-                // If we don't have explicit Available Updates data from NR, we can still against min supported version!
-                isUpdateAvailable = SemVer.lt(installedVersion, assistantVerWithAvailableUpdatesSupport)
-            }
-
-            const state = {
-                show: (!installed || !enabled || isUpdateAvailable),
-                statusClass: '',
-                expectedVersion: this.availableUpdate?.latest || assistantVerWithAvailableUpdatesSupport,
-                installedVersion,
-                installed,
-                enabled,
-                chip: '',
-                title: '',
-                body: '',
-                buttonText: '',
-                buttonAction: null
-            }
-            if (!installed) {
-                state.statusClass = 'warning'
-                state.chip = 'Not installed'
-                state.title = 'FlowFuse Expert Not Installed'
-                state.body = 'FlowFuse Expert is not installed in the Node-RED palette. Please install it to access its features.'
-                state.buttonText = 'Install...'
-                state.buttonAction = this.installAssistantPackage
-            } else if (!enabled) {
-                state.statusClass = 'warning'
-                state.chip = 'Not enabled'
-                state.title = 'FlowFuse Expert Not Enabled'
-                state.body = 'FlowFuse Expert is installed but not enabled in the Node-RED palette. Please enable it to access its features.'
-                state.buttonText = 'Enable...'
-                state.buttonAction = this.manageAssistantPackage
-            } else if (isUpdateAvailable) {
-                state.statusClass = ''
-                state.chip = this.availableUpdate?.latest ? `V${this.availableUpdate.latest} available` : 'Update available'
-                state.title = 'New FlowFuse Expert Version Available'
-                state.body = 'There is an update available for FlowFuse Expert in the Node-RED palette. Please update to the latest version to enjoy new features and improvements.'
-                state.buttonText = 'Update...'
-                state.buttonAction = this.manageAssistantPackage
-            } else {
-                state.show = false
-            }
-            return state
+        isInstanceRunning () {
+            const instanceRunning = this.instance?.meta?.state === 'running'
+            const deviceRunning = this.device?.status === 'running'
+            return instanceRunning || deviceRunning
         }
     },
     watch: {
@@ -331,10 +247,6 @@ export default {
                     'product/expert/addWelcomeMessageIfNeeded'
                 )
             }, 1000)
-            // Delay showing update banner to avoid showing during initial load (can be triggered by assistant loading after a few seconds)
-            setTimeout(() => {
-                this.allowUpdateBanner = true
-            }, 5000)
         }
     },
     beforeUnmount () {
@@ -364,7 +276,6 @@ export default {
             'setAbortController',
             'resetSessionTimer'
         ]),
-        ...mapActions('product/assistant', ['manageNodePackage', 'installNodePackage']),
 
         async handleSendMessage (query) {
             if (!query.trim()) return
@@ -451,12 +362,6 @@ export default {
                 index === this.messages.length - 1 &&
                 this.messages[index]?.isStreaming === true
             )
-        },
-        manageAssistantPackage () {
-            this.manageNodePackage('@flowfuse/nr-assistant')
-        },
-        installAssistantPackage () {
-            this.installNodePackage('@flowfuse/nr-assistant')
         }
     }
 }
@@ -499,7 +404,7 @@ export default {
 }
 
 .info-banner {
-    background-color: #e0e7ff; // indigo-100
+    background-color: #eef2ff; // indigo-100
     border-radius: 0.5rem;
     margin-bottom: 1.5rem;
     padding: 0.75rem 1rem;
@@ -520,7 +425,7 @@ export default {
         }
     }
 
-    .banner-badge {
+    .beta-badge {
         display: inline-block;
         background-color: #818cf8; // indigo-400
         color: white;
@@ -593,43 +498,4 @@ export default {
 .messages-container.has-mode-switcher {
     padding-top: 4rem; // Extra padding to account for floating mode switcher
 }
-
-.info-banner {
-    &.expert-update-banner {
-        margin-bottom: 0rem;
-        border-radius: 0;
-        padding: 0.5rem 1rem;
-        border-top: 1px solid #E5E7EB;
-
-        .expert-update-header {
-            font-weight: 600;
-        }
-        .expert-update-body {
-            max-height: 0;
-            overflow: hidden;
-            visibility: hidden;
-            transition: max-height 0.6s ease-in-out, visibility 0.6s ease-in-out;
-            transition-delay: 250ms; // avoid showing immediately (minimise false expansion on mousing around the chat)
-        }
-
-        .banner-badge {
-            cursor: default;
-        }
-
-        &.warning {
-            .banner-badge {
-                background-color: $ff-red-700;
-                color: $ff-grey-50;
-            }
-        }
-
-        &:hover .expert-update-body,
-        &:focus-within .expert-update-body,
-        &:active .expert-update-body {
-            max-height: 500px;
-            visibility: visible;
-        }
-    }
-}
-
 </style>
