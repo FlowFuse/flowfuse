@@ -10,6 +10,10 @@ meta:
      - kubernetes
      - trial license
      - deployment models
+templateEngineOverride: njk,md    
+installationServiceHubspot:
+  formId: "22edc659-d098-4767-aeb1-6480daae41ad"
+  targetId: "hs-form-instalation-service"
 ---
 
 # Installing FlowFuse
@@ -36,11 +40,8 @@ for any specific actions required.
 
 If you need assistance, request our complimentary Installation Service, and we will help you install FlowFuse.
 
-<script charset="utf-8" type="text/javascript" src="//js-eu1.hsforms.net/forms/embed/v2.js"></script>
-<script>
-  hbspt.forms.create({
-    region: "eu1",
-    portalId: "26586079",
-    formId: "22edc659-d098-4767-aeb1-6480daae41ad"
-  });
-</script>
+{% set formId = installationServiceHubspot.formId %}
+{% set targetId = installationServiceHubspot.targetId %}
+{% set cta = "cta-request-installation-service" %}
+{% set reference = "docs-install-intro" %}
+{% include "hubspot/hs-form.njk" %}
