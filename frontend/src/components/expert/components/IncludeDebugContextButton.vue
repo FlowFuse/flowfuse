@@ -42,7 +42,34 @@ export default {
                 map[n.type] = (map[n.type] ?? 0) + 1
             })
 
-            const list = this.debugLog.map(entry => entry.metadata ? `${entry.metadata.date} ${entry.metadata.name} ${entry.metadata.topic}` : (entry.id || 'debug')).join('\n')
+            const tipBuilder = (logEntry, index) => {
+                logEntry = logEntry || {}
+                const level = logEntry.level || ''
+                const nonDebugLevel = level !== 'debug' ? level : ''
+                const topic = logEntry.metadata?.topic || ''
+                const name = logEntry.source?.name || logEntry.source?.id || logEntry.metadata?.path || ''
+                const format = logEntry.metadata?.format || ''
+                const type = logEntry.source?.type || ''
+                const property = logEntry.metadata?.property || ''
+                const strBuilder = []
+                if (name) strBuilder.push(`node: ${name}`)
+                if (topic) strBuilder.push(`topic: ${topic}`)
+                if (nonDebugLevel) {
+                    if (type) {
+                        strBuilder.push(`${type} : (${nonDebugLevel})`)
+                    }
+                }
+                if (property) {
+                    if (format) {
+                        strBuilder.push(`property: ${property} ${format}`)
+                    } else {
+                        strBuilder.push(`property: ${property}`)
+                    }
+                }
+                return `${index + 1}: ${strBuilder.join(', ')}`
+            }
+
+            const list = this.debugLog.map(tipBuilder).join('\n')
 
             return `Selected Logs: \n${list}`
         }
