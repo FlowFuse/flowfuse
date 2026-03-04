@@ -1,4 +1,7 @@
+import SemVer from 'semver'
+
 import messagingService from '../../../../services/messaging.service.js'
+
 const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep
 
 const eventsRegistry = {
@@ -172,10 +175,32 @@ const getters = {
         return getters.debugLog?.length > 0
     },
     isFeaturePaletteEnabled: (state) => {
-        return (state.assistantFeatures?.commands?.['get-palette']?.enabled && supportedFeatures.paletteManagement?.enabled) ?? false
+        if (!supportedFeatures.paletteManagement?.enabled) {
+            // disabled locally in the expert, so no need to check assistant features or node-red version
+            return false
+        }
+        if (state.assistantFeatures?.commands?.['get-palette']?.enabled === false) {
+            return false
+        }
+        // introduced in nr-assistant 0.11.0 were actual support flags
+        if (state.assistantFeatures?.paletteManagement?.enabled === false) {
+            return false
+        }
+        return true
     },
     isFeatureDebugLogContextEnabled: (state) => {
-        return (state.assistantFeatures?.debugLogContext?.enabled && supportedFeatures.debugLogContext?.enabled) ?? false
+        if (!supportedFeatures.debugLogContext?.enabled) {
+            // disabled locally in the expert, so no need to check assistant features or node-red version
+            return false
+        }
+        if (!state.assistantFeatures?.debugLogContext?.enabled || !supportedFeatures.debugLogContext?.enabled) {
+            return false
+        }
+        if (!state.nodeRedVersion || !SemVer.valid(state.nodeRedVersion) || SemVer.lt(state.nodeRedVersion, '4.1.6')) {
+            // while nr-assistant 0.11.0 with debug log context support can be installed on NR 4.1.5 and below, the feature requires new functionality in Node-RED 4.1.6
+            return false
+        }
+        return true
     },
     /**
      * Returns the list of context options that are currently available based on the assistant features, filtering out
