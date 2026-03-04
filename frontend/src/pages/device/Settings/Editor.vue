@@ -36,14 +36,14 @@ import semver from 'semver'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
+import FormHeading from '../../../components/FormHeading.vue'
+import FormRow from '../../../components/FormRow.vue'
+import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import Alerts from '../../../services/alerts.js'
 
-import FormHeading from '../../../components/FormHeading.vue'
-import FormRow from '../../../components/FormRow.vue'
 import ChangeIndicator from '../../admin/Template/components/ChangeIndicator.vue'
-import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 
 export default {
     name: 'DeviceSettingsEditor',
@@ -117,8 +117,8 @@ export default {
         this.getSettings()
     },
     methods: {
-        saveSettings : async function () {
-            if (!this.validate()){
+        saveSettings: async function () {
+            if (!this.validate()) {
                 return
             }
             const settings = {
@@ -130,7 +130,6 @@ export default {
             await deviceApi.updateSettings(this.device.id, settings)
             this.$emit('device-updated')
             Alerts.emit('Device settings successfully updated. NOTE: changes will be applied once the device restarts.', 'confirmation', 6000)
-
         },
         getSettings: async function () {
             if (this.device) {
