@@ -13,7 +13,7 @@ meta:
 templateEngineOverride: njk,md    
 installationServiceHubspot:
   formId: "22edc659-d098-4767-aeb1-6480daae41ad"
-  targetId: "hs-form-instalation-service"
+  targetId: "hs-form-installation-service"
 ---
 
 # Installing FlowFuse
