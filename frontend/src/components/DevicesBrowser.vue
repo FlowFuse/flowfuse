@@ -385,6 +385,8 @@ import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 import AddDeviceToGroupDialog from './dialogs/device-group-management/AddDeviceToGroupDialog.vue'
 import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/RemoveDeviceFromGroupDialog.vue'
 
+import { useUxDialogStore } from '@/stores/ux-dialog.js'
+
 const POLL_TIME = 10000
 
 export default {
@@ -459,8 +461,8 @@ export default {
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
         ...mapState('ux/tours', ['tours']),
-        ...mapState('ux/dialog', ['dialog']),
         ...mapGetters('account', ['featuresCheck']),
+        dialog () { return useUxDialogStore().dialog },
         columns () {
             const columns = [
                 { label: 'Remote Instance', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },

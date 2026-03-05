@@ -79,15 +79,17 @@
 
 <script>
 import { ChipIcon } from '@heroicons/vue/outline'
-import { mapActions, mapState } from 'vuex'
 
 import ApplicationAPI from '../../../api/application.js'
+
 import { pluralize } from '../../../composables/String.js'
 import FfLoading from '../../Loading.vue'
 import NoticeBanner from '../../notices/NoticeBanner.vue'
 import DeployNotice from '../../notices/device-groups/DeployNotice.vue'
 
 import DeviceList from './components/device-list.vue'
+
+import { useUxDialogStore } from '@/stores/ux-dialog.js'
 
 export default {
     name: 'AddDeviceToGroupDialog',
@@ -119,7 +121,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('ux/dialog', ['dialog']),
+        dialog () { return useUxDialogStore().dialog },
         application () {
             if (!this.devicesBelongToSameApplication) return null
 
@@ -199,7 +201,7 @@ export default {
     },
     methods: {
         pluralize,
-        ...mapActions('ux/dialog', ['setDisablePrimary']),
+        setDisablePrimary (value) { useUxDialogStore().setDisablePrimary(value) },
         async getDeviceGroups (application) {
             this.loading = true
             return ApplicationAPI.getDeviceGroups(application.id)
