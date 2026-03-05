@@ -21,6 +21,7 @@ import Alerts from './services/alerts.js'
 import { setupSentry } from './services/error-tracking.js'
 import { getServiceFactory } from './services/service.factory.js'
 import store from './store/index.js'
+import { skipResetPlugin } from './stores/plugins/skip-reset.plugin.js'
 
 import './index.css'
 
@@ -30,6 +31,7 @@ store.commit('initializeStore')
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
+pinia.use(skipResetPlugin)
 
 const app = createApp(App)
     .use(ForgeUIComponents)

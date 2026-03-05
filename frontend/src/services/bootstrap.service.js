@@ -1,6 +1,4 @@
-import { nextTick, watch } from 'vue'
-
-import { useHydrationStore } from '../stores/hydration.js'
+import { nextTick } from 'vue'
 
 /**
  * Bootstrap Service - Handles application lifecycle and readiness detection
@@ -79,8 +77,7 @@ class BootstrapService {
     }
 
     async waitForStoreHydration () {
-        // Wait for legacy Vuex hydration
-        const vuexHydrated = new Promise((resolve) => {
+        return new Promise((resolve) => {
             if (this.$store.state.initialized || this.$store.state._hydrated) {
                 return resolve()
             }
@@ -95,18 +92,6 @@ class BootstrapService {
                 }
             })
         })
-
-        // Wait for Pinia hydration (resolves immediately if PERSISTED_STORES is empty)
-        const piniaHydrated = new Promise((resolve) => {
-            const hydrationStore = useHydrationStore()
-            if (hydrationStore.isHydrated) return resolve()
-            const unwatch = watch(
-                () => hydrationStore.isHydrated,
-                (hydrated) => { if (hydrated) { unwatch(); resolve() } }
-            )
-        })
-
-        return Promise.all([vuexHydrated, piniaHydrated])
     }
 
     async waitForRouterReady () {
