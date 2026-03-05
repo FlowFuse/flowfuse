@@ -67,6 +67,15 @@ Support mode becomes significantly more helpful when the Expert has context abou
     <label style="margin: 10px 0; font-size: 16px; color: #333;">Flow Context</label>
   </a>
 
+  <a class="assistant-feature" href="#debug-context">
+    <svg width="48" height="48" viewBox="0 0 24 24" class="icon-stroke" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 8v4l3 3" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="12" cy="12" r="9" stroke-width="2"/>
+      <path d="M8 2l1.5 2M16 2l-1.5 2" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <label style="margin: 10px 0; font-size: 16px; color: #333;">Debug Context</label>
+  </a>
+
 </div>
 
 ##### Palette Context
@@ -96,6 +105,19 @@ This allows you to ask questions like:
 Flow Context is what makes the Expert genuinely useful as a debugging and code review tool - it can see the same flow you're looking at and reason about it directly.
 
 ![FlowFuse Context discussion with the FlowFuse Expert.](../images/assistant/flow-context.gif){data-zoomable}
+
+##### Debug Context
+
+To add Debug Context, click the **upload icon (pin icon)** in the chat interface and select **Debug**. Once added, the Expert has access to the messages and output currently captured in your Node-RED debug panel.
+
+This allows the Expert to reason directly about the data or errors you are getting from your nodes at runtime, not just the structure of the flow itself.
+
+This allows you to ask questions like:
+- "Why is this debug output a number instead of a string?"
+- "What does this error message in the debug panel mean?"
+- "Is the payload structure here what my downstream node expects?"
+
+Debug Context is especially useful in combination with Flow Context — together they give the Expert both the structure of your flow and the actual data it is producing, making debugging significantly more effective.
 
 ### Insights Mode
 
