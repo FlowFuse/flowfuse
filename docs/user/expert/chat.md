@@ -4,7 +4,7 @@ navTitle: Chat Interface
 
 # Chat Interface
 
-The FlowFuse Expert chat interface is your conversational AI companion that you can open directly in the Node-RED editor. While other FlowFuse Expert features (like inline code completions and flow generation) work passively in the background, the chat interface is where you actively engage the AI - asking questions, exploring your flows, and gaining insights from your live data.
+The FlowFuse Expert chat interface is your conversational AI companion that you can open directly in the Node-RED editor. While other FlowFuse Expert features (like inline code completions and next-node prediction) work passively in the Node-RED Editor, the chat interface is where you actively engage the AI - asking questions, exploring your flows, and gaining insights from your live data.
 
 ## Opening the Chat Interface
 
