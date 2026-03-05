@@ -30,11 +30,12 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
 import { pluralize } from '../../../../composables/String.js'
+
 import FfDataTable from '../../../../ui-components/components/data-table/DataTable.vue'
 import Accordion from '../../../Accordion.vue'
+
+import { useUxDialogStore } from '@/stores/ux-dialog.js'
 
 export default {
     name: 'device-list',
@@ -50,7 +51,7 @@ export default {
     },
     emits: ['selection-removed'],
     computed: {
-        ...mapState('ux/dialog', ['dialog']),
+        dialog () { return useUxDialogStore().dialog },
         columns () {
             return [
                 { label: 'Name', key: 'name', class: ['flex-grow'], sortable: true },

@@ -1,20 +1,17 @@
-import { mapActions, mapState } from 'vuex'
-
 import dialog from '../services/dialog.js'
+
+import { useUxDialogStore } from '@/stores/ux-dialog.js'
 
 export default {
     computed: {
-        ...mapState('ux/dialog', ['dialog'])
+        dialog () { return useUxDialogStore().dialog }
     },
     methods: {
-        ...mapActions('ux/dialog', ['clearDialog']),
-        ...mapActions('ux/dialog', {
-            handleDialog: 'showDialogHandlers'
-        }),
+        clearDialog (cancelled = false) {
+            useUxDialogStore().clearDialog(cancelled)
+        },
         showDialogHandler (msg, onConfirm, onCancel) {
-            return this.handleDialog({
-                payload: msg, onConfirm, onCancel
-            })
+            return useUxDialogStore().showDialogHandlers({ payload: msg, onConfirm, onCancel })
         }
     },
     mounted () {
