@@ -13,11 +13,11 @@
                     </FormRow>
                 </div>
             </div>
-            <div v-else class="flex flex-col sm:flex-row">
-                <div class="space-y-4 w-full max-w-md sm:mr-8">
-                    Please upgrade your Device Agent to v3.8.4 to be able to set apiMaxLength or debugMaxLength
-                </div>
-            </div>
+            <notice-banner
+                v-else
+                title="Upgrade Required"
+                text="Please upgrade your Device Agent to v3.8.4 to be able to set apiMaxLength or debugMaxLength"
+            />
         </div>
         <FeatureUnavailableToTeam v-if="!limitAvailable" featureName="Set API Size Limits" />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
@@ -37,6 +37,7 @@ import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
+import NoticeBanner from '../../../components/notices/NoticeBanner.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import Alerts from '../../../services/alerts.js'
@@ -46,6 +47,7 @@ import ChangeIndicator from '../../admin/Template/components/ChangeIndicator.vue
 export default {
     name: 'DeviceSettingsEditor',
     components: {
+        NoticeBanner,
         FeatureUnavailableToTeam,
         FormRow,
         FormHeading,
