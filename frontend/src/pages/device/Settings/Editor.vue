@@ -87,8 +87,8 @@ export default {
         limitsLauncherEnabled () {
             if (!this.device.agentVersion) {
                 // Device has not called home yet - so we don't know what agent
-                // version it is running.
-                return false
+                // version it is running, so assume it will be new version
+                return true
             }
             return semver.gte(this.device.agentVersion, '3.8.3')
         },
