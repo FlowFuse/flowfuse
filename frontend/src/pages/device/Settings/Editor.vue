@@ -13,11 +13,11 @@
                     </FormRow>
                 </div>
             </div>
-            <notice-banner
-                v-else
-                title="Upgrade Required"
-                text="Please upgrade your Device Agent to v3.8.3 to be able to set apiMaxLength or debugMaxLength"
-            />
+            <notice-banner v-else title="Upgrade Required">
+                <p>
+                    Please <a target="_blank" class="underline" href="https://flowfuse.com/docs/device-agent/install/device-agent-installer/#device-agent">upgrade</a> your Device Agent to v3.8.3 to be able to set apiMaxLength
+                </p>
+            </notice-banner>
         </div>
         <FeatureUnavailableToTeam v-if="!limitAvailable" featureName="Set API Size Limits" />
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
