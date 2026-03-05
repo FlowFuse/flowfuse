@@ -77,16 +77,16 @@ class BootstrapService {
     }
 
     async waitForStoreHydration () {
+        if (this.$store.state.initialized || this.$store.state._hydrated) {
+            return Promise.resolve()
+        }
+
+        // Wait for store hydration
         return new Promise((resolve) => {
-            if (this.$store.state.initialized || this.$store.state._hydrated) {
-                return resolve()
-            }
             const unsubscribe = this.$store.subscribe((mutation) => {
-                if (
-                    mutation.type === 'initializeStore' ||
+                if (mutation.type === 'initializeStore' ||
                     mutation.type === 'HYDRATE_COMPLETE' ||
-                    this.$store.state._hydrated
-                ) {
+                    this.$store.state._hydrated) {
                     unsubscribe()
                     resolve()
                 }
