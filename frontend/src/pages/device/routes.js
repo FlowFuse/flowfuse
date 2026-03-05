@@ -7,6 +7,7 @@ import DeviceLogs from './Logs.vue'
 import DeviceOverview from './Overview.vue'
 import DevicePerformance from './Performance.vue'
 import DeviceSettingsDanger from './Settings/Danger.vue'
+import DeviceSettingsEditor from './Settings/Editor.vue'
 import DeviceSettingsEnvironment from './Settings/Environment.vue'
 import DeviceSettingsGeneral from './Settings/General.vue'
 import DeviceSettingsPalette from './Settings/Palette.vue'
@@ -43,6 +44,11 @@ const children = [
                 name: 'device-settings-environment',
                 path: 'environment',
                 component: DeviceSettingsEnvironment
+            },
+            {
+                name: 'device-settings-editor',
+                path: 'editor',
+                component: DeviceSettingsEditor
             },
             {
                 name: 'device-settings-security',

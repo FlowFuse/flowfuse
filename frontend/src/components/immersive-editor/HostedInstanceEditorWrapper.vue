@@ -71,6 +71,14 @@ export default {
         // adding event listener to listen for messages from the iframe
         window.addEventListener('message', this.eventListener)
     },
+    beforeUnmount () {
+        // Clear the iframe src before unmount so PostHog's rrweb recorder can safely
+        // detach its event listeners. Without this, rrweb throws a SecurityError when
+        // calling contentWindow.removeEventListener on the cross-origin Node-RED iframe.
+        if (this.$refs.iframe) {
+            this.$refs.iframe.src = 'about:blank'
+        }
+    },
     unmounted () {
         window.removeEventListener('message', this.eventListener)
         this.resetAssistant()
