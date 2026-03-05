@@ -2,17 +2,15 @@
     <form class="space-y-6" data-el="instance-editor" @submit.prevent>
         <FormHeading>Limits</FormHeading>
         <div v-if="limitAvailable">
-            <div v-if="limitsLauncherEnabled">
-                <div class="flex flex-col sm:flex-row">
-                    <div class="w-full max-w-md sm:mr-8">
-                        <FormRow v-model="editable.settings.apiMaxLength" :error="editable.errors.apiMaxLength" type="text">
-                            Max HTTP Payload Size
-                            <template #description>
-                                The maximum number of bytes allowed in a HTTP Request in bytes ('kb','mb' modifiers allowed)
-                            </template>
-                            <template #append><ChangeIndicator :value="editable.changed.apiMaxLength" /></template>
-                        </FormRow>
-                    </div>
+            <div v-if="limitsLauncherEnabled" class="flex flex-col sm:flex-row">
+                <div class="w-full max-w-md sm:mr-8">
+                    <FormRow v-model="editable.settings.apiMaxLength" :error="editable.errors.apiMaxLength" type="text">
+                        Max HTTP Payload Size
+                        <template #description>
+                            The maximum number of bytes allowed in a HTTP Request in bytes ('kb','mb' modifiers allowed)
+                        </template>
+                        <template #append><ChangeIndicator :value="editable.changed.apiMaxLength" /></template>
+                    </FormRow>
                 </div>
             </div>
             <div v-else class="flex flex-col sm:flex-row">
