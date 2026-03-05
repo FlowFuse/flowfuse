@@ -4,7 +4,7 @@ navTitle: Installation
 redirect:
   to: /docs/device-agent/install/overview
 layout: redirect
-navOrder: 1
+navOrder: 3
 tags:
   - noDropdown
 ---
