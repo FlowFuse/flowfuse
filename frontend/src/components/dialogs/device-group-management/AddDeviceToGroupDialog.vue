@@ -79,14 +79,17 @@
 
 <script>
 import { ChipIcon } from '@heroicons/vue/outline'
+
 import ApplicationAPI from '../../../api/application.js'
-import { useUxDialogStore } from '@/stores/ux-dialog.js'
+
 import { pluralize } from '../../../composables/String.js'
 import FfLoading from '../../Loading.vue'
 import NoticeBanner from '../../notices/NoticeBanner.vue'
 import DeployNotice from '../../notices/device-groups/DeployNotice.vue'
 
 import DeviceList from './components/device-list.vue'
+
+import { useUxDialogStore } from '@/stores/ux-dialog.js'
 
 export default {
     name: 'AddDeviceToGroupDialog',
