@@ -74,21 +74,11 @@
                 "ecmaVersion": 2022,
                 "sourceType": "module"
             },
-            "settings": {
-                "import/resolver": {
-                    "webpack": {
-                        "config": "config/webpack.config.js"
-                    },
-                    "node": {
-                        "extensions": [".js", ".vue"]
-                    }
-                }
-            },
             "rules": {
                 // plugin:vue
                 "vue/html-indent": ["warn", 4],
-                
-                // plugin:vue - style rules 
+
+                // plugin:vue - style rules
                 "vue/max-attributes-per-line": "off",
                 "vue/attribute-hyphenation": "off",
                 "vue/singleline-html-element-content-newline": "off",
@@ -97,8 +87,9 @@
                 // plugin:promise
                 "promise/always-return": "off", // common Vue.js pattern
 
-                // Frontend runs through webpack, not Node — n's Node.js-based resolution
-                // does not understand webpack aliases (@/) or .vue file resolution
+                // Frontend runs through webpack, not Node — Node-based resolution rules
+                // do not understand webpack aliases (@/) or .vue file resolution
+                "import/no-unresolved": "off",
                 "n/no-missing-import": "off",
                 "n/no-missing-require": "off"
             }
