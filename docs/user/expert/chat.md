@@ -91,7 +91,6 @@ This makes it possible to ask questions directly about your flows without having
 This allows you to ask questions like:
 - "What does this flow do?"
 - "Why does this flow output a number instead of a string?"
-- "Which flows connect to the MQTT broker node?"
 - "Is there anything in this flow that could cause message loss?"
 
 Flow Context is what makes the Expert genuinely useful as a debugging and code review tool - it can see the same flow you're looking at and reason about it directly.
