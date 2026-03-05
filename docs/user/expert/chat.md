@@ -123,7 +123,7 @@ This allows you to ask questions like:
 
 Debug Context is especially useful in combination with Flow Context - together they give the Expert both the structure of your flow and the actual data it is producing, making debugging significantly more effective.
 
-![Debug Context discussion with the FlowFuse Expert.](../images/assistant/ff-expert-log-access.gif){data-zoomable}
+![Debug Context discussion with the FlowFuse Expert.](../images/assistant/expert-debug-context.gif){data-zoomable}
 
 #### Resetting Context
 
