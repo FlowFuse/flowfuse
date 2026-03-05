@@ -174,8 +174,9 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-form="stage-action"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"] > .ff-option:contains("Do nothing")').should('not.exist')
         cy.get('[data-el="listbox-options"] .ff-option-content.active').should('contain', 'Prompt to select instance snapshot')
+        cy.get('[data-form="stage-name"] input').click() // click somewhere else to close listbox
 
-        cy.get('[data-action="add-stage"]').scrollIntoView()
+        cy.get('[data-action="add-stage"]').scrollIntoView() // scroll button into view
         cy.get('[data-action="add-stage"]').click()
 
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
