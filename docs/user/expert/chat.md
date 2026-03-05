@@ -42,7 +42,7 @@ Typical use cases in Support mode:
 - "How do I parse a JSON payload in a Function node?"
 - "Explain what this flow is doing"
 - "Why is this node outputting a number instead of a string?"
-- "Is the `node-red-contrib-mqtt-broker` node installed on this instance?"
+- "Is `node-red-contrib-string` node installed on this instance?"
 
 #### Context: What the Expert Can See
 
