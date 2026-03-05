@@ -39,7 +39,7 @@ The chat interface operates in two distinct modes. You can switch between them u
 **Support mode** is for flow-building assistance. Use it when you need help understanding, building, or debugging your Node-RED flows. In this mode, the Expert draws on its knowledge of Node-RED, your installed palette, and the context of your current flows to answer questions and provide guidance.
 
 Typical use cases in Support mode:
-- "How do I parse a JSON payload in a Function node?"
+- "How do I convert data to CSV for writing to file & do you have any flow examples?"
 - "Explain what this flow is doing"
 - "Why is this node outputting a number instead of a string?"
 - "Is `node-red-contrib-string` node installed on this instance?"
