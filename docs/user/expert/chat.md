@@ -104,9 +104,12 @@ Flow Context is what makes the Expert genuinely useful as a debugging and code r
 In Insights mode, you first select an MCP Server that you've built using [FlowFuse MCP Server Nodes](https://flowfuse.com/node-red/flowfuse/mcp/). The Expert can then use the tools and resources exposed by that server to answer questions against your live operational data. If you haven't built an MCP Server yet, see the guide on [building an MCP Server using FlowFuse](https://flowfuse.com/blog/2025/10/building-mcp-server-using-flowfuse/).
 
 Typical use cases in Insights mode:
-- "What is the current status of production line 3?"
-- "Query the database and show me the last 10 error events"
-- "Summarize today's sensor readings from the MQTT broker"
+- You have an MCP Resource named `production_lines_facilities_list` that returns a list of your production lines, their facility names and the facility types (stamping, assembly, packaging etc)
+    - You can ask: "List all stamping facilities on our production lines"
+- You have added an MCP Tool named `get_production_live_state`
+    -You can ask: "Tell me which of any of my assembly facilities are running and at what speed"
+- You have added an MCP tool named `get_production_oee` that
+    - You can ask: "Show me the worst 3 OEE results for all production line facilities"
 
 > **Note:** Insights mode is currently in Beta. Capabilities are actively being expanded.
 
