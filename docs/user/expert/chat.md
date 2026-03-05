@@ -117,7 +117,13 @@ This allows you to ask questions like:
 - "What does this error message in the debug panel mean?"
 - "Is the payload structure here what my downstream node expects?"
 
-Debug Context is especially useful in combination with Flow Context — together they give the Expert both the structure of your flow and the actual data it is producing, making debugging significantly more effective.
+Debug Context is especially useful in combination with Flow Context - together they give the Expert both the structure of your flow and the actual data it is producing, making debugging significantly more effective.
+
+![Debug Context discussion with the FlowFuse Expert.](../images/assistant/ff-expert-log-access.gif){data-zoomable}
+
+#### Resetting Context
+
+If the Expert starts giving unexpected or inconsistent answers, it may be due to accumulated context from earlier in the conversation influencing its responses. Use the **Start Over** button to clear the conversation and start fresh with a clean context.
 
 ### Insights Mode
 
