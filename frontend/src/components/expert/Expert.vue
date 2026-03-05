@@ -242,16 +242,14 @@ export default {
                 if (this.isEditorContext && newState !== 'running') {
                     this.reset() // reset assistant state
                 }
-            },
-            deep: true
+            }
         },
         'device.status': {
             handler (newState) {
                 if (this.isEditorContext && newState !== 'running') {
                     this.reset() // reset assistant state
                 }
-            },
-            deep: true
+            }
         }
     },
     mounted () {
