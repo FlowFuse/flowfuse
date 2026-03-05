@@ -80,7 +80,7 @@ Support mode becomes significantly more helpful when the Expert has context abou
 
 ##### Palette Context
 
-To add Palette Context, click the **upload icon** (pin icon) in the chat interface and select **Palette**. Once added, the Expert has access to information about the nodes installed in your Node-RED instance - including installed packages and their versions.
+To add Palette Context, click the **Resource Selector** button (paperclip icon) in the chat interface and select **Palette**. Once added, the Expert has access to information about the nodes installed in your Node-RED instance - including installed packages and their versions.
 
 This allows you to ask questions like:
 - "Is my palette up to date?"
