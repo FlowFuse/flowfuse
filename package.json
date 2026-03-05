@@ -103,6 +103,8 @@
         "mqtt-match": "^3.0.0",
         "nodemailer": "^7.0.9",
         "pg": "^8.11.3",
+        "pinia": "^3.0.4",
+        "pinia-plugin-persistedstate": "^4.7.1",
         "pino": "^8.15.1",
         "pino-pretty": "^10.0.0",
         "posthog-node": "^4.2.0",
@@ -126,6 +128,7 @@
     "devDependencies": {
         "@babel/core": "^7.22.15",
         "@babel/preset-env": "^7.22.15",
+        "@pinia/testing": "^1.0.3",
         "@vitejs/plugin-vue": "^5.0.2",
         "@vitest/coverage-istanbul": "^3.1.1",
         "@vue/test-utils": "^2.4.3",
