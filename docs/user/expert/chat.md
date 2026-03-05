@@ -108,7 +108,11 @@ Flow Context is what makes the Expert genuinely useful as a debugging and code r
 
 ##### Debug Context
 
-To add Debug Context, click the **upload icon (pin icon)** in the chat interface and select **Debug**. Once added, the Expert has access to the messages and output currently captured in your Node-RED debug panel.
+To add Debug Context, you have 2 options:
+1. Add individual log entries by clicking the ➕ button that appears over your debug message
+2. Click the **Resource Selector** button (paperclip icon) in the chat interface and select **Add Debug Logs**. 
+
+Once added, the Expert has access to the messages and output currently captured in your Node-RED debug panel.
 
 This allows the Expert to reason directly about the data or errors you are getting from your nodes at runtime, not just the structure of the flow itself.
 
