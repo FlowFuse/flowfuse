@@ -16,7 +16,7 @@
             <notice-banner
                 v-else
                 title="Upgrade Required"
-                text="Please upgrade your Device Agent to v3.8.4 to be able to set apiMaxLength or debugMaxLength"
+                text="Please upgrade your Device Agent to v3.8.3 to be able to set apiMaxLength or debugMaxLength"
             />
         </div>
         <FeatureUnavailableToTeam v-if="!limitAvailable" featureName="Set API Size Limits" />
