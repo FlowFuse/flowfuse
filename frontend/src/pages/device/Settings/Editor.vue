@@ -15,7 +15,7 @@
             </div>
             <notice-banner v-else title="Upgrade Required">
                 <p>
-                    Please <a target="_blank" class="underline" href="https://flowfuse.com/docs/device-agent/install/device-agent-installer/#device-agent">upgrade</a> your Device Agent to v3.8.3 to be able to set apiMaxLength
+                    Please <a target="_blank" class="ff-link" href="https://flowfuse.com/docs/device-agent/install/device-agent-installer/#device-agent">upgrade</a> your Device Agent to v3.8.3 to be able to set apiMaxLength
                 </p>
             </notice-banner>
         </div>
