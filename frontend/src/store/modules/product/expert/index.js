@@ -348,7 +348,6 @@ const actions = {
     },
 
     reset ({ commit, dispatch, state }) {
-        // order matters
         dispatch(`product/expert/${state.agentMode}/reset`, null, { root: true })
         commit('RESET')
     },

@@ -2,7 +2,7 @@
     <div class="context-selector-container">
         <context-selector-button v-if="!isOperatorAgent" />
         <div class="chips-container" @wheel="horizontalScrolling">
-            <context-chip v-for="(context, index) in selectedContext" :key="index" :contextItem="context" />
+            <context-chip v-for="(context, index) in selectedContextFiltered" :key="index" :contextItem="context" />
             <debug-chip v-if="hasDebugLogsSelected && !isOperatorAgent" />
             <selection-chip v-if="hasUserSelection && !isOperatorAgent" />
         </div>
@@ -35,6 +35,9 @@ export default {
                 return []
             }
             return this.getSelectedContext
+        },
+        selectedContextFiltered () {
+            return this.selectedContext.filter(c => c.showAsChip !== false)
         }
     },
     methods: {
