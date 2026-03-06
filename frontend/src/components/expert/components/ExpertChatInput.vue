@@ -73,11 +73,11 @@ import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 
 import ResizeBar from '../../ResizeBar.vue'
 
-import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
-import ContextSelector from './components/ContextSelector.vue'
-import IncludeContextItem from './components/IncludeContextItem.vue'
-import IncludeSelectionButton from './components/IncludeSelectionButton.vue'
-import IncludeDebugContextButton from './components/IncludeDebugContextButton.vue'
+import CapabilitiesSelector from './CapabilitiesSelector.vue'
+import ContextSelector from './ContextSelector.vue'
+import IncludeContextItem from './IncludeContextItem.vue'
+import IncludeDebugContextButton from './IncludeDebugContextButton.vue'
+import IncludeSelectionButton from './IncludeSelectionButton.vue'
 
 export default {
     name: 'ExpertChatInput',
