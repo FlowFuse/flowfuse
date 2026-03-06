@@ -15,6 +15,9 @@
             <div ref="scrollAnchor" class="scroll-anchor" />
         </div>
 
+        <!-- Updates Available Banner -->
+        <update-banner v-if="isEditorContext && isInstanceRunning" />
+
         <expert-chat-input @stop="handleStopGeneration" />
     </div>
 </template>
@@ -26,6 +29,7 @@ import ExpertChatInput from './components/ExpertChatInput.vue'
 import ExpertMessages from './components/ExpertMessages.vue'
 import ExpertModeSwitcher from './components/ExpertModeSwitcher.vue'
 import InfoBanner from './components/InfoBanner.vue'
+import UpdateBanner from './components/UpdateBanner.vue'
 
 export default {
     name: 'ExpertPanel',
@@ -33,12 +37,25 @@ export default {
         ExpertModeSwitcher,
         InfoBanner,
         ExpertMessages,
-        ExpertChatInput
+        ExpertChatInput,
+        UpdateBanner
     },
     inject: {
         togglePinWithWidth: {
             from: 'togglePinWithWidth',
             default: () => () => {} // No-op function when not provided
+        }
+    },
+    props: {
+        instance: {
+            type: Object,
+            required: false,
+            default: null
+        },
+        device: {
+            type: Object,
+            required: false,
+            default: null
         }
     },
     data () {
@@ -62,6 +79,25 @@ export default {
         isEditorContext () {
             // In editor context, the route name includes 'editor'
             return this.$route?.name?.includes('editor') || false
+        },
+        agentModeWrapper: {
+            get () {
+                return this.agentMode
+            },
+            set (value) {
+                this.$store.dispatch('product/expert/setAgentMode', value)
+            }
+        },
+        agentModeButtons () {
+            return [
+                { title: 'Support', value: 'ff-agent' },
+                { title: 'Insights', value: 'operator-agent' }
+            ]
+        },
+        isInstanceRunning () {
+            const instanceRunning = this.instance?.meta?.state === 'running'
+            const deviceRunning = this.device?.status === 'running'
+            return instanceRunning || deviceRunning
         }
     },
     watch: {
@@ -87,6 +123,20 @@ export default {
                 await this.$store.dispatch(
                     'product/expert/addWelcomeMessageIfNeeded'
                 )
+            }
+        },
+        'instance.meta.state': {
+            handler (newState) {
+                if (this.isEditorContext && newState !== 'running') {
+                    this.reset() // reset assistant state
+                }
+            }
+        },
+        'device.status': {
+            handler (newState) {
+                if (this.isEditorContext && newState !== 'running') {
+                    this.reset() // reset assistant state
+                }
             }
         }
     },

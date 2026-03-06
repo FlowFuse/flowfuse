@@ -36,10 +36,8 @@
                 <div class="left">
                     <context-selector v-if="!isOperatorAgent" />
                     <div class="context-items-container" @wheel="horizontalScrolling">
-                        <include-context-item
-                            v-for="(context, index) in selectedContext" :key="index"
-                            :contextItem="context"
-                        />
+                        <include-context-item v-for="(context, index) in selectedContext" :key="index" :contextItem="context" />
+                        <include-debug-context-button v-if="hasDebugLogsSelected && !isOperatorAgent" />
                         <include-selection-button v-if="hasUserSelection && !isOperatorAgent" />
                     </div>
                 </div>
@@ -75,10 +73,11 @@ import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 
 import ResizeBar from '../../ResizeBar.vue'
 
-import CapabilitiesSelector from './CapabilitiesSelector.vue'
-import ContextSelector from './ContextSelector.vue'
-import IncludeContextItem from './IncludeContextItem.vue'
-import IncludeSelectionButton from './IncludeSelectionButton.vue'
+import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
+import ContextSelector from './components/ContextSelector.vue'
+import IncludeContextItem from './components/IncludeContextItem.vue'
+import IncludeSelectionButton from './components/IncludeSelectionButton.vue'
+import IncludeDebugContextButton from './components/IncludeDebugContextButton.vue'
 
 export default {
     name: 'ExpertChatInput',
@@ -86,6 +85,7 @@ export default {
         CapabilitiesSelector,
         ContextSelector,
         IncludeContextItem,
+        IncludeDebugContextButton,
         IncludeSelectionButton,
         ResizeBar
     },
@@ -119,7 +119,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('product/assistant', ['hasUserSelection', 'getSelectedContext']),
+        ...mapGetters('product/assistant', ['getSelectedContext', 'hasDebugLogsSelected', 'hasUserSelection']),
         ...mapGetters('product/expert', [
             'messages',
             'isSessionExpired',
@@ -153,6 +153,9 @@ export default {
                 return []
             }
             return this.getSelectedContext
+        },
+        selectedContextFiltered () {
+            return this.selectedContext.filter(c => c.showAsChip !== false)
         }
     },
     mounted () {

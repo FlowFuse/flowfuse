@@ -57,6 +57,14 @@ export default {
                 return this.device.status
             }
         }
+    },
+    beforeUnmount () {
+        // Clear the iframe src before unmount so PostHog's rrweb recorder can safely
+        // detach its event listeners. Without this, rrweb throws a SecurityError when
+        // calling contentWindow.removeEventListener on the cross-origin Node-RED iframe.
+        if (this.$refs.iframe) {
+            this.$refs.iframe.src = 'about:blank'
+        }
     }
 }
 </script>
