@@ -236,6 +236,20 @@ export default {
                     'product/expert/addWelcomeMessageIfNeeded'
                 )
             }
+        },
+        'instance.meta.state': {
+            handler (newState) {
+                if (this.isEditorContext && newState !== 'running') {
+                    this.reset() // reset assistant state
+                }
+            }
+        },
+        'device.status': {
+            handler (newState) {
+                if (this.isEditorContext && newState !== 'running') {
+                    this.reset() // reset assistant state
+                }
+            }
         }
     },
     mounted () {
@@ -276,6 +290,7 @@ export default {
             'setAbortController',
             'resetSessionTimer'
         ]),
+        ...mapActions('product/assistant', ['reset']),
 
         async handleSendMessage (query) {
             if (!query.trim()) return
