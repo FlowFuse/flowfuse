@@ -12,10 +12,9 @@ import OperatorAgent from './operator-agent/index.js'
 
 const initialState = () => ({
     shouldWakeUpAssistant: false,
-
-    // expert modes
     agentMode: FF_AGENT, // ff-agent or operator-agent
-    abortController: null
+    abortController: null,
+    loadingVariant: FF_AGENT
 })
 
 const meta = {
@@ -55,7 +54,6 @@ const mutations = {
 
         state.agentMode = mode
     },
-
     SET_CONTEXT (state, context) {
         state[state.agentMode].context = context
     },
@@ -90,6 +88,9 @@ const mutations = {
     },
     SET_SESSION_CHECK_TIMER (state, timer) {
         state[state.agentMode].sessionCheckTimer = timer
+    },
+    SET_LOADING_VARIANT (state, variant) {
+        state.loadingVariant = variant
     },
     RESET (state) {
         Object.assign(state, initialState())
@@ -190,7 +191,6 @@ const mutations = {
 }
 
 const actions = {
-    // Context actions and lifecycle
     async setContext ({ commit, dispatch, state, rootState, rootGetters }, { data, sessionId }) {
         if (rootGetters['account/featuresCheck'].isExpertAssistantFeatureEnabled === false) {
             return
@@ -250,20 +250,14 @@ const actions = {
                 commit('HYDRATE_MESSAGES', state[state.agentMode].context)
             }
 
-            // todo this needs to be sorted differently
-            // Add loading message with transfer variant to indicate syncing from website
-            commit('ADD_MESSAGE', {
-                type: 'loading',
-                variant: 'transfer',
-                timestamp: Date.now()
-            })
+            commit('SET_LOADING_VARIANT', 'transfer')
 
             return dispatch('openAssistantDrawer')
                 .then(() => dispatch('hydrateClient'))
+                .then(() => commit('SET_LOADING_VARIANT', state.agentMode))
         }
     },
 
-    // Main message sending action
     async handleQuery ({ commit, state, dispatch }, { query }) {
         // Auto-initialize session ID if not set
         if (!state[state.agentMode].sessionId) {
@@ -318,13 +312,13 @@ const actions = {
         dispatch('addWelcomeMessageIfNeeded')
     },
 
-    setAbortController ({ commit }, controller) {
-        commit('SET_ABORT_CONTROLLER', controller)
-    },
-
     reset ({ commit, dispatch, state }) {
         dispatch(`product/expert/${state.agentMode}/reset`, null, { root: true })
         commit('RESET')
+    },
+
+    setAbortController ({ commit }, controller) {
+        commit('SET_ABORT_CONTROLLER', controller)
     },
 
     sendQuery ({ commit, state, getters, rootGetters, rootState }, { query }) {

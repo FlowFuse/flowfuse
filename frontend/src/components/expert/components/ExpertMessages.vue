@@ -5,7 +5,7 @@
                 <component :is="messageTypes[message._type]" v-if="messageTypes[message._type]" v-bind="{...message}" />
             </li>
             <li v-if="isWaitingForResponse">
-                <expert-loading-dots />
+                <expert-loading-indicator />
             </li>
         </ul>
     </div>
@@ -15,7 +15,7 @@
 import { markRaw } from 'vue'
 import { mapGetters } from 'vuex'
 
-import ExpertLoadingDots from './ExpertLoadingDots.vue'
+import ExpertLoadingIndicator from './ExpertLoadingIndicator.vue'
 
 import AiMessage from './messages/AiMessage.vue'
 import HumanMessage from './messages/HumanMessage.vue'
@@ -23,7 +23,7 @@ import SystemMessage from './messages/SystemMessage.vue'
 
 export default {
     name: 'ExpertMessages',
-    components: { ExpertLoadingDots },
+    components: { ExpertLoadingIndicator },
     computed: {
         ...mapGetters('product/expert', ['messages', 'isWaitingForResponse']),
         messageTypes () {
