@@ -69,6 +69,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"] > .ff-option:contains("Do nothing")').should('not.exist')
         cy.get('[data-el="listbox-options"] > .ff-option:contains("Create new instance snapshot")').click()
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         // Add stage 2
@@ -91,6 +92,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:last').click()
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         // Tidy Up
@@ -143,6 +145,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:last').click() // prompt
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         cy.wait('@createPipelineStage')
@@ -171,7 +174,9 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-form="stage-action"] .ff-listbox').click()
         cy.get('[data-el="listbox-options"] > .ff-option:contains("Do nothing")').should('not.exist')
         cy.get('[data-el="listbox-options"] .ff-option-content.active').should('contain', 'Prompt to select instance snapshot')
+        cy.get('[data-form="stage-name"] input').click() // click somewhere else to close listbox
 
+        cy.get('[data-action="add-stage"]').scrollIntoView() // scroll button into view
         cy.get('[data-action="add-stage"]').click()
 
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
@@ -215,6 +220,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:contains("Create new instance snapshot")').click() // prompt
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         // Add stage 2
@@ -232,6 +238,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:first').click()
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         /// Push from stage 1 to stage 2
@@ -302,6 +309,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:contains("Prompt")').click() // prompt
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         let instance
@@ -339,6 +347,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
             cy.get('[data-el="listbox-options"]').should('be.visible')
             cy.get('[data-el="listbox-options"] > .ff-option:first').click()
 
+            cy.get('[data-action="add-stage"]').scrollIntoView()
             cy.get('[data-action="add-stage"]').click()
 
             /// Push from stage 1 to stage 2
@@ -416,6 +425,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:contains("active")').click() // Use active snapshot
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         // Add stage 2
@@ -433,6 +443,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:first').click()
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         /// Push from stage 1 to stage 2
@@ -521,6 +532,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:contains("Create new instance snapshot")').click()
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         // Add stage 2
@@ -539,6 +551,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:contains("active")').click() // Use active snapshot
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         /// Push from stage 1 to stage 2
@@ -636,6 +649,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:contains("Create new instance snapshot")').click()
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         // Add stage 2
@@ -654,6 +668,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:first').click()
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
@@ -701,6 +716,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:contains("Create new instance snapshot")').click()
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         // Add stage 2 with device group
@@ -726,6 +742,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-form="stage-device-group-name"]').type(GROUP_NAME)
         cy.get('[data-form="stage-device-group-description"]').type(`Description for group ${GROUP_NAME}`)
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         cy.get(`[data-el="pipelines-list"] [data-el="pipeline-row"]:contains("${PIPELINE_NAME}")`).within(() => {
@@ -788,6 +805,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:contains("Create new instance snapshot")').click()
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         // Add stage 2
@@ -805,6 +823,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
         cy.get('[data-el="listbox-options"]').should('be.visible')
         cy.get('[data-el="listbox-options"] > .ff-option:last').click()
 
+        cy.get('[data-action="add-stage"]').scrollIntoView()
         cy.get('[data-action="add-stage"]').click()
 
         cy.logout()
