@@ -1,5 +1,5 @@
 <template>
-    <div class="selection-button" :class="{active: modelValue}" :title="title" @click="$emit('toggle')">
+    <div class="chip" :class="{active: modelValue}" :title="title" @click="$emit('toggle')">
         <div class="text">
             <slot name="text">
                 <span>{{ text }}</span>
@@ -21,7 +21,7 @@ import { PlusIcon, XIcon } from '@heroicons/vue/outline'
 import { pluralize } from '../../../../composables/strings/String.js'
 
 export default {
-    name: 'ContextChip',
+    name: 'DefaultChip',
     components: {
         XIcon,
         PlusIcon
@@ -51,7 +51,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.selection-button {
+.chip {
     border: 1px solid $ff-grey-200;
     border-radius: 5px;
     background: $ff-grey-50;
@@ -85,7 +85,7 @@ export default {
 
     .text {
         padding: 0.25rem 0.50rem 0.25rem 0.25rem;
-
+        align-items: center;
         font-size: $ff-funit-sm;
         display: flex;
         gap: 2px;

@@ -1,5 +1,5 @@
 <template>
-    <ContextChip
+    <default-chip
         class="flow-selection-button"
         :modelValue="modelValue"
         @toggle="toggleSelection"
@@ -8,20 +8,20 @@
             <span>Selection</span>
             <span class="counter italic" :title="selectionTitle">( {{ selectedCounter }} {{ pluralize('node', selectedCounter) }} )</span>
         </template>
-    </ContextChip>
+    </default-chip>
 </template>
 
 <script>
 import { mapActions, mapState } from 'vuex'
 
-import { pluralize } from '../../../composables/strings/String.js'
+import { pluralize } from '../../../../composables/strings/String.js'
 
-import ContextChip from './ContextChip/index.vue'
+import DefaultChip from './DefaultChip.vue'
 
 export default {
-    name: 'IncludeSelectionButton',
+    name: 'SelectionChip',
     components: {
-        ContextChip
+        DefaultChip
     },
     props: {
         modelValue: {

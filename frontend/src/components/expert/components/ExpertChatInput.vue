@@ -33,14 +33,7 @@
             />
 
             <div class="actions">
-                <div class="left">
-                    <context-selector v-if="!isOperatorAgent" />
-                    <div class="context-items-container" @wheel="horizontalScrolling">
-                        <include-context-item v-for="(context, index) in selectedContext" :key="index" :contextItem="context" />
-                        <include-debug-context-button v-if="hasDebugLogsSelected && !isOperatorAgent" />
-                        <include-selection-button v-if="hasUserSelection && !isOperatorAgent" />
-                    </div>
-                </div>
+                <context-selector />
 
                 <div class="right">
                     <button
@@ -74,19 +67,13 @@ import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 import ResizeBar from '../../ResizeBar.vue'
 
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
-import ContextSelector from './ContextSelector.vue'
-import IncludeContextItem from './IncludeContextItem.vue'
-import IncludeDebugContextButton from './IncludeDebugContextButton.vue'
-import IncludeSelectionButton from './IncludeSelectionButton.vue'
+import ContextSelector from './context-selection/index.vue'
 
 export default {
     name: 'ExpertChatInput',
     components: {
         CapabilitiesSelector,
         ContextSelector,
-        IncludeContextItem,
-        IncludeDebugContextButton,
-        IncludeSelectionButton,
         ResizeBar
     },
     inject: {
@@ -119,7 +106,6 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('product/assistant', ['getSelectedContext', 'hasDebugLogsSelected', 'hasUserSelection']),
         ...mapGetters('product/expert', [
             'messages',
             'isSessionExpired',
@@ -146,16 +132,6 @@ export default {
             return this.isOperatorAgent
                 ? 'Tell us what you want to know about'
                 : 'Tell us what you need help with'
-        },
-        selectedContext () {
-            // for insights mode, return empty array
-            if (this.isOperatorAgent) {
-                return []
-            }
-            return this.getSelectedContext
-        },
-        selectedContextFiltered () {
-            return this.selectedContext.filter(c => c.showAsChip !== false)
         }
     },
     mounted () {
@@ -211,12 +187,6 @@ export default {
                 this.handleSend()
             }
             // Shift+Enter = new line (default behavior)
-        },
-        horizontalScrolling (event) {
-            const target = event.currentTarget
-            if (event.deltaY === 0) return
-            event.preventDefault()
-            target.scrollLeft += event.deltaY / 2
         }
     }
 }
@@ -356,23 +326,6 @@ button {
         display: flex;
         justify-content: space-between;
         gap: 0.75rem;
-
-        .left {
-            display: flex;
-            justify-content: flex-start;
-
-            // scroll for overflow of selected chips
-            overflow: auto;
-            flex: 1;
-
-            .context-items-container {
-                flex: 1;
-                overflow-x: auto;
-                scrollbar-width: none;
-                display: flex;
-                gap: 0.5rem;
-            }
-        }
 
         .right {
             display: flex;

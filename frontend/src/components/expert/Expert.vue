@@ -166,24 +166,6 @@ export default {
             'setAbortController',
             'resetSessionTimer'
         ]),
-        //
-        // async handleSendMessage (query) {
-        //     if (!query.trim()) return
-        //
-        //     // Auto-pin drawer on first message
-        //     if (!this.isPinned && this.messages.length === 0) {
-        //         this.togglePinWithWidth()
-        //     }
-        //
-        //     // Call Vuex action to handle API logic
-        //     const result = await this.handleQuery({ query })
-        //
-        //     // Handle UI-specific processing if successful
-        //     await this.handleMessageResponse(result)
-        //
-        //     // Errors are already handled in the Vuex action
-        // },
-
         handleStopGeneration () {
             if (this.abortController) {
                 this.abortController.abort()
