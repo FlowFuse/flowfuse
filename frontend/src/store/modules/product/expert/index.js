@@ -15,11 +15,6 @@ const initialState = () => ({
 
     // expert modes
     agentMode: FF_AGENT, // ff-agent or operator-agent
-
-    // Conversation state
-    isGenerating: false,
-    autoScrollEnabled: true,
-
     abortController: null
 })
 
@@ -77,12 +72,6 @@ const mutations = {
     },
     CLEAR_MESSAGES (state) {
         state[state.agentMode].messages = []
-    },
-    SET_GENERATING (state, isGenerating) {
-        state.isGenerating = isGenerating
-    },
-    SET_AUTO_SCROLL (state, enabled) {
-        state.autoScrollEnabled = enabled
     },
     SET_ABORT_CONTROLLER (state, controller) {
         state.abortController = controller
@@ -183,9 +172,6 @@ const mutations = {
             // Else: ignore messages that don't match either format
         })
     },
-    REMOVE_MESSAGE_BY_INDEX (state, index) {
-        state[state.agentMode].messages.splice(index, 1)
-    },
     UPDATE_MESSAGE_STREAMED_STATE (state, uuid) {
         const message = state[state.agentMode].messages.find(m => m._uuid === uuid)
         if (message) {
@@ -249,12 +235,10 @@ const actions = {
                 sessionId: state[state.agentMode].sessionId
             })
             .then((response) => {
-                return dispatch('removeLoadingIndicator').then(() =>
-                    dispatch('handleMessageResponse', {
-                        success: true,
-                        answer: response.answer || []
-                    })
-                )
+                return dispatch('handleMessageResponse', {
+                    success: true,
+                    answer: response.answer || []
+                })
             })
     },
 
@@ -266,7 +250,7 @@ const actions = {
                 commit('HYDRATE_MESSAGES', state[state.agentMode].context)
             }
 
-            // todo this
+            // todo this needs to be sorted differently
             // Add loading message with transfer variant to indicate syncing from website
             commit('ADD_MESSAGE', {
                 type: 'loading',
@@ -299,9 +283,6 @@ const actions = {
         try {
             return await dispatch('sendQuery', { query })
         } catch (error) {
-            // Remove loading indicator
-            dispatch('removeLoadingIndicator')
-
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
                 // User canceled request
                 dispatch('addPredefinedAiMessage', 'Generation stopped.')
@@ -312,7 +293,6 @@ const actions = {
             }
         } finally {
             commit('SET_ABORT_CONTROLLER', null)
-            dispatch('removeLoadingIndicator')
         }
     },
 
@@ -325,7 +305,6 @@ const actions = {
     async startOver ({ commit, dispatch }) {
         commit('SET_SESSION_ID', uuidv4())
         commit('CLEAR_MESSAGES')
-        commit('SET_GENERATING', false) // Re-enable input
 
         // Reset session timing
         dispatch('resetSessionTimer')
@@ -337,10 +316,6 @@ const actions = {
 
         // Add welcome message for current mode
         dispatch('addWelcomeMessageIfNeeded')
-    },
-
-    setAutoScroll ({ commit }, enabled) {
-        commit('SET_AUTO_SCROLL', enabled)
     },
 
     setAbortController ({ commit }, controller) {
@@ -415,16 +390,6 @@ const actions = {
 
     setAssistantWakeUp ({ commit }, shouldWakeUp) {
         commit('SET_SHOULD_WAKE_UP_ASSISTANT', shouldWakeUp)
-    },
-
-    removeLoadingIndicator ({ commit, state }) {
-        const loadingIndex = state[state.agentMode].messages.findIndex(
-            (m) => m.type === 'loading'
-        )
-
-        if (loadingIndex !== -1) {
-            commit('REMOVE_MESSAGE_BY_INDEX', loadingIndex)
-        }
     },
 
     // Session timing actions

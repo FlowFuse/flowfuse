@@ -60,12 +60,12 @@ export default {
     },
     data () {
         return {
-            scrollCheckDebounce: null
+            scrollCheckDebounce: null,
+            autoScroll: true
         }
     },
     computed: {
         ...mapState('product/expert', [
-            'autoScrollEnabled',
             'abortController',
             'agentMode'
         ]),
@@ -88,12 +88,6 @@ export default {
                 this.$store.dispatch('product/expert/setAgentMode', value)
             }
         },
-        agentModeButtons () {
-            return [
-                { title: 'Support', value: 'ff-agent' },
-                { title: 'Insights', value: 'operator-agent' }
-            ]
-        },
         isInstanceRunning () {
             const instanceRunning = this.instance?.meta?.state === 'running'
             const deviceRunning = this.device?.status === 'running'
@@ -104,7 +98,7 @@ export default {
         messages: {
             handler () {
                 // Auto-scroll when new messages arrive
-                if (this.autoScrollEnabled) {
+                if (this.autoScroll) {
                     this.$nextTick(() => {
                         this.scrollToBottom()
                     })
@@ -162,7 +156,6 @@ export default {
         ...mapActions('product/expert', [
             'handleQuery',
             'handleMessageResponse',
-            'setAutoScroll',
             'setAbortController',
             'resetSessionTimer'
         ]),
@@ -190,12 +183,12 @@ export default {
                     100
 
                 // todo this should be moved into the component not the store
-                if (scrolledToBottom && !this.autoScrollEnabled) {
+                if (scrolledToBottom && !this.autoScroll) {
                     // Re-enable auto-scroll if user scrolls back to bottom
-                    this.setAutoScroll(true)
-                } else if (!scrolledToBottom && this.autoScrollEnabled) {
+                    this.autoScroll = true
+                } else if (!scrolledToBottom && this.autoScroll) {
                     // Disable auto-scroll if user scrolls up
-                    this.setAutoScroll(false)
+                    this.autoScroll = false
                 }
             }, 100)
         },
