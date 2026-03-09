@@ -1,3 +1,5 @@
+@use "../../ui-components/stylesheets/ff-colors.scss" as *;
+
 .ff-bg-dark {
     background-color: $ff-grey-800;
 }
