@@ -124,6 +124,6 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../../stylesheets/components/audit-log.scss";
-@import "../../stylesheets/components/accordion.scss";
+@use "../../stylesheets/components/audit-log.scss" as *;
+@use "../../stylesheets/components/accordion.scss" as *;
 </style>

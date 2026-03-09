@@ -195,7 +195,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../../../stylesheets/components/applications-list";
+@use "../../../stylesheets/components/applications-list" as *;
 
 .no-results {
   text-align: center;
