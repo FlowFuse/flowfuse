@@ -34,6 +34,8 @@ import userApi from '../api/user.js'
 import FFLayoutBox from '../layouts/Box.vue'
 import store from '../store/index.js'
 
+import { useUxNavigationStore } from '@/stores/ux-navigation.js'
+
 export default {
     name: 'UnverifiedEmail',
     components: {
@@ -56,7 +58,7 @@ export default {
                 await userApi.verifyEmailToken(this.token)
                 clearTimeout(this.resendTimeout)
                 this.$store.dispatch('ux/tours/presentTour')
-                this.$store.dispatch('ux/setNewlyCreatedUser', true)
+                useUxNavigationStore().setNewlyCreatedUser()
                 this.$router.go()
             } catch (err) {
                 console.error(err)

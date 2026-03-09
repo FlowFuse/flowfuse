@@ -152,6 +152,7 @@ import deviceActionsMixin from '../../mixins/DeviceActions.js'
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
+
 import { DeviceStateMutator } from '../../utils/DeviceStateMutator.js'
 import { createPollTimer } from '../../utils/timers.js'
 
@@ -164,6 +165,8 @@ import DeveloperModeToggle from './components/DeveloperModeToggle.vue'
 import DeviceEditorLink from './components/DeviceEditorLink.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
+
+import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 
 // constants
 const POLL_TIME = 5000
@@ -464,7 +467,7 @@ export default {
             Alerts.emit('Device successfully assigned to application.', 'confirmation')
         },
         openEditor ({ event = null, immersive = false } = {}) {
-            this.$store.dispatch('ux/validateUserAction', 'hasOpenedDeviceEditor')
+            useUxNavigationStore().validateUserAction('hasOpenedDeviceEditor')
             if (!immersive) {
                 this.openInANewTab(this.deviceEditorURL, `device-editor-${this.device.id}`)
             } else {

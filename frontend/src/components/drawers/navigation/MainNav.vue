@@ -29,19 +29,26 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/outline'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { storeToRefs } from 'pinia'
+import { mapGetters, mapState } from 'vuex'
 
 import NavItem from '../../NavItem.vue'
+
+import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 
 export default {
     name: 'MainNav',
     components: { NavItem },
     emits: ['option-selected'],
+    setup () {
+        const navStore = useUxNavigationStore()
+        const { mainNav, mainNavContext } = storeToRefs(navStore)
+        const { setMainNavContext, setMainNavBackButton } = navStore
+        return { mainNav, mainNavContext, setMainNavContext, setMainNavBackButton }
+    },
     computed: {
         ...mapState('account', ['user', 'team', 'features', 'notifications']),
-        ...mapState('ux', ['mainNav']),
         ...mapGetters('account', ['requiresBilling']),
-        ...mapGetters('ux', ['mainNavContexts', 'mainNavContext']),
         nearestMetaMenu () {
             if (this.$route?.meta?.menu) {
                 return this.$route.meta.menu
@@ -124,7 +131,6 @@ export default {
         team: 'setBackButton'
     },
     methods: {
-        ...mapActions('ux', ['setMainNavContext', 'setMainNavBackButton']),
         onMenuItemClick () {
             this.$store.dispatch('ux/drawers/closeLeftDrawer')
         },

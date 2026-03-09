@@ -85,7 +85,13 @@
                 "vue/component-definition-name-casing": "off",
 
                 // plugin:promise
-                "promise/always-return": "off" // common Vue.js pattern
+                "promise/always-return": "off", // common Vue.js pattern
+
+                // Frontend runs through webpack, not Node — Node-based resolution rules
+                // do not understand webpack aliases (@/) or .vue file resolution
+                "import/no-unresolved": "off",
+                "n/no-missing-import": "off",
+                "n/no-missing-require": "off"
             }
         },
 
