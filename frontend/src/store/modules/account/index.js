@@ -10,6 +10,8 @@ import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import router from '../../../routes.js'
 import product from '../../../services/product.js'
 
+import { useUxToursStore } from '@/stores/ux-tours.js'
+
 // initial state
 const initialState = () => ({
     // Runtime settings
@@ -513,7 +515,7 @@ const actions = {
                 const pinia = getActivePinia()
                 if (pinia) {
                     // Task 1:  useUxDialogStore().$reset()
-                    // Task 2:  useUxToursStore().$reset()
+                    useUxToursStore().$reset()
                     // Task 3:  useUxNavigationStore().$reset()
                     // Task 4:  useUxDrawersStore().$reset()
                     // Task 5:  useContextStore().$reset()

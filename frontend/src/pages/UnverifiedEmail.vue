@@ -34,6 +34,8 @@ import userApi from '../api/user.js'
 import FFLayoutBox from '../layouts/Box.vue'
 import store from '../store/index.js'
 
+import { useUxToursStore } from '@/stores/ux-tours.js'
+
 export default {
     name: 'UnverifiedEmail',
     components: {
@@ -55,7 +57,7 @@ export default {
             try {
                 await userApi.verifyEmailToken(this.token)
                 clearTimeout(this.resendTimeout)
-                this.$store.dispatch('ux/tours/presentTour')
+                useUxToursStore().presentTour()
                 this.$store.dispatch('ux/setNewlyCreatedUser', true)
                 this.$router.go()
             } catch (err) {

@@ -385,6 +385,8 @@ import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 import AddDeviceToGroupDialog from './dialogs/device-group-management/AddDeviceToGroupDialog.vue'
 import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/RemoveDeviceFromGroupDialog.vue'
 
+import { useUxToursStore } from '@/stores/ux-tours.js'
+
 const POLL_TIME = 10000
 
 export default {
@@ -458,7 +460,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['team', 'teamMembership']),
-        ...mapState('ux/tours', ['tours']),
+        tours () { return useUxToursStore().tours },
         ...mapState('ux/dialog', ['dialog']),
         ...mapGetters('account', ['featuresCheck']),
         columns () {

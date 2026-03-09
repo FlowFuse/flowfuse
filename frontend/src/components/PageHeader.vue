@@ -118,6 +118,8 @@ import NotificationsButton from './NotificationsButton.vue'
 import TeamSelection from './TeamSelection.vue'
 import GlobalSearch from './global-search/GlobalSearch.vue'
 
+import { useUxToursStore } from '@/stores/ux-tours.js'
+
 export default {
     name: 'PageHeader',
     mixins: [navigationMixin],
@@ -213,14 +215,13 @@ export default {
     methods: {
         ...mapActions('ux/drawers', ['toggleLeftDrawer']),
         openEducationModal () {
-            this.$store.dispatch('ux/tours/openModal', 'education')
-                .then(() => product.capture('clicked-open-education-modal'))
-                .catch(e => e)
+            useUxToursStore().openModal('education')
+            product.capture('clicked-open-education-modal')
         },
         startWelcomeTour () {
-            return this.$store.dispatch('ux/tours/resetTours')
-                .then(() => this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } }))
-                .then(() => this.$store.dispatch('ux/tours/presentTour'))
+            useUxToursStore().resetTours()
+            return this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } })
+                .then(() => useUxToursStore().presentTour())
         },
         toggleMobileTeamSelectionMenu () {
             this.mobileTeamSelectionOpen = !this.mobileTeamSelectionOpen

@@ -26,6 +26,8 @@ import { Roles } from '../../utils/roles.js'
 
 import TeamInstances from './Instances.vue'
 
+import { useUxToursStore } from '@/stores/ux-tours.js'
+
 export default {
     name: 'TeamPage',
     components: {
@@ -48,7 +50,7 @@ export default {
     computed: {
         ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
         ...mapGetters('account', ['requiresBilling', 'isAdminUser']),
-        ...mapState('ux/tours', ['shouldPresentTour']),
+        shouldPresentTour () { return useUxToursStore().shouldPresentTour },
         ...mapState('product/expert', ['shouldWakeUpAssistant']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
@@ -120,17 +122,13 @@ export default {
             }
         },
         dispatchTour () {
-            return this.$store.dispatch(
-                'ux/tours/setWelcomeTour',
-                () => {
-                    if (this.shouldWakeUpAssistant) {
-                        this.wakeUpAssistant({ shouldHydrateMessages: true })
-                    } else {
-                        this.$store.dispatch('ux/tours/openModal', 'education')
-                    }
+            useUxToursStore().setWelcomeTour(() => {
+                if (this.shouldWakeUpAssistant) {
+                    this.wakeUpAssistant({ shouldHydrateMessages: true })
+                } else {
+                    useUxToursStore().openModal('education')
                 }
-            )
-                .catch(e => e)
+            })
         }
     }
 }
