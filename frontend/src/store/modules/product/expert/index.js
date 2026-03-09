@@ -3,6 +3,7 @@ import { markRaw } from 'vue'
 
 import expertApi from '../../../../api/expert.js'
 import ExpertDrawer from '../../../../components/drawers/expert/ExpertDrawer.vue'
+import useTimerHelper from '../../../../composables/TimersHelper.js'
 
 import { FF_AGENT, OPERATOR_AGENT } from './agents.js'
 
@@ -243,7 +244,7 @@ const actions = {
         }
     },
 
-    hydrateClient ({
+    async hydrateClient ({
         dispatch,
         state,
         rootGetters
@@ -255,10 +256,18 @@ const actions = {
             return Promise.resolve()
         }
 
+        // TODO: this need to be removed when we have https://github.com/FlowFuse/flowfuse/issues/6520 part of
+        //  https://github.com/FlowFuse/flowfuse/issues/6519 as it's a hacky workaround to the expert drawer opening up
+        //  before we have a team loaded
+        const { waitWhile } = useTimerHelper()
+        await waitWhile(() => !rootGetters['account/team'], { cutoffTries: 60 })
+
         return expertApi
             .chat({
                 history: state[state.agentMode].context,
-                context: {},
+                context: {
+                    teamId: rootGetters['account/team'].id
+                },
                 sessionId: state[state.agentMode].sessionId
             })
             .then((response) => {
