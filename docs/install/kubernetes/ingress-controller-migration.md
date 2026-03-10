@@ -38,9 +38,9 @@ That separation allows you to migrate project traffic and core application traff
 Before you begin, ensure you have the following:
 
 1. A working FlowFuse deployment installed with the `flowfuse/flowfuse` Helm chart
-  * note down the FlowFuse Platform Helm release name and namespace, guide uses `<flowfuse-release-name>` and `<flowfuse-release-namespace>` placeholders for these values.
+    * note down the FlowFuse Platform Helm release name and namespace, guide uses `<flowfuse-release-name>` and `<flowfuse-release-namespace>` placeholders for these values.
 2. Access to the Helm values file used for your deployment
-  * note down the path to the values file, guide uses `<flowfuse-values-file>` placeholder as a reference
+    * note down the path to the values file, guide uses `<flowfuse-values-file>` placeholder as a reference
 3. `kubectl` and `helm` configured for the target cluster
 4. A new Traefik ingress controller installed alongside the existing NGINX ingress controller. Check our [ingress installation guide](https://flowfuse.com/docs/install/kubernetes/aws/#ingress-controller) for instructions on how to do this.
 5. Access to the DNS records for:
