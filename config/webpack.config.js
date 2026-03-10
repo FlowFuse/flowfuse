@@ -88,11 +88,7 @@ module.exports = function (env, argv) {
                         {
                             loader: 'sass-loader',
                             options: {
-                                additionalData: '@import "@/ui-components/stylesheets/ff-colors.scss";@import "@/ui-components/stylesheets/ff-utility.scss";',
-                                sassOptions: {
-                                    // Silence warnings about @import deprecation
-                                    silenceDeprecations: ['import']
-                                }
+                                additionalData: '@use "@/ui-components/stylesheets/ff-colors.scss" as *;@use "@/ui-components/stylesheets/ff-utility.scss" as *;'
                             }
                         }
 
