@@ -89,3 +89,7 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+@use "../stylesheets/components/accordion.scss" as *;
+</style>

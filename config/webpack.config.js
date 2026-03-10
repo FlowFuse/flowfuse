@@ -16,8 +16,9 @@ function getPath (file) {
 }
 
 module.exports = function (env, argv) {
+    const devMode = argv?.mode === 'development'
     const config = {
-        devtool: process.env.mode === 'production' ? 'hidden-source-map' : 'source-map',
+        devtool: devMode ? 'source-map' : 'hidden-source-map',
         entry: {
             main: getPath('frontend/src/main.js'),
             setup: getPath('frontend/src/setup.js')
@@ -47,7 +48,7 @@ module.exports = function (env, argv) {
                     include: getPath('frontend/src'),
                     use: [
                         {
-                            loader: MiniCssExtractPlugin.loader,
+                            loader: devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
                             options: {}
                         },
                         {
@@ -79,7 +80,7 @@ module.exports = function (env, argv) {
                 }, {
                     test: /\.scss$/,
                     use: [
-                        'style-loader',
+                        devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
                         {
                             loader: 'css-loader',
                             options: { import: true, url: true }
@@ -87,7 +88,7 @@ module.exports = function (env, argv) {
                         {
                             loader: 'sass-loader',
                             options: {
-                                additionalData: '@import "@/ui-components/stylesheets/ff-colors.scss";@import "@/ui-components/stylesheets/ff-utility.scss";'
+                                additionalData: '@use "@/ui-components/stylesheets/ff-colors.scss" as *;@use "@/ui-components/stylesheets/ff-utility.scss" as *;'
                             }
                         }
 
@@ -137,7 +138,7 @@ module.exports = function (env, argv) {
             new DotenvPlugin(),
             new DefinePlugin({
                 __VUE_OPTIONS_API__: true,
-                __VUE_PROD_DEVTOOLS__: argv?.mode === 'development'
+                __VUE_PROD_DEVTOOLS__: devMode
             })
         ],
         optimization: {

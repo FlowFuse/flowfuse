@@ -1,3 +1,6 @@
+@use "../../ui-components/stylesheets/ff-colors.scss" as *;
+@use "../../ui-components/stylesheets/ff-utility.scss" as *;
+
 .ff-audit-entry {
     display: grid;
     grid-template-areas:

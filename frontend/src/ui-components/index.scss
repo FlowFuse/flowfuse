@@ -1,12 +1,12 @@
 // use tailwind to reset all CSS - saves us a lot of work
 // @tailwind base;
 
-@import "./stylesheets/ff-colors.scss";
-@import "./stylesheets/ff-utility.scss";
-@import "./stylesheets/ff-core.scss";
-@import "./stylesheets/ff-components.scss";
 
-@import "./stylesheets/ff-theme-light.scss";
-@import "./stylesheets/ff-theme-dark.scss";
 
-@import "./stylesheets/ff-immersive-editor.scss";
+@use "./stylesheets/ff-colors.scss" as *;
+@use "./stylesheets/ff-utility.scss" as *;
+@use "./stylesheets/ff-core.scss" as *;
+@use "./stylesheets/ff-components.scss" as *;
+@use "./stylesheets/ff-theme-light.scss" as *;
+@use "./stylesheets/ff-theme-dark.scss" as *;
+@use "./stylesheets/ff-immersive-editor.scss" as *;
