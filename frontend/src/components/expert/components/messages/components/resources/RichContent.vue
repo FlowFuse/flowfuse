@@ -1,7 +1,7 @@
 <template>
     <streamable-content
         :string="formattedContent"
-        :should-stream="false"
+        :should-stream="shouldStream"
         :rich-content="true"
         @streaming-complete="onStreamComplete"
     />
@@ -78,6 +78,7 @@ export default {
                 messageUuid: this.messageUuid,
                 answerUuid: this.answerUuid
             })
+            this.$emit('streaming-complete')
         }
     }
 }

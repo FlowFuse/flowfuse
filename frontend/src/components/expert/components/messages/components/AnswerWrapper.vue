@@ -7,7 +7,7 @@
             :content="answer.content"
             :message-uuid="messageUuid"
             :answer-uuid="answer._uuid"
-            :should-stream="answer._streamed"
+            :should-stream="shouldStream"
             class="mb-3"
             @streaming-complete="onComponentComplete('rich-content')"
         />
@@ -16,7 +16,7 @@
             v-if="shouldShowGuideHeader"
             :title="answer.title"
             :summary="answer.summary"
-            :should-stream="!answer._streamed"
+            :should-stream="shouldStream"
             class="mt-3"
             @streaming-complete="onComponentComplete('guide-header')"
         />
@@ -24,7 +24,7 @@
         <guide-steps-list
             v-if="shouldShowGuideStepList"
             :steps="answer.steps"
-            :should-stream="!answer._streamed"
+            :should-stream="shouldStream"
             class="mb-3"
             @streaming-complete="onComponentComplete('guide-steps-list')"
         />
@@ -32,7 +32,7 @@
         <resources-list
             v-if="shouldShowResourcesList"
             :resources="answer.resources"
-            :should-stream="!answer._streamed"
+            :should-stream="shouldStream"
             class="mb-3"
             @streaming-complete="onComponentComplete('resources-list')"
         />
@@ -40,7 +40,7 @@
         <flows-list
             v-if="shouldShowFlowsList"
             :flows="answer.flows"
-            :should-stream="!answer._streamed"
+            :should-stream="shouldStream"
             class="mb-3"
             @streaming-complete="onComponentComplete('flows-list')"
         />
@@ -48,7 +48,7 @@
         <packages-list
             v-if="shouldShowPackagesList"
             :packages="answer.nodePackages"
-            :should-stream="!answer._streamed"
+            :should-stream="shouldStream"
             class="mb-3"
             @streaming-complete="onComponentComplete('packages-list')"
         />
@@ -56,14 +56,14 @@
         <issues-list
             v-if="shouldShowIssuesList"
             :issues="answer.issues"
-            :should-stream="!answer._streamed"
+            :should-stream="shouldStream"
             @streaming-complete="onComponentComplete('issues-list')"
         />
 
         <suggestions-list
             v-if="shouldShowSuggestionsList"
             :suggestions="answer.suggestions"
-            :should-stream="!answer._streamed"
+            :should-stream="shouldStream"
             @streaming-complete="onComponentComplete('suggestions-list')"
         />
     </message-bubble>
@@ -156,14 +156,14 @@ export default {
             if (!this.componentStreamingOrder.includes(key)) return false
             if (!this.hasPlainContent) return false
             if (this.componentStreamingOrder.indexOf(key) === 0) return true
-            return this.streamedComponents.length <= this.componentStreamingOrder.indexOf(key)
+            return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
         },
         shouldShowGuideHeader () {
             const key = 'guide-header'
             if (!this.componentStreamingOrder.includes(key)) return false
             if (!this.hasGuideHeader) return false
             if (this.componentStreamingOrder.indexOf(key) === 0) return true
-            return this.streamedComponents.length <= this.componentStreamingOrder.indexOf(key)
+            return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
         },
         shouldShowGuideStepList () {
             const key = 'guide-steps-list'
@@ -206,21 +206,21 @@ export default {
             if (!this.hasIssues) return false
             if (this.componentStreamingOrder.indexOf(key) === 0) return true
             return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
+        },
+        shouldStream () {
+            return !this.answer._streamed
         }
     },
     watch: {
-        streamedComponents: {
-            deep: true,
-            handler () {
-                // when all components finished streaming, we'll mark the answer as streamed
-                // so we won't stream it again when re-rendering the same content
-                if (this.componentStreamingOrder.length === this.streamedComponents.length) {
-                    this.updateAnswerStreamedState({
-                        messageUuid: this.messageUuid,
-                        answerUuid: this.answer._uuid
-                    })
-                    this.$emit('streaming-complete')
-                }
+        streamedComponents () {
+            // when all components finished streaming, we'll mark the answer as streamed
+            // so we won't stream it again when re-rendering the same content
+            if (this.componentStreamingOrder.length === this.streamedComponents.length) {
+                this.updateAnswerStreamedState({
+                    messageUuid: this.messageUuid,
+                    answerUuid: this.answer._uuid
+                })
+                this.$emit('streaming-complete')
             }
         }
     },
@@ -251,9 +251,8 @@ export default {
             if (this.hasSuggestions) this.componentStreamingOrder.push('suggestions-list')
         },
         async onComponentComplete (key) {
-            if (!this.answer._streamed) {
-                await this.waitFor(200)
-            }
+            if (!this.shouldStream) await this.waitFor(200)
+
             this.streamedComponents.push(key)
         }
 

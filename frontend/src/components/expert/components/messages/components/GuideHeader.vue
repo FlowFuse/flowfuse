@@ -4,7 +4,7 @@
         <h3 class="guide-title">
             <streamable-content v-model="streamableTitle" :should-stream="shouldStream" />
         </h3>
-        <p class="guide-summary">
+        <p v-if="summary" class="guide-summary">
             <streamable-content v-if="!shouldStream || streamableTitle.streamed" v-model="streamableSummary" :should-stream="shouldStream" />
         </p>
     </div>
@@ -22,7 +22,7 @@ export default {
             required: true
         },
         summary: {
-            type: String,
+            type: [String, null],
             required: false,
             default: null
         },
@@ -47,6 +47,12 @@ export default {
     watch: {
         streamableSummary (streamableTitle) {
             if (streamableTitle.streamed) {
+                this.$emit('streaming-complete')
+            }
+        },
+        streamableTitle (streamableTitle) {
+            // sometimes there might not be a summary, so we need to announce that streaming was completed
+            if (!this.summary && streamableTitle.streamed) {
                 this.$emit('streaming-complete')
             }
         }
