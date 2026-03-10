@@ -6,6 +6,7 @@ export default function useStreamingList ({ intervalMs = 350, shallow = false } 
     const items = ref([])
     const visibleItems = ref([])
     const { doWhile } = useTimerHelper()
+    const hasFinishedStreaming = ref(false)
 
     async function addItemsSequentially (listItems = []) {
         items.value = shallow ? listItems.map(buildStreamableItem) : listItems
@@ -26,6 +27,10 @@ export default function useStreamingList ({ intervalMs = 350, shallow = false } 
                 } else if (shouldAddNewItem) {
                     visibleItems.value.push(item)
                 }
+
+                if (visibleItems.value.length === items.value.length) {
+                    hasFinishedStreaming.value = true
+                }
             },
             { intervalMs }
         )
@@ -34,6 +39,7 @@ export default function useStreamingList ({ intervalMs = 350, shallow = false } 
     function addItems (items) {
         items.value = items
         visibleItems.value = items.map(buildStreamableItem)
+        hasFinishedStreaming.value = false
     }
 
     function getLastVisibleItem () {
@@ -85,6 +91,7 @@ export default function useStreamingList ({ intervalMs = 350, shallow = false } 
         addItemsSequentially,
         addItems,
         initStreamer,
+        hasFinishedStreaming,
         items,
         getLastVisibleItem,
         setSubItemStreamedState,
