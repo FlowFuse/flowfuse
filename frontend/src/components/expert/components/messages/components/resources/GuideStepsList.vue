@@ -1,12 +1,18 @@
 <template>
     <div class="guide-steps">
-        <h4 class="section-title">Steps:</h4>
+        <h4 class="section-title">
+            <streamable-content string="Steps:" :should-stream="shouldStream" />
+        </h4>
         <ol class="steps-list">
-            <li v-for="(step, index) in steps" :key="index" class="step-item">
+            <li v-for="(step, index) in visibleItems" :key="index" class="step-item">
                 <div class="step-number">{{ index + 1 }}</div>
                 <div class="step-content">
-                    <h5 class="step-title">{{ step.title }}</h5>
-                    <p class="step-detail">{{ step.detail }}</p>
+                    <h5 class="step-title">
+                        <streamable-content v-model="step.title" :should-stream="shouldStream" />
+                    </h5>
+                    <p v-if="!shouldStream || step.title.streamed" class="step-detail">
+                        <streamable-content v-model="step.detail" :should-stream="shouldStream" />
+                    </p>
                 </div>
             </li>
         </ol>
@@ -14,13 +20,33 @@
 </template>
 
 <script>
+import useStreamingList from '../../../../../../composables/StreamingListHelper.js'
+
+import StreamableContent from './StreamableContent.vue'
+
 export default {
-    name: 'ListGuideSteps',
+    name: 'GuideStepsList',
+    components: { StreamableContent },
     props: {
         steps: {
             required: true,
             type: Array
+        },
+        shouldStream: {
+            type: Boolean,
+            default: false
         }
+    },
+    emits: ['streaming-complete'],
+    setup () {
+        const { initStreamer, visibleItems } = useStreamingList()
+
+        return { initStreamer, visibleItems }
+    },
+    async mounted () {
+        await this.initStreamer(this.steps, { shouldStream: this.shouldStream })
+
+        this.$emit('streaming-complete')
     }
 }
 </script>

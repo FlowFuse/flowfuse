@@ -3,7 +3,7 @@ import { markRaw } from 'vue'
 
 import expertApi from '../../../../api/expert.js'
 import ExpertDrawer from '../../../../components/drawers/expert/ExpertDrawer.vue'
-import useTimerHelper from '../../../../composables/TimersHelper.js'
+import useTimerHelper from '../../../../composables/TimerHelper.js'
 
 import { FF_AGENT, OPERATOR_AGENT } from './agents.js'
 
@@ -174,13 +174,22 @@ const mutations = {
         })
     },
     UPDATE_MESSAGE_STREAMED_STATE (state, uuid) {
-        const message = state[state.agentMode].messages.find(m => m._uuid === uuid)
+        // searches in both message caches to avoid race conditions
+        let message = state[FF_AGENT].messages.find(m => m._uuid === uuid)
+        if (!message) {
+            message = state[OPERATOR_AGENT].messages.find(m => m._uuid === uuid)
+        }
         if (message) {
             message._streamed = true
         }
     },
     UPDATE_ANSWER_STREAMED_STATE (state, { messageUuid, answerUuid }) {
-        const message = state[state.agentMode].messages.find(m => m._uuid === messageUuid)
+        // searches in both message caches to avoid race conditions
+        let message = state[FF_AGENT].messages.find(m => m._uuid === messageUuid)
+        if (!message) {
+            message = state[OPERATOR_AGENT].messages.find(m => m._uuid === messageUuid)
+        }
+
         if (message) {
             const answer = message.answer.find(a => a._uuid === answerUuid)
             if (answer) {
@@ -503,8 +512,8 @@ const actions = {
     updateMessageStreamedState ({ commit }, uuid) {
         commit('UPDATE_MESSAGE_STREAMED_STATE', uuid)
     },
-    updateAnswerStreamedState ({ commit }, { messageUuid, answerUuid }) {
-        commit('UPDATE_ANSWER_STREAMED_STATE', { messageUuid, answerUuid })
+    updateAnswerStreamedState ({ commit }, { messageUuid, answerUuid, agent }) {
+        commit('UPDATE_ANSWER_STREAMED_STATE', { messageUuid, answerUuid, agent })
     }
 }
 

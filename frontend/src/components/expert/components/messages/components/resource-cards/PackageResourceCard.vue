@@ -1,23 +1,39 @@
 <template>
     <a
-        :href="addUTMTracking(getPackageUrl(nodePackage))"
+        :href="urlWithUTMTracking"
         target="_blank"
         rel="noopener noreferrer"
         class="package-card"
     >
         <img
-            :src="getFaviconUrl(nodePackage.metadata?.source || nodePackage.url)"
+            :src="packageFaviconUrl"
             alt="Node-RED"
             class="package-favicon"
             @error="handleImageError"
         >
         <div class="package-info">
-            <div class="package-name">{{ getPackageName(nodePackage) }}</div>
-            <div class="package-url">{{ getPackageUrl(nodePackage) }}</div>
+            <div class="package-name">
+                <streamable-content v-model="streamablePackageName" :should-stream="shouldStream" />
+            </div>
+            <div class="package-url">
+                <streamable-content
+                    v-if="!shouldStream || streamablePackageName.streamed"
+                    v-model="streamablePackageUrl"
+                    :should-stream="shouldStream"
+                />
+            </div>
             <div class="package-actions">
-                <template v-if="canManagePalette && !isCorePackage(nodePackage)">
-                    <ff-button v-if="isPackageInstalled(nodePackage)" class="w-20" size="small" kind="secondary" @click.stop.prevent="managePackage(nodePackage)">Manage</ff-button>
-                    <ff-button v-else class="w-20" size="small" kind="secondary" @click.stop.prevent="installPackage(nodePackage)">Install</ff-button>
+                <template v-if="canManagePalette && !isCorePackage">
+                    <ff-button
+                        v-if="isPackageInstalled" class="w-20" size="small" kind="secondary"
+                        @click.stop.prevent="managePackage(nodePackage)"
+                    >Manage
+                    </ff-button>
+                    <ff-button
+                        v-else class="w-20" size="small" kind="secondary"
+                        @click.stop.prevent="installPackage(nodePackage)"
+                    >Install
+                    </ff-button>
                 </template>
             </div>
         </div>
@@ -25,31 +41,55 @@
 </template>
 
 <script>
+import { computed } from 'vue'
 import { mapActions, mapGetters } from 'vuex'
+
+import StreamableContent from '../resources/StreamableContent.vue'
 
 export default {
     name: 'PackageResourceCard',
+    components: { StreamableContent },
     props: {
         nodePackage: {
             type: Object,
             required: true
+        },
+        shouldStream: {
+            type: Boolean,
+            default: false
+        }
+    },
+    emits: ['streaming-complete'],
+    setup (props) {
+        const packageName = computed(() => {
+            // Handle both object format {id: "..." or name: "..."} and string format
+            const pkg = props.nodePackage
+            return typeof pkg === 'object' ? (pkg.id.streamable || pkg.name.streamable) : pkg
+        })
+        const packageUrl = computed(() => {
+            const pkg = props.nodePackage
+            if (!pkg) return 'https://flows.nodered.org/'
+            return pkg.url.streamable || pkg.metadata?.streamable?.source || pkg.metadata?.streamable?.url || `https://flows.nodered.org/node/${packageName.value}`
+        })
+        return { packageName, packageUrl }
+    },
+    data () {
+        return {
+            streamablePackageName: {
+                streamable: this.packageName,
+                streamed: false
+            },
+            streamablePackageUrl: {
+                streamable: this.packageUrl,
+                streamed: false
+            }
+
         }
     },
     computed: {
-        // todo this is where we should add a button to install a module
-        ...mapGetters('product/expert', ['canManagePalette'])
-    },
-    methods: {
-        ...mapActions('product/assistant', ['installNodePackage', 'manageNodePackage']),
-        getPackageName (pkg) {
-            // Handle both object format {id: "..." or name: "..."} and string format
-            return typeof pkg === 'object' ? (pkg.id || pkg.name) : pkg
-        },
-        getPackageUrl (pkg) {
-            if (!pkg) return 'https://flows.nodered.org/'
-            return pkg.url || pkg.metadata?.source || pkg.metadata?.url || `https://flows.nodered.org/node/${this.getPackageName(pkg)}`
-        },
-        getFaviconUrl (url) {
+        ...mapGetters('product/expert', ['canManagePalette']),
+        packageFaviconUrl () {
+            const url = this.nodePackage.metadata?.streamable?.source || this.nodePackage.url.streamable
             try {
                 const urlObj = new URL(url)
                 return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}`
@@ -58,10 +98,17 @@ export default {
                 return 'flows.nodered.org'
             }
         },
-        isPackageInstalled (pkg) {
-            return !!this.$store.state.product.assistant?.palette?.[pkg.id]
+        isCorePackage () {
+            const pkg = this.nodePackage
+            return pkg.type.streamable === 'core-node' || this.packageName.startsWith('node-red:')
         },
-        addUTMTracking (url) {
+        isPackageInstalled () {
+            const pkg = this.nodePackage
+
+            return !!this.$store.state.product.assistant?.palette?.[pkg.id.streamable]
+        },
+        urlWithUTMTracking () {
+            const url = this.packageUrl
             try {
                 const urlObj = new URL(url)
                 urlObj.searchParams.set('utm_source', 'flowfuse-expert')
@@ -72,23 +119,30 @@ export default {
                 // If URL parsing fails, return original
                 return url
             }
-        },
+        }
+    },
+    watch: {
+        streamablePackageUrl (streamablePackageUrl) {
+            // watching the streamablePackageUrl only because it's the last local prop we need to stream, when finished we can
+            // let the parent know that streaming is done
+            if (streamablePackageUrl.streamed) {
+                this.$emit('streaming-complete')
+            }
+        }
+    },
+    methods: {
+        ...mapActions('product/assistant', ['installNodePackage', 'manageNodePackage']),
         handleImageError (event) {
             // Hide broken image icon
             event.target.style.display = 'none'
         },
-        installPackage (nodePackage) {
-            const packageName = this.getPackageName(nodePackage)
-            this.installNodePackage(packageName)
+        installPackage () {
+            this.installNodePackage(this.packageName)
             // TODO: hide the ff-expert panel after installing. Ideally after a "success" message is received from the assistant
         },
-        managePackage (nodePackage) {
-            const packageName = this.getPackageName(nodePackage)
-            this.manageNodePackage(packageName)
+        managePackage () {
+            this.manageNodePackage(this.packageName)
             // TODO: hide the ff-expert panel after managing. Ideally after a "success" message is received from the assistant
-        },
-        isCorePackage (nodePackage) {
-            return nodePackage.type === 'core-node' || this.getPackageName(nodePackage).startsWith('node-red:')
         }
     }
 }

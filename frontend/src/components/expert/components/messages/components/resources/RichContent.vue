@@ -1,5 +1,10 @@
 <template>
-    <p v-html="formattedContent" />
+    <streamable-content
+        :string="formattedContent"
+        :should-stream="false"
+        :rich-content="true"
+        @streaming-complete="onStreamComplete"
+    />
 </template>
 
 <script>
@@ -9,8 +14,11 @@ import { mapActions } from 'vuex'
 import useStreamingWords from '../../../../../../composables/strings/StreamingWords.js'
 import { sanitize } from '../../../../../../composables/strings/String.js'
 
+import StreamableContent from './StreamableContent.vue'
+
 export default {
     name: 'RichContent',
+    components: { StreamableContent },
     props: {
         content: {
             required: true,
@@ -24,11 +32,12 @@ export default {
             required: true,
             type: String
         },
-        streamed: {
+        shouldStream: {
             required: true,
             type: Boolean
         }
     },
+    emits: ['streaming-complete'],
     setup () {
         const { text, isStreaming, stream, stop } = useStreamingWords({ delayMs: 30 })
 
@@ -42,7 +51,7 @@ export default {
     },
     computed: {
         formattedContent () {
-            const source = this.isStreaming ? this.text : this.content
+            const source = this.content
             const html = marked(source || '', {
                 breaks: true,
                 gfm: true
@@ -57,26 +66,19 @@ export default {
             })
         }
     },
-    watch: {
-        content: {
-            immediate: false,
-            handler (next) {
-                // if the prop changes, restart the stream
-                this.stream(next)
-            }
+    async mounted () {
+        if (!this.shouldStream) {
+            await this.onStreamComplete()
         }
     },
-    async mounted () {
-        if (!this.streamed) {
-            await this.stream(this.content)
+    methods: {
+        ...mapActions('product/expert', ['updateAnswerStreamedState']),
+        async onStreamComplete () {
             await this.updateAnswerStreamedState({
                 messageUuid: this.messageUuid,
                 answerUuid: this.answerUuid
             })
         }
-    },
-    methods: {
-        ...mapActions('product/expert', ['updateAnswerStreamedState'])
     }
 }
 </script>

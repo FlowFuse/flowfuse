@@ -1,14 +1,21 @@
 <template>
     <!-- Title and Summary -->
     <div v-if="title" class="guide-header">
-        <h3 class="guide-title">{{ title }}</h3>
-        <p v-if="summary" class="guide-summary">{{ summary }}</p>
+        <h3 class="guide-title">
+            <streamable-content v-model="streamableTitle" :should-stream="shouldStream" />
+        </h3>
+        <p class="guide-summary">
+            <streamable-content v-if="!shouldStream || streamableTitle.streamed" v-model="streamableSummary" :should-stream="shouldStream" />
+        </p>
     </div>
 </template>
 
 <script>
+import StreamableContent from './resources/StreamableContent.vue'
+
 export default {
     name: 'GuideHeader',
+    components: { StreamableContent },
     props: {
         title: {
             type: String,
@@ -18,6 +25,30 @@ export default {
             type: String,
             required: false,
             default: null
+        },
+        shouldStream: {
+            type: Boolean,
+            default: false
+        }
+    },
+    emits: ['streaming-complete'],
+    data () {
+        return {
+            streamableSummary: {
+                streamable: this.summary,
+                streamed: false
+            },
+            streamableTitle: {
+                streamable: this.title,
+                streamed: false
+            }
+        }
+    },
+    watch: {
+        streamableSummary (streamableTitle) {
+            if (streamableTitle.streamed) {
+                this.$emit('streaming-complete')
+            }
         }
     }
 }

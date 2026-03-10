@@ -10,7 +10,7 @@
         >
             <info-banner />
 
-            <expert-messages />
+            <expert-messages @resizing="scrollToBottom" />
 
             <div ref="scrollAnchor" class="scroll-anchor" />
         </div>
@@ -95,17 +95,6 @@ export default {
         }
     },
     watch: {
-        messages: {
-            handler () {
-                // Auto-scroll when new messages arrive
-                if (this.autoScroll) {
-                    this.$nextTick(() => {
-                        this.scrollToBottom()
-                    })
-                }
-            },
-            deep: true
-        },
         agentMode: {
             immediate: true,
             async handler (newMode) {
@@ -178,8 +167,8 @@ export default {
                 // Check if user has scrolled away from bottom
                 const scrolledToBottom =
                     container.scrollHeight -
-                        container.scrollTop -
-                        container.clientHeight <
+                    container.scrollTop -
+                    container.clientHeight <
                     100
 
                 // todo this should be moved into the component not the store
@@ -194,9 +183,19 @@ export default {
         },
 
         scrollToBottom () {
-            const anchor = this.$refs.scrollAnchor
-            if (anchor) {
-                anchor.scrollIntoView({ behavior: 'smooth' })
+            if (this.autoScroll) {
+                this.$nextTick(() => {
+                    const anchor = this.$refs.scrollAnchor
+                    if (anchor) {
+                        const container = this.$refs.messagesContainer
+                        if (!container) return
+
+                        container.scrollTo({
+                            top: container.scrollHeight,
+                            behavior: 'smooth'
+                        })
+                    }
+                })
             }
         }
     }

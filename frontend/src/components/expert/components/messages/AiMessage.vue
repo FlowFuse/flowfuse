@@ -2,15 +2,17 @@
     <div class="flex flex-col gap-3">
         <tool-calls v-if="toolCalls" :message="toolCalls" />
         <answer-wrapper
-            v-for="fAnswer in filteredAnswers"
+            v-for="(fAnswer, key) in visibleItems"
             :key="slugify(`${fAnswer.kind}-${fAnswer.title}-${fAnswer.summary}-${fAnswer._uuid}`)"
             :message-uuid="_uuid"
             :answer="fAnswer"
+            @streaming-complete="setSubItemStreamedState(key)"
         />
     </div>
 </template>
 
 <script>
+import useStreamingList from '../../../../composables/StreamingListHelper.js'
 import { slugify } from '../../../../composables/strings/String.js'
 
 import AnswerWrapper from './components/AnswerWrapper.vue'
@@ -48,7 +50,17 @@ export default {
         _uuid: {
             required: true,
             type: String
+        },
+        // eslint-disable-next-line vue/prop-name-casing
+        _streamed: {
+            required: true,
+            type: Boolean
         }
+    },
+    setup () {
+        const { initStreamer, setSubItemStreamedState, visibleItems, items } = useStreamingList({ shallow: true })
+
+        return { initStreamer, setSubItemStreamedState, visibleItems, items }
     },
     computed: {
         toolCalls () {
@@ -87,6 +99,9 @@ export default {
         filteredAnswers () {
             return this.answer.filter(answer => !['mcp_tool', 'mcp_resource', 'mcp_resource_template', 'mcp_prompt'].includes(answer.kind))
         }
+    },
+    async mounted () {
+        await this.initStreamer(this.filteredAnswers, { shouldStream: !this._streamed })
     },
     methods: { slugify }
 }
