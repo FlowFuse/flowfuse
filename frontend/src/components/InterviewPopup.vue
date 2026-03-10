@@ -77,5 +77,5 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../stylesheets/components/notifications.scss";
+@use "../stylesheets/components/notifications.scss" as *;
 </style>

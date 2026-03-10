@@ -87,9 +87,6 @@ export default {
 </script>
 
 <style lang="scss">
-@import '../../../ui-components/stylesheets/ff-colors.scss';
-@import '../../../ui-components/stylesheets/ff-utility.scss';
-
 .ff-icon-link {
   display: flex;
   justify-content: space-between;

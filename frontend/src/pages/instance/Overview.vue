@@ -279,7 +279,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../../stylesheets/pages/project.scss";
+@use "../../stylesheets/pages/project.scss" as *;
 
 // Container query for drawer context
 // Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
