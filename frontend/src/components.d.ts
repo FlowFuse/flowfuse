@@ -44,6 +44,7 @@ declare module 'vue' {
 
         // -- main.js --
         FfPage: typeof import('./layouts/Page.vue')['default']
+        FfLayoutPlatform: typeof import('./layouts/Platform.vue')['default'],
         FfPageHeader: typeof import('./components/SectionNavigationHeader.vue')['default']
         FfLoading: typeof import('./components/Loading.vue')['default']
         FfTeamLink: typeof import('./components/router-links/TeamLink.vue')['default']
