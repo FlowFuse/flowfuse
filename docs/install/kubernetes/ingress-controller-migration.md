@@ -32,7 +32,6 @@ It is based on the FlowFuse Ingress Migration Tool and using the ingress classes
 
 That separation allows you to migrate project traffic and core application traffic in stages.
 
-
 ## Prerequisites
 
 Before you begin, ensure you have the following:
@@ -331,6 +330,12 @@ This guide uses the following FlowFuse Helm chart values:
 * `ingressMigration.nameSuffix`
 
 For the full list of ingress migration options, refer to the [FlowFuse Helm chart README](https://github.com/FlowFuse/helm/blob/main/helm/flowfuse/README.md#ingress-migration-tool).
+
+
+## Need help?
+
+If you would like guidance on planning this migration, we can provide migration consultation. To discuss this option, contact [support@flowfuse.com](mailto:support@flowfuse.com).
+
 
 ## Resources
 
