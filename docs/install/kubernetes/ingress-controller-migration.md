@@ -21,9 +21,11 @@ meta:
 </div>
 
 This document describes how to migrate a FlowFuse Platform Kubernetes deployment from the NGINX Ingress Controller to Traefik.
+
 The main reason for this migration is [the retirement of Ingress NGINX](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/) by the Kubernetes project due to long-term maintenance and security sustainability challenges. Best-effort maintenance continues only until March 2026, after which there will be no further releases, bug fixes, or security updates.
+
 It describes a DNS-based migration approach where the actual traffic switch happens at the domain level by changing DNS records to point to the new ingress controller.
-It is based on the FlowFuse Helm chart ingress migration tool and on the fact that FlowFuse can use separate ingress classes for:
+It is based on the FlowFuse Ingress Migration Tool and using the ingress classes separation capability provided by the FlowFuse Helm chart:
 
 * Hosted Instances (project ingresses) via `forge.projectIngressClassName`
 * Core application components via `ingress.className`
