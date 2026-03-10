@@ -1,4 +1,4 @@
-import { onBeforeUnmount, ref } from 'vue'
+import { nextTick, onBeforeUnmount, ref } from 'vue'
 
 export default function useStreamingWords ({ delayMs = 30, splitRegex = /\s+/, joinWith = ' ' } = {}) {
     const text = ref('')
@@ -25,10 +25,11 @@ export default function useStreamingWords ({ delayMs = 30, splitRegex = /\s+/, j
         isStreaming.value = true
 
         return new Promise((resolve) => {
-            const tick = () => {
+            const tick = async () => {
                 if (!isStreaming.value) return resolve()
 
                 if (index >= words.length) {
+                    await nextTick()
                     isStreaming.value = false
                     return resolve()
                 }
