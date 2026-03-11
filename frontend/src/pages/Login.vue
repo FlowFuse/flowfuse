@@ -256,5 +256,5 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../stylesheets/pages/login.scss";
+@use "../stylesheets/pages/login.scss" as *;
 </style>

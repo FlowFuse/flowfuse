@@ -127,7 +127,7 @@ export default {
 }
 </script>
 <style lang="scss">
-@import "../stylesheets/components/team-list.scss";
+@use "../stylesheets/components/team-list.scss" as *;
 
 .ff-team-selection {
     &.ff-listbox {
