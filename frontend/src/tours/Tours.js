@@ -6,12 +6,18 @@ import Product from '../services/product.js'
 
 // eslint-disable-next-line n/no-extraneous-import
 import 'shepherd.js/dist/css/shepherd.css'
-import './tour-theme.scss'
 
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
 function create (id, tourJson, onCloseHook) {
+    // Load tour styles at point-of-use
+    // NOTE: Due to sass loader settings, a static import does not work since there are no explicit
+    //       references to the styles in the codebase.  This dynamic import ensures the styles are
+    //       included in the build and applied when the tour is used.
+    import('./tour-theme.scss').catch(() => {})
+
     useUxToursStore().activateTour(id)
+
     Product.capture('ff-tour-start', {
         tour_id: id
     })
