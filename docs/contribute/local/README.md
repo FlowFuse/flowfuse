@@ -173,7 +173,8 @@ The platform depends on the [Mosquitto MQTT Broker](https://mosquitto.org/) to
 provide real-time messaging between devices and the platform.
 
 This is currently an *optional* component - the platform will work without the
-broker, but some features will not be available.
+broker, but some features will not be available (e.g Access to Remote Instance Editor
+and Remote Instance logs requires the MQTT Broker).
 
 We do **not** support sharing a broker with other non-FlowFuse applications. If you
 already have mosquitto installed and running, you will need to run a second instance

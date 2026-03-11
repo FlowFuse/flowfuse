@@ -149,5 +149,5 @@ export default {
 </script>
 
 <style lang="scss">
-@import "./stylesheets/common.scss";
+@use "./stylesheets/common.scss" as *;
 </style>

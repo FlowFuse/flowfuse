@@ -488,8 +488,8 @@ module.exports = {
                     const days = autoStackUpdate.days
                     const hours = autoStackUpdate.hours
                     // generate random day and hour in ranges
-                    const day = days[Math.round(days.length * Math.random())]
-                    const hour = hours[Math.round(hours.length * Math.random())]
+                    const day = days[Math.floor(days.length * Math.random())]
+                    const hour = hours[Math.floor(hours.length * Math.random())]
                     await instance.updateSetting(`${KEY_STACK_UPGRADE_HOUR}_${day}`, { hour })
                 }
             }

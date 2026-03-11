@@ -4,26 +4,30 @@
         <div class="font-bold">Stripe Details</div>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <table class="ff-team-properties-table">
-                <tr>
-                    <td class="font-medium pr-4">Customer ID:</td>
-                    <td><div class="py-2"><a v-if="stripeCustomerUrl" :href="stripeCustomerUrl" class="underline" target="_blank">{{ team.billing.customer }}</a><span v-else>none</span></div></td>
-                </tr>
-                <tr>
-                    <td class="font-medium pr-4">Subscription ID:</td>
-                    <td><div class="py-2"><a v-if="stripeSubscriptionUrl" :href="stripeSubscriptionUrl" class="underline" target="_blank">{{ team.billing.subscription }}</a><span v-else>none</span></div></td>
-                </tr>
+                <tbody>
+                    <tr>
+                        <td class="font-medium pr-4">Customer ID:</td>
+                        <td><div class="py-2"><a v-if="stripeCustomerUrl" :href="stripeCustomerUrl" class="underline" target="_blank">{{ team.billing.customer }}</a><span v-else>none</span></div></td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium pr-4">Subscription ID:</td>
+                        <td><div class="py-2"><a v-if="stripeSubscriptionUrl" :href="stripeSubscriptionUrl" class="underline" target="_blank">{{ team.billing.subscription }}</a><span v-else>none</span></div></td>
+                    </tr>
+                </tbody>
             </table>
         </div>
         <div v-if="!isUnmanaged && trialMode" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="flex-grow">
                 <table class="table-fixed max-w-sm">
-                    <tr v-if="!trialHasEnded">
-                        <td class="font-medium font-bold pr-4">Trial Ends:</td>
-                        <td><div class="py-2">{{ trialEndDate }}</div></td>
-                    </tr>
-                    <tr v-else>
-                        <td class="font-medium font-bold pr-4">Trial Ended</td>
-                    </tr>
+                    <tbody>
+                        <tr v-if="!trialHasEnded">
+                            <td class="font-medium font-bold pr-4">Trial Ends:</td>
+                            <td><div class="py-2">{{ trialEndDate }}</div></td>
+                        </tr>
+                        <tr v-else>
+                            <td class="font-medium font-bold pr-4">Trial Ended</td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
             <div class="min-w-fit flex-shrink-0">
@@ -80,98 +84,102 @@
                 </div>
             </div>
         </div>
-        <p class="max-w-2xl">
-            The following usage limits apply to this team. They are based on the team's current type.
-            Individual limits can be modified for this team to provide a custom configuration.
+        <div class="max-w-2xl">
+            <p>
+                The following usage limits apply to this team. They are based on the team's current type.
+                Individual limits can be modified for this team to provide a custom configuration.
+            </p>
             <ul class="list-disc pl-6">
                 <li>The team's billing will not update until they add/remove an instance</li>
                 <li>Any changes made here will still apply if the team changes its type</li>
             </ul>
-        </p>
+        </div>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <table class="ff-team-properties-table">
-                <tr>
-                    <th class="font-medium">Users:</th>
-                    <td v-if="!editingLimits"><div>{{ getTeamProperty('users_limit') }}</div></td>
-                    <td v-else>
-                        <div class="grid grid-cols-2 gap-2 my-2">
-                            <FormRow v-model="editableLimits.users.limit" :placeholder="''+(getTeamTypeProperty('users_limit') ?? '')" />
-                        </div>
-                    </td>
-                </tr>
+                <tbody>
+                    <tr>
+                        <th class="font-medium">Users:</th>
+                        <td v-if="!editingLimits"><div>{{ getTeamProperty('users_limit') }}</div></td>
+                        <td v-else>
+                            <div class="grid grid-cols-2 gap-2 my-2">
+                                <FormRow v-model="editableLimits.users.limit" :placeholder="''+(getTeamTypeProperty('users_limit') ?? '')" />
+                            </div>
+                        </td>
+                    </tr>
 
-                <tr v-for="(instanceType, index) in instanceTypes" :key="index">
-                    <th>{{ instanceType.name }} Instance:</th>
-                    <template v-if="!editingLimits">
-                        <td v-if="getTeamProperty(`instances_${instanceType.id}_active`)">
-                            <span>{{ getTeamProperty(`instances_${instanceType.id}_free`) || 0 }} - {{ getTeamProperty(`instances_${instanceType.id}_limit`) || 'unlimited' }}</span>
+                    <tr v-for="(instanceType, index) in instanceTypes" :key="index">
+                        <th>{{ instanceType.name }} Instance:</th>
+                        <template v-if="!editingLimits">
+                            <td v-if="getTeamProperty(`instances_${instanceType.id}_active`)">
+                                <span>{{ getTeamProperty(`instances_${instanceType.id}_free`) || 0 }} - {{ getTeamProperty(`instances_${instanceType.id}_limit`) || 'unlimited' }}</span>
+                            </td>
+                            <td v-else>
+                                None
+                            </td>
+                        </template>
+                        <template v-else>
+                            <td>
+                                <div class="grid grid-cols-2 gap-2 my-2">
+                                    <FormRow v-model="editableLimits.instances[instanceType.id].active" type="checkbox" :placeholder="getTeamTypeProperty(`instances_${instanceType.id}_active`) ?? ''">Available</FormRow>
+                                    <FormRow v-if="editableLimits.instances[instanceType.id].active" v-model="editableLimits.instances[instanceType.id].creatable" type="checkbox" :placeholder="''+getTeamTypeProperty(`instances_${instanceType.id}_creatable`)">Creatable</FormRow>
+                                    <FormRow v-if="editableLimits.instances[instanceType.id].active" v-model="editableLimits.instances[instanceType.id].free" :placeholder="''+(getTeamTypeProperty(`instances_${instanceType.id}_free`) ?? '')"># Included</FormRow>
+                                    <FormRow v-if="editableLimits.instances[instanceType.id].active" v-model="editableLimits.instances[instanceType.id].limit" :placeholder="''+(getTeamTypeProperty(`instances_${instanceType.id}_limit`) ?? '')"># Limit</FormRow>
+                                </div>
+                            </td>
+                        </template>
+                    </tr>
+                    <tr>
+                        <th>Remote Instance:</th>
+                        <td v-if="!editingLimits">
+                            <span v-if="!getTeamProperty('devices_free')">
+                                <div>{{ getTeamProperty('instances_' + getTeamProperty('devices_combinedFreeType') + '_free') || 0 }} - {{ getTeamProperty(`devices_limit`) || 'unlimited' }}</div>
+                                <div class="text-xs">Shared with {{ getInstanceTypeName(getTeamProperty('devices_combinedFreeType')) }} </div>
+                            </span>
+                            <span v-else>
+                                {{ getTeamProperty(`devices_free`) || 0 }} - {{ getTeamProperty(`devices_limit`) || 'unlimited' }}
+                            </span>
                         </td>
                         <td v-else>
-                            None
-                        </td>
-                    </template>
-                    <template v-else>
-                        <td>
                             <div class="grid grid-cols-2 gap-2 my-2">
-                                <FormRow v-model="editableLimits.instances[instanceType.id].active" type="checkbox" :placeholder="getTeamTypeProperty(`instances_${instanceType.id}_active`) ?? ''">Available</FormRow>
-                                <FormRow v-if="editableLimits.instances[instanceType.id].active" v-model="editableLimits.instances[instanceType.id].creatable" type="checkbox" :placeholder="''+getTeamTypeProperty(`instances_${instanceType.id}_creatable`)">Creatable</FormRow>
-                                <FormRow v-if="editableLimits.instances[instanceType.id].active" v-model="editableLimits.instances[instanceType.id].free" :placeholder="''+(getTeamTypeProperty(`instances_${instanceType.id}_free`) ?? '')"># Included</FormRow>
-                                <FormRow v-if="editableLimits.instances[instanceType.id].active" v-model="editableLimits.instances[instanceType.id].limit" :placeholder="''+(getTeamTypeProperty(`instances_${instanceType.id}_limit`) ?? '')"># Limit</FormRow>
+                                <FormRow v-model="editableLimits.devices.free" :placeholder="''+(getTeamTypeProperty('devices_free') ?? '')" :disabled="editableLimits.devices.combinedFreeType !== '_'"># Included</FormRow>
+                                <FormRow v-model="editableLimits.devices.limit" :placeholder="''+(getTeamTypeProperty('devices_limit') ?? '')"># Limit</FormRow>
+                            </div>
+                            <FormRow v-model="editableLimits.devices.combinedFreeType" :options="deviceFreeOptions" class="mb-4">Share included allocation with instance type:</FormRow>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>MQTT Clients:</th>
+                        <td v-if="!editingLimits"><div>{{ getTeamProperty('teamBroker_clients_limit') }}</div></td>
+                        <td v-else>
+                            <div class="grid grid-cols-2 gap-2 my-2">
+                                <FormRow v-model="editableLimits.teamBroker.clients.limit" :placeholder="''+(getTeamTypeProperty('teamBroker_clients_limit') ?? '')" />
                             </div>
                         </td>
-                    </template>
-                </tr>
-                <tr>
-                    <th>Remote Instance:</th>
-                    <td v-if="!editingLimits">
-                        <span v-if="!getTeamProperty('devices_free')">
-                            <div>{{ getTeamProperty('instances_' + getTeamProperty('devices_combinedFreeType') + '_free') || 0 }} - {{ getTeamProperty(`devices_limit`) || 'unlimited' }}</div>
-                            <div class="text-xs">Shared with {{ getInstanceTypeName(getTeamProperty('devices_combinedFreeType')) }} </div>
-                        </span>
-                        <span v-else>
-                            {{ getTeamProperty(`devices_free`) || 0 }} - {{ getTeamProperty(`devices_limit`) || 'unlimited' }}
-                        </span>
-                    </td>
-                    <td v-else>
-                        <div class="grid grid-cols-2 gap-2 my-2">
-                            <FormRow v-model="editableLimits.devices.free" :placeholder="''+(getTeamTypeProperty('devices_free') ?? '')" :disabled="editableLimits.devices.combinedFreeType !== '_'"># Included</FormRow>
-                            <FormRow v-model="editableLimits.devices.limit" :placeholder="''+(getTeamTypeProperty('devices_limit') ?? '')"># Limit</FormRow>
-                        </div>
-                        <FormRow v-model="editableLimits.devices.combinedFreeType" :options="deviceFreeOptions" class="mb-4">Share included allocation with instance type:</FormRow>
-                    </td>
-                </tr>
-                <tr>
-                    <th>MQTT Clients:</th>
-                    <td v-if="!editingLimits"><div>{{ getTeamProperty('teamBroker_clients_limit') }}</div></td>
-                    <td v-else>
-                        <div class="grid grid-cols-2 gap-2 my-2">
-                            <FormRow v-model="editableLimits.teamBroker.clients.limit" :placeholder="''+(getTeamTypeProperty('teamBroker_clients_limit') ?? '')" />
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <th>Features:</th>
-                    <td>
-                        <span v-if="featureOverrideCount > 0">
-                            * {{ featureOverrideCount }} override<span v-if="featureOverrideCount > 1">s</span> applied
-                        </span>
-                        <span v-else>
-                            &nbsp;
-                        </span>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <div class="grid grid-cols-2 gap-2 my-2">
-                            <div v-for="(feature, index) in featureList" :key="index">
-                                <FormRow v-model="editableLimits.features[feature]" :disabled="!editingLimits" type="checkbox">
-                                    {{ featureNames[feature] }}
-                                    <span v-if="editableLimits.features[feature] !== teamTypeDefaultFeatures[feature]" class="text-sm text-gray-500">*</span>
-                                </FormRow>
+                    </tr>
+                    <tr>
+                        <th>Features:</th>
+                        <td>
+                            <span v-if="featureOverrideCount > 0">
+                                * {{ featureOverrideCount }} override<span v-if="featureOverrideCount > 1">s</span> applied
+                            </span>
+                            <span v-else>
+                                &nbsp;
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div class="grid grid-cols-2 gap-2 my-2">
+                                <div v-for="(feature, index) in featureList" :key="index">
+                                    <FormRow v-model="editableLimits.features[feature]" :disabled="!editingLimits" type="checkbox">
+                                        {{ featureNames[feature] }}
+                                        <span v-if="editableLimits.features[feature] !== teamTypeDefaultFeatures[feature]" class="text-sm text-gray-500">*</span>
+                                    </FormRow>
+                                </div>
                             </div>
-                        </div>
-                    </td>
-                </tr>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>

@@ -6,18 +6,22 @@
             <FormHeading>License</FormHeading>
             <template v-if="license">
                 <table data-el="license-details">
-                    <tr v-if="license.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2" /></tr>
-                    <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2"><span v-if="!license.dev">FlowFuse Enterprise Edition</span><span v-else class="font-bold">FlowFuse Development Only</span></td></tr>
-                    <tr><td class="font-medium p-2 pr-4 align-top">License ID</td><td class="p-2">{{ license.id }}</td></tr>
-                    <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{ license.organisation }}</td></tr>
-                    <tr><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ license.tier }}</td></tr>
-                    <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{ license.expires }}<br><span class="text-xs">{{ license.expiresAt }}</span></td></tr>
+                    <tbody>
+                        <tr v-if="license.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2" /></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2"><span v-if="!license.dev">FlowFuse Enterprise Edition</span><span v-else class="font-bold">FlowFuse Development Only</span></td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">License ID</td><td class="p-2">{{ license.id }}</td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{ license.organisation }}</td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ license.tier }}</td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{ license.expires }}<br><span class="text-xs">{{ license.expiresAt }}</span></td></tr>
+                    </tbody>
                 </table>
                 <details><pre class="break-words">{{ license }}</pre></details>
             </template>
             <template v-else>
                 <table>
-                    <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2">FlowFuse Community Edition</td></tr>
+                    <tbody>
+                        <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2">FlowFuse Community Edition</td></tr>
+                    </tbody>
                 </table>
             </template>
             <div class="space-x-4 whitespace-nowrap">
@@ -36,11 +40,13 @@
             <template v-if="inspectedLicense">
                 <FormHeading>2. Check license details</FormHeading>
                 <table>
-                    <tr v-if="inspectedLicense.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2">Development-mode Only</td></tr>
-                    <tr><td class="font-medium p-2 pr-4 align-top">License ID</td><td class="p-2">{{ inspectedLicense.id }}</td></tr>
-                    <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{ inspectedLicense.organisation }}</td></tr>
-                    <tr><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ inspectedLicense.tier }}</td></tr>
-                    <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{ inspectedLicense.expires }}<br><span class="text-xs">{{ inspectedLicense.expiresAt }}</span></td></tr>
+                    <tbody>
+                        <tr v-if="inspectedLicense.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2">Development-mode Only</td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">License ID</td><td class="p-2">{{ inspectedLicense.id }}</td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{ inspectedLicense.organisation }}</td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ inspectedLicense.tier }}</td></tr>
+                        <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{ inspectedLicense.expires }}<br><span class="text-xs">{{ inspectedLicense.expiresAt }}</span></td></tr>
+                    </tbody>
                 </table>
                 <details><pre class="break-words">{{ inspectedLicense }}</pre></details>
                 <div class="space-x-4 whitespace-nowrap flex">
