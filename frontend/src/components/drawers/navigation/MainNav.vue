@@ -42,11 +42,10 @@ export default {
     components: { NavItem },
     emits: ['option-selected'],
     setup () {
+        const drawersStore = useUxDrawersStore()
         const navStore = useUxNavigationStore()
         const { mainNav, mainNavContext } = storeToRefs(navStore)
         const { setMainNavContext, setMainNavBackButton } = navStore
-
-        const drawersStore = useUxDrawersStore()
 
         return { mainNav, mainNavContext, setMainNavContext, setMainNavBackButton, closeLeftDrawer: drawersStore.closeLeftDrawer }
     },
