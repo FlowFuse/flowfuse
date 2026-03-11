@@ -42,58 +42,62 @@
             <div>
                 <FormHeading>License</FormHeading>
                 <table class="w-full">
-                    <tr>
-                        <td class="w-40">Type</td>
-                        <td>
-                            <span v-if="!license">FlowFuse Community Edition</span>
-                            <span v-else-if="!license.dev">FlowFuse Enterprise Edition</span>
-                            <span v-else class="font-bold">FlowFuse Development Only</span>
-                        </td>
-                    </tr>
-                    <template v-if="license">
-                        <tr><td class="w-40 font-medium">Organisation</td><td>{{ license.organisation }}</td></tr>
-                        <tr><td class="w-40 font-medium">Tier</td><td>{{ license.tier }}</td></tr>
-                        <tr><td>{{ expired ? 'Expired' : 'Expires' }}</td><td>{{ license.expires }}<br><span class="text-xs">{{ license.expiresAt }}</span></td></tr>
-                    </template>
-                    <tr>
-                        <td class="w-40">Users</td>
-                        <td>{{ stats.userCount }} / {{ stats.maxUsers }}</td>
-                    </tr>
-                    <tr>
-                        <td class="w-40">Teams</td>
-                        <td>{{ stats.teamCount }} / {{ stats.maxTeams }}</td>
-                    </tr>
-                    <template v-if="stats.maxDevices">
+                    <tbody>
                         <tr>
-                            <td class="w-40">Instances</td>
-                            <td>{{ stats.instanceCount }} / {{ stats.maxInstances }}</td>
-                        </tr>
-                        <tr>
-                            <td class="w-40">Devices</td>
+                            <td class="w-40">Type</td>
                             <td>
-                                <div>{{ stats.deviceCount }} / {{ stats.maxDevices }}</div>
+                                <span v-if="!license">FlowFuse Community Edition</span>
+                                <span v-else-if="!license.dev">FlowFuse Enterprise Edition</span>
+                                <span v-else class="font-bold">FlowFuse Development Only</span>
                             </td>
                         </tr>
-                    </template>
-                    <template v-else>
+                        <template v-if="license">
+                            <tr><td class="w-40 font-medium">Organisation</td><td>{{ license.organisation }}</td></tr>
+                            <tr><td class="w-40 font-medium">Tier</td><td>{{ license.tier }}</td></tr>
+                            <tr><td>{{ expired ? 'Expired' : 'Expires' }}</td><td>{{ license.expires }}<br><span class="text-xs">{{ license.expiresAt }}</span></td></tr>
+                        </template>
                         <tr>
-                            <td class="w-40">Instances + Devices</td>
-                            <td>{{ stats.instanceCount + stats.deviceCount }} / {{ stats.maxInstances }}</td>
+                            <td class="w-40">Users</td>
+                            <td>{{ stats.userCount }} / {{ stats.maxUsers }}</td>
                         </tr>
-                    </template>
-                    <template v-if="stats.maxMqttClients">
                         <tr>
-                            <td class="w-40">Team MQTT Clients</td>
-                            <td>{{ stats.mqttClientCount }} / {{ stats.maxMqttClients }}</td>
+                            <td class="w-40">Teams</td>
+                            <td>{{ stats.teamCount }} / {{ stats.maxTeams }}</td>
                         </tr>
-                    </template>
+                        <template v-if="stats.maxDevices">
+                            <tr>
+                                <td class="w-40">Instances</td>
+                                <td>{{ stats.instanceCount }} / {{ stats.maxInstances }}</td>
+                            </tr>
+                            <tr>
+                                <td class="w-40">Devices</td>
+                                <td>
+                                    <div>{{ stats.deviceCount }} / {{ stats.maxDevices }}</div>
+                                </td>
+                            </tr>
+                        </template>
+                        <template v-else>
+                            <tr>
+                                <td class="w-40">Instances + Devices</td>
+                                <td>{{ stats.instanceCount + stats.deviceCount }} / {{ stats.maxInstances }}</td>
+                            </tr>
+                        </template>
+                        <template v-if="stats.maxMqttClients">
+                            <tr>
+                                <td class="w-40">Team MQTT Clients</td>
+                                <td>{{ stats.mqttClientCount }} / {{ stats.maxMqttClients }}</td>
+                            </tr>
+                        </template>
+                    </tbody>
                 </table>
             </div>
             <div>
                 <FormHeading>Version</FormHeading>
                 <table class="w-full">
-                    <tr><td class="w-40">Forge Application</td><td>{{ settings['version:forge'] }}</td></tr>
-                    <tr><td>NodeJS</td><td>{{ settings['version:node'] }}</td></tr>
+                    <tbody>
+                        <tr><td class="w-40">Forge Application</td><td>{{ settings['version:forge'] }}</td></tr>
+                        <tr><td>NodeJS</td><td>{{ settings['version:node'] }}</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>

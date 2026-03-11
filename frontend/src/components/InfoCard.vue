@@ -23,5 +23,5 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../stylesheets/components/info-card.scss";
+@use "../stylesheets/components/info-card.scss" as *;
 </style>

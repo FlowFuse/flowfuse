@@ -7,7 +7,7 @@ meta:
       - nodered
       - openshift
       - kubernetes
-      - nginx ingress
+      - traefik
       - helm
 ---
 
@@ -89,7 +89,7 @@ Before you begin, ensure you have the following:
 2. **oc:** To manage a OpenShift cluster you will need a copy of the `oc` utility. Instructions on how to install `oc` can be found [here](https://docs.openshift.com/container-platform/4.17/cli_reference/openshift_cli/getting-started-cli.html)
 3. **Helm:** FlowFuse provides the Helm chart to manage platform deployment. Installation can be done through the instructions on [their website](https://helm.sh)
 4. **OpenShift Cluster:** an OpenShift cluster instance with at least two worker nodes
-5. **Ingress Controller:** An Ingress controller installed on the cluster. FlowFuse Helm chart uses the [Ingress NGINX Controller](https://github.com/kubernetes/ingress-nginx) by default.
+5. **Ingress Controller:** [The Traefik](https://doc.traefik.io/traefik/) installed on the cluster.
 6. **FlowFuse License:** A valid FlowFuse license key is required to run on OpenShift. You can request a quote [here](https://flowfuse.com/pricing/request-quote/)
 
 For a production-ready environment, we also recommend: 

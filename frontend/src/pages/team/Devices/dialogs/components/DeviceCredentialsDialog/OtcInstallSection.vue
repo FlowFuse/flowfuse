@@ -26,13 +26,13 @@
                 :command="otcCommand"
             />
 
-            <p class="text-gray-600 italic text-sm">
+            <div class="text-gray-600 italic text-sm">
                 <span>Notes:</span>
                 <ul class="list-disc list-inside ml-2">
                     <li>this command is single use and expires in 24h.</li>
                     <li>requires device-agent v2.1 or later (follow the manual setup below for older versions).</li>
                 </ul>
-            </p>
+            </div>
 
             <details class="mt-4">
                 <summary class="mt-6 cursor-pointer">Show manual setup instructions</summary>

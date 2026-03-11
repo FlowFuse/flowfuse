@@ -1,9 +1,9 @@
-@import '../ui-components/stylesheets/ff-colors.scss';
+@use '../ui-components/stylesheets/ff-colors.scss' as *;
 
-@import "./layouts.scss";
-@import "./transitions.scss";
-@import "./animations.scss";
-@import "./components/charts.scss";
+@use "./layouts.scss" as *;
+@use "./transitions.scss" as *;
+@use "./animations.scss" as *;
+@use "./components/charts.scss" as *;
 
 /* Define Font Family */
 /* latin */
