@@ -70,7 +70,6 @@ import LeftDrawer from '../components/drawers/LeftDrawer.vue'
 import RightDrawer from '../components/drawers/RightDrawer.vue'
 import NoticeBanner from '../components/notices/NoticeBanner.vue'
 import AlertsMixin from '../mixins/Alerts.js'
-import DialogMixin from '../mixins/Dialog.js'
 import dialogService from '../services/dialog.js'
 
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
@@ -84,7 +83,7 @@ export default {
         PageHeader,
         InterviewPopup
     },
-    mixins: [AlertsMixin, DialogMixin],
+    mixins: [AlertsMixin],
     computed: {
         dialog () { return useUxDialogStore().dialog },
         ...mapState('product', ['interview']),
