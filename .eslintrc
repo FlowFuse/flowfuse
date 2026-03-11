@@ -62,6 +62,16 @@
         "promise/catch-or-return": ["error", { "allowFinally": true }]
     },
     "overrides": [
+        // Ignore unresolved @ imports and Node import errors only for test stores files, has issues with aliases
+        {
+            "files": [
+                "test/unit/frontend/stores/**/*"
+            ],
+            "rules": {
+                "import/no-unresolved": [2, { "ignore": ["^@/"] }],
+                "n/no-missing-import": "off"
+            }
+        },
         // Frontend runs in the browser and builds with webpack
         {
             "files": "frontend/**",
