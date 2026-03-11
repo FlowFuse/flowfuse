@@ -33,5 +33,5 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../../stylesheets/pages/admin.scss";
+@use "../../stylesheets/pages/admin.scss" as *;
 </style>

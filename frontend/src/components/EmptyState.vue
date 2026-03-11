@@ -52,5 +52,5 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../stylesheets/components/empty-state.scss";
+@use "../stylesheets/components/empty-state.scss" as *;
 </style>

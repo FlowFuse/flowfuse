@@ -461,5 +461,5 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../../stylesheets/components/pipelines.scss";
+@use "../../stylesheets/components/pipelines.scss" as *;
 </style>

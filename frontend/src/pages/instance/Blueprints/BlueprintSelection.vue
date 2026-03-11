@@ -82,7 +82,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import '../../../stylesheets/components/blueprint-selection.scss';
+@use '../../../stylesheets/components/blueprint-selection.scss' as *;
 .blueprint-group {
   display: flex;
   flex-wrap: wrap;

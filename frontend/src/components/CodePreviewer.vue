@@ -20,5 +20,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "../stylesheets/components/code-previewer.scss";
+@use "../stylesheets/components/code-previewer.scss" as *;
 </style>

@@ -1,3 +1,5 @@
+@use "../../ui-components/stylesheets/ff-colors.scss" as *;
+
 .ff-code-previewer {
     background-color: white;
     border: 1px solid $ff-grey-300;

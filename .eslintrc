@@ -13,7 +13,7 @@
     "parserOptions": {
         "ecmaVersion": 2022
     },
-    "ignorePatterns": ["frontend/dist/", "var/", "*.svg", "*.xml"],
+    "ignorePatterns": ["frontend/dist/", "var/", "*.svg", "*.xml", "**/*.d.ts"],
     "plugins": ["promise", "no-only-tests"],
     "settings": {
         "import/core-modules": [ "lottie-web-vue", "@heroicons/vue" ],
