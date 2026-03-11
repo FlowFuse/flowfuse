@@ -42,7 +42,9 @@ export default {
     emits: ['option-selected'],
     setup () {
         const navStore = useUxNavigationStore()
-        const { mainNav, mainNavContext, setMainNavContext, setMainNavBackButton } = storeToRefs(navStore)
+        const { mainNav, mainNavContext } = storeToRefs(navStore)
+        const { setMainNavContext, setMainNavBackButton } = navStore
+
         return { mainNav, mainNavContext, setMainNavContext, setMainNavBackButton }
     },
     computed: {
