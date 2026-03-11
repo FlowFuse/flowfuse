@@ -31,21 +31,23 @@
             </div>
             <div class="mb-4">
                 <table class="table-fixed w-full mb-2">
-                    <tr class="border-b">
-                        <td class="w-1/4 font-medium py-2">Email</td>
-                        <td class="flex">
-                            {{ user.email }}
-                            <div class="ml-3 space-x-1">
-                                <span v-if="user.sso_enabled" class="forge-badge forge-status-safe">sso-enabled</span>
-                                <span v-else-if="user.email_verified" class="forge-badge forge-status-running">verified</span>
-                                <span v-else class="forge-badge forge-status-error">unverified</span>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr class="border-b">
-                        <td class="w-1/4 font-medium py-2">Registered At</td>
-                        <td class="py-1">{{ user.createdAt }}</td>
-                    </tr>
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="w-1/4 font-medium py-2">Email</td>
+                            <td class="flex">
+                                {{ user.email }}
+                                <div class="ml-3 space-x-1">
+                                    <span v-if="user.sso_enabled" class="forge-badge forge-status-safe">sso-enabled</span>
+                                    <span v-else-if="user.email_verified" class="forge-badge forge-status-running">verified</span>
+                                    <span v-else class="forge-badge forge-status-error">unverified</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="w-1/4 font-medium py-2">Registered At</td>
+                            <td class="py-1">{{ user.createdAt }}</td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
             <FormHeading>Teams</FormHeading>

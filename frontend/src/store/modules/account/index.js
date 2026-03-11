@@ -1,3 +1,4 @@
+import { getActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
@@ -504,7 +505,26 @@ const actions = {
     },
     async logout ({ rootState, dispatch, commit }) {
         return userApi.logout()
-            .then(() => dispatch('$resetState', null, { root: true }))
+            .then(() => {
+                // Reset Vuex state (existing behaviour)
+                dispatch('$resetState', null, { root: true })
+
+                // Reset migrated Pinia stores — uncomment each line as its store is migrated
+                const pinia = getActivePinia()
+                if (pinia) {
+                    // Task 1:  useUxDialogStore().$reset()
+                    // Task 2:  useUxToursStore().$reset()
+                    // Task 3:  useUxNavigationStore().$reset()
+                    // Task 4:  useUxDrawersStore().$reset()
+                    // Task 5:  useContextStore().$reset()
+                    // Task 6:  useProductTablesStore().$reset()
+                    // Task 7:  useProductBrokersStore().$reset()
+                    // Task 8:  useProductAssistantStore().$reset()
+                    // Task 9:  useProductExpertFfAgentStore().$reset()
+                    // Task 10: useProductExpertOperatorAgentStore().$reset()
+                    // Task 11: useProductExpertStore().$reset()
+                }
+            })
             .catch(_ => {})
             .finally(() => {
                 if (window._hsq) {

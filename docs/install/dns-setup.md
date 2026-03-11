@@ -40,7 +40,7 @@ When using AWS ALB (Application Load Balancer) as an Ingress Controller for Flow
 
 ### Digital Ocean 
 
-You should create an A record pointing to the public IP address of the Load Balancer created when you install the Nginx Ingress Helm Chart.
+You should create an A record pointing to the public IP address of the Load Balancer created when you install the Traefik Helm Chart.
 
 ## Local Testing and Development
 

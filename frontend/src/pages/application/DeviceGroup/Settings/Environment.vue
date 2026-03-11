@@ -9,14 +9,14 @@
         >
             <template #helptext>
                 <p>Environment variables entered here will be merged with the environment variables defined in the member devices.</p>
-                <p>
+                <div>
                     The following rules apply:
                     <ul class="list-disc pl-5">
                         <li>Values set in the Device take precedence over values set in the Device Group.</li>
                         <li>Removing a device from the group will remove these variables from the device.</li>
                         <li>The devices environment variables are never modified, they are only merged at runtime.</li>
                     </ul>
-                </p>
+                </div>
                 <p>Updating these environment variables will cause devices in the group to be restarted when a change is detected.</p>
             </template>
         </TemplateSettingsEnvironment>
