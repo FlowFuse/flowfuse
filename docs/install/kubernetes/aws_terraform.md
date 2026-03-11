@@ -1,7 +1,7 @@
 ---
 navTitle: AWS EKS Installation with Terraform and Helm
 meta:
-   description: Learn to deploy FlowFuse on AWS EKS using Terraform and Helm. Setup VPC, EKS, RDS, Route53, SES, and Nginx Ingress Controller step-by-step.
+   description: Learn to deploy FlowFuse on AWS EKS using Terraform and Helm. Setup VPC, EKS, RDS, Route53, SES, and  Traefik step-by-step.
    tags:
      - flowfuse
      - nodered
@@ -197,14 +197,14 @@ To get the IAM role ARN created by the SES module and required during [FlowFuse 
 terraform -chdir=eks output flowfuse_role_arn
 ```
 
-## Step 5: Deploy Nginx Ingress Controller
+## Step 5: Deploy Traefik
 
-It is recommended to run the <a href="https://kubernetes.github.io/ingress-nginx/" target="_blank">Nginx Ingress controller</a> even on AWS EKS (The AWS ALB load balancer currently appears to only support up to 100 Ingress Targets which limits the number of Instance/Projects that can be run).
+It is recommended to run the <a href="https://doc.traefik.io/traefik/" target="_blank">Traefik</a> even on AWS EKS (The AWS ALB load balancer currently appears to only support up to 100 Ingress Targets which limits the number of Hosted Instances that can be run).
 
-Create a `nginx-ingress-values.yaml` file to pass the values to the nginx helm file.
+Create a `traefik-values.yaml` file for Traefik configuration:
 
 ```bash
-touch nginx-ingress-values.yaml
+touch traefik-values.yaml
 ```
 
 Get the certificate ARN (`<your-certificate-arn>`) from the `route53` module outputs:
@@ -213,40 +213,106 @@ Get the certificate ARN (`<your-certificate-arn>`) from the `route53` module out
 terraform -chdir=route53 output acm_certificate_arn
 ```
 
-Fill the `nginx-ingress-values.yaml` file with the following content. Replace `<your-certificate-arn>` with the certificate ARN.
+Fill the `traefik-values.yaml` file with the following content. Replace `<your-certificate-arn>` with the certificate ARN.
 
 ```yaml
-controller:
-  # publishService required to Allow ELB Alias for DNS registration w/ external-dns
-  publishService:
-    enabled: true
-  tcp:
-    configNameSpace: $(POD_NAMESPACE)/tcp-services
-  udp:
-    configNameSpace: $(POD_NAMESPACE)/udp-services
-  config:
-    proxy-body-size: "0"
-    use-proxy-protocol: true
-  service:
-    # AWS Annotations for LoadBalaner with Certificate ARN
-    annotations:
-      service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "<your-certificate-arn>"
-      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
-      service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
-      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-      service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "120"
-      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: proxy_protocol_v2.enabled=true
-    # TLS (https) terminated at ELB, so internal endpoint is 'http'
-    targetPorts:
-      https: http
+service:
+  enabled: true
+  type: LoadBalancer
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "<your-certificate-arn>"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "120"
+    service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: "proxy_protocol_v2.enabled=true"
+  spec:
     externalTrafficPolicy: Cluster
-  ingressClassResource:
-    default: true
+
+deployment:
+  replicas: 2
+
+ports:
+  web:
+    port: 8000
+    expose:
+      default: true
+    exposedPort: 80
+    protocol: TCP
+    forwardedHeaders:
+      trustedIPs:
+        - "10.0.0.0/8"
+    proxyProtocol:
+      trustedIPs:
+        - "10.0.0.0/8"
+  websecure:
+    port: 8443
+    expose:
+      default: true
+    exposedPort: 443
+    protocol: TCP
+    http:
+      middlewares:
+        - traefik-force-https@kubernetescrd
+        - traefik-large-body@kubernetescrd
+      # Disable TLS since NLB handles termination
+      tls:
+        enabled: false
+    forwardedHeaders:
+      trustedIPs:
+        - "10.0.0.0/8"
+    proxyProtocol:
+      trustedIPs:
+        - "10.0.0.0/8"
+
+ingressClass:
+  enabled: true
+  isDefaultClass: false
+  name: traefik
+
+additionalArguments:
+  - "--entryPoints.web.proxyProtocol.insecure=true"
+  - "--entryPoints.websecure.proxyProtocol.insecure=true"
+  - "--entryPoints.web.forwardedHeaders.insecure=true"
+  - "--entryPoints.websecure.forwardedHeaders.insecure=true"
+
+providers:
+  kubernetesIngress:
+    enabled: true
+  kubernetesCRD:
+    enabled: true
+
+api:
+  dashboard: false
+  insecure: false
+
+logs:
+  access:
+    enabled: true
+    fields:
+      headers:
+        defaultMode: keep
+
+extraObjects:
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: force-https
+      namespace: traefik
+    spec:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: large-body
+      namespace: traefik
+    spec:
+      buffering:
+        maxRequestBodyBytes: 10485760
 ```
-
-> The `proxy-body-size: "0"` removes the `1m` nginx default limit, you can set this to a 
-> different vale e.g. "5m" which will match the Node-RED default.
-
 
 Update your kubeconfig file to point to the EKS cluster and set the correct context
 
@@ -254,17 +320,17 @@ Update your kubeconfig file to point to the EKS cluster and set the correct cont
 aws eks update-kubeconfig --name $(terraform -chdir=eks output -raw cluster_name)
 ```
 
-Install the Nginx Ingress controller with the following command:
+Install the Traefik Ingress controller with the following command:
 
 ```bash
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo add traefik https://traefik.github.io/charts
 helm repo update
-helm upgrade -i ingress-nginx ingress-nginx/ingress-nginx \
-    --create-namespace \
-    --namespace ingress \
-    --values "nginx-ingress-values.yaml" \
-    --wait \
-    --atomic
+helm upgrade --install traefik traefik/traefik \
+  --create-namespace \
+  -n traefik \
+  -f traefik-values.yaml \
+  --wait \
+  --atomic
 ```
 
 

@@ -1,13 +1,13 @@
 ---
 navTitle: Digital Ocean Kubernetes Installation
 meta:
-   description: Install FlowFuse on Digital Ocean Kubernetes with cluster setup, Nginx Ingress, SSL using Cert-manager, and Helm deployment.
+   description: Install FlowFuse on Digital Ocean Kubernetes with cluster setup, Traefik, SSL using Cert-manager, and Helm deployment.
    tags:
       - flowfuse
       - nodered
       - digitalocean
       - kubernetes
-      - nginx ingress
+      - traefik
       - cert-manager
       - helm
       - dns
@@ -48,35 +48,123 @@ In this guide I will use `example.com` as the domain, remember to substitute you
 When the cluster has finished provisioning you should be able to download
 the `k8s-flowforge-kubeconfig.yaml` file which will allow you to connect to the cluster.
 
-## Install Ingress Controller
+## Install Traefik
 
-```bash
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm repo update
-helm --kubeconfig=./k8s-flowforge-kubeconfig.yaml install nginx-ingress \
-  ingress-nginx/ingress-nginx --namespace ingress-nginx \
-  --create-namespace \
-  --set controller.publishService.enabled=true \
-  --set controller.ingressClassResource.default=true \
-  --set controller.config.proxy-body-size="0" \
-  --set controller.config.use-proxy-protocol="true" \
-  --set controller.service.annotations."service\.beta\.kubernetes\.io\/do-loadbalancer-enable-proxy-protocol"="true" \
-  --wait
+Prepare values for the Traefik Helm chart by creating a file called `traefik-values.yaml` with the following content:
 
+```yaml
+service:
+  enabled: true
+  type: LoadBalancer
+  annotations:
+    service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
+  spec:
+    externalTrafficPolicy: Cluster
+
+deployment:
+  replicas: 2
+
+ports:
+  web:
+    port: 8000
+    expose:
+      default: true
+    exposedPort: 80
+    protocol: TCP
+    forwardedHeaders:
+      trustedIPs:
+        - "10.0.0.0/8"
+    proxyProtocol:
+      trustedIPs:
+        - "10.0.0.0/8"
+  websecure:
+    port: 8443
+    expose:
+      default: true
+    exposedPort: 443
+    protocol: TCP
+    http:
+      middlewares:
+        - traefik-force-https@kubernetescrd
+        - traefik-large-body@kubernetescrd
+      # Disable TLS since NLB handles termination
+      tls:
+        enabled: false
+    forwardedHeaders:
+      trustedIPs:
+        - "10.0.0.0/8"
+    proxyProtocol:
+      trustedIPs:
+        - "10.0.0.0/8"
+
+ingressClass:
+  enabled: true
+  isDefaultClass: false
+  name: traefik
+
+additionalArguments:
+  - "--entryPoints.web.proxyProtocol.insecure=true"
+  - "--entryPoints.websecure.proxyProtocol.insecure=true"
+  - "--entryPoints.web.forwardedHeaders.insecure=true"
+  - "--entryPoints.websecure.forwardedHeaders.insecure=true"
+
+providers:
+  kubernetesIngress:
+    enabled: true
+  kubernetesCRD:
+    enabled: true
+
+api:
+  dashboard: false
+  insecure: false
+
+logs:
+  access:
+    enabled: true
+    fields:
+      headers:
+        defaultMode: keep
+
+extraObjects:
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: force-https
+      namespace: traefik
+    spec:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: large-body
+      namespace: traefik
+    spec:
+      buffering:
+        maxRequestBodyBytes: 10485760
 ```
 
-The `controller.config.proxy-body-size="0"` removes the `1m` default payload limit 
-from the nginx ingress proxy. You can change this to say `5m` which will match the 
-Node-RED default value.
+Install the Traefik with the following command:
+
+```bash
+helm repo add traefik https://traefik.github.io/charts
+helm repo update
+helm --kubeconfig=./k8s-flowforge-kubeconfig.yaml upgrade --install traefik traefik/traefik \
+  --create-namespace \
+  -n traefik \
+  -f traefik-values.yaml \
+  --wait \
+  --atomic
+```
 
 ### Setup DNS
 
-Run the following to get the external IP address of the Nginx Ingress 
-Controller
+Run the following to get the external IP address of the Traefik controller
 
 ```bash
 kubectl --kubeconfig=./k8s-flowforge-kubeconfig.yaml \
-  -n ingress-nginx get service nginx-ingress-ingress-nginx-controller
+  -n traefik get service traefik
 ```
 
 You will need to update the entry in your DNS server to point 
@@ -122,7 +210,7 @@ spec:
     solvers:
       - http01:
           ingress:
-            ingressClassName: nginx
+            ingressClassName: traefik
 ```
 
 Then use `kubectl` to install this

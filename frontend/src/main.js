@@ -1,6 +1,8 @@
 import { LottieAnimation } from 'lottie-web-vue'
 
 import { AxiosError } from 'axios'
+import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { createApp } from 'vue'
 
 import './ui-components/index.scss'
@@ -19,6 +21,7 @@ import Alerts from './services/alerts.js'
 import { setupSentry } from './services/error-tracking.js'
 import { getServiceFactory } from './services/service.factory.js'
 import store from './store/index.js'
+import { skipResetPlugin } from './stores/plugins/skip-reset.plugin.js'
 
 import './index.css'
 
@@ -26,8 +29,13 @@ import ForgeUIComponents from './ui-components/index.js'
 
 store.commit('initializeStore')
 
+const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
+pinia.use(skipResetPlugin)
+
 const app = createApp(App)
     .use(ForgeUIComponents)
+    .use(pinia)
     .use(store)
     .use(router)
     .use(VueShepherdPlugin)

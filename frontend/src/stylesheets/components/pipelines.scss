@@ -1,3 +1,6 @@
+@use "../../ui-components/stylesheets/ff-colors.scss" as *;
+@use "../../ui-components/stylesheets/ff-utility.scss" as *;
+
 .ff-pipeline {
     width: 100%;
     border: 1px solid $ff-grey-300;

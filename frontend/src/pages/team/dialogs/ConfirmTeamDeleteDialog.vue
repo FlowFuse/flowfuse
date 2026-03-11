@@ -5,14 +5,14 @@
                 <p>
                     <b>Are you sure you want to delete this team?</b>
                 </p>
-                <p>
-                    You'll be missing out on lots of great features to help you scale and professionalize your Node-RED applications such as:
+                <div>
+                    <p>You'll be missing out on lots of great features to help you scale and professionalize your Node-RED applications such as:</p>
                     <ul class="mt-4 ml-2 list-disc list-inside space-y-2">
                         <li v-for="feature in enabledFeatures" :key="feature.label">
                             <b>{{ feature.label }}:</b> {{ feature.description }}
                         </li>
                     </ul>
-                </p>
+                </div>
                 <p>
                     If you're absolutely sure you want to delete your team, please type in the team name to confirm. Once deleted, there is no going back.
                 </p>
