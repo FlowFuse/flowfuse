@@ -32,7 +32,7 @@
 <script>
 import { mapState } from 'vuex'
 
-import { pluralize } from '../../../../composables/String.js'
+import { pluralize } from '../../../../composables/strings/String.js'
 import FfDataTable from '../../../../ui-components/components/data-table/DataTable.vue'
 import Accordion from '../../../Accordion.vue'
 

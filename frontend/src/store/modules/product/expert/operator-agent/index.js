@@ -1,5 +1,5 @@
 import expertApi from '../../../../../api/expert.js'
-import useTimerHelper from '../../../../../composables/TimersHelper.js'
+import useTimerHelper from '../../../../../composables/TimerHelper.js'
 
 const initialState = () => ({
     sessionId: null,

@@ -212,7 +212,7 @@ import PipelineAPI, { StageAction, StageType } from '../../api/pipeline.js'
 
 import StatusBadge from '../../components/StatusBadge.vue'
 import usePermissions from '../../composables/Permissions.js'
-import { slugify } from '../../composables/String.js'
+import { slugify } from '../../composables/strings/String.js'
 import InstanceStatusBadge from '../../pages/instance/components/InstanceStatusBadge.vue'
 
 import Alerts from '../../services/alerts.js'
