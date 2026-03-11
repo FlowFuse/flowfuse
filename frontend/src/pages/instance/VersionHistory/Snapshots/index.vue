@@ -50,7 +50,7 @@
 <script>
 import { FilterIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
-import { mapActions, mapState } from 'vuex'
+import { mapState } from 'vuex'
 
 import InstanceApi from '../../../../api/instances.js'
 import SnapshotApi from '../../../../api/projectSnapshots.js'
@@ -67,6 +67,8 @@ import { isAutoSnapshot } from '../../../../utils/snapshot.js'
 import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
 import DeviceCount from '../../../application/Snapshots/components/cells/DeviceCount.vue'
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'InstanceSnapshots',
@@ -85,9 +87,14 @@ export default {
     },
     emits: ['instance-updated', 'show-import-snapshot-dialog', 'show-create-snapshot-dialog'],
     setup () {
+        const drawersStore = useUxDrawersStore()
         const { hasPermission } = usePermissions()
 
-        return { hasPermission }
+        return {
+            hasPermission,
+            openRightDrawer: drawersStore.openRightDrawer,
+            closeRightDrawer: drawersStore.closeRightDrawer
+        }
     },
     data () {
         return {
@@ -209,7 +216,6 @@ export default {
         this.fetchData()
     },
     methods: {
-        ...mapActions('ux/drawers', ['openRightDrawer', 'closeRightDrawer']),
         fetchData: async function (withoutAnimation = false) {
             if (this.instance.id) {
                 if (!withoutAnimation) this.loading = true

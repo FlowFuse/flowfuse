@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
@@ -76,6 +76,8 @@ import Login from './pages/Login.vue'
 import PasswordExpired from './pages/PasswordExpired.vue'
 import TermsAndConditions from './pages/TermsAndConditions.vue'
 import UnverifiedEmail from './pages/UnverifiedEmail.vue'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'App',
@@ -95,8 +97,7 @@ export default {
     },
     computed: {
         ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
-        ...mapState('ux/drawers', ['leftDrawer']),
-        ...mapGetters('ux/drawers', ['hiddenLeftDrawer']),
+        hiddenLeftDrawer () { return useUxDrawersStore().hiddenLeftDrawer },
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },

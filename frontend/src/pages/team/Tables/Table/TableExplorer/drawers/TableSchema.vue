@@ -31,12 +31,21 @@ import { mapActions, mapState } from 'vuex'
 import Alerts from '../../../../../../services/alerts.js'
 import Dialog from '../../../../../../services/dialog.js'
 
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+
 export default defineComponent({
     name: 'TableSchema',
     props: {
         table: {
             type: Object,
             required: true
+        }
+    },
+    setup () {
+        const drawersStore = useUxDrawersStore()
+        return {
+            closeRightDrawer: drawersStore.closeRightDrawer,
+            setRightDrawerHeader: drawersStore.setRightDrawerHeader
         }
     },
     computed: {
@@ -46,7 +55,6 @@ export default defineComponent({
         this.setHeader()
     },
     methods: {
-        ...mapActions('ux/drawers', ['closeRightDrawer', 'setRightDrawerHeader']),
         ...mapActions('product/tables', ['deleteTable', 'getTables']),
         submit () {
             Dialog.show({

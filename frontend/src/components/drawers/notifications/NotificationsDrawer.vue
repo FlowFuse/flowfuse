@@ -81,13 +81,20 @@ import userAPI from '../../../api/user.js'
 
 import alerts from '../../../services/alerts.js'
 import GenericNotification from '../../notifications/Generic.vue'
+
 import TeamInvitationAcceptedNotification from '../../notifications/invitations/Accepted.vue'
 import TeamInvitationReceivedNotification from '../../notifications/invitations/Received.vue'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'NotificationsDrawer',
     components: {
         XIcon
+    },
+    setup () {
+        const drawersStore = useUxDrawersStore()
+        return { closeRightDrawer: drawersStore.closeRightDrawer }
     },
     data () {
         return {
@@ -122,7 +129,6 @@ export default {
     },
     methods: {
         ...mapActions('account', ['setNotifications']),
-        ...mapActions('ux/drawers', ['closeRightDrawer']),
         closeDrawer () {
             this.closeRightDrawer()
         },

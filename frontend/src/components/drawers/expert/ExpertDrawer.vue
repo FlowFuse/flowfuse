@@ -41,11 +41,14 @@
 
 <script>
 import { LockClosedIcon, LockOpenIcon, XIcon } from '@heroicons/vue/solid'
+import { storeToRefs } from 'pinia'
 import { mapActions, mapState } from 'vuex'
 
 import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
 
 import ExpertPanel from '../../expert/Expert.vue'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'ExpertDrawer',
@@ -57,8 +60,15 @@ export default {
         LockOpenIcon
     },
     inject: ['togglePinWithWidth', 'shouldAllowPinning'],
+    setup () {
+        const drawersStore = useUxDrawersStore()
+        const { rightDrawer } = storeToRefs(drawersStore)
+        return {
+            rightDrawer,
+            closeRightDrawer: drawersStore.closeRightDrawer
+        }
+    },
     computed: {
-        ...mapState('ux/drawers', ['rightDrawer']),
         ...mapState('product/expert', ['agentMode']),
         agentModeButtons () {
             return [
@@ -85,7 +95,6 @@ export default {
         }, 350)
     },
     methods: {
-        ...mapActions('ux/drawers', ['closeRightDrawer']),
         ...mapActions('product/expert', ['setAgentMode']),
         closeDrawer () {
             this.closeRightDrawer()

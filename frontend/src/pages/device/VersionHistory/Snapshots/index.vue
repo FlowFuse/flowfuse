@@ -107,7 +107,7 @@
 import { FilterIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
 import SemVer from 'semver'
 import { markRaw } from 'vue'
-import { mapActions, mapState } from 'vuex'
+import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../../api/application.js'
 import DropdownMenu from '../../../../components/DropdownMenu.vue'
@@ -121,6 +121,8 @@ import { isAutoSnapshot } from '../../../../utils/snapshot.js'
 import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
 import SnapshotSource from '../../../application/Snapshots/components/cells/SnapshotSource.vue'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'DeviceSnapshots',
@@ -151,7 +153,13 @@ export default {
     emits: ['device-updated', 'show-import-snapshot-dialog', 'show-create-snapshot-dialog'],
     setup () {
         const { hasPermission } = usePermissions()
-        return { hasPermission }
+        const drawersStore = useUxDrawersStore()
+
+        return {
+            hasPermission,
+            openRightDrawer: drawersStore.openRightDrawer,
+            closeRightDrawer: drawersStore.closeRightDrawer
+        }
     },
     data () {
         return {
@@ -299,7 +307,6 @@ export default {
         this.fetchData()
     },
     methods: {
-        ...mapActions('ux/drawers', ['openRightDrawer', 'closeRightDrawer']),
         fetchData: async function () {
             if (!this.features.deviceEditor || this.isOwnedByAnInstance || this.isUnassigned) {
                 return

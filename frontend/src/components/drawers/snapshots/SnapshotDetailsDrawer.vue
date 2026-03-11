@@ -156,7 +156,6 @@ import {
     TrashIcon
 } from '@heroicons/vue/outline'
 import { defineComponent } from 'vue'
-import { mapActions } from 'vuex'
 
 import DeviceApi from '../../../api/devices.js'
 
@@ -170,6 +169,8 @@ import FormRow from '../../FormRow.vue'
 import AssetCompareDialog from '../../dialogs/AssetCompareDialog.vue'
 import FlowViewer from '../../flow-viewer/FlowViewer.vue'
 import InformationWell from '../../wells/InformationWell.vue'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default defineComponent({
     name: 'SnapshotDetailsDrawer',
@@ -228,9 +229,11 @@ export default defineComponent({
     emits: ['restored-snapshot', 'updated-snapshot', 'deleted-snapshot'],
     setup () {
         const { hasPermission } = usePermissions()
+        const drawersStore = useUxDrawersStore()
 
         return {
-            hasPermission
+            hasPermission,
+            setRightDrawerHeader: drawersStore.setRightDrawerHeader
         }
     },
     data () {
@@ -283,7 +286,6 @@ export default defineComponent({
             })
     },
     methods: {
-        ...mapActions('ux/drawers', ['setRightDrawerHeader']),
         deployDeviceSnapshot () {
             const snapshot = this.snapshot
             const currentTargetSnapshot = this.instance.targetSnapshot?.id

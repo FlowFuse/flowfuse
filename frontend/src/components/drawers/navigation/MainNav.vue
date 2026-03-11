@@ -34,6 +34,7 @@ import { mapGetters, mapState } from 'vuex'
 
 import NavItem from '../../NavItem.vue'
 
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 
 export default {
@@ -44,7 +45,10 @@ export default {
         const navStore = useUxNavigationStore()
         const { mainNav, mainNavContext } = storeToRefs(navStore)
         const { setMainNavContext, setMainNavBackButton } = navStore
-        return { mainNav, mainNavContext, setMainNavContext, setMainNavBackButton }
+
+        const drawersStore = useUxDrawersStore()
+
+        return { mainNav, mainNavContext, setMainNavContext, setMainNavBackButton, closeLeftDrawer: drawersStore.closeLeftDrawer }
     },
     computed: {
         ...mapState('account', ['user', 'team', 'features', 'notifications']),
@@ -132,7 +136,7 @@ export default {
     },
     methods: {
         onMenuItemClick () {
-            this.$store.dispatch('ux/drawers/closeLeftDrawer')
+            this.closeLeftDrawer()
         },
         setBackButton () {
             if (this.team) {
