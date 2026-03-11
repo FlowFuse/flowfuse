@@ -37,6 +37,11 @@ export default {
             default: false
         }
     },
+    data () {
+        return {
+            posthogKeepAliveInterval: null
+        }
+    },
     computed: {
         isDeviceRunning () {
             return this.computedStatus === 'running'
