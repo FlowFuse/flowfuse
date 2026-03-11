@@ -71,6 +71,9 @@ import RightDrawer from '../components/drawers/RightDrawer.vue'
 import NoticeBanner from '../components/notices/NoticeBanner.vue'
 import AlertsMixin from '../mixins/Alerts.js'
 import DialogMixin from '../mixins/Dialog.js'
+import dialogService from '../services/dialog.js'
+
+import { useUxDialogStore } from '@/stores/ux-dialog.js'
 
 export default {
     name: 'ff-layout-platform',
@@ -83,6 +86,7 @@ export default {
     },
     mixins: [AlertsMixin, DialogMixin],
     computed: {
+        dialog () { return useUxDialogStore().dialog },
         ...mapState('product', ['interview']),
         ...mapState('ux', ['overlay']),
         ...mapState('ux/drawers', ['leftDrawer']),
@@ -95,8 +99,12 @@ export default {
     },
     mounted () {
         this.checkRouteMeta()
+        dialogService.bind(this.$refs.dialog, this.showDialogHandler)
     },
     methods: {
+        showDialogHandler (msg, onConfirm, onCancel) {
+            return useUxDialogStore().showDialogHandlers({ payload: msg, onConfirm, onCancel })
+        },
         checkRouteMeta () {
             for (let l = 0; l < this.$route.matched.length; l++) {
                 const level = this.$route.matched[l]
@@ -105,6 +113,9 @@ export default {
                     break
                 }
             }
+        },
+        clearDialog (cancelled = false) {
+            useUxDialogStore().clearDialog(cancelled)
         }
     }
 }

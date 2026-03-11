@@ -121,7 +121,6 @@ export default {
         }
     },
     computed: {
-        dialog () { return useUxDialogStore().dialog },
         application () {
             if (!this.devicesBelongToSameApplication) return null
 

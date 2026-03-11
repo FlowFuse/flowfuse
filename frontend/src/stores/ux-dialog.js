@@ -1,34 +1,32 @@
 import { defineStore } from 'pinia'
 
-const initialDialogState = () => ({
-    boxClass: null,
-    cancelLabel: null,
-    canBeCanceled: true,
-    confirmLabel: null,
-    contentClass: '',
-    disablePrimary: false,
-    header: null,
-    html: null,
-    is: null,
-    kind: null,
-    onCancel: null,
-    onConfirm: null,
-    subHeader: null,
-    text: null,
-    textLines: null,
-    notices: []
-})
-
 export const useUxDialogStore = defineStore('ux-dialog', {
     state: () => ({
-        dialog: initialDialogState()
+        dialog: {
+            boxClass: null,
+            cancelLabel: null,
+            canBeCanceled: true,
+            confirmLabel: null,
+            contentClass: '',
+            disablePrimary: false,
+            header: null,
+            html: null,
+            is: null,
+            kind: null,
+            onCancel: null,
+            onConfirm: null,
+            subHeader: null,
+            text: null,
+            textLines: null,
+            notices: []
+        }
     }),
     actions: {
         clearDialog (cancelled = false) {
             if (cancelled) {
                 this.dialog.onCancel?.()
             }
-            this.dialog = initialDialogState()
+            this.$reset()
         },
         showDialogHandlers ({ payload, onConfirm, onCancel }) {
             this.clearDialog(false)

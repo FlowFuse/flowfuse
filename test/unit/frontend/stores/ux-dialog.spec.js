@@ -1,4 +1,3 @@
-// frontend/src/tests/stores/ux-dialog.spec.js
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
