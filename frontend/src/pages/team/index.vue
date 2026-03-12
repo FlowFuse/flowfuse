@@ -17,7 +17,8 @@
 </template>
 
 <script>
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapGetters, mapActions as mapVuexActions, mapState as mapVuexState } from 'vuex'
 
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
@@ -48,10 +49,10 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
+        ...mapVuexState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
         ...mapGetters('account', ['requiresBilling', 'isAdminUser']),
-        shouldPresentTour () { return useUxToursStore().shouldPresentTour },
-        ...mapState('product/expert', ['shouldWakeUpAssistant']),
+        ...mapState(useUxToursStore, ['shouldPresentTour']),
+        ...mapVuexState('product/expert', ['shouldWakeUpAssistant']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
         },
@@ -95,7 +96,8 @@ export default {
         this.checkRoute(this.$route)
     },
     methods: {
-        ...mapActions('product/expert', ['wakeUpAssistant']),
+        ...mapVuexActions('product/expert', ['wakeUpAssistant']),
+        ...mapActions(useUxToursStore, ['setWelcomeTour', 'openModal']),
         checkRoute: async function (route) {
             const allowedRoutes = []
 
@@ -122,11 +124,11 @@ export default {
             }
         },
         dispatchTour () {
-            useUxToursStore().setWelcomeTour(() => {
+            return this.setWelcomeTour(() => {
                 if (this.shouldWakeUpAssistant) {
                     this.wakeUpAssistant({ shouldHydrateMessages: true })
                 } else {
-                    useUxToursStore().openModal('education')
+                    this.openModal('education')
                 }
             })
         }

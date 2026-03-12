@@ -40,6 +40,8 @@
 <script>
 import { ExternalLinkIcon } from '@heroicons/vue/solid'
 
+import { mapActions, mapState } from 'pinia'
+
 import product from '../../services/product.js'
 
 import { useUxToursStore } from '@/stores/ux-tours.js'
@@ -55,7 +57,7 @@ export default {
         }
     },
     computed: {
-        isOpen () { return useUxToursStore().shouldShowEducationModal },
+        ...mapState(useUxToursStore, { isOpen: 'shouldShowEducationModal' }),
         helpOptions () {
             return [
                 {
@@ -83,6 +85,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions(useUxToursStore, { closeEducationModal: 'closeModal' }),
         triggerClose () {
             if (this.isClosing) {
                 this.closeModal()
@@ -100,8 +103,8 @@ export default {
                 }, 10)
             }
         },
-        closeModal () {
-            useUxToursStore().closeModal('education')
+        async closeModal () {
+            await this.closeEducationModal('education')
             this.isClosing = false
             this.closingTimer = 0
         },

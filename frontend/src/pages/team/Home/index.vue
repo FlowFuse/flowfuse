@@ -131,6 +131,7 @@
 <script>
 import { ChipIcon, DatabaseIcon, PlusIcon } from '@heroicons/vue/outline'
 
+import { mapState } from 'pinia'
 import { mapGetters } from 'vuex'
 
 import TeamAPI from '../../../api/team.js'
@@ -191,7 +192,7 @@ export default {
         }
     },
     computed: {
-        tours () { return useUxToursStore().tours },
+        ...mapState(useUxToursStore, ['tours']),
         ...mapGetters('account', ['team', 'pendingTeamChange', 'featuresCheck']),
         instanceStats () {
             return this.groupBySimplifiedStates(this.instanceStateCounts)

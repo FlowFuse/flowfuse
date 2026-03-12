@@ -102,8 +102,9 @@
 </template>
 <script>
 import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, XIcon } from '@heroicons/vue/solid'
+import { mapActions } from 'pinia'
 import { ref } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapGetters, mapState, mapActions as mapVuexActions } from 'vuex'
 
 import usePermissions from '../composables/Permissions.js'
 
@@ -213,15 +214,16 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux/drawers', ['toggleLeftDrawer']),
-        openEducationModal () {
-            useUxToursStore().openModal('education')
+        ...mapVuexActions('ux/drawers', ['toggleLeftDrawer']),
+        ...mapActions(useUxToursStore, ['openModal', 'resetTours', 'presentTour']),
+        async openEducationModal () {
+            await this.openModal('education')
             product.capture('clicked-open-education-modal')
         },
         startWelcomeTour () {
-            useUxToursStore().resetTours()
-            return this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } })
-                .then(() => useUxToursStore().presentTour())
+            return this.resetTours()
+                .then(() => this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } }))
+                .then(() => this.presentTour())
         },
         toggleMobileTeamSelectionMenu () {
             this.mobileTeamSelectionOpen = !this.mobileTeamSelectionOpen

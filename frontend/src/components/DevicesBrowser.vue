@@ -346,8 +346,9 @@
 import { ClockIcon } from '@heroicons/vue/outline'
 import { CogIcon, PlusSmIcon } from '@heroicons/vue/solid'
 
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters, mapState } from 'vuex'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import deviceApi from '../api/devices.js'
 import teamApi from '../api/team.js'
@@ -459,9 +460,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
-        tours () { return useUxToursStore().tours },
-        ...mapState('ux/dialog', ['dialog']),
+        ...mapVuexState('account', ['team', 'teamMembership']),
+        ...mapState(useUxToursStore, ['tours']),
+        ...mapVuexState('ux/dialog', ['dialog']),
         ...mapGetters('account', ['featuresCheck']),
         columns () {
             const columns = [
