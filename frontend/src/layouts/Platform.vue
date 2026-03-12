@@ -88,7 +88,6 @@ export default {
     computed: {
         ...mapState(useUxNavigationStore, ['overlay']),
         ...mapVuexState('product', ['interview']),
-        ...mapVuexState('ux/drawers', ['leftDrawer']),
         ...mapGetters('account', ['hasAvailableTeams'])
     },
     watch: {
