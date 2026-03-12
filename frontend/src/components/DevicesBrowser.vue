@@ -346,8 +346,9 @@
 import { ClockIcon } from '@heroicons/vue/outline'
 import { CogIcon, PlusSmIcon } from '@heroicons/vue/solid'
 
+import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters, mapState } from 'vuex'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import deviceApi from '../api/devices.js'
 import teamApi from '../api/team.js'
@@ -459,10 +460,10 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
-        ...mapState('ux/tours', ['tours']),
+        ...mapVuexState('account', ['team', 'teamMembership']),
+        ...mapVuexState('ux/tours', ['tours']),
         ...mapGetters('account', ['featuresCheck']),
-        dialog () { return useUxDialogStore().dialog },
+        ...mapState(useUxDialogStore, ['dialog']),
         columns () {
             const columns = [
                 { label: 'Remote Instance', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
@@ -600,7 +601,7 @@ export default {
         team: 'fullReloadOfData',
         checkedDevices (devices) {
             if (this.dialog?.is?.payload?.devices) {
-                this.dialog.is.payload.devices = devices
+                this.setDialogDevices(devices)
             }
         }
     },
@@ -617,6 +618,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions(useUxDialogStore, ['setDialogDevices']),
         pollTimerElapsed: async function () {
             this.pollTimer.pause()
             try {

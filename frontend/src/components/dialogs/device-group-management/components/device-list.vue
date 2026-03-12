@@ -30,6 +30,8 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
+
 import { pluralize } from '../../../../composables/String.js'
 
 import FfDataTable from '../../../../ui-components/components/data-table/DataTable.vue'
@@ -51,7 +53,7 @@ export default {
     },
     emits: ['selection-removed'],
     computed: {
-        dialog () { return useUxDialogStore().dialog },
+        ...mapState(useUxDialogStore, ['dialog']),
         columns () {
             return [
                 { label: 'Name', key: 'name', class: ['flex-grow'], sortable: true },

@@ -54,6 +54,9 @@ export const useUxDialogStore = defineStore('ux-dialog', {
         },
         setDisablePrimary (value) {
             this.dialog.disablePrimary = value
+        },
+        setDialogDevices (devices) {
+            this.dialog.is.payload.devices = devices
         }
     }
 })

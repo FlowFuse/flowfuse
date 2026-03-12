@@ -62,7 +62,8 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import InterviewPopup from '../components/InterviewPopup.vue'
 import PageHeader from '../components/PageHeader.vue'
@@ -85,10 +86,10 @@ export default {
     },
     mixins: [AlertsMixin],
     computed: {
-        dialog () { return useUxDialogStore().dialog },
-        ...mapState('product', ['interview']),
-        ...mapState('ux', ['overlay']),
-        ...mapState('ux/drawers', ['leftDrawer']),
+        ...mapState(useUxDialogStore, ['dialog']),
+        ...mapVuexState('product', ['interview']),
+        ...mapVuexState('ux', ['overlay']),
+        ...mapVuexState('ux/drawers', ['leftDrawer']),
         ...mapGetters('account', ['hasAvailableTeams'])
     },
     watch: {
@@ -101,8 +102,9 @@ export default {
         dialogService.bind(this.$refs.dialog, this.showDialogHandler)
     },
     methods: {
+        ...mapActions(useUxDialogStore, ['clearDialog', 'showDialogHandlers']),
         showDialogHandler (msg, onConfirm, onCancel) {
-            return useUxDialogStore().showDialogHandlers({ payload: msg, onConfirm, onCancel })
+            return this.showDialogHandlers({ payload: msg, onConfirm, onCancel })
         },
         checkRouteMeta () {
             for (let l = 0; l < this.$route.matched.length; l++) {
@@ -112,9 +114,6 @@ export default {
                     break
                 }
             }
-        },
-        clearDialog (cancelled = false) {
-            useUxDialogStore().clearDialog(cancelled)
         }
     }
 }
