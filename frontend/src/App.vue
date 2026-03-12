@@ -62,7 +62,8 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapActions, mapState as mapVuexState } from 'vuex'
 
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
@@ -96,8 +97,8 @@ export default {
         'ff-layout-plain': FFLayoutPlain
     },
     computed: {
-        ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
-        hiddenLeftDrawer () { return useUxDrawersStore().hiddenLeftDrawer },
+        ...mapState(useUxDrawersStore, ['hiddenLeftDrawer']),
+        ...mapVuexState('account', ['pending', 'user', 'team', 'offline', 'settings']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },

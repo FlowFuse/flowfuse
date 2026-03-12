@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import { storeToRefs } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -61,15 +61,6 @@ export default {
             shouldAllowPinning: () => this.shouldAllowPinning
         }
     },
-    setup () {
-        const drawersStore = useUxDrawersStore()
-        const { rightDrawer } = storeToRefs(drawersStore)
-        return {
-            rightDrawer,
-            closeRightDrawer: drawersStore.closeRightDrawer,
-            togglePinDrawer: drawersStore.togglePinDrawer
-        }
-    },
     data () {
         return {
             drawerWidth: DRAWER_DEFAULT_WIDTH,
@@ -85,6 +76,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useUxDrawersStore, ['rightDrawer']),
         shouldAllowPinning () {
             return this.viewportWidth >= VIEWPORT_PIN_THRESHOLD
         },
@@ -185,6 +177,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'togglePinDrawer']),
         closeDrawer () {
             if (this.rightDrawer.state && this.rightDrawer.closeOnClickOutside) {
                 this.closeRightDrawer()

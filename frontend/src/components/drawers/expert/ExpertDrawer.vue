@@ -41,8 +41,8 @@
 
 <script>
 import { LockClosedIcon, LockOpenIcon, XIcon } from '@heroicons/vue/solid'
-import { storeToRefs } from 'pinia'
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapActions as mapVuexActions, mapState as mapVuexState } from 'vuex'
 
 import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
 
@@ -60,16 +60,9 @@ export default {
         LockOpenIcon
     },
     inject: ['togglePinWithWidth', 'shouldAllowPinning'],
-    setup () {
-        const drawersStore = useUxDrawersStore()
-        const { rightDrawer } = storeToRefs(drawersStore)
-        return {
-            rightDrawer,
-            closeRightDrawer: drawersStore.closeRightDrawer
-        }
-    },
     computed: {
-        ...mapState('product/expert', ['agentMode']),
+        ...mapState(useUxDrawersStore, ['rightDrawer']),
+        ...mapVuexState('product/expert', ['agentMode']),
         agentModeButtons () {
             return [
                 { title: 'Support', value: 'ff-agent' },
@@ -95,7 +88,8 @@ export default {
         }, 350)
     },
     methods: {
-        ...mapActions('product/expert', ['setAgentMode']),
+        ...mapActions(useUxDrawersStore, ['closeRightDrawer']),
+        ...mapVuexActions('product/expert', ['setAgentMode']),
         closeDrawer () {
             this.closeRightDrawer()
         },

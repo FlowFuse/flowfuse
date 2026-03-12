@@ -102,9 +102,9 @@
 </template>
 <script>
 import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, XIcon } from '@heroicons/vue/solid'
-import { storeToRefs } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { ref } from 'vue'
-import { mapGetters, mapState } from 'vuex'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import usePermissions from '../composables/Permissions.js'
 
@@ -128,7 +128,8 @@ export default {
         Roles () {
             return Roles
         },
-        ...mapState('account', ['user', 'team', 'teams']),
+        ...mapState(useUxDrawersStore, ['leftDrawer', 'hiddenLeftDrawer']),
+        ...mapVuexState('account', ['user', 'team', 'teams']),
         ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount', 'featuresCheck']),
         navigationOptions () {
             return [
@@ -203,20 +204,15 @@ export default {
     setup () {
         const open = ref(false)
         const { hasPermission, hasAMinimumTeamRoleOf } = usePermissions()
-        const drawersStore = useUxDrawersStore()
-        const { leftDrawer, hiddenLeftDrawer } = storeToRefs(drawersStore)
-
         return {
             open,
             plusIcon: PlusIcon,
             hasPermission,
-            hasAMinimumTeamRoleOf,
-            leftDrawer,
-            hiddenLeftDrawer,
-            toggleLeftDrawer: drawersStore.toggleLeftDrawer
+            hasAMinimumTeamRoleOf
         }
     },
     methods: {
+        ...mapActions(useUxDrawersStore, ['toggleLeftDrawer']),
         openEducationModal () {
             this.$store.dispatch('ux/tours/openModal', 'education')
                 .then(() => product.capture('clicked-open-education-modal'))

@@ -45,9 +45,9 @@
 
 <script>
 import { PencilAltIcon, PlusIcon, SearchIcon, TableIcon } from '@heroicons/vue/outline'
-import { storeToRefs } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { defineComponent, markRaw } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapGetters, mapActions as mapVuexActions, mapState as mapVuexState } from 'vuex'
 
 import CreateTable from '../drawers/CreateTable.vue'
 import TableSchema from '../drawers/TableSchema.vue'
@@ -58,15 +58,6 @@ export default defineComponent({
     name: 'TablesList',
     components: { SearchIcon, TableIcon, PlusIcon, PencilAltIcon },
     emits: ['select-table'],
-    setup () {
-        const drawersStore = useUxDrawersStore()
-        const { rightDrawer } = storeToRefs(drawersStore)
-        return {
-            rightDrawer,
-            openRightDrawer: drawersStore.openRightDrawer,
-            closeRightDrawer: drawersStore.closeRightDrawer
-        }
-    },
     data () {
         return {
             filterTerm: '',
@@ -74,8 +65,9 @@ export default defineComponent({
         }
     },
     computed: {
+        ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapGetters('product/tables', { getTables: 'tables' }),
-        ...mapState('product/tables', { tablesState: 'tables', tableSelection: 'tableSelection' }),
+        ...mapVuexState('product/tables', { tablesState: 'tables', tableSelection: 'tableSelection' }),
         filteredTables () {
             return this.tables.filter(t => (t.name ?? '').toLowerCase().includes(this.filterTerm.toLowerCase()))
         }
@@ -89,7 +81,8 @@ export default defineComponent({
         }
     },
     methods: {
-        ...mapActions('product/tables', ['updateTableSelection']),
+        ...mapActions(useUxDrawersStore, ['openRightDrawer', 'closeRightDrawer']),
+        ...mapVuexActions('product/tables', ['updateTableSelection']),
 
         onCreateTable () {
             this.openRightDrawer({

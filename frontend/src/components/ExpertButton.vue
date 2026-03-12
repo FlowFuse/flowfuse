@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { storeToRefs } from 'pinia'
+import { mapState } from 'pinia'
 import { mapActions } from 'vuex'
 
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
@@ -21,15 +21,8 @@ import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 export default {
     name: 'ExpertButton',
     components: {},
-    setup () {
-        const drawersStore = useUxDrawersStore()
-        const { rightDrawer } = storeToRefs(drawersStore)
-        return {
-            rightDrawer,
-            closeRightDrawer: drawersStore.closeRightDrawer
-        }
-    },
     computed: {
+        ...mapState(useUxDrawersStore, ['rightDrawer']),
         isExpertDrawerOpen () {
             return this.rightDrawer.state && this.rightDrawer.component?.name === 'ExpertDrawer'
         }
