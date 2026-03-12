@@ -28,6 +28,7 @@
 </template>
 
 <script>
+import { mapActions } from 'pinia'
 import { mapState } from 'vuex'
 
 import userApi from '../api/user.js'
@@ -53,12 +54,13 @@ export default {
         ...mapState('account', ['user'])
     },
     methods: {
+        ...mapActions(useUxNavigationStore, ['setNewlyCreatedUser']),
         async submitVerificationToken () {
             try {
                 await userApi.verifyEmailToken(this.token)
                 clearTimeout(this.resendTimeout)
                 this.$store.dispatch('ux/tours/presentTour')
-                useUxNavigationStore().setNewlyCreatedUser()
+                this.setNewlyCreatedUser()
                 this.$router.go()
             } catch (err) {
                 console.error(err)

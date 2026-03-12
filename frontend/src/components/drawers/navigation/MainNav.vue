@@ -29,8 +29,8 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/outline'
-import { storeToRefs } from 'pinia'
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import NavItem from '../../NavItem.vue'
 
@@ -43,14 +43,12 @@ export default {
     emits: ['option-selected'],
     setup () {
         const drawersStore = useUxDrawersStore()
-        const navStore = useUxNavigationStore()
-        const { mainNav, mainNavContext } = storeToRefs(navStore)
-        const { setMainNavContext, setMainNavBackButton } = navStore
 
-        return { mainNav, mainNavContext, setMainNavContext, setMainNavBackButton, closeLeftDrawer: drawersStore.closeLeftDrawer }
+        return { closeLeftDrawer: drawersStore.closeLeftDrawer }
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'features', 'notifications']),
+        ...mapState(useUxNavigationStore, ['mainNav', 'mainNavContext']),
+        ...mapVuexState('account', ['user', 'team', 'features', 'notifications']),
         ...mapGetters('account', ['requiresBilling']),
         nearestMetaMenu () {
             if (this.$route?.meta?.menu) {
@@ -134,6 +132,7 @@ export default {
         team: 'setBackButton'
     },
     methods: {
+        ...mapActions(useUxNavigationStore, ['setMainNavContext', 'setMainNavBackButton']),
         onMenuItemClick () {
             this.closeLeftDrawer()
         },

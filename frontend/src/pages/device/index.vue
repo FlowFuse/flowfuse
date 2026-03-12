@@ -136,6 +136,7 @@
 <script>
 
 import { CogIcon } from '@heroicons/vue/solid/index.js'
+import { mapActions } from 'pinia'
 import semver from 'semver'
 import { mapState } from 'vuex'
 
@@ -369,6 +370,7 @@ export default {
         clearTimeout(this.openTunnelTimeout)
     },
     methods: {
+        ...mapActions(useUxNavigationStore, ['validateUserAction']),
         pollTimerElapsed: async function () {
             // Only refresh device via the timer if we are on the overview page, developer mode page
             // the device status is empty or the device is in a transition state
@@ -467,7 +469,7 @@ export default {
             Alerts.emit('Device successfully assigned to application.', 'confirmation')
         },
         openEditor ({ event = null, immersive = false } = {}) {
-            useUxNavigationStore().validateUserAction('hasOpenedDeviceEditor')
+            this.validateUserAction('hasOpenedDeviceEditor')
             if (!immersive) {
                 this.openInANewTab(this.deviceEditorURL, `device-editor-${this.device.id}`)
             } else {
