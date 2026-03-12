@@ -37,6 +37,11 @@ export default {
             default: false
         }
     },
+    data () {
+        return {
+            posthogKeepAliveInterval: null
+        }
+    },
     computed: {
         isDeviceRunning () {
             return this.computedStatus === 'running'
@@ -58,12 +63,35 @@ export default {
             }
         }
     },
+    mounted () {
+        window.addEventListener('message', this.eventListener)
+        // Dispatch a synthetic mousemove every 25 minutes to keep PostHog's idle
+        // session timer alive. PostHog resets its recording after ~30 minutes of
+        // inactivity on the parent page — but the user may be actively working
+        // inside the cross-origin iframe where events don't reach the parent.
+        this.posthogKeepAliveInterval = setInterval(() => {
+            document.dispatchEvent(new MouseEvent('mousemove'))
+        }, 25 * 60 * 1000)
+    },
     beforeUnmount () {
+        clearInterval(this.posthogKeepAliveInterval)
         // Clear the iframe src before unmount so PostHog's rrweb recorder can safely
         // detach its event listeners. Without this, rrweb throws a SecurityError when
         // calling contentWindow.removeEventListener on the cross-origin Node-RED iframe.
         if (this.$refs.iframe) {
             this.$refs.iframe.src = 'about:blank'
+        }
+    },
+    unmounted () {
+        window.removeEventListener('message', this.eventListener)
+    },
+    methods: {
+        eventListener (event) {
+            if (this.device?.editor?.url && event.origin === this.device.editor.url) {
+                // Forward iframe activity to the parent page so PostHog's idle timer
+                // is reset when the user is active inside the cross-origin iframe.
+                document.dispatchEvent(new MouseEvent('mousemove'))
+            }
         }
     }
 }
