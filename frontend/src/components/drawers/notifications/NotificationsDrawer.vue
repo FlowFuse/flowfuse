@@ -74,8 +74,9 @@
 
 <script>
 import { XIcon } from '@heroicons/vue/solid'
+import { mapActions } from 'pinia'
 import { markRaw } from 'vue'
-import { mapActions, mapGetters } from 'vuex'
+import { mapGetters, mapActions as mapVuexActions } from 'vuex'
 
 import userAPI from '../../../api/user.js'
 
@@ -91,10 +92,6 @@ export default {
     name: 'NotificationsDrawer',
     components: {
         XIcon
-    },
-    setup () {
-        const drawersStore = useUxDrawersStore()
-        return { closeRightDrawer: drawersStore.closeRightDrawer }
     },
     data () {
         return {
@@ -128,7 +125,8 @@ export default {
         this.selections = []
     },
     methods: {
-        ...mapActions('account', ['setNotifications']),
+        ...mapActions(useUxDrawersStore, ['closeRightDrawer']),
+        ...mapVuexActions('account', ['setNotifications']),
         closeDrawer () {
             this.closeRightDrawer()
         },

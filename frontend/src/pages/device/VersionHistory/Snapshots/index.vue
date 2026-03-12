@@ -105,6 +105,7 @@
 
 <script>
 import { FilterIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
+import { mapActions } from 'pinia'
 import SemVer from 'semver'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
@@ -153,13 +154,7 @@ export default {
     emits: ['device-updated', 'show-import-snapshot-dialog', 'show-create-snapshot-dialog'],
     setup () {
         const { hasPermission } = usePermissions()
-        const drawersStore = useUxDrawersStore()
-
-        return {
-            hasPermission,
-            openRightDrawer: drawersStore.openRightDrawer,
-            closeRightDrawer: drawersStore.closeRightDrawer
-        }
+        return { hasPermission }
     },
     data () {
         return {
@@ -307,6 +302,7 @@ export default {
         this.fetchData()
     },
     methods: {
+        ...mapActions(useUxDrawersStore, ['openRightDrawer', 'closeRightDrawer']),
         fetchData: async function () {
             if (!this.features.deviceEditor || this.isOwnedByAnInstance || this.isUnassigned) {
                 return

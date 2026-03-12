@@ -155,6 +155,7 @@ import {
     SaveAsIcon,
     TrashIcon
 } from '@heroicons/vue/outline'
+import { mapActions } from 'pinia'
 import { defineComponent } from 'vue'
 
 import DeviceApi from '../../../api/devices.js'
@@ -229,11 +230,10 @@ export default defineComponent({
     emits: ['restored-snapshot', 'updated-snapshot', 'deleted-snapshot'],
     setup () {
         const { hasPermission } = usePermissions()
-        const drawersStore = useUxDrawersStore()
 
         return {
-            hasPermission,
-            setRightDrawerHeader: drawersStore.setRightDrawerHeader
+            hasPermission
+
         }
     },
     data () {
@@ -286,6 +286,7 @@ export default defineComponent({
             })
     },
     methods: {
+        ...mapActions(useUxDrawersStore, ['setRightDrawerHeader']),
         deployDeviceSnapshot () {
             const snapshot = this.snapshot
             const currentTargetSnapshot = this.instance.targetSnapshot?.id

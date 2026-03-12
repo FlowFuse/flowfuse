@@ -49,6 +49,7 @@
 
 <script>
 import { FilterIcon } from '@heroicons/vue/outline'
+import { mapActions } from 'pinia'
 import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
@@ -87,14 +88,8 @@ export default {
     },
     emits: ['instance-updated', 'show-import-snapshot-dialog', 'show-create-snapshot-dialog'],
     setup () {
-        const drawersStore = useUxDrawersStore()
         const { hasPermission } = usePermissions()
-
-        return {
-            hasPermission,
-            openRightDrawer: drawersStore.openRightDrawer,
-            closeRightDrawer: drawersStore.closeRightDrawer
-        }
+        return { hasPermission }
     },
     data () {
         return {
@@ -216,6 +211,7 @@ export default {
         this.fetchData()
     },
     methods: {
+        ...mapActions(useUxDrawersStore, ['openRightDrawer', 'closeRightDrawer']),
         fetchData: async function (withoutAnimation = false) {
             if (this.instance.id) {
                 if (!withoutAnimation) this.loading = true

@@ -25,8 +25,9 @@
 </template>
 
 <script>
+import { mapActions } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapActions, mapState } from 'vuex'
+import { mapState, mapActions as mapVuexActions } from 'vuex'
 
 import Alerts from '../../../../../../services/alerts.js'
 import Dialog from '../../../../../../services/dialog.js'
@@ -41,13 +42,6 @@ export default defineComponent({
             required: true
         }
     },
-    setup () {
-        const drawersStore = useUxDrawersStore()
-        return {
-            closeRightDrawer: drawersStore.closeRightDrawer,
-            setRightDrawerHeader: drawersStore.setRightDrawerHeader
-        }
-    },
     computed: {
         ...mapState('account', ['team'])
     },
@@ -55,7 +49,8 @@ export default defineComponent({
         this.setHeader()
     },
     methods: {
-        ...mapActions('product/tables', ['deleteTable', 'getTables']),
+        ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'setRightDrawerHeader']),
+        ...mapVuexActions('product/tables', ['deleteTable', 'getTables']),
         submit () {
             Dialog.show({
                 header: 'Delete Table',

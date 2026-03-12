@@ -41,11 +41,6 @@ export default {
     name: 'MainNav',
     components: { NavItem },
     emits: ['option-selected'],
-    setup () {
-        const drawersStore = useUxDrawersStore()
-
-        return { closeLeftDrawer: drawersStore.closeLeftDrawer }
-    },
     computed: {
         ...mapState(useUxNavigationStore, ['mainNav', 'mainNavContext']),
         ...mapVuexState('account', ['user', 'team', 'features', 'notifications']),
@@ -132,6 +127,7 @@ export default {
         team: 'setBackButton'
     },
     methods: {
+        ...mapActions(useUxDrawersStore, ['closeLeftDrawer']),
         ...mapActions(useUxNavigationStore, ['setMainNavContext', 'setMainNavBackButton']),
         onMenuItemClick () {
             this.closeLeftDrawer()
