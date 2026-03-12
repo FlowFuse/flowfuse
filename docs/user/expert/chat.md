@@ -191,6 +191,12 @@ If you have multiple questions, consider asking them separately so the Expert ca
 
 *See also: [Node-RED Embedded AI](/docs/user/expert/node-red-embedded-ai/) for AI features built directly into the Node-RED editor.*
 
+## Keeping Expert Up to Date
+
+When a newer version of FlowFuse Expert is available, a banner appears in the chat area to let you know. You can update with a single click directly from the notification, without leaving your current workflow.
+
+![FlowFuse Expert Update Banner](../images/assistant/ff-expert-update-banner.gif){data-zoomable}
+
 <style>
   .assistant-feature {
     border: 1px solid #ddd;
