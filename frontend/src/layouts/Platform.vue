@@ -62,7 +62,8 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import InterviewPopup from '../components/InterviewPopup.vue'
 import PageHeader from '../components/PageHeader.vue'
@@ -85,9 +86,9 @@ export default {
     },
     mixins: [AlertsMixin, DialogMixin],
     computed: {
-        ...mapState('product', ['interview']),
-        ...mapState('ux/drawers', ['leftDrawer']),
-        overlay () { return useUxNavigationStore().overlay },
+        ...mapState(useUxNavigationStore, ['overlay']),
+        ...mapVuexState('product', ['interview']),
+        ...mapVuexState('ux/drawers', ['leftDrawer']),
         ...mapGetters('account', ['hasAvailableTeams'])
     },
     watch: {
