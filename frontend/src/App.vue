@@ -62,7 +62,8 @@
 </template>
 
 <script>
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapActions } from 'pinia'
+import { mapGetters, mapState } from 'vuex'
 
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
@@ -76,6 +77,8 @@ import Login from './pages/Login.vue'
 import PasswordExpired from './pages/PasswordExpired.vue'
 import TermsAndConditions from './pages/TermsAndConditions.vue'
 import UnverifiedEmail from './pages/UnverifiedEmail.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'App',
@@ -142,7 +145,7 @@ export default {
         this.$store.dispatch('product/checkFlags')
     },
     methods: {
-        ...mapActions('context', ['updateRoute'])
+        ...mapActions(useContextStore, ['updateRoute'])
     }
 }
 </script>
