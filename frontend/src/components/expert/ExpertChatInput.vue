@@ -34,12 +34,14 @@
 
             <div class="actions">
                 <div class="left">
-                    <context-selector v-if="!isOperatorAgent" />
-                    <div class="context-items-container" @wheel="horizontalScrolling">
-                        <include-context-item v-for="(context, index) in selectedContextFiltered" :key="index" :contextItem="context" />
-                        <include-debug-context-button v-if="hasDebugLogsSelected && !isOperatorAgent" />
-                        <include-selection-button v-if="hasUserSelection && !isOperatorAgent" />
-                    </div>
+                    <template v-if="isImmersive">
+                        <context-selector v-if="!isOperatorAgent" />
+                        <div class="context-items-container" @wheel="horizontalScrolling">
+                            <include-context-item v-for="(context, index) in selectedContextFiltered" :key="index" :contextItem="context" />
+                            <include-debug-context-button v-if="hasDebugLogsSelected && !isOperatorAgent" />
+                            <include-selection-button v-if="hasUserSelection && !isOperatorAgent" />
+                        </div>
+                    </template>
                 </div>
 
                 <div class="right">
@@ -134,7 +136,13 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('product/assistant', ['getSelectedContext', 'hasDebugLogsSelected', 'hasUserSelection']),
+        ...mapGetters('product/assistant', [
+            'getSelectedContext',
+            'hasDebugLogsSelected',
+            'hasUserSelection',
+            'immersiveInstance',
+            'immersiveDevice'
+        ]),
         isInputDisabled () {
             if (this.isSessionExpired) return true
             if (this.isGenerating) return true
@@ -161,6 +169,9 @@ export default {
         },
         selectedContextFiltered () {
             return this.selectedContext.filter(c => c.showAsChip !== false)
+        },
+        isImmersive () {
+            return this.immersiveDevice || this.immersiveInstance
         }
     },
     mounted () {
