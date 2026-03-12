@@ -79,6 +79,7 @@
 
 <script>
 import { ChipIcon } from '@heroicons/vue/outline'
+import { mapActions } from 'pinia'
 
 import ApplicationAPI from '../../../api/application.js'
 
@@ -199,8 +200,8 @@ export default {
         }
     },
     methods: {
+        ...mapActions(useUxDialogStore, ['setDisablePrimary']),
         pluralize,
-        setDisablePrimary (value) { useUxDialogStore().setDisablePrimary(value) },
         async getDeviceGroups (application) {
             this.loading = true
             return ApplicationAPI.getDeviceGroups(application.id)
