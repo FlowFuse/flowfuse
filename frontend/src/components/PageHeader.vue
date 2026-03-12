@@ -216,14 +216,14 @@ export default {
     methods: {
         ...mapVuexActions('ux/drawers', ['toggleLeftDrawer']),
         ...mapActions(useUxToursStore, ['openModal', 'resetTours', 'presentTour']),
-        async openEducationModal () {
+        openEducationModal () {
             this.openModal('education')
             product.capture('clicked-open-education-modal')
         },
         startWelcomeTour () {
             this.resetTours()
-            return this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } })
-                .then(() => this.presentTour())
+            this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } })
+            this.presentTour()
         },
         toggleMobileTeamSelectionMenu () {
             this.mobileTeamSelectionOpen = !this.mobileTeamSelectionOpen
