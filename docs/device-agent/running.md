@@ -51,7 +51,7 @@ Options
   -i, --interval secs
   -p, --port number
   -m, --moduleCache           Use local npm module cache rather than install
-  --node-options string       Node.js command-line options to pass to the Node-RED process. Can be specified multiple times.
+  --node-options string       Node.js command-line options to pass to the Node-RED process. Can be specified multiple times. You must use `=` between the option and its value.
 
 Web UI Options
 
@@ -100,16 +100,16 @@ Use `--node-options` — it can be specified multiple times:
 
 ```bash
 # Set a custom heap size limit
-flowfuse-device-agent --node-options "--max-old-space-size=256"
+flowfuse-device-agent --node-options='--max-old-space-size=256'
 
 # Enable system certificate authorities (Linux)
-flowfuse-device-agent --node-options "--use-openssl-ca"
+flowfuse-device-agent --node-options='--use-openssl-ca'
 
 # Enable system certificate authorities (Windows/macOS)
-flowfuse-device-agent --node-options "--use-system-ca"
+flowfuse-device-agent --node-options='--use-system-ca'
 
 # Combine multiple options
-flowfuse-device-agent --node-options "--max-old-space-size=256" --node-options "--use-openssl-ca"
+flowfuse-device-agent --node-options='--max-old-space-size=256' --node-options='--use-openssl-ca'
 ```
 
 ### Via `device.yml`
