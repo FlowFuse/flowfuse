@@ -10,6 +10,7 @@ import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import router from '../../../routes.js'
 import product from '../../../services/product.js'
 
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 
 // initial state
@@ -517,7 +518,7 @@ const actions = {
                     // Task 1:  useUxDialogStore().$reset()
                     // Task 2:  useUxToursStore().$reset()
                     useUxNavigationStore().$reset()
-                    // Task 4:  useUxDrawersStore().$reset()
+                    useUxDrawersStore().$reset()
                     // Task 5:  useContextStore().$reset()
                     // Task 6:  useProductTablesStore().$reset()
                     // Task 7:  useProductBrokersStore().$reset()

@@ -28,11 +28,13 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions } from 'pinia'
 
 import userApi from '../../api/user.js'
 
 import NotificationMessageMixin from '../../mixins/NotificationMessage.js'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'NotificationBase',
@@ -69,7 +71,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux/drawers', ['closeRightDrawer']),
+        ...mapActions(useUxDrawersStore, ['closeRightDrawer']),
         go (to) {
             this.closeRightDrawer()
             this.markAsRead()
