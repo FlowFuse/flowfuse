@@ -62,7 +62,8 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import InterviewPopup from '../components/InterviewPopup.vue'
 import PageHeader from '../components/PageHeader.vue'
@@ -71,6 +72,8 @@ import RightDrawer from '../components/drawers/RightDrawer.vue'
 import NoticeBanner from '../components/notices/NoticeBanner.vue'
 import AlertsMixin from '../mixins/Alerts.js'
 import DialogMixin from '../mixins/Dialog.js'
+
+import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 
 export default {
     name: 'ff-layout-platform',
@@ -83,9 +86,9 @@ export default {
     },
     mixins: [AlertsMixin, DialogMixin],
     computed: {
-        ...mapState('product', ['interview']),
-        ...mapState('ux', ['overlay']),
-        ...mapState('ux/drawers', ['leftDrawer']),
+        ...mapState(useUxNavigationStore, ['overlay']),
+        ...mapVuexState('product', ['interview']),
+        ...mapVuexState('ux/drawers', ['leftDrawer']),
         ...mapGetters('account', ['hasAvailableTeams'])
     },
     watch: {

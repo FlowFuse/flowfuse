@@ -10,6 +10,8 @@ import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import router from '../../../routes.js'
 import product from '../../../services/product.js'
 
+import { useUxNavigationStore } from '@/stores/ux-navigation.js'
+
 // initial state
 const initialState = () => ({
     // Runtime settings
@@ -370,7 +372,7 @@ const actions = {
 
             const user = await userApi.getUser()
             commit('login', user)
-            dispatch('ux/checkIfIsNewlyCreatedUser', user, { root: true })
+            useUxNavigationStore().checkIfIsNewlyCreatedUser(user)
 
             // User is logged in
             if (router.currentRoute.value.meta.requiresLogin === false) {
@@ -514,7 +516,7 @@ const actions = {
                 if (pinia) {
                     // Task 1:  useUxDialogStore().$reset()
                     // Task 2:  useUxToursStore().$reset()
-                    // Task 3:  useUxNavigationStore().$reset()
+                    useUxNavigationStore().$reset()
                     // Task 4:  useUxDrawersStore().$reset()
                     // Task 5:  useContextStore().$reset()
                     // Task 6:  useProductTablesStore().$reset()
