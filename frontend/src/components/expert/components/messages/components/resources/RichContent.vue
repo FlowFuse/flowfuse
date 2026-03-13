@@ -9,7 +9,7 @@
 
 <script>
 import { marked } from 'marked'
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import useStreamingWords from '../../../../../../composables/strings/StreamingWords.js'
 import { sanitize } from '../../../../../../composables/strings/String.js'
@@ -50,6 +50,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('product/assistant', ['supportedActions']),
         formattedContent () {
             const source = this.content
             const html = marked(source || '', {
@@ -57,6 +58,7 @@ export default {
                 gfm: true
             })
             return this.sanitize(html, {
+                supportedActions: this.supportedActions,
                 targetBlank: true,
                 appendQueryParameters: {
                     utm_source: 'flowfuse-expert',
