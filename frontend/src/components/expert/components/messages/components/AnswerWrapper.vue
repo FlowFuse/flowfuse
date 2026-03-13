@@ -1,5 +1,5 @@
 <template>
-    <message-bubble type="ai">
+    <message-bubble ref="messageBubble" type="ai">
         <answer-badge v-if="!isChatAnswer" :kind="answer.kind" />
 
         <rich-content
@@ -122,6 +122,7 @@ export default {
         }
     },
     computed: {
+        ...mapState('product/assistant', ['supportedActions']),
         ...mapState('product/expert', ['agentMode']),
         hasGuideHeader () {
             // chat answers contain generic titles, they don't need to be displayed
@@ -150,6 +151,10 @@ export default {
         },
         isChatAnswer () {
             return !Object.hasOwnProperty.call(this.answer, 'kind') || this.answer.kind === 'chat'
+        },
+        isEditorContext () {
+            // In editor context, the route name includes 'editor'
+            return this.$route?.name?.includes('editor') || false
         },
         shouldShowRichContent () {
             const key = 'rich-content'
@@ -231,9 +236,15 @@ export default {
             answerUuid: this.answer._uuid,
             agent: this.agentMode
         })
+        if (this.isEditorContext) {
+            this.$refs.messageBubble.$el.removeEventListener('click', this.handleClick)
+        }
     },
     mounted () {
         this.buildStreamingOrder()
+        if (this.isEditorContext) {
+            this.$refs.messageBubble.$el.addEventListener('click', this.handleClick)
+        }
     },
     methods: {
         ...mapActions('product/expert', ['updateAnswerStreamedState', 'updateMessageStreamedState']),
@@ -254,8 +265,46 @@ export default {
             if (!this.shouldStream) await this.waitFor(200)
 
             this.streamedComponents.push(key)
-        }
+        },
+        handleClick (e) {
+            const target = e.target
+            // - Must be in the immersive editor
+            // - Must be an A tag with the specific class and data attributes to be considered an assistant action link.
+            // - Must match exactly the name of a supported action
+            if (!this.isEditorContext) return
+            if (!target) return
+            if (target.nodeName !== 'A') return
+            if (!target.classList.contains('assistant-action-link')) return
+            if (!target.getAttribute('data-assistant-action-href')) return
+            if (!target.getAttribute('data-action')) return
 
+            const action = target.getAttribute('data-action')
+            const supportedActionSchema = this.supportedActions?.[action]
+            if (!supportedActionSchema) {
+                return
+            }
+
+            e.preventDefault()
+            e.stopPropagation()
+            const params = {}
+            for (const attr of target.attributes) {
+                if (attr.name.startsWith('data-param-')) {
+                    const paramName = attr.name.replace('data-param-', '')
+                    const paramSchema = supportedActionSchema.params?.properties?.[paramName]
+                    if (!paramSchema) continue
+                    const paramType = paramSchema.type
+                    let value = attr.value
+                    // Basic type parsing based on schema type. Can be extended to support more complex types as needed.
+                    if (paramType === 'boolean') {
+                        value = value === 'true'
+                    } else if (paramType === 'number') {
+                        value = +value
+                    }
+                    params[paramName] = value
+                }
+            }
+            this.$store.dispatch('product/assistant/invokeAction', { action, params })
+        }
     }
 }
 </script>
