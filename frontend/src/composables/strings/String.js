@@ -104,7 +104,6 @@ export const sanitize = (str, { targetBlank = false, appendQueryParameters = nul
                 if (supportedActions[action]) {
                     node.setAttribute('data-assistant-action-href', href)
                     node.setAttribute('href', '#') // safe placeholder so DOMPurify doesn't remove the node
-                    node.setAttribute('href', '#')
                     node.setAttribute('class', 'ff-link assistant-action-link')
                     node.setAttribute('data-action', action)
                     const params = url.searchParams.entries()
