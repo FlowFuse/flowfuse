@@ -346,8 +346,9 @@
 import { ClockIcon } from '@heroicons/vue/outline'
 import { CogIcon, PlusSmIcon } from '@heroicons/vue/solid'
 
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters, mapState } from 'vuex'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import deviceApi from '../api/devices.js'
 import teamApi from '../api/team.js'
@@ -384,6 +385,8 @@ import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 import AddDeviceToGroupDialog from './dialogs/device-group-management/AddDeviceToGroupDialog.vue'
 import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/RemoveDeviceFromGroupDialog.vue'
+
+import { useUxToursStore } from '@/stores/ux-tours.js'
 
 const POLL_TIME = 10000
 
@@ -457,9 +460,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
-        ...mapState('ux/tours', ['tours']),
-        ...mapState('ux/dialog', ['dialog']),
+        ...mapVuexState('account', ['team', 'teamMembership']),
+        ...mapState(useUxToursStore, ['tours']),
+        ...mapVuexState('ux/dialog', ['dialog']),
         ...mapGetters('account', ['featuresCheck']),
         columns () {
             const columns = [

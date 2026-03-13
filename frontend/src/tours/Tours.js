@@ -7,7 +7,7 @@ import Product from '../services/product.js'
 // eslint-disable-next-line n/no-extraneous-import
 import 'shepherd.js/dist/css/shepherd.css'
 
-import store from '../store/index.js'
+import { useUxToursStore } from '@/stores/ux-tours.js'
 
 function create (id, tourJson, onCloseHook) {
     // Load tour styles at point-of-use
@@ -16,7 +16,8 @@ function create (id, tourJson, onCloseHook) {
     //       included in the build and applied when the tour is used.
     import('./tour-theme.scss').catch(() => {})
 
-    store.dispatch('ux/tours/activateTour', id)
+    useUxToursStore().activateTour(id)
+
     Product.capture('ff-tour-start', {
         tour_id: id
     })
@@ -50,9 +51,9 @@ function create (id, tourJson, onCloseHook) {
         if (tour.options.id === 'welcome' && finalExitStepIndexExists && !isLastStep) {
             return tour.show('final-step-with-hosted-instance')
         } else {
-            store.dispatch('ux/tours/deactivateTour', id)
-            store.dispatch('ux/tours/clearActiveTour')
-            store.dispatch('ux/tours/withdrawTour')
+            useUxToursStore().deactivateTour(id)
+            useUxToursStore().clearActiveTour()
+            useUxToursStore().withdrawTour()
 
             Product.capture('ff-tour-cancel', {
                 tour_id: id,
@@ -66,9 +67,9 @@ function create (id, tourJson, onCloseHook) {
     }
 
     function onComplete () {
-        store.dispatch('ux/tours/deactivateTour', id)
-        store.dispatch('ux/tours/clearActiveTour')
-        store.dispatch('ux/tours/withdrawTour')
+        useUxToursStore().deactivateTour(id)
+        useUxToursStore().clearActiveTour()
+        useUxToursStore().withdrawTour()
         Product.capture('ff-tour-complete', {
             tour_id: id
         })
