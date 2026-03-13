@@ -84,13 +84,47 @@ export const slugify = (str) => {
         .replace(/^-+|-+$/g, '')
 }
 
-export const sanitize = (str, { targetBlank = false, appendQueryParameters = null } = {}) => {
-    if (!targetBlank && !appendQueryParameters) {
+export const sanitize = (str, { targetBlank = false, appendQueryParameters = null, supportedActions = null } = {}) => {
+    if (!targetBlank && !appendQueryParameters && !supportedActions) {
         return DOMPurify.sanitize(str)
     }
 
-    const hook = node => {
+    const beforeSanitizeAttributes = node => {
         if (node.tagName !== 'A') return
+        if (!supportedActions) return
+        const href = node.getAttribute('href')
+        if (href && href.startsWith('nr-assistant://')) {
+            // This is a custom URL scheme we use to encode actions that can be invoked from the UI.
+            // We need to preserve these through sanitization so we can act on them accordingly when clicked.
+            try {
+                const url = new URL(href)
+                const namespace = url.hostname // e.g. 'automation'
+                const actionName = url.pathname.slice(1) // e.g. 'select-nodes'
+                const action = actionName ? `${namespace}/${actionName}` : namespace
+                if (supportedActions[action]) {
+                    node.setAttribute('data-assistant-action-href', href)
+                    node.setAttribute('href', '#') // safe placeholder so DOMPurify doesn't remove the node
+                    node.setAttribute('href', '#')
+                    node.setAttribute('class', 'ff-link assistant-action-link')
+                    node.setAttribute('data-action', action)
+                    const params = url.searchParams.entries()
+                    for (const [key, value] of params) {
+                        node.setAttribute(`data-param-${key}`, value)
+                    }
+                }
+            } catch (_) {
+                // ignore bad action link
+            }
+        }
+    }
+
+    const afterSanitizeAttributes = node => {
+        if (node.tagName !== 'A') return
+
+        if (node.getAttribute('data-assistant-action-href')) {
+            // dont apply targetBlank or appendQueryParameters to assistant action links
+            return
+        }
 
         if (targetBlank) {
             node.setAttribute('target', '_blank')
@@ -114,14 +148,17 @@ export const sanitize = (str, { targetBlank = false, appendQueryParameters = nul
     }
 
     try {
-        // add a per-call temporary hook
+        // add a per-call temporary hooks
         //  - dom purify can only be configured globally
-        //  - this hook will be applied removed after sanitization
-        DOMPurify.addHook('afterSanitizeAttributes', hook)
+        //  - beforeSanitizeAttributes runs before attributes are sanitized to preserve custom hrefs
+        //  - afterSanitizeAttributes runs after attributes are sanitized
+        DOMPurify.addHook('beforeSanitizeAttributes', beforeSanitizeAttributes)
+        DOMPurify.addHook('afterSanitizeAttributes', afterSanitizeAttributes)
 
         return DOMPurify.sanitize(str)
     } finally {
         // remove all hooks for this stage (including the one we just added)
-        DOMPurify.removeHook('afterSanitizeAttributes')
+        DOMPurify.removeHook('beforeSanitizeAttributes', beforeSanitizeAttributes)
+        DOMPurify.removeHook('afterSanitizeAttributes', afterSanitizeAttributes)
     }
 }
