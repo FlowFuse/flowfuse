@@ -100,7 +100,7 @@ The File Storage server has its own configuration file: `etc/flowforge-storage.y
 
 There are three parts to the configuration:
  - [Platform Configuration](#platform-configuration) - how to access the main FlowFuse platform application
- - [File Storage configuration](#file-storage-configuration) - what storage to use for the File nodes
+ - [File Storage service configuration](#file-storage-service-configuration) - what storage to use for the File nodes
  - [Persistent Context configuration](#persistent-context-configuration) - what storage to use for Persistent Context
 
 ### Platform Configuration
