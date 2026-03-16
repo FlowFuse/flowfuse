@@ -4,6 +4,7 @@ const initialState = () => ({
     messages: [],
 
     // Session timing
+    abortController: null,
     sessionStartTime: null,
     sessionWarningShown: false,
     sessionExpiredShown: false,

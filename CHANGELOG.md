@@ -1,3 +1,49 @@
+#### 2.28.0: Release
+
+ - Replace Ingress Nginx with Traefik (#6817)
+ - Bump docker/setup-buildx-action from 3.12.0 to 4.0.0 (#6835)
+ - Bump cypress-io/github-action from 7.1.3 to 7.1.5 (#6834)
+ - Bump docker/setup-qemu-action from 3.7.0 to 4.0.0 (#6832)
+ - Bump docker/build-push-action from 6.19.2 to 7.0.0 (#6836)
+ - Bump docker/login-action from 3.7.0 to 4.0.0 (#6833)
+ - Bump benc-uk/workflow-dispatch from 1.2.4 to 1.3.1 (#6759)
+ - Bump actions/download-artifact from 7.0.0 to 8.0.0 (#6783)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/sast_scan.yaml (#6784)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml (#6785)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml (#6786)
+ - Docs: update documentation to reflect latest release changes (#6858) @sumitshinde-84
+ - Hide Expert contextual selectors in non-immersive mode (#6859) @cstns
+ - docs: Introduce ingress controller migration plan (#6843) @ppawlowski
+ - [6803] Pinia Task 0 - Infrastructure (#6811) @n-lark
+ - [6527] Fix FrontEnd build warnings (#6850) @n-lark
+ - Bump dompurify from 3.3.1 to 3.3.2 (#6814) @app/dependabot
+ - Bump fastify from 5.7.4 to 5.8.1 (#6815) @app/dependabot
+ - Bump express-rate-limit from 8.2.1 to 8.3.0 (#6830) @app/dependabot
+ - Bump sequelize from 6.37.1 to 6.37.8 (#6853) @app/dependabot
+ - Update license reuse policy in upgrade documentation (#6842) @knolleary
+ - 6789 - VS Code: Go-to-Definition for Global Vue Components (#6790) @n-lark
+ - Update README to specify MQTT Broker requirements (#6845) @hardillb
+ - Fix tour styling (#6841) @Steve-Mcl
+ - Update Instances AutoStackUpdate when TeamType Changes (#6780) @hardillb
+ - chore: change deprecated sass imports to use/forward syntax (#6831) @Steve-Mcl
+ - FlowFuse Expert Document for Chat Interface (#6779) @sumitshinde-84
+ - Fix context hydration race condition when ingesting expert context from the website (#6810) @cstns
+ - chore: Replace deprecated node-sass with sass (#6761) @Steve-Mcl
+ - Bump @hono/node-server from 1.19.9 to 1.19.10 (#6801) @app/dependabot
+ - Bump hono from 4.12.3 to 4.12.5 (#6802) @app/dependabot
+ - Bump multer from 2.1.0 to 2.1.1 (#6807) @app/dependabot
+ - Support debug log context in FF Expert (#6726) @Steve-Mcl
+ - Add UI for device apiMaxLength (#6799) @hardillb
+ - Safeguard `dialog.close` call with optional chaining to prevent potential runtime errors (#6808) @cstns
+ - Bump fast-xml-parser and @aws-sdk/xml-builder (#6793) @app/dependabot
+ - 6791 - Sentry: SecurityError — removeEventListener from cross-origin Window (#6792) @n-lark
+ - Enhance error handling in device editor tunnel by adding detailed error context (#6798) @cstns
+ - Add assistant update available banner to FF expert (#6764) @Steve-Mcl
+ - Docs/install/intro: Replace hs script for partial (#6794) @Yndira-E
+ - Ensure Valkey/Redis cache reconnects cleanly (#6778) @hardillb
+ - Bump multer from 2.0.2 to 2.1.0 (#6788) @app/dependabot
+ - Add Device Agent on Kubernetes documentation (#6762) @hardillb
+
 #### 2.27.1: Release
 
  - Bump pre-staging node-red custom stack to 4.1.6 (#6770)

@@ -13,7 +13,6 @@ import OperatorAgent from './operator-agent/index.js'
 const initialState = () => ({
     shouldWakeUpAssistant: false,
     agentMode: FF_AGENT, // ff-agent or operator-agent
-    abortController: null,
     loadingVariant: FF_AGENT
 })
 
@@ -29,6 +28,7 @@ const meta = {
 const state = initialState
 
 const getters = {
+    abortController: (state) => state[state.agentMode].abortController,
     isWaitingForResponse: (state) => !!state.abortController,
     messages: (state) => state[state.agentMode].messages,
     hasMessages: (state) => state[state.agentMode].messages.length > 0,
@@ -72,7 +72,7 @@ const mutations = {
         state[state.agentMode].messages = []
     },
     SET_ABORT_CONTROLLER (state, controller) {
-        state.abortController = controller
+        state[state.agentMode].abortController = controller
     },
     SET_SHOULD_WAKE_UP_ASSISTANT (state, shouldWakeUpAssistant) {
         state.shouldWakeUpAssistant = shouldWakeUpAssistant

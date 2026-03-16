@@ -33,7 +33,9 @@
             />
 
             <div class="actions">
-                <context-selector />
+                <div class="left">
+                    <context-selector v-if="isImmersive && !isOperatorAgent" />
+                </div>
 
                 <div class="right">
                     <button
@@ -106,6 +108,10 @@ export default {
         }
     },
     computed: {
+        ...mapGetters('product/assistant', [
+            'immersiveInstance',
+            'immersiveDevice'
+        ]),
         ...mapGetters('product/expert', [
             'messages',
             'isSessionExpired',
@@ -132,6 +138,9 @@ export default {
             return this.isOperatorAgent
                 ? 'Tell us what you want to know about'
                 : 'Tell us what you need help with'
+        },
+        isImmersive () {
+            return this.immersiveDevice || this.immersiveInstance
         }
     },
     mounted () {

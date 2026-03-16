@@ -66,10 +66,10 @@ export default {
     },
     computed: {
         ...mapState('product/expert', [
-            'abortController',
             'agentMode'
         ]),
         ...mapGetters('product/expert', [
+            'abortController',
             'messages',
             'isSessionExpired',
             'isFfAgent',
