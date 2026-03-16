@@ -37,12 +37,12 @@ module.exports = {
 
                                 await project.Project.setProjectStack(newStack)
                                 await project.Project.save()
-                                delay(1000)
+                                await delay(1000)
 
                                 await app.auditLog.Project.project.stack.changed(null, null, project.Project, newStack)
 
                                 await unSuspendProject(project.Project, result.resumeProject, result.targetState)
-                                delay(1000)
+                                await delay(1000)
                             } catch (err) {
                                 app.log.info(`Problem updating project ${project.Project.id} - ${err.toString()}`)
                             }
