@@ -4,6 +4,7 @@
 
 const { randomInt } = require('../../../../housekeeper/utils')
 
+// utility function to pause for a given number of ms
 const delay = (time) => new Promise(resolve => setTimeout(resolve, time))
 
 module.exports = {
@@ -21,7 +22,6 @@ module.exports = {
             if (projectList) {
                 for (const project of projectList) {
                     if (project.Project.state !== 'suspended') {
-                        // we should probably rate limit this to not restart lots of projects at once
                         if (project.Project.ProjectStack.replacedBy) {
                             // need to add audit logging
                             try {
@@ -37,11 +37,13 @@ module.exports = {
 
                                 await project.Project.setProjectStack(newStack)
                                 await project.Project.save()
+                                // Give time for k8s to settle after suspend
                                 await delay(1000)
 
                                 await app.auditLog.Project.project.stack.changed(null, null, project.Project, newStack)
 
                                 await unSuspendProject(project.Project, result.resumeProject, result.targetState)
+                                // Space out restarts a little to not overwhelm k8s api
                                 await delay(1000)
                             } catch (err) {
                                 app.log.info(`Problem updating project ${project.Project.id} - ${err.toString()}`)
@@ -55,6 +57,8 @@ module.exports = {
                                 await app.containers.restartFlows(project.Project)
                                 await app.auditLog.Project.project.restarted(null, null, project.Project)
                                 await app.db.controllers.Project.clearInflightState(project.Project)
+                                // space out the Node-RED restarts a little.
+                                await delay(500)
                             } catch (err) {
                                 app.log.info(`Problem restarting project ${project.Project.id} - ${err.toString()}`)
                             }
