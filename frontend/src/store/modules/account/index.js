@@ -7,10 +7,12 @@ import teamApi from '../../../api/team.js'
 import userApi from '../../../api/user.js'
 import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import router from '../../../routes.js'
+
 import product from '../../../services/product.js'
 
 import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useProductExpertFfAgentStore } from '@/stores/product-expert-ff-agent.js'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
@@ -528,7 +530,7 @@ const actions = {
                     // Task 6:  useProductTablesStore().$reset()
                     // Task 7:  useProductBrokersStore().$reset()
                     useProductAssistantStore().$reset()
-                    // Task 9:  useProductExpertFfAgentStore().$reset()
+                    useProductExpertFfAgentStore().$reset()
                     // Task 10: useProductExpertOperatorAgentStore().$reset()
                     // Task 11: useProductExpertStore().$reset()
                 }
