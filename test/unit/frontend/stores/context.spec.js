@@ -1,7 +1,20 @@
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useContextStore } from '@/stores/context.js'
+
+// The Vuex store cannot be loaded in this isolated test environment (it imports
+// .vue files via routes.js). The context store's expert getter handles this
+// gracefully with a try/catch, returning safe defaults when the store is unavailable.
+
+vi.mock('@/stores/_account_bridge.js', () => ({
+    useAccountBridge: () => ({
+        team: null,
+        teamId: null,
+        teamSlug: null,
+        featuresCheck: { isTrialAccount: false }
+    })
+}))
 
 describe('context store', () => {
     beforeEach(() => {

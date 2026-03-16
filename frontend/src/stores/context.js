@@ -12,10 +12,33 @@ export const useContextStore = defineStore('context', {
         // Bridge version — reads from Vuex for account/assistant/expert data.
         // Update in PR 12 (product-expert) to use Pinia store imports directly.
         expert (state) {
-            // Use the account bridge to access Vuex state/getters
-            const store = require('../store/index.js').default
-            const rootState = store.state
-            const rootGetters = store.getters
+            // Use require() to avoid circular module dependencies at load time.
+            // Falls back to safe defaults when the Vuex store is unavailable (e.g. isolated unit tests).
+            let rootState, rootGetters
+            try {
+                const store = require('../store/index.js').default
+                rootState = store.state
+                rootGetters = store.getters
+            } catch {
+                return {
+                    assistantVersion: null,
+                    assistantFeatures: {},
+                    palette: null,
+                    debugLog: null,
+                    userId: null,
+                    teamId: null,
+                    teamSlug: null,
+                    instanceId: null,
+                    deviceId: null,
+                    applicationId: null,
+                    isTrialAccount: false,
+                    nodeRedVersion: null,
+                    pageName: null,
+                    rawRoute: {},
+                    selectedNodes: null,
+                    scope: 'ff-app'
+                }
+            }
 
             if (!state.route) {
                 // Use the account bridge for account-related fields
