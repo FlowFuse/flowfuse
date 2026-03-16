@@ -69,7 +69,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import { useResizingHelper } from '../../composables/ResizingHelper.js'
 
@@ -80,6 +80,8 @@ import ContextSelector from './components/ContextSelector.vue'
 import IncludeContextItem from './components/IncludeContextItem.vue'
 import IncludeDebugContextButton from './components/IncludeDebugContextButton.vue'
 import IncludeSelectionButton from './components/IncludeSelectionButton.vue'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
     name: 'ExpertChatInput',
@@ -136,7 +138,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('product/assistant', [
+        ...mapState(useProductAssistantStore, [
             'getSelectedContext',
             'hasDebugLogsSelected',
             'hasUserSelection',
@@ -183,7 +185,7 @@ export default {
         })
     },
     methods: {
-        ...mapActions('product/assistant', ['resetContextSelection']),
+        ...mapActions(useProductAssistantStore, ['resetContextSelection']),
         handleSend () {
             if (!this.canSend) return
 

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 
 import { useAccountBridge } from './_account_bridge.js' // bridge — remove after all deps migrated
+import { useProductAssistantStore } from './product-assistant.js'
 
 export const useContextStore = defineStore('context', {
     state: () => ({
@@ -40,12 +41,14 @@ export const useContextStore = defineStore('context', {
                 }
             }
 
+            const assistant = useProductAssistantStore()
+
             if (!state.route) {
                 // Use the account bridge for account-related fields
                 const account = useAccountBridge()
                 return {
-                    assistantVersion: rootState.product.assistant.version,
-                    assistantFeatures: rootState.product.assistant.assistantFeatures,
+                    assistantVersion: assistant.version,
+                    assistantFeatures: assistant.assistantFeatures,
                     palette: null,
                     debugLog: null,
                     userId: rootState.account?.user?.id || null,
@@ -55,7 +58,7 @@ export const useContextStore = defineStore('context', {
                     deviceId: null,
                     applicationId: null,
                     isTrialAccount: account.featuresCheck?.isTrialAccount || false,
-                    nodeRedVersion: rootState.product.assistant.nodeRedVersion,
+                    nodeRedVersion: assistant.nodeRedVersion,
                     pageName: null,
                     rawRoute: {},
                     selectedNodes: null,
@@ -84,21 +87,21 @@ export const useContextStore = defineStore('context', {
             if (
                 scope === 'immersive' &&
                 rootGetters['product/expert/isFfAgent'] &&
-                rootState.product.assistant.selectedNodes.length > 0
+                assistant.selectedNodes.length > 0
             ) {
-                selectedNodes = rootState.product.assistant.selectedNodes
+                selectedNodes = assistant.selectedNodes
             }
 
             let palette = null
-            if (rootState.product.assistant.selectedContext?.some(e => e.value === 'palette')) {
-                palette = rootGetters['product/assistant/paletteContribOnly']
+            if (assistant.selectedContext?.some(e => e.value === 'palette')) {
+                palette = assistant.paletteContribOnly
             }
 
             return {
-                assistantVersion: rootState.product.assistant.version,
-                assistantFeatures: rootState.product.assistant.assistantFeatures,
+                assistantVersion: assistant.version,
+                assistantFeatures: assistant.assistantFeatures,
                 palette,
-                debugLog: rootGetters['product/assistant/debugLog'],
+                debugLog: assistant.debugLog,
                 userId: rootState.account?.user?.id || null,
                 teamId: rootState.account?.team?.id || null,
                 teamSlug: rootState.account?.team?.slug || null,
@@ -107,7 +110,7 @@ export const useContextStore = defineStore('context', {
                 applicationId: applicationId ?? null,
                 isTrialAccount: rootGetters['account/isTrialAccount'] || false,
                 pageName: state.route.name,
-                nodeRedVersion: rootState.product.assistant.nodeRedVersion,
+                nodeRedVersion: assistant.nodeRedVersion,
                 rawRoute,
                 selectedNodes,
                 scope

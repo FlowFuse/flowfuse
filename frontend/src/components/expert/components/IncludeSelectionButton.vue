@@ -12,11 +12,13 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import { pluralize } from '../../../composables/String.js'
 
 import ContextChip from './ContextChip/index.vue'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
     name: 'IncludeSelectionButton',
@@ -32,7 +34,7 @@ export default {
     },
     emits: ['update:modelValue'],
     computed: {
-        ...mapState('product/assistant', ['selectedNodes']),
+        ...mapState(useProductAssistantStore, ['selectedNodes']),
         filteredSelectedNodes () {
             return this.selectedNodes.filter(n => !['global-config'].includes(n.type))
         },
@@ -51,7 +53,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('product/assistant', ['setSelectedNodes']),
+        ...mapActions(useProductAssistantStore, ['setSelectedNodes']),
         pluralize,
         toggleSelection () {
             this.$emit('update:modelValue', !this.modelValue)

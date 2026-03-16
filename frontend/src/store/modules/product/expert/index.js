@@ -12,6 +12,7 @@ import FFAgent from './ff-agent/index.js'
 import OperatorAgent from './operator-agent/index.js'
 
 import { useContextStore } from '@/stores/context.js'
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 const initialState = () => ({
     shouldWakeUpAssistant: false,
@@ -55,11 +56,11 @@ const getters = {
     isFfAgent: (state) => state.agentMode === FF_AGENT,
     isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT,
     hasSelectedCapabilities: (state) => state[OPERATOR_AGENT].selectedCapabilities?.length > 0,
-    canImportFlows: (state, getters, rootState, rootGetters) => {
-        return !!rootGetters['product/assistant/immersiveInstance'] && !!rootState.product.assistant.supportedActions['custom:import-flow']
+    canImportFlows: () => {
+        return !!useProductAssistantStore().immersiveInstance && !!useProductAssistantStore().supportedActions['custom:import-flow']
     },
-    canManagePalette: (state, getters, rootState, rootGetters) => {
-        return !!rootGetters['product/assistant/immersiveInstance'] && !!rootState.product.assistant.supportedActions['core:manage-palette']
+    canManagePalette: () => {
+        return !!useProductAssistantStore().immersiveInstance && !!useProductAssistantStore().supportedActions['core:manage-palette']
     }
 }
 

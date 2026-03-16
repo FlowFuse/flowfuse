@@ -25,7 +25,10 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions } from 'pinia'
+import { mapGetters } from 'vuex'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
     name: 'PackageResourceCard',
@@ -40,7 +43,7 @@ export default {
         ...mapGetters('product/expert', ['canManagePalette'])
     },
     methods: {
-        ...mapActions('product/assistant', ['installNodePackage', 'manageNodePackage']),
+        ...mapActions(useProductAssistantStore, ['installNodePackage', 'manageNodePackage']),
         getPackageName (pkg) {
             // Handle both object format {id: "..." or name: "..."} and string format
             return typeof pkg === 'object' ? (pkg.id || pkg.name) : pkg
@@ -59,7 +62,7 @@ export default {
             }
         },
         isPackageInstalled (pkg) {
-            return !!this.$store.state.product.assistant?.palette?.[pkg.id]
+            return !!useProductAssistantStore().palette?.[pkg.id]
         },
         addUTMTracking (url) {
             try {

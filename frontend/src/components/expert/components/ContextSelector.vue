@@ -26,11 +26,11 @@
 <script>
 
 import { CubeIcon, DocumentIcon, PaperClipIcon, ViewListIcon } from '@heroicons/vue/outline'
-import { mapActions } from 'vuex'
-
-import { mapGetters } from 'vuex/dist/vuex.cjs.js'
+import { mapActions, mapState } from 'pinia'
 
 import { pluralize } from '../../../composables/String.js'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
     name: 'ContextSelector',
@@ -43,7 +43,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('product/assistant', ['availableContextOptions', 'getSelectedContext']),
+        ...mapState(useProductAssistantStore, ['availableContextOptions', 'getSelectedContext']),
         hasContextOptions () {
             return this.contextOptions?.length > 0
         },
@@ -74,10 +74,10 @@ export default {
     },
     methods: {
         pluralize,
-        ...mapActions('product/assistant', ['setSelectedContext']),
+        ...mapActions(useProductAssistantStore, ['setSelectedContext']),
         selectItem (option) {
             if (option.onSelectAction) {
-                this.$store.dispatch(`product/assistant/${option.onSelectAction}`)
+                useProductAssistantStore()[option.onSelectAction]()
             } else {
                 const cleanOption = (option) => ({
                     value: option.value,

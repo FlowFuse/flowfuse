@@ -10,6 +10,7 @@ import router from '../../../routes.js'
 import product from '../../../services/product.js'
 
 import { useContextStore } from '@/stores/context.js'
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 // initial state
 const initialState = () => ({
@@ -520,7 +521,7 @@ const actions = {
                     useContextStore().$reset()
                     // Task 6:  useProductTablesStore().$reset()
                     // Task 7:  useProductBrokersStore().$reset()
-                    // Task 8:  useProductAssistantStore().$reset()
+                    useProductAssistantStore().$reset()
                     // Task 9:  useProductExpertFfAgentStore().$reset()
                     // Task 10: useProductExpertOperatorAgentStore().$reset()
                     // Task 11: useProductExpertStore().$reset()

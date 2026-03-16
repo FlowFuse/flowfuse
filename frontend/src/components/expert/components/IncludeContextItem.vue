@@ -8,11 +8,13 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import { pluralize } from '../../../composables/String.js'
 
 import ContextChip from './ContextChip/index.vue'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
     name: 'IncludeContextItem',
@@ -27,7 +29,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('product/assistant', ['getSelectedContext']),
+        ...mapState(useProductAssistantStore, ['getSelectedContext']),
         selectedContext () {
             return this.getSelectedContext
         },
@@ -39,7 +41,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('product/assistant', ['setSelectedContext']),
+        ...mapActions(useProductAssistantStore, ['setSelectedContext']),
         pluralize,
         toggleSelection () {
             const currentSelection = this.selectedContext.filter(c => c.name !== this.contextItem.name)

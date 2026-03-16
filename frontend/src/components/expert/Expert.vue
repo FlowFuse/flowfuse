@@ -113,8 +113,10 @@
 </template>
 
 <script>
+
+import { mapActions } from 'pinia'
 import { markRaw } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapGetters, mapState, mapActions as mapVuexActions } from 'vuex'
 
 import ToggleButtonGroup from '../elements/ToggleButtonGroup.vue'
 
@@ -125,6 +127,8 @@ import ExpertRichGuide from './ExpertRichGuide.vue'
 import ExpertRichResources from './ExpertRichResources.vue'
 import ExpertToolCall from './ExpertToolCall.vue'
 import UpdateBanner from './components/UpdateBanner.vue'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
     name: 'ExpertPanel',
@@ -275,7 +279,7 @@ export default {
         this.resetSessionTimer()
     },
     methods: {
-        ...mapActions('product/expert', [
+        ...mapVuexActions('product/expert', [
             'handleMessage',
             'handleMessageResponse',
             'addMessage',
@@ -290,7 +294,7 @@ export default {
             'setAbortController',
             'resetSessionTimer'
         ]),
-        ...mapActions('product/assistant', ['reset']),
+        ...mapActions(useProductAssistantStore, ['reset']),
 
         async handleSendMessage (query) {
             if (!query.trim()) return
