@@ -33,7 +33,16 @@
             />
 
             <div class="actions">
-                <context-selector />
+                <div class="left">
+                    <template v-if="isImmersive">
+                        <context-selector v-if="!isOperatorAgent" />
+                        <div class="context-items-container" @wheel="horizontalScrolling">
+                            <include-context-item v-for="(context, index) in selectedContextFiltered" :key="index" :contextItem="context" />
+                            <include-debug-context-button v-if="hasDebugLogsSelected && !isOperatorAgent" />
+                            <include-selection-button v-if="hasUserSelection && !isOperatorAgent" />
+                        </div>
+                    </template>
+                </div>
 
                 <div class="right">
                     <button
@@ -106,6 +115,13 @@ export default {
         }
     },
     computed: {
+        ...mapGetters('product/assistant', [
+            'getSelectedContext',
+            'hasDebugLogsSelected',
+            'hasUserSelection',
+            'immersiveInstance',
+            'immersiveDevice'
+        ]),
         ...mapGetters('product/expert', [
             'messages',
             'isSessionExpired',
@@ -132,6 +148,19 @@ export default {
             return this.isOperatorAgent
                 ? 'Tell us what you want to know about'
                 : 'Tell us what you need help with'
+        },
+        selectedContext () {
+            // for insights mode, return empty array
+            if (this.isOperatorAgent) {
+                return []
+            }
+            return this.getSelectedContext
+        },
+        selectedContextFiltered () {
+            return this.selectedContext.filter(c => c.showAsChip !== false)
+        },
+        isImmersive () {
+            return this.immersiveDevice || this.immersiveInstance
         }
     },
     mounted () {
