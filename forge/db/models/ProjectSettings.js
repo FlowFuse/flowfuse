@@ -77,9 +77,18 @@ module.exports = {
                     return await this.findAll({
                         where: {
                             key: `${KEY_STACK_UPGRADE_HOUR}_${day}`,
-                            value: {
-                                [Op.like]: `${JSON.stringify({ hour }).slice(0, -1)},%`
-                            }
+                            [Op.or]: [
+                                {
+                                    value: {
+                                        [Op.eq]: `${JSON.stringify({ hour })}`
+                                    }
+                                },
+                                {
+                                    value: {
+                                        [Op.like]: `${JSON.stringify({ hour }).slice(0, -1)},%`
+                                    }
+                                }
+                            ]
                         },
                         include: {
                             model: M.Project,
