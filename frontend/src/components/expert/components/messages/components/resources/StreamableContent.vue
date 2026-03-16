@@ -97,5 +97,13 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.streamable-content {
+    :deep(ul) {
+        padding: revert;
 
+        li {
+            list-style: initial;
+        }
+    }
+}
 </style>
