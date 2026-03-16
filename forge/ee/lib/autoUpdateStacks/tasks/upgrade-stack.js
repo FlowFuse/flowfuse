@@ -60,7 +60,7 @@ module.exports = {
                             }
                         }
                     } else {
-                        app.log.info(`Project ${project.Project.id} is suspended, not upgrading`)
+                        app.log.info(`Project ${project.Project.id} is suspended, not upgrading stack`)
                     }
                 }
             }
