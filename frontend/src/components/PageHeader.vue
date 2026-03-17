@@ -102,9 +102,9 @@
 </template>
 <script>
 import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, XIcon } from '@heroicons/vue/solid'
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { ref } from 'vue'
-import { mapGetters, mapState, mapActions as mapVuexActions } from 'vuex'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import usePermissions from '../composables/Permissions.js'
 
@@ -119,6 +119,7 @@ import NotificationsButton from './NotificationsButton.vue'
 import TeamSelection from './TeamSelection.vue'
 import GlobalSearch from './global-search/GlobalSearch.vue'
 
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
 export default {
@@ -128,10 +129,9 @@ export default {
         Roles () {
             return Roles
         },
-        ...mapState('account', ['user', 'team', 'teams']),
-        ...mapState('ux/drawers', ['leftDrawer']),
+        ...mapState(useUxDrawersStore, ['leftDrawer', 'hiddenLeftDrawer']),
+        ...mapVuexState('account', ['user', 'team', 'teams']),
         ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount', 'featuresCheck']),
-        ...mapGetters('ux/drawers', ['hiddenLeftDrawer']),
         navigationOptions () {
             return [
                 {
@@ -205,7 +205,6 @@ export default {
     setup () {
         const open = ref(false)
         const { hasPermission, hasAMinimumTeamRoleOf } = usePermissions()
-
         return {
             open,
             plusIcon: PlusIcon,
@@ -214,7 +213,7 @@ export default {
         }
     },
     methods: {
-        ...mapVuexActions('ux/drawers', ['toggleLeftDrawer']),
+        ...mapActions(useUxDrawersStore, ['toggleLeftDrawer']),
         ...mapActions(useUxToursStore, ['openModal', 'resetTours', 'presentTour']),
         openEducationModal () {
             this.openModal('education')

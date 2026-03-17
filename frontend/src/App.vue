@@ -62,8 +62,8 @@
 </template>
 
 <script>
-import { mapActions } from 'pinia'
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
@@ -79,6 +79,7 @@ import TermsAndConditions from './pages/TermsAndConditions.vue'
 import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 
 import { useContextStore } from '@/stores/context.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'App',
@@ -97,9 +98,8 @@ export default {
         'ff-layout-plain': FFLayoutPlain
     },
     computed: {
-        ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
-        ...mapState('ux/drawers', ['leftDrawer']),
-        ...mapGetters('ux/drawers', ['hiddenLeftDrawer']),
+        ...mapState(useUxDrawersStore, ['hiddenLeftDrawer']),
+        ...mapVuexState('account', ['pending', 'user', 'team', 'offline', 'settings']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },

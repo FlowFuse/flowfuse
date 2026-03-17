@@ -113,10 +113,9 @@
 </template>
 
 <script>
-
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters, mapState, mapActions as mapVuexActions } from 'vuex'
+import { mapGetters, mapActions as mapVuexActions, mapState as mapVuexState } from 'vuex'
 
 import ToggleButtonGroup from '../elements/ToggleButtonGroup.vue'
 
@@ -129,6 +128,7 @@ import ExpertToolCall from './ExpertToolCall.vue'
 import UpdateBanner from './components/UpdateBanner.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'ExpertPanel',
@@ -171,7 +171,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('product/expert', [
+        ...mapVuexState('product/expert', [
             'isGenerating',
             'autoScrollEnabled',
             'abortController',
@@ -189,9 +189,9 @@ export default {
             'isOperatorAgent',
             'hasSelectedCapabilities'
         ]),
-        isPinned () {
-            return this.$store.state.ux.drawers.rightDrawer.fixed
-        },
+        ...mapState(useUxDrawersStore, {
+            isPinned: state => state.rightDrawer.fixed
+        }),
         isEditorContext () {
             // In editor context, the route name includes 'editor'
             return this.$route?.name?.includes('editor') || false
