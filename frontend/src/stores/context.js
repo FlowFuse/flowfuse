@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 
 import { useAccountBridge } from './_account_bridge.js'
 import { useProductAssistantStore } from './product-assistant.js'
-import { useProductExpertStore } from './product-expert.js'
 
 export const useContextStore = defineStore('context', {
     state: () => ({
@@ -56,7 +55,8 @@ export const useContextStore = defineStore('context', {
 
             if (
                 scope === 'immersive' &&
-                useProductExpertStore().isFfAgent &&
+                // require() avoids a circular dependency: context.js ↔ product-expert.js
+                require('./product-expert.js').useProductExpertStore().isFfAgent &&
                 assistant.selectedNodes.length > 0
             ) {
                 selectedNodes = assistant.selectedNodes
