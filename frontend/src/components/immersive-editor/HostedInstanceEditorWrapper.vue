@@ -51,6 +51,11 @@ export default {
         }
     },
     emits: ['iframe-loaded', 'toggle-drawer', 'request-drawer-state'],
+    data () {
+        return {
+            posthogKeepAliveInterval: null
+        }
+    },
     computed: {
         isInstanceTransitioningStates () {
             const pendingState = (Object.hasOwnProperty.call(this.instance, 'pendingStateChange') && this.instance.pendingStateChange)
@@ -70,8 +75,16 @@ export default {
     mounted () {
         // adding event listener to listen for messages from the iframe
         window.addEventListener('message', this.eventListener)
+        // Dispatch a synthetic mousemove every 25 minutes to keep PostHog's idle
+        // session timer alive. PostHog resets its recording after ~30 minutes of
+        // inactivity on the parent page — but the user may be actively working
+        // inside the cross-origin iframe where events don't reach the parent.
+        this.posthogKeepAliveInterval = setInterval(() => {
+            document.dispatchEvent(new MouseEvent('mousemove'))
+        }, 25 * 60 * 1000)
     },
     beforeUnmount () {
+        clearInterval(this.posthogKeepAliveInterval)
         // Clear the iframe src before unmount so PostHog's rrweb recorder can safely
         // detach its event listeners. Without this, rrweb throws a SecurityError when
         // calling contentWindow.removeEventListener on the cross-origin Node-RED iframe.
@@ -90,6 +103,9 @@ export default {
         // todo this event listener should be moved in the messaging.service.js
         eventListener (event) {
             if (event.origin === this.instance.url) {
+                // Forward iframe activity to the parent page so PostHog's idle timer
+                // is reset when the user is active inside the cross-origin iframe.
+                document.dispatchEvent(new MouseEvent('mousemove'))
                 switch (event.data.type) {
                 case 'load':
                     this.emitMessage('prevent-redirect', true)

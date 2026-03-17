@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import InterviewPopup from '../components/InterviewPopup.vue'
@@ -71,9 +71,11 @@ import LeftDrawer from '../components/drawers/LeftDrawer.vue'
 import RightDrawer from '../components/drawers/RightDrawer.vue'
 import NoticeBanner from '../components/notices/NoticeBanner.vue'
 import AlertsMixin from '../mixins/Alerts.js'
-import DialogMixin from '../mixins/Dialog.js'
+import dialogService from '../services/dialog.js'
 
-import { useUxNavigationStore } from '@/stores/ux-navigation.js'
+import { useUxDialogStore } from '@/stores/ux-dialog.js'
+
+import { useUxStore } from '@/stores/ux.js'
 
 export default {
     name: 'ff-layout-platform',
@@ -84,9 +86,10 @@ export default {
         PageHeader,
         InterviewPopup
     },
-    mixins: [AlertsMixin, DialogMixin],
+    mixins: [AlertsMixin],
     computed: {
-        ...mapState(useUxNavigationStore, ['overlay']),
+        ...mapState(useUxDialogStore, ['dialog']),
+        ...mapState(useUxStore, ['overlay']),
         ...mapVuexState('product', ['interview']),
         ...mapGetters('account', ['hasAvailableTeams'])
     },
@@ -97,8 +100,13 @@ export default {
     },
     mounted () {
         this.checkRouteMeta()
+        dialogService.bind(this.$refs.dialog, this.showDialogHandler)
     },
     methods: {
+        ...mapActions(useUxDialogStore, ['clearDialog', 'showDialogHandlers']),
+        showDialogHandler (msg, onConfirm, onCancel) {
+            return this.showDialogHandlers({ payload: msg, onConfirm, onCancel })
+        },
         checkRouteMeta () {
             for (let l = 0; l < this.$route.matched.length; l++) {
                 const level = this.$route.matched[l]

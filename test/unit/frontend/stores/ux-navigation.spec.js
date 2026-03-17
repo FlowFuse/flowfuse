@@ -30,6 +30,14 @@ vi.mock('@/stores/_account-bridge.js', () => ({
     }))
 }))
 
+// ux-navigation reads isNewlyCreatedUser/userActions from useUxStore inside mainNavContexts
+vi.mock('@/stores/ux.js', () => ({
+    useUxStore: vi.fn(() => ({
+        isNewlyCreatedUser: false,
+        userActions: { hasOpenedDeviceEditor: false }
+    }))
+}))
+
 const TEAM_STUB = {
     slug: 'test-team',
     createdAt: new Date().toISOString(),
@@ -62,41 +70,7 @@ describe('ux-navigation store', () => {
     it('initializes with team context', () => {
         const store = useUxNavigationStore()
         expect(store.mainNav.context).toBe('team')
-        expect(store.overlay).toBe(false)
-        expect(store.isNewlyCreatedUser).toBe(false)
-    })
-
-    it('openOverlay / closeOverlay toggle the flag', () => {
-        const store = useUxNavigationStore()
-        store.openOverlay()
-        expect(store.overlay).toBe(true)
-        store.closeOverlay()
-        expect(store.overlay).toBe(false)
-    })
-
-    it('checkIfIsNewlyCreatedUser sets flag for recent users', () => {
-        const store = useUxNavigationStore()
-        const recentDate = new Date()
-        recentDate.setDate(recentDate.getDate() - 3) // 3 days ago
-        store.checkIfIsNewlyCreatedUser({ createdAt: recentDate.toISOString() })
-        expect(store.isNewlyCreatedUser).toBe(true)
-    })
-
-    it('checkIfIsNewlyCreatedUser clears flag for old users', () => {
-        const store = useUxNavigationStore()
-        const oldDate = new Date()
-        oldDate.setDate(oldDate.getDate() - 30) // 30 days ago
-        store.checkIfIsNewlyCreatedUser({ createdAt: oldDate.toISOString() })
-        expect(store.isNewlyCreatedUser).toBe(false)
-    })
-
-    it('validateUserAction only updates known keys', () => {
-        const store = useUxNavigationStore()
-        store.validateUserAction('hasOpenedDeviceEditor')
-        expect(store.userActions.hasOpenedDeviceEditor).toBe(true)
-        // Unknown key should be ignored
-        store.validateUserAction('unknownKey')
-        expect(store.userActions).not.toHaveProperty('unknownKey')
+        expect(store.mainNav.backToButton).toBeNull()
     })
 
     it('setMainNavContext updates the active context', () => {
@@ -112,25 +86,15 @@ describe('ux-navigation store', () => {
         expect(store.mainNav.backToButton).toEqual(button)
     })
 
-    it('setNewlyCreatedUser sets the flag to true', () => {
-        const store = useUxNavigationStore()
-        store.setNewlyCreatedUser()
-        expect(store.isNewlyCreatedUser).toBe(true)
-    })
-
     it('$reset restores initial state', () => {
         const store = useUxNavigationStore()
         store.setMainNavContext('admin')
-        store.openOverlay()
-        store.setNewlyCreatedUser()
-        store.validateUserAction('hasOpenedDeviceEditor')
+        store.setMainNavBackButton({ label: 'Back' })
 
         store.$reset()
 
         expect(store.mainNav.context).toBe('team')
-        expect(store.overlay).toBe(false)
-        expect(store.isNewlyCreatedUser).toBe(false)
-        expect(store.userActions.hasOpenedDeviceEditor).toBe(false)
+        expect(store.mainNav.backToButton).toBeNull()
     })
 
     describe('mainNavContext getter', () => {

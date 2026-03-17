@@ -5,15 +5,13 @@ import commonMutations from './common/mutations.js'
 import account from './modules/account/index.js'
 import context from './modules/context/index.js'
 import product from './modules/product/index.js'
-import ux from './modules/ux/index.js'
 import storagePlugin from './plugins/storage.plugin.js'
 
 export default createStore({
     modules: {
         account,
         context,
-        product,
-        ux
+        product
     },
     actions: {
         ...commonActions

@@ -62,7 +62,7 @@
         "promise/catch-or-return": ["error", { "allowFinally": true }]
     },
     "overrides": [
-          // Ignore unresolved @ imports and Node import errors only for test stores files, has issues with aliases
+        // Ignore unresolved @ imports and Node import errors only for test stores files, has issues with aliases
         {
             "files": [
                 "test/unit/frontend/stores/**/*"
@@ -87,8 +87,8 @@
             "rules": {
                 // plugin:vue
                 "vue/html-indent": ["warn", 4],
-                
-                // plugin:vue - style rules 
+
+                // plugin:vue - style rules
                 "vue/max-attributes-per-line": "off",
                 "vue/attribute-hyphenation": "off",
                 "vue/singleline-html-element-content-newline": "off",
