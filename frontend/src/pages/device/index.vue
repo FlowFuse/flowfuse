@@ -136,6 +136,7 @@
 <script>
 
 import { CogIcon } from '@heroicons/vue/solid/index.js'
+import { mapActions } from 'pinia'
 import semver from 'semver'
 import { mapState } from 'vuex'
 
@@ -152,6 +153,7 @@ import deviceActionsMixin from '../../mixins/DeviceActions.js'
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
+
 import { DeviceStateMutator } from '../../utils/DeviceStateMutator.js'
 import { createPollTimer } from '../../utils/timers.js'
 
@@ -164,6 +166,8 @@ import DeveloperModeToggle from './components/DeveloperModeToggle.vue'
 import DeviceEditorLink from './components/DeviceEditorLink.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
+
+import { useUxStore } from '@/stores/ux.js'
 
 // constants
 const POLL_TIME = 5000
@@ -366,6 +370,7 @@ export default {
         clearTimeout(this.openTunnelTimeout)
     },
     methods: {
+        ...mapActions(useUxStore, ['validateUserAction']),
         pollTimerElapsed: async function () {
             // Only refresh device via the timer if we are on the overview page, developer mode page
             // the device status is empty or the device is in a transition state
@@ -464,7 +469,7 @@ export default {
             Alerts.emit('Device successfully assigned to application.', 'confirmation')
         },
         openEditor ({ event = null, immersive = false } = {}) {
-            this.$store.dispatch('ux/validateUserAction', 'hasOpenedDeviceEditor')
+            this.validateUserAction('hasOpenedDeviceEditor')
             if (!immersive) {
                 this.openInANewTab(this.deviceEditorURL, `device-editor-${this.device.id}`)
             } else {

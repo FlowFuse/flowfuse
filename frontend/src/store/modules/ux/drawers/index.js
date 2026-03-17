@@ -7,6 +7,8 @@
  * @property {Component} iconLeft - A heroicon to display on the left side of the button.
  */
 
+import { useUxStore } from '@/stores/ux.js'
+
 const initialState = () => ({
     leftDrawer: {
         state: false,
@@ -34,9 +36,9 @@ const meta = {
 const state = initialState
 
 const getters = {
-    hiddenLeftDrawer: (state, rootGetters) => {
-        const rootGetter = rootGetters['ux/mainNavContext']
-        return state.leftDrawer.component?.name === 'MainNav' && rootGetter?.length === 0
+    hiddenLeftDrawer: (state) => {
+        const navStore = useUxStore()
+        return state.leftDrawer.component?.name === 'MainNav' && navStore.mainNavContext?.length === 0
     }
 }
 
@@ -141,7 +143,7 @@ const actions = {
             })
             // Only show overlay if requested and drawer is not pinned
             if (overlay && !state.rightDrawer.pinned) {
-                commit('ux/openOverlay', null, { root: true })
+                useUxStore().openOverlay()
             }
         }
 
@@ -152,7 +154,7 @@ const actions = {
             openDrawer()
         }
     },
-    closeRightDrawer ({ commit, state, rootState }) {
+    closeRightDrawer ({ commit, state }) {
         // Set closing flag to prevent reopens during transition
         state.rightDrawer.closing = true
 
@@ -160,8 +162,8 @@ const actions = {
         commit('closeRightDrawerImmediate')
 
         // Close overlay if present
-        if (rootState.ux.overlay) {
-            commit('ux/closeOverlay', null, { root: true })
+        if (useUxStore().overlay) {
+            useUxStore().closeOverlay()
         }
 
         // Wait for CSS transition (300ms) before full cleanup
@@ -245,13 +247,13 @@ const actions = {
      *
      * @return {void}
      */
-    togglePinDrawer ({ commit, state, rootState }) {
+    togglePinDrawer ({ commit, state }) {
         const newFixedState = !state.rightDrawer.fixed
         commit('setPinnedDrawer', newFixedState)
 
         // Always close overlay when toggling (whether fixing or unfixing)
-        if (rootState.ux.overlay) {
-            commit('ux/closeOverlay', null, { root: true })
+        if (useUxStore().overlay) {
+            useUxStore().closeOverlay()
         }
     },
 

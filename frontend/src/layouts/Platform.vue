@@ -75,6 +75,8 @@ import dialogService from '../services/dialog.js'
 
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 
+import { useUxStore } from '@/stores/ux.js'
+
 export default {
     name: 'ff-layout-platform',
     components: {
@@ -87,8 +89,8 @@ export default {
     mixins: [AlertsMixin],
     computed: {
         ...mapState(useUxDialogStore, ['dialog']),
+        ...mapState(useUxStore, ['overlay']),
         ...mapVuexState('product', ['interview']),
-        ...mapVuexState('ux', ['overlay']),
         ...mapVuexState('ux/drawers', ['leftDrawer']),
         ...mapGetters('account', ['hasAvailableTeams'])
     },

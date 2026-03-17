@@ -11,7 +11,9 @@ import router from '../../../routes.js'
 import product from '../../../services/product.js'
 
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
+import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
+import { useUxStore } from '@/stores/ux.js'
 
 // initial state
 const initialState = () => ({
@@ -373,7 +375,7 @@ const actions = {
 
             const user = await userApi.getUser()
             commit('login', user)
-            dispatch('ux/checkIfIsNewlyCreatedUser', user, { root: true })
+            useUxStore().checkIfIsNewlyCreatedUser(user)
 
             // User is logged in
             if (router.currentRoute.value.meta.requiresLogin === false) {
@@ -515,9 +517,10 @@ const actions = {
                 // Reset migrated Pinia stores — uncomment each line as its store is migrated
                 const pinia = getActivePinia()
                 if (pinia) {
+                    useUxNavigationStore().$reset()
+                    useUxStore().$reset()
                     useUxDialogStore().$reset()
                     useUxToursStore().$reset()
-                    // Task 3:  useUxNavigationStore().$reset()
                     // Task 4:  useUxDrawersStore().$reset()
                     // Task 5:  useContextStore().$reset()
                     // Task 6:  useProductTablesStore().$reset()

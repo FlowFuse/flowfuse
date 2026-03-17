@@ -36,6 +36,7 @@ import FFLayoutBox from '../layouts/Box.vue'
 import store from '../store/index.js'
 
 import { useUxToursStore } from '@/stores/ux-tours.js'
+import { useUxStore } from '@/stores/ux.js'
 
 export default {
     name: 'UnverifiedEmail',
@@ -54,13 +55,14 @@ export default {
         ...mapState('account', ['user'])
     },
     methods: {
+        ...mapActions(useUxStore, ['setNewlyCreatedUser']),
         ...mapActions(useUxToursStore, ['presentTour']),
         async submitVerificationToken () {
             try {
                 await userApi.verifyEmailToken(this.token)
                 clearTimeout(this.resendTimeout)
                 this.presentTour()
-                this.$store.dispatch('ux/setNewlyCreatedUser', true)
+                this.setNewlyCreatedUser()
                 this.$router.go()
             } catch (err) {
                 console.error(err)
