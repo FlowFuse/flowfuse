@@ -28,11 +28,14 @@
 </template>
 
 <script>
+import { mapActions } from 'pinia'
 import { mapState } from 'vuex'
 
 import userApi from '../api/user.js'
 import FFLayoutBox from '../layouts/Box.vue'
 import store from '../store/index.js'
+
+import { useUxToursStore } from '@/stores/ux-tours.js'
 
 export default {
     name: 'UnverifiedEmail',
@@ -51,11 +54,12 @@ export default {
         ...mapState('account', ['user'])
     },
     methods: {
+        ...mapActions(useUxToursStore, ['presentTour']),
         async submitVerificationToken () {
             try {
                 await userApi.verifyEmailToken(this.token)
                 clearTimeout(this.resendTimeout)
-                this.$store.dispatch('ux/tours/presentTour')
+                this.presentTour()
                 this.$store.dispatch('ux/setNewlyCreatedUser', true)
                 this.$router.go()
             } catch (err) {

@@ -20,11 +20,27 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'pinia'
+
 import AlertsMixin from '../mixins/Alerts.js'
-import DialogMixin from '../mixins/Dialog.js'
+import dialogService from '../services/dialog.js'
+
+import { useUxDialogStore } from '@/stores/ux-dialog.js'
 
 export default {
     name: 'FfLayoutPlain',
-    mixins: [DialogMixin, AlertsMixin]
+    mixins: [AlertsMixin],
+    computed: {
+        ...mapState(useUxDialogStore, ['dialog'])
+    },
+    mounted () {
+        dialogService.bind(this.$refs.dialog, this.showDialogHandler)
+    },
+    methods: {
+        ...mapActions(useUxDialogStore, ['clearDialog', 'showDialogHandlers']),
+        showDialogHandler (msg, onConfirm, onCancel) {
+            return this.showDialogHandlers({ payload: msg, onConfirm, onCancel })
+        }
+    }
 }
 </script>

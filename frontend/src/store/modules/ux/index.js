@@ -12,9 +12,7 @@ import QueueIcon from '../../../components/icons/Queue.js'
 import { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 
-import dialog from './dialog/index.js'
 import drawers from './drawers/index.js'
-import tours from './tours/index.js'
 
 const initialState = () => ({
     mainNav: {
@@ -514,7 +512,7 @@ const actions = {
 
 export default {
     namespaced: true,
-    modules: { dialog, drawers, tours },
+    modules: { drawers },
     state,
     initialState: initialState(),
     getters,
