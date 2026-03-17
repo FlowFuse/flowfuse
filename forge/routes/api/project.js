@@ -946,9 +946,14 @@ module.exports = async function (app) {
                     settings.settings.palette = settings.settings.palette || {}
                     settings.settings.palette.catalogue = settings.settings.palette.catalogue || []
                 }
-                function updateSettingsForCatalogue (scope, catalogueString) {
+                function updateSettingsForCatalogue (scope, catalogueString, first = false) {
                     const catalogue = new URL(catalogueString)
-                    settings.settings.palette.catalogue.push(catalogue.toString())
+                    if (first) {
+                        // insert at start of list
+                        settings.settings.palette.catalogue.splice(0, 0, catalogue.toString())
+                    } else {
+                        settings.settings.palette.catalogue.push(catalogue.toString())
+                    }
                     const npmrcEntry = `${scope}:registry=${npmRegURL.toString()}\n` +
                           `//${npmRegURL.host}:_auth="${token}"\n`
                     if (settings.settings.palette.npmrc) {
@@ -958,7 +963,7 @@ module.exports = async function (app) {
                     }
                 }
                 if (certifiedNodesEnabledForTeam && certNodesCatalogue) {
-                    updateSettingsForCatalogue('@flowfuse-certified-nodes', certNodesCatalogue)
+                    updateSettingsForCatalogue('@flowfuse-certified-nodes', certNodesCatalogue, true)
                 }
                 if (ffNodesEnabledForTeam && ffNodesCatalogue) {
                     updateSettingsForCatalogue('@flowfuse-nodes', ffNodesCatalogue)
