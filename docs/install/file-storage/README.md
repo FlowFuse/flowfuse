@@ -17,33 +17,53 @@ meta:
 
 # FlowFuse File Storage
 
-As part of the FlowFuse v2.6.0 release a new Persistent Storage approach 
-was implemented for Kubernetes (Docker to follow).
+FlowFuse has two storage-related features for Node-RED instances in container-based deployments. They are not mutually exclusive, and some deployments use both.
 
-This mounts a Persistent Volume into the container running the Node-RED
-Instance on `/data/storage`. Files written to this location will be persisted
-for the life of the Instance and across Suspend/Resume and Stack upgrades.
+- **Persistent Storage** mounts a persistent volume into the Node-RED instance at `/data/storage`. This was introduced in FlowFuse v2.6.0 for Kubernetes.
+- **The File Storage service** provides the FlowFuse File nodes and Persistent Context.
+
+The rest of this page is structured around those two features so it is clearer which configuration you need.
+
+## Which configuration do I need?
+
+Use the following guide when choosing what to configure:
+
+Requirement | FlowFuse version | What to configure
+------------|-----------------|------------------
+Files written directly by the Node-RED instance must survive restart, suspend/resume, or stack upgrades | v2.6.0 or later | Configure [Persistent Storage for Node-RED instances](#persistent-storage-for-node-red-instances)
+|| Before v2.6.0 | Configure [The File Storage service](#the-file-storage-service)
+You want to use [FlowFuse Persistent Context](https://flowfuse.com/docs/user/persistent-context/) | v2.6.0 or later | Configure [The File Storage service](#the-file-storage-service) and the [Persistent Context configuration](#persistent-context-configuration). If the instance also needs persistent filesystem access, configure [Persistent Storage for Node-RED instances](#persistent-storage-for-node-red-instances) as well.
+|| Before v2.6.0 | Configure [The File Storage service](#the-file-storage-service) and the [Persistent Context configuration](#persistent-context-configuration). The File Storage service also provides persistent storage for the instance.
+
+## Persistent Storage for Node-RED instances
+
+As part of the FlowFuse v2.6.0 release, a new Persistent Storage approach was implemented for Kubernetes. Docker support will follow.
+
+This mounts a Persistent Volume into the container running the Node-RED instance on `/data/storage`. 
+Files written to this location are preserved for the life of the instance and across suspend/resume operations and stack upgrades.
+
+If you are using FlowFuse version lower than v2.6.0, you will need to use the File Storage service to provide persistent storage to Node-RED or upgrade to v2.6.0 or later to use this feature.
 
 ### Configuring
 
-Create a Kubernetes StorageClass that allows dynamic provisioning of PhysicalVolumes from PhysicalVolumeClaims e.g. The [AWS EFS CSI driver](https://github.com/kubernetes-sigs/aws-efs-csi-driver)
+Create a Kubernetes `StorageClass` that allows dynamic provisioning of `PersistentVolumes` from `PersistentVolumeClaims`, for example the [AWS EFS CSI driver](https://github.com/kubernetes-sigs/aws-efs-csi-driver).
 
 Then pass the following values to the FlowFuse Helm Chart when upgrading.
 
-```
+```yaml
 forge:
   persistentStorage:
     enabled: true
     storageClass: '<name of StorageClass>'
     size: '5Gi'
 ```
-Where size is the default size for the volume.
+Where `size` is the default size for the volume.
 
 #### Azure
 
 If you are using the `azurefile-csi` Persistent Storage driver then we recommend adding the following to the `StorageClass mountOptions`:
 
-```
+```yaml
 mountOptions:
   - dir_mode=0777
   - file_mode=0777
@@ -53,25 +73,22 @@ mountOptions:
 
 See [the Azure Kubernetes documentation](https://learn.microsoft.com/en-us/troubleshoot/azure/azure-kubernetes/storage/mountoptions-settings-azure-files) for more details.
 
-## Pre FlowFuse v2.6.0
+## The File Storage service
 
-When running in container-based environments, such as Docker or Kubernetes,
-the Node-RED instances do not have access to a persistent filesystem.
-
-This means any files written to the container will be lost if the instance is
-restarted.
-
-The FlowFuse platform includes a File Storage service that can be used to provide
-persistent storage to Node-RED in two different ways:
+The FlowFuse Platform includes a File Storage service that provides:
 
   - A set of custom File nodes that behave the same way as the standard Node-RED
     File nodes
   - An optional Persistent Context store for storing context data within flows.
     This feature is only available for platforms running with a premium license.
 
-*Note:* the File Storage service is only required in Docker or Kubernetes environments.
-If you are running using the LocalFS platform driver, Node-RED will have direct
-access to the local filesystem already.
+On FlowFuse v2.6.0 or later, the File Storage service is used exclusively for Persistent Context. Instance-level Persistent Storage is handled separately via [Persistent Storage for Node-RED instances](#persistent-storage-for-node-red-instances).
+
+Before FlowFuse v2.6.0, this service was also the primary way to provide persistent storage to Node-RED in container-based environments, in addition to Persistent Context.
+
+{% note %}
+The File Storage service is only required in Docker or Kubernetes environments. If you are using the LocalFS platform driver, Node-RED already has direct access to the local filesystem.
+{% endnote %}
 
 ### Configuring
 
@@ -83,7 +100,7 @@ The File Storage server has its own configuration file: `etc/flowforge-storage.y
 
 There are three parts to the configuration:
  - [Platform Configuration](#platform-configuration) - how to access the main FlowFuse platform application
- - [File Storage configuration](#file-storage-configuration) - what storage to use for the File nodes
+ - [File Storage service configuration](#file-storage-service-configuration) - what storage to use for the File nodes
  - [Persistent Context configuration](#persistent-context-configuration) - what storage to use for Persistent Context
 
 ### Platform Configuration
@@ -95,18 +112,15 @@ Option        | Description
 `base_url` | The url to access the FlowFuse platform on. This defaults to `http://localhost:3000`
 
 
-### File Storage configuration
+### File Storage service configuration
 
-The File Storage configuration determines where the files used by Node-RED File
-nodes are stored.
+The File Storage configuration determines where the files used by the Node-RED File nodes are stored.
 
-This can be configured to either store the files on the local filesystem of the 
-File Storage server, or using an AWS S3 compatible service.
+You can configure it to store files either on the local filesystem of the File Storage server or in an AWS S3-compatible service.
 
 #### LocalFS
 
-Stores the files locally, for example using a volume mounted into the File Storage
-server container.
+Stores the files locally, for example by using a volume mounted into the File Storage server container.
 
 Option        | Description
 --------------|------------

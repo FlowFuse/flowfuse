@@ -13,7 +13,6 @@ import { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } fr
 import { Roles } from '../../../utils/roles.js'
 
 import drawers from './drawers/index.js'
-import tours from './tours/index.js'
 
 const initialState = () => ({
     mainNav: {
@@ -513,7 +512,7 @@ const actions = {
 
 export default {
     namespaced: true,
-    modules: { drawers, tours },
+    modules: { drawers },
     state,
     initialState: initialState(),
     getters,

@@ -102,8 +102,9 @@
 </template>
 <script>
 import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, XIcon } from '@heroicons/vue/solid'
+import { mapActions } from 'pinia'
 import { ref } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapGetters, mapState, mapActions as mapVuexActions } from 'vuex'
 
 import usePermissions from '../composables/Permissions.js'
 
@@ -117,6 +118,8 @@ import NotificationsButton from './NotificationsButton.vue'
 
 import TeamSelection from './TeamSelection.vue'
 import GlobalSearch from './global-search/GlobalSearch.vue'
+
+import { useUxToursStore } from '@/stores/ux-tours.js'
 
 export default {
     name: 'PageHeader',
@@ -211,16 +214,16 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux/drawers', ['toggleLeftDrawer']),
+        ...mapVuexActions('ux/drawers', ['toggleLeftDrawer']),
+        ...mapActions(useUxToursStore, ['openModal', 'resetTours', 'presentTour']),
         openEducationModal () {
-            this.$store.dispatch('ux/tours/openModal', 'education')
-                .then(() => product.capture('clicked-open-education-modal'))
-                .catch(e => e)
+            this.openModal('education')
+            product.capture('clicked-open-education-modal')
         },
         startWelcomeTour () {
-            return this.$store.dispatch('ux/tours/resetTours')
-                .then(() => this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } }))
-                .then(() => this.$store.dispatch('ux/tours/presentTour'))
+            this.resetTours()
+            this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } })
+            this.presentTour()
         },
         toggleMobileTeamSelectionMenu () {
             this.mobileTeamSelectionOpen = !this.mobileTeamSelectionOpen

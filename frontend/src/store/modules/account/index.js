@@ -11,6 +11,7 @@ import router from '../../../routes.js'
 import product from '../../../services/product.js'
 
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
+import { useUxToursStore } from '@/stores/ux-tours.js'
 
 // initial state
 const initialState = () => ({
@@ -515,7 +516,7 @@ const actions = {
                 const pinia = getActivePinia()
                 if (pinia) {
                     useUxDialogStore().$reset()
-                    // Task 2:  useUxToursStore().$reset()
+                    useUxToursStore().$reset()
                     // Task 3:  useUxNavigationStore().$reset()
                     // Task 4:  useUxDrawersStore().$reset()
                     // Task 5:  useContextStore().$reset()
