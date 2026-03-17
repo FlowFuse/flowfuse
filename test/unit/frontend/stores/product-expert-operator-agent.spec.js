@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useProductExpertOperatorAgentStore } from '@/stores/product-expert-operator-agent.js'
 
-vi.mock('@/stores/_account-bridge.js', () => ({
+vi.mock('@/stores/_account_bridge.js', () => ({
     useAccountBridge: vi.fn(() => ({ team: { id: 'team-1' } }))
 }))
 

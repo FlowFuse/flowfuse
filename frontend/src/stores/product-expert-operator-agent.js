@@ -4,7 +4,7 @@ import { markRaw } from 'vue'
 import expertApi from '../api/expert.js'
 import useTimerHelper from '../composables/TimersHelper.js'
 
-import { useAccountBridge } from './_account-bridge.js'
+import { useAccountBridge } from './_account_bridge.js'
 
 export const useProductExpertOperatorAgentStore = defineStore('product-expert-operator-agent', {
     state: () => ({
