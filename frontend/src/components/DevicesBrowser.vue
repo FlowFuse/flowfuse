@@ -346,8 +346,9 @@
 import { ClockIcon } from '@heroicons/vue/outline'
 import { CogIcon, PlusSmIcon } from '@heroicons/vue/solid'
 
+import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters, mapState } from 'vuex'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import deviceApi from '../api/devices.js'
 import teamApi from '../api/team.js'
@@ -384,6 +385,9 @@ import FeatureUnavailableToTeam from './banners/FeatureUnavailableToTeam.vue'
 import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 import AddDeviceToGroupDialog from './dialogs/device-group-management/AddDeviceToGroupDialog.vue'
 import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/RemoveDeviceFromGroupDialog.vue'
+
+import { useUxDialogStore } from '@/stores/ux-dialog.js'
+import { useUxToursStore } from '@/stores/ux-tours.js'
 
 const POLL_TIME = 10000
 
@@ -457,10 +461,10 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
-        ...mapState('ux/tours', ['tours']),
-        ...mapState('ux/dialog', ['dialog']),
+        ...mapVuexState('account', ['team', 'teamMembership']),
         ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useUxDialogStore, ['dialog']),
+        ...mapState(useUxToursStore, ['tours']),
         columns () {
             const columns = [
                 { label: 'Remote Instance', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
@@ -598,7 +602,7 @@ export default {
         team: 'fullReloadOfData',
         checkedDevices (devices) {
             if (this.dialog?.is?.payload?.devices) {
-                this.dialog.is.payload.devices = devices
+                this.setDialogDevices(devices)
             }
         }
     },
@@ -615,6 +619,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions(useUxDialogStore, ['setDialogDevices']),
         pollTimerElapsed: async function () {
             this.pollTimer.pause()
             try {
