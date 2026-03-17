@@ -11,6 +11,7 @@ import { defineStore } from 'pinia'
 import { markRaw } from 'vue'
 
 import { useUxNavigationStore } from './ux-navigation.js'
+import { useUxStore } from './ux.js'
 
 export const useUxDrawersStore = defineStore('ux-drawers', {
     state: () => ({
@@ -36,7 +37,7 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
     getters: {
         hiddenLeftDrawer (state) {
             const navStore = useUxNavigationStore()
-            return state.leftDrawer.component?.name === 'MainNav' && navStore.mainNavContext?.length === 0
+            return state.leftDrawer.component?.name === 'MainNav' && navStore.mainNavContext.length === 0
         }
     },
 
@@ -70,7 +71,7 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
 
                 // Only show overlay if requested and drawer is not pinned
                 if (overlay && !this.rightDrawer.pinned) {
-                    useUxNavigationStore().openOverlay()
+                    useUxStore().openOverlay()
                 }
             }
 
@@ -90,9 +91,9 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
             this._closeRightDrawerImmediate()
 
             // Close overlay if present
-            const navStore = useUxNavigationStore()
-            if (navStore.overlay) {
-                navStore.closeOverlay()
+            const uxStore = useUxStore()
+            if (uxStore.overlay) {
+                uxStore.closeOverlay()
             }
 
             // Wait for CSS transition (300ms) before full cleanup
@@ -170,9 +171,9 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
             this.rightDrawer.closeOnClickOutside = !newFixedState
 
             // Always close overlay when toggling (whether fixing or unfixing)
-            const navStore = useUxNavigationStore()
-            if (navStore.overlay) {
-                navStore.closeOverlay()
+            const uxStore = useUxStore()
+            if (uxStore.overlay) {
+                uxStore.closeOverlay()
             }
         },
 

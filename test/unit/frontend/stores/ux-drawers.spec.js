@@ -3,16 +3,24 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
-// --- ux-navigation mock ---
+// --- ux-navigation mock (mainNavContext only) ---
 const mockNavStore = {
-    overlay: false,
-    mainNavContext: [],
-    openOverlay: vi.fn(),
-    closeOverlay: vi.fn()
+    mainNavContext: []
 }
 
 vi.mock('@/stores/ux-navigation.js', () => ({
     useUxNavigationStore: vi.fn(() => mockNavStore)
+}))
+
+// --- ux mock (overlay) ---
+const mockUxStore = {
+    overlay: false,
+    openOverlay: vi.fn(),
+    closeOverlay: vi.fn()
+}
+
+vi.mock('@/stores/ux.js', () => ({
+    useUxStore: vi.fn(() => mockUxStore)
 }))
 
 // Stub components for testing
@@ -24,9 +32,9 @@ describe('ux-drawers store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
         vi.clearAllMocks()
-        // Reset nav mock state to defaults
-        mockNavStore.overlay = false
+        // Reset mock state to defaults
         mockNavStore.mainNavContext = []
+        mockUxStore.overlay = false
     })
 
     afterEach(() => {
@@ -108,20 +116,20 @@ describe('ux-drawers store', () => {
         it('calls openOverlay when overlay=true and drawer is not pinned', () => {
             const store = useUxDrawersStore()
             store.openRightDrawer({ component: FakeComponent, overlay: true })
-            expect(mockNavStore.openOverlay).toHaveBeenCalledOnce()
+            expect(mockUxStore.openOverlay).toHaveBeenCalledOnce()
         })
 
         it('does not call openOverlay when drawer is pinned', () => {
             const store = useUxDrawersStore()
             store.rightDrawer.pinned = true
             store.openRightDrawer({ component: FakeComponent, overlay: true })
-            expect(mockNavStore.openOverlay).not.toHaveBeenCalled()
+            expect(mockUxStore.openOverlay).not.toHaveBeenCalled()
         })
 
         it('does not call openOverlay when overlay=false (default)', () => {
             const store = useUxDrawersStore()
             store.openRightDrawer({ component: FakeComponent })
-            expect(mockNavStore.openOverlay).not.toHaveBeenCalled()
+            expect(mockUxStore.openOverlay).not.toHaveBeenCalled()
         })
 
         it('closes then reopens with new component after 300ms delay when already open', () => {
@@ -163,22 +171,22 @@ describe('ux-drawers store', () => {
 
         it('closes the overlay if it is open', () => {
             const store = useUxDrawersStore()
-            mockNavStore.overlay = true
+            mockUxStore.overlay = true
             store.openRightDrawer({ component: FakeComponent })
 
             store.closeRightDrawer()
 
-            expect(mockNavStore.closeOverlay).toHaveBeenCalledOnce()
+            expect(mockUxStore.closeOverlay).toHaveBeenCalledOnce()
         })
 
         it('does not call closeOverlay when overlay is not open', () => {
             const store = useUxDrawersStore()
-            mockNavStore.overlay = false
+            mockUxStore.overlay = false
             store.openRightDrawer({ component: FakeComponent })
 
             store.closeRightDrawer()
 
-            expect(mockNavStore.closeOverlay).not.toHaveBeenCalled()
+            expect(mockUxStore.closeOverlay).not.toHaveBeenCalled()
         })
 
         it('cleans up drawer state after 300ms', () => {
@@ -314,16 +322,16 @@ describe('ux-drawers store', () => {
 
         it('closes overlay when toggling if overlay is open', () => {
             const store = useUxDrawersStore()
-            mockNavStore.overlay = true
+            mockUxStore.overlay = true
             store.togglePinDrawer()
-            expect(mockNavStore.closeOverlay).toHaveBeenCalledOnce()
+            expect(mockUxStore.closeOverlay).toHaveBeenCalledOnce()
         })
 
         it('does not call closeOverlay when overlay is already closed', () => {
             const store = useUxDrawersStore()
-            mockNavStore.overlay = false
+            mockUxStore.overlay = false
             store.togglePinDrawer()
-            expect(mockNavStore.closeOverlay).not.toHaveBeenCalled()
+            expect(mockUxStore.closeOverlay).not.toHaveBeenCalled()
         })
     })
 
