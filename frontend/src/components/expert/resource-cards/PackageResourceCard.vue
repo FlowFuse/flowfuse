@@ -25,10 +25,10 @@
 </template>
 
 <script>
-import { mapActions } from 'pinia'
-import { mapGetters } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 
 export default {
     name: 'PackageResourceCard',
@@ -40,7 +40,7 @@ export default {
     },
     computed: {
         // todo this is where we should add a button to install a module
-        ...mapGetters('product/expert', ['canManagePalette'])
+        ...mapState(useProductExpertStore, ['canManagePalette'])
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['installNodePackage', 'manageNodePackage']),

@@ -14,6 +14,7 @@ import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertFfAgentStore } from '@/stores/product-expert-ff-agent.js'
 import { useProductExpertOperatorAgentStore } from '@/stores/product-expert-operator-agent.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
@@ -533,7 +534,7 @@ const actions = {
                     useProductAssistantStore().$reset()
                     useProductExpertFfAgentStore().$reset()
                     useProductExpertOperatorAgentStore().$reset()
-                    // Task 11: useProductExpertStore().$reset()
+                    useProductExpertStore().$reset()
                 }
             })
             .catch(_ => {})

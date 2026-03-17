@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 
-import { useAccountBridge } from './_account_bridge.js' // bridge — remove after all deps migrated
+import { useAccountBridge } from './_account_bridge.js'
 import { useProductAssistantStore } from './product-assistant.js'
+import { useProductExpertStore } from './product-expert.js'
 
 export const useContextStore = defineStore('context', {
     state: () => ({
@@ -10,54 +11,23 @@ export const useContextStore = defineStore('context', {
         device: null
     }),
     getters: {
-        // Bridge version — reads from Vuex for account/assistant/expert data.
-        // Update in PR 12 (product-expert) to use Pinia store imports directly.
         expert (state) {
-            // Use require() to avoid circular module dependencies at load time.
-            // Falls back to safe defaults when the Vuex store is unavailable (e.g. isolated unit tests).
-            let rootState, rootGetters
-            try {
-                const store = require('../store/index.js').default
-                rootState = store.state
-                rootGetters = store.getters
-            } catch {
-                return {
-                    assistantVersion: null,
-                    assistantFeatures: {},
-                    palette: null,
-                    debugLog: null,
-                    userId: null,
-                    teamId: null,
-                    teamSlug: null,
-                    instanceId: null,
-                    deviceId: null,
-                    applicationId: null,
-                    isTrialAccount: false,
-                    nodeRedVersion: null,
-                    pageName: null,
-                    rawRoute: {},
-                    selectedNodes: null,
-                    scope: 'ff-app'
-                }
-            }
-
+            const account = useAccountBridge()
             const assistant = useProductAssistantStore()
 
             if (!state.route) {
-                // Use the account bridge for account-related fields
-                const account = useAccountBridge()
                 return {
                     assistantVersion: assistant.version,
                     assistantFeatures: assistant.assistantFeatures,
                     palette: null,
                     debugLog: null,
-                    userId: rootState.account?.user?.id || null,
-                    teamId: account.team?.id || null,
-                    teamSlug: account.team?.slug || null,
+                    userId: account.userId,
+                    teamId: account.teamId,
+                    teamSlug: account.teamSlug,
                     instanceId: null,
                     deviceId: null,
                     applicationId: null,
-                    isTrialAccount: account.featuresCheck?.isTrialAccount || false,
+                    isTrialAccount: account.isTrialAccount,
                     nodeRedVersion: assistant.nodeRedVersion,
                     pageName: null,
                     rawRoute: {},
@@ -86,7 +56,7 @@ export const useContextStore = defineStore('context', {
 
             if (
                 scope === 'immersive' &&
-                rootGetters['product/expert/isFfAgent'] &&
+                useProductExpertStore().isFfAgent &&
                 assistant.selectedNodes.length > 0
             ) {
                 selectedNodes = assistant.selectedNodes
@@ -102,13 +72,13 @@ export const useContextStore = defineStore('context', {
                 assistantFeatures: assistant.assistantFeatures,
                 palette,
                 debugLog: assistant.debugLog,
-                userId: rootState.account?.user?.id || null,
-                teamId: rootState.account?.team?.id || null,
-                teamSlug: rootState.account?.team?.slug || null,
+                userId: account.userId,
+                teamId: account.teamId,
+                teamSlug: account.teamSlug,
                 instanceId: instanceId ?? null,
                 deviceId: deviceId ?? null,
                 applicationId: applicationId ?? null,
-                isTrialAccount: rootGetters['account/isTrialAccount'] || false,
+                isTrialAccount: account.isTrialAccount,
                 pageName: state.route.name,
                 nodeRedVersion: assistant.nodeRedVersion,
                 rawRoute,

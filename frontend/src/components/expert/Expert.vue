@@ -115,7 +115,6 @@
 <script>
 import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters, mapActions as mapVuexActions, mapState as mapVuexState } from 'vuex'
 
 import ToggleButtonGroup from '../elements/ToggleButtonGroup.vue'
 
@@ -128,6 +127,8 @@ import ExpertToolCall from './ExpertToolCall.vue'
 import UpdateBanner from './components/UpdateBanner.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useProductExpertOperatorAgentStore } from '@/stores/product-expert-operator-agent.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -171,15 +172,13 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('product/expert', [
+        ...mapState(useProductExpertStore, [
             'isGenerating',
             'autoScrollEnabled',
             'abortController',
             'streamingTimer',
             'streamingWordIndex',
-            'agentMode'
-        ]),
-        ...mapGetters('product/expert', [
+            'agentMode',
             'messages',
             'hasMessages',
             'hasUserMessages',
@@ -201,7 +200,7 @@ export default {
                 return this.agentMode
             },
             set (value) {
-                this.$store.dispatch('product/expert/setAgentMode', value)
+                this.setAgentMode(value)
             }
         },
         agentModeButtons () {
@@ -230,15 +229,11 @@ export default {
         },
         agentMode: {
             immediate: true,
-            async handler (newMode) {
+            async handler () {
                 if (this.isOperatorAgent) {
-                    await this.$store.dispatch(
-                        `product/expert/${newMode}/getCapabilities`
-                    )
+                    await useProductExpertOperatorAgentStore().getCapabilities()
                 }
-                await this.$store.dispatch(
-                    'product/expert/addWelcomeMessageIfNeeded'
-                )
+                await useProductExpertStore().addWelcomeMessageIfNeeded()
             }
         },
         'instance.meta.state': {
@@ -261,9 +256,7 @@ export default {
         if (this.isEditorContext) {
             // Delay to ensure drawer is open and visible before typing animation starts
             setTimeout(() => {
-                this.$store.dispatch(
-                    'product/expert/addWelcomeMessageIfNeeded'
-                )
+                useProductExpertStore().addWelcomeMessageIfNeeded()
             }, 1000)
         }
     },
@@ -279,16 +272,13 @@ export default {
         this.resetSessionTimer()
     },
     methods: {
-        ...mapVuexActions('product/expert', [
+        ...mapActions(useProductExpertStore, [
             'handleMessage',
             'handleMessageResponse',
-            'addMessage',
-            'updateLastMessage',
-            'clearConversation',
             'startOver',
+            'setAgentMode',
             'setAutoScroll',
             'clearStreamingTimer',
-            'streamMessage',
             'setStreamingWordIndex',
             'setStreamingWords',
             'setAbortController',

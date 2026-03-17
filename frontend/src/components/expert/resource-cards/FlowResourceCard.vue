@@ -40,14 +40,14 @@
 
 <script>
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/solid'
-import { mapActions } from 'pinia'
-import { mapGetters } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import TextCopier from '../../TextCopier.vue'
 
 import FlowViewer from '../../flow-viewer/FlowViewer.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 
 export default {
     name: 'StandardResourceCard',
@@ -64,7 +64,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('product/expert', ['canImportFlows']),
+        ...mapState(useProductExpertStore, ['canImportFlows']),
         flowsJson () {
             return JSON.stringify(this.flow.metadata.flows, null, 2)
         }
