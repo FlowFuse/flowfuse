@@ -16,8 +16,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
 import DevicesBrowser from '../../components/DevicesBrowser.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
@@ -32,9 +30,6 @@ export default {
             type: Object,
             required: true
         }
-    },
-    computed: {
-        ...mapState('ux', ['tours'])
     }
 }
 </script>
