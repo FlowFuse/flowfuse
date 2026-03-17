@@ -39,9 +39,12 @@
 
 <script>
 import { ExternalLinkIcon } from '@heroicons/vue/solid'
-import { mapActions, mapGetters } from 'vuex'
+
+import { mapActions, mapState } from 'pinia'
 
 import product from '../../services/product.js'
+
+import { useUxToursStore } from '@/stores/ux-tours.js'
 
 export default {
     name: 'EducationModal',
@@ -54,9 +57,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters({
-            isOpen: 'ux/tours/shouldShowEducationModal'
-        }),
+        ...mapState(useUxToursStore, { isOpen: 'shouldShowEducationModal' }),
         helpOptions () {
             return [
                 {
@@ -84,7 +85,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux/tours', ['deactivateTour']),
+        ...mapActions(useUxToursStore, { closeEducationModal: 'closeModal' }),
         triggerClose () {
             if (this.isClosing) {
                 this.closeModal()
@@ -102,13 +103,10 @@ export default {
                 }, 10)
             }
         },
-        closeModal () {
-            this.$store.dispatch('ux/tours/closeModal', 'education')
-                .then(() => {
-                    this.isClosing = false
-                    this.closingTimer = 0
-                })
-                .catch(e => e)
+        async closeModal () {
+            await this.closeEducationModal('education')
+            this.isClosing = false
+            this.closingTimer = 0
         },
         capturePostHog (option) {
             product.capture('clicked-trial-education-link', option)

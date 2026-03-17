@@ -10,7 +10,9 @@ import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import router from '../../../routes.js'
 import product from '../../../services/product.js'
 
+import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
+import { useUxToursStore } from '@/stores/ux-tours.js'
 import { useUxStore } from '@/stores/ux.js'
 
 // initial state
@@ -515,10 +517,10 @@ const actions = {
                 // Reset migrated Pinia stores — uncomment each line as its store is migrated
                 const pinia = getActivePinia()
                 if (pinia) {
-                    // Task 1:  useUxDialogStore().$reset()
-                    // Task 2:  useUxToursStore().$reset()
                     useUxNavigationStore().$reset()
                     useUxStore().$reset()
+                    useUxDialogStore().$reset()
+                    useUxToursStore().$reset()
                     // Task 4:  useUxDrawersStore().$reset()
                     // Task 5:  useContextStore().$reset()
                     // Task 6:  useProductTablesStore().$reset()

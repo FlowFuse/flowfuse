@@ -371,9 +371,14 @@ module.exports = async function (app) {
                     response.palette = response.palette || {}
                     response.palette.catalogues = response.palette.catalogues || ['https://catalogue.nodered.org/catalogue.json']
                 }
-                function updateSettingsForCatalogue (scope, catalogueString) {
+                function updateSettingsForCatalogue (scope, catalogueString, first = false) {
                     const catalogue = new URL(catalogueString)
-                    response.palette.catalogues.push(catalogue.toString())
+                    if (first) {
+                        // insert at start of list
+                        response.palette.catalogues.splice(0, 0, catalogue.toString())
+                    } else {
+                        response.palette.catalogues.push(catalogue.toString())
+                    }
                     const npmrcEntry = `${scope}:registry=${npmRegURL.toString()}\n` +
                           `//${npmRegURL.host}:_auth="${token}"\n`
                     if (response.palette.npmrc) {
@@ -383,7 +388,7 @@ module.exports = async function (app) {
                     }
                 }
                 if (certifiedNodesEnabledForTeam && certNodesCatalogue) {
-                    updateSettingsForCatalogue('@flowfuse-certified-nodes', certNodesCatalogue)
+                    updateSettingsForCatalogue('@flowfuse-certified-nodes', certNodesCatalogue, true)
                 }
                 if (ffNodesEnabledForTeam && ffNodesCatalogue) {
                     updateSettingsForCatalogue('@flowfuse-nodes', ffNodesCatalogue)

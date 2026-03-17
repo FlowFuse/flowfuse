@@ -35,6 +35,7 @@ import userApi from '../api/user.js'
 import FFLayoutBox from '../layouts/Box.vue'
 import store from '../store/index.js'
 
+import { useUxToursStore } from '@/stores/ux-tours.js'
 import { useUxStore } from '@/stores/ux.js'
 
 export default {
@@ -55,11 +56,12 @@ export default {
     },
     methods: {
         ...mapActions(useUxStore, ['setNewlyCreatedUser']),
+        ...mapActions(useUxToursStore, ['presentTour']),
         async submitVerificationToken () {
             try {
                 await userApi.verifyEmailToken(this.token)
                 clearTimeout(this.resendTimeout)
-                this.$store.dispatch('ux/tours/presentTour')
+                this.presentTour()
                 this.setNewlyCreatedUser()
                 this.$router.go()
             } catch (err) {

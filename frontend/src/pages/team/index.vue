@@ -17,7 +17,8 @@
 </template>
 
 <script>
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapGetters, mapActions as mapVuexActions, mapState as mapVuexState } from 'vuex'
 
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
@@ -25,6 +26,8 @@ import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import { Roles } from '../../utils/roles.js'
 
 import TeamInstances from './Instances.vue'
+
+import { useUxToursStore } from '@/stores/ux-tours.js'
 
 export default {
     name: 'TeamPage',
@@ -46,10 +49,10 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
+        ...mapVuexState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
         ...mapGetters('account', ['requiresBilling', 'isAdminUser']),
-        ...mapState('ux/tours', ['shouldPresentTour']),
-        ...mapState('product/expert', ['shouldWakeUpAssistant']),
+        ...mapState(useUxToursStore, ['shouldPresentTour']),
+        ...mapVuexState('product/expert', ['shouldWakeUpAssistant']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
         },
@@ -93,7 +96,8 @@ export default {
         this.checkRoute(this.$route)
     },
     methods: {
-        ...mapActions('product/expert', ['wakeUpAssistant']),
+        ...mapVuexActions('product/expert', ['wakeUpAssistant']),
+        ...mapActions(useUxToursStore, ['setWelcomeTour', 'openModal']),
         checkRoute: async function (route) {
             const allowedRoutes = []
 
@@ -120,17 +124,13 @@ export default {
             }
         },
         dispatchTour () {
-            return this.$store.dispatch(
-                'ux/tours/setWelcomeTour',
-                () => {
-                    if (this.shouldWakeUpAssistant) {
-                        this.wakeUpAssistant({ shouldHydrateMessages: true })
-                    } else {
-                        this.$store.dispatch('ux/tours/openModal', 'education')
-                    }
+            return this.setWelcomeTour(() => {
+                if (this.shouldWakeUpAssistant) {
+                    this.wakeUpAssistant({ shouldHydrateMessages: true })
+                } else {
+                    this.openModal('education')
                 }
-            )
-                .catch(e => e)
+            })
         }
     }
 }
