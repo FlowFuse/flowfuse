@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 
 // Prevent _account-bridge from importing the real Vuex store
-vi.mock('@/stores/_account-bridge.js', () => ({
+vi.mock('@/stores/_account_bridge.js', () => ({
     useAccountBridge: vi.fn(() => ({
         team: null,
         features: {},
@@ -127,7 +127,7 @@ describe('ux-navigation store', () => {
         })
 
         it('returns team entries when bridge provides a team', async () => {
-            const { useAccountBridge } = await import('@/stores/_account-bridge.js')
+            const { useAccountBridge } = await import('@/stores/_account_bridge.js')
             useAccountBridge.mockReturnValue({
                 team: TEAM_STUB,
                 features: {},
