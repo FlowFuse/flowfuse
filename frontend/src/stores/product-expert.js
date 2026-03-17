@@ -343,7 +343,6 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             if (this.isOperatorAgent) {
                 payload.context.selectedCapabilities = useProductExpertOperatorAgentStore().selectedCapabilities
-                delete payload.context.selectedNodes
             }
 
             return expertApi.chat(payload)
