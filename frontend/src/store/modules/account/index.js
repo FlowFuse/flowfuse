@@ -11,6 +11,7 @@ import router from '../../../routes.js'
 import product from '../../../services/product.js'
 
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 import { useUxStore } from '@/stores/ux.js'
@@ -517,11 +518,11 @@ const actions = {
                 // Reset migrated Pinia stores — uncomment each line as its store is migrated
                 const pinia = getActivePinia()
                 if (pinia) {
-                    useUxNavigationStore().$reset()
-                    useUxStore().$reset()
                     useUxDialogStore().$reset()
                     useUxToursStore().$reset()
-                    // Task 4:  useUxDrawersStore().$reset()
+                    useUxNavigationStore().$reset()
+                    useUxDrawersStore().$reset()
+                    useUxStore().$reset()
                     // Task 5:  useContextStore().$reset()
                     // Task 6:  useProductTablesStore().$reset()
                     // Task 7:  useProductBrokersStore().$reset()

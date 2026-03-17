@@ -105,9 +105,10 @@
 
 <script>
 import { FilterIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
+import { mapActions } from 'pinia'
 import SemVer from 'semver'
 import { markRaw } from 'vue'
-import { mapActions, mapState } from 'vuex'
+import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../../api/application.js'
 import DropdownMenu from '../../../../components/DropdownMenu.vue'
@@ -121,6 +122,8 @@ import { isAutoSnapshot } from '../../../../utils/snapshot.js'
 import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
 import SnapshotSource from '../../../application/Snapshots/components/cells/SnapshotSource.vue'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'DeviceSnapshots',
@@ -299,7 +302,7 @@ export default {
         this.fetchData()
     },
     methods: {
-        ...mapActions('ux/drawers', ['openRightDrawer', 'closeRightDrawer']),
+        ...mapActions(useUxDrawersStore, ['openRightDrawer', 'closeRightDrawer']),
         fetchData: async function () {
             if (!this.features.deviceEditor || this.isOwnedByAnInstance || this.isUnassigned) {
                 return

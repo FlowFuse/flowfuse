@@ -45,11 +45,14 @@
 
 <script>
 import { PencilAltIcon, PlusIcon, SearchIcon, TableIcon } from '@heroicons/vue/outline'
+import { mapActions, mapState } from 'pinia'
 import { defineComponent, markRaw } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapGetters, mapActions as mapVuexActions, mapState as mapVuexState } from 'vuex'
 
 import CreateTable from '../drawers/CreateTable.vue'
 import TableSchema from '../drawers/TableSchema.vue'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default defineComponent({
     name: 'TablesList',
@@ -62,9 +65,9 @@ export default defineComponent({
         }
     },
     computed: {
+        ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapGetters('product/tables', { getTables: 'tables' }),
-        ...mapState('product/tables', { tablesState: 'tables', tableSelection: 'tableSelection' }),
-        ...mapState('ux/drawers', ['rightDrawer']),
+        ...mapVuexState('product/tables', { tablesState: 'tables', tableSelection: 'tableSelection' }),
         filteredTables () {
             return this.tables.filter(t => (t.name ?? '').toLowerCase().includes(this.filterTerm.toLowerCase()))
         }
@@ -78,8 +81,8 @@ export default defineComponent({
         }
     },
     methods: {
-        ...mapActions('product/tables', ['updateTableSelection']),
-        ...mapActions('ux/drawers', ['openRightDrawer', 'closeRightDrawer']),
+        ...mapActions(useUxDrawersStore, ['openRightDrawer', 'closeRightDrawer']),
+        ...mapVuexActions('product/tables', ['updateTableSelection']),
 
         onCreateTable () {
             this.openRightDrawer({

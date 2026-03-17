@@ -9,16 +9,19 @@
 
 <script>
 import { MailIcon } from '@heroicons/vue/outline'
+import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import NotificationsDrawer from './drawers/notifications/NotificationsDrawer.vue'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'NotificationsButton',
     components: { MailIcon },
     computed: {
-        ...mapState('ux/drawers', ['rightDrawer']),
+        ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapGetters('account', ['hasNotifications']),
         ...mapGetters('account', ['unreadNotificationsCount']),
         notificationsCount: function () {
@@ -30,7 +33,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux/drawers', ['openRightDrawer', 'closeRightDrawer']),
+        ...mapActions(useUxDrawersStore, ['openRightDrawer', 'closeRightDrawer']),
         onClick () {
             this.openRightDrawer({ component: markRaw(NotificationsDrawer) })
         }
