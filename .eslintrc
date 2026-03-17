@@ -87,8 +87,8 @@
             "rules": {
                 // plugin:vue
                 "vue/html-indent": ["warn", 4],
-                
-                // plugin:vue - style rules 
+
+                // plugin:vue - style rules
                 "vue/max-attributes-per-line": "off",
                 "vue/attribute-hyphenation": "off",
                 "vue/singleline-html-element-content-newline": "off",
