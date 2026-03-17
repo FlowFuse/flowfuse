@@ -7,7 +7,7 @@
  * @property {Component} iconLeft - A heroicon to display on the left side of the button.
  */
 
-import { useUxNavigationStore } from '@/stores/ux-navigation.js'
+import { useUxStore } from '@/stores/ux.js'
 
 const initialState = () => ({
     leftDrawer: {
@@ -37,7 +37,7 @@ const state = initialState
 
 const getters = {
     hiddenLeftDrawer: (state) => {
-        const navStore = useUxNavigationStore()
+        const navStore = useUxStore()
         return state.leftDrawer.component?.name === 'MainNav' && navStore.mainNavContext?.length === 0
     }
 }
@@ -143,7 +143,7 @@ const actions = {
             })
             // Only show overlay if requested and drawer is not pinned
             if (overlay && !state.rightDrawer.pinned) {
-                useUxNavigationStore().openOverlay()
+                useUxStore().openOverlay()
             }
         }
 
@@ -162,8 +162,8 @@ const actions = {
         commit('closeRightDrawerImmediate')
 
         // Close overlay if present
-        if (useUxNavigationStore().overlay) {
-            useUxNavigationStore().closeOverlay()
+        if (useUxStore().overlay) {
+            useUxStore().closeOverlay()
         }
 
         // Wait for CSS transition (300ms) before full cleanup
@@ -252,8 +252,8 @@ const actions = {
         commit('setPinnedDrawer', newFixedState)
 
         // Always close overlay when toggling (whether fixing or unfixing)
-        if (useUxNavigationStore().overlay) {
-            useUxNavigationStore().closeOverlay()
+        if (useUxStore().overlay) {
+            useUxStore().closeOverlay()
         }
     },
 

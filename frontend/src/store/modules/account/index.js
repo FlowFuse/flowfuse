@@ -11,6 +11,7 @@ import router from '../../../routes.js'
 import product from '../../../services/product.js'
 
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
+import { useUxStore } from '@/stores/ux.js'
 
 // initial state
 const initialState = () => ({
@@ -372,7 +373,7 @@ const actions = {
 
             const user = await userApi.getUser()
             commit('login', user)
-            useUxNavigationStore().checkIfIsNewlyCreatedUser(user)
+            useUxStore().checkIfIsNewlyCreatedUser(user)
 
             // User is logged in
             if (router.currentRoute.value.meta.requiresLogin === false) {
@@ -517,6 +518,7 @@ const actions = {
                     // Task 1:  useUxDialogStore().$reset()
                     // Task 2:  useUxToursStore().$reset()
                     useUxNavigationStore().$reset()
+                    useUxStore().$reset()
                     // Task 4:  useUxDrawersStore().$reset()
                     // Task 5:  useContextStore().$reset()
                     // Task 6:  useProductTablesStore().$reset()

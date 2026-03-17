@@ -35,7 +35,7 @@ import userApi from '../api/user.js'
 import FFLayoutBox from '../layouts/Box.vue'
 import store from '../store/index.js'
 
-import { useUxNavigationStore } from '@/stores/ux-navigation.js'
+import { useUxStore } from '@/stores/ux.js'
 
 export default {
     name: 'UnverifiedEmail',
@@ -54,7 +54,7 @@ export default {
         ...mapState('account', ['user'])
     },
     methods: {
-        ...mapActions(useUxNavigationStore, ['setNewlyCreatedUser']),
+        ...mapActions(useUxStore, ['setNewlyCreatedUser']),
         async submitVerificationToken () {
             try {
                 await userApi.verifyEmailToken(this.token)

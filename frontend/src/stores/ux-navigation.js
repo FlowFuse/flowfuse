@@ -14,18 +14,14 @@ import { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } fr
 import { Roles } from '../utils/roles.js'
 
 import { useAccountBridge } from './_account-bridge.js'
+import { useUxStore } from './ux.js'
 
 export const useUxNavigationStore = defineStore('ux-navigation', {
     state: () => ({
         mainNav: {
             context: 'team',
             backToButton: null
-        },
-        userActions: {
-            hasOpenedDeviceEditor: false
-        },
-        isNewlyCreatedUser: false,
-        overlay: false
+        }
     }),
     getters: {
         mainNavContexts (state) {
@@ -37,6 +33,8 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                 requiresBilling,
                 isTrialAccountExpired
             } = useAccountBridge()
+
+            const { isNewlyCreatedUser, userActions } = useUxStore()
 
             const adminContext = [
                 {
@@ -218,7 +216,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 tag: 'team-devices',
                                 icon: ChipIcon,
                                 disabled: requiresBilling,
-                                alert: state.isNewlyCreatedUser && !state.userActions.hasOpenedDeviceEditor
+                                alert: isNewlyCreatedUser && !userActions.hasOpenedDeviceEditor
                                     ? {
                                         title: 'Connect to Device Agent',
                                         url: 'https://flowfuse.com/docs/device-agent/introduction/'
@@ -453,24 +451,6 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
     },
     actions: {
         setMainNavContext (context) { this.mainNav.context = context },
-        setMainNavBackButton (button) { this.mainNav.backToButton = button },
-        setNewlyCreatedUser () { this.isNewlyCreatedUser = true },
-        validateUserAction (action) {
-            if (Object.prototype.hasOwnProperty.call(this.userActions, action)) {
-                this.userActions[action] = true
-            }
-        },
-        checkIfIsNewlyCreatedUser (user) {
-            const userCreatedDate = new Date(user.createdAt).getTime()
-            const oneWeekAgo = new Date()
-            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
-            this.isNewlyCreatedUser = userCreatedDate >= oneWeekAgo.getTime()
-        },
-        openOverlay () { this.overlay = true },
-        closeOverlay () { this.overlay = false }
-    },
-    persist: {
-        pick: ['isNewlyCreatedUser', 'userActions'],
-        storage: localStorage
+        setMainNavBackButton (button) { this.mainNav.backToButton = button }
     }
 })

@@ -167,7 +167,7 @@ import DeviceEditorLink from './components/DeviceEditorLink.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
 
-import { useUxNavigationStore } from '@/stores/ux-navigation.js'
+import { useUxStore } from '@/stores/ux.js'
 
 // constants
 const POLL_TIME = 5000
@@ -370,7 +370,7 @@ export default {
         clearTimeout(this.openTunnelTimeout)
     },
     methods: {
-        ...mapActions(useUxNavigationStore, ['validateUserAction']),
+        ...mapActions(useUxStore, ['validateUserAction']),
         pollTimerElapsed: async function () {
             // Only refresh device via the timer if we are on the overview page, developer mode page
             // the device status is empty or the device is in a transition state
