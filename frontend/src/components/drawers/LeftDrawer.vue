@@ -12,21 +12,23 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapActions, mapState } from 'vuex'
 
 import MainNav from './navigation/MainNav.vue'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'LeftDrawer',
     computed: {
-        ...mapState('ux/drawers', ['leftDrawer', 'mainNav'])
+        ...mapState(useUxDrawersStore, ['leftDrawer'])
     },
     mounted () {
         this.setLeftDrawer(markRaw(MainNav))
     },
     methods: {
-        ...mapActions('ux/drawers', ['setLeftDrawer', 'closeLeftDrawer']),
+        ...mapActions(useUxDrawersStore, ['setLeftDrawer', 'closeLeftDrawer']),
         handleClickOutside () {
             this.$nextTick(() => this.closeLeftDrawer)
         }

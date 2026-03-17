@@ -4,6 +4,7 @@ import { markRaw } from 'vue'
 import expertApi from '../../../../api/expert.js'
 import ExpertDrawer from '../../../../components/drawers/expert/ExpertDrawer.vue'
 import useTimerHelper from '../../../../composables/TimersHelper.js'
+import { useUxDrawersStore } from '../../../../stores/ux-drawers.js'
 
 import { FF_AGENT, OPERATOR_AGENT } from './agents.js'
 
@@ -476,7 +477,7 @@ const actions = {
 
             // Auto-widen drawer if flows detected
             if (hasFlows) {
-                await dispatch('ux/drawers/setRightDrawerWider', true, { root: true })
+                useUxDrawersStore().setRightDrawerWider(true)
             }
         } else if (
             response.success &&
@@ -568,11 +569,7 @@ const actions = {
 
         dispatch(`product/expert/${OPERATOR_AGENT}/getCapabilities`, null, { root: true })
 
-        return dispatch(
-            'ux/drawers/openRightDrawer',
-            { component: markRaw(ExpertDrawer) },
-            { root: true }
-        )
+        return useUxDrawersStore().openRightDrawer({ component: markRaw(ExpertDrawer) })
     },
 
     addWelcomeMessageIfNeeded ({ dispatch, state }) {

@@ -34,6 +34,7 @@ import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import NavItem from '../../NavItem.vue'
 
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 
 export default {
@@ -126,9 +127,10 @@ export default {
         team: 'setBackButton'
     },
     methods: {
+        ...mapActions(useUxDrawersStore, ['closeLeftDrawer']),
         ...mapActions(useUxNavigationStore, ['setMainNavContext', 'setMainNavBackButton']),
         onMenuItemClick () {
-            this.$store.dispatch('ux/drawers/closeLeftDrawer')
+            this.closeLeftDrawer()
         },
         setBackButton () {
             if (this.team) {

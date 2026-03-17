@@ -91,7 +91,6 @@ export default {
         ...mapState(useUxDialogStore, ['dialog']),
         ...mapState(useUxStore, ['overlay']),
         ...mapVuexState('product', ['interview']),
-        ...mapVuexState('ux/drawers', ['leftDrawer']),
         ...mapGetters('account', ['hasAvailableTeams'])
     },
     watch: {
