@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { markRaw } from 'vue'
 
 import expertApi from '../api/expert.js'
-import ExpertDrawer from '../components/drawers/expert/ExpertDrawer.vue'
 import useTimerHelper from '../composables/TimersHelper.js'
 
 import { useAccountBridge } from './_account_bridge.js'
@@ -344,12 +343,13 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             if (this.isOperatorAgent) {
                 payload.context.selectedCapabilities = useProductExpertOperatorAgentStore().selectedCapabilities
+                delete payload.context.selectedNodes
             }
 
             return expertApi.chat(payload)
         },
 
-        openAssistantDrawer () {
+        async openAssistantDrawer () {
             const { featuresCheck } = useAccountBridge()
             if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
                 return
@@ -357,6 +357,11 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             useProductExpertOperatorAgentStore().getCapabilities()
 
+            // Dynamic import to avoid a circular dependency:
+            // product-expert.js → ExpertDrawer.vue → product-expert.js
+            // ExpertDrawer.vue imports useProductExpertStore, so a static import here
+            // would create a two-hop cycle causing a TDZ crash at module initialisation.
+            const { default: ExpertDrawer } = await import('../components/drawers/expert/ExpertDrawer.vue')
             return useUxDrawersStore().openRightDrawer({ component: markRaw(ExpertDrawer) })
         },
 

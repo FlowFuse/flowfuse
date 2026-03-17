@@ -1,5 +1,4 @@
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
-import { useProductExpertStore } from '@/stores/product-expert.js'
 
 const DATA_SOURCE_FLOWFUSE_WEBSITE = 'flowfuse-website'
 const DATA_SOURCE_ASSISTANT = 'nr-assistant'
@@ -126,6 +125,9 @@ class MessagingService {
     }
 
     setExpertContext (payload) {
+        // Lazy require to avoid circular dependency:
+        // messaging.service.js ← product-assistant.js ← product-expert.js → messaging.service.js
+        const { useProductExpertStore } = require('@/stores/product-expert.js')
         return useProductExpertStore().setContext(payload)
             .then(() => {
                 const message = {

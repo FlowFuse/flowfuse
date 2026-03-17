@@ -53,12 +53,7 @@ export const useContextStore = defineStore('context', {
             const { matched, redirectedFrom, ...rawRoute } = state.route ?? {}
             let selectedNodes = null
 
-            if (
-                scope === 'immersive' &&
-                // require() avoids a circular dependency: context.js ↔ product-expert.js
-                require('./product-expert.js').useProductExpertStore().isFfAgent &&
-                assistant.selectedNodes.length > 0
-            ) {
+            if (scope === 'immersive' && assistant.selectedNodes.length > 0) {
                 selectedNodes = assistant.selectedNodes
             }
 
