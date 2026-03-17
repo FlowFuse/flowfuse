@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { FF_AGENT, OPERATOR_AGENT } from '@/stores/product-expert-agents.js'
 
-vi.mock('@/stores/_account-bridge.js', () => ({
+vi.mock('@/stores/_account_bridge.js', () => ({
     useAccountBridge: vi.fn(() => ({ featuresCheck: { isExpertAssistantFeatureEnabled: true } }))
 }))
 

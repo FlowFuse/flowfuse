@@ -6,7 +6,7 @@ import expertApi from '../api/expert.js'
 import ExpertDrawer from '../components/drawers/expert/ExpertDrawer.vue'
 import useTimerHelper from '../composables/TimersHelper.js'
 
-import { useAccountBridge } from './_account-bridge.js'
+import { useAccountBridge } from './_account_bridge.js'
 import { useContextStore } from './context.js'
 import { useProductAssistantStore } from './product-assistant.js'
 import { FF_AGENT, OPERATOR_AGENT } from './product-expert-agents.js'
