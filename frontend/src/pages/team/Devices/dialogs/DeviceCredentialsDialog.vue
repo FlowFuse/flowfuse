@@ -12,22 +12,7 @@
                     </p>
                 </template>
                 <template v-else>
-                    <InstallationMethodSelector
-                        :selected-method="installationMethod"
-                        :installation-methods="installationMethods"
-                        @select-method="installationMethod = $event"
-                    />
-
-                    <OtcInstallSection
-                        v-if="otc"
-                        :selected-o-s="selectedOS"
-                        :otc-command="otcCommand"
-                        :installation-method="installationMethod"
-                        :device="device"
-                        :credentials="credentials"
-                        @select-os="selectedOS = $event"
-                    />
-
+                    <CascadingSelector v-if="otc" :node="installTree" />
                     <ManualInstall v-else :credentials="credentials" :device="device" />
                 </template>
             </form>
@@ -45,21 +30,26 @@
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import { mapState } from 'vuex'
 
 import deviceApi from '../../../../api/devices.js'
 
-import InstallationMethodSelector from './components/DeviceCredentialsDialog/InstallationMethodSelector.vue'
+import LinuxIcon from '../../../../assets/icons/linux.svg'
+import MacOSIcon from '../../../../assets/icons/macos.svg'
+import WindowsIcon from '../../../../assets/icons/windows.svg'
+
+import { CascadingSelector, OptionTileSelector, TabSelector } from '../../../../components/variant-selector/index.js'
 
 import ManualInstall from './components/DeviceCredentialsDialog/ManualInstall.vue'
-import OtcInstallSection from './components/DeviceCredentialsDialog/OtcInstallSection.vue'
+import NpmInstallContent from './components/DeviceCredentialsDialog/NpmInstallContent.vue'
+import ScriptInstallContent from './components/DeviceCredentialsDialog/ScriptInstallContent.vue'
 
 export default {
     name: 'DeviceCredentialsDialog',
     components: {
-        InstallationMethodSelector,
-        ManualInstall,
-        OtcInstallSection
+        CascadingSelector,
+        ManualInstall
     },
     props: ['team'],
     setup () {
@@ -72,19 +62,7 @@ export default {
     },
     data () {
         return {
-            device: null,
-            selectedOS: 'Windows', // Default selected OS,
-            installationMethod: 'script',
-            installationMethods: [
-                {
-                    slug: 'script',
-                    label: 'One-Line Install'
-                },
-                {
-                    slug: 'npm',
-                    label: 'Install via NPM'
-                }
-            ]
+            device: null
         }
     },
     methods: {
@@ -131,6 +109,98 @@ brokerPassword: ${this.device.credentials.broker.password}
                 }
             }
             return result
+        },
+        installTree () {
+            return {
+                id: 'root',
+                component: markRaw(TabSelector),
+                props: { separator: 'or' },
+                children: [
+                    {
+                        id: 'script',
+                        component: markRaw(OptionTileSelector),
+                        props: { label: 'One-Line Install', title: 'Install & Run Device Agent' },
+                        children: [
+                            {
+                                id: 'windows',
+                                component: markRaw(ScriptInstallContent),
+                                props: {
+                                    label: 'Windows',
+                                    icon: WindowsIcon,
+                                    title: 'Open an elevated Command Prompt and run:',
+                                    command: `powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1|iex" && flowfuse-device-agent-installer.exe -o ${this.otc} -u ${this.settings?.base_url}`
+                                }
+                            },
+                            {
+                                id: 'macos',
+                                component: markRaw(ScriptInstallContent),
+                                props: {
+                                    label: 'MacOS',
+                                    icon: MacOSIcon,
+                                    title: 'Open Terminal and run:',
+                                    command: `/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && \\\n./flowfuse-device-agent-installer -o ${this.otc} -u ${this.settings?.base_url}`
+                                }
+                            },
+                            {
+                                id: 'linux',
+                                component: markRaw(ScriptInstallContent),
+                                props: {
+                                    label: 'Linux',
+                                    icon: LinuxIcon,
+                                    title: 'Open Terminal and run:',
+                                    command: `/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && \\\n./flowfuse-device-agent-installer -o ${this.otc} -u ${this.settings?.base_url}`
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'npm',
+                        component: markRaw(OptionTileSelector),
+                        props: { label: 'Install via NPM', title: 'Install Device Agent' },
+                        children: [
+                            {
+                                id: 'windows',
+                                component: markRaw(NpmInstallContent),
+                                props: {
+                                    label: 'Windows',
+                                    icon: WindowsIcon,
+                                    installTitle: 'Open Command Prompt or PowerShell as administrator and run:',
+                                    installCommand: 'npm install -g @flowfuse/device-agent',
+                                    otcCommand: this.otcCommand,
+                                    credentials: this.credentials,
+                                    device: this.device
+                                }
+                            },
+                            {
+                                id: 'macos',
+                                component: markRaw(NpmInstallContent),
+                                props: {
+                                    label: 'MacOS',
+                                    icon: MacOSIcon,
+                                    installTitle: 'Open Terminal and run:',
+                                    installCommand: 'sudo npm install -g @flowfuse/device-agent',
+                                    otcCommand: this.otcCommand,
+                                    credentials: this.credentials,
+                                    device: this.device
+                                }
+                            },
+                            {
+                                id: 'linux',
+                                component: markRaw(NpmInstallContent),
+                                props: {
+                                    label: 'Linux',
+                                    icon: LinuxIcon,
+                                    installTitle: 'Open Terminal and run:',
+                                    installCommand: 'sudo npm install -g @flowfuse/device-agent',
+                                    otcCommand: this.otcCommand,
+                                    credentials: this.credentials,
+                                    device: this.device
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
         }
     }
 }
