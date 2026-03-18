@@ -494,6 +494,13 @@ const actions = {
         const defaultContext = getters.availableContextOptions
         commit('SET_SELECTED_CONTEXT', defaultContext)
     },
+    invokeAction: async ({ dispatch }, { action, params }) => {
+        return dispatch('sendMessage', {
+            type: 'invoke-action',
+            action,
+            params
+        })
+    },
     sendFlowsToImport: async ({ dispatch }, flowsJson) => {
         return dispatch('sendMessage', {
             type: 'invoke-action',
