@@ -24,7 +24,6 @@
 
 <script>
 import { mapState } from 'pinia'
-import { markRaw } from 'vue'
 import { mapActions, mapGetters, mapState as mapVuexState } from 'vuex'
 
 import ExpertChatInput from './components/ExpertChatInput.vue'

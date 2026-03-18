@@ -15,6 +15,7 @@ export default {
             required: true,
             type: String
         },
+        // eslint-disable-next-line vue/prop-name-casing
         _timestamp: {
             required: true,
             type: Number
