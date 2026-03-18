@@ -71,7 +71,7 @@ import ResizeBar from '../../ResizeBar.vue'
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
 import ContextSelector from './context-selection/index.vue'
 
-import useUxDrawersStore from '@/stores/ux-drawers.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'ExpertChatInput',
