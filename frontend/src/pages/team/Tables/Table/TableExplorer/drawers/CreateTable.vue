@@ -39,10 +39,14 @@
 </template>
 
 <script>
+import { mapActions } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapGetters, mapState, mapActions as mapVuexActions } from 'vuex'
 
 import TableColumn from './components/TableColumn.vue'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+
 export default defineComponent({
     name: 'CreateTable',
     components: { TableColumn },
@@ -72,8 +76,8 @@ export default defineComponent({
         this.setHeader()
     },
     methods: {
-        ...mapActions('ux/drawers', ['closeRightDrawer', 'setRightDrawerHeader']),
-        ...mapActions('product/tables', ['createTable', 'getTables', 'addNewTableColumn', 'removeNewTableColumn']),
+        ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'setRightDrawerHeader']),
+        ...mapVuexActions('product/tables', ['createTable', 'getTables', 'addNewTableColumn', 'removeNewTableColumn']),
         validateForm () {
             const columnsHaveDuplicateNames = new Set(this.newTable.columns.map(col => col.name)).size !== this.newTable.columns.length
             const allColumnDoesntHaveATypeAssigned = this.newTable.columns.some(col => !col.type)
