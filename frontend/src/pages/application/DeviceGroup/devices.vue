@@ -103,7 +103,7 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import DeployNotice from '../../../components/notices/device-groups/DeployNotice.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
-import { pluralize } from '../../../composables/String.js'
+import { pluralize } from '../../../composables/strings/String.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 

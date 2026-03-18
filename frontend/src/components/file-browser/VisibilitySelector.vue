@@ -57,7 +57,7 @@ import { ListboxOption } from '@headlessui/vue'
 import { GlobeAltIcon } from '@heroicons/vue/outline'
 
 import ProjectIcon from '../../components/icons/Projects.js'
-import { removeSlashes } from '../../composables/String.js'
+import { removeSlashes } from '../../composables/strings/String.js'
 import Alerts from '../../services/alerts.js'
 import FfListbox from '../../ui-components/components/form/ListBox.vue'
 

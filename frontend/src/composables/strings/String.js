@@ -95,6 +95,7 @@ export const sanitize = (str, { targetBlank = false, appendQueryParameters = nul
         if (targetBlank) {
             node.setAttribute('target', '_blank')
             node.setAttribute('rel', 'noopener noreferrer')
+            node.classList.add('ff-link')
         }
 
         if (appendQueryParameters) {

@@ -9,7 +9,7 @@
 import { defineComponent } from 'vue'
 import { mapGetters } from 'vuex'
 
-import { pluralize } from '../../../../composables/String.js'
+import { pluralize } from '../../../../composables/strings/String.js'
 
 export default defineComponent({
     name: 'ApplicationPermissionOverride',
