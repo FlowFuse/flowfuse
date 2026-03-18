@@ -58,7 +58,7 @@ module.exports = {
                                 await app.auditLog.Project.project.restarted(null, null, project.Project)
                                 await app.db.controllers.Project.clearInflightState(project.Project)
                                 // space out the Node-RED restarts a little.
-                                await delay(1000)
+                                await delay(2000)
                             } catch (err) {
                                 app.log.info(`Problem restarting project ${project.Project.id} - ${err.toString()}`)
                             }
