@@ -106,7 +106,13 @@ export default {
     watch: {
         'rightDrawer.state': {
             handler (isOpen, wasOpen) {
+                let reopenExpert = false
                 const isExpertDrawer = this.rightDrawer.component?.name === 'ExpertDrawer'
+                if (!isOpen && wasOpen && !isExpertDrawer) {
+                    // non expert drawer is closing - check if we need to re-open expert drawer
+                    reopenExpert = this.rightDrawer.expertState.pinned && this.rightDrawer.expertState.open
+                }
+
                 // Set opening flag when drawer opens
                 if (isOpen && !wasOpen) {
                     this.isOpening = true
@@ -124,6 +130,10 @@ export default {
                     // Clear closing flag after slide animation completes
                     setTimeout(() => {
                         this.isClosing = false
+                        // Re-open Expert drawer if needed after other drawer closes
+                        if (reopenExpert) {
+                            this.openAssistantDrawer({ openPinned: true })
+                        }
                     }, 350)
                 }
 
