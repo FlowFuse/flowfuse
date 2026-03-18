@@ -30,7 +30,10 @@ export default {
     methods: {
         ...mapActions('product/expert', ['openAssistantDrawer']),
         onClick () {
-            this.openAssistantDrawer()
+            const openOptions = {
+                openPinned: this.rightDrawer.expertState.pinned
+            }
+            this.openAssistantDrawer(openOptions)
         }
     }
 }
