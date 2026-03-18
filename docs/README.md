@@ -233,7 +233,6 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
 ## Support
 
 - [Troubleshooting](/docs/debugging/)
-- [Community Support](https://community.flowfuse.com/)
 - [FlowFuse Cloud Support](/docs/premium-support/)
 
 ## Contributing to FlowFuse
