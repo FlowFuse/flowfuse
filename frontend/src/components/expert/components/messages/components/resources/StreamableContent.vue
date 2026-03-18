@@ -9,7 +9,11 @@
 </template>
 
 <script>
+import { marked } from 'marked'
+import { mapState } from 'vuex'
+
 import useStreamingWords from '../../../../../../composables/strings/StreamingWords.js'
+import { sanitize } from '../../../../../../composables/strings/String.js'
 
 export default {
     name: 'StreamableContent',
@@ -66,15 +70,32 @@ export default {
             delayMs: 30
         })
 
-        return { stream, streamedText: text, isStreaming }
+        return { stream, streamedText: text, isStreaming, sanitize }
     },
     computed: {
+        ...mapState('product/assistant', ['supportedActions']),
         text () {
             if (this.modelValue) {
                 return this.shouldStream ? this.streamedText : this.modelValue.streamable
             }
 
-            return this.shouldStream ? this.streamedText : this.string
+            const plainText = this.shouldStream ? this.streamedText : this.string
+            if (!this.richContent) return plainText
+
+            const html = marked(plainText || '', {
+                breaks: true,
+                gfm: true
+            })
+
+            return this.sanitize(html, {
+                supportedActions: this.supportedActions,
+                targetBlank: true,
+                appendQueryParameters: {
+                    utm_source: 'flowfuse-expert',
+                    utm_medium: 'assistant',
+                    utm_campaign: 'expert-chat'
+                }
+            })
         }
     },
     watch: {

@@ -1,6 +1,6 @@
 <template>
     <streamable-content
-        :string="formattedContent"
+        :string="content"
         :should-stream="shouldStream"
         :rich-content="true"
         @streaming-complete="onStreamComplete"
@@ -8,7 +8,6 @@
 </template>
 
 <script>
-import { marked } from 'marked'
 import { mapActions } from 'vuex'
 
 import useStreamingWords from '../../../../../../composables/strings/StreamingWords.js'
@@ -47,23 +46,6 @@ export default {
             isStreaming,
             stream,
             stop
-        }
-    },
-    computed: {
-        formattedContent () {
-            const source = this.content
-            const html = marked(source || '', {
-                breaks: true,
-                gfm: true
-            })
-            return this.sanitize(html, {
-                targetBlank: true,
-                appendQueryParameters: {
-                    utm_source: 'flowfuse-expert',
-                    utm_medium: 'assistant',
-                    utm_campaign: 'expert-chat'
-                }
-            })
         }
     },
     async mounted () {
