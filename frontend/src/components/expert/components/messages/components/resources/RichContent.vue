@@ -8,12 +8,7 @@
 </template>
 
 <script>
-<<<<<<< 6816-action-links
-import { marked } from 'marked'
-import { mapActions, mapState } from 'vuex'
-=======
 import { mapActions } from 'vuex'
->>>>>>> expert/scalability
 
 import useStreamingWords from '../../../../../../composables/strings/StreamingWords.js'
 import { sanitize } from '../../../../../../composables/strings/String.js'
@@ -53,28 +48,6 @@ export default {
             stop
         }
     },
-<<<<<<< 6816-action-links
-    computed: {
-        ...mapState('product/assistant', ['supportedActions']),
-        formattedContent () {
-            const source = this.content
-            const html = marked(source || '', {
-                breaks: true,
-                gfm: true
-            })
-            return this.sanitize(html, {
-                supportedActions: this.supportedActions,
-                targetBlank: true,
-                appendQueryParameters: {
-                    utm_source: 'flowfuse-expert',
-                    utm_medium: 'assistant',
-                    utm_campaign: 'expert-chat'
-                }
-            })
-        }
-    },
-=======
->>>>>>> expert/scalability
     async mounted () {
         if (!this.shouldStream) {
             await this.onStreamComplete()
