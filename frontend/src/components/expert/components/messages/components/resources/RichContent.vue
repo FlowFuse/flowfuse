@@ -1,6 +1,6 @@
 <template>
     <streamable-content
-        :string="formattedContent"
+        :string="content"
         :should-stream="shouldStream"
         :rich-content="true"
         @streaming-complete="onStreamComplete"
@@ -8,8 +8,12 @@
 </template>
 
 <script>
+<<<<<<< 6816-action-links
 import { marked } from 'marked'
 import { mapActions, mapState } from 'vuex'
+=======
+import { mapActions } from 'vuex'
+>>>>>>> expert/scalability
 
 import useStreamingWords from '../../../../../../composables/strings/StreamingWords.js'
 import { sanitize } from '../../../../../../composables/strings/String.js'
@@ -49,6 +53,7 @@ export default {
             stop
         }
     },
+<<<<<<< 6816-action-links
     computed: {
         ...mapState('product/assistant', ['supportedActions']),
         formattedContent () {
@@ -68,6 +73,8 @@ export default {
             })
         }
     },
+=======
+>>>>>>> expert/scalability
     async mounted () {
         if (!this.shouldStream) {
             await this.onStreamComplete()

@@ -16,10 +16,6 @@ const meta = {
         context: {
             storage: 'localStorage',
             clearOnLogout: true
-        },
-        sessionId: {
-            storage: 'localStorage',
-            clearOnLogout: true
         }
     }
 }
