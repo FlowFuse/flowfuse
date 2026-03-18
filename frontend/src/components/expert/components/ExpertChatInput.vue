@@ -71,6 +71,8 @@ import ResizeBar from '../../ResizeBar.vue'
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
 import ContextSelector from './context-selection/index.vue'
 
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+
 export default {
     name: 'ExpertChatInput',
     components: {
@@ -126,7 +128,8 @@ export default {
             return this.isOperatorAgent && !this.hasSelectedCapabilities
         },
         isDrawerPinned () {
-            return this.$store.state.ux.drawers.rightDrawer.fixed
+            const uxDrawerStore = useUxDrawersStore()
+            return uxDrawerStore.rightDrawer.fixed
         },
         canSend () {
             return this.inputText.trim().length > 0 && !this.isInputDisabled
@@ -165,15 +168,17 @@ export default {
             }
 
             // Call Vuex action to handle API logic
-            const result = await this.handleQuery({ query: message })
-
-            // Handle UI-specific processing if successful
-            await this.handleMessageResponse(result)
+            this.handleQuery({ query: message })
+                // Handle UI-specific processing if successful
+                .then((result) => this.handleMessageResponse(result))
+                .then(() => {
+                    this.$nextTick(() => {
+                        this.$refs.textarea.focus()
+                    })
+                })
+                .catch(e => e)
 
             this.inputText = ''
-            this.$nextTick(() => {
-                this.$refs.textarea.focus()
-            })
         },
         handleStop () {
             this.$emit('stop')

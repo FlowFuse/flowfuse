@@ -155,8 +155,8 @@ import {
     SaveAsIcon,
     TrashIcon
 } from '@heroicons/vue/outline'
+import { mapActions } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapActions } from 'vuex'
 
 import DeviceApi from '../../../api/devices.js'
 
@@ -170,6 +170,8 @@ import FormRow from '../../FormRow.vue'
 import AssetCompareDialog from '../../dialogs/AssetCompareDialog.vue'
 import FlowViewer from '../../flow-viewer/FlowViewer.vue'
 import InformationWell from '../../wells/InformationWell.vue'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default defineComponent({
     name: 'SnapshotDetailsDrawer',
@@ -231,6 +233,7 @@ export default defineComponent({
 
         return {
             hasPermission
+
         }
     },
     data () {
@@ -283,7 +286,7 @@ export default defineComponent({
             })
     },
     methods: {
-        ...mapActions('ux/drawers', ['setRightDrawerHeader']),
+        ...mapActions(useUxDrawersStore, ['setRightDrawerHeader']),
         deployDeviceSnapshot () {
             const snapshot = this.snapshot
             const currentTargetSnapshot = this.instance.targetSnapshot?.id

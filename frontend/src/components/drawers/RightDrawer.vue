@@ -42,7 +42,9 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 const DRAWER_MIN_WIDTH = 310
 const DRAWER_DEFAULT_WIDTH = 400
@@ -74,7 +76,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('ux/drawers', ['rightDrawer']),
+        ...mapState(useUxDrawersStore, ['rightDrawer']),
         shouldAllowPinning () {
             return this.viewportWidth >= VIEWPORT_PIN_THRESHOLD
         },
@@ -175,7 +177,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux/drawers', ['closeRightDrawer', 'togglePinDrawer']),
+        ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'togglePinDrawer']),
         closeDrawer () {
             if (this.rightDrawer.state && this.rightDrawer.closeOnClickOutside) {
                 this.closeRightDrawer()

@@ -10,6 +10,12 @@ import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import router from '../../../routes.js'
 import product from '../../../services/product.js'
 
+import { useUxDialogStore } from '@/stores/ux-dialog.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { useUxNavigationStore } from '@/stores/ux-navigation.js'
+import { useUxToursStore } from '@/stores/ux-tours.js'
+import { useUxStore } from '@/stores/ux.js'
+
 // initial state
 const initialState = () => ({
     // Runtime settings
@@ -370,7 +376,7 @@ const actions = {
 
             const user = await userApi.getUser()
             commit('login', user)
-            dispatch('ux/checkIfIsNewlyCreatedUser', user, { root: true })
+            useUxStore().checkIfIsNewlyCreatedUser(user)
 
             // User is logged in
             if (router.currentRoute.value.meta.requiresLogin === false) {
@@ -512,10 +518,11 @@ const actions = {
                 // Reset migrated Pinia stores — uncomment each line as its store is migrated
                 const pinia = getActivePinia()
                 if (pinia) {
-                    // Task 1:  useUxDialogStore().$reset()
-                    // Task 2:  useUxToursStore().$reset()
-                    // Task 3:  useUxNavigationStore().$reset()
-                    // Task 4:  useUxDrawersStore().$reset()
+                    useUxDialogStore().$reset()
+                    useUxToursStore().$reset()
+                    useUxNavigationStore().$reset()
+                    useUxDrawersStore().$reset()
+                    useUxStore().$reset()
                     // Task 5:  useContextStore().$reset()
                     // Task 6:  useProductTablesStore().$reset()
                     // Task 7:  useProductBrokersStore().$reset()

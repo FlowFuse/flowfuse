@@ -7,6 +7,7 @@
         <ul v-if="!shouldStream || streamingTitle.streamed">
             <li v-for="(item, index) in visibleItems" :key="index">
                 <streamable-content
+                    :rich-content="true"
                     :string="item.content.streamable"
                     :should-stream="shouldStream"
                     @streaming-complete="setSubItemStreamedState(index, 'content')"

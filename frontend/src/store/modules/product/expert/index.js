@@ -4,6 +4,7 @@ import { markRaw } from 'vue'
 import expertApi from '../../../../api/expert.js'
 import ExpertDrawer from '../../../../components/drawers/expert/ExpertDrawer.vue'
 import useTimerHelper from '../../../../composables/TimerHelper.js'
+import { useUxDrawersStore } from '../../../../stores/ux-drawers.js'
 
 import { FF_AGENT, OPERATOR_AGENT } from './agents.js'
 
@@ -29,7 +30,7 @@ const state = initialState
 
 const getters = {
     abortController: (state) => state[state.agentMode].abortController,
-    isWaitingForResponse: (state) => !!state.abortController,
+    isWaitingForResponse: (state) => !!state[state.agentMode].abortController,
     messages: (state) => state[state.agentMode].messages,
     hasMessages: (state) => state[state.agentMode].messages.length > 0,
     isSessionExpired: (state) => state[state.agentMode].sessionExpiredShown,
@@ -338,7 +339,7 @@ const actions = {
                 agent: state.agentMode
             },
             sessionId: state[state.agentMode].sessionId,
-            abortController: state.abortController
+            abortController: state[state.agentMode].abortController
         }
 
         if (getters.isOperatorAgent) {
@@ -354,10 +355,7 @@ const actions = {
 
         dispatch(`product/expert/${OPERATOR_AGENT}/getCapabilities`, null, { root: true })
 
-        return dispatch('ux/drawers/openRightDrawer',
-            { component: markRaw(ExpertDrawer) },
-            { root: true }
-        )
+        return useUxDrawersStore().openRightDrawer({ component: markRaw(ExpertDrawer) })
     },
 
     addWelcomeMessageIfNeeded ({ dispatch, state }) {

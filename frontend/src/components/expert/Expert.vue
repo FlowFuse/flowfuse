@@ -23,13 +23,16 @@
 </template>
 
 <script>
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapActions, mapGetters, mapState as mapVuexState } from 'vuex'
 
 import ExpertChatInput from './components/ExpertChatInput.vue'
 import ExpertMessages from './components/ExpertMessages.vue'
 import ExpertModeSwitcher from './components/ExpertModeSwitcher.vue'
 import InfoBanner from './components/InfoBanner.vue'
 import UpdateBanner from './components/UpdateBanner.vue'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'ExpertPanel',
@@ -65,7 +68,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('product/expert', [
+        ...mapVuexState('product/expert', [
             'agentMode'
         ]),
         ...mapGetters('product/expert', [
@@ -76,6 +79,9 @@ export default {
             'isOperatorAgent',
             'hasSelectedCapabilities'
         ]),
+        ...mapState(useUxDrawersStore, {
+            isPinned: state => state.rightDrawer.fixed
+        }),
         isEditorContext () {
             // In editor context, the route name includes 'editor'
             return this.$route?.name?.includes('editor') || false

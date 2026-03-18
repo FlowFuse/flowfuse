@@ -7,6 +7,7 @@
         <ul>
             <li v-for="(item, index) in visibleItems" :key="index">
                 <streamable-content
+                    :rich-content="true"
                     :string="item.content.streamable"
                     :should-stream="shouldStream"
                     @streaming-complete="setSubItemStreamedState(index, 'content')"
@@ -52,7 +53,7 @@ export default {
         }
     },
     async mounted () {
-        const issues = this.issues.map(issue => ({ content: this.sanitize(issue) }))
+        const issues = this.issues.map(issue => ({ content: issue }))
 
         await this.initStreamer(issues, { shouldStream: this.shouldStream })
 
