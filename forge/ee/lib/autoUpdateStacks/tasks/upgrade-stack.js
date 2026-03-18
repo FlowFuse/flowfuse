@@ -38,13 +38,13 @@ module.exports = {
                                 await project.Project.setProjectStack(newStack)
                                 await project.Project.save()
                                 // Give time for k8s to settle after suspend
-                                await delay(1000)
+                                await delay(2000)
 
                                 await app.auditLog.Project.project.stack.changed(null, null, project.Project, newStack)
 
                                 await unSuspendProject(project.Project, result.resumeProject, result.targetState)
                                 // Space out restarts a little to not overwhelm k8s api
-                                await delay(1000)
+                                await delay(2000)
                             } catch (err) {
                                 app.log.info(`Problem updating project ${project.Project.id} - ${err.toString()}`)
                             }
@@ -58,7 +58,7 @@ module.exports = {
                                 await app.auditLog.Project.project.restarted(null, null, project.Project)
                                 await app.db.controllers.Project.clearInflightState(project.Project)
                                 // space out the Node-RED restarts a little.
-                                await delay(500)
+                                await delay(1000)
                             } catch (err) {
                                 app.log.info(`Problem restarting project ${project.Project.id} - ${err.toString()}`)
                             }
