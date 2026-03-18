@@ -168,15 +168,17 @@ export default {
             }
 
             // Call Vuex action to handle API logic
-            const result = await this.handleQuery({ query: message })
-
-            // Handle UI-specific processing if successful
-            await this.handleMessageResponse(result)
+            this.handleQuery({ query: message })
+                // Handle UI-specific processing if successful
+                .then((result) => this.handleMessageResponse(result))
+                .then(() => {
+                    this.$nextTick(() => {
+                        this.$refs.textarea.focus()
+                    })
+                })
+                .catch(e => e)
 
             this.inputText = ''
-            this.$nextTick(() => {
-                this.$refs.textarea.focus()
-            })
         },
         handleStop () {
             this.$emit('stop')

@@ -30,7 +30,7 @@ const state = initialState
 
 const getters = {
     abortController: (state) => state[state.agentMode].abortController,
-    isWaitingForResponse: (state) => !!state.abortController,
+    isWaitingForResponse: (state) => !!state[state.agentMode].abortController,
     messages: (state) => state[state.agentMode].messages,
     hasMessages: (state) => state[state.agentMode].messages.length > 0,
     isSessionExpired: (state) => state[state.agentMode].sessionExpiredShown,
@@ -339,7 +339,7 @@ const actions = {
                 agent: state.agentMode
             },
             sessionId: state[state.agentMode].sessionId,
-            abortController: state.abortController
+            abortController: state[state.agentMode].abortController
         }
 
         if (getters.isOperatorAgent) {
