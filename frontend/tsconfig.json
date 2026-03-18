@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "allowJs": true,
+        "strict": false,
+        "jsx": "preserve",
+        "lib": ["ESNext", "DOM"],
+        "noEmit": true,
+        "skipLibCheck": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["src/*"]
+        }
+    },
+    "include": [
+        "src/**/*",
+        "src/**/*.d.ts",
+        "../test/unit/frontend/**/*"
+    ]
+}

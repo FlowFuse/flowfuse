@@ -1,3 +1,5 @@
+import type { Team, Application, Device } from '@/types'
+
 import product from '../services/product.js'
 
 import daysSince from '../utils/daysSince.js'
@@ -18,17 +20,16 @@ const getTeams = () => {
     })
 }
 
-const getTeam = (team) => {
+// Accepts a slug/id string OR a full Team object — TypeScript enforces the union
+const getTeam = (team: string | Team): Promise<Team> => {
     let url
     if (typeof team === 'object') {
+        // NOLEY DEMO STEP 4 
         url = `/api/v1/teams/slug/${team.slug}`
     } else {
         url = `/api/v1/teams/${team}`
     }
     return client.get(url).then((res) => {
-        // ensure posthog Team is upt-o-date
-        // this may be excessive to call _every_ get of the team,
-        // but its a start, and will ensure up to date data
         const props = {
             'team-name': res.data.name,
             'created-at': res.data.createdAt,
@@ -55,20 +56,21 @@ const getTeam = (team) => {
 
 // NOLEY DEMO STEP 2
 // 1. What can I pass getTeam?
+// 2. Type checking within getTeam for slug 
 // const myTeam = await getTeam(true)
 // const myTeamTry2 = await getTeam('123')
 // const myTeamTry3 = await getTeam({ foo: 'bar' })
+// const myTeamTry4 = await getTeam({ id: '123', name: 'My Team' })
+// const myTeamTry5 = await getTeam({ id: '123', name: 'My Team', slug: 'my-team' })
 
-const deleteTeam = async (teamId) => {
+const deleteTeam = async (teamId: string) => {
     return await client.delete(`/api/v1/teams/${teamId}`).then(() => {
         const timestamp = (new Date()).toISOString()
-        // capture deletion event
         product.capture('$ff-team-deleted', {
             'deleted-at': timestamp
         }, {
             team: teamId
         })
-        // update the team "group"
         product.groupUpdate('team', teamId, {
             deleted: true,
             'deleted-at': timestamp
@@ -79,22 +81,22 @@ const deleteTeam = async (teamId) => {
 /**
  * Get a list of applications
  * This function does not get instance status
- * @param {string} teamId The Team ID (hash) to get applications and instances for
- * @param associationsLimit
- * @param includeApplicationSummary
- * @param includeInstances
- * @param includeApplicationDevices
- * @param excludeOwnerFiltering
- * @returns An array of application objects containing an array of instances
+ * @param teamId The Team ID (hash) to get applications for
  */
-const getTeamApplications = async (teamId, {
+const getTeamApplications = async (teamId: string, {
     associationsLimit,
     includeApplicationSummary = false,
     includeInstances = undefined,
     includeApplicationDevices = undefined,
     excludeOwnerFiltering = undefined
-} = {}) => {
-    const options = { params: {} }
+}: {
+    associationsLimit?: number
+    includeApplicationSummary?: boolean
+    includeInstances?: boolean
+    includeApplicationDevices?: boolean
+    excludeOwnerFiltering?: boolean
+} = {}): Promise<{ applications: Application[], count: number }> => {
+    const options: any = { params: {} }
     if (associationsLimit) {
         options.params.associationsLimit = associationsLimit
     }
@@ -115,20 +117,19 @@ const getTeamApplications = async (teamId, {
     return result.data
 }
 
-// NOLEY DEMO STEP 1
-// 1. No return types
-// 2. No unknown property checks
-// 3. No autocompletion
-// const applications = await getTeamApplications('123')
-// const thingIWant = applications.unicorns
+// NOLEY DEMO STEP 1 
+// 1. Return types 
+// 2. Unknown property checks 
+// 3. Autocompletion
+// const result = await getTeamApplications('123')
+// const thingIWant = result.applications[0].unicorns
 
 /**
  * Get a list of applications, their instances, their devices, and the status of each
- * @param {string} teamId The Team ID (hash) to get statuses for
- * @returns An array of application ids containing an array of instance and device statuses
+ * @param teamId The Team ID (hash) to get statuses for
  */
-const getTeamApplicationsAssociationsStatuses = async (teamId, { associationsLimit } = {}) => {
-    const options = {}
+const getTeamApplicationsAssociationsStatuses = async (teamId: string, { associationsLimit }: { associationsLimit?: number } = {}) => {
+    const options: any = {}
     if (associationsLimit) {
         options.params = { associationsLimit }
     }
@@ -145,11 +146,9 @@ const getTeamApplicationsAssociationsStatuses = async (teamId, { associationsLim
 
 /**
  * Get a list of ALL instances within a team regardless of application
- * The status of each instance will be added to the instance object.
- * @param {string} teamId The Team ID (hash) to get instances for
  * @deprecated This is a leftover from before the application model was introduced
  */
-const getTeamInstances = async (teamId) => {
+const getTeamInstances = async (teamId: string) => {
     const res = await client.get(`/api/v1/teams/${teamId}/projects`)
     const promises = []
     res.data.projects = res.data.projects.map(r => {
@@ -171,29 +170,22 @@ const getTeamInstances = async (teamId) => {
     return res.data
 }
 
-const getTeamDashboards = async (teamId) => {
+const getTeamDashboards = async (teamId: string) => {
     const res = await client.get(`/api/v1/teams/${teamId}/dashboard-instances`)
     res.data.projects = res.data.projects.map(r => {
         r.createdSince = daysSince(r.createdAt)
         r.updatedSince = daysSince(r.updatedAt)
         r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)
-
         r.link = { name: 'Application', params: { id: r.id } }
-
         return r
     })
     return res.data
 }
 
 /**
- * Get a the name and id of of ALL instances within a team regardless of application
- * This function does not include instance status
- * @param {string} teamId The Team ID (hash) to get instance for
- * @see getTeamInstances
- * @returns {[{id: string, name: string, application: {id: string, name: string}}]} An array of objects containing instance summary
  * @deprecated This is a leftover from before the application model was introduced
  */
-const getTeamInstancesList = async (teamId) => {
+const getTeamInstancesList = async (teamId: string) => {
     const res = await client.get(`/api/v1/teams/${teamId}/projects`)
     const list = res.data.projects.map(r => {
         return {
@@ -208,7 +200,7 @@ const getTeamInstancesList = async (teamId) => {
     return list
 }
 
-const getInstances = async (teamId, {
+const getInstances = async (teamId: string, {
     limit = 20,
     includeMeta = false,
     orderByMostRecentFlows = false
@@ -224,13 +216,13 @@ const getInstances = async (teamId, {
         .then(res => res.data)
 }
 
-const getTeamMembers = (teamId) => {
+const getTeamMembers = (teamId: string) => {
     return client.get(`/api/v1/teams/${teamId}/members`).then(res => {
         return res.data
     })
 }
 
-const getTeamInvitations = (teamId) => {
+const getTeamInvitations = (teamId: string) => {
     return client.get(`/api/v1/teams/${teamId}/invitations`).then(res => {
         res.data.invitations = res.data.invitations.map(r => {
             r.roleName = RoleNames[r.role || Roles.Member]
@@ -241,7 +233,8 @@ const getTeamInvitations = (teamId) => {
         return res.data
     })
 }
-const createTeamInvitation = (teamId, userDetails, role) => {
+
+const createTeamInvitation = (teamId: string, userDetails, role) => {
     const opts = {
         user: userDetails,
         role
@@ -256,7 +249,8 @@ const createTeamInvitation = (teamId, userDetails, role) => {
         return res.data
     })
 }
-const removeTeamInvitation = (teamId, inviteId) => {
+
+const removeTeamInvitation = (teamId: string, inviteId: string) => {
     return client.delete(`/api/v1/teams/${teamId}/invitations/${inviteId}`).then(() => {
         product.capture('$ff-invite-removed', {
             'invite-id': inviteId
@@ -265,7 +259,8 @@ const removeTeamInvitation = (teamId, inviteId) => {
         })
     })
 }
-const resendTeamInvitation = (teamId, inviteId) => {
+
+const resendTeamInvitation = (teamId: string, inviteId: string) => {
     return client.post(`/api/v1/teams/${teamId}/invitations/${inviteId}`)
         .then((response) => response.data)
         .then((invitation) => {
@@ -285,7 +280,6 @@ const resendTeamInvitation = (teamId, inviteId) => {
 
 const create = async (options) => {
     return client.post('/api/v1/teams/', options).then(res => {
-        // PostHog Event & Group Capture
         product.capture('$ff-team-created', {
             'team-name': options.name,
             'team-type-id': options.type,
@@ -307,8 +301,8 @@ const create = async (options) => {
     })
 }
 
-const changeTeamMemberRole = (teamId, userId, role = null, permissions = null) => {
-    const opts = {}
+const changeTeamMemberRole = (teamId: string, userId: string, role = null, permissions = null) => {
+    const opts: any = {}
     if (role) {
         opts.role = role
     }
@@ -318,7 +312,7 @@ const changeTeamMemberRole = (teamId, userId, role = null, permissions = null) =
     return client.put(`/api/v1/teams/${teamId}/members/${userId}`, opts)
 }
 
-const removeTeamMember = (teamId, userId) => {
+const removeTeamMember = (teamId: string, userId: string) => {
     return client.delete(`/api/v1/teams/${teamId}/members/${userId}`).then(() => {
         product.capture('$ff-team-member-removed', {
             'member-removed': userId,
@@ -329,26 +323,27 @@ const removeTeamMember = (teamId, userId) => {
     })
 }
 
-const getTeamAuditLog = async (teamId, params, cursor, limit) => {
+const getTeamAuditLog = async (teamId: string, params, cursor, limit) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/audit-log`, cursor, limit)
     return client.get(url, { params }).then(res => res.data)
 }
-const getTeamUserMembership = (teamId) => {
+
+const getTeamUserMembership = (teamId: string) => {
     return client.get(`/api/v1/teams/${teamId}/user`).then(res => res.data)
 }
-const updateTeam = async (teamId, options) => {
+
+const updateTeam = async (teamId: string, options) => {
     return client.put(`/api/v1/teams/${teamId}`, options).then(res => {
         return res.data
     })
 }
 
-const getTeamDevices = async (teamId, cursor, limit, query, extraParams = {}) => {
+const getTeamDevices = async (teamId: string, cursor, limit, query, extraParams = {}): Promise<{ devices: Device[], count: number, meta: { next_cursor?: string } }> => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/devices`, cursor, limit, query, extraParams)
     const res = await client.get(url)
     res.data.devices.forEach(device => {
         device.lastSeenSince = device.lastSeenAt ? daysSince(device.lastSeenAt) : ''
 
-        // TODO: Remove this temporary copy of application over instance
         if (device.project) {
             device.instance = device.project
         }
@@ -356,14 +351,15 @@ const getTeamDevices = async (teamId, cursor, limit, query, extraParams = {}) =>
     return res.data
 }
 
-const getTeamRegistry = async (teamId, cursor, limit) => {
+const getTeamRegistry = async (teamId: string, cursor, limit) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/npm/packages`, cursor, limit)
     const res = await client.get(url)
     return {
         data: res.data
     }
 }
-const generateRegistryUserToken = async (teamId) => {
+
+const generateRegistryUserToken = async (teamId: string) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/npm/userToken`)
     const res = await client.post(url)
     return {
@@ -371,11 +367,10 @@ const generateRegistryUserToken = async (teamId) => {
     }
 }
 
-const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
+const getTeamLibrary = async (teamId: string, parentDir, cursor, limit) => {
     const url = paginateUrl(`/storage/library/${teamId}/${parentDir || ''}`, cursor, limit)
     const res = await client.get(url)
-    const meta = {}
-    // get meta.type from `x-meta-type` header
+    const meta: any = {}
     meta.type = res.headers['x-meta-type']
     return {
         meta,
@@ -383,44 +378,21 @@ const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
     }
 }
 
-/**
- *
- * @param {*} teamId Team ID (hash)
- * @param {*} name Name of file to delete
- * @param {*} type File type e.g. flows/functions filter
- */
-const deleteFromTeamLibrary = async (teamId, name, type = null) => {
+const deleteFromTeamLibrary = async (teamId: string, name: string, type: string | null = null) => {
     let query = ''
     if (type) {
         query = `?type=${type}`
     }
-
     return await client.delete(`/storage/library/${teamId}/${name}${query}`)
 }
 
-/**
- *
- * @param {string} teamId Team ID (hash)
- * @param {*} cursor The next page cursor (not implemented)
- * @param {number} limit The number of results to return (not implemented)
- * @returns { meta: { next_cursor }, tokens: [ { } ] }
- */
-const getTeamDeviceProvisioningTokens = async (teamId, cursor, limit) => {
+const getTeamDeviceProvisioningTokens = async (teamId: string, cursor, limit) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/devices/provisioning`, cursor, limit)
     const res = await client.get(url)
     return res.data
 }
 
-/**
- * Generate an auto provisioning token
- * @param {string} teamId The team ID (hash)
- * @param {object} options
- * @param {string} options.name The name of the token
- * @param {string} [options.project] The project ID (hash)
- * @param {string} [options.expiresAt] The expiry date of the token
- * @returns
- */
-const generateTeamDeviceProvisioningToken = async (teamId, options) => {
+const generateTeamDeviceProvisioningToken = async (teamId: string, options) => {
     options = options || {}
     const { name, application, instance, expiresAt } = options
     return client.post(`/api/v1/teams/${teamId}/devices/provisioning`,
@@ -435,16 +407,7 @@ const generateTeamDeviceProvisioningToken = async (teamId, options) => {
     })
 }
 
-/**
- * Update an auto provisioning token
- * @param {string} teamId The team ID (hash)
- * @param {string} tokenId The token ID (hash)
- * @param {object} options
- * @param {string} [options.instance] The instance ID (hash)
- * @param {string} [options.expiresAt] The expiry date of the token
- * @returns
- */
-const updateTeamDeviceProvisioningToken = async (teamId, tokenId, options) => {
+const updateTeamDeviceProvisioningToken = async (teamId: string, tokenId: string, options) => {
     options = options || {}
     const { application, instance, expiresAt } = options
     return client.put(`/api/v1/teams/${teamId}/devices/provisioning/${tokenId}`,
@@ -458,38 +421,23 @@ const updateTeamDeviceProvisioningToken = async (teamId, tokenId, options) => {
     })
 }
 
-/**
- * Delete a provisioning token
- * @param {string} teamId The team ID (hash)
- * @param {string} tokenId The token ID (hash)
- * @returns
- */
-const deleteTeamDeviceProvisioningToken = async (teamId, tokenId) => {
+const deleteTeamDeviceProvisioningToken = async (teamId: string, tokenId: string) => {
     return await client.delete(`/api/v1/teams/${teamId}/devices/provisioning/${tokenId}`)
 }
 
-/**
- * Bulk delete devices
- * @param {string} teamId - Team ID (hash)
- * @param {Array<string>} devices - Array of device IDs (hash)
- * @returns
- */
-const bulkDeviceDelete = async (teamId, devices) => {
+const bulkDeviceDelete = async (teamId: string, devices: string[]) => {
     return await client.delete(`/api/v1/teams/${teamId}/devices/bulk`, { data: { devices } })
 }
 
-/**
- * Bulk move devices
- * @param {string} teamId - Team ID (hash)
- * @param {Array<string>} devices - Array of device IDs (hash)
- * @param {object} options
- * @param {'instance' | 'application' | 'unassigned'} options.moveTo - Destination to move devices to. Can be 'instance', 'application', or 'unassigned'
- * @param {string} [options.id] - ID (hash) of the destination
- * @returns
- */
-const bulkDeviceMove = async (teamId, devices, moveTo, id = undefined) => {
+
+const bulkDeviceMove = async (
+    teamId: string,
+    devices: string[],
+    moveTo: 'instance' | 'application' | 'unassigned' | 'group',
+    id: string | undefined = undefined
+) => {
     const url = `/api/v1/teams/${teamId}/devices/bulk`
-    const data = { devices }
+    const data: any = { devices }
     if (moveTo === 'instance') {
         data.instance = id
     } else if (moveTo === 'application') {
@@ -512,39 +460,36 @@ const bulkDeviceMove = async (teamId, devices, moveTo, id = undefined) => {
     return res.data
 }
 
-// NOLEY DEMO STEP 3
-// 1. Enums for moveTo with group.
+// NOLEY DEMO STEP 3 
+// 1. Enums for moveTo with group. 
+// 2. Type checking within the fn for moveTo 
 // const thingIWant = await bulkDeviceMove('123', ['device1', 'device2'], 'unicorns', 'instanceId123')
 // const thingIWant2 = await bulkDeviceMove('123', ['device1', 'device2'], 'instance', 'instanceId123')
 
-/**
- * Get a list of Dependencies / Bill of Materials
- * @param teamId
- * @returns {Promise<axios.AxiosResponse<any>>}
- */
-const getDependencies = (teamId) => {
+const getDependencies = (teamId: string) => {
     return client.get(`/api/v1/teams/${teamId}/bom`)
         .then(res => res.data)
 }
 
-const getTeamDeviceGroups = (teamId) => {
+const getTeamDeviceGroups = (teamId: string) => {
     return client.get(`/api/v1/teams/${teamId}/device-groups`)
         .then(res => res.data)
 }
 
-const getGitTokens = async (teamId, cursor) => {
+const getGitTokens = async (teamId: string, cursor?) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/git/tokens`, cursor)
     return client.get(url).then(res => res.data)
 }
 
-const createGitToken = async (teamId, token) => {
+const createGitToken = async (teamId: string, token) => {
     return client.post(`/api/v1/teams/${teamId}/git/tokens`, token).then(res => res.data)
 }
-const deleteGitToken = async (teamId, tokenId) => {
+
+const deleteGitToken = async (teamId: string, tokenId: string) => {
     return client.delete(`/api/v1/teams/${teamId}/git/tokens/${tokenId}`)
 }
 
-const getTeamInstanceCounts = async (teamId, states, type, applicationId = null) => {
+const getTeamInstanceCounts = async (teamId: string, states: string[], type: string, applicationId: string | null = null) => {
     const params = new URLSearchParams()
     states.forEach(state => params.append('state', state))
     params.append('instanceType', type)
@@ -556,10 +501,6 @@ const getTeamInstanceCounts = async (teamId, states, type, applicationId = null)
         .then(res => res.data)
 }
 
-/**
- * Calls api routes in team.js
- * See [routes/api/team.js](../../../forge/routes/api/team.js)
-*/
 export default {
     create,
     getTeam,
