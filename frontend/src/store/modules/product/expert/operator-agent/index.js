@@ -17,12 +17,7 @@ const initialState = () => ({
 })
 
 const meta = {
-    persistence: {
-        sessionId: {
-            storage: 'localStorage',
-            clearOnLogout: true
-        }
-    }
+    persistence: { }
 }
 
 const state = initialState
