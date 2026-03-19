@@ -12,34 +12,27 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
+
+import { FF_AGENT, OPERATOR_AGENT } from '@/stores/product-expert-agents.js'
+
+import { useProductExpertStore } from '@/stores/product-expert.js'
+
 export default {
-    name: 'ExpertLoadingDots',
-    props: {
-        variant: {
-            type: String,
-            default: 'default',
-            validator: (value) => ['default', 'transfer', 'insights'].includes(value)
-        }
-    },
+    name: 'ExpertLoadingIndicator',
     data () {
         return {
             showMessage: false,
             currentMessageIndex: 0,
             messageVariants: {
-                default: [
+                [FF_AGENT]: [
                     'Ingesting the docs...',
                     'Reading the blog...',
                     'Searching through FlowFuse knowledge base',
                     'Analyzing your question...',
                     'Finding the best answer...'
                 ],
-                transfer: [
-                    'Catching up with new context...',
-                    'Syncing your conversation...',
-                    'Loading existing history...',
-                    'Preparing your chat...'
-                ],
-                insights: [
+                [OPERATOR_AGENT]: [
                     'Connecting to MCP resources...',
                     'Querying your Node-RED instances...',
                     'Instructing MCP tooling...',
@@ -47,6 +40,12 @@ export default {
                     'Gathering insights...',
                     'Considering instructions...',
                     'Processing user response...'
+                ],
+                transfer: [
+                    'Catching up with new context...',
+                    'Syncing your conversation...',
+                    'Loading existing history...',
+                    'Preparing your chat...'
                 ]
             },
             messageTimer: null,
@@ -54,8 +53,9 @@ export default {
         }
     },
     computed: {
+        ...mapState(useProductExpertStore, ['loadingVariant']),
         messages () {
-            return this.messageVariants[this.variant]
+            return this.messageVariants[this.loadingVariant]
         },
         currentMessage () {
             return this.messages[this.currentMessageIndex]

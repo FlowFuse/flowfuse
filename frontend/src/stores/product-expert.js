@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { markRaw } from 'vue'
 
 import expertApi from '../api/expert.js'
-import useTimerHelper from '../composables/TimersHelper.js'
+import useTimerHelper from '../composables/TimerHelper.js'
 
 import { useAccountBridge } from './_account_bridge.js'
 import { useContextStore } from './context.js'
@@ -17,12 +17,9 @@ export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
         shouldWakeUpAssistant: false,
         agentMode: FF_AGENT,
-        isGenerating: false,
         autoScrollEnabled: true,
         abortController: null,
-        streamingWordIndex: -1,
-        streamingWords: [],
-        streamingTimer: null
+        loadingVariant: FF_AGENT
     }),
     getters: {
         // Helper to get the current agent store — used by all message/session getters
@@ -33,12 +30,13 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         messages () { return this._agentStore.messages },
         hasMessages () { return this._agentStore.messages.length > 0 },
-        hasUserMessages () { return this._agentStore.messages.some(m => m.type === 'human') },
+        hasUserMessages () { return this._agentStore.messages.some(m => m._type === 'human') },
         lastMessage () {
             const msgs = this._agentStore.messages
             return msgs.length > 0 ? msgs[msgs.length - 1] : null
         },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
+        isWaitingForResponse: (state) => !!state.abortController,
         isFfAgent: (state) => state.agentMode === FF_AGENT,
         isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT,
         hasSelectedCapabilities () {
@@ -89,31 +87,22 @@ export const useProductExpertStore = defineStore('product-expert', {
             //  https://github.com/FlowFuse/flowfuse/issues/6519 as it's a hacky workaround to the expert drawer opening up
             //  before we have a team loaded
             const { waitWhile } = useTimerHelper()
-            const { team } = useAccountBridge()
             await waitWhile(() => !useAccountBridge().team, { cutoffTries: 60 })
 
             const agentStore = this._agentStore
-            return expertApi
-                .chat({
+            const { team } = useAccountBridge()
+
+            this.abortController = markRaw(new AbortController())
+            try {
+                const response = await expertApi.chat({
                     history: agentStore.context,
                     context: { teamId: team.id },
                     sessionId: agentStore.sessionId
                 })
-                .then((response) => {
-                    return this.removeLoadingIndicator().then
-                        ? this.removeLoadingIndicator().then(() =>
-                            this.handleMessageResponse({
-                                success: true,
-                                answer: response.answer || []
-                            })
-                        )
-                        : Promise.resolve(this.removeLoadingIndicator()).then(() =>
-                            this.handleMessageResponse({
-                                success: true,
-                                answer: response.answer || []
-                            })
-                        )
-                })
+                this.addAiMessage({ answer: response.answer || [] })
+            } finally {
+                this.abortController = null
+            }
         },
 
         wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
@@ -124,18 +113,15 @@ export const useProductExpertStore = defineStore('product-expert', {
                     this.hydrateMessages(this._agentStore.context)
                 }
 
-                this._agentStore.messages.push({
-                    type: 'loading',
-                    variant: 'transfer',
-                    timestamp: Date.now()
-                })
+                this.loadingVariant = 'transfer'
 
                 return this.openAssistantDrawer()
                     .then(() => this.hydrateClient())
+                    .then(() => { this.loadingVariant = this.agentMode })
             }
         },
 
-        async handleMessage ({ query }) {
+        async handleQuery ({ query }) {
             const agentStore = this._agentStore
 
             if (!agentStore.sessionId) {
@@ -146,164 +132,34 @@ export const useProductExpertStore = defineStore('product-expert', {
                 this.startSessionTimer()
             }
 
-            agentStore.messages.push({
-                type: 'human',
-                content: query,
-                timestamp: Date.now()
-            })
+            this.addUserMessage(query)
 
-            agentStore.messages.push({
-                type: 'loading',
-                variant: this.agentMode === OPERATOR_AGENT ? 'insights' : 'default',
-                timestamp: Date.now()
-            })
-
-            this.isGenerating = true
             this.abortController = markRaw(new AbortController())
 
             try {
-                const response = await this.sendQuery({ query })
-
-                if (this.agentMode === OPERATOR_AGENT) {
-                    await new Promise(resolve => setTimeout(resolve, 8000))
-                }
-
-                this.removeLoadingIndicator()
-
-                return {
-                    success: true,
-                    answer: response.answer || []
-                }
+                return await this.sendQuery({ query })
             } catch (error) {
-                this.removeLoadingIndicator()
-
                 if (error.name === 'AbortError' || error.name === 'CanceledError') {
-                    agentStore.messages.push({
-                        type: 'ai',
-                        content: 'Generation stopped.',
-                        timestamp: Date.now()
-                    })
+                    this.addPredefinedAiMessage('Generation stopped.')
                 } else {
                     console.error('Expert API error:', error)
-                    agentStore.messages.push({
-                        type: 'ai',
-                        content: 'Sorry, I encountered an error. Please try again.',
-                        timestamp: Date.now()
-                    })
+                    this.addPredefinedAiMessage('Sorry, I encountered an error. Please try again.')
                 }
-
-                return { success: false, error }
             } finally {
-                this.isGenerating = false
                 this.abortController = null
-                this.removeLoadingIndicator()
             }
         },
 
         async handleMessageResponse (response) {
-            if (response.success && response.answer && Array.isArray(response.answer)) {
-                const operatorStore = useProductExpertOperatorAgentStore()
-                const isOperatorWithCapabilities =
-                    this.agentMode === OPERATOR_AGENT &&
-                    operatorStore.selectedCapabilities?.length > 0
-
-                const mcpItems = response.answer.filter(item =>
-                    item.kind === 'mcp_tool' ||
-                    item.kind === 'mcp_resource' ||
-                    item.kind === 'mcp_resource_template' ||
-                    item.kind === 'mcp_prompt'
-                )
-
-                if (isOperatorWithCapabilities && mcpItems.length > 0) {
-                    const toolCalls = mcpItems.map(item => ({
-                        id: item.toolId,
-                        name: item.toolName,
-                        title: item.toolTitle || item.toolName,
-                        kind: item.kind,
-                        args: item.input,
-                        output: item.output,
-                        durationMs: item.durationMs
-                    }))
-
-                    const totalDurationMs = mcpItems.reduce((sum, item) => sum + (item.durationMs || 0), 0)
-                    const totalDurationSec = (totalDurationMs / 1000).toFixed(2)
-
-                    this._agentStore.messages.push({
-                        type: 'ai',
-                        kind: 'tool_calls',
-                        toolCalls,
-                        duration: totalDurationSec,
-                        content: `${toolCalls.length} tool call(s)`,
-                        timestamp: Date.now()
-                    })
-                }
-
-                const hasFlows = response.answer.some(item =>
-                    item.flows && Array.isArray(item.flows) && item.flows.length > 0
-                )
-
-                for (const item of response.answer) {
-                    if (item.kind === 'guide') {
-                        this._agentStore.messages.push({
-                            type: 'ai',
-                            kind: 'guide',
-                            guide: item,
-                            content: item.title || 'Setup Guide',
-                            timestamp: Date.now()
-                        })
-                    } else if (item.kind === 'resources') {
-                        this._agentStore.messages.push({
-                            type: 'ai',
-                            kind: 'resources',
-                            resources: item,
-                            content: item.title || 'Resources',
-                            timestamp: Date.now()
-                        })
-                    } else if (item.kind === 'chat' && ((Array.isArray(item.issues) && item.issues.length > 0) || (Array.isArray(item.suggestions) && item.suggestions.length > 0))) {
-                        this._agentStore.messages.push({
-                            type: 'ai',
-                            kind: 'chat',
-                            resources: item,
-                            content: item.content || 'Response',
-                            timestamp: Date.now()
-                        })
-                    } else if (item.kind === 'chat') {
-                        await this.streamMessage(item.content)
-                    }
-                }
-
-                if (hasFlows) {
-                    useUxDrawersStore().setRightDrawerWider(true)
-                }
-            } else if (response.success && (!response.answer || !Array.isArray(response.answer))) {
-                this._agentStore.messages.push({
-                    type: 'ai',
-                    content: 'Sorry, I received an unexpected response format.',
-                    timestamp: Date.now()
-                })
+            if (response && response.answer && Array.isArray(response.answer)) {
+                this.addAiMessage(response)
             }
-        },
-
-        addMessage (message) {
-            this._agentStore.messages.push(message)
-        },
-
-        updateLastMessage (content) {
-            const msgs = this._agentStore.messages
-            if (msgs.length > 0) {
-                msgs[msgs.length - 1].content = content
-            }
-        },
-
-        clearConversation () {
-            this._agentStore.messages = []
         },
 
         async startOver () {
             const agentStore = this._agentStore
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
-            this.isGenerating = false
 
             this.resetSessionTimer()
             this.startSessionTimer()
@@ -314,8 +170,6 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             this.addWelcomeMessageIfNeeded()
         },
-
-        setGenerating (isGenerating) { this.isGenerating = isGenerating },
 
         setAutoScroll (enabled) { this.autoScrollEnabled = enabled },
 
@@ -387,136 +241,11 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             if (message) {
-                this.streamMessage(message)
+                this.addPredefinedAiMessage(message)
             }
         },
 
         setAssistantWakeUp (shouldWakeUp) { this.shouldWakeUpAssistant = shouldWakeUp },
-
-        async streamMessage (content) {
-            const words = content.split(' ')
-            this.streamingWords = words
-            this.streamingWordIndex = 0
-
-            this._agentStore.messages.push({
-                type: 'ai',
-                content: '',
-                isStreaming: true,
-                timestamp: Date.now()
-            })
-
-            return new Promise((resolve) => {
-                const streamNextWord = () => {
-                    if (this.streamingWordIndex >= this.streamingWords.length) {
-                        const lastMsg = this.lastMessage
-                        if (lastMsg) {
-                            lastMsg.isStreaming = false
-                        }
-                        this.streamingWordIndex = -1
-                        this.streamingWords = []
-                        resolve()
-                        return
-                    }
-
-                    const word = this.streamingWords[this.streamingWordIndex]
-                    const currentContent = this.lastMessage?.content || ''
-                    const newContent = currentContent + (currentContent ? ' ' : '') + word
-
-                    this.updateLastMessage(newContent)
-                    this.streamingWordIndex++
-
-                    this.streamingTimer = markRaw(setTimeout(streamNextWord, 30))
-                }
-
-                streamNextWord()
-            })
-        },
-
-        clearStreamingTimer () {
-            clearTimeout(this.streamingTimer)
-            this.streamingTimer = null
-        },
-
-        setStreamingWordIndex (index) { this.streamingWordIndex = index },
-
-        setStreamingWords (words) { this.streamingWords = words },
-
-        removeLoadingIndicator () {
-            const msgs = this._agentStore.messages
-            const loadingIndex = msgs.findIndex(m => m.type === 'loading')
-            if (loadingIndex !== -1) {
-                msgs.splice(loadingIndex, 1)
-            }
-        },
-
-        hydrateMessages (messages) {
-            if (!messages) return
-            messages.forEach((message) => {
-                if (message.answer && Array.isArray(message.answer)) {
-                    const mcpItems = message.answer.filter(item =>
-                        item.kind === 'mcp_tool' ||
-                        item.kind === 'mcp_resource' ||
-                        item.kind === 'mcp_resource_template' ||
-                        item.kind === 'mcp_prompt'
-                    )
-
-                    if (mcpItems.length > 0) {
-                        const toolCalls = mcpItems.map(item => ({
-                            id: item.toolId,
-                            name: item.toolName,
-                            title: item.toolTitle || item.toolName,
-                            kind: item.kind,
-                            args: item.input,
-                            output: item.output,
-                            durationMs: item.durationMs
-                        }))
-                        const totalDurationMs = mcpItems.reduce((sum, item) => sum + (item.durationMs || 0), 0)
-                        const totalDurationSec = (totalDurationMs / 1000).toFixed(2)
-
-                        this._agentStore.messages.push({
-                            type: 'ai',
-                            kind: 'tool_calls',
-                            toolCalls,
-                            duration: totalDurationSec,
-                            content: `${toolCalls.length} tool call(s)`,
-                            timestamp: Date.now()
-                        })
-                    }
-
-                    message.answer.forEach((item) => {
-                        if (item.kind === 'guide') {
-                            this._agentStore.messages.push({
-                                type: 'ai',
-                                kind: 'guide',
-                                guide: item,
-                                content: item.title || 'Setup Guide',
-                                timestamp: Date.now()
-                            })
-                        } else if (item.kind === 'resources') {
-                            this._agentStore.messages.push({
-                                type: 'ai',
-                                kind: 'resources',
-                                resources: item,
-                                content: item.title || 'Resources',
-                                timestamp: Date.now()
-                            })
-                        } else if (item.kind === 'chat') {
-                            this._agentStore.messages.push({
-                                type: 'ai',
-                                content: item.content,
-                                timestamp: Date.now()
-                            })
-                        }
-                    })
-                } else if (message.query) {
-                    this._agentStore.messages.push({
-                        type: 'human',
-                        content: message.query,
-                        timestamp: Date.now()
-                    })
-                }
-            })
-        },
 
         removeMessageByIndex (index) {
             this._agentStore.messages.splice(index, 1)
@@ -540,21 +269,17 @@ export const useProductExpertStore = defineStore('product-expert', {
 
                 if (elapsed >= warningThreshold && !agentStore.sessionWarningShown) {
                     agentStore.sessionWarningShown = true
-                    agentStore.messages.push({
-                        type: 'system',
-                        variant: 'warning',
-                        content: 'Your conversation history will expire soon. You can start a new conversation when this one expires.',
-                        timestamp: Date.now()
+                    this.addSystemMessage({
+                        message: 'Your conversation history will expire soon. You can start a new conversation when this one expires.',
+                        type: 'warning'
                     })
                 }
 
                 if (elapsed >= expirationThreshold && !agentStore.sessionExpiredShown) {
                     agentStore.sessionExpiredShown = true
-                    agentStore.messages.push({
-                        type: 'system',
-                        variant: 'expired',
-                        content: 'Your conversation history has expired. Chat is now disabled. Click "Start Over" to begin a new conversation.',
-                        timestamp: Date.now()
+                    this.addSystemMessage({
+                        message: 'Your conversation history has expired. Chat is now disabled. Click "Start Over" to begin a new conversation.',
+                        type: 'expired'
                     })
                 }
             }, 30000)
@@ -576,6 +301,99 @@ export const useProductExpertStore = defineStore('product-expert', {
         setAgentMode (mode) {
             if (![OPERATOR_AGENT, FF_AGENT].includes(mode)) return
             this.agentMode = mode
+        },
+
+        // Message helper actions
+        addSystemMessage ({ message = '', type = 'warning' }) {
+            if (!['warning', 'expired'].includes(type) || !message.length) return
+            this._agentStore.messages.push({
+                _type: 'system',
+                _variant: type,
+                message,
+                _timestamp: Date.now(),
+                _uuid: uuidv4()
+            })
+        },
+
+        addPredefinedAiMessage (message) {
+            this._agentStore.messages.push({
+                _type: 'ai',
+                answer: [{ content: message, _streamed: false, _uuid: uuidv4() }],
+                _timestamp: Date.now(),
+                _streamed: false,
+                _uuid: uuidv4()
+            })
+        },
+
+        addAiMessage (message) {
+            const answer = message.answer
+                ? message.answer.map(a => ({ ...a, _uuid: uuidv4(), _streamed: false }))
+                : []
+            this._agentStore.messages.push({
+                ...message,
+                answer,
+                _type: 'ai',
+                _timestamp: Date.now(),
+                _streamed: false,
+                _uuid: uuidv4()
+            })
+        },
+
+        addUserMessage (message) {
+            this._agentStore.messages.push({
+                _type: 'human',
+                content: message,
+                _timestamp: Date.now(),
+                _uuid: uuidv4()
+            })
+        },
+
+        updateMessageStreamedState (uuid) {
+            // searches in both message caches to avoid race conditions
+            let message = useProductExpertFfAgentStore().messages.find(m => m._uuid === uuid)
+            if (!message) {
+                message = useProductExpertOperatorAgentStore().messages.find(m => m._uuid === uuid)
+            }
+            if (message) {
+                message._streamed = true
+            }
+        },
+
+        updateAnswerStreamedState ({ messageUuid, answerUuid }) {
+            // searches in both message caches to avoid race conditions
+            let message = useProductExpertFfAgentStore().messages.find(m => m._uuid === messageUuid)
+            if (!message) {
+                message = useProductExpertOperatorAgentStore().messages.find(m => m._uuid === messageUuid)
+            }
+            if (message) {
+                const answer = message.answer?.find(a => a._uuid === answerUuid)
+                if (answer) {
+                    answer._streamed = true
+                }
+            }
+        },
+
+        hydrateMessages (messages) {
+            if (!messages) return
+            messages.forEach((message) => {
+                if (message.answer && Array.isArray(message.answer)) {
+                    this._agentStore.messages.push({
+                        ...message,
+                        answer: message.answer.map(a => ({ ...a, _uuid: uuidv4(), _streamed: true })),
+                        _type: 'ai',
+                        _timestamp: Date.now(),
+                        _streamed: true,
+                        _uuid: uuidv4()
+                    })
+                } else if (message.query) {
+                    this._agentStore.messages.push({
+                        _type: 'human',
+                        content: message.query,
+                        _timestamp: Date.now(),
+                        _uuid: uuidv4()
+                    })
+                }
+            })
         }
     },
     persist: {

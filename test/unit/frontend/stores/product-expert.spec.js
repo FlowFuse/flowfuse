@@ -50,9 +50,9 @@ describe('product-expert store', () => {
             expect(store.agentMode).toBe(FF_AGENT)
         })
 
-        it('has isGenerating false', () => {
+        it('has loadingVariant equal to FF_AGENT', () => {
             const store = useProductExpertStore()
-            expect(store.isGenerating).toBe(false)
+            expect(store.loadingVariant).toBe(FF_AGENT)
         })
 
         it('has autoScrollEnabled true', () => {
@@ -87,6 +87,19 @@ describe('product-expert store', () => {
         })
     })
 
+    describe('isWaitingForResponse getter', () => {
+        it('is false when abortController is null', () => {
+            const store = useProductExpertStore()
+            expect(store.isWaitingForResponse).toBe(false)
+        })
+
+        it('is true when abortController is set', () => {
+            const store = useProductExpertStore()
+            store.abortController = new AbortController()
+            expect(store.isWaitingForResponse).toBe(true)
+        })
+    })
+
     describe('messages getters', () => {
         it('hasMessages is false when agent store has no messages', () => {
             const store = useProductExpertStore()
@@ -95,26 +108,26 @@ describe('product-expert store', () => {
 
         it('hasMessages is true when agent store has messages', () => {
             const store = useProductExpertStore()
-            useProductExpertFfAgentStore().messages.push({ type: 'human', content: 'hello' })
+            useProductExpertFfAgentStore().messages.push({ _type: 'human', content: 'hello' })
             expect(store.hasMessages).toBe(true)
         })
 
         it('hasUserMessages is true when human message exists', () => {
             const store = useProductExpertStore()
-            useProductExpertFfAgentStore().messages.push({ type: 'human', content: 'hi' })
+            useProductExpertFfAgentStore().messages.push({ _type: 'human', content: 'hi' })
             expect(store.hasUserMessages).toBe(true)
         })
 
         it('hasUserMessages is false when only ai messages exist', () => {
             const store = useProductExpertStore()
-            useProductExpertFfAgentStore().messages.push({ type: 'ai', content: 'hello' })
+            useProductExpertFfAgentStore().messages.push({ _type: 'ai', content: 'hello' })
             expect(store.hasUserMessages).toBe(false)
         })
 
         it('lastMessage returns the last message', () => {
             const store = useProductExpertStore()
-            const msg1 = { type: 'human', content: 'hi' }
-            const msg2 = { type: 'ai', content: 'hello' }
+            const msg1 = { _type: 'human', content: 'hi' }
+            const msg2 = { _type: 'ai', content: 'hello' }
             useProductExpertFfAgentStore().messages.push(msg1, msg2)
             expect(store.lastMessage).toEqual(msg2)
         })
@@ -180,54 +193,117 @@ describe('product-expert store', () => {
         })
     })
 
-    describe('addMessage', () => {
-        it('pushes a message to the active agent store', () => {
+    describe('addUserMessage', () => {
+        it('pushes a human message with correct format', () => {
             const store = useProductExpertStore()
-            store.addMessage({ type: 'ai', content: 'Hello' })
-            expect(useProductExpertFfAgentStore().messages).toHaveLength(1)
-            expect(useProductExpertFfAgentStore().messages[0].content).toBe('Hello')
+            store.addUserMessage('hello')
+            const messages = useProductExpertFfAgentStore().messages
+            expect(messages).toHaveLength(1)
+            expect(messages[0]._type).toBe('human')
+            expect(messages[0].content).toBe('hello')
+            expect(messages[0]._uuid).toBeDefined()
+            expect(messages[0]._timestamp).toBeDefined()
         })
     })
 
-    describe('updateLastMessage', () => {
-        it('updates the content of the last message', () => {
+    describe('addAiMessage', () => {
+        it('pushes an ai message with mapped answer array', () => {
             const store = useProductExpertStore()
-            useProductExpertFfAgentStore().messages.push({ type: 'ai', content: 'old' })
-            store.updateLastMessage('new content')
-            expect(store.lastMessage.content).toBe('new content')
+            store.addAiMessage({ answer: [{ kind: 'chat', content: 'hi' }] })
+            const messages = useProductExpertFfAgentStore().messages
+            expect(messages).toHaveLength(1)
+            expect(messages[0]._type).toBe('ai')
+            expect(messages[0]._streamed).toBe(false)
+            expect(messages[0]._uuid).toBeDefined()
+            expect(messages[0].answer).toHaveLength(1)
+            expect(messages[0].answer[0].content).toBe('hi')
+            expect(messages[0].answer[0]._uuid).toBeDefined()
+            expect(messages[0].answer[0]._streamed).toBe(false)
         })
 
-        it('does nothing when there are no messages', () => {
+        it('uses an empty answer array when answer is absent', () => {
             const store = useProductExpertStore()
-            expect(() => store.updateLastMessage('anything')).not.toThrow()
+            store.addAiMessage({})
+            expect(useProductExpertFfAgentStore().messages[0].answer).toEqual([])
         })
     })
 
-    describe('clearConversation', () => {
-        it('empties the messages array', () => {
+    describe('addPredefinedAiMessage', () => {
+        it('pushes an ai message with a single-item answer array', () => {
             const store = useProductExpertStore()
-            useProductExpertFfAgentStore().messages.push({ type: 'human', content: 'hi' })
-            store.clearConversation()
-            expect(store.messages).toHaveLength(0)
+            store.addPredefinedAiMessage('Generation stopped.')
+            const messages = useProductExpertFfAgentStore().messages
+            expect(messages).toHaveLength(1)
+            expect(messages[0]._type).toBe('ai')
+            expect(messages[0]._streamed).toBe(false)
+            expect(messages[0].answer).toHaveLength(1)
+            expect(messages[0].answer[0].content).toBe('Generation stopped.')
+            expect(messages[0].answer[0]._streamed).toBe(false)
+            expect(messages[0].answer[0]._uuid).toBeDefined()
         })
     })
 
-    describe('removeLoadingIndicator', () => {
-        it('removes the loading message', () => {
+    describe('addSystemMessage', () => {
+        it('pushes a system message with correct format', () => {
             const store = useProductExpertStore()
-            const ffAgent = useProductExpertFfAgentStore()
-            ffAgent.messages.push({ type: 'human', content: 'hi' })
-            ffAgent.messages.push({ type: 'loading' })
-            store.removeLoadingIndicator()
-            expect(store.messages).toHaveLength(1)
-            expect(store.messages[0].type).toBe('human')
+            store.addSystemMessage({ message: 'Session expiring soon.', type: 'warning' })
+            const messages = useProductExpertFfAgentStore().messages
+            expect(messages).toHaveLength(1)
+            expect(messages[0]._type).toBe('system')
+            expect(messages[0]._variant).toBe('warning')
+            expect(messages[0].message).toBe('Session expiring soon.')
+            expect(messages[0]._uuid).toBeDefined()
+            expect(messages[0]._timestamp).toBeDefined()
         })
 
-        it('does nothing when no loading message exists', () => {
+        it('does not push when type is invalid', () => {
             const store = useProductExpertStore()
-            useProductExpertFfAgentStore().messages.push({ type: 'human', content: 'hi' })
-            expect(() => store.removeLoadingIndicator()).not.toThrow()
-            expect(store.messages).toHaveLength(1)
+            store.addSystemMessage({ message: 'Something', type: 'invalid' })
+            expect(useProductExpertFfAgentStore().messages).toHaveLength(0)
+        })
+
+        it('does not push when message is empty', () => {
+            const store = useProductExpertStore()
+            store.addSystemMessage({ message: '', type: 'warning' })
+            expect(useProductExpertFfAgentStore().messages).toHaveLength(0)
+        })
+    })
+
+    describe('updateMessageStreamedState', () => {
+        it('marks a message as streamed by uuid', () => {
+            const store = useProductExpertStore()
+            store.addPredefinedAiMessage('hello')
+            const msg = useProductExpertFfAgentStore().messages[0]
+            expect(msg._streamed).toBe(false)
+            store.updateMessageStreamedState(msg._uuid)
+            expect(msg._streamed).toBe(true)
+        })
+
+        it('searches operator-agent messages if not found in ff-agent', () => {
+            const store = useProductExpertStore()
+            store.agentMode = OPERATOR_AGENT
+            store.addPredefinedAiMessage('hello')
+            const msg = useProductExpertOperatorAgentStore().messages[0]
+            store.agentMode = FF_AGENT // switch back, message is still in operator-agent
+            store.updateMessageStreamedState(msg._uuid)
+            expect(msg._streamed).toBe(true)
+        })
+    })
+
+    describe('updateAnswerStreamedState', () => {
+        it('marks a specific answer item as streamed', () => {
+            const store = useProductExpertStore()
+            store.addAiMessage({ answer: [{ kind: 'chat', content: 'hi' }] })
+            const msg = useProductExpertFfAgentStore().messages[0]
+            const answer = msg.answer[0]
+            expect(answer._streamed).toBe(false)
+            store.updateAnswerStreamedState({ messageUuid: msg._uuid, answerUuid: answer._uuid })
+            expect(answer._streamed).toBe(true)
+        })
+
+        it('does nothing when the message uuid is not found', () => {
+            const store = useProductExpertStore()
+            expect(() => store.updateAnswerStreamedState({ messageUuid: 'nope', answerUuid: 'nope' })).not.toThrow()
         })
     })
 
@@ -235,15 +311,15 @@ describe('product-expert store', () => {
         it('calls reset on the active agent store and resets own state', () => {
             const store = useProductExpertStore()
             const ffAgent = useProductExpertFfAgentStore()
-            ffAgent.messages.push({ type: 'human', content: 'hi' })
-            store.isGenerating = true
+            store.addUserMessage('hi')
             store.autoScrollEnabled = false
+            store.loadingVariant = 'transfer'
 
             store.reset()
 
             expect(ffAgent.messages).toHaveLength(0)
-            expect(store.isGenerating).toBe(false)
             expect(store.autoScrollEnabled).toBe(true)
+            expect(store.loadingVariant).toBe(FF_AGENT)
         })
     })
 })

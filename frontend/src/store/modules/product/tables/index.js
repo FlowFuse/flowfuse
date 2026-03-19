@@ -1,5 +1,5 @@
 import tablesApi from '../../../../api/tables.js'
-import { hashString } from '../../../../composables/String.js'
+import { hashString } from '../../../../composables/strings/String.js'
 const emptyColumn = {
     name: '',
     type: '',
