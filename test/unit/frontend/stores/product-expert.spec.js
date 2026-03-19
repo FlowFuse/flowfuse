@@ -55,11 +55,6 @@ describe('product-expert store', () => {
             expect(store.loadingVariant).toBe(FF_AGENT)
         })
 
-        it('has autoScrollEnabled true', () => {
-            const store = useProductExpertStore()
-            expect(store.autoScrollEnabled).toBe(true)
-        })
-
         it('has null abortController', () => {
             const store = useProductExpertStore()
             expect(store.abortController).toBeNull()
@@ -95,7 +90,7 @@ describe('product-expert store', () => {
 
         it('is true when abortController is set', () => {
             const store = useProductExpertStore()
-            store.abortController = new AbortController()
+            store.setAbortController(new AbortController())
             expect(store.isWaitingForResponse).toBe(true)
         })
     })
@@ -168,28 +163,18 @@ describe('product-expert store', () => {
     })
 
     describe('setAbortController', () => {
-        it('stores the controller', () => {
+        it('stores the controller on the active agent store', () => {
             const store = useProductExpertStore()
             const controller = new AbortController()
             store.setAbortController(controller)
-            expect(store.abortController).toBe(controller)
+            expect(useProductExpertFfAgentStore().abortController).toBe(controller)
         })
 
         it('clears the controller when passed null', () => {
             const store = useProductExpertStore()
             store.setAbortController(new AbortController())
             store.setAbortController(null)
-            expect(store.abortController).toBeNull()
-        })
-    })
-
-    describe('setAutoScroll', () => {
-        it('sets autoScrollEnabled', () => {
-            const store = useProductExpertStore()
-            store.setAutoScroll(false)
-            expect(store.autoScrollEnabled).toBe(false)
-            store.setAutoScroll(true)
-            expect(store.autoScrollEnabled).toBe(true)
+            expect(useProductExpertFfAgentStore().abortController).toBeNull()
         })
     })
 
@@ -312,13 +297,11 @@ describe('product-expert store', () => {
             const store = useProductExpertStore()
             const ffAgent = useProductExpertFfAgentStore()
             store.addUserMessage('hi')
-            store.autoScrollEnabled = false
             store.loadingVariant = 'transfer'
 
             store.reset()
 
             expect(ffAgent.messages).toHaveLength(0)
-            expect(store.autoScrollEnabled).toBe(true)
             expect(store.loadingVariant).toBe(FF_AGENT)
         })
     })

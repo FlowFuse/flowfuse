@@ -102,9 +102,9 @@ export default {
             immediate: true,
             async handler () {
                 if (this.isOperatorAgent) {
-                    await useProductExpertOperatorAgentStore().getCapabilities()
+                    await this.getCapabilities()
                 }
-                await useProductExpertStore().addWelcomeMessageIfNeeded()
+                this.addWelcomeMessageIfNeeded()
             }
         },
         'instance.meta.state': {
@@ -127,7 +127,7 @@ export default {
         if (this.isEditorContext) {
             // Delay to ensure drawer is open and visible before typing animation starts
             setTimeout(() => {
-                useProductExpertStore().addWelcomeMessageIfNeeded()
+                this.addWelcomeMessageIfNeeded()
             }, 1000)
         }
     },
@@ -142,8 +142,10 @@ export default {
         ...mapActions(useProductExpertStore, [
             'setAgentMode',
             'setAbortController',
-            'resetSessionTimer'
+            'resetSessionTimer',
+            'addWelcomeMessageIfNeeded'
         ]),
+        ...mapActions(useProductExpertOperatorAgentStore, ['getCapabilities']),
         ...mapActions(useProductAssistantStore, ['reset']),
         handleStopGeneration () {
             if (this.abortController) {

@@ -17,17 +17,15 @@ export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
         shouldWakeUpAssistant: false,
         agentMode: FF_AGENT,
-        autoScrollEnabled: true,
-        abortController: null,
         loadingVariant: FF_AGENT
     }),
     getters: {
-        // Helper to get the current agent store — used by all message/session getters
         _agentStore () {
             return this.agentMode === FF_AGENT
                 ? useProductExpertFfAgentStore()
                 : useProductExpertOperatorAgentStore()
         },
+        abortController () { return this._agentStore.abortController },
         messages () { return this._agentStore.messages },
         hasMessages () { return this._agentStore.messages.length > 0 },
         hasUserMessages () { return this._agentStore.messages.some(m => m._type === 'human') },
@@ -36,7 +34,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             return msgs.length > 0 ? msgs[msgs.length - 1] : null
         },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
-        isWaitingForResponse: (state) => !!state.abortController,
+        isWaitingForResponse () { return !!this._agentStore.abortController },
         isFfAgent: (state) => state.agentMode === FF_AGENT,
         isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT,
         hasSelectedCapabilities () {
@@ -92,17 +90,18 @@ export const useProductExpertStore = defineStore('product-expert', {
             const agentStore = this._agentStore
             const { team } = useAccountBridge()
 
-            this.abortController = markRaw(new AbortController())
-            try {
-                const response = await expertApi.chat({
+            return expertApi
+                .chat({
                     history: agentStore.context,
                     context: { teamId: team.id },
                     sessionId: agentStore.sessionId
                 })
-                this.addAiMessage({ answer: response.answer || [] })
-            } finally {
-                this.abortController = null
-            }
+                .then((response) => {
+                    return this.handleMessageResponse({
+                        success: true,
+                        answer: response.answer || []
+                    })
+                })
         },
 
         wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
@@ -134,7 +133,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             this.addUserMessage(query)
 
-            this.abortController = markRaw(new AbortController())
+            agentStore.abortController = markRaw(new AbortController())
 
             try {
                 return await this.sendQuery({ query })
@@ -146,12 +145,12 @@ export const useProductExpertStore = defineStore('product-expert', {
                     this.addPredefinedAiMessage('Sorry, I encountered an error. Please try again.')
                 }
             } finally {
-                this.abortController = null
+                agentStore.abortController = null
             }
         },
 
         async handleMessageResponse (response) {
-            if (response && response.answer && Array.isArray(response.answer)) {
+            if (response.answer && Array.isArray(response.answer)) {
                 this.addAiMessage(response)
             }
         },
@@ -171,14 +170,11 @@ export const useProductExpertStore = defineStore('product-expert', {
             this.addWelcomeMessageIfNeeded()
         },
 
-        setAutoScroll (enabled) { this.autoScrollEnabled = enabled },
-
         setAbortController (controller) {
-            this.abortController = controller ? markRaw(controller) : null
+            this._agentStore.abortController = controller ? markRaw(controller) : null
         },
 
         reset () {
-            // Reset current agent store first, then this store
             this._agentStore.reset()
             this.$reset()
         },
@@ -192,7 +188,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     agent: this.agentMode
                 },
                 sessionId: agentStore.sessionId,
-                abortController: this.abortController
+                abortController: agentStore.abortController
             }
 
             if (this.isOperatorAgent) {
@@ -210,10 +206,6 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             useProductExpertOperatorAgentStore().getCapabilities()
 
-            // Dynamic import to avoid a circular dependency:
-            // product-expert.js → ExpertDrawer.vue → product-expert.js
-            // ExpertDrawer.vue imports useProductExpertStore, so a static import here
-            // would create a two-hop cycle causing a TDZ crash at module initialisation.
             const { default: ExpertDrawer } = await import('../components/drawers/expert/ExpertDrawer.vue')
             return useUxDrawersStore().openRightDrawer({ component: markRaw(ExpertDrawer) })
         },
@@ -349,7 +341,6 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
 
         updateMessageStreamedState (uuid) {
-            // searches in both message caches to avoid race conditions
             let message = useProductExpertFfAgentStore().messages.find(m => m._uuid === uuid)
             if (!message) {
                 message = useProductExpertOperatorAgentStore().messages.find(m => m._uuid === uuid)
@@ -360,7 +351,6 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
 
         updateAnswerStreamedState ({ messageUuid, answerUuid }) {
-            // searches in both message caches to avoid race conditions
             let message = useProductExpertFfAgentStore().messages.find(m => m._uuid === messageUuid)
             if (!message) {
                 message = useProductExpertOperatorAgentStore().messages.find(m => m._uuid === messageUuid)
