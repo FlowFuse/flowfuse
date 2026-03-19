@@ -3,7 +3,7 @@ import { markRaw } from 'vue'
 
 import expertApi from '../../../../api/expert.js'
 import ExpertDrawer from '../../../../components/drawers/expert/ExpertDrawer.vue'
-import useTimerHelper from '../../../../composables/TimersHelper.js'
+import useTimerHelper from '../../../../composables/TimerHelper.js'
 import { useUxDrawersStore } from '../../../../stores/ux-drawers.js'
 
 import { FF_AGENT, OPERATOR_AGENT } from './agents.js'
@@ -17,21 +17,8 @@ import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 const initialState = () => ({
     shouldWakeUpAssistant: false,
-
-    // expert modes
     agentMode: FF_AGENT, // ff-agent or operator-agent
-
-    // Conversation state
-    isGenerating: false,
-    autoScrollEnabled: true,
-
-    // todo sharing the same abort controller might not be the smartest thing
-    abortController: null,
-
-    // streaming words
-    streamingWordIndex: -1,
-    streamingWords: [],
-    streamingTimer: null
+    loadingVariant: FF_AGENT
 })
 
 const meta = {
@@ -46,13 +33,10 @@ const meta = {
 const state = initialState
 
 const getters = {
+    abortController: (state) => state[state.agentMode].abortController,
+    isWaitingForResponse: (state) => !!state[state.agentMode].abortController,
     messages: (state) => state[state.agentMode].messages,
     hasMessages: (state) => state[state.agentMode].messages.length > 0,
-    hasUserMessages: (state) => state[state.agentMode].messages.some(m => m.type === 'human'),
-    lastMessage: (state) =>
-        state[state.agentMode].messages.length > 0
-            ? state[state.agentMode].messages[state[state.agentMode].messages.length - 1]
-            : null,
     isSessionExpired: (state) => state[state.agentMode].sessionExpiredShown,
     isFfAgent: (state) => state.agentMode === FF_AGENT,
     isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT,
@@ -75,7 +59,6 @@ const mutations = {
 
         state.agentMode = mode
     },
-
     SET_CONTEXT (state, context) {
         state[state.agentMode].context = context
     },
@@ -85,37 +68,19 @@ const mutations = {
 
     // Conversation mutations
     ADD_MESSAGE (state, message) {
-        state[state.agentMode].messages.push(message)
-    },
-    UPDATE_LAST_MESSAGE (state, content) {
-        if (state[state.agentMode].messages.length > 0) {
-            const lastMessage = state[state.agentMode].messages[state[state.agentMode].messages.length - 1]
-            lastMessage.content = content
-        }
+        state[state.agentMode].messages.push({
+            ...message,
+            _uuid: uuidv4()
+        })
     },
     CLEAR_MESSAGES (state) {
         state[state.agentMode].messages = []
     },
-    SET_GENERATING (state, isGenerating) {
-        state.isGenerating = isGenerating
-    },
-    SET_AUTO_SCROLL (state, enabled) {
-        state.autoScrollEnabled = enabled
-    },
     SET_ABORT_CONTROLLER (state, controller) {
-        state.abortController = controller
+        state[state.agentMode].abortController = controller
     },
     SET_SHOULD_WAKE_UP_ASSISTANT (state, shouldWakeUpAssistant) {
         state.shouldWakeUpAssistant = shouldWakeUpAssistant
-    },
-    SET_STREAMING_WORDS (state, words) {
-        state.streamingWords = words
-    },
-    SET_STREAMING_WORDS_INDEX (state, index) {
-        state.streamingWordIndex = index
-    },
-    SET_STREAMING_TIMER (state, timer) {
-        state.streamingTimer = timer
     },
     SET_SESSION_START_TIME (state, time) {
         state[state.agentMode].sessionStartTime = time
@@ -129,11 +94,15 @@ const mutations = {
     SET_SESSION_CHECK_TIMER (state, timer) {
         state[state.agentMode].sessionCheckTimer = timer
     },
+    SET_LOADING_VARIANT (state, variant) {
+        state.loadingVariant = variant
+    },
     RESET (state) {
         Object.assign(state, initialState())
     },
     HYDRATE_MESSAGES (state, messages) {
         messages.forEach((message) => {
+            // todo break this into manageable chunks, do we actually still need it?
             if (message.answer && Array.isArray(message.answer)) {
                 // Extract MCP items (tools, resources, resource templates, prompts) from the answer array
                 const mcpItems = message.answer.filter(item =>
@@ -209,26 +178,34 @@ const mutations = {
             // Else: ignore messages that don't match either format
         })
     },
-    REMOVE_MESSAGE_BY_INDEX (state, index) {
-        state[state.agentMode].messages.splice(index, 1)
+    UPDATE_MESSAGE_STREAMED_STATE (state, uuid) {
+        // searches in both message caches to avoid race conditions
+        let message = state[FF_AGENT].messages.find(m => m._uuid === uuid)
+        if (!message) {
+            message = state[OPERATOR_AGENT].messages.find(m => m._uuid === uuid)
+        }
+        if (message) {
+            message._streamed = true
+        }
+    },
+    UPDATE_ANSWER_STREAMED_STATE (state, { messageUuid, answerUuid }) {
+        // searches in both message caches to avoid race conditions
+        let message = state[FF_AGENT].messages.find(m => m._uuid === messageUuid)
+        if (!message) {
+            message = state[OPERATOR_AGENT].messages.find(m => m._uuid === messageUuid)
+        }
+
+        if (message) {
+            const answer = message.answer.find(a => a._uuid === answerUuid)
+            if (answer) {
+                answer._streamed = true
+            }
+        }
     }
 }
 
 const actions = {
-    // Context actions and lifecycle
-    async setContext (
-        {
-            commit,
-            dispatch,
-            state,
-            rootState,
-            rootGetters
-        },
-        {
-            data,
-            sessionId
-        }
-    ) {
+    async setContext ({ commit, dispatch, state, rootState, rootGetters }, { data, sessionId }) {
         if (rootGetters['account/featuresCheck'].isExpertAssistantFeatureEnabled === false) {
             return
         }
@@ -249,11 +226,7 @@ const actions = {
         }
     },
 
-    async hydrateClient ({
-        dispatch,
-        state,
-        rootGetters
-    }) {
+    async hydrateClient ({ dispatch, state, rootGetters }) {
         if (
             rootGetters['account/featuresCheck']
                 .isExpertAssistantFeatureEnabled === false
@@ -276,22 +249,14 @@ const actions = {
                 sessionId: state[state.agentMode].sessionId
             })
             .then((response) => {
-                return dispatch('removeLoadingIndicator').then(() =>
-                    dispatch('handleMessageResponse', {
-                        success: true,
-                        answer: response.answer || []
-                    })
-                )
+                return dispatch('handleMessageResponse', {
+                    success: true,
+                    answer: response.answer || []
+                })
             })
     },
 
-    wakeUpAssistant ({
-        dispatch,
-        commit,
-        state
-    }, {
-        shouldHydrateMessages = false
-    }) {
+    wakeUpAssistant ({ dispatch, commit, state }, { shouldHydrateMessages = false }) {
         if (state.shouldWakeUpAssistant) {
             dispatch('setAssistantWakeUp', false)
 
@@ -299,24 +264,15 @@ const actions = {
                 commit('HYDRATE_MESSAGES', state[state.agentMode].context)
             }
 
-            // Add loading message with transfer variant to indicate syncing from website
-            commit('ADD_MESSAGE', {
-                type: 'loading',
-                variant: 'transfer',
-                timestamp: Date.now()
-            })
+            commit('SET_LOADING_VARIANT', 'transfer')
 
             return dispatch('openAssistantDrawer')
                 .then(() => dispatch('hydrateClient'))
+                .then(() => commit('SET_LOADING_VARIANT', state.agentMode))
         }
     },
 
-    // Main message sending action
-    async handleMessage ({
-        commit,
-        state,
-        dispatch
-    }, { query }) {
+    async handleQuery ({ commit, state, dispatch }, { query }) {
         // Auto-initialize session ID if not set
         if (!state[state.agentMode].sessionId) {
             commit('SET_SESSION_ID', uuidv4())
@@ -328,188 +284,35 @@ const actions = {
         }
 
         // Add user message
-        commit('ADD_MESSAGE', {
-            type: 'human',
-            content: query,
-            timestamp: Date.now()
-        })
+        dispatch('addUserMessage', query)
 
-        // Add loading indicator with variant based on mode
-        commit('ADD_MESSAGE', {
-            type: 'loading',
-            variant: state.agentMode === OPERATOR_AGENT ? 'insights' : 'default',
-            timestamp: Date.now()
-        })
-
-        commit('SET_GENERATING', true)
         commit('SET_ABORT_CONTROLLER', new AbortController())
 
         try {
-            const response = await dispatch('sendQuery', { query })
-
-            // TODO: Remove this delay - for testing loading messages (8 seconds to see rotating messages)
-            if (state.agentMode === OPERATOR_AGENT) {
-                await new Promise(resolve => setTimeout(resolve, 8000))
-            }
-
-            dispatch('removeLoadingIndicator')
-
-            // Process and return the response for UI handling
-            return {
-                success: true,
-                answer: response.answer || []
-            }
+            return await dispatch('sendQuery', { query })
         } catch (error) {
-            // Remove loading indicator
-            dispatch('removeLoadingIndicator')
-
             if (error.name === 'AbortError' || error.name === 'CanceledError') {
-                // Request was canceled by user
-                commit('ADD_MESSAGE', {
-                    type: 'ai',
-                    content: 'Generation stopped.',
-                    timestamp: Date.now()
-                })
+                // User canceled request
+                dispatch('addPredefinedAiMessage', 'Generation stopped.')
             } else {
                 // API error
                 console.error('Expert API error:', error)
-                commit('ADD_MESSAGE', {
-                    type: 'ai',
-                    content: 'Sorry, I encountered an error. Please try again.',
-                    timestamp: Date.now()
-                })
-            }
-
-            return {
-                success: false,
-                error
+                dispatch('addPredefinedAiMessage', 'Sorry, I encountered an error. Please try again.')
             }
         } finally {
-            commit('SET_GENERATING', false)
             commit('SET_ABORT_CONTROLLER', null)
-            dispatch('removeLoadingIndicator')
         }
     },
 
     async handleMessageResponse ({ commit, dispatch, state, rootState }, response) {
-        // Handle UI-specific processing if successful
-        if (
-            response.success &&
-            response.answer &&
-            Array.isArray(response.answer)
-        ) {
-            // Only show tool calls in Insights mode with capabilities selected
-            const isOperatorWithCapabilities =
-                state.agentMode === OPERATOR_AGENT &&
-                rootState.product.expert[OPERATOR_AGENT].selectedCapabilities?.length > 0
-
-            // Extract MCP items (tools, resources, resource templates, prompts) from the answer array
-            const mcpItems = response.answer.filter(item =>
-                item.kind === 'mcp_tool' ||
-                item.kind === 'mcp_resource' ||
-                item.kind === 'mcp_resource_template' ||
-                item.kind === 'mcp_prompt'
-            )
-
-            // Handle MCP calls if present - includes tools, resources, and prompts
-            if (isOperatorWithCapabilities && mcpItems.length > 0) {
-                const toolCalls = mcpItems.map(item => ({
-                    id: item.toolId,
-                    name: item.toolName,
-                    title: item.toolTitle || item.toolName,
-                    kind: item.kind,
-                    args: item.input,
-                    output: item.output,
-                    durationMs: item.durationMs
-                }))
-
-                // Calculate total duration in seconds
-                const totalDurationMs = mcpItems.reduce((sum, item) => sum + (item.durationMs || 0), 0)
-                const totalDurationSec = (totalDurationMs / 1000).toFixed(2)
-
-                commit('ADD_MESSAGE', {
-                    type: 'ai',
-                    kind: 'tool_calls',
-                    toolCalls,
-                    duration: totalDurationSec,
-                    content: `${toolCalls.length} tool call(s)`,
-                    timestamp: Date.now()
-                })
-            }
-
-            // Check if any item has non-empty flows
-            const hasFlows = response.answer.some(item =>
-                item.flows && Array.isArray(item.flows) && item.flows.length > 0
-            )
-
-            for (const item of response.answer) {
-                if (item.kind === 'guide') {
-                    // Add rich guide message
-                    commit('ADD_MESSAGE', {
-                        type: 'ai',
-                        kind: 'guide',
-                        guide: item,
-                        content: item.title || 'Setup Guide',
-                        timestamp: Date.now()
-                    })
-                } else if (item.kind === 'resources') {
-                    // Add rich resources message
-                    commit('ADD_MESSAGE', {
-                        type: 'ai',
-                        kind: 'resources',
-                        resources: item,
-                        content: item.title || 'Resources',
-                        timestamp: Date.now()
-                    })
-                } else if (item.kind === 'chat' && ((Array.isArray(item.issues) && item.issues.length > 0) || (Array.isArray(item.suggestions) && item.suggestions.length > 0))) {
-                    // Add chat message with issues and suggestions
-                    commit('ADD_MESSAGE', {
-                        type: 'ai',
-                        kind: 'chat',
-                        resources: item,
-                        content: item.content || 'Response',
-                        timestamp: Date.now()
-                    })
-                } else if (item.kind === 'chat') {
-                    // Add chat message with streaming effect
-                    await dispatch('streamMessage', item.content)
-                }
-            }
-
-            // Auto-widen drawer if flows detected
-            if (hasFlows) {
-                useUxDrawersStore().setRightDrawerWider(true)
-            }
-        } else if (
-            response.success &&
-            (!response.answer || !Array.isArray(response.answer))
-        ) {
-            // Fallback for unexpected response format
-            commit('ADD_MESSAGE', {
-                type: 'ai',
-                content: 'Sorry, I received an unexpected response format.',
-                timestamp: Date.now()
-            })
+        if (response.answer && Array.isArray(response.answer)) {
+            dispatch('addAiMessage', response)
         }
-    },
-
-    // Conversation actions
-    addMessage ({ commit }, message) {
-        commit('ADD_MESSAGE', message)
-    },
-
-    updateLastMessage ({ commit }, content) {
-        commit('UPDATE_LAST_MESSAGE', content)
-    },
-
-    clearConversation ({ commit }) {
-        commit('CLEAR_MESSAGES')
     },
 
     async startOver ({ commit, dispatch }) {
         commit('SET_SESSION_ID', uuidv4())
         commit('CLEAR_MESSAGES')
-        commit('SET_GENERATING', false) // Re-enable input
 
         // Reset session timing
         dispatch('resetSessionTimer')
@@ -523,22 +326,13 @@ const actions = {
         dispatch('addWelcomeMessageIfNeeded')
     },
 
-    setGenerating ({ commit }, isGenerating) {
-        commit('SET_GENERATING', isGenerating)
-    },
-
-    setAutoScroll ({ commit }, enabled) {
-        commit('SET_AUTO_SCROLL', enabled)
+    reset ({ commit, dispatch, state }) {
+        dispatch(`product/expert/${state.agentMode}/reset`, null, { root: true })
+        commit('RESET')
     },
 
     setAbortController ({ commit }, controller) {
         commit('SET_ABORT_CONTROLLER', controller)
-    },
-
-    reset ({ commit, dispatch, state }) {
-        // order matters
-        dispatch(`product/expert/${state.agentMode}/reset`, null, { root: true })
-        commit('RESET')
     },
 
     sendQuery ({ commit, state, getters, rootState }, { query }) {
@@ -549,7 +343,7 @@ const actions = {
                 agent: state.agentMode
             },
             sessionId: state[state.agentMode].sessionId,
-            abortController: state.abortController
+            abortController: state[state.agentMode].abortController
         }
 
         if (getters.isOperatorAgent) {
@@ -560,13 +354,8 @@ const actions = {
         return expertApi.chat(payload)
     },
 
-    openAssistantDrawer ({ dispatch, commit, state, rootGetters }) {
-        if (
-            rootGetters['account/featuresCheck']
-                .isExpertAssistantFeatureEnabled === false
-        ) {
-            return
-        }
+    openAssistantDrawer ({ dispatch, rootGetters }) {
+        if (rootGetters['account/featuresCheck'].isExpertAssistantFeatureEnabled === false) return
 
         dispatch(`product/expert/${OPERATOR_AGENT}/getCapabilities`, null, { root: true })
 
@@ -600,8 +389,7 @@ const actions = {
         }
 
         if (message) {
-            // Use streamMessage for typing effect
-            dispatch('streamMessage', message)
+            dispatch('addPredefinedAiMessage', message)
         }
     },
 
@@ -609,82 +397,8 @@ const actions = {
         commit('SET_SHOULD_WAKE_UP_ASSISTANT', shouldWakeUp)
     },
 
-    async streamMessage ({ commit, state, getters }, content) {
-        // Split content into words for streaming effect
-        const words = content.split(' ')
-
-        commit('SET_STREAMING_WORDS', words)
-        commit('SET_STREAMING_WORDS_INDEX', 0)
-
-        // Add empty AI message
-        commit('ADD_MESSAGE', {
-            type: 'ai',
-            content: '',
-            isStreaming: true,
-            timestamp: Date.now()
-        })
-
-        // Stream words one by one
-        return new Promise((resolve) => {
-            const streamNextWord = () => {
-                if (state.streamingWordIndex >= state.streamingWords.length) {
-                    // Streaming complete
-                    const lastMsg = getters.lastMessage
-                    if (lastMsg) {
-                        lastMsg.isStreaming = false
-                    }
-                    commit('SET_STREAMING_WORDS_INDEX', -1)
-                    commit('SET_STREAMING_WORDS', [])
-                    resolve()
-                    return
-                }
-
-                // Append next word
-                const word = state.streamingWords[state.streamingWordIndex]
-                const currentContent = getters.lastMessage?.content || ''
-                const newContent =
-                    currentContent + (currentContent ? ' ' : '') + word
-
-                commit('UPDATE_LAST_MESSAGE', newContent)
-
-                commit(
-                    'SET_STREAMING_WORDS_INDEX',
-                    state.streamingWordIndex + 1
-                )
-
-                // Schedule next word
-                commit('SET_STREAMING_TIMER', setTimeout(streamNextWord, 30))
-            }
-
-            streamNextWord()
-        })
-    },
-
-    clearStreamingTimer ({ commit, state }) {
-        clearTimeout(state.streamingTimer)
-        commit('SET_STREAMING_TIMER', null)
-    },
-
-    setStreamingWordIndex ({ commit }, index) {
-        commit('SET_STREAMING_WORDS_INDEX', index)
-    },
-
-    setStreamingWords ({ commit }, words) {
-        commit('SET_STREAMING_WORDS', words)
-    },
-
-    removeLoadingIndicator ({ commit, state }) {
-        const loadingIndex = state[state.agentMode].messages.findIndex(
-            (m) => m.type === 'loading'
-        )
-
-        if (loadingIndex !== -1) {
-            commit('REMOVE_MESSAGE_BY_INDEX', loadingIndex)
-        }
-    },
-
     // Session timing actions
-    startSessionTimer ({ commit, state }) {
+    startSessionTimer ({ commit, dispatch, state }) {
         // Clear any existing timer
         if (state[state.agentMode].sessionCheckTimer) {
             clearInterval(state[state.agentMode].sessionCheckTimer)
@@ -704,24 +418,18 @@ const actions = {
             // Show 25-minute warning
             if (elapsed >= warningThreshold && !state[state.agentMode].sessionWarningShown) {
                 commit('SET_SESSION_WARNING_SHOWN', true)
-                commit('ADD_MESSAGE', {
-                    type: 'system',
-                    variant: 'warning',
-                    content:
-                        'Your conversation history will expire soon. You can start a new conversation when this one expires.',
-                    timestamp: Date.now()
+                dispatch('addSystemMessage', {
+                    message: 'Your conversation history will expire soon. You can start a new conversation when this one expires.',
+                    type: 'warning'
                 })
             }
 
             // Show 30-minute expiration
             if (elapsed >= expirationThreshold && !state[state.agentMode].sessionExpiredShown) {
                 commit('SET_SESSION_EXPIRED_SHOWN', true)
-                commit('ADD_MESSAGE', {
-                    type: 'system',
-                    variant: 'expired',
-                    content:
-                        'Your conversation history has expired. Chat is now disabled. Click "Start Over" to begin a new conversation.',
-                    timestamp: Date.now()
+                dispatch('addSystemMessage', {
+                    message: 'Your conversation history has expired. Chat is now disabled. Click "Start Over" to begin a new conversation.',
+                    type: 'expired'
                 })
             }
         }, 30000) // Check every 30 seconds
@@ -746,6 +454,68 @@ const actions = {
      */
     setAgentMode ({ commit, dispatch }, mode) {
         commit('SET_AGENT_MODE', mode)
+    },
+
+    /**
+     * Adds a system message to the application's message store.
+     *
+     * @param {Object} context - The Vuex action context object.
+     * @param {Function} context.commit - The Vuex commit method used to mutate the state.
+     * @param {Object} payload - An object containing the message details.
+     * @param {string} [payload.message=''] - The content of the system message.
+     * @param {string} [payload.type='warning'] - The type of system message (e.g., 'warning', 'info', or 'error').
+     */
+    addSystemMessage ({ commit }, { message = '', type = 'warning' }) {
+        if (!['warning', 'expired'].includes(type) || !message.length) return
+
+        commit('ADD_MESSAGE', {
+            _type: 'system',
+            _variant: type,
+            message,
+            _timestamp: Date.now()
+        })
+    },
+    addPredefinedAiMessage ({ commit }, message) {
+        commit('ADD_MESSAGE', {
+            _type: 'ai',
+            answer: [{
+                content: message,
+                _streamed: false,
+                _uuid: uuidv4()
+            }],
+            _timestamp: Date.now(),
+            _streamed: false
+        })
+    },
+    addAiMessage ({ commit }, message) {
+        const answer = message.answer
+            ? message.answer.map(a => ({
+                ...a,
+                _uuid: uuidv4(),
+                _streamed: false
+            }))
+            : []
+
+        commit('ADD_MESSAGE', {
+            ...message,
+            answer,
+            _type: 'ai',
+            _timestamp: Date.now(),
+            _streamed: false
+        })
+    },
+    addUserMessage ({ commit }, message) {
+        commit('ADD_MESSAGE', {
+            _type: 'human',
+            content: message,
+            _timestamp: Date.now()
+        })
+    },
+    updateMessageStreamedState ({ commit }, uuid) {
+        commit('UPDATE_MESSAGE_STREAMED_STATE', uuid)
+    },
+    updateAnswerStreamedState ({ commit }, { messageUuid, answerUuid, agent }) {
+        commit('UPDATE_ANSWER_STREAMED_STATE', { messageUuid, answerUuid, agent })
     }
 }
 

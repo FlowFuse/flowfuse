@@ -16,7 +16,9 @@
             </svg>
             <div class="flex-1 flex flex-col gap-1 min-w-0">
                 <div class="flex items-start justify-between gap-2">
-                    <div class="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0">{{ flow.title }}</div>
+                    <div class="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0">
+                        <streamable-content v-model="flowTitle" :should-stream="shouldStream" />
+                    </div>
                     <div class="flex items-start gap-2 flex-shrink-0 -mt-1">
                         <button class="text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 flex items-center transition-colors duration-200 rounded px-2 py-1" @click="flowsExpanded = !flowsExpanded">
                             <span>Preview</span>
@@ -27,13 +29,18 @@
                         <ff-button v-else size="small" kind="secondary" @click="importFlows">Import</ff-button>
                     </div>
                 </div>
-                <div class="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap">
-                    {{ flow.metadata?.category }}
+                <div v-if="flowMetadata" class="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap">
+                    <streamable-content
+                        v-if="!shouldStream || flowTitle.streamed"
+                        :string="flowMetadata.streamable.category"
+                        :should-stream="shouldStream"
+                        @streaming-complete="completeStreaming"
+                    />
                 </div>
             </div>
         </div>
-        <div class="flex overflow-auto ml-8 max-h-[500px] flex-col relative" :class="{hidden: flowsExpanded}">
-            <flow-viewer v-if="!flowsExpanded" :flow="flow.metadata.flows" />
+        <div v-if="flowMetadata" class="flex overflow-auto ml-8 max-h-[500px] flex-col relative" :class="{hidden: flowsExpanded}">
+            <flow-viewer v-if="!flowsExpanded" :flow="flow.metadata.streamable.flows" />
         </div>
     </div>
 </template>
@@ -43,30 +50,49 @@ import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/solid'
 import { mapActions } from 'pinia'
 import { mapGetters } from 'vuex'
 
-import TextCopier from '../../TextCopier.vue'
-
-import FlowViewer from '../../flow-viewer/FlowViewer.vue'
+import TextCopier from '../../../../../TextCopier.vue'
+import FlowViewer from '../../../../../flow-viewer/FlowViewer.vue'
+import StreamableContent from '../resources/StreamableContent.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
     name: 'StandardResourceCard',
-    components: { TextCopier, FlowViewer, ChevronUpIcon, ChevronDownIcon },
+    components: { StreamableContent, TextCopier, FlowViewer, ChevronUpIcon, ChevronDownIcon },
     props: {
         flow: {
             type: Object,
             required: true
+        },
+        shouldStream: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
+    emits: ['streaming-complete'],
     data () {
         return {
-            flowsExpanded: true
+            flowsExpanded: true,
+            flowTitle: this.flow.title,
+            flowUrl: this.flow.url,
+            flowMetadata: this.flow.metadata
         }
     },
     computed: {
         ...mapGetters('product/expert', ['canImportFlows']),
         flowsJson () {
-            return JSON.stringify(this.flow.metadata.flows, null, 2)
+            if (!this.flowMetadata) return ''
+            return JSON.stringify(this.flowMetadata.streamable.flows, null, 2)
+        }
+    },
+    watch: {
+        flowMetadata (flowMetadata) {
+            // watching the resource title only because it's the last local prop we need to stream, when finished we can
+            // let the parent know that streaming is done
+            if (flowMetadata.streamed) {
+                this.$emit('streaming-complete')
+            }
         }
     },
     methods: {
@@ -74,6 +100,12 @@ export default {
         importFlows () {
             this.sendFlowsToImport(this.flowsJson)
             // TODO: hide the ff-expert panel after importing. Ideally after a "success" message is received from the assistant
+        },
+        completeStreaming () {
+            // manually mark flows and other non-streamable content as streamed to trigger streaming of the next item
+            if (this.flowMetadata) this.flowMetadata.streamed = true
+
+            this.$emit('streaming-complete')
         }
     }
 }

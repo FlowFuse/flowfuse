@@ -83,7 +83,7 @@ export default {
         // inactivity on the parent page — but the user may be actively working
         // inside the cross-origin iframe where events don't reach the parent.
         this.posthogKeepAliveInterval = setInterval(() => {
-            document.dispatchEvent(new MouseEvent('mousemove'))
+            window.dispatchEvent(new MouseEvent('mousemove'))
         }, 25 * 60 * 1000)
     },
     beforeUnmount () {
@@ -108,7 +108,7 @@ export default {
             if (event.origin === this.instance.url) {
                 // Forward iframe activity to the parent page so PostHog's idle timer
                 // is reset when the user is active inside the cross-origin iframe.
-                document.dispatchEvent(new MouseEvent('mousemove'))
+                window.dispatchEvent(new MouseEvent('mousemove'))
                 switch (event.data.type) {
                 case 'load':
                     this.emitMessage('prevent-redirect', true)

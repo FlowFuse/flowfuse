@@ -23,7 +23,7 @@
 <script>
 import { ArrowDownIcon, ArrowUpIcon, BanIcon } from '@heroicons/vue/outline'
 
-import { capitalize } from '../../composables/String.js'
+import { capitalize } from '../../composables/strings/String.js'
 
 import { RoleNames, Roles } from '../../utils/roles.js'
 

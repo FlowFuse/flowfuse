@@ -87,7 +87,7 @@ import teamTypesApi from '../../api/teamTypes.js'
 
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
-import { pluralize } from '../../composables/String.js'
+import { pluralize } from '../../composables/strings/String.js'
 import alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import FfButton from '../../ui-components/components/Button.vue'
