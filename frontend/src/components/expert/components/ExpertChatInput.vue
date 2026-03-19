@@ -113,9 +113,6 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, [
-            'getSelectedContext',
-            'hasDebugLogsSelected',
-            'hasUserSelection',
             'immersiveInstance',
             'immersiveDevice'
         ]),

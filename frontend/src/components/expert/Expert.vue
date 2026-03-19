@@ -150,11 +150,6 @@ export default {
     },
     methods: {
         ...mapVuexActions('product/expert', [
-            'handleMessage'
-        ]),
-        ...mapVuexActions('product/expert', [
-            'handleQuery',
-            'handleMessageResponse',
             'setAbortController',
             'resetSessionTimer'
         ]),
