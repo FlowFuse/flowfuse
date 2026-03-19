@@ -1,35 +1,67 @@
 <template>
     <!-- todo clean resource.url references after transitioning to v4 api -->
     <a
-        :href="addUTMTracking(resource.metadata?.source || resource.url)"
+        :href="urlWithUtmTracking"
         target="_blank"
         rel="noopener noreferrer"
         class="resource-card"
     >
         <img
-            :src="getFaviconUrl(resource.metadata?.source || resource.url)"
+            :src="favIconUrl"
             :alt="resource.type"
             class="resource-icon"
             @error="handleImageError"
         >
         <div class="resource-info">
-            <div class="resource-title">{{ resource.title }}</div>
-            <div class="resource-url">{{ resource.metadata?.source || resource.url }}</div>
-        </div>
-    </a>
+            <div class="resource-title">
+                <streamable-content v-model="resourceTitle" :should-stream="shouldStream" />
+            </div>
+            <div v-if="!shouldStream || resourceTitle.streamed" class="resource-url">
+                <streamable-content v-if="resourceMetadataSource" v-model="resourceMetadataSource" :should-stream="shouldStream" />
+                <streamable-content v-else-if="resource.url" :string="resourceUrl" :should-stream="shouldStream" />
+            </div>
+        </div></a>
 </template>
 
 <script>
+import StreamableContent from '../resources/StreamableContent.vue'
+
 export default {
     name: 'StandardResourceCard',
+    components: { StreamableContent },
     props: {
         resource: {
             type: Object,
             required: true
+        },
+        shouldStream: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
-    methods: {
-        addUTMTracking (url) {
+    emits: ['streaming-complete'],
+    data () {
+        return {
+            resourceUrl: this.resource.metadata?.streamable.source || this.resource.streamable.url,
+            resourceTitle: { ...this.resource.title },
+            resourceMetadataSource: this.resource.metadata?.source
+        }
+    },
+    computed: {
+        favIconUrl () {
+            const url = this.resourceUrl
+
+            try {
+                const urlObj = new URL(url)
+                return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}`
+            } catch (e) {
+                // If URL parsing fails, return empty string to trigger error handler
+                return ''
+            }
+        },
+        urlWithUtmTracking () {
+            const url = this.resourceUrl
             try {
                 const urlObj = new URL(url)
                 urlObj.searchParams.set('utm_source', 'flowfuse-expert')
@@ -40,16 +72,18 @@ export default {
                 // If URL parsing fails, return original
                 return url
             }
-        },
-        getFaviconUrl (url) {
-            try {
-                const urlObj = new URL(url)
-                return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}`
-            } catch (e) {
-                // If URL parsing fails, return empty string to trigger error handler
-                return ''
+        }
+    },
+    watch: {
+        resourceTitle (resourceTitle) {
+            // watching the resource title only because it's the last local prop we need to stream, when finished we can
+            // let the parent know that streaming is done
+            if (resourceTitle.streamed) {
+                this.$emit('streaming-complete')
             }
-        },
+        }
+    },
+    methods: {
         handleImageError (event) {
             // Hide broken image icon
             event.target.style.display = 'none'
