@@ -8,6 +8,8 @@
 </template>
 
 <script>
+import { mapActions } from 'pinia'
+
 import useStreamingWords from '../../../../../../composables/strings/StreamingWords.js'
 import { sanitize } from '../../../../../../composables/strings/String.js'
 
@@ -54,8 +56,9 @@ export default {
         }
     },
     methods: {
+        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState']),
         async onStreamComplete () {
-            await useProductExpertStore().updateAnswerStreamedState({
+            await this.updateAnswerStreamedState({
                 messageUuid: this.messageUuid,
                 answerUuid: this.answerUuid
             })

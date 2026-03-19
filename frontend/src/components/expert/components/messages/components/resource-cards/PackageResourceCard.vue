@@ -91,6 +91,7 @@ export default {
     },
     computed: {
         ...mapState(useProductExpertStore, ['canManagePalette']),
+        ...mapState(useProductAssistantStore, ['palette']),
         packageFaviconUrl () {
             const url = this.nodePackage.metadata?.streamable?.source || this.nodePackage.url.streamable
             try {
@@ -108,7 +109,7 @@ export default {
         isPackageInstalled () {
             const pkg = this.nodePackage
 
-            return !!useProductAssistantStore().palette?.[pkg.id.streamable]
+            return !!this.palette?.[pkg.id.streamable]
         },
         urlWithUTMTracking () {
             const url = this.packageUrl

@@ -116,6 +116,7 @@ export default {
             'immersiveInstance',
             'immersiveDevice'
         ]),
+        ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useProductExpertStore, [
             'messages',
             'isSessionExpired',
@@ -130,8 +131,7 @@ export default {
             return this.isOperatorAgent && !this.hasSelectedCapabilities
         },
         isDrawerPinned () {
-            const uxDrawerStore = useUxDrawersStore()
-            return uxDrawerStore.rightDrawer.fixed
+            return this.rightDrawer.fixed
         },
         canSend () {
             return this.inputText.trim().length > 0 && !this.isInputDisabled

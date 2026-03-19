@@ -106,31 +106,6 @@ describe('product-expert store', () => {
             useProductExpertFfAgentStore().messages.push({ _type: 'human', content: 'hello' })
             expect(store.hasMessages).toBe(true)
         })
-
-        it('hasUserMessages is true when human message exists', () => {
-            const store = useProductExpertStore()
-            useProductExpertFfAgentStore().messages.push({ _type: 'human', content: 'hi' })
-            expect(store.hasUserMessages).toBe(true)
-        })
-
-        it('hasUserMessages is false when only ai messages exist', () => {
-            const store = useProductExpertStore()
-            useProductExpertFfAgentStore().messages.push({ _type: 'ai', content: 'hello' })
-            expect(store.hasUserMessages).toBe(false)
-        })
-
-        it('lastMessage returns the last message', () => {
-            const store = useProductExpertStore()
-            const msg1 = { _type: 'human', content: 'hi' }
-            const msg2 = { _type: 'ai', content: 'hello' }
-            useProductExpertFfAgentStore().messages.push(msg1, msg2)
-            expect(store.lastMessage).toEqual(msg2)
-        })
-
-        it('lastMessage returns null when no messages', () => {
-            const store = useProductExpertStore()
-            expect(store.lastMessage).toBeNull()
-        })
     })
 
     describe('isFfAgent / isOperatorAgent', () => {

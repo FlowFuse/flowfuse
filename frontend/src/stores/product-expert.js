@@ -28,11 +28,6 @@ export const useProductExpertStore = defineStore('product-expert', {
         abortController () { return this._agentStore.abortController },
         messages () { return this._agentStore.messages },
         hasMessages () { return this._agentStore.messages.length > 0 },
-        hasUserMessages () { return this._agentStore.messages.some(m => m._type === 'human') },
-        lastMessage () {
-            const msgs = this._agentStore.messages
-            return msgs.length > 0 ? msgs[msgs.length - 1] : null
-        },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
         isWaitingForResponse () { return !!this._agentStore.abortController },
         isFfAgent: (state) => state.agentMode === FF_AGENT,
@@ -50,7 +45,6 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     actions: {
-        // Context actions and lifecycle
         async setContext ({ data, sessionId }) {
             const { featuresCheck } = useAccountBridge()
             if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
@@ -123,14 +117,17 @@ export const useProductExpertStore = defineStore('product-expert', {
         async handleQuery ({ query }) {
             const agentStore = this._agentStore
 
+            // Auto-initialize session ID if not set
             if (!agentStore.sessionId) {
                 agentStore.sessionId = uuidv4()
             }
 
+            // Start session timing on first message (if not already running)
             if (!agentStore.sessionStartTime) {
                 this.startSessionTimer()
             }
 
+            // Add user message
             this.addUserMessage(query)
 
             agentStore.abortController = markRaw(new AbortController())
@@ -139,8 +136,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                 return await this.sendQuery({ query })
             } catch (error) {
                 if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                    // User canceled request
                     this.addPredefinedAiMessage('Generation stopped.')
                 } else {
+                    // API error
                     console.error('Expert API error:', error)
                     this.addPredefinedAiMessage('Sorry, I encountered an error. Please try again.')
                 }
@@ -160,13 +159,16 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
 
+            // Reset session timing
             this.resetSessionTimer()
             this.startSessionTimer()
 
+            // Clear resource selection
             const operatorStore = useProductExpertOperatorAgentStore()
             operatorStore.setSelectedCapabilities([])
             await operatorStore.getCapabilities()
 
+            // Add welcome message for current mode
             this.addWelcomeMessageIfNeeded()
         },
 
@@ -211,8 +213,10 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
 
         addWelcomeMessageIfNeeded () {
-            const agentStore = this._agentStore
-            if (agentStore.messages.length > 0) {
+            const currentMode = this.agentMode
+            const hasMessages = this._agentStore.messages.length > 0
+
+            if (hasMessages) {
                 return
             }
 
@@ -223,9 +227,11 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             const noResourcesMessage = 'Hello! To use Insights mode, you\'ll need to configure MCP servers in your Node-RED instances first. Once configured, I can help you interact with your flows and gather insights. Switch to Support mode if you need help getting started or watch this [introduction to Node-RED MCP server nodes](https://youtu.be/troUvaF8V68?si=P9GedupXhe5-ifaa).'
 
-            let message = welcomeMessages[this.agentMode]
+            // Determine which message to show
+            let message = welcomeMessages[currentMode]
 
-            if (this.agentMode === OPERATOR_AGENT) {
+            // In Insights mode, check if capabilities are available
+            if (currentMode === OPERATOR_AGENT) {
                 const capabilities = useProductExpertOperatorAgentStore().capabilityServers
                 if (!capabilities || capabilities.length === 0) {
                     message = noResourcesMessage
@@ -239,26 +245,27 @@ export const useProductExpertStore = defineStore('product-expert', {
 
         setAssistantWakeUp (shouldWakeUp) { this.shouldWakeUpAssistant = shouldWakeUp },
 
-        removeMessageByIndex (index) {
-            this._agentStore.messages.splice(index, 1)
-        },
-
+        // Session timing actions
         startSessionTimer () {
             const agentStore = this._agentStore
 
+            // Clear any existing timer
             if (agentStore.sessionCheckTimer) {
                 clearInterval(agentStore.sessionCheckTimer)
             }
 
+            // Set session start time
             agentStore.sessionStartTime = Date.now()
             agentStore.sessionWarningShown = false
             agentStore.sessionExpiredShown = false
 
+            // Check every 30 seconds if we've reached the warning/expiration threshold
             const timer = setInterval(() => {
                 const elapsed = Date.now() - agentStore.sessionStartTime
-                const warningThreshold = 25 * 60 * 1000
-                const expirationThreshold = 28 * 60 * 1000
+                const warningThreshold = 25 * 60 * 1000 // 25 minutes
+                const expirationThreshold = 28 * 60 * 1000 // 28 minutes
 
+                // Show 25-minute warning
                 if (elapsed >= warningThreshold && !agentStore.sessionWarningShown) {
                     agentStore.sessionWarningShown = true
                     this.addSystemMessage({
@@ -267,6 +274,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     })
                 }
 
+                // Show 30-minute expiration
                 if (elapsed >= expirationThreshold && !agentStore.sessionExpiredShown) {
                     agentStore.sessionExpiredShown = true
                     this.addSystemMessage({
@@ -274,7 +282,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         type: 'expired'
                     })
                 }
-            }, 30000)
+            }, 30000) // Check every 30 seconds
 
             agentStore.setSessionCheckTimer(timer)
         },
@@ -290,12 +298,22 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.sessionExpiredShown = false
         },
 
+        /**
+         *
+         * @param {'ff-agent' | 'operator-agent'} mode
+         */
         setAgentMode (mode) {
             if (![OPERATOR_AGENT, FF_AGENT].includes(mode)) return
             this.agentMode = mode
         },
 
-        // Message helper actions
+        /**
+         * Adds a system message to the application's message store.
+         *
+         * @param {Object} payload - An object containing the message details.
+         * @param {string} [payload.message=''] - The content of the system message.
+         * @param {string} [payload.type='warning'] - The type of system message (e.g., 'warning', 'info', or 'error').
+         */
         addSystemMessage ({ message = '', type = 'warning' }) {
             if (!['warning', 'expired'].includes(type) || !message.length) return
             this._agentStore.messages.push({
@@ -366,16 +384,81 @@ export const useProductExpertStore = defineStore('product-expert', {
         hydrateMessages (messages) {
             if (!messages) return
             messages.forEach((message) => {
+                // todo break this into manageable chunks, do we actually still need it?
                 if (message.answer && Array.isArray(message.answer)) {
-                    this._agentStore.messages.push({
-                        ...message,
-                        answer: message.answer.map(a => ({ ...a, _uuid: uuidv4(), _streamed: true })),
-                        _type: 'ai',
-                        _timestamp: Date.now(),
-                        _streamed: true,
-                        _uuid: uuidv4()
+                    // Extract MCP items (tools, resources, resource templates, prompts) from the answer array
+                    const mcpItems = message.answer.filter(item =>
+                        item.kind === 'mcp_tool' ||
+                        item.kind === 'mcp_resource' ||
+                        item.kind === 'mcp_resource_template' ||
+                        item.kind === 'mcp_prompt'
+                    )
+
+                    // Handle MCP calls if present - includes tools, resources, and prompts
+                    if (mcpItems.length > 0) {
+                        const toolCalls = mcpItems.map(item => ({
+                            id: item.toolId,
+                            name: item.toolName,
+                            title: item.toolTitle || item.toolName,
+                            kind: item.kind,
+                            args: item.input,
+                            output: item.output,
+                            durationMs: item.durationMs
+                        }))
+
+                        // Calculate total duration in seconds
+                        const totalDurationMs = mcpItems.reduce((sum, item) => sum + (item.durationMs || 0), 0)
+                        const totalDurationSec = (totalDurationMs / 1000).toFixed(2)
+
+                        this._agentStore.messages.push({
+                            _type: 'ai',
+                            kind: 'tool_calls',
+                            toolCalls,
+                            duration: totalDurationSec,
+                            content: `${toolCalls.length} tool call(s)`,
+                            _timestamp: Date.now(),
+                            _streamed: true,
+                            _uuid: uuidv4()
+                        })
+                    }
+
+                    // AI response with answer array - process each item
+                    message.answer.forEach((item) => {
+                        if (item.kind === 'guide') {
+                            // Transform guide response
+                            this._agentStore.messages.push({
+                                _type: 'ai',
+                                kind: 'guide',
+                                guide: item,
+                                content: item.title || 'Setup Guide',
+                                _timestamp: Date.now(),
+                                _streamed: true,
+                                _uuid: uuidv4()
+                            })
+                        } else if (item.kind === 'resources') {
+                            // Transform resources response
+                            this._agentStore.messages.push({
+                                _type: 'ai',
+                                kind: 'resources',
+                                resources: item,
+                                content: item.title || 'Resources',
+                                _timestamp: Date.now(),
+                                _streamed: true,
+                                _uuid: uuidv4()
+                            })
+                        } else if (item.kind === 'chat') {
+                            // Transform chat response
+                            this._agentStore.messages.push({
+                                _type: 'ai',
+                                content: item.content,
+                                _timestamp: Date.now(),
+                                _streamed: true,
+                                _uuid: uuidv4()
+                            })
+                        }
                     })
                 } else if (message.query) {
+                    // Transform user message
                     this._agentStore.messages.push({
                         _type: 'human',
                         content: message.query,
@@ -383,6 +466,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         _uuid: uuidv4()
                     })
                 }
+                // Else: ignore messages that don't match either format
             })
         }
     },
