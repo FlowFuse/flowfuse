@@ -93,8 +93,8 @@
                     <a class="flex gap-2 items-center" target="_blank" :href="`${stage.gitRepo.url}/tree/${stage.gitRepo.branch || 'main'}`">
                         <IconGit class="ff-icon ff-icon-lg" style="color: #e46133" />
                         <div>
-                            <label class="flex items-center gap-2">GitHub Repository:</label>
-                            <span>{{ stage.gitRepo?.url.replace("https://github.com/","") }}</span>
+                            <label class="flex items-center gap-2">Git Repository:</label>
+                            <span>{{ stage.gitRepo?.url.replace("https://github.com/","").replace("https://dev.azure.com/","") }}</span>
                         </div>
                     </a>
                 </div>

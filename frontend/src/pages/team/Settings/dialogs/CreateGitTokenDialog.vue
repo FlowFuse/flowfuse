@@ -7,11 +7,12 @@
         @confirm="confirm()"
     >
         <template #default>
-            <p>Add a new GitHub Personal Access Token to your team.</p>
+            <p>Add a new GitHub or Azure DevOps Personal Access Token to your team.</p>
+
             <ol class="list-decimal list-inside space-y-1 ml-2">
                 <li>Open <a href="https://github.com/settings/personal-access-tokens" target="_blank">GitHub Personal Access Tokens Settings</a></li>
                 <li>Click on <strong>Generate a new token</strong></li>
-                <li>Select the <strong>Only select respositories</strong> option and pick which repositories to grant access to</li>
+                <li>Select the <strong>Only select repositories</strong> option and pick which repositories to grant access to</li>
                 <li>Expand the <strong>Repository permissions</strong> section and ensure the <strong>Contents</strong> option is set to <strong>Read and write</strong></li>
                 <li>Click on <strong>Generate token</strong></li>
                 <li>This will be the only time GitHub shows you the token value. Copy the token into the field below</li>
@@ -19,6 +20,11 @@
             <form class="space-y-6 mt-2 mb-2">
                 <FormRow v-model="input.name" data-form="token-name" :error="errors.name">Name</FormRow>
                 <FormRow v-model="input.token" data-form="token-value">Token</FormRow>
+                <FormHeading>Type: </FormHeading>
+                <ff-dropdown v-model="input.type">
+                    <ff-dropdown-option label="GitHub" value="github" />
+                    <ff-dropdown-option label="Azure DevOps" value="azure" />
+                </ff-dropdown>
             </form>
         </template>
     </ff-dialog>
@@ -49,6 +55,7 @@ export default {
                 this.errors = {}
                 this.input.name = ''
                 this.input.token = ''
+                this.input.type = 'github'
                 this.$refs.dialog.show()
             }
         }
@@ -57,7 +64,8 @@ export default {
         return {
             input: {
                 name: '',
-                token: ''
+                token: '',
+                type: ''
             },
             errors: {}
         }
@@ -75,7 +83,8 @@ export default {
             const opts = {
                 name: this.input.name.trim(),
                 token: this.input.token,
-                team: this.team.id
+                team: this.team.id,
+                type: this.input.type
             }
             this.$emit('token-creating')
             teamApi.createGitToken(opts.team, opts).then((response) => {
