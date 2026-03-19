@@ -10,7 +10,7 @@
             <button
                 type="button"
                 class="btn-start-over"
-                :disabled="!hasUserMessages || (isGenerating && !isSessionExpired)"
+                :disabled="isWaitingForResponse && !isSessionExpired"
                 @click="handleStartOver"
             >
                 Start over
@@ -34,19 +34,12 @@
 
             <div class="actions">
                 <div class="left">
-                    <template v-if="isImmersive">
-                        <context-selector v-if="!isOperatorAgent" />
-                        <div class="context-items-container" @wheel="horizontalScrolling">
-                            <include-context-item v-for="(context, index) in selectedContextFiltered" :key="index" :contextItem="context" />
-                            <include-debug-context-button v-if="hasDebugLogsSelected && !isOperatorAgent" />
-                            <include-selection-button v-if="hasUserSelection && !isOperatorAgent" />
-                        </div>
-                    </template>
+                    <context-selector v-if="isImmersive && !isOperatorAgent" />
                 </div>
 
                 <div class="right">
                     <button
-                        v-if="isGenerating && !isSessionExpired"
+                        v-if="isWaitingForResponse && !isSessionExpired"
                         type="button"
                         class="btn-stop"
                         @click="handleStop"
@@ -70,58 +63,39 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
+import { mapGetters, mapActions as mapVuexActions } from 'vuex'
 
-import { useResizingHelper } from '../../composables/ResizingHelper.js'
+import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 
-import ResizeBar from '../ResizeBar.vue'
+import ResizeBar from '../../ResizeBar.vue'
 
-import CapabilitiesSelector from './components/CapabilitiesSelector.vue'
-import ContextSelector from './components/ContextSelector.vue'
-import IncludeContextItem from './components/IncludeContextItem.vue'
-import IncludeDebugContextButton from './components/IncludeDebugContextButton.vue'
-import IncludeSelectionButton from './components/IncludeSelectionButton.vue'
+import CapabilitiesSelector from './CapabilitiesSelector.vue'
+import ContextSelector from './context-selection/index.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'ExpertChatInput',
     components: {
         CapabilitiesSelector,
         ContextSelector,
-        IncludeContextItem,
-        IncludeDebugContextButton,
-        IncludeSelectionButton,
         ResizeBar
     },
-    props: {
-        isGenerating: {
-            type: Boolean,
-            default: false
-        },
-        hasMessages: {
-            type: Boolean,
-            default: false
-        },
-        hasUserMessages: {
-            type: Boolean,
-            default: false
-        },
-        isSessionExpired: {
-            type: Boolean,
-            default: false
-        },
-        isOperatorAgent: {
-            type: Boolean,
-            default: false
-        },
-        hasSelectedCapabilities: {
-            type: Boolean,
-            default: false
+    inject: {
+        togglePinWithWidth: {
+            from: 'togglePinWithWidth',
+            default: () => () => {} // No-op function when not provided
         }
     },
-    emits: ['send', 'stop', 'start-over'],
+    emits: ['send', 'stop'],
     setup () {
-        const { startResize, heightStyle, bindResizer, isResizing: isInputResizing } = useResizingHelper()
+        const {
+            startResize,
+            heightStyle,
+            bindResizer,
+            isResizing: isInputResizing
+        } = useResizingHelper()
 
         return {
             startResize,
@@ -139,17 +113,25 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, [
-            'getSelectedContext',
-            'hasDebugLogsSelected',
-            'hasUserSelection',
             'immersiveInstance',
             'immersiveDevice'
         ]),
+        ...mapGetters('product/expert', [
+            'messages',
+            'isSessionExpired',
+            'isOperatorAgent',
+            'hasSelectedCapabilities',
+            'hasMessages',
+            'isWaitingForResponse'
+        ]),
         isInputDisabled () {
             if (this.isSessionExpired) return true
-            if (this.isGenerating) return true
-            if (this.isOperatorAgent && !this.hasSelectedCapabilities) return true
-            return false
+            if (this.isWaitingForResponse) return true
+            return this.isOperatorAgent && !this.hasSelectedCapabilities
+        },
+        isDrawerPinned () {
+            const uxDrawerStore = useUxDrawersStore()
+            return uxDrawerStore.rightDrawer.fixed
         },
         canSend () {
             return this.inputText.trim().length > 0 && !this.isInputDisabled
@@ -161,16 +143,6 @@ export default {
             return this.isOperatorAgent
                 ? 'Tell us what you want to know about'
                 : 'Tell us what you need help with'
-        },
-        selectedContext () {
-            // for insights mode, return empty array
-            if (this.isOperatorAgent) {
-                return []
-            }
-            return this.getSelectedContext
-        },
-        selectedContextFiltered () {
-            return this.selectedContext.filter(c => c.showAsChip !== false)
         },
         isImmersive () {
             return this.immersiveDevice || this.immersiveInstance
@@ -186,26 +158,43 @@ export default {
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
-        handleSend () {
+        ...mapVuexActions('product/expert', ['startOver', 'handleQuery', 'handleMessageResponse']),
+        async handleSend () {
             if (!this.canSend) return
 
             const message = this.inputText.trim()
-            this.$emit('send', message)
+
+            // Auto-pin drawer on first message
+            if (!this.isDrawerPinned && this.messages.length === 0) {
+                this.togglePinWithWidth()
+            }
+
+            // Call Vuex action to handle API logic
+            this.handleQuery({ query: message })
+                // Handle UI-specific processing if successful
+                .then((result) => this.handleMessageResponse(result))
+                .then(() => {
+                    this.$nextTick(() => {
+                        this.$refs.textarea.focus()
+                    })
+                })
+                .catch(e => e)
+
             this.inputText = ''
-            this.$nextTick(() => {
-                this.$refs.textarea.focus()
-            })
         },
         handleStop () {
             this.$emit('stop')
         },
         handleStartOver () {
-            this.$emit('start-over')
+            if (!this.hasMessages) return
+
             this.inputText = ''
             // When in support mode, reset/restore assistant context selection (opt-out by default)
             if (!this.isOperatorAgent) {
                 this.resetContextSelection()
             }
+
+            this.startOver()
         },
         handleKeydown (event) {
             // Enter without Shift = send message
@@ -214,12 +203,6 @@ export default {
                 this.handleSend()
             }
             // Shift+Enter = new line (default behavior)
-        },
-        horizontalScrolling (event) {
-            const target = event.currentTarget
-            if (event.deltaY === 0) return
-            event.preventDefault()
-            target.scrollLeft += event.deltaY / 2
         }
     }
 }
@@ -359,22 +342,6 @@ button {
         display: flex;
         justify-content: space-between;
         gap: 0.75rem;
-
-        .left {
-            display: flex;
-            justify-content: flex-start;
-
-            // scroll for overflow of selected chips
-            overflow: auto;
-            flex: 1;
-            .context-items-container {
-                flex: 1;
-                overflow-x: auto;
-                scrollbar-width: none;
-                display: flex;
-                gap: 0.5rem;
-            }
-        }
 
         .right {
             display: flex;

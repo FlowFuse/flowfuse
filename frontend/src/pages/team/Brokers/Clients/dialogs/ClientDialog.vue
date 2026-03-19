@@ -76,7 +76,7 @@ import { mapActions, mapState } from 'vuex'
 
 import brokerApi from '../../../../../api/broker.js'
 import FormRow from '../../../../../components/FormRow.vue'
-import { generateUuid } from '../../../../../composables/String.js'
+import { generateUuid } from '../../../../../composables/strings/String.js'
 
 import AclItem from './AclItem.vue'
 

@@ -4,6 +4,7 @@ const initialState = () => ({
     messages: [],
 
     // Session timing
+    abortController: null,
     sessionStartTime: null,
     sessionWarningShown: false,
     sessionExpiredShown: false,
@@ -13,10 +14,6 @@ const initialState = () => ({
 const meta = {
     persistence: {
         context: {
-            storage: 'localStorage',
-            clearOnLogout: true
-        },
-        sessionId: {
             storage: 'localStorage',
             clearOnLogout: true
         }

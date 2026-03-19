@@ -1,5 +1,5 @@
 <template>
-    <ContextChip
+    <default-chip
         :modelValue="!!contextItem"
         :text="text"
         :title="title"
@@ -10,16 +10,16 @@
 <script>
 import { mapActions, mapState } from 'pinia'
 
-import { pluralize } from '../../../composables/String.js'
+import { pluralize } from '../../../../composables/strings/String.js'
 
-import ContextChip from './ContextChip/index.vue'
+import DefaultChip from './DefaultChip.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
-    name: 'IncludeContextItem',
+    name: 'ContextChip',
     components: {
-        ContextChip
+        DefaultChip
     },
     props: {
         contextItem: {
