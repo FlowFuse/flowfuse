@@ -22,6 +22,13 @@ vi.mock('@/api/expert.js', () => ({
     default: { chat: vi.fn() }
 }))
 
+vi.mock('@/stores/product-expert-context.js', () => ({
+    useProductExpertContextStore: vi.fn(() => ({
+        shouldWakeUpAssistant: false,
+        clearWakeUp: vi.fn()
+    }))
+}))
+
 vi.mock('@/components/drawers/expert/ExpertDrawer.vue', () => ({
     default: { name: 'ExpertDrawer' }
 }))
@@ -58,11 +65,6 @@ describe('product-expert store', () => {
         it('has null abortController', () => {
             const store = useProductExpertStore()
             expect(store.abortController).toBeNull()
-        })
-
-        it('has shouldWakeUpAssistant false', () => {
-            const store = useProductExpertStore()
-            expect(store.shouldWakeUpAssistant).toBe(false)
         })
     })
 

@@ -9,17 +9,18 @@ import { useAccountBridge } from './_account_bridge.js'
 import { useContextStore } from './context.js'
 import { useProductAssistantStore } from './product-assistant.js'
 import { FF_AGENT, OPERATOR_AGENT } from './product-expert-agents.js'
+import { useProductExpertContextStore } from './product-expert-context.js'
 import { useProductExpertFfAgentStore } from './product-expert-ff-agent.js'
 import { useProductExpertOperatorAgentStore } from './product-expert-operator-agent.js'
 import { useUxDrawersStore } from './ux-drawers.js'
 
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
-        shouldWakeUpAssistant: false,
-        agentMode: FF_AGENT,
+        agentMode: FF_AGENT, // ff-agent or operator-agent
         loadingVariant: FF_AGENT
     }),
     getters: {
+        shouldWakeUpAssistant () { return useProductExpertContextStore().shouldWakeUpAssistant },
         _agentStore () {
             return this.agentMode === FF_AGENT
                 ? useProductExpertFfAgentStore()
@@ -45,30 +46,6 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     actions: {
-        async setContext ({ data, sessionId }) {
-            const { featuresCheck } = useAccountBridge()
-            if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
-                return
-            }
-
-            const agentStore = this._agentStore
-            agentStore.context = data
-
-            if (sessionId) {
-                agentStore.sessionId = sessionId
-            }
-
-            this.shouldWakeUpAssistant = true
-
-            const store = require('../store/index.js').default
-            if (store.state.account?.user) {
-                await this.wakeUpAssistant({
-                    shouldHydrateMessages: true,
-                    shouldAddTransferLoadingIndicator: true
-                })
-            }
-        },
-
         async hydrateClient () {
             const { featuresCheck } = useAccountBridge()
             if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
@@ -100,7 +77,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
         wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
             if (this.shouldWakeUpAssistant) {
-                this.setAssistantWakeUp(false)
+                useProductExpertContextStore().clearWakeUp()
 
                 if (shouldHydrateMessages) {
                     this.hydrateMessages(this._agentStore.context)
@@ -108,7 +85,10 @@ export const useProductExpertStore = defineStore('product-expert', {
 
                 this.loadingVariant = 'transfer'
 
-                return this.openAssistantDrawer()
+                useProductExpertOperatorAgentStore().getCapabilities()
+                // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
+                return import('../components/drawers/expert/ExpertDrawer.vue')
+                    .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({ component: markRaw(ExpertDrawer) }))
                     .then(() => this.hydrateClient())
                     .then(() => { this.loadingVariant = this.agentMode })
             }
@@ -200,18 +180,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             return expertApi.chat(payload)
         },
 
-        async openAssistantDrawer () {
-            const { featuresCheck } = useAccountBridge()
-            if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
-                return
-            }
-
-            useProductExpertOperatorAgentStore().getCapabilities()
-
-            const { default: ExpertDrawer } = await import('../components/drawers/expert/ExpertDrawer.vue')
-            return useUxDrawersStore().openRightDrawer({ component: markRaw(ExpertDrawer) })
-        },
-
         addWelcomeMessageIfNeeded () {
             const currentMode = this.agentMode
             const hasMessages = this._agentStore.messages.length > 0
@@ -242,8 +210,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 this.addPredefinedAiMessage(message)
             }
         },
-
-        setAssistantWakeUp (shouldWakeUp) { this.shouldWakeUpAssistant = shouldWakeUp },
 
         // Session timing actions
         startSessionTimer () {
@@ -469,9 +435,5 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // Else: ignore messages that don't match either format
             })
         }
-    },
-    persist: {
-        pick: ['shouldWakeUpAssistant'],
-        storage: localStorage
     }
 })

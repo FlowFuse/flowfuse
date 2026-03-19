@@ -81,6 +81,11 @@ export default {
                     this.dispatchTour()
                 }
             }
+        },
+        shouldWakeUpAssistant (val) {
+            if (val) {
+                this.wakeUpAssistant({ shouldHydrateMessages: true })
+            }
         }
     },
     mounted () {

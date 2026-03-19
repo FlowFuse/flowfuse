@@ -14,8 +14,11 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
+import { markRaw } from 'vue'
 
-import { useProductExpertStore } from '@/stores/product-expert.js'
+import ExpertDrawer from './drawers/expert/ExpertDrawer.vue'
+
+import { useProductExpertOperatorAgentStore } from '@/stores/product-expert-operator-agent.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -28,9 +31,11 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useProductExpertStore, ['openAssistantDrawer']),
+        ...mapActions(useProductExpertOperatorAgentStore, ['getCapabilities']),
+        ...mapActions(useUxDrawersStore, ['openRightDrawer']),
         onClick () {
-            this.openAssistantDrawer()
+            this.getCapabilities()
+            this.openRightDrawer({ component: markRaw(ExpertDrawer) })
         }
     }
 }
