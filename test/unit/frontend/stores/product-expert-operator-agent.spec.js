@@ -28,6 +28,7 @@ describe('product-expert-operator-agent store', () => {
         expect(store.messages).toEqual([])
         expect(store.sessionId).toBeNull()
         expect(store.selectedCapabilities).toEqual([])
+        expect(store.abortController).toBeNull()
     })
 
     it('getCapabilities fetches and stores server list', async () => {
@@ -78,10 +79,12 @@ describe('product-expert-operator-agent store', () => {
         const clearSpy = vi.spyOn(globalThis, 'clearInterval')
         store.setSessionCheckTimer(fakeTimer)
         store.sessionId = 'sess-abc'
+        store.abortController = new AbortController()
         store.capabilityServers = [{ id: 'srv-1' }]
         store.reset()
         expect(clearSpy).toHaveBeenCalledWith(fakeTimer)
         expect(store.sessionId).toBeNull()
+        expect(store.abortController).toBeNull()
         expect(store.capabilityServers).toEqual([])
         expect(store.messages).toEqual([])
         clearInterval(fakeTimer)
