@@ -39,6 +39,11 @@ describe('useProductExpertFfAgentStore', () => {
             expect(store.sessionExpiredShown).toBe(false)
         })
 
+        it('has null abortController', () => {
+            const store = useProductExpertFfAgentStore()
+            expect(store.abortController).toBeNull()
+        })
+
         it('has null sessionCheckTimer', () => {
             const store = useProductExpertFfAgentStore()
             expect(store.sessionCheckTimer).toBeNull()
@@ -72,6 +77,7 @@ describe('useProductExpertFfAgentStore', () => {
             store.context = { instanceId: 'abc' }
             store.sessionId = 'session-123'
             store.messages = [{ role: 'user', content: 'hello' }]
+            store.abortController = new AbortController()
             store.sessionStartTime = Date.now()
             store.sessionWarningShown = true
             store.sessionExpiredShown = true
@@ -81,6 +87,7 @@ describe('useProductExpertFfAgentStore', () => {
             expect(store.context).toBeNull()
             expect(store.sessionId).toBeNull()
             expect(store.messages).toEqual([])
+            expect(store.abortController).toBeNull()
             expect(store.sessionStartTime).toBeNull()
             expect(store.sessionWarningShown).toBe(false)
             expect(store.sessionExpiredShown).toBe(false)
