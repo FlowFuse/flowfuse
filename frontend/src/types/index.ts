@@ -29,10 +29,7 @@ export interface Team {
     links?: Record<string, string>
 }
 
-// NOLEY DEMO STEP 4 
-// 1. Rename slug 
-// 2. Would be caught by cd frontend && npx tsc --noEmit
-// and we could add it to the build process later. 
+
 
 export interface Application {
     id: string

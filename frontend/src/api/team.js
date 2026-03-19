@@ -53,12 +53,6 @@ const getTeam = (team) => {
     })
 }
 
-// NOLEY DEMO STEP 2
-// 1. What can I pass getTeam?
-// const myTeam = await getTeam(true)
-// const myTeamTry2 = await getTeam('123')
-// const myTeamTry3 = await getTeam({ foo: 'bar' })
-
 const deleteTeam = async (teamId) => {
     return await client.delete(`/api/v1/teams/${teamId}`).then(() => {
         const timestamp = (new Date()).toISOString()
@@ -114,13 +108,6 @@ const getTeamApplications = async (teamId, {
     const result = await client.get(`/api/v1/teams/${teamId}/applications`, options)
     return result.data
 }
-
-// NOLEY DEMO STEP 1
-// 1. No return types
-// 2. No unknown property checks
-// 3. No autocompletion
-// const applications = await getTeamApplications('123')
-// const thingIWant = applications.unicorns
 
 /**
  * Get a list of applications, their instances, their devices, and the status of each
@@ -512,9 +499,6 @@ const bulkDeviceMove = async (teamId, devices, moveTo, id = undefined) => {
     return res.data
 }
 
-// NOLEY DEMO STEP 3
-// 1. Enums for moveTo with group.
-// const thingIWant = await bulkDeviceMove('123', ['device1', 'device2'], 'unicorns', 'instanceId123')
 // const thingIWant2 = await bulkDeviceMove('123', ['device1', 'device2'], 'instance', 'instanceId123')
 
 /**

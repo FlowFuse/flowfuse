@@ -24,7 +24,6 @@ const getTeams = () => {
 const getTeam = (team: string | Team): Promise<Team> => {
     let url
     if (typeof team === 'object') {
-        // NOLEY DEMO STEP 4 
         url = `/api/v1/teams/slug/${team.slug}`
     } else {
         url = `/api/v1/teams/${team}`
@@ -53,15 +52,6 @@ const getTeam = (team: string | Team): Promise<Team> => {
         return res.data
     })
 }
-
-// NOLEY DEMO STEP 2
-// 1. What can I pass getTeam?
-// 2. Type checking within getTeam for slug 
-// const myTeam = await getTeam(true)
-// const myTeamTry2 = await getTeam('123')
-// const myTeamTry3 = await getTeam({ foo: 'bar' })
-// const myTeamTry4 = await getTeam({ id: '123', name: 'My Team' })
-// const myTeamTry5 = await getTeam({ id: '123', name: 'My Team', slug: 'my-team' })
 
 const deleteTeam = async (teamId: string) => {
     return await client.delete(`/api/v1/teams/${teamId}`).then(() => {
@@ -117,12 +107,20 @@ const getTeamApplications = async (teamId: string, {
     return result.data
 }
 
-// NOLEY DEMO STEP 1 
+// NOLEY DEMO
+
+// Part 1: Have claude generate a .ts file 
+// Convert frontend/src/api/devices.js to TypeScript in a new file in the same folder. 
+// Use these interfaces where appropriate: types/index.ts. Add return types to all exported functions.
+
+// Part 2: Look how pretty this is 
 // 1. Return types 
-// 2. Unknown property checks 
-// 3. Autocompletion
+// 2. Param types with safety
+// 3. Autocomplete
+
 // const result = await getTeamApplications('123')
 // const thingIWant = result.applications[0].unicorns
+
 
 /**
  * Get a list of applications, their instances, their devices, and the status of each
@@ -460,11 +458,6 @@ const bulkDeviceMove = async (
     return res.data
 }
 
-// NOLEY DEMO STEP 3 
-// 1. Enums for moveTo with group. 
-// 2. Type checking within the fn for moveTo 
-// const thingIWant = await bulkDeviceMove('123', ['device1', 'device2'], 'unicorns', 'instanceId123')
-// const thingIWant2 = await bulkDeviceMove('123', ['device1', 'device2'], 'instance', 'instanceId123')
 
 const getDependencies = (teamId: string) => {
     return client.get(`/api/v1/teams/${teamId}/bom`)
