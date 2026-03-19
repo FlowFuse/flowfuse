@@ -75,7 +75,7 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import BlueprintTile from '../../../components/blueprints/BlueprintTile.vue'
 import MarkdownCell from '../../../components/tables/cells/MarkdownCell.vue'
 import { downloadData } from '../../../composables/Download.js'
-import { dateToSlug } from '../../../composables/String.js'
+import { dateToSlug } from '../../../composables/strings/String.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 

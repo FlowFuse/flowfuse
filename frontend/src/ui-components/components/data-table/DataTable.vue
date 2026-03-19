@@ -134,7 +134,7 @@ import {
     SwitchVerticalIcon
 } from '@heroicons/vue/outline'
 
-import { slugify } from '../../../composables/String.js'
+import { slugify } from '../../../composables/strings/String.js'
 
 import FfDataTableRow from './DataTableRow.vue'
 

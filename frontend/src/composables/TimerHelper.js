@@ -34,11 +34,28 @@ export default function useTimerHelper () {
                 throw new Error(`waitWhile: cutoffTries (${maxTries}) reached`)
             }
             tries++
-            await new Promise(resolve => setTimeout(resolve, delayMs))
+            await waitFor(delayMs)
         }
     }
 
+    async function waitFor (delayMs) {
+        return new Promise(resolve => setTimeout(resolve, delayMs))
+    }
+
+    async function doWhile (condition, callback, { intervalMs } = {}) {
+        const predicate = (typeof condition === 'function')
+            ? condition
+            : () => Boolean(condition)
+
+        do {
+            await callback()
+            await waitFor(intervalMs)
+        } while (predicate())
+    }
+
     return {
-        waitWhile
+        doWhile,
+        waitWhile,
+        waitFor
     }
 }

@@ -64,7 +64,7 @@ import ApplicationAPI from '../../api/application.js'
 import { StageAction, StageType } from '../../api/pipeline.js'
 import usePermissions from '../../composables/Permissions.js'
 
-import { slugify } from '../../composables/String.js'
+import { slugify } from '../../composables/strings/String.js'
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import { Roles } from '../../utils/roles.js'

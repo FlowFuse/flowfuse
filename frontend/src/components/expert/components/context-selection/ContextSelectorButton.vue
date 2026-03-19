@@ -28,12 +28,12 @@
 import { CubeIcon, DocumentIcon, PaperClipIcon, ViewListIcon } from '@heroicons/vue/outline'
 import { mapActions, mapState } from 'pinia'
 
-import { pluralize } from '../../../composables/String.js'
+import { pluralize } from '../../../../composables/strings/String.js'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
-    name: 'ContextSelector',
+    name: 'ContextSelectorButton',
     components: {
         PaperClipIcon
     },

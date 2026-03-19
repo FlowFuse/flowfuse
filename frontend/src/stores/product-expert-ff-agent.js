@@ -6,6 +6,9 @@ export const useProductExpertFfAgentStore = defineStore('product-expert-ff-agent
         context: null,
         sessionId: null,
         messages: [],
+
+        // Session timing
+        abortController: null,
         sessionStartTime: null,
         sessionWarningShown: false,
         sessionExpiredShown: false,
@@ -21,7 +24,7 @@ export const useProductExpertFfAgentStore = defineStore('product-expert-ff-agent
         }
     },
     persist: {
-        pick: ['context', 'sessionId'],
+        pick: ['context'],
         storage: localStorage
     }
 })
