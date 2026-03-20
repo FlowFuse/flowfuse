@@ -7,7 +7,7 @@
         @confirm="confirm()"
     >
         <template #default>
-            <p>Add a new GitHub or Azure DevOps Personal Access Token to your team.</p>
+            <p>Add a new Git Personal Access Token to your team.</p>
 
             <ol class="list-decimal list-inside space-y-1 ml-2">
                 <li>Open <a href="https://github.com/settings/personal-access-tokens" target="_blank">GitHub Personal Access Tokens Settings</a></li>
