@@ -61,7 +61,7 @@ export default {
             case this.isDeviceGroupsStage:
                 return this.stage.deviceGroups[0]?.name
             case this.isGitRepoStage:
-                return this.stage.gitRepo?.url.replace('https://github.com/', '') + (
+                return this.stage.gitRepo?.url.replace('https://github.com/', '').replace('https://dev.azure.com/', '') + (
                     (this.stage.gitRepo?.branch && this.stage.gitRepo?.branch !== 'main' && this.stage.gitRepo?.branch !== 'master')
                         ? `@${this.stage.gitRepo.branch}`
                         : ''
