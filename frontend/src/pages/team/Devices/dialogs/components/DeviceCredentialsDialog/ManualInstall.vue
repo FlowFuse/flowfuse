@@ -20,6 +20,7 @@
 
 <script>
 import { ClipboardCopyIcon, DocumentDownloadIcon } from '@heroicons/vue/outline'
+import { mapState } from 'vuex'
 
 import { downloadData } from '../../../../../../composables/Download.js'
 import clipboardMixin from '../../../../../../mixins/Clipboard.js'
@@ -33,13 +34,26 @@ export default {
     },
     mixins: [clipboardMixin],
     props: {
-        credentials: {
-            type: String,
-            required: true
-        },
         device: {
             type: Object,
             required: true
+        }
+    },
+    computed: {
+        ...mapState('account', ['settings']),
+        credentials () {
+            let result = `deviceId: ${this.device.id}
+token: ${this.device.credentials.token}
+credentialSecret: ${this.device.credentials.credentialSecret}
+forgeURL: ${this.settings?.base_url}
+`
+            if (this.device.credentials.broker) {
+                result += `brokerURL: ${this.device.credentials.broker.url}
+brokerUsername: ${this.device.credentials.broker.username}
+brokerPassword: ${this.device.credentials.broker.password}
+`
+            }
+            return result
         }
     },
     methods: {

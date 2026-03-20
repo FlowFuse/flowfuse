@@ -13,20 +13,47 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import TerminalCommandSection from './TerminalCommandSection.vue'
+
+const OS_CONFIG = {
+    windows: {
+        title: 'Open an elevated Command Prompt and run:',
+        commandPrefix: 'powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1|iex" && flowfuse-device-agent-installer.exe'
+    },
+    macos: {
+        title: 'Open Terminal and run:',
+        commandPrefix: '/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && \\\n./flowfuse-device-agent-installer'
+    },
+    linux: {
+        title: 'Open Terminal and run:',
+        commandPrefix: '/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && \\\n./flowfuse-device-agent-installer'
+    }
+}
 
 export default {
     name: 'ScriptInstallContent',
     components: { TerminalCommandSection },
     inheritAttrs: false,
     props: {
-        title: {
-            type: String,
+        device: {
+            type: Object,
             required: true
         },
-        command: {
+        os: {
             type: String,
             required: true
+        }
+    },
+    computed: {
+        ...mapState('account', ['settings']),
+        title () {
+            return OS_CONFIG[this.os]?.title ?? ''
+        },
+        command () {
+            const prefix = OS_CONFIG[this.os]?.commandPrefix ?? ''
+            return `${prefix} -o ${this.device.credentials.otc} -u ${this.settings?.base_url}`
         }
     }
 }

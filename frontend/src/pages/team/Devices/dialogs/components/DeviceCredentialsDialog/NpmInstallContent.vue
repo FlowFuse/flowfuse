@@ -26,39 +26,56 @@
 
         <details class="mt-4">
             <summary class="mt-6 cursor-pointer">Show manual setup instructions</summary>
-            <ManualInstall class="mt-4" :credentials="credentials" :device="device" />
+            <ManualInstall class="mt-4" :device="device" />
         </details>
     </section>
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import ManualInstall from './ManualInstall.vue'
 import TerminalCommandSection from './TerminalCommandSection.vue'
+
+const OS_CONFIG = {
+    windows: {
+        installTitle: 'Open Command Prompt or PowerShell as administrator and run:',
+        installCommand: 'npm install -g @flowfuse/device-agent'
+    },
+    macos: {
+        installTitle: 'Open Terminal and run:',
+        installCommand: 'sudo npm install -g @flowfuse/device-agent'
+    },
+    linux: {
+        installTitle: 'Open Terminal and run:',
+        installCommand: 'sudo npm install -g @flowfuse/device-agent'
+    }
+}
 
 export default {
     name: 'NpmInstallContent',
     components: { ManualInstall, TerminalCommandSection },
     inheritAttrs: false,
     props: {
-        installTitle: {
-            type: String,
-            required: true
-        },
-        installCommand: {
-            type: String,
-            required: true
-        },
-        otcCommand: {
-            type: String,
-            required: true
-        },
-        credentials: {
-            type: String,
-            required: true
-        },
         device: {
             type: Object,
             required: true
+        },
+        os: {
+            type: String,
+            required: true
+        }
+    },
+    computed: {
+        ...mapState('account', ['settings']),
+        installTitle () {
+            return OS_CONFIG[this.os]?.installTitle ?? ''
+        },
+        installCommand () {
+            return OS_CONFIG[this.os]?.installCommand ?? ''
+        },
+        otcCommand () {
+            return `flowfuse-device-agent -o ${this.device.credentials.otc} -u ${this.settings?.base_url}`
         }
     }
 }
