@@ -361,7 +361,13 @@ const actions = {
 
         return mqttService.publishMessage(getters.mqttConnectionKey, {
             topic: `ff/v1/expert/${rootState.account.user.id}/support/chat`,
-            payload: { query },
+            payload: {
+                query,
+                context: {
+                    ...rootGetters['context/expert'],
+                    agent: state.agentMode
+                }
+            },
             correlationData: new TextEncoder().encode(transactionId),
             userProperties: {
                 sessionId: getters.sessionId
@@ -392,7 +398,7 @@ const actions = {
                 console.log('closeeeeeed')
             },
             onConnect: () => {
-                mqttService.subscribe(getters.mqttConnectionKey, 'ff/v1/expert/username/support/reply')
+                mqttService.subscribe(getters.mqttConnectionKey, `ff/v1/expert/${rootState.account.user.id}/support/reply`)
             },
             onOffline: () => {
                 // TODO add error message
