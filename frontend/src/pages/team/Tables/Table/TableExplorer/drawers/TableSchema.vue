@@ -27,11 +27,12 @@
 <script>
 import { mapActions } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapState, mapActions as mapVuexActions } from 'vuex'
+import { mapState } from 'vuex'
 
 import Alerts from '../../../../../../services/alerts.js'
 import Dialog from '../../../../../../services/dialog.js'
 
+import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default defineComponent({
@@ -50,7 +51,7 @@ export default defineComponent({
     },
     methods: {
         ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'setRightDrawerHeader']),
-        ...mapVuexActions('product/tables', ['deleteTable', 'getTables']),
+        ...mapActions(useProductTablesStore, ['deleteTable', 'getTables']),
         submit () {
             Dialog.show({
                 header: 'Delete Table',
