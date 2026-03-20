@@ -12,23 +12,8 @@
                     </p>
                 </template>
                 <template v-else>
-                    <InstallationMethodSelector
-                        :selected-method="installationMethod"
-                        :installation-methods="installationMethods"
-                        @select-method="installationMethod = $event"
-                    />
-
-                    <OtcInstallSection
-                        v-if="otc"
-                        :selected-o-s="selectedOS"
-                        :otc-command="otcCommand"
-                        :installation-method="installationMethod"
-                        :device="device"
-                        :credentials="credentials"
-                        @select-os="selectedOS = $event"
-                    />
-
-                    <ManualInstall v-else :credentials="credentials" :device="device" />
+                    <CascadingSelector v-if="otc" :node="installTree" />
+                    <ManualInstall v-else :device="device" />
                 </template>
             </form>
         </template>
@@ -45,21 +30,25 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
-import deviceApi from '../../../../api/devices.js'
-
-import InstallationMethodSelector from './components/DeviceCredentialsDialog/InstallationMethodSelector.vue'
+import { markRaw } from 'vue'
 
 import ManualInstall from './components/DeviceCredentialsDialog/ManualInstall.vue'
-import OtcInstallSection from './components/DeviceCredentialsDialog/OtcInstallSection.vue'
+import NpmInstallContent from './components/DeviceCredentialsDialog/NpmInstallContent.vue'
+import ScriptInstallContent from './components/DeviceCredentialsDialog/ScriptInstallContent.vue'
+
+import deviceApi from '@/api/devices.js'
+
+import LinuxIcon from '@/assets/icons/linux.svg'
+import MacOSIcon from '@/assets/icons/macos.svg'
+import WindowsIcon from '@/assets/icons/windows.svg'
+
+import { CascadingSelector, OptionTileSelector, TabSelector } from '@/components/variant-selector/index.js'
 
 export default {
     name: 'DeviceCredentialsDialog',
     components: {
-        InstallationMethodSelector,
-        ManualInstall,
-        OtcInstallSection
+        CascadingSelector,
+        ManualInstall
     },
     props: ['team'],
     setup () {
@@ -72,19 +61,7 @@ export default {
     },
     data () {
         return {
-            device: null,
-            selectedOS: 'Windows', // Default selected OS,
-            installationMethod: 'script',
-            installationMethods: [
-                {
-                    slug: 'script',
-                    label: 'One-Line Install'
-                },
-                {
-                    slug: 'npm',
-                    label: 'Install via NPM'
-                }
-            ]
+            device: null
         }
     },
     methods: {
@@ -105,32 +82,40 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
-        hasCredentials: function () {
+        hasCredentials () {
             return this.device && this.device.credentials
         },
-        otc: function () {
+        otc () {
             return this.device?.credentials?.otc
         },
-        otcCommand: function () {
-            return `flowfuse-device-agent -o ${this.otc} -u ${this.settings.base_url}`
-        },
-        credentials: function () {
-            let result = ''
-            if (this.device) {
-                result = `deviceId: ${this.device.id}
-token: ${this.device.credentials.token}
-credentialSecret: ${this.device.credentials.credentialSecret}
-forgeURL: ${this.settings.base_url}
-`
-                if (this.device.credentials.broker) {
-                    result += `brokerURL: ${this.device.credentials.broker.url}
-brokerUsername: ${this.device.credentials.broker.username}
-brokerPassword: ${this.device.credentials.broker.password}
-`
-                }
+        installTree () {
+            return {
+                id: 'root',
+                component: markRaw(TabSelector),
+                props: { separator: 'or' },
+                children: [
+                    {
+                        id: 'script',
+                        component: markRaw(OptionTileSelector),
+                        props: { label: 'One-Line Install', title: 'Install & Run Device Agent' },
+                        children: [
+                            { id: 'windows', component: markRaw(ScriptInstallContent), props: { label: 'Windows', icon: WindowsIcon, device: this.device, os: 'windows' } },
+                            { id: 'macos', component: markRaw(ScriptInstallContent), props: { label: 'MacOS', icon: MacOSIcon, device: this.device, os: 'macos' } },
+                            { id: 'linux', component: markRaw(ScriptInstallContent), props: { label: 'Linux', icon: LinuxIcon, device: this.device, os: 'linux' } }
+                        ]
+                    },
+                    {
+                        id: 'npm',
+                        component: markRaw(OptionTileSelector),
+                        props: { label: 'Install via NPM', title: 'Install Device Agent' },
+                        children: [
+                            { id: 'windows', component: markRaw(NpmInstallContent), props: { label: 'Windows', icon: WindowsIcon, device: this.device, os: 'windows' } },
+                            { id: 'macos', component: markRaw(NpmInstallContent), props: { label: 'MacOS', icon: MacOSIcon, device: this.device, os: 'macos' } },
+                            { id: 'linux', component: markRaw(NpmInstallContent), props: { label: 'Linux', icon: LinuxIcon, device: this.device, os: 'linux' } }
+                        ]
+                    }
+                ]
             }
-            return result
         }
     }
 }
