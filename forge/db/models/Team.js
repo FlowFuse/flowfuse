@@ -8,6 +8,8 @@ const { DataTypes, literal, Op } = require('sequelize')
 const { Roles } = require('../../lib/roles')
 const { slugify, generateTeamAvatar, buildPaginationSearchClause } = require('../utils')
 
+const delay = (time) => new Promise(resolve => setTimeout(resolve, time))
+
 module.exports = {
     name: 'Team',
     schema: {
@@ -759,13 +761,14 @@ module.exports = {
                         }
                     })
                     // Shut down all running instances
-                    instanceList.forEach(async (instance) => {
+                    for (const instance of instanceList) {
                         try {
                             await app.containers.stop(instance)
                         } catch (err) {
                             // do we need to log a failure?
                         }
-                    })
+                        await delay(1000)
+                    }
                 },
 
                 /**
