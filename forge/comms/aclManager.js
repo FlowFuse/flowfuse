@@ -191,6 +191,28 @@ module.exports = function (app) {
                 // - ff/v1/<team>/d/<device/resources/heartbeat
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources\/heartbeat$/, verify: 'checkDeviceIsAssigned' }
             ]
+        },
+        // frontend connection
+        expertClient: {
+            sub: [
+                { topic: /^ff\/v1\/expert\/([^/]+)\/support\/reply$/ /*, verify: 'TODO: validate user and session'  */ },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/operator\/reply$/ /*, verify: 'TODO: validate user and session'  */ }
+            ],
+            pub: [
+                { topic: /^ff\/v1\/expert\/([^/]+)\/support\/chat$/ /*, verify: 'TODO: validate user and session'  */ },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/operator\/chat$/ /*, verify: 'TODO: validate user and session'  */ }
+            ]
+        },
+        // backend
+        expertAgent: {
+            sub: [
+                { topic: /^ff\/v1\/expert\/([^/]+)\/support\/chat$/ /*, verify: 'TODO: validate user and session'  */ },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/operator\/chat$/ /*, verify: 'TODO: validate user and session'  */ }
+            ],
+            pub: [
+                { topic: /^ff\/v1\/expert\/([^/]+)\/support\/reply$/ /*, verify: 'TODO: validate user and session'  */ },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/operator\/reply$/ /*, verify: 'TODO: validate user and session'  */ }
+            ]
         }
     }
 
@@ -216,6 +238,10 @@ module.exports = function (app) {
                 aclList = ACLS.device[aclType]
             } else if (/^frontend:/.test(username)) {
                 aclList = ACLS.frontend[aclType]
+            } else if (/^expert-agent:/.test(username)) {
+                aclList = ACLS.expertAgent[aclType]
+            } else if (/^expert-client:/.test(username)) {
+                aclList = ACLS.expertClient[aclType]
             } else {
                 return false
             }

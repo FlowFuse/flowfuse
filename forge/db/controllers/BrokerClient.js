@@ -140,5 +140,34 @@ module.exports = {
             }
         }
         return null
+    },
+
+    createClientForExpert: async function (app, user) {
+        if (app.comms) {
+            const existingClient = await app.db.models.BrokerClient.findOne({
+                where: {
+                    ownerId: '' + user.id,
+                    ownerType: 'expert'
+                }
+            })
+            if (existingClient) {
+                await existingClient.destroy()
+            }
+
+            const username = `expert:${user.Team.hashid}:${user.hashid}`
+            const password = generateToken(32, 'ffbexp')
+            await app.db.models.BrokerClient.create({
+                username,
+                password,
+                ownerId: '' + user.id,
+                ownerType: 'expert'
+            })
+            return {
+                url: app.config.broker.public_url || app.config.broker.url || null,
+                username,
+                password
+            }
+        }
+        return null
     }
 }
