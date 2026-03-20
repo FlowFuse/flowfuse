@@ -62,8 +62,8 @@
 </template>
 
 <script>
-import { mapState } from 'pinia'
-import { mapActions, mapState as mapVuexState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
@@ -78,6 +78,7 @@ import PasswordExpired from './pages/PasswordExpired.vue'
 import TermsAndConditions from './pages/TermsAndConditions.vue'
 import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 
+import { useContextStore } from '@/stores/context.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -144,7 +145,7 @@ export default {
         this.$store.dispatch('product/checkFlags')
     },
     methods: {
-        ...mapActions('context', ['updateRoute'])
+        ...mapActions(useContextStore, ['updateRoute'])
     }
 }
 </script>

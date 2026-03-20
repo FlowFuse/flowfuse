@@ -9,7 +9,10 @@ import { useUxDrawersStore } from '../../../../stores/ux-drawers.js'
 import { FF_AGENT, OPERATOR_AGENT } from './agents.js'
 
 import FFAgent from './ff-agent/index.js'
+
 import OperatorAgent from './operator-agent/index.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 const initialState = () => ({
     shouldWakeUpAssistant: false,
@@ -331,11 +334,11 @@ const actions = {
         commit('SET_ABORT_CONTROLLER', controller)
     },
 
-    sendQuery ({ commit, state, getters, rootGetters, rootState }, { query }) {
+    sendQuery ({ commit, state, getters, rootState }, { query }) {
         const payload = {
             query,
             context: {
-                ...rootGetters['context/expert'],
+                ...useContextStore().expert,
                 agent: state.agentMode
             },
             sessionId: state[state.agentMode].sessionId,
