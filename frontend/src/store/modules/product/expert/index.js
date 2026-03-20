@@ -360,7 +360,7 @@ const actions = {
         const transactionId = uuidv4()
 
         return mqttService.publishMessage(getters.mqttConnectionKey, {
-            topic: `ff/v1/expert/${rootState.account.user.id}/support/chat`,
+            topic: `ff/v1/expert/${rootState.account.user.id}/${getters.sessionId}/support/chat`,
             payload: {
                 query,
                 context: {
@@ -389,7 +389,7 @@ const actions = {
             onMessage: (topic, message) => {
                 // TODO i don't like this approach, i should define the onMessage handler when i subscribe to a topic,
                 //  this global handler should be used only in niche cases, also sub to other user topics?
-                if (topic !== `ff/v1/expert/${rootState.account.user.id}/support/reply`) return
+                if (topic !== `ff/v1/expert/${rootState.account.user.id}/${getters.sessionId}/support/reply`) return
 
                 dispatch('handleMessageResponse', JSON.parse(message.toString()))
             },
@@ -398,7 +398,7 @@ const actions = {
                 console.log('closeeeeeed')
             },
             onConnect: () => {
-                mqttService.subscribe(getters.mqttConnectionKey, `ff/v1/expert/${rootState.account.user.id}/support/reply`)
+                mqttService.subscribe(getters.mqttConnectionKey, `ff/v1/expert/${rootState.account.user.id}/${getters.sessionId}/support/reply`)
             },
             onOffline: () => {
                 // TODO add error message

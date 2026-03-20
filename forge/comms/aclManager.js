@@ -195,23 +195,23 @@ module.exports = function (app) {
         // frontend connection
         expertClient: {
             sub: [
-                { topic: /^ff\/v1\/expert\/([^/]+)\/support\/reply$/ /*, verify: 'TODO: validate user and session'  */ },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/operator\/reply$/ /*, verify: 'TODO: validate user and session'  */ }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/support\/reply$/ /*, verify: 'TODO: validate user and session'  */ },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/operator\/reply$/ /*, verify: 'TODO: validate user and session'  */ }
             ],
             pub: [
-                { topic: /^ff\/v1\/expert\/([^/]+)\/support\/chat$/ /*, verify: 'TODO: validate user and session'  */ },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/operator\/chat$/ /*, verify: 'TODO: validate user and session'  */ }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/support\/chat$/ /*, verify: 'TODO: validate user and session'  */ },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/operator\/chat$/ /*, verify: 'TODO: validate user and session'  */ }
             ]
         },
         // backend
         expertAgent: {
             sub: [
-                { topic: /^ff\/v1\/expert\/([^/]+)\/support\/chat$/ /*, verify: 'TODO: validate user and session'  */ },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/operator\/chat$/ /*, verify: 'TODO: validate user and session'  */ }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/support\/chat$/ /*, verify: 'TODO: validate user and session'  */ },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/operator\/chat$/ /*, verify: 'TODO: validate user and session'  */ }
             ],
             pub: [
-                { topic: /^ff\/v1\/expert\/([^/]+)\/support\/reply$/ /*, verify: 'TODO: validate user and session'  */ },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/operator\/reply$/ /*, verify: 'TODO: validate user and session'  */ }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/support\/reply$/ /*, verify: 'TODO: validate user and session'  */ },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/operator\/reply$/ /*, verify: 'TODO: validate user and session'  */ }
             ]
         }
     }
