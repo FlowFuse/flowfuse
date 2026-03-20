@@ -1,11 +1,12 @@
 import expertApi from '../../../../../api/expert.js'
-import useTimerHelper from '../../../../../composables/TimersHelper.js'
+import useTimerHelper from '../../../../../composables/TimerHelper.js'
 
 const initialState = () => ({
     sessionId: null,
     messages: [],
 
     // Session timing
+    abortController: null,
     sessionStartTime: null,
     sessionWarningShown: false,
     sessionExpiredShown: false,
@@ -16,12 +17,7 @@ const initialState = () => ({
 })
 
 const meta = {
-    persistence: {
-        sessionId: {
-            storage: 'localStorage',
-            clearOnLogout: true
-        }
-    }
+    persistence: { }
 }
 
 const state = initialState

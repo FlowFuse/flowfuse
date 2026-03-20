@@ -14,7 +14,7 @@
 <script>
 import { MenuItem } from '@headlessui/vue'
 
-import { slugify } from '../../../composables/String.js'
+import { slugify } from '../../../composables/strings/String.js'
 
 export default {
     name: 'ff-kebab-item',
