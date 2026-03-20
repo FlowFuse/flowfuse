@@ -607,8 +607,7 @@ const actions = {
             })
             .catch(_ => {})
     },
-    async clearOtherStores (state) {
-        const { useProductTablesStore } = await import('@/stores/product-tables.js')
+    clearOtherStores () {
         useProductTablesStore().clearState()
     },
     async checkIfAuthenticated ({ commit }) {
