@@ -19,7 +19,7 @@ module.exports = {
             viewBox: '0 0 256 256',
             fill: 'currentColor',
             'aria-hidden': 'true'
-        },[
+        }, [
             path1
         ]
         ))
