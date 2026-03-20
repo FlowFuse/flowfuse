@@ -217,7 +217,7 @@ import settingsApi from '../../../api/settings.js'
 import teamTypesApi from '../../../api/teamTypes.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
-import { isValidURL } from '../../../composables/String.js'
+import { isValidURL } from '../../../composables/strings/String.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 

@@ -32,7 +32,7 @@
 import { CheckCircleIcon, EyeIcon, XCircleIcon } from '@heroicons/vue/outline'
 import { defineComponent } from 'vue'
 
-import { capitalize } from '../../../../../../composables/String.js'
+import { capitalize } from '../../../../../../composables/strings/String.js'
 import Dialog from '../../../../../../services/dialog.js'
 
 import ObjectProperties from '../schema/ObjectProperties.vue'

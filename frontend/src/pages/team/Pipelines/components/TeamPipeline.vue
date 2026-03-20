@@ -29,7 +29,7 @@
 <script>
 import { ChevronRightIcon } from '@heroicons/vue/outline'
 
-import { slugify } from '../../../../composables/String.js'
+import { slugify } from '../../../../composables/strings/String.js'
 
 import TeamPipelineStage from './TeamPipelineStage.vue'
 export default {

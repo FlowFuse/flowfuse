@@ -80,7 +80,7 @@
 import { defineComponent } from 'vue'
 
 import usePermissions from '../../../composables/Permissions.js'
-import { slugify } from '../../../composables/String.js'
+import { slugify } from '../../../composables/strings/String.js'
 import daysSince from '../../../utils/daysSince.js'
 
 import TimelineGraph from './TimelineGraph.vue'
