@@ -2,7 +2,7 @@
     <div>{{ formattedRole }}</div>
 </template>
 <script>
-import { capitalize } from '../../../composables/String.js'
+import { capitalize } from '../../../composables/strings/String.js'
 import { RoleNames, Roles } from '../../../utils/roles.js'
 export default {
     name: 'UserRoleCell',
