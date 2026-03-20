@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { markRaw } from 'vue'
 
 import expertApi from '../../../../api/expert.js'
+import userApi from '../../../../api/user.js'
 import ExpertDrawer from '../../../../components/drawers/expert/ExpertDrawer.vue'
 import useTimerHelper from '../../../../composables/TimerHelper.js'
 import { useUxDrawersStore } from '../../../../stores/ux-drawers.js'
@@ -10,6 +11,8 @@ import { FF_AGENT, OPERATOR_AGENT } from './agents.js'
 
 import FFAgent from './ff-agent/index.js'
 import OperatorAgent from './operator-agent/index.js'
+
+import createMqttService from '@/services/mqtt.service2.js'
 
 const initialState = () => ({
     shouldWakeUpAssistant: false,
@@ -42,6 +45,10 @@ const getters = {
     },
     canManagePalette: (state, getters, rootState, rootGetters) => {
         return !!rootGetters['product/assistant/immersiveInstance'] && !!rootState.product.assistant.supportedActions['core:manage-palette']
+    },
+    sessionId: (state) => state[state.agentMode].sessionId,
+    mqttConnectionKey: (state, getters, rootState, rootGetters) => {
+        return rootGetters[`product/expert/${state.agentMode}/mqttConnectionKey`]
     }
 }
 
@@ -331,7 +338,8 @@ const actions = {
         commit('SET_ABORT_CONTROLLER', controller)
     },
 
-    sendQuery ({ commit, state, getters, rootGetters, rootState }, { query }) {
+    async sendQuery ({ commit, dispatch, state, getters, rootGetters, rootState }, { query }) {
+        const mqttService = createMqttService()
         const payload = {
             query,
             context: {
@@ -347,7 +355,58 @@ const actions = {
             payload.context.selectedCapabilities = rootState.product.expert[OPERATOR_AGENT].selectedCapabilities
         }
 
-        return expertApi.chat(payload)
+        if (!mqttService.hasConnection(getters.mqttConnectionKey)) await dispatch('establishComms')
+
+        const transactionId = uuidv4()
+
+        return mqttService.publishMessage(getters.mqttConnectionKey, {
+            topic: `ff/v1/expert/${rootState.account.user.id}/support/chat`,
+            payload: { query },
+            correlationData: new TextEncoder().encode(transactionId),
+            userProperties: {
+                sessionId: getters.sessionId
+            }
+        })
+    },
+
+    async establishComms ({ dispatch, getters, rootState }) {
+        const mqttService = createMqttService()
+
+        const { url, username, password } = await userApi.initiateExpertChat()
+
+        console.log({ url, username, password })
+
+        await mqttService.createConnection(getters.mqttConnectionKey, {
+            url,
+            username,
+            password,
+            onMessage: (topic, message) => {
+                // TODO i don't like this approach, i should define the onMessage handler when i subscribe to a topic,
+                //  this global handler should be used only in niche cases, also sub to other user topics?
+                if (topic !== `ff/v1/expert/${rootState.account.user.id}/support/reply`) return
+
+                dispatch('handleMessageResponse', JSON.parse(message.toString()))
+            },
+            onClose: () => {
+                // TODO add error message
+                console.log('closeeeeeed')
+            },
+            onConnect: () => {
+                mqttService.subscribe(getters.mqttConnectionKey, 'ff/v1/expert/username/support/reply')
+            },
+            onOffline: () => {
+                // TODO add error message
+                console.log('oooooofffffliiiiiineeeee')
+            },
+            onError: (e) => {
+                // TODO add error message
+                console.log('eeeeeeerrrrrrrrooooooooorrrrrrrr', e)
+            }
+        })
+
+        // TODO figure out asynchronicity between moment when connection gets created, the connection is established and
+        //  when we publish the message
+        await new Promise(resolve => setTimeout(resolve, 5000))
     },
 
     openAssistantDrawer ({ dispatch, rootGetters }) {

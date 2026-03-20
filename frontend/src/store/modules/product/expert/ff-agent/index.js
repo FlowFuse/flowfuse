@@ -1,3 +1,5 @@
+import { FF_AGENT } from '@/store/modules/product/expert/agents.js'
+
 const initialState = () => ({
     context: null,
     sessionId: null,
@@ -22,7 +24,12 @@ const meta = {
 
 const state = initialState
 
-const getters = {}
+const getters = {
+    chatChannel: (state) => {
+        return `ff/v1/expert/${state.sessionId}/agent`
+    },
+    mqttConnectionKey: () => `expert/${FF_AGENT}`
+}
 
 const mutations = {
     RESET (state) {

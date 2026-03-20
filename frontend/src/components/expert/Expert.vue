@@ -47,7 +47,8 @@ export default {
         togglePinWithWidth: {
             from: 'togglePinWithWidth',
             default: () => () => {} // No-op function when not provided
-        }
+        },
+        $services: { from: '$services' }
     },
     props: {
         instance: {
@@ -69,7 +70,9 @@ export default {
     },
     computed: {
         ...mapVuexState('product/expert', [
-            'agentMode'
+            'agentMode',
+            'sessionId',
+            'mqttConnectionKey'
         ]),
         ...mapGetters('product/expert', [
             'abortController',
@@ -128,6 +131,22 @@ export default {
                 }
             }
         }
+        // sessionId: {
+        //     immediate: true,
+        //     handler (sessionId) {
+        //         if (!sessionId) return
+        //
+        //         if (!this.$services.mqtt.hasConnection(this.mqttConnectionKey)) {
+        //             const connection = this.$services.mqtt.createConnection(`expert/${this.agentMode}`, {
+        //                 url: 'ws://localhost:9001',
+        //                 username: 'ff',
+        //                 password: 'super-secret'
+        //             })
+        //
+        //             console.log('created connection', connection)
+        //         }
+        //     }
+        // }
     },
     mounted () {
         // Add welcome message when opening in editor (immersive) context

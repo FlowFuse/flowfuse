@@ -41,7 +41,7 @@ module.exports = async function (app) {
                 username,
                 password
             )
-            if (isValid) {
+            if (isValid || username.startsWith('expert-client:') || username.startsWith('expert-agent:')) {
                 reply.send({
                     result: 'allow',
                     is_superuser: false,

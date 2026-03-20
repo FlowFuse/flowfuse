@@ -1,6 +1,8 @@
 import expertApi from '../../../../../api/expert.js'
 import useTimerHelper from '../../../../../composables/TimerHelper.js'
 
+import { OPERATOR_AGENT } from '@/store/modules/product/expert/agents.js'
+
 const initialState = () => ({
     sessionId: null,
     messages: [],
@@ -29,7 +31,11 @@ const getters = {
             toolCount: capability.resources.length + capability.tools.length + capability.prompts.length
 
         }))
-    }
+    },
+    chatChannel: (state) => {
+        return `ff/v1/expert/${state.sessionId}/agent`
+    },
+    mqttConnectionKey: () => `expert/${OPERATOR_AGENT}`
 }
 
 const mutations = {

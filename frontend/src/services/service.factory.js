@@ -1,5 +1,6 @@
 import { createBootstrapService } from './bootstrap.service.js'
 import { createMessagingService } from './messaging.service.js'
+import { createMqttService, destroyMqttService } from './mqtt.service2.js'
 
 /**
  * Service Factory - Manages service creation with dependency injection
@@ -7,18 +8,37 @@ import { createMessagingService } from './messaging.service.js'
 class ServiceFactory {
     /** @typedef {{
      bootstrap: import('./bootstrap.service.js').BootstrapService|null,
-     messaging: import('./messaging.service.js').MessagingService|null
+     messaging: import('./messaging.service.js').MessagingService|null,
+     mqtt: import('./mqtt.service.js').MqttService|null
      }} ServiceInstances */
     $serviceInstances = {
         bootstrap: null,
-        messaging: null
+        messaging: null,
+        mqtt: null
     }
+
+    $app = null
+    $cleanupRegistered = false
 
     constructor () {
         this.$serviceInstances = {
             bootstrap: null,
-            messaging: null
+            messaging: null,
+            mqtt: null
         }
+    }
+
+    async dispose () {
+        await Promise.allSettled([
+            this.$serviceInstances.mqtt?.destroy?.(),
+            destroyMqttService()
+        ])
+
+        this.$serviceInstances.bootstrap = null
+        this.$serviceInstances.messaging = null
+        this.$serviceInstances.mqtt = null
+        this.$cleanupRegistered = false
+        this.$app = null
     }
 
     /**
@@ -29,6 +49,10 @@ class ServiceFactory {
      * @returns {Promise<ServiceInstances>} Promise that resolves when all services are booted
      */
     async bootAllServices (app, store, router) {
+        await this.dispose()
+
+        this.$app = app
+
         this.$serviceInstances.bootstrap = createBootstrapService({
             app,
             store,
@@ -43,7 +67,30 @@ class ServiceFactory {
             services: this.$serviceInstances
         })
 
+        this.$serviceInstances.mqtt = createMqttService({
+            app,
+            store,
+            router,
+            services: this.$serviceInstances
+        })
+
         app.provide('$services', this.$serviceInstances)
+
+        if (!this.$cleanupRegistered) {
+            this.$cleanupRegistered = true
+
+            const originalUnmount = app.unmount.bind(app)
+            app.unmount = async (...args) => {
+                await this.dispose()
+                return originalUnmount(...args)
+            }
+
+            if (import.meta.hot) {
+                import.meta.hot.dispose(() => {
+                    this.dispose()
+                })
+            }
+        }
 
         return this.$serviceInstances
     }

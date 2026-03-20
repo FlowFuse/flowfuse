@@ -410,7 +410,6 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const clientCreds = await app.db.controllers.BrokerClient.createClientForExpert(request.session.User)
-        app.log.info(`Expert chat started for user ${request.device.hashid}`)
         reply.send(clientCreds)
     })
 }

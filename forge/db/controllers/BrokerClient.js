@@ -154,7 +154,7 @@ module.exports = {
                 await existingClient.destroy()
             }
 
-            const username = `expert:${user.Team.hashid}:${user.hashid}`
+            const username = `expert-client:${user.hashid}`
             const password = generateToken(32, 'ffbexp')
             await app.db.models.BrokerClient.create({
                 username,

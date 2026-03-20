@@ -239,6 +239,9 @@ const disableMFA = async () => {
 const verifyMFA = async (token) => {
     return client.put('/api/v1/user/mfa/verify', { token }).then(res => res.data)
 }
+const initiateExpertChat = async () => {
+    return client.post('/api/v1/user/expert').then(res => res.data)
+}
 
 export default {
     registerUser,
@@ -267,5 +270,6 @@ export default {
     updatePersonalAccessToken,
     enableMFA,
     verifyMFA,
-    disableMFA
+    disableMFA,
+    initiateExpertChat
 }
