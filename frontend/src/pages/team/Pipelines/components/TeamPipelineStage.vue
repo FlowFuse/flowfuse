@@ -7,7 +7,7 @@
             <IconNodeRedSolid v-if="isInstanceStage" class="ff-icon-sm text-red-700" />
             <DeviceSolid v-if="isDeviceStage" class="ff-icon-sm text-teal-700" />
             <DeviceGroupSolidIcon v-if="isDeviceGroupsStage" class="ff-icon-sm text-teal-800" />
-            <IconGit v-if="isGitRepoStage" class="ff-icon-sm" style="color: #e46133" />
+            <IconGit v-if="isGitRepoStage" class="ff-icon-sm" style="color: #e46133" :type="gitType" />
             <span>{{ targetName }}</span>
         </router-link>
     </div>
@@ -50,6 +50,16 @@ export default {
         },
         isGitRepoStage () {
             return Object.hasOwnProperty.call(this.stage, 'gitRepo')
+        },
+        gitType () {
+            if (this.isGitRepoStage) {
+                if (this.stage.gitRepo.url.startsWith('https://github.com/')) {
+                    return 'github'
+                } else if (this.stage.gitRepo.url.startsWith('https://dev.azure.com/')) {
+                    return 'azure'
+                }
+            }
+            return ''
         },
 
         targetName () {
