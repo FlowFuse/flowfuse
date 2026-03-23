@@ -2,7 +2,7 @@
     <section
         id="right-drawer"
         v-click-outside="{handler: closeDrawer, exclude: ['right-drawer']}"
-        :class="{open: rightDrawer.state, wider: rightDrawer.wider, fixed: rightDrawer.fixed, resizing: isResizing, 'manually-resized': hasManuallyResized, pinning: isPinning, opening: isOpening, closing: isClosing}"
+        :class="{open: rightDrawer.state, wider: rightDrawer.wider, fixed: rightDrawer.fixed, resizing: isResizing, 'manually-resized': hasManuallyResized, pinning: isPinning, opening: isOpening && !isPinning, closing: isClosing}"
         :style="drawerStyle"
         data-el="right-drawer"
     >
@@ -43,6 +43,7 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
+import { mapActions as mapVuexActions } from 'vuex'
 
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -105,10 +106,18 @@ export default {
     watch: {
         'rightDrawer.state': {
             handler (isOpen, wasOpen) {
+                let reopenExpert = false
+                const isExpertDrawer = this.rightDrawer.component?.name === 'ExpertDrawer'
+                if (!isOpen && wasOpen && !isExpertDrawer) {
+                    // non expert drawer is closing - check if we need to re-open expert drawer
+                    reopenExpert = this.rightDrawer.expertState.pinned && this.rightDrawer.expertState.open
+                }
+
                 // Set opening flag when drawer opens
                 if (isOpen && !wasOpen) {
                     this.isOpening = true
                     this.isClosing = false
+                    this.isPinning = isExpertDrawer && this.rightDrawer.fixed // no animation if drawer is to open pinned
                     // Clear opening flag after slide animation completes
                     setTimeout(() => {
                         this.isOpening = false
@@ -121,6 +130,10 @@ export default {
                     // Clear closing flag after slide animation completes
                     setTimeout(() => {
                         this.isClosing = false
+                        // Re-open Expert drawer if needed after other drawer closes
+                        if (reopenExpert) {
+                            this.openAssistantDrawer({ openPinned: true })
+                        }
                     }, 350)
                 }
 
@@ -166,6 +179,20 @@ export default {
     mounted () {
         // Add viewport resize listener
         window.addEventListener('resize', this.onViewportResize)
+
+        const openPinned = this.rightDrawer.expertState.open && this.rightDrawer.expertState.pinned
+
+        if (openPinned && this.shouldAllowPinning) {
+            this.isPinning = true
+            setTimeout(() => {
+                this.openAssistantDrawer({ openPinned: true })
+                setTimeout(() => {
+                    this.isPinning = false
+                }, 200)
+            }, 25)
+        } else {
+            this.isPinning = false
+        }
     },
     beforeUnmount () {
         // Clean up resize listeners
@@ -177,6 +204,7 @@ export default {
         }
     },
     methods: {
+        ...mapVuexActions('product/expert', ['openAssistantDrawer']),
         ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'togglePinDrawer']),
         closeDrawer () {
             if (this.rightDrawer.state && this.rightDrawer.closeOnClickOutside) {
