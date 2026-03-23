@@ -24,13 +24,16 @@ export default {
     computed: {
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         isExpertDrawerOpen () {
-            return this.rightDrawer.state && this.rightDrawer.component?.name === 'ExpertDrawer'
+            return (this.rightDrawer.state || this.rightDrawer.fixed)
         }
     },
     methods: {
         ...mapActions('product/expert', ['openAssistantDrawer']),
         onClick () {
-            this.openAssistantDrawer()
+            const openOptions = {
+                openPinned: this.rightDrawer.expertState.pinned
+            }
+            this.openAssistantDrawer(openOptions)
         }
     }
 }

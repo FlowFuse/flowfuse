@@ -353,12 +353,17 @@ const actions = {
         return expertApi.chat(payload)
     },
 
-    openAssistantDrawer ({ dispatch, rootGetters }) {
+    openAssistantDrawer ({ dispatch, rootGetters }, options = {}) {
         if (rootGetters['account/featuresCheck'].isExpertAssistantFeatureEnabled === false) return
 
         dispatch(`product/expert/${OPERATOR_AGENT}/getCapabilities`, null, { root: true })
 
-        return useUxDrawersStore().openRightDrawer({ component: markRaw(ExpertDrawer) })
+        const openOptions = {
+            component: markRaw(ExpertDrawer),
+            fixed: options?.openPinned === true,
+            closeOnClickOutside: options?.openPinned !== true
+        }
+        return useUxDrawersStore().openRightDrawer(openOptions)
     },
 
     addWelcomeMessageIfNeeded ({ dispatch, state }) {
