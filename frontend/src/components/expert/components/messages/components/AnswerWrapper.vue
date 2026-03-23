@@ -72,7 +72,7 @@
 <script>
 
 import { mapState } from 'pinia'
-import { mapActions as mapVuexActions } from 'vuex'
+import { mapActions as mapVuexActions, mapState as mapVuexState } from 'vuex'
 
 import useTimerHelper from '../../../../../composables/TimerHelper.js'
 
@@ -126,7 +126,7 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, ['supportedActions']),
-        ...mapState('product/expert', ['agentMode']),
+        ...mapVuexState('product/expert', ['agentMode']),
         hasGuideHeader () {
             // chat answers contain generic titles, they don't need to be displayed
             return !!(this.answer.title && !this.isChatAnswer)

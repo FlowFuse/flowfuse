@@ -74,6 +74,10 @@ describe('ux-drawers store', () => {
             expect(store.rightDrawer.props).toEqual({})
             expect(store.rightDrawer.on).toEqual({})
             expect(store.rightDrawer.bind).toEqual({})
+            expect(store.rightDrawer.expertState).toEqual({
+                pinned: true,
+                open: true
+            })
         })
 
         it('passes through all options', () => {
