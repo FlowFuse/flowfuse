@@ -86,7 +86,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
 
 import InstanceStatusPolling from '../../../../../components/InstanceStatusPolling.vue'
 import TextCopier from '../../../../../components/TextCopier.vue'
@@ -101,6 +101,8 @@ import DashboardLink from '../../../../instance/components/DashboardLink.vue'
 import InstanceEditorLink from '../../../../instance/components/EditorLink.vue'
 import InstanceMinimalStatusBadge from '../../../../instance/components/InstanceMinimalStatusBadge.vue'
 import InstanceStatusBadge from '../../../../instance/components/InstanceStatusBadge.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'InstanceTile',
@@ -141,7 +143,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['isAdminUser']),
+        ...mapState(useAccountAuthStore, ['isAdminUser']),
         isInstanceRunning () {
             return this.localInstance.meta?.state === 'running'
         },

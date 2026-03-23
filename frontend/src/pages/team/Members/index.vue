@@ -14,7 +14,8 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+
+import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import usePermissions from '../../../composables/Permissions.js'
@@ -33,7 +34,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'team'])
+        ...mapVuexState('account', ['team'])
     },
     watch: {
         teamMembership: 'checkAccess'

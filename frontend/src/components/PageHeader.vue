@@ -119,6 +119,7 @@ import NotificationsButton from './NotificationsButton.vue'
 import TeamSelection from './TeamSelection.vue'
 import GlobalSearch from './global-search/GlobalSearch.vue'
 
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -130,7 +131,8 @@ export default {
             return Roles
         },
         ...mapState(useUxDrawersStore, ['leftDrawer', 'hiddenLeftDrawer']),
-        ...mapVuexState('account', ['user', 'team', 'teams']),
+        ...mapState(useAccountAuthStore, ['user']),
+        ...mapVuexState('account', ['team', 'teams']),
         ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount', 'featuresCheck']),
         navigationOptions () {
             return [

@@ -62,6 +62,8 @@ import alerts from '../../services/alerts.js'
 import dialog from '../../services/dialog.js'
 import { RoleNames, Roles } from '../../utils/roles.js'
 
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+
 export default {
     name: 'AccountSettings',
     components: {
@@ -219,7 +221,7 @@ export default {
             }
             if (changed) {
                 userApi.updateUser(opts).then((response) => {
-                    this.$store.dispatch('account/setUser', response)
+                    useAccountAuthStore().setUser(response)
                     alerts.emit('User successfully updated.', 'confirmation', 3000)
                     if (response?.pendingEmailChange) {
                         // delay next alert for visual separation of concerns

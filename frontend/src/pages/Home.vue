@@ -37,13 +37,16 @@
 
 <script>
 
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import EmptyState from '../components/EmptyState.vue'
 
 import FlowFuseLogo from '../components/Logo.vue'
 
 import TeamTypeSelection from '../components/TeamTypeSelection.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'HomePage',
@@ -58,8 +61,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['pending', 'user', 'team', 'teams', 'redirectUrlAfterLogin', 'settings']),
+        ...mapVuexState('account', ['team', 'teams', 'settings']),
         ...mapGetters('account', ['defaultUserTeam']),
+        ...mapState(useAccountAuthStore, ['pending', 'user', 'redirectUrlAfterLogin']),
         canCreateTeam () {
             if (this.user.admin) return true
             return Object.prototype.hasOwnProperty.call(this.settings, 'team:create') && this.settings['team:create'] === true

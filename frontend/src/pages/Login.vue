@@ -86,15 +86,18 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import { GoogleLogin } from 'vue3-google-login'
 
-import { mapState } from 'vuex'
+import { mapState as mapVuexState } from 'vuex'
 
 import SSOApi from '../api/sso.js'
 import Logo from '../components/Logo.vue'
 import SpinnerIcon from '../components/icons/Spinner.js'
 
 import FFLayoutBox from '../layouts/Box.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'LoginPage',
@@ -124,7 +127,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings', 'pending', 'loginError', 'redirectUrlAfterLogin']),
+        ...mapVuexState('account', ['settings']),
+        ...mapState(useAccountAuthStore, ['pending', 'loginError', 'redirectUrlAfterLogin']),
         tokenInvalid () {
             return this.mfaRequired && !/^\d{6}$/.test(this.input.token)
         },

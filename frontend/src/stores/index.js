@@ -1,4 +1,5 @@
 // Barrel export — add store exports here as each task is merged
+export { useAccountAuthStore } from './account-auth.js'
 export { useContextStore } from './context.js'
 export { useProductBrokersStore } from './product-brokers.js'
 export { useProductTablesStore } from './product-tables.js'

@@ -27,6 +27,7 @@ import { Roles } from '../../utils/roles.js'
 
 import TeamInstances from './Instances.vue'
 
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -50,8 +51,9 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
-        ...mapGetters('account', ['requiresBilling', 'isAdminUser']),
+        ...mapVuexState('account', ['team', 'teamMembership', 'pendingTeamChange', 'features']),
+        ...mapGetters('account', ['requiresBilling']),
+        ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
         ...mapState(useUxToursStore, ['shouldPresentTour']),
         ...mapState(useProductExpertStore, ['shouldWakeUpAssistant']),
         isVisitingAdmin: function () {
