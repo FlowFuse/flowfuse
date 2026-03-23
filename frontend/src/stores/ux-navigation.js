@@ -13,7 +13,7 @@ import QueueIcon from '../components/icons/Queue.js'
 import { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } from '../composables/Permissions.js'
 import { Roles } from '../utils/roles.js'
 
-import { useAccountBridge } from './_account-bridge.js'
+import { useAccountBridge } from './_account_bridge.js'
 import { useUxStore } from './ux.js'
 
 export const useUxNavigationStore = defineStore('ux-navigation', {

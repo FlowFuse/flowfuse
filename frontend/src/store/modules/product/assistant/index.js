@@ -2,6 +2,8 @@ import SemVer from 'semver'
 
 import messagingService from '../../../../services/messaging.service.js'
 
+import { useContextStore } from '@/stores/context.js'
+
 const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep
 
 const eventsRegistry = {
@@ -159,11 +161,11 @@ const meta = {
 const state = initialState()
 
 const getters = {
-    immersiveInstance: (state, getters, rootState) => {
-        return rootState.context.instance
+    immersiveInstance: () => {
+        return useContextStore().instance
     },
-    immersiveDevice: (state, getters, rootState) => {
-        return rootState.context.device
+    immersiveDevice: () => {
+        return useContextStore().device
     },
     hasUserSelection: (state) => {
         return state.selectedNodes.length

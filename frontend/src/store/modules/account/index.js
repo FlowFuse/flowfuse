@@ -2,7 +2,6 @@ import { getActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
-
 import settingsApi from '../../../api/settings.js'
 import teamApi from '../../../api/team.js'
 import userApi from '../../../api/user.js'
@@ -10,6 +9,7 @@ import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import router from '../../../routes.js'
 import product from '../../../services/product.js'
 
+import { useContextStore } from '@/stores/context.js'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
@@ -523,7 +523,7 @@ const actions = {
                     useUxNavigationStore().$reset()
                     useUxDrawersStore().$reset()
                     useUxStore().$reset()
-                    // Task 5:  useContextStore().$reset()
+                    useContextStore().$reset()
                     // Task 6:  useProductTablesStore().$reset()
                     // Task 7:  useProductBrokersStore().$reset()
                     // Task 8:  useProductAssistantStore().$reset()

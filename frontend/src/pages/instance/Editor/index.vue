@@ -70,7 +70,9 @@
 
 <script>
 import { HomeIcon, XIcon } from '@heroicons/vue/solid'
-import { mapActions, mapGetters } from 'vuex'
+
+import { mapActions } from 'pinia'
+import { mapGetters } from 'vuex'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
 import ResizeBar from '../../../components/ResizeBar.vue'
@@ -88,6 +90,8 @@ import instanceMixin from '../../../mixins/Instance.js'
 import { Roles } from '../../../utils/roles.js'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from '../components/DashboardLink.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 // Drawer size constraints
 const DRAWER_MIN_WIDTH = 310 // Minimum drawer width in pixels
@@ -246,7 +250,7 @@ export default {
         this.clearInstance()
     },
     methods: {
-        ...mapActions('context', ['setInstance', 'clearInstance'])
+        ...mapActions(useContextStore, ['setInstance', 'clearInstance'])
     }
 }
 </script>
