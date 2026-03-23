@@ -1,7 +1,7 @@
 <template>
     <!-- Info Banner -->
     <div class="info-banner">
-        <template v-if="isFfAgent">
+        <template v-if="isInsightsAgent">
             <p class="info-text">
                 AI agent has access to all of FlowFuse's
                 <a
@@ -45,7 +45,7 @@ import { useProductExpertStore } from '@/stores/product-expert.js'
 export default {
     name: 'InfoBanner',
     computed: {
-        ...mapState(useProductExpertStore, ['isFfAgent', 'isOperatorAgent'])
+        ...mapState(useProductExpertStore, ['isInsightsAgent', 'isOperatorAgent'])
     }
 }
 </script>

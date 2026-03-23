@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { FF_AGENT, OPERATOR_AGENT } from '@/stores/product-expert-agents.js'
+import { INSIGHTS_AGENT, OPERATOR_AGENT } from '@/stores/product-expert-agents.js'
 
 vi.mock('@/stores/_account_bridge.js', () => ({
     useAccountBridge: vi.fn(() => ({ featuresCheck: { isExpertAssistantFeatureEnabled: true } }))
@@ -42,7 +42,7 @@ vi.mock('@/stores/ux-drawers.js', () => ({
 
 // imported after mocks so vi.mock hoisting resolves correctly
 const { useProductExpertStore } = await import('@/stores/product-expert.js')
-const { useProductExpertFfAgentStore } = await import('@/stores/product-expert-ff-agent.js')
+const { useProductExpertInsightsAgentStore } = await import('@/stores/product-expert-insights-agent.js')
 const { useProductExpertOperatorAgentStore } = await import('@/stores/product-expert-operator-agent.js')
 
 describe('product-expert store', () => {
@@ -52,14 +52,14 @@ describe('product-expert store', () => {
     })
 
     describe('initial state', () => {
-        it('defaults to FF_AGENT mode', () => {
+        it('defaults to INSIGHTS_AGENT mode', () => {
             const store = useProductExpertStore()
-            expect(store.agentMode).toBe(FF_AGENT)
+            expect(store.agentMode).toBe(INSIGHTS_AGENT)
         })
 
-        it('has loadingVariant equal to FF_AGENT', () => {
+        it('has loadingVariant equal to INSIGHTS_AGENT', () => {
             const store = useProductExpertStore()
-            expect(store.loadingVariant).toBe(FF_AGENT)
+            expect(store.loadingVariant).toBe(INSIGHTS_AGENT)
         })
 
         it('has null abortController', () => {
@@ -69,11 +69,11 @@ describe('product-expert store', () => {
     })
 
     describe('_agentStore getter', () => {
-        it('returns ff-agent store when in FF_AGENT mode', () => {
+        it('returns insights-agent store when in INSIGHTS_AGENT mode', () => {
             const store = useProductExpertStore()
-            const ffAgent = useProductExpertFfAgentStore()
-            expect(store.agentMode).toBe(FF_AGENT)
-            expect(store.messages).toBe(ffAgent.messages)
+            const insightsAgent = useProductExpertInsightsAgentStore()
+            expect(store.agentMode).toBe(INSIGHTS_AGENT)
+            expect(store.messages).toBe(insightsAgent.messages)
         })
 
         it('returns operator-agent store when in OPERATOR_AGENT mode', () => {
@@ -105,15 +105,15 @@ describe('product-expert store', () => {
 
         it('hasMessages is true when agent store has messages', () => {
             const store = useProductExpertStore()
-            useProductExpertFfAgentStore().messages.push({ _type: 'human', content: 'hello' })
+            useProductExpertInsightsAgentStore().messages.push({ _type: 'human', content: 'hello' })
             expect(store.hasMessages).toBe(true)
         })
     })
 
-    describe('isFfAgent / isOperatorAgent', () => {
-        it('isFfAgent is true by default', () => {
+    describe('isInsightsAgent / isOperatorAgent', () => {
+        it('isInsightsAgent is true by default', () => {
             const store = useProductExpertStore()
-            expect(store.isFfAgent).toBe(true)
+            expect(store.isInsightsAgent).toBe(true)
             expect(store.isOperatorAgent).toBe(false)
         })
 
@@ -121,7 +121,7 @@ describe('product-expert store', () => {
             const store = useProductExpertStore()
             store.agentMode = OPERATOR_AGENT
             expect(store.isOperatorAgent).toBe(true)
-            expect(store.isFfAgent).toBe(false)
+            expect(store.isInsightsAgent).toBe(false)
         })
     })
 
@@ -135,7 +135,7 @@ describe('product-expert store', () => {
         it('ignores an invalid mode', () => {
             const store = useProductExpertStore()
             store.setAgentMode('invalid-mode')
-            expect(store.agentMode).toBe(FF_AGENT)
+            expect(store.agentMode).toBe(INSIGHTS_AGENT)
         })
     })
 
@@ -144,14 +144,14 @@ describe('product-expert store', () => {
             const store = useProductExpertStore()
             const controller = new AbortController()
             store.setAbortController(controller)
-            expect(useProductExpertFfAgentStore().abortController).toBe(controller)
+            expect(useProductExpertInsightsAgentStore().abortController).toBe(controller)
         })
 
         it('clears the controller when passed null', () => {
             const store = useProductExpertStore()
             store.setAbortController(new AbortController())
             store.setAbortController(null)
-            expect(useProductExpertFfAgentStore().abortController).toBeNull()
+            expect(useProductExpertInsightsAgentStore().abortController).toBeNull()
         })
     })
 
@@ -159,7 +159,7 @@ describe('product-expert store', () => {
         it('pushes a human message with correct format', () => {
             const store = useProductExpertStore()
             store.addUserMessage('hello')
-            const messages = useProductExpertFfAgentStore().messages
+            const messages = useProductExpertInsightsAgentStore().messages
             expect(messages).toHaveLength(1)
             expect(messages[0]._type).toBe('human')
             expect(messages[0].content).toBe('hello')
@@ -172,7 +172,7 @@ describe('product-expert store', () => {
         it('pushes an ai message with mapped answer array', () => {
             const store = useProductExpertStore()
             store.addAiMessage({ answer: [{ kind: 'chat', content: 'hi' }] })
-            const messages = useProductExpertFfAgentStore().messages
+            const messages = useProductExpertInsightsAgentStore().messages
             expect(messages).toHaveLength(1)
             expect(messages[0]._type).toBe('ai')
             expect(messages[0]._streamed).toBe(false)
@@ -186,7 +186,7 @@ describe('product-expert store', () => {
         it('uses an empty answer array when answer is absent', () => {
             const store = useProductExpertStore()
             store.addAiMessage({})
-            expect(useProductExpertFfAgentStore().messages[0].answer).toEqual([])
+            expect(useProductExpertInsightsAgentStore().messages[0].answer).toEqual([])
         })
     })
 
@@ -194,7 +194,7 @@ describe('product-expert store', () => {
         it('pushes an ai message with a single-item answer array', () => {
             const store = useProductExpertStore()
             store.addPredefinedAiMessage('Generation stopped.')
-            const messages = useProductExpertFfAgentStore().messages
+            const messages = useProductExpertInsightsAgentStore().messages
             expect(messages).toHaveLength(1)
             expect(messages[0]._type).toBe('ai')
             expect(messages[0]._streamed).toBe(false)
@@ -209,7 +209,7 @@ describe('product-expert store', () => {
         it('pushes a system message with correct format', () => {
             const store = useProductExpertStore()
             store.addSystemMessage({ message: 'Session expiring soon.', type: 'warning' })
-            const messages = useProductExpertFfAgentStore().messages
+            const messages = useProductExpertInsightsAgentStore().messages
             expect(messages).toHaveLength(1)
             expect(messages[0]._type).toBe('system')
             expect(messages[0]._variant).toBe('warning')
@@ -221,13 +221,13 @@ describe('product-expert store', () => {
         it('does not push when type is invalid', () => {
             const store = useProductExpertStore()
             store.addSystemMessage({ message: 'Something', type: 'invalid' })
-            expect(useProductExpertFfAgentStore().messages).toHaveLength(0)
+            expect(useProductExpertInsightsAgentStore().messages).toHaveLength(0)
         })
 
         it('does not push when message is empty', () => {
             const store = useProductExpertStore()
             store.addSystemMessage({ message: '', type: 'warning' })
-            expect(useProductExpertFfAgentStore().messages).toHaveLength(0)
+            expect(useProductExpertInsightsAgentStore().messages).toHaveLength(0)
         })
     })
 
@@ -235,18 +235,18 @@ describe('product-expert store', () => {
         it('marks a message as streamed by uuid', () => {
             const store = useProductExpertStore()
             store.addPredefinedAiMessage('hello')
-            const msg = useProductExpertFfAgentStore().messages[0]
+            const msg = useProductExpertInsightsAgentStore().messages[0]
             expect(msg._streamed).toBe(false)
             store.updateMessageStreamedState(msg._uuid)
             expect(msg._streamed).toBe(true)
         })
 
-        it('searches operator-agent messages if not found in ff-agent', () => {
+        it('searches operator-agent messages if not found in insights-agent', () => {
             const store = useProductExpertStore()
             store.agentMode = OPERATOR_AGENT
             store.addPredefinedAiMessage('hello')
             const msg = useProductExpertOperatorAgentStore().messages[0]
-            store.agentMode = FF_AGENT // switch back, message is still in operator-agent
+            store.agentMode = INSIGHTS_AGENT // switch back, message is still in operator-agent
             store.updateMessageStreamedState(msg._uuid)
             expect(msg._streamed).toBe(true)
         })
@@ -256,7 +256,7 @@ describe('product-expert store', () => {
         it('marks a specific answer item as streamed', () => {
             const store = useProductExpertStore()
             store.addAiMessage({ answer: [{ kind: 'chat', content: 'hi' }] })
-            const msg = useProductExpertFfAgentStore().messages[0]
+            const msg = useProductExpertInsightsAgentStore().messages[0]
             const answer = msg.answer[0]
             expect(answer._streamed).toBe(false)
             store.updateAnswerStreamedState({ messageUuid: msg._uuid, answerUuid: answer._uuid })
@@ -272,14 +272,14 @@ describe('product-expert store', () => {
     describe('reset', () => {
         it('calls reset on the active agent store and resets own state', () => {
             const store = useProductExpertStore()
-            const ffAgent = useProductExpertFfAgentStore()
+            const insightsAgent = useProductExpertInsightsAgentStore()
             store.addUserMessage('hi')
             store.loadingVariant = 'transfer'
 
             store.reset()
 
-            expect(ffAgent.messages).toHaveLength(0)
-            expect(store.loadingVariant).toBe(FF_AGENT)
+            expect(insightsAgent.messages).toHaveLength(0)
+            expect(store.loadingVariant).toBe(INSIGHTS_AGENT)
         })
     })
 })

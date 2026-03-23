@@ -14,11 +14,8 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
-import { markRaw } from 'vue'
 
-import ExpertDrawer from './drawers/expert/ExpertDrawer.vue'
-
-import { useProductExpertOperatorAgentStore } from '@/stores/product-expert-operator-agent.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -27,15 +24,13 @@ export default {
     computed: {
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         isExpertDrawerOpen () {
-            return this.rightDrawer.state && this.rightDrawer.component?.name === 'ExpertDrawer'
+            return (this.rightDrawer.state || this.rightDrawer.fixed)
         }
     },
     methods: {
-        ...mapActions(useProductExpertOperatorAgentStore, ['getCapabilities']),
-        ...mapActions(useUxDrawersStore, ['openRightDrawer']),
+        ...mapActions(useProductExpertStore, ['openAssistantDrawer']),
         onClick () {
-            this.getCapabilities()
-            this.openRightDrawer({ component: markRaw(ExpertDrawer) })
+            this.openAssistantDrawer({ openPinned: this.rightDrawer.expertState.pinned })
         }
     }
 }
