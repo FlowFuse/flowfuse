@@ -30,7 +30,7 @@ export default {
         ...mapState(useProductExpertStore, ['agentMode']),
         agentModeButtons () {
             return [
-                { title: 'Support', value: 'ff-agent' },
+                { title: 'Support', value: 'insights-agent' },
                 { title: 'Insights', value: 'operator-agent' }
             ]
         },

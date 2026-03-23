@@ -57,7 +57,7 @@ export const useContextStore = defineStore('context', {
                 // Lazy require to avoid circular dependency:
                 // context.js → product-expert.js → product-assistant.js → context.js
                 const { useProductExpertStore } = require('./product-expert.js')
-                if (useProductExpertStore().isFfAgent) {
+                if (useProductExpertStore().isInsightsAgent) {
                     selectedNodes = assistant.selectedNodes
                 }
             }

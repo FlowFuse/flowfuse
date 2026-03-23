@@ -12,7 +12,7 @@ import product from '../../../services/product.js'
 
 import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
-import { useProductExpertFfAgentStore } from '@/stores/product-expert-ff-agent.js'
+import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
 import { useProductExpertOperatorAgentStore } from '@/stores/product-expert-operator-agent.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
@@ -533,7 +533,7 @@ const actions = {
                     useProductTablesStore().$reset()
                     // Task 7:  useProductBrokersStore().$reset()
                     useProductAssistantStore().$reset()
-                    useProductExpertFfAgentStore().$reset()
+                    useProductExpertInsightsAgentStore().$reset()
                     useProductExpertOperatorAgentStore().$reset()
                     useProductExpertStore().$reset()
                 }
