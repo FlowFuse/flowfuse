@@ -21,6 +21,10 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
         },
         rightDrawer: {
             state: false,
+            expertState: {
+                pinned: true,
+                open: true
+            },
             component: null,
             header: null,
             wider: false,
@@ -59,6 +63,11 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
             if (this.rightDrawer.state && component.name === this.rightDrawer.component?.name) return
 
             const openDrawer = () => {
+                if (component.name === 'ExpertDrawer') {
+                    // save the ExpertDrawer pinned/open state (expertState is persistent)
+                    this.rightDrawer.expertState.pinned = fixed
+                    this.rightDrawer.expertState.open = true
+                }
                 this.rightDrawer.state = true
                 this.rightDrawer.wider = wider
                 this.rightDrawer.fixed = fixed
@@ -84,6 +93,11 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
         },
 
         closeRightDrawer () {
+            if (this.rightDrawer.component?.name === 'ExpertDrawer') {
+                // save the ExpertDrawer pinned/open state (expertState is persistent)
+                this.rightDrawer.expertState.open = false
+                this.rightDrawer.expertState.pinned = this.rightDrawer.fixed
+            }
             // Set closing flag to prevent reopens during transition
             this.rightDrawer.closing = true
 
@@ -167,8 +181,12 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
             const newFixedState = !this.rightDrawer.fixed
             this.rightDrawer.fixed = newFixedState
             this.rightDrawer.pinned = newFixedState
-            // When fixed, prevent close on click outside
             this.rightDrawer.closeOnClickOutside = !newFixedState
+            if (this.rightDrawer.component?.name === 'ExpertDrawer') {
+                // save the ExpertDrawer pinned/open state (expertState is persistent)
+                this.rightDrawer.expertState.open = this.rightDrawer.state
+                this.rightDrawer.expertState.pinned = newFixedState
+            }
 
             // Always close overlay when toggling (whether fixing or unfixing)
             const uxStore = useUxStore()
@@ -192,5 +210,9 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
         setLeftDrawer (component) {
             this.leftDrawer.component = component ? markRaw(component) : null
         }
+    },
+    persist: {
+        pick: ['rightDrawer.expertState'],
+        storage: localStorage
     }
 })

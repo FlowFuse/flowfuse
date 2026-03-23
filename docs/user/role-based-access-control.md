@@ -134,6 +134,8 @@ To change a team member's role:
 
 Application-Level RBAC enables you to control permissions at the individual application level within a team. This allows different team members to have different permission levels for different applications without creating multiple teams.
 
+This is an Enterprise lisenced feature for Self Hosted Users and requires an Entprise Team on FlowFuse Cloud.
+
 ### Overview
 
 Team-level roles define default permissions across all resources.  

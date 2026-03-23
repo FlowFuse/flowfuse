@@ -309,7 +309,7 @@ jobs:
       
       - name: Login to AWS ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+        uses: aws-actions/amazon-ecr-login@c962da2960ed15f492addc26fffa274485265950 # v2.0.2
         with:
           mask-password: true
 
@@ -420,7 +420,7 @@ jobs:
           echo "timestamp=$(date +%s)" >> $GITHUB_ENV
 
       - name: Download artifact
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: k8s-forge
           path: /tmp
@@ -431,7 +431,7 @@ jobs:
           docker image ls -a
 
       - name: Delete artifact
-        uses: geekyeggo/delete-artifact@f275313e70c08f6120db482d7a6b98377786765b # v5.1.0
+        uses: geekyeggo/delete-artifact@176a747ab7e287e3ff4787bf8a148716375ca118 # v6.0.0
         with:
           name: k8s-forge
           failOnError: false
@@ -448,7 +448,7 @@ jobs:
         
       - name: Login to AWS ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+        uses: aws-actions/amazon-ecr-login@c962da2960ed15f492addc26fffa274485265950 # v2.0.2
         with:
           mask-password: true
 
@@ -589,7 +589,7 @@ jobs:
 
     - name: Post to a Slack channel
       id: slack
-      uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+      uses: slackapi/slack-github-action@af78098f536edbc4de71162a307590698245be95 # v3.0.1
       with:
         method: 'chat.postMessage'
         token: ${{ secrets.SLACK_GHBOT_TOKEN }}
