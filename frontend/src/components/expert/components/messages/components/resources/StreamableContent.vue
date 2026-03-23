@@ -12,8 +12,8 @@
 import { marked } from 'marked'
 import { mapState } from 'vuex'
 
-import useStreamingWords from '../../../../../../composables/strings/StreamingWords.js'
-import { sanitize } from '../../../../../../composables/strings/String.js'
+import useStreamingWords from '@/composables/strings/StreamingWords.js'
+import { sanitize } from '@/composables/strings/String.js'
 
 export default {
     name: 'StreamableContent',
@@ -74,20 +74,22 @@ export default {
     },
     computed: {
         ...mapState('product/assistant', ['supportedActions']),
-        text () {
-            if (this.modelValue) {
-                return this.shouldStream ? this.streamedText : this.modelValue.streamable
+        rawText () {
+            const rawText = this.modelValue ? this.modelValue.streamable : this.string
+
+            if (this.richContent) {
+                return marked(rawText || '', {
+                    breaks: true,
+                    gfm: true
+                })
             }
 
-            const plainText = this.shouldStream ? this.streamedText : this.string
-            if (!this.richContent) return plainText
+            return rawText
+        },
+        text () {
+            const text = this.shouldStream ? this.streamedText : this.rawText
 
-            const html = marked(plainText || '', {
-                breaks: true,
-                gfm: true
-            })
-
-            return this.sanitize(html, {
+            return this.sanitize(text, {
                 supportedActions: this.supportedActions,
                 targetBlank: true,
                 appendQueryParameters: {
@@ -112,7 +114,9 @@ export default {
         }
     },
     mounted () {
-        if (this.shouldStream) this.stream(this.string || this.modelValue.streamable)
+        if (this.shouldStream) {
+            this.stream(this.rawText)
+        }
     }
 }
 </script>
