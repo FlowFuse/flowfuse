@@ -8,22 +8,22 @@ import useTimerHelper from '../composables/TimerHelper.js'
 import { useAccountBridge } from './_account_bridge.js'
 import { useContextStore } from './context.js'
 import { useProductAssistantStore } from './product-assistant.js'
-import { FF_AGENT, OPERATOR_AGENT } from './product-expert-agents.js'
+import { INSIGHTS_AGENT, OPERATOR_AGENT } from './product-expert-agents.js'
 import { useProductExpertContextStore } from './product-expert-context.js'
-import { useProductExpertFfAgentStore } from './product-expert-ff-agent.js'
+import { useProductExpertInsightsAgentStore } from './product-expert-insights-agent.js'
 import { useProductExpertOperatorAgentStore } from './product-expert-operator-agent.js'
 import { useUxDrawersStore } from './ux-drawers.js'
 
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
-        agentMode: FF_AGENT, // ff-agent or operator-agent
-        loadingVariant: FF_AGENT
+        agentMode: INSIGHTS_AGENT, // insights-agent or operator-agent
+        loadingVariant: INSIGHTS_AGENT
     }),
     getters: {
         shouldWakeUpAssistant () { return useProductExpertContextStore().shouldWakeUpAssistant },
         _agentStore () {
-            return this.agentMode === FF_AGENT
-                ? useProductExpertFfAgentStore()
+            return this.agentMode === INSIGHTS_AGENT
+                ? useProductExpertInsightsAgentStore()
                 : useProductExpertOperatorAgentStore()
         },
         abortController () { return this._agentStore.abortController },
@@ -31,7 +31,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         hasMessages () { return this._agentStore.messages.length > 0 },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
         isWaitingForResponse () { return !!this._agentStore.abortController },
-        isFfAgent: (state) => state.agentMode === FF_AGENT,
+        isInsightsAgent: (state) => state.agentMode === INSIGHTS_AGENT,
         isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT,
         hasSelectedCapabilities () {
             return useProductExpertOperatorAgentStore().selectedCapabilities?.length > 0
@@ -75,8 +75,25 @@ export const useProductExpertStore = defineStore('product-expert', {
                 })
         },
 
+        openAssistantDrawer (options = {}) {
+            const { featuresCheck } = useAccountBridge()
+            if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+
+            useProductExpertOperatorAgentStore().getCapabilities()
+            // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
+            return import('../components/drawers/expert/ExpertDrawer.vue')
+                .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({
+                    component: markRaw(ExpertDrawer),
+                    fixed: options?.openPinned === true,
+                    closeOnClickOutside: options?.openPinned !== true
+                }))
+        },
+
         wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
             if (this.shouldWakeUpAssistant) {
+                const { featuresCheck } = useAccountBridge()
+                if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+
                 useProductExpertContextStore().clearWakeUp()
 
                 if (shouldHydrateMessages) {
@@ -85,10 +102,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
                 this.loadingVariant = 'transfer'
 
-                useProductExpertOperatorAgentStore().getCapabilities()
-                // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
-                return import('../components/drawers/expert/ExpertDrawer.vue')
-                    .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({ component: markRaw(ExpertDrawer) }))
+                return this.openAssistantDrawer({ openPinned: useUxDrawersStore().rightDrawer.expertState.pinned })
                     .then(() => this.hydrateClient())
                     .then(() => { this.loadingVariant = this.agentMode })
             }
@@ -189,7 +203,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             const welcomeMessages = {
-                [FF_AGENT]: 'Hello! I am here to help you get started with FlowFuse and Node-RED. I can answer your questions, provide links to documentation, or help you build step-by-step guides to achieve your goals. How can I assist you today?',
+                [INSIGHTS_AGENT]: 'Hello! I am here to help you get started with FlowFuse and Node-RED. I can answer your questions, provide links to documentation, or help you build step-by-step guides to achieve your goals. How can I assist you today?',
                 [OPERATOR_AGENT]: 'Hello! I can help you gather insights by interacting with your configured resources and MCP tools in your Node-RED instances. What would you like to find out?'
             }
 
@@ -266,10 +280,10 @@ export const useProductExpertStore = defineStore('product-expert', {
 
         /**
          *
-         * @param {'ff-agent' | 'operator-agent'} mode
+         * @param {'insights-agent' | 'operator-agent'} mode
          */
         setAgentMode (mode) {
-            if (![OPERATOR_AGENT, FF_AGENT].includes(mode)) return
+            if (![OPERATOR_AGENT, INSIGHTS_AGENT].includes(mode)) return
             this.agentMode = mode
         },
 
@@ -325,7 +339,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
 
         updateMessageStreamedState (uuid) {
-            let message = useProductExpertFfAgentStore().messages.find(m => m._uuid === uuid)
+            let message = useProductExpertInsightsAgentStore().messages.find(m => m._uuid === uuid)
             if (!message) {
                 message = useProductExpertOperatorAgentStore().messages.find(m => m._uuid === uuid)
             }
@@ -335,7 +349,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
 
         updateAnswerStreamedState ({ messageUuid, answerUuid }) {
-            let message = useProductExpertFfAgentStore().messages.find(m => m._uuid === messageUuid)
+            let message = useProductExpertInsightsAgentStore().messages.find(m => m._uuid === messageUuid)
             if (!message) {
                 message = useProductExpertOperatorAgentStore().messages.find(m => m._uuid === messageUuid)
             }

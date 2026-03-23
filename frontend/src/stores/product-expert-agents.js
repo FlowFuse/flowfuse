@@ -1,2 +1,2 @@
-export const FF_AGENT = 'ff-agent'
+export const INSIGHTS_AGENT = 'insights-agent'
 export const OPERATOR_AGENT = 'operator-agent'

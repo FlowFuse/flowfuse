@@ -7,8 +7,8 @@ vi.mock('@/stores/_account_bridge.js', () => ({
 
 const mockFfAgentStore = { context: null, sessionId: null }
 
-vi.mock('@/stores/product-expert-ff-agent.js', () => ({
-    useProductExpertFfAgentStore: vi.fn(() => mockFfAgentStore)
+vi.mock('@/stores/product-expert-insights-agent.js', () => ({
+    useProductExpertInsightsAgentStore: vi.fn(() => mockFfAgentStore)
 }))
 
 // imported after mocks so vi.mock hoisting resolves correctly
@@ -32,7 +32,7 @@ describe('product-expert-context store', () => {
     })
 
     describe('setContext', () => {
-        it('sets context and sessionId on the ff-agent store', () => {
+        it('sets context and sessionId on the insights-agent store', () => {
             const store = useProductExpertContextStore()
             store.setContext({ data: { history: [] }, sessionId: 'abc' })
             expect(mockFfAgentStore.context).toEqual({ history: [] })

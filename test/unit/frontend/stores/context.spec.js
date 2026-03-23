@@ -6,7 +6,7 @@ import { useContextStore } from '@/stores/context.js'
 // product-expert.js imports ExpertDrawer.vue which pulls in @flowfuse/flow-renderer
 // (CJS/ESM conflict). Mock it to keep the test environment clean.
 vi.mock('@/stores/product-expert.js', () => ({
-    useProductExpertStore: vi.fn(() => ({ isFfAgent: true }))
+    useProductExpertStore: vi.fn(() => ({ isInsightsAgent: true }))
 }))
 
 vi.mock('@/stores/_account_bridge.js', () => ({

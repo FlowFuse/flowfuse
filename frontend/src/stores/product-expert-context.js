@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 
 import { useAccountBridge } from './_account_bridge.js'
-import { useProductExpertFfAgentStore } from './product-expert-ff-agent.js'
+import { useProductExpertInsightsAgentStore } from './product-expert-insights-agent.js'
 
 export const useProductExpertContextStore = defineStore('product-expert-context', {
     state: () => ({
@@ -10,7 +10,7 @@ export const useProductExpertContextStore = defineStore('product-expert-context'
     actions: {
         /**
          * Called by messaging.service.js when Node-RED sends a context update.
-         * Stores context on the ff-agent store and flags that the assistant should wake up.
+         * Stores context on the insights-agent store and flags that the assistant should wake up.
          * Intentionally a leaf — no imports from product-expert.js — to break the cycle:
          * product-expert.js → product-assistant.js → messaging.service.js → product-expert-context.js
          */
@@ -20,11 +20,11 @@ export const useProductExpertContextStore = defineStore('product-expert-context'
                 return
             }
 
-            const ffAgentStore = useProductExpertFfAgentStore()
-            ffAgentStore.context = data
+            const insightsAgentStore = useProductExpertInsightsAgentStore()
+            insightsAgentStore.context = data
 
             if (sessionId) {
-                ffAgentStore.sessionId = sessionId
+                insightsAgentStore.sessionId = sessionId
             }
 
             this.shouldWakeUpAssistant = true
