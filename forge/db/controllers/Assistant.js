@@ -26,7 +26,7 @@ module.exports = {
         isTeamOnTrial = undefined
     }) => {
         const timeout = app.config.assistant?.service?.requestTimeout || 60000
-        const serviceUrl = app.config.assistant?.service?.url
+        const serviceUrl = app.config.assistant?.service?.url || 'https://expert.flowfuse/v1/openai'
         const url = `${serviceUrl.replace(/\/+$/, '')}/${method.replace(/^\/+/, '')}`
 
         const headers = await module.exports.buildRequestHeaders(app, additionalHeaders, {
