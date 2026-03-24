@@ -231,6 +231,7 @@ module.exports = function (app) {
 
                 const toolAccessPermission = {
                     'get-debug-logs': 'project:flows:view',
+                    'select-nodes': 'project:flows:view', // todo serban did this
                     'get-flows': 'project:flows:view'
                 }
                 const requiredPermission = toolAccessPermission[toolName] || 'project:flows:edit' // default to highest level of access if tool isn't in the list, to be safe

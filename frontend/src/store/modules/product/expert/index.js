@@ -13,14 +13,14 @@ import FFAgent from './ff-agent/index.js'
 
 import OperatorAgent from './operator-agent/index.js'
 
-import { useContextStore } from '@/stores/context.js'
-
 import createMqttService from '@/services/mqtt.service2.js'
+import { useContextStore } from '@/stores/context.js'
 
 const initialState = () => ({
     shouldWakeUpAssistant: false,
     agentMode: FF_AGENT, // ff-agent or operator-agent
-    loadingVariant: FF_AGENT
+    loadingVariant: FF_AGENT,
+    toolCalls: []
 })
 
 const meta = {
@@ -398,7 +398,7 @@ const actions = {
             url,
             username,
             password,
-            onMessage: (topic, message, packet) => {
+            onMessage: async (topic, message, packet) => {
                 console.log('Received MQTT message:', topic, message.toString())
                 // TODO i don't like this approach, i should define the onMessage handler when i subscribe to a topic,
                 //  this global handler should be used only in niche cases, also sub to other user topics?
@@ -407,20 +407,37 @@ const actions = {
                 if (isChatReply) {
                     dispatch('handleMessageResponse', JSON.parse(message.toString()))
                 } else if (isToolRequest) {
-                    console.log('Received tool request:', topic, message.toString())
+                    const msg = JSON.parse(message.toString())
+                    console.log('Received tool request:', topic, message.toString(), msg)
                     const userId = rootState.account.user.id
                     const sessionId = getters.sessionId
-                    const thingType = topic.split('/')[4] // d (device) or p (instance)
-                    const thingId = topic.split('/')[5] // the id of the device or instance
-                    const tool = topic.split('/')[6] // the name of the tool
+                    const split = topic.split('/')
+                    const thingType = split[5] // d (device) or p (instance)
+                    const thingId = split[6] // the id of the device or instance
+                    const tool = split.at(-2) // the name of the tool
                     const responseTopic = `ff/v1/expert/${userId}/${sessionId}/${thingType}/${thingId}/support/tool/${tool}/response`
                     const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
                     // TODO: for now just ack the tool request, later we need to handle the actual tool execution and respond with the results
+
+                    const postMessagePayload = {
+                        action: `automation/${tool}`,
+                        params: msg.message.payload
+                    }
+
+                    console.log('postMessagePayload', postMessagePayload)
+
+                    const res = await dispatch('product/assistant/invokeAction', postMessagePayload, { root: true })
+
+                    console.log('assistant respoooonse', res)
+
+                    console.log('publishing to', responseTopic)
+
                     mqttService.publishMessage(getters.mqttConnectionKey, {
                         qos: 2,
                         topic: responseTopic,
                         payload: JSON.stringify({
-                            status: 'ack'
+                            status: 'ack',
+                            ...res
                         }),
                         correlationData: new TextEncoder().encode(transactionId),
                         userProperties: { sessionId }
