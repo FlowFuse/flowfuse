@@ -10,6 +10,11 @@ module.exports = {
         token: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        type: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            default: 'github'
         }
     },
     associations: function (M) {

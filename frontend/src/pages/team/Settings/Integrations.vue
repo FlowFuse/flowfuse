@@ -1,7 +1,7 @@
 <template>
-    <SectionTopMenu hero="Git Version Control" help-header="Git Version Control" info="A list of access tokens that can be used in Pipelines to connect your instances with GitHub repositories.">
+    <SectionTopMenu hero="Git Version Control" help-header="Git Version Control" info="A list of access tokens that can be used in Pipelines to connect your instances with GitHub/Azure DevOps repositories.">
         <template #helptext>
-            <p>Pipelines can be created to push snapshots to a connected Git repository. Currently, only GitHub.com hosted repositories are supported.</p>
+            <p>Pipelines can be created to push snapshots to a connected Git repository. Currently, only GitHub.com and Azure DevOps hosted repositories are supported.</p>
             <p>Here you can manage the tokens used by your pipelines to access the repositories.</p>
         </template>
     </SectionTopMenu>
@@ -19,10 +19,10 @@
                 <span>Git Integration</span>
             </template>
             <template #message>
-                <p>Pipelines can be created to push snapshots to a connected Git repository. Currently, only GitHub.com hosted repositories are supported.</p>
+                <p>Pipelines can be created to push snapshots to a connected Git repository. Currently, only GitHub.com and Azure DevOps hosted repositories are supported.</p>
                 <p>Here you can manage the tokens used by your pipelines to access the repositories.</p>
                 <template v-if="featuresCheck.isGitIntegrationFeatureEnabled">
-                    <p>To get started, create a GitHub Personal Access Token and add it here. You can then create Git Repository pipeline stages.</p>
+                    <p>To get started, create a GitHub or Azure DevOps Personal Access Token and add it here. You can then create Git Repository pipeline stages.</p>
                     <ff-button
                         v-if="addEnabled"
                         class="font-normal"
@@ -128,7 +128,8 @@ export default {
         },
         columns: function () {
             return [
-                { label: 'Token Name', key: 'name', sortable: true }
+                { label: 'Token Name', key: 'name', sortable: true },
+                { label: 'Type', key: 'type', sortable: true }
             ]
         }
     },
