@@ -298,7 +298,6 @@ export default {
             if (this.stage?.gitRepo?.url.startsWith('https://github.com')) {
                 return `${this.stage.gitRepo.url}/tree/${this.stage.gitRepo.branch || 'main'}`
             } else if (this.stage?.gitRepo?.url.startsWith('https://dev.azure.com')) {
-                console.log('azure', this.stage.gitRepo.url)
                 const regex = /^https:\/\/dev.azure.com\/(?<org>.+)\/_git\/(?<repo>.+)$/
                 const match = regex.exec(this.stage.gitRepo.url)
                 return `https://dev.azure.com/${match.groups.org}/${match.groups.repo}/_git/${match.groups.repo}?path=%2F&version=GB${this.stage.gitRepo.branch || 'main'}`
