@@ -33,9 +33,9 @@ module.exports.init = async function (app) {
      */
     async function pushToRepository (repoOptions, snapshot, options) {
         if (repoOptions.tokenType === 'github') {
-            github.pushToRepository(repoOptions, snapshot, options)
+            await github.pushToRepository(repoOptions, snapshot, options)
         } else if (repoOptions.tokenType === 'azure') {
-            azure.pushToRepository(repoOptions, snapshot, options)
+            await azure.pushToRepository(repoOptions, snapshot, options)
         }
     }
 
