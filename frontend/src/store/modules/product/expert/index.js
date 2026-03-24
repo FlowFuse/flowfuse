@@ -10,7 +10,10 @@ import { useUxDrawersStore } from '../../../../stores/ux-drawers.js'
 import { FF_AGENT, OPERATOR_AGENT } from './agents.js'
 
 import FFAgent from './ff-agent/index.js'
+
 import OperatorAgent from './operator-agent/index.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 import createMqttService from '@/services/mqtt.service2.js'
 
@@ -346,7 +349,7 @@ const actions = {
         const payload = {
             query,
             context: {
-                ...rootGetters['context/expert'],
+                ...useContextStore().expert,
                 agent: state.agentMode
             },
             sessionId: state[state.agentMode].sessionId,
@@ -450,12 +453,17 @@ const actions = {
         await new Promise(resolve => setTimeout(resolve, 5000))
     },
 
-    openAssistantDrawer ({ dispatch, rootGetters }) {
+    openAssistantDrawer ({ dispatch, rootGetters }, options = {}) {
         if (rootGetters['account/featuresCheck'].isExpertAssistantFeatureEnabled === false) return
 
         dispatch(`product/expert/${OPERATOR_AGENT}/getCapabilities`, null, { root: true })
 
-        return useUxDrawersStore().openRightDrawer({ component: markRaw(ExpertDrawer) })
+        const openOptions = {
+            component: markRaw(ExpertDrawer),
+            fixed: options?.openPinned === true,
+            closeOnClickOutside: options?.openPinned !== true
+        }
+        return useUxDrawersStore().openRightDrawer(openOptions)
     },
 
     addWelcomeMessageIfNeeded ({ dispatch, state }) {

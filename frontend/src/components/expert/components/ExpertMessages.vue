@@ -1,7 +1,7 @@
 <template>
     <div ref="messagesWrapper" class="messages-wrapper">
         <ul class="flex flex-col gap-3">
-            <li v-for="(message, index) in messages" :key="index" class="flex flex-col gap-3">
+            <li v-for="message in messages" :key="message._uuid" class="flex flex-col gap-3">
                 <component :is="messageTypes[message._type]" v-if="messageTypes[message._type]" v-bind="{...message}" />
             </li>
             <li v-if="isWaitingForResponse">

@@ -68,7 +68,9 @@
 <script>
 
 import { CogIcon, HomeIcon, XIcon } from '@heroicons/vue/solid/index.js'
-import { mapActions, mapGetters, mapState } from 'vuex'
+
+import { mapActions } from 'pinia'
+import { mapGetters, mapState } from 'vuex'
 
 import DropdownMenu from '../../../components/DropdownMenu.vue'
 import ResizeBar from '../../../components/ResizeBar.vue'
@@ -80,6 +82,8 @@ import { useDrawerHelper } from '../../../composables/DrawerHelper.js'
 import usePermissions from '../../../composables/Permissions.js'
 import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 import Alerts from '../../../services/alerts.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 const DRAWER_DEFAULT_WIDTH = 550 // Default drawer width in pixels
 const DRAWER_MAX_VIEWPORT_MARGIN = 200 // Space to preserve when drawer is at max width
@@ -312,7 +316,7 @@ export default {
         this.stopPolling()
     },
     methods: {
-        ...mapActions('context', { setContextDevice: 'setDevice' }),
+        ...mapActions(useContextStore, { setContextDevice: 'setDevice' }),
         loadDevice: async function () {
             let tries = 0
             let device = await this.fetchDevice(this.$route.params.id, false)
