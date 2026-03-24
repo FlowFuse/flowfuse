@@ -34,7 +34,7 @@ module.exports.init = async function (app) {
                 throw new Error('Only Azure repositories are supported')
             }
             const url = new URL(repoOptions.url)
-            url.password = token
+            url.username = token
 
             const match = /^https:\/\/dev.azure.com\/(?<org>.+)\/_git\/.+$/.exec(repoOptions.url)
             const orgName = match.groups?.org
@@ -141,7 +141,7 @@ module.exports.init = async function (app) {
                 throw new Error('Only Azure repositories are supported')
             }
             const url = new URL(repoOptions.url)
-            url.password = token
+            url.username = token
 
             workingDir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowfuse-git-repo-'))
 
