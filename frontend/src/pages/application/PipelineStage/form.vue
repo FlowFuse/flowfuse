@@ -663,7 +663,7 @@ export default {
                         if (tok.type === 'github') {
                             return 'e.g. https://github.com/[org]/[repo]'
                         } else if (tok.type === 'azure') {
-                            return 'e.g. https://dev.azure.com/[org]/[repo]/_git'
+                            return 'e.g. https://dev.azure.com/[org]/_git/[repo]'
                         }
                     }
                 }

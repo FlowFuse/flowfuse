@@ -90,7 +90,7 @@
                     </router-link>
                 </div>
                 <div v-if="stage.stageType == StageType.GITREPO" class="ff-pipeline-stage-type">
-                    <a class="flex gap-2 items-center" target="_blank" :href="`${stage.gitRepo.url}/tree/${stage.gitRepo.branch || 'main'}`">
+                    <a class="flex gap-2 items-center" target="_blank" :href="gitRepoLink"> <!--`${stage.gitRepo.url}/tree/${stage.gitRepo.branch || 'main'}`"> -->
                         <IconGit class="ff-icon ff-icon-lg" style="color: #e46133" />
                         <div>
                             <label class="flex items-center gap-2">Git Repository:</label>
@@ -293,6 +293,17 @@ export default {
                 return 'Device in Dev Mode'
             }
             return ''
+        },
+        gitRepoLink () {
+            if (this.stage?.gitRepo?.url.startsWith('https://github.com')) {
+                return `${this.stage.gitRepo.url}/tree/${this.stage.gitRepo.branch || 'main'}`
+            } else if (this.stage?.gitRepo?.url.startsWith('https://dev.azure.com')) {
+                console.log('azure', this.stage.gitRepo.url)
+                const regex = /^https:\/\/dev.azure.com\/(?<org>.+)\/_git\/(?<repo>.+)$/
+                const match = regex.exec(this.stage.gitRepo.url)
+                return `https://dev.azure.com/${match.groups.org}/${match.groups.repo}/_git/${match.groups.repo}?path=%2F&version=GB${this.stage.gitRepo.branch || 'main'}`
+            }
+            return `${this.stage.gitRepo.url}/tree/${this.stage.gitRepo.branch || 'main'}`
         }
     },
     created () {
