@@ -11,8 +11,8 @@
         <div v-if="toolCalls2 && toolCalls2.length">
             <div v-for="(call, key) in toolCalls2" :key="key">
                 <span>
-                    agent invoked
-                    <i :title="JSON.stringify(call.params)" class="cursor-pointer">{{ call.action }}</i>
+                    [{{ call.kind }}]:
+                    <i :title="JSON.stringify(call.params || {})" class="cursor-help">{{ call.message }}</i>
                 </span>
             </div>
         </div>

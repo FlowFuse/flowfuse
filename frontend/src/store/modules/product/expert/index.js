@@ -417,43 +417,68 @@ const actions = {
                     const tool = split.at(-2) // the name of the tool
                     const responseTopic = `ff/v1/expert/${userId}/${sessionId}/${thingType}/${thingId}/support/tool/${tool}/response`
                     const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
-                    // TODO: for now just ack the tool request, later we need to handle the actual tool execution and respond with the results
 
-                    const postMessagePayload = {
-                        action: `automation/${tool}`,
-                        params: msg.message.payload
+                    const pushToToolCalls = (kind, message, params) => {
+                        // push result to last message's toolCalls
+                        const messages = state[state.agentMode].messages
+                        const latestMessage = messages.at(-1)
+                        // Initialize toolCalls array if it doesn't exist
+                        if (!latestMessage.toolCalls2) {
+                            latestMessage.toolCalls2 = []
+                        }
+                        // Push the postMessagePayload into it
+                        latestMessage.toolCalls2.push({
+                            kind,
+                            message,
+                            params
+                        })
                     }
 
-                    // Get the latest message
-                    const messages = state[state.agentMode].messages
-                    const latestMessage = messages[messages.length - 1]
+                    if (tool === 'expert:status-message') {
+                        // this is just a status from the agent, we can ignore it for now, but we might want to display it in the UI later
+                        console.log('Received status message from agent:', msg)
+                        pushToToolCalls('status', msg.payload.status)
+                        // just ack the msg
+                        console.log('publishing response to', responseTopic)
+                        mqttService.publishMessage(getters.mqttConnectionKey, {
+                            qos: 2,
+                            topic: responseTopic,
+                            payload: JSON.stringify({
+                                ack: true
+                            }),
+                            correlationData: new TextEncoder().encode(transactionId),
+                            userProperties: { sessionId }
+                        })
+                    } else if (tool.startsWith('automation:')) {
+                        // thi is an automation request, we want to execute it and return the result to the agent
+                        console.log('Received automation request:', msg)
+                        const postMessagePayload = {
+                            action: tool.replace('automation:', 'automation/'),
+                            params: msg.payload?.params || {}
+                        }
 
-                    // Initialize toolCalls array if it doesn't exist
-                    if (!latestMessage.toolCalls2) {
-                        latestMessage.toolCalls2 = []
+                        // push result to last message's toolCalls
+                        pushToToolCalls('automation', `Calling action '${postMessagePayload.action}'`, postMessagePayload.params)
+
+                        console.log('dispatching invokeAction with payload:', postMessagePayload)
+
+                        const res = await dispatch('product/assistant/invokeAction', postMessagePayload, { root: true })
+
+                        console.log('assistant invokeAction response:', res)
+
+                        console.log('publishing response to', responseTopic)
+
+                        mqttService.publishMessage(getters.mqttConnectionKey, {
+                            qos: 2,
+                            topic: responseTopic,
+                            payload: JSON.stringify({
+                                ack: true,
+                                ...res
+                            }),
+                            correlationData: new TextEncoder().encode(transactionId),
+                            userProperties: { sessionId }
+                        })
                     }
-
-                    // Push the postMessagePayload into it
-                    latestMessage.toolCalls2.push(postMessagePayload)
-
-                    console.log('postMessagePayload', postMessagePayload)
-
-                    const res = await dispatch('product/assistant/invokeAction', postMessagePayload, { root: true })
-
-                    console.log('assistant respoooonse', res)
-
-                    console.log('publishing to', responseTopic)
-
-                    mqttService.publishMessage(getters.mqttConnectionKey, {
-                        qos: 2,
-                        topic: responseTopic,
-                        payload: JSON.stringify({
-                            status: 'ack',
-                            ...res
-                        }),
-                        correlationData: new TextEncoder().encode(transactionId),
-                        userProperties: { sessionId }
-                    })
                 }
             },
             onClose: () => {
