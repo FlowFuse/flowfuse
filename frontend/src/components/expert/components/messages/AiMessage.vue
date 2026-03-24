@@ -8,6 +8,14 @@
             :answer="fAnswer"
             @streaming-complete="setSubItemStreamedState(key)"
         />
+        <div v-if="toolCalls2 && toolCalls2.length">
+            <div v-for="(call, key) in toolCalls2" :key="key">
+                <span>
+                    agent invoked
+                    <i :title="JSON.stringify(call.params)" class="cursor-pointer">{{ call.action }}</i>
+                </span>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -55,6 +63,11 @@ export default {
         _streamed: {
             required: true,
             type: Boolean
+        },
+        toolCalls2: {
+            required: false,
+            default: null,
+            type: Array
         }
     },
     setup () {

@@ -387,7 +387,7 @@ const actions = {
         })
     },
 
-    async establishComms ({ dispatch, getters, rootState }) {
+    async establishComms ({ state, dispatch, getters, rootState }) {
         const mqttService = createMqttService()
 
         const { url, username, password } = await userApi.initiateExpertChat()
@@ -423,6 +423,18 @@ const actions = {
                         action: `automation/${tool}`,
                         params: msg.message.payload
                     }
+
+                    // Get the latest message
+                    const messages = state[state.agentMode].messages
+                    const latestMessage = messages[messages.length - 1]
+
+                    // Initialize toolCalls array if it doesn't exist
+                    if (!latestMessage.toolCalls2) {
+                        latestMessage.toolCalls2 = []
+                    }
+
+                    // Push the postMessagePayload into it
+                    latestMessage.toolCalls2.push(postMessagePayload)
 
                     console.log('postMessagePayload', postMessagePayload)
 
