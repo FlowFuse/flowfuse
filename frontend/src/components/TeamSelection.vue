@@ -42,11 +42,14 @@ import {
     ListboxOption
 } from '@headlessui/vue'
 import { PlusIcon, UserAddIcon } from '@heroicons/vue/solid'
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import usePermissions from '../composables/Permissions.js'
 
 import NavItem from './NavItem.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'FFTeamSelection',
@@ -61,8 +64,9 @@ export default {
         return { PlusIcon, UserAddIcon, hasPermission }
     },
     computed: {
-        ...mapState('account', ['team', 'teams', 'settings']),
-        ...mapGetters('account', ['hasAvailableTeams', 'canCreateTeam']),
+        ...mapState(useAccountTeamStore, ['team', 'teams', 'hasAvailableTeams']),
+        ...mapVuexState('account', ['settings']),
+        ...mapGetters('account', ['canCreateTeam']),
         teamOptions () {
             return [
                 ...this.teams.map(team => {
@@ -101,7 +105,7 @@ export default {
     methods: {
         selectTeam (team) {
             if (team) {
-                this.$store.dispatch('account/setTeam', team.slug)
+                useAccountTeamStore().setTeam(team.slug)
                     .then(() => this.$router.push({
                         name: 'Team',
                         params: {

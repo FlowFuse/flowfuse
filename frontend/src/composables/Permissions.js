@@ -1,8 +1,10 @@
 import { computed } from 'vue'
-import { useStore } from 'vuex'
 
 import { Permissions } from '../../../forge/lib/permissions.js'
+
 import { Roles } from '../utils/roles.js'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 /**
  * Determines if a user is visiting as an admin based on their team membership role.
@@ -89,9 +91,7 @@ export const hasALowerOrEqualTeamRoleThan = (role, teamMembership) => {
  * Enum for roles with specific numeric values.
  */
 export default function usePermissions () {
-    const store = useStore()
-
-    const teamMembership = computed(() => store?.state?.account?.teamMembership || { role: 0 })
+    const teamMembership = computed(() => useAccountTeamStore().teamMembership || { role: 0 })
 
     /**
      * Determines if a user is visiting as an admin based on their team membership role.

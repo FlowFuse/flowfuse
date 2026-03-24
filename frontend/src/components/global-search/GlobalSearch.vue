@@ -109,8 +109,8 @@
 
 <script>
 import { ChipIcon, ClockIcon, SearchIcon, TemplateIcon, XIcon } from '@heroicons/vue/outline'
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 
 import globalApi from '../../api/global.js'
 import SpinnerIcon from '../../components/icons/Spinner.js'
@@ -121,6 +121,8 @@ import ProjectsIcon from '../icons/Projects.js'
 
 import ResultSection from './components/ResultSection.vue'
 import SearchTrigger from './components/SearchTrigger.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'GlobalSearch',
@@ -146,7 +148,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         resApplication () {
             return this.results.filter(res => res.object === 'application')
         },

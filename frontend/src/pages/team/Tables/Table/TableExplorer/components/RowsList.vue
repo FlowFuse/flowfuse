@@ -22,17 +22,17 @@
 <script>
 import { mapActions, mapState } from 'pinia'
 import { defineComponent, markRaw } from 'vue'
-import { mapState as mapVuexState } from 'vuex'
 
 import TextCell from './table-cells/text-cell.vue'
 
+import { useAccountTeamStore } from '@/stores/account-team.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default defineComponent({
     name: 'RowsList',
     computed: {
         ...mapState(useProductTablesStore, ['tableSelection', 'isLoading', 'selectedTable']),
-        ...mapVuexState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         columns () {
             return (this.selectedTable?.schema ?? []).map((row) => {
                 return {

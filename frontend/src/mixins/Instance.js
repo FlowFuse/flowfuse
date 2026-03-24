@@ -1,4 +1,4 @@
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import InstanceApi from '../api/instances.js'
 import SnapshotApi from '../api/projectSnapshots.js'
@@ -7,9 +7,11 @@ import alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import { InstanceStateMutator } from '../utils/InstanceStateMutator.js'
 
+import { useAccountTeamStore } from '@/stores/account-team.js'
+
 export default {
     computed: {
-        ...mapState('account', ['teamMembership', 'team']),
+        ...mapState(useAccountTeamStore, ['team']),
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },
@@ -63,7 +65,7 @@ export default {
             try {
                 const data = await InstanceApi.getInstance(instanceId)
                 this.instance = { ...{ deviceSettings: {} }, ...this.instance, ...data }
-                this.$store.dispatch('account/setTeam', this.instance.team.slug)
+                useAccountTeamStore().setTeam(this.instance.team.slug)
                 this.instance.deviceSettings = await InstanceApi.getInstanceDeviceSettings(instanceId)
                 if (this.instance.deviceSettings?.targetSnapshot) {
                     this.instance.targetSnapshot = await SnapshotApi.getSnapshot(instanceId, this.instance.deviceSettings.targetSnapshot)

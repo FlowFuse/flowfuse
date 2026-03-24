@@ -4,7 +4,7 @@ export default {
     // todo The account store's featuresCheck getter should be used instead of this mixin
     //  Currently keeping it for backwards compat, as all permissions checks should use the accounts featuresCheck getter
     computed: {
-        ...mapState('account', ['features', 'team']),
+        ...mapState('account', ['features']),
         ...mapGetters('account', ['featuresCheck']),
         isSharedLibraryFeatureEnabledForTeam () {
             return this.featuresCheck.isSharedLibraryFeatureEnabledForTeam

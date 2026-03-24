@@ -65,7 +65,7 @@
 
 <script>
 import { ChipIcon, IdentificationIcon, RssIcon, UsersIcon } from '@heroicons/vue/outline'
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import instanceTypesApi from '../../../../api/instanceTypes.js'
 
@@ -74,6 +74,8 @@ import ProjectsIcon from '../../../../components/icons/Projects.js'
 import { getObjectValue } from '../../../admin/Template/utils.js'
 
 import UsageValue from './UsageValue.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'UsageOverview',
@@ -92,7 +94,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         usedInstancesByType () {
             return Object.keys(this.team.instanceCountByType).map(key => {
                 return {
@@ -109,7 +111,7 @@ export default {
         await this.refreshTeam()
     },
     methods: {
-        ...mapActions('account', ['refreshTeam']),
+        ...mapActions(useAccountTeamStore, ['refreshTeam']),
         getTeamProperty (property) {
             if (this.team.properties) {
                 const teamProperty = getObjectValue(this.team.properties, property)

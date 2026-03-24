@@ -74,9 +74,9 @@
 
 <script>
 import { XIcon } from '@heroicons/vue/solid'
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters, mapActions as mapVuexActions } from 'vuex'
+import { mapActions as mapVuexActions } from 'vuex'
 
 import userAPI from '../../../api/user.js'
 
@@ -86,6 +86,7 @@ import GenericNotification from '../../notifications/Generic.vue'
 import TeamInvitationAcceptedNotification from '../../notifications/invitations/Accepted.vue'
 import TeamInvitationReceivedNotification from '../../notifications/invitations/Received.vue'
 
+import { useAccountTeamStore } from '@/stores/account-team.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -101,7 +102,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['notifications']),
+        ...mapState(useAccountTeamStore, ['notifications']),
         canSelectAll () {
             return this.filteredNotifications.length !== this.selections.length
         },

@@ -187,8 +187,8 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../api/application.js'
 
@@ -201,6 +201,8 @@ import { scrollToAndJiggleHighlight } from '../../../composables/Ux.js'
 
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 const semVer = require('semver')
 
@@ -253,7 +255,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         canChangeNodeRedVersion () {
             return this.deviceOwnerType === 'application' && this.hasPermission('device:edit', { application: this.device.application })
         },

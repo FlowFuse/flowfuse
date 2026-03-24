@@ -223,7 +223,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings', 'features', 'team']),
+        ...mapState('account', ['settings', 'features']),
         targetSnapshotDeployed: function () {
             return this.device.activeSnapshot?.id === this.device.targetSnapshot?.id
         },

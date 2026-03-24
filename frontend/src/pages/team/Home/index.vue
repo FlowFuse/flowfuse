@@ -149,6 +149,7 @@ import DashboardSection from './components/DashboardSection.vue'
 import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
 import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vue'
 
+import { useAccountTeamStore } from '@/stores/account-team.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
 export default {
@@ -193,7 +194,8 @@ export default {
     },
     computed: {
         ...mapState(useUxToursStore, ['tours']),
-        ...mapGetters('account', ['team', 'pendingTeamChange', 'featuresCheck']),
+        ...mapState(useAccountTeamStore, ['team', 'pendingTeamChange']),
+        ...mapGetters('account', ['featuresCheck']),
         instanceStats () {
             return this.groupBySimplifiedStates(this.instanceStateCounts)
         },

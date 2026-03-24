@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import ApplicationApi from '../../api/application.js'
 import InstanceApi from '../../api/instances.js'
@@ -38,6 +38,8 @@ import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
 import usePermissions from '../../composables/Permissions.js'
 import FfListbox from '../../ui-components/components/form/ListBox.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'ApplicationActivity',
@@ -71,7 +73,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
+        ...mapState(useAccountTeamStore, ['team', 'teamMembership']),
         instanceList () {
             return [
                 { name: 'This Application', id: '' },

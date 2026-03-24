@@ -23,12 +23,14 @@
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/outline'
 import { ExternalLinkIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import BrokerAPI from '../../../../api/broker.js'
 import { useNavigationHelper } from '../../../../composables/NavigationHelper.js'
 
 import FFTopicDocs from './components/TopicDocs.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 const { openInANewTab } = useNavigationHelper()
 
 export default {
@@ -46,7 +48,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         brokerId () {
             return this.$route.params.brokerId
         }

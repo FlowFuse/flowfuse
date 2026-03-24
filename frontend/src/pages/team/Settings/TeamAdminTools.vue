@@ -206,6 +206,8 @@ import { getObjectValue } from '../../admin/Template/utils.js'
 import ConfirmTeamManualBillingDialog from '../dialogs/ConfirmTeamManualBillingDialog.vue'
 import ExtendTeamTrialDialog from '../dialogs/ExtendTeamTrialDialog.vue'
 
+import { useAccountTeamStore } from '@/stores/account-team.js'
+
 export default {
     name: 'TeamAdminTools',
     components: {
@@ -333,8 +335,8 @@ export default {
         },
         async setupManualBilling (teamTypeId) {
             billingApi.setupManualBilling(this.team.id, teamTypeId).then(async () => {
-                await this.$store.dispatch('account/refreshTeams')
-                await this.$store.dispatch('account/refreshTeam')
+                await useAccountTeamStore().refreshTeams()
+                await useAccountTeamStore().refreshTeam()
             }).catch(err => {
                 console.warn(err)
             })
@@ -346,8 +348,8 @@ export default {
                 text: 'Are you sure you want to re-enable billing for this team?'
             }, async () => {
                 billingApi.disableManualBilling(this.team.id).then(async () => {
-                    await this.$store.dispatch('account/refreshTeams')
-                    await this.$store.dispatch('account/refreshTeam')
+                    await useAccountTeamStore().refreshTeams()
+                    await useAccountTeamStore().refreshTeam()
                 }).catch(err => {
                     console.warn(err)
                 })
@@ -359,8 +361,8 @@ export default {
         async extendTrial (endDate) {
             const newEndDate = Date.parse(`${endDate}T12:00:00.000Z`)
             billingApi.setTrialExpiry(this.team.id, newEndDate).then(async () => {
-                await this.$store.dispatch('account/refreshTeams')
-                await this.$store.dispatch('account/refreshTeam')
+                await useAccountTeamStore().refreshTeams()
+                await useAccountTeamStore().refreshTeam()
             }).catch(err => {
                 console.warn(err)
             })
@@ -468,7 +470,7 @@ export default {
             })
 
             await teamApi.updateTeam(this.team.id, { properties })
-            await this.$store.dispatch('account/refreshTeam')
+            await useAccountTeamStore().refreshTeam()
             this.editingLimits = false
         }
     }

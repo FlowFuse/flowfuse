@@ -34,11 +34,13 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import TeamAPI from '../../../../api/team.js'
 import FormRow from '../../../../components/FormRow.vue'
 import usePermissions from '../../../../composables/Permissions.js'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'DeviceAssignApplicationDialog',
@@ -71,7 +73,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         Application () {
             return this.input.application
         },

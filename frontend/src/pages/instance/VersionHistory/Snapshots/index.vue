@@ -49,9 +49,8 @@
 
 <script>
 import { FilterIcon } from '@heroicons/vue/outline'
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 
 import InstanceApi from '../../../../api/instances.js'
 import SnapshotApi from '../../../../api/projectSnapshots.js'
@@ -68,6 +67,8 @@ import { isAutoSnapshot } from '../../../../utils/snapshot.js'
 import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
 import DeviceCount from '../../../application/Snapshots/components/cells/DeviceCount.vue'
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -137,7 +138,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         columns () {
             const cols = [
                 {

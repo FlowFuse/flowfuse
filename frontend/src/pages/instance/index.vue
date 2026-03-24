@@ -77,7 +77,7 @@
 <script>
 import { LockClosedIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
@@ -93,6 +93,8 @@ import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDelet
 import DashboardLink from './components/DashboardLink.vue'
 import InstanceEditorLink from './components/EditorLink.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'InstancePage',
@@ -126,7 +128,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         navigation () {
             if (!this.instance.id) return []
             let versionHistoryRoute

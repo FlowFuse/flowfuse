@@ -11,11 +11,13 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import { useRouter } from 'vue-router'
-import { mapState } from 'vuex'
 
 import SectionSideMenu from '../../../../components/SectionSideMenu.vue'
 import SectionTopMenu from '../../../../components/SectionTopMenu.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'DeviceGroupSettings',
@@ -40,7 +42,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership'])
+        ...mapState(useAccountTeamStore, ['teamMembership'])
     },
     watch: {
         deviceGroup: function (newVal, oldVal) {

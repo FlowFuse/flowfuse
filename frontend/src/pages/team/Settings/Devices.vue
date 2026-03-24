@@ -56,8 +56,8 @@
 
 <script>
 import { KeyIcon, PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
@@ -68,6 +68,8 @@ import Dialog from '../../../services/dialog.js'
 
 import CreateProvisioningTokenDialog from '../Devices/dialogs/CreateProvisioningTokenDialog.vue'
 import ProvisioningCredentialsDialog from '../Devices/dialogs/ProvisioningCredentialsDialog.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 const TokenFieldFormatter = {
     template: '<span><span v-if="name">{{name}}</span><span v-else class="italic text-gray-500">unnamed</span></span>',
@@ -117,7 +119,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         addEnabled: function () {
             return this.hasPermission('team:device:provisioning-token:create')
         },

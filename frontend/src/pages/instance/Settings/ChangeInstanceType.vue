@@ -12,13 +12,16 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import usePermissions from '../../../composables/Permissions.js'
 
 import Alerts from '../../../services/alerts.js'
 import InstanceForm from '../components/InstanceForm.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'ChangeInstanceType',
@@ -45,7 +48,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features'])
+        ...mapState(useAccountTeamStore, ['team']),
+        ...mapVuexState('account', ['features'])
     },
     mounted () {
         this.checkAccess()

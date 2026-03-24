@@ -24,7 +24,9 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'TeamStep',
@@ -36,7 +38,7 @@ export default {
     },
     emits: ['next-step', 'step-updated'],
     computed: {
-        ...mapGetters('account', ['team', 'teams'])
+        ...mapState(useAccountTeamStore, ['team', 'teams'])
     },
     mounted () {
         this.$emit('step-updated', {
@@ -48,7 +50,7 @@ export default {
     },
     methods: {
         selectTeam (team) {
-            return this.$store.dispatch('account/setTeam', team.slug)
+            return useAccountTeamStore().setTeam(team.slug)
                 .then(() => this.$emit('next-step'))
         }
     }

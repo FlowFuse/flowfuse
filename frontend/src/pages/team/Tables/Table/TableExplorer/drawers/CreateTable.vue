@@ -41,7 +41,6 @@
 <script>
 import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapGetters } from 'vuex'
 
 import TableColumn from './components/TableColumn.vue'
 
@@ -57,7 +56,6 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapGetters('account', ['team']),
         ...mapState(useProductTablesStore, ['newTable']),
         hasErrors () {
             return Object.values(this.errors).some(v => v != null)

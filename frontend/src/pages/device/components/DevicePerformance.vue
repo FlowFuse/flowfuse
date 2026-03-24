@@ -59,8 +59,8 @@
 
 <script>
 import { ChipIcon } from '@heroicons/vue/outline'
+import { mapState } from 'pinia'
 import SemVer from 'semver'
-import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -74,6 +74,8 @@ import MemoryChart from '../../../components/charts/performance/MemoryChart.vue'
 import InformationWell from '../../../components/wells/InformationWell.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import featuresMixin from '../../../mixins/Features.js'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 let mqtt
 
@@ -115,7 +117,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         deviceOnline () {
             const offline = ['stopped', 'offline', 'error']
             return !offline.includes(this.device.status)

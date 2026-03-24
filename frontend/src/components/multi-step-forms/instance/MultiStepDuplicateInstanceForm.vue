@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import instanceApi from '../../../api/instances.js'
 import teamApi from '../../../api/team.js'
@@ -31,6 +31,8 @@ import ApplicationStep from './steps/ApplicationStep.vue'
 
 import DuplicationStep from './steps/DuplicationStep.vue'
 import InstanceStep from './steps/InstanceStep.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 const INSTANCE_SLUG = 'instance'
 const APPLICATION_SLUG = 'application'
@@ -66,7 +68,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         formSteps () {
             return [
                 {

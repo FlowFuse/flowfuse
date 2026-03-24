@@ -26,9 +26,11 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import SelectInstance from '../../../../components/SelectInstance.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'DeviceAssignInstanceDialog',
@@ -53,7 +55,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         bulkOp () {
             return Array.isArray(this.selection)
         },

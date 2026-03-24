@@ -104,7 +104,7 @@
 import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, XIcon } from '@heroicons/vue/solid'
 import { mapActions, mapState } from 'pinia'
 import { ref } from 'vue'
-import { mapGetters, mapState as mapVuexState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import usePermissions from '../composables/Permissions.js'
 
@@ -120,6 +120,7 @@ import TeamSelection from './TeamSelection.vue'
 import GlobalSearch from './global-search/GlobalSearch.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountTeamStore } from '@/stores/account-team.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -132,8 +133,8 @@ export default {
         },
         ...mapState(useUxDrawersStore, ['leftDrawer', 'hiddenLeftDrawer']),
         ...mapState(useAccountAuthStore, ['user']),
-        ...mapVuexState('account', ['team', 'teams']),
-        ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount', 'featuresCheck']),
+        ...mapState(useAccountTeamStore, ['team', 'teams', 'notifications', 'hasAvailableTeams', 'defaultUserTeam']),
+        ...mapGetters('account', ['canCreateTeam', 'featuresCheck']),
         navigationOptions () {
             return [
                 {

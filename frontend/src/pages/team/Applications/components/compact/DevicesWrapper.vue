@@ -23,12 +23,14 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import teamApi from '../../../../../api/team.js'
 
 import InstanceCounter from '../../../../../components/tiles/InstanceCounter.vue'
 import { useInstanceStates } from '../../../../../composables/InstanceStates.js'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'DevicesWrapper',
@@ -55,7 +57,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         groupedStates () {
             return this.groupBySimplifiedStates(this.instanceStates)
         },

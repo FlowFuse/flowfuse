@@ -83,6 +83,7 @@ import FormRow from '../../../components/FormRow.vue'
 import alerts from '../../../services/alerts.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'TeamSettingsGeneral',
@@ -108,7 +109,8 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['features', 'team']),
+        ...mapState(useAccountTeamStore, ['team']),
+        ...mapVuexState('account', ['features']),
         ...mapState(useAccountAuthStore, ['user']),
         formValid () {
             return this.input.teamName && !this.pendingSlugCheck && !this.errors.slug && !this.errors.teamName
@@ -174,8 +176,8 @@ export default {
 
             teamApi.updateTeam(this.team.id, options).then(async result => {
                 this.editing = false
-                await this.$store.dispatch('account/refreshTeams')
-                await this.$store.dispatch('account/refreshTeam')
+                await useAccountTeamStore().refreshTeams()
+                await useAccountTeamStore().refreshTeam()
                 alerts.emit('Team Settings updated.', 'confirmation')
             }).catch(err => {
                 if (err.response.data) {

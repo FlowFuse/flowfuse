@@ -236,7 +236,8 @@
 
 <script>
 import { CheckCircleIcon, FolderIcon, RefreshIcon } from '@heroicons/vue/outline'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import billingApi from '../../../api/billing.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
@@ -259,6 +260,8 @@ import BlueprintTileSmall from '../Blueprints/BlueprintTileSmall.vue'
 import ExportInstanceComponents from './ExportImportComponents.vue'
 import InstanceChargesTable from './InstanceChargesTable.vue'
 import InstanceCreditBanner from './InstanceCreditBanner.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'InstanceForm',
@@ -384,8 +387,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
-        ...mapGetters('account', ['blueprints', 'defaultBlueprint', 'featuresCheck']),
+        ...mapState(useAccountTeamStore, ['blueprints', 'defaultBlueprint']),
+        ...mapVuexState('account', ['settings']),
+        ...mapGetters('account', ['featuresCheck']),
         creatingApplication () {
             return (this.applicationSelection && !this.applications.length) || (this.creatingNew && this.applicationFieldsVisible)
         },
@@ -691,7 +695,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('account', ['getTeamBlueprints']),
+        ...mapActions(useAccountTeamStore, ['getTeamBlueprints']),
         refreshName () {
             this.input.name = NameGenerator()
         },

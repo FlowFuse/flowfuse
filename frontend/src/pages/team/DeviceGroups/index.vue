@@ -116,6 +116,7 @@
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 import { mapGetters } from 'vuex'
 
@@ -130,6 +131,8 @@ import Alerts from '../../../services/alerts.js'
 import FfButton from '../../../ui-components/components/Button.vue'
 import FfListbox from '../../../ui-components/components/form/ListBox.vue'
 import TargetSnapshotCell from '../../application/components/cells/TargetSnapshot.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'DeviceGroups',
@@ -191,7 +194,8 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team']),
+        ...mapState(useAccountTeamStore, ['team']),
+        ...mapGetters('account', ['featuresCheck']),
         applicationOptions () {
             return this.applications
                 .filter(application => this.hasPermission('device:create', { application }))

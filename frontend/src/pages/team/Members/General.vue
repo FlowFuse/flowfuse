@@ -49,10 +49,10 @@
 
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
 
-import { mapActions, mapGetters, mapState as mapVuexState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
@@ -72,6 +72,7 @@ import ApplicationPermissionOverride from './components/ApplicationPermissionOve
 import ApplicationPermissionRow from './components/ApplicationPermissionsRow.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'TeamUsersGeneral',
@@ -106,7 +107,7 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         ...mapGetters('account', ['requiresBilling', 'featuresCheck']),
         ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
         canEditUser: function () {
@@ -183,7 +184,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('account', ['refreshTeamMembership']),
+        ...mapActions(useAccountTeamStore, ['refreshTeamMembership']),
         inviteMember () {
             this.$refs.inviteMemberDialog.show()
         },

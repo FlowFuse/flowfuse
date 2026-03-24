@@ -105,10 +105,10 @@
 
 <script>
 import { FilterIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import SemVer from 'semver'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
+import { mapState as mapVuexState } from 'vuex'
 
 import ApplicationApi from '../../../../api/application.js'
 import DropdownMenu from '../../../../components/DropdownMenu.vue'
@@ -122,6 +122,8 @@ import { isAutoSnapshot } from '../../../../utils/snapshot.js'
 import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
 import SnapshotSource from '../../../application/Snapshots/components/cells/SnapshotSource.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -202,7 +204,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features']),
+        ...mapState(useAccountTeamStore, ['team']),
+        ...mapVuexState('account', ['features']),
         canCreateSnapshot () {
             if (!this.developerMode || this.busy) {
                 return false

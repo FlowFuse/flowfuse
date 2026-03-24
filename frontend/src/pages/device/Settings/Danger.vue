@@ -14,13 +14,15 @@
     </div>
 </template>
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import ConfirmDeviceDeleteDialog from './dialogs/ConfirmDeviceDeleteDialog.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'DeviceSettingsDanger',
@@ -32,7 +34,7 @@ export default {
         FormHeading
     },
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState(useAccountTeamStore, ['team'])
     },
     setup () {
         const { hasPermission } = usePermissions()

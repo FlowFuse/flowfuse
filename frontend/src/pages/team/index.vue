@@ -28,6 +28,7 @@ import { Roles } from '../../utils/roles.js'
 import TeamInstances from './Instances.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountTeamStore } from '@/stores/account-team.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -51,7 +52,8 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['team', 'teamMembership', 'pendingTeamChange', 'features']),
+        ...mapState(useAccountTeamStore, ['team', 'teamMembership']),
+        ...mapVuexState('account', ['features']),
         ...mapGetters('account', ['requiresBilling']),
         ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
         ...mapState(useUxToursStore, ['shouldPresentTour']),
@@ -72,7 +74,7 @@ export default {
     },
     watch: {
         '$route.params.team_slug' (slug) {
-            this.$store.dispatch('account/setTeam', slug)
+            useAccountTeamStore().setTeam(slug)
         },
         team () {
             this.checkRoute(this.$route)

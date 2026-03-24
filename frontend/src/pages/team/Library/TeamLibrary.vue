@@ -56,7 +56,7 @@
 
 <script>
 import { ChevronRightIcon, PlusIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import teamApi from '../../../api/team.js'
 
@@ -70,6 +70,8 @@ import featuresMixin from '../../../mixins/Features.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 import TypeIcon from '../components/LibraryEntryTypeIcon.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'TeamLibrary',
@@ -114,7 +116,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership'])
+        ...mapState(useAccountTeamStore, ['team'])
     },
     watch: {
         '$route.params': {
