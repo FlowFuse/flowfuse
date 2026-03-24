@@ -6,7 +6,7 @@ const path = require('node:path')
 const { promisify } = require('node:util')
 const execPromised = promisify(exec)
 
-// const axios = require('axios')
+const axios = require('axios')
 
 const { encryptValue, decryptValue } = require('../../../../db/utils')
 
@@ -36,27 +36,30 @@ module.exports.init = async function (app) {
             const url = new URL(repoOptions.url)
             url.password = token
 
-            // TODO find an azure version
-            // 2. get user details so we can properly attribute the commit
-            // let userDetails
-            // try {
-            //     userDetails = await axios.get('https://api.github.com/user', {
-            //         headers: {
-            //             Accept: 'application/vnd.github+json',
-            //             Authorization: `Bearer ${token}`,
-            //             'X-GitHub-Api-Version': '2022-11-28'
-            //         }
-            //     })
-            // } catch (err) {
-            //     const result = new Error('Invalid git token')
-            //     result.code = 'invalid_token'
-            //     result.cause = err
-            //     throw result
-            // }
+            const match = /^https:\/\/dev.azure.com\/(?<org>.+)\/_git\/.+$/.exec(repoOptions.url)
+            const orgName = match.groups?.org
 
-            // TODO fix these place holders
-            const userGitName = 'flowfuse' // userDetails.data.login
-            const userGitEmail = 'flowfuse@example.com' // `${userDetails.data.id}+${userDetails.data.login}@users.noreply.github.com`
+            // 2. get user details so we can properly attribute the commit
+            let userDetails = {}
+            if (orgName) {
+                const userDetailsURL = `https://dev.azure.com/${orgName}/_apis/connectionData`
+                try {
+                    userDetails = await axios.get(userDetailsURL, {
+                        auth: {
+                            username: '',
+                            password: token
+                        }
+                    })
+                } catch (err) {
+                    const result = new Error('Invalid git token')
+                    result.code = 'invalid_token'
+                    result.cause = err
+                    throw result
+                }
+            }
+
+            const userGitName = userDetails.data?.authenticatedUser?.customDisplayName || userDetails.data?.authenticatedUser?.providerDisplayName || 'FlowFuse'
+            const userGitEmail = userDetails.data?.authenticatedUser?.properties?.Account.$value || `flowfuse@${app.config.domain || 'example.com'}`
             const author = `${userGitName} <${userGitEmail}>`.replace(/"/g, '\\"')
             workingDir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowfuse-git-repo-'))
 
