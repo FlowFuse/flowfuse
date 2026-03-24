@@ -313,7 +313,9 @@ const actions = {
         }
     },
 
-    async startOver ({ commit, dispatch }) {
+    async startOver ({ commit, dispatch, getters }) {
+        const mqttService = createMqttService()
+        mqttService.destroyConnection(getters.mqttConnectionKey)
         commit('SET_SESSION_ID', uuidv4())
         commit('CLEAR_MESSAGES')
 
@@ -339,6 +341,7 @@ const actions = {
     },
 
     async sendQuery ({ commit, dispatch, state, getters, rootGetters, rootState }, { query }) {
+        console.log('Sending query:', query)
         const mqttService = createMqttService()
         const payload = {
             query,
@@ -359,8 +362,14 @@ const actions = {
 
         const transactionId = uuidv4()
 
+        const instanceId = payload.context.instanceId || null
+        const deviceId = payload.context.deviceId || null
+        const thingType = instanceId ? 'p' : deviceId ? 'd' : '-'
+        const thingId = instanceId || deviceId || '-'
+
         return mqttService.publishMessage(getters.mqttConnectionKey, {
-            topic: `ff/v1/expert/${rootState.account.user.id}/${getters.sessionId}/support/chat`,
+            topic: `ff/v1/expert/${rootState.account.user.id}/${getters.sessionId}/${thingType}/${thingId}/support/chat/request`,
+            qos: 2,
             payload: {
                 query,
                 context: {
@@ -386,19 +395,45 @@ const actions = {
             url,
             username,
             password,
-            onMessage: (topic, message) => {
+            onMessage: (topic, message, packet) => {
+                console.log('Received MQTT message:', topic, message.toString())
                 // TODO i don't like this approach, i should define the onMessage handler when i subscribe to a topic,
                 //  this global handler should be used only in niche cases, also sub to other user topics?
-                if (topic !== `ff/v1/expert/${rootState.account.user.id}/${getters.sessionId}/support/reply`) return
-
-                dispatch('handleMessageResponse', JSON.parse(message.toString()))
+                const isChatReply = topic.endsWith('/support/chat/response')
+                const isToolRequest = topic.includes('/support/tool/') && topic.endsWith('/request')
+                if (isChatReply) {
+                    dispatch('handleMessageResponse', JSON.parse(message.toString()))
+                } else if (isToolRequest) {
+                    console.log('Received tool request:', topic, message.toString())
+                    const userId = rootState.account.user.id
+                    const sessionId = getters.sessionId
+                    const thingType = topic.split('/')[4] // d (device) or p (instance)
+                    const thingId = topic.split('/')[5] // the id of the device or instance
+                    const tool = topic.split('/')[6] // the name of the tool
+                    const responseTopic = `ff/v1/expert/${userId}/${sessionId}/${thingType}/${thingId}/support/tool/${tool}/response`
+                    const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
+                    // TODO: for now just ack the tool request, later we need to handle the actual tool execution and respond with the results
+                    mqttService.publishMessage(getters.mqttConnectionKey, {
+                        qos: 2,
+                        topic: responseTopic,
+                        payload: JSON.stringify({
+                            status: 'ack'
+                        }),
+                        correlationData: new TextEncoder().encode(transactionId),
+                        userProperties: { sessionId }
+                    })
+                }
             },
             onClose: () => {
                 // TODO add error message
                 console.log('closeeeeeed')
             },
             onConnect: () => {
-                mqttService.subscribe(getters.mqttConnectionKey, `ff/v1/expert/${rootState.account.user.id}/${getters.sessionId}/support/reply`)
+                const chatResponseTopic = `ff/v1/expert/${rootState.account.user.id}/${getters.sessionId}/+/+/support/chat/response`
+                const toolRequestTopic = `ff/v1/expert/${rootState.account.user.id}/${getters.sessionId}/+/+/support/tool/+/request`
+                console.log('Connected to MQTT broker, subscribing to topics:', chatResponseTopic, toolRequestTopic)
+                mqttService.subscribe(getters.mqttConnectionKey, chatResponseTopic, { qos: 2 })
+                mqttService.subscribe(getters.mqttConnectionKey, toolRequestTopic, { qos: 2 })
             },
             onOffline: () => {
                 // TODO add error message

@@ -250,23 +250,21 @@ class MqttService {
             return Promise.reject(new Error('MQTT publish topic is required'))
         }
 
-        if (typeof payload === 'string') {
-
-        } else if (typeof payload === 'object') {
+        if (typeof payload !== 'string') {
             payload = JSON.stringify(payload)
         }
 
-        console.log('on publish', topic, payload, {
+        /** @type {Mqtt.IClientPublishOptions} */
+        const options = {
             qos,
             retain,
             properties: { correlationData, userProperties }
-        })
+        }
+
+        console.log('on publish', topic, payload, options)
+
         return new Promise((resolve, reject) => {
-            client.publish(topic, payload, {
-                qos,
-                retain,
-                properties: { correlationData, userProperties }
-            }, (err) => {
+            client.publish(topic, payload, options, (err) => {
                 if (err) {
                     if (typeof onError === 'function') onError(err)
                     reject(err)
@@ -281,7 +279,7 @@ class MqttService {
      * Subscribe to topics on a managed connection.
      * @param {string} key
      * @param {string | string[]} topic
-     * @param {{qos?: number}} [options]
+     * @param {Mqtt.IClientSubscribeOptions} [options]
      * @returns {Promise<void>}
      */
     subscribe (key, topic, options = {}) {

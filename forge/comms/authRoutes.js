@@ -61,7 +61,7 @@ module.exports = async function (app) {
         }
         const allowed = await app.comms.aclManager.verify(request.body.username, request.body.topic, request.body.acc)
         // ↓ Useful for debugging ↓
-        // console.warn(`${allowed ? 'ALLOWED' : 'FORBIDDEN'}! ACL check: '${request.body.topic}' for user ${request.body.username} (${request.body.acc === 2 ? 'PUB' : 'SUB'})`)
+        console.warn(`${allowed ? 'ALLOWED' : 'FORBIDDEN'}! ACL check: '${request.body.topic}' for user ${request.body.username} (${request.body.acc === 2 ? 'PUB' : 'SUB'})`)
         if (allowed) {
             response.status(200).send()
         } else {

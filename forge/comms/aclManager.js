@@ -95,6 +95,162 @@ module.exports = function (app) {
                 // postgres with throw over, unlike sqlite that returns no results.
                 return false
             }
+        },
+        checkExpertUserCanAccess: async function (topicParts, usernameParts, acl) {
+            // topicParts = [ _ , <userid>, <sessionid>, < p | d | - >, < id | - > ]
+            // usernameParts = [ 'expert-client', <userid> ]
+            // acl = { isPub: true/false, isSub: true/false, isClient: true/false, isAgent: true/false }
+
+            const failures = []
+            const [, userId, sessionId, thingType, thingId] = topicParts
+            const requireUser = acl.isClient || (acl.isAgent && acl.isPub) // require the username to be set in the topic except for agent subs where we allow wildcarded topics
+            const requireTopicUserMatchesUsernameUserId = requireUser && acl.isClient
+            const requireSession = acl.isClient || (acl.isAgent && acl.isPub) // force requirement of a valid session for client topics (both pub and sub) and agent pubs (but not agent subs, as we allow wildcarded topics for those)
+            const requireThing = acl.isPub // hard require a "thing" for all publications
+
+            if (requireUser) {
+                if (!userId || userId === '-') {
+                    failures.push('missing userId')
+                } else {
+                    // only check userId against the username for client pubs (the userId in the topic is for the user who the agent is trying to help, the userid in the username from the agent will never match!)
+                    if (requireTopicUserMatchesUsernameUserId && userId !== usernameParts[1]) {
+                        failures.push('userId does not match username')
+                    } else {
+                        const user = await app.db.models.User.byId(userId)
+                        if (!user) {
+                            failures.push('userId does not exist')
+                        }
+                    }
+                }
+            }
+
+            if (requireSession) {
+                if (!sessionId || sessionId === '-') {
+                    failures.push('missing sessionId')
+                }
+            }
+
+            if (requireThing) {
+                if (!thingType || thingType === '-') {
+                    failures.push('missing thingType')
+                } else if (!thingId || thingId === '-') {
+                    failures.push('missing thingId')
+                } else if (thingType !== 'p' && thingType !== 'd') {
+                    failures.push('invalid thingType')
+                } else {
+                    if (thingType === 'p') {
+                        const project = await app.db.models.Project.byId(thingId)
+                        if (!project) {
+                            failures.push('thingId does not exist as a project')
+                        }
+                    } else if (thingType === 'd') {
+                        const device = await app.db.models.Device.byId(thingId)
+                        if (!device) {
+                            failures.push('thingId does not exist as a device')
+                        }
+                    }
+                }
+            }
+
+            // ↓ Useful for debugging ↓
+            if (failures.length > 0) {
+                console.warn('ACL DENY:', { topicParts, usernameParts, acl, failures })
+            }
+            return failures.length === 0
+        },
+        checkExpertToolAccess: async function (topicParts, usernameParts, acl) {
+            // topicParts = [ _ , <userid>, <sessionid>, < p | d | - >, < id | - >, <toolname> ]
+            // usernameParts = [ 'expert-client'|'expert-agent', <userid> ]
+            // acl = { isPub: true/false, isSub: true/false, isClient: true/false, isAgent: true/false }
+
+            const failures = []
+            const [, userId, sessionId, thingType, thingId, toolName] = topicParts
+            const requireUser = acl.isClient || (acl.isAgent && acl.isPub) // require the username to be set in the topic except for agent subs where we allow wildcarded topics
+            const requireTopicUserMatchesUsernameUserId = requireUser && acl.isClient
+            const requireSession = true // force requirement of a valid session for all tool ops
+            const requireThing = acl.isPub // hard require a "thing" for all publications
+            const requireTool = acl.isPub // require a tool name for all publications
+
+            if (requireUser) {
+                if (!userId || userId === '-') {
+                    failures.push('missing userId')
+                } else {
+                    // only check userId against the username for client pubs (the userId in the topic is for the user who the agent is trying to help, the userid in the username from the agent will never match!)
+                    if (requireTopicUserMatchesUsernameUserId && userId !== usernameParts[1]) {
+                        failures.push('userId does not match username')
+                    } else {
+                        const user = await app.db.models.User.byId(userId)
+                        if (!user) {
+                            failures.push('userId does not exist')
+                        }
+                    }
+                }
+            }
+
+            if (requireSession) {
+                if (!sessionId || sessionId === '-') {
+                    failures.push('missing sessionId')
+                }
+            }
+
+            let teamId
+            let applicationHash
+
+            if (requireThing) {
+                if (!thingType || thingType === '-') {
+                    failures.push('missing resource identifier type')
+                } else if (!thingId || thingId === '-') {
+                    failures.push('missing resource identifier')
+                } else if (thingType !== 'p' && thingType !== 'd') {
+                    failures.push('invalid resource identifier type')
+                } else {
+                    if (thingType === 'p') {
+                        const project = await app.db.models.Project.byId(thingId)
+                        if (!project) {
+                            failures.push('instance does not exist')
+                        } else {
+                            teamId = project.TeamId
+                            applicationHash = project.Application?.hashid || app.db.models.Application.encodeHashid(project.ApplicationId)
+                        }
+                    } else if (thingType === 'd') {
+                        const device = await app.db.models.Device.byId(thingId)
+                        if (!device) {
+                            failures.push('device does not exist')
+                        } else {
+                            teamId = device.TeamId
+                            applicationHash = device.Application?.hashid || app.db.models.Application.encodeHashid(device.ApplicationId)
+                        }
+                    }
+                }
+            }
+
+            if (requireTool) {
+                if (!toolName || toolName === '-') {
+                    failures.push('missing toolName')
+                }
+
+                const toolAccessPermission = {
+                    'get-debug-logs': 'project:flows:view',
+                    'get-flows': 'project:flows:view'
+                }
+                const requiredPermission = toolAccessPermission[toolName] || 'project:flows:edit' // default to highest level of access if tool isn't in the list, to be safe
+
+                const teamMembership = await app.db.models.TeamMember.getTeamMembership(userId, teamId, false)
+                if (!teamMembership) {
+                    failures.push('user is not a member of the team that owns this resource')
+                }
+
+                if (!app.hasPermission(teamMembership, requiredPermission, { applicationId: applicationHash })) {
+                    failures.push('user does not have permission to use this tool on this resource')
+                }
+            }
+
+            // ↓ Useful for debugging ↓
+            if (failures.length > 0) {
+                console.warn('ACL DENY:', { topicParts, usernameParts, acl, failures })
+            }
+
+            return failures.length === 0
         }
     }
 
@@ -192,26 +348,28 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources\/heartbeat$/, verify: 'checkDeviceIsAssigned' }
             ]
         },
-        // frontend connection
+        // frontend client (user)
         expertClient: {
             sub: [
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/support\/reply$/ /*, verify: 'TODO: validate user and session'  */ },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/operator\/reply$/ /*, verify: 'TODO: validate user and session'  */ }
+                // topic: ff/v1/expert/<userid>/<sessionid>/<a|p|d|->/<appid|projid|devid|->/support/chat/response
+                // example topic: ff/v1/expert/USER123/SESH123/+/+/support/chat/response
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertUserCanAccess', key: 'client-sub-chat-res', isClient: true, isSub: true },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/tool\/([^/]+)\/request$/, verify: 'checkExpertToolAccess', key: 'client-sub-tool-req', isClient: true, isSub: true }
             ],
             pub: [
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/support\/chat$/ /*, verify: 'TODO: validate user and session'  */ },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/operator\/chat$/ /*, verify: 'TODO: validate user and session'  */ }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertUserCanAccess', key: 'client-pub-chat-req', isClient: true, isPub: true },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/tool\/([^/]+)\/response$/, verify: 'checkExpertToolAccess', key: 'client-pub-tool-res', isClient: true, isPub: true }
             ]
         },
-        // backend
+        // backend client (agent)
         expertAgent: {
             sub: [
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/support\/chat$/ /*, verify: 'TODO: validate user and session'  */ },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/operator\/chat$/ /*, verify: 'TODO: validate user and session'  */ }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertUserCanAccess', key: 'agent-sub-chat-req', isAgent: true, isSub: true },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/tool\/([^/]+)\/response$/, verify: 'checkExpertToolAccess', key: 'agent-sub-tool-res', isAgent: true, isSub: true }
             ],
             pub: [
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/support\/reply$/ /*, verify: 'TODO: validate user and session'  */ },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/operator\/reply$/ /*, verify: 'TODO: validate user and session'  */ }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertUserCanAccess', key: 'agent-pub-chat-res', isAgent: true, isPub: true },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/tool\/([^/]+)\/request$/, verify: 'checkExpertToolAccess', key: 'agent-pub-tool-req', isAgent: true, isPub: true }
             ]
         }
     }
@@ -270,11 +428,15 @@ module.exports = function (app) {
                             // This isn't allowed to be a sharedSub
                             break
                         } else if (acl.verify && verifyFunctions[acl.verify]) {
-                            allowed = await verifyFunctions[acl.verify](m, usernameParts, acl)
+                            try {
+                                allowed = await verifyFunctions[acl.verify](m, usernameParts, acl)
+                            } catch (err) {
+                                console.error('Error in ACL verify function:', err)
+                            }
                             // ↓ Useful for debugging ↓
-                            // if (allowed !== true) {
-                            //     console.log('DENIED!', topic, acl)
-                            // }
+                            if (allowed !== true) {
+                                console.log('DENIED!', topic, acl)
+                            }
                         } else {
                             allowed = true
                         }
