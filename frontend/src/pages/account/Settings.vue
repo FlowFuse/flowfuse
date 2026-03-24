@@ -102,7 +102,7 @@ export default {
             return this.editing && !this.user.sso_enabled
         },
         teams () {
-            const currentUser = useAccountAuthStore().user
+            const currentUser = this.user
             const teams = this.$store.getters['account/teams']
             const teamOptions = teams?.map(team => {
                 if (team.id === currentUser.defaultTeam) {

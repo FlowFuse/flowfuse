@@ -1,6 +1,6 @@
 import { watch } from 'vue'
 
-import { useAccountAuthStore } from '../stores/account-auth.js'
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 /**
  * A 'beforeEnter' router function that ensures the user is an admin

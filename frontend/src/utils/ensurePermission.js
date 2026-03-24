@@ -1,7 +1,8 @@
 import { watch } from 'vue'
 
 import store from '../store/index.js'
-import { useAccountAuthStore } from '../stores/account-auth.js'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 /**
  * A 'beforeEnter' router function that ensures the user has a particular permission

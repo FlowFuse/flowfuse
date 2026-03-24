@@ -115,9 +115,9 @@
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
 
-import { mapState as mapStatePinia } from 'pinia'
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
+import { mapState as mapVuexState } from 'vuex'
 
 import billingApi from '../../../api/billing.js'
 
@@ -203,8 +203,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
-        ...mapStatePinia(useAccountAuthStore, ['isAdminUser']),
+        ...mapVuexState('account', ['team']),
+        ...mapState(useAccountAuthStore, ['isAdminUser']),
         billingSetUp () {
             return !this.missingSubscription && this.team.billing?.active
         },
