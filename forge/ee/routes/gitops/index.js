@@ -48,7 +48,8 @@ module.exports = async function (app) {
             const token = await app.db.models.GitToken.create({
                 name: body.name,
                 token: body.token,
-                TeamId: request.team.id
+                TeamId: request.team.id,
+                type: body.type || 'github'
             })
             // TODO: audit log
             // await app.auditLog.Project.project.httpToken.created(request.session.User, null, request.project, body)
