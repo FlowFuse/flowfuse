@@ -22,13 +22,6 @@ vi.mock('@/api/expert.js', () => ({
     default: { chat: vi.fn() }
 }))
 
-vi.mock('@/stores/product-expert-context.js', () => ({
-    useProductExpertContextStore: vi.fn(() => ({
-        shouldWakeUpAssistant: false,
-        clearWakeUp: vi.fn()
-    }))
-}))
-
 vi.mock('@/components/drawers/expert/ExpertDrawer.vue', () => ({
     default: { name: 'ExpertDrawer' }
 }))
@@ -44,6 +37,7 @@ vi.mock('@/stores/ux-drawers.js', () => ({
 const { useProductExpertStore } = await import('@/stores/product-expert.js')
 const { useProductExpertInsightsAgentStore } = await import('@/stores/product-expert-insights-agent.js')
 const { useProductExpertOperatorAgentStore } = await import('@/stores/product-expert-operator-agent.js')
+const { useAccountBridge } = await import('@/stores/_account_bridge.js')
 
 describe('product-expert store', () => {
     beforeEach(() => {
@@ -266,6 +260,49 @@ describe('product-expert store', () => {
         it('does nothing when the message uuid is not found', () => {
             const store = useProductExpertStore()
             expect(() => store.updateAnswerStreamedState({ messageUuid: 'nope', answerUuid: 'nope' })).not.toThrow()
+        })
+    })
+
+    describe('shouldWakeUpAssistant / setContext / clearWakeUp', () => {
+        it('has shouldWakeUpAssistant false by default', () => {
+            const store = useProductExpertStore()
+            expect(store.shouldWakeUpAssistant).toBe(false)
+        })
+
+        it('setContext sets context and sessionId on the insights-agent store', () => {
+            const store = useProductExpertStore()
+            const insightsAgent = useProductExpertInsightsAgentStore()
+            store.setContext({ data: { history: [] }, sessionId: 'abc' })
+            expect(insightsAgent.context).toEqual({ history: [] })
+            expect(insightsAgent.sessionId).toBe('abc')
+        })
+
+        it('setContext sets shouldWakeUpAssistant to true', () => {
+            const store = useProductExpertStore()
+            store.setContext({ data: {} })
+            expect(store.shouldWakeUpAssistant).toBe(true)
+        })
+
+        it('setContext does not set sessionId when not provided', () => {
+            const store = useProductExpertStore()
+            const insightsAgent = useProductExpertInsightsAgentStore()
+            store.setContext({ data: {} })
+            expect(insightsAgent.sessionId).toBeNull()
+        })
+
+        it('setContext does nothing when feature is disabled', () => {
+            vi.mocked(useAccountBridge).mockReturnValueOnce({ featuresCheck: { isExpertAssistantFeatureEnabled: false } })
+            const store = useProductExpertStore()
+            store.setContext({ data: { history: [] } })
+            expect(store.shouldWakeUpAssistant).toBe(false)
+        })
+
+        it('clearWakeUp sets shouldWakeUpAssistant back to false', () => {
+            const store = useProductExpertStore()
+            store.setContext({ data: {} })
+            expect(store.shouldWakeUpAssistant).toBe(true)
+            store.clearWakeUp()
+            expect(store.shouldWakeUpAssistant).toBe(false)
         })
     })
 

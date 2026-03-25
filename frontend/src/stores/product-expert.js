@@ -9,7 +9,6 @@ import { useAccountBridge } from './_account_bridge.js'
 import { useContextStore } from './context.js'
 import { useProductAssistantStore } from './product-assistant.js'
 import { INSIGHTS_AGENT, OPERATOR_AGENT } from './product-expert-agents.js'
-import { useProductExpertContextStore } from './product-expert-context.js'
 import { useProductExpertInsightsAgentStore } from './product-expert-insights-agent.js'
 import { useProductExpertOperatorAgentStore } from './product-expert-operator-agent.js'
 import { useUxDrawersStore } from './ux-drawers.js'
@@ -17,10 +16,10 @@ import { useUxDrawersStore } from './ux-drawers.js'
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
         agentMode: INSIGHTS_AGENT, // insights-agent or operator-agent
-        loadingVariant: INSIGHTS_AGENT
+        loadingVariant: INSIGHTS_AGENT,
+        shouldWakeUpAssistant: false
     }),
     getters: {
-        shouldWakeUpAssistant () { return useProductExpertContextStore().shouldWakeUpAssistant },
         _agentStore () {
             return this.agentMode === INSIGHTS_AGENT
                 ? useProductExpertInsightsAgentStore()
@@ -46,6 +45,24 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     actions: {
+        setContext ({ data, sessionId }) {
+            const { featuresCheck } = useAccountBridge()
+            if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
+                return
+            }
+
+            const insightsAgentStore = useProductExpertInsightsAgentStore()
+            insightsAgentStore.context = data
+
+            if (sessionId) {
+                insightsAgentStore.sessionId = sessionId
+            }
+
+            this.shouldWakeUpAssistant = true
+        },
+        clearWakeUp () {
+            this.shouldWakeUpAssistant = false
+        },
         async hydrateClient () {
             const { featuresCheck } = useAccountBridge()
             if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
@@ -94,7 +111,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 const { featuresCheck } = useAccountBridge()
                 if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
 
-                useProductExpertContextStore().clearWakeUp()
+                this.clearWakeUp()
 
                 if (shouldHydrateMessages) {
                     this.hydrateMessages(this._agentStore.context)
@@ -402,41 +419,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         })
                     }
 
-                    // AI response with answer array - process each item
-                    message.answer.forEach((item) => {
-                        if (item.kind === 'guide') {
-                            // Transform guide response
-                            this._agentStore.messages.push({
-                                _type: 'ai',
-                                kind: 'guide',
-                                guide: item,
-                                content: item.title || 'Setup Guide',
-                                _timestamp: Date.now(),
-                                _streamed: true,
-                                _uuid: uuidv4()
-                            })
-                        } else if (item.kind === 'resources') {
-                            // Transform resources response
-                            this._agentStore.messages.push({
-                                _type: 'ai',
-                                kind: 'resources',
-                                resources: item,
-                                content: item.title || 'Resources',
-                                _timestamp: Date.now(),
-                                _streamed: true,
-                                _uuid: uuidv4()
-                            })
-                        } else if (item.kind === 'chat') {
-                            // Transform chat response
-                            this._agentStore.messages.push({
-                                _type: 'ai',
-                                content: item.content,
-                                _timestamp: Date.now(),
-                                _streamed: true,
-                                _uuid: uuidv4()
-                            })
-                        }
-                    })
+                    this.addAiMessage(message, false)
                 } else if (message.query) {
                     // Transform user message
                     this._agentStore.messages.push({
@@ -449,5 +432,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // Else: ignore messages that don't match either format
             })
         }
+    },
+    persist: {
+        pick: ['shouldWakeUpAssistant'],
+        storage: localStorage
     }
 })
