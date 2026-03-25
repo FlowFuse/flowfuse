@@ -62,7 +62,8 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapGetters, mapActions as mapVuexActions } from 'vuex'
 
 import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 
@@ -71,6 +72,7 @@ import ResizeBar from '../../ResizeBar.vue'
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
 import ContextSelector from './context-selection/index.vue'
 
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -110,7 +112,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('product/assistant', [
+        ...mapState(useProductAssistantStore, [
             'immersiveInstance',
             'immersiveDevice'
         ]),
@@ -155,8 +157,8 @@ export default {
         })
     },
     methods: {
-        ...mapActions('product/assistant', ['resetContextSelection']),
-        ...mapActions('product/expert', ['startOver', 'handleQuery', 'handleMessageResponse']),
+        ...mapActions(useProductAssistantStore, ['resetContextSelection']),
+        ...mapVuexActions('product/expert', ['startOver', 'handleQuery', 'handleMessageResponse']),
         async handleSend () {
             if (!this.canSend) return
 
