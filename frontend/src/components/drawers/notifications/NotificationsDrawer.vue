@@ -76,7 +76,6 @@
 import { XIcon } from '@heroicons/vue/solid'
 import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapActions as mapVuexActions } from 'vuex'
 
 import userAPI from '../../../api/user.js'
 
@@ -127,7 +126,7 @@ export default {
     },
     methods: {
         ...mapActions(useUxDrawersStore, ['closeRightDrawer']),
-        ...mapVuexActions('account', ['setNotifications']),
+        ...mapActions(useAccountTeamStore, ['setNotifications']),
         closeDrawer () {
             this.closeRightDrawer()
         },
