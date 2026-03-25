@@ -28,11 +28,16 @@ export default {
         node: {
             type: Object,
             required: true
+        },
+        modelValue: {
+            type: String,
+            default: null
         }
     },
+    emits: ['update:modelValue'],
     data () {
         return {
-            selectedId: this.node.children?.[0]?.id ?? null
+            selectedId: this.modelValue ?? this.node.children?.[0]?.id ?? null
         }
     },
     computed: {
@@ -42,6 +47,11 @@ export default {
         selectedNode () {
             if (!this.selectedId) return null
             return (this.node.children ?? []).find(c => c.id === this.selectedId) ?? null
+        }
+    },
+    watch: {
+        selectedId (val) {
+            this.$emit('update:modelValue', val)
         }
     }
 }
