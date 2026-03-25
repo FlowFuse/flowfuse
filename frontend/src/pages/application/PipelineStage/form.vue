@@ -144,7 +144,7 @@
                         Choose Git Token
                     </template>
                     <template #description>
-                        This token is used to authenticate with the GitHub API. To manage your tokens, go to <strong>Team Settings -> Integrations</strong>.
+                        This token is used to authenticate with the GitHub or Azure DevOps API. To manage your tokens, go to <strong>Team Settings -> Integrations</strong>.
                     </template>
                 </FormRow>
                 <FormRow
@@ -152,13 +152,13 @@
                     :error="errors.url"
                     type="text"
                     data-form="stage-repo-url"
-                    placeholder="e.g. https://github.com/[org]/[repo]"
+                    :placeholder="gitPlaceholder"
                 >
                     <template #default>
                         Repository URL
                     </template>
                     <template #description>
-                        Only GitHub hosted repositories are currently supported.
+                        Only GitHub and Azure hosted repositories are currently supported.
                     </template>
                 </FormRow>
                 <FormRow
@@ -658,6 +658,21 @@ export default {
         },
         repoStageHasCredentialSecret () {
             return this.stage.gitRepo?.credentialSecret
+        },
+        gitPlaceholder () {
+            if (this.input.gitTokenId) {
+                for (const i in this.gitTokens) {
+                    const tok = this.gitTokens[i]
+                    if (tok.value === this.input.gitTokenId) {
+                        if (tok.type === 'github') {
+                            return 'e.g. https://github.com/[org]/[repo]'
+                        } else if (tok.type === 'azure') {
+                            return 'e.g. https://dev.azure.com/[org]/_git/[repo]'
+                        }
+                    }
+                }
+            }
+            return 'e.g. https://github.com/[org]/[repo]'
         }
     },
     watch: {
@@ -673,8 +688,8 @@ export default {
         'input.url' (newUrl, oldUrl) {
             if (newUrl === '') {
                 this.errors.url = ''
-            } else if (!/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(newUrl)) {
-                this.errors.url = 'Please enter a valid GitHub repository URL'
+            } else if (!/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(newUrl) && !/^https:\/\/dev\.azure\.com\/[^/]+\/_git\/[^/]+$/.test(newUrl)) {
+                this.errors.url = 'Please enter a valid GitHub or Azure DevOps repository URL'
             } else {
                 this.errors.url = ''
             }
@@ -700,7 +715,8 @@ export default {
             this.gitTokens = tokens.tokens.map((token) => {
                 return {
                     label: token.name,
-                    value: token.id
+                    value: token.id,
+                    type: token.type
                 }
             })
         }
