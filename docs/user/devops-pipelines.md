@@ -66,9 +66,9 @@ There are four types of stage to chose from:
 1. **[Instance](./concepts.md#hosted-instance)** - a single Node-RED instance.
 2. **[Device](./concepts.md#remote-instance)** - a single remote instance.
 3. **[Device Group](./concepts.md#device-groups)** - a group of remote instances.
-4. **Git Repository** - a remote GitHub repository.
+4. **Git Repository** - a remote GitHub/Azure DevOps repository.
     -  This stage currently only supports:
-       - Repositories hosted on GitHub.com
+       - Repositories hosted on GitHub.com or dev.azure.com
 
 ### Actions
 
@@ -103,7 +103,7 @@ When a Device Group stage is triggered, it will push the current active snapshot
 
 #### Git Repository stage
 
-Git Repository stages can be used to push and pull snapshots from a GitHub hosted repository. The stage can be configured with
+Git Repository stages can be used to push and pull snapshots from a GitHub or Azure DevOps hosted repository. The stage can be configured with
 the branch to push/pull from as well as the filename to use for the snapshot.
 
 If a filename is not configured, it will generate the filename when pushing to the repository based on the name of Instance, Device
