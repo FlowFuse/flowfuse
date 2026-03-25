@@ -64,6 +64,7 @@ describe('account-team store', () => {
             expect(store.teams).toEqual([])
             expect(store.teamBlueprints).toEqual({})
             expect(store.pendingTeamChange).toBe(false)
+            expect(store.notifications).toEqual([])
             expect(store.invitations).toEqual([])
         })
     })
@@ -277,12 +278,17 @@ describe('account-team store', () => {
         })
 
         describe('setTeam', () => {
-            it('does nothing if the same team is already set (by id)', async () => {
+            it('refreshes membership but skips full reload when same team is already set (by id)', async () => {
                 const store = useAccountTeamStore()
                 const team = { id: 'team-1', slug: 'alpha' }
+                const membership = { role: 50 }
                 store.team = team
+                teamApi.getTeamUserMembership.mockResolvedValue(membership)
                 await store.setTeam(team)
-                expect(teamApi.getTeamUserMembership).not.toHaveBeenCalled()
+                expect(teamApi.getTeamUserMembership).toHaveBeenCalledWith(team.id)
+                expect(store.teamMembership).toEqual(membership)
+                // team object itself should NOT be re-set (no product.setTeam call)
+                expect(product.setTeam).not.toHaveBeenCalled()
             })
 
             it('does nothing if both current and new team are null', async () => {
@@ -336,11 +342,20 @@ describe('account-team store', () => {
             it('sets notifications from API response', async () => {
                 const store = useAccountTeamStore()
                 const notifications = [{ id: 'n1' }, { id: 'n2' }]
-                userApi.getNotifications.mockResolvedValue(notifications)
+                userApi.getNotifications.mockResolvedValue({ notifications })
 
                 await store.getNotifications()
 
                 expect(store.notifications).toEqual(notifications)
+            })
+
+            it('sets notifications to empty array when API returns no notifications key', async () => {
+                const store = useAccountTeamStore()
+                userApi.getNotifications.mockResolvedValue({})
+
+                await store.getNotifications()
+
+                expect(store.notifications).toEqual([])
             })
 
             it('does not throw on API failure', async () => {

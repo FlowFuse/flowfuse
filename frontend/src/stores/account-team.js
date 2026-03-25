@@ -14,9 +14,7 @@ export const useAccountTeamStore = defineStore('account-team', {
         teams: [],
         teamBlueprints: {},
         pendingTeamChange: false,
-        notifications: {
-            payload: []
-        },
+        notifications: [],
         invitations: []
     }),
     getters: {
@@ -72,7 +70,15 @@ export const useAccountTeamStore = defineStore('account-team', {
                     return
                 }
             } else {
-                if ((!currentTeam && !team) || currentTeam?.id === team?.id) {
+                if (!currentTeam && !team) {
+                    this.pendingTeamChange = false
+                    return
+                }
+                if (currentTeam?.id === team?.id) {
+                    // Same team — skip full reload but always refresh membership
+                    if (team?.id) {
+                        this.teamMembership = await teamApi.getTeamUserMembership(team.id)
+                    }
                     this.pendingTeamChange = false
                     return
                 }
@@ -119,7 +125,7 @@ export const useAccountTeamStore = defineStore('account-team', {
         async getNotifications () {
             await userApi.getNotifications()
                 .then((notifications) => {
-                    this.notifications = notifications
+                    this.notifications = notifications.notifications || []
                 })
                 .catch(_ => {})
         },
