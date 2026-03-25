@@ -8,33 +8,32 @@ import useTimerHelper from '../composables/TimerHelper.js'
 import { useAccountBridge } from './_account_bridge.js'
 import { useContextStore } from './context.js'
 import { useProductAssistantStore } from './product-assistant.js'
-import { INSIGHTS_AGENT, OPERATOR_AGENT } from './product-expert-agents.js'
-import { useProductExpertContextStore } from './product-expert-context.js'
+import { INSIGHTS_AGENT, SUPPORT_AGENT } from './product-expert-agents.js'
 import { useProductExpertInsightsAgentStore } from './product-expert-insights-agent.js'
-import { useProductExpertOperatorAgentStore } from './product-expert-operator-agent.js'
+import { useProductExpertSupportAgentStore } from './product-expert-support-agent.js'
 import { useUxDrawersStore } from './ux-drawers.js'
 
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
-        agentMode: INSIGHTS_AGENT, // insights-agent or operator-agent
-        loadingVariant: INSIGHTS_AGENT
+        agentMode: SUPPORT_AGENT, // support-agent or insights-agent
+        loadingVariant: SUPPORT_AGENT,
+        shouldWakeUpAssistant: false
     }),
     getters: {
-        shouldWakeUpAssistant () { return useProductExpertContextStore().shouldWakeUpAssistant },
         _agentStore () {
-            return this.agentMode === INSIGHTS_AGENT
-                ? useProductExpertInsightsAgentStore()
-                : useProductExpertOperatorAgentStore()
+            return this.agentMode === SUPPORT_AGENT
+                ? useProductExpertSupportAgentStore()
+                : useProductExpertInsightsAgentStore()
         },
         abortController () { return this._agentStore.abortController },
         messages () { return this._agentStore.messages },
         hasMessages () { return this._agentStore.messages.length > 0 },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
         isWaitingForResponse () { return !!this._agentStore.abortController },
+        isSupportAgent: (state) => state.agentMode === SUPPORT_AGENT,
         isInsightsAgent: (state) => state.agentMode === INSIGHTS_AGENT,
-        isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT,
         hasSelectedCapabilities () {
-            return useProductExpertOperatorAgentStore().selectedCapabilities?.length > 0
+            return useProductExpertInsightsAgentStore().selectedCapabilities?.length > 0
         },
         canImportFlows () {
             const assistantStore = useProductAssistantStore()
@@ -46,6 +45,24 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     actions: {
+        setContext ({ data, sessionId }) {
+            const { featuresCheck } = useAccountBridge()
+            if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
+                return
+            }
+
+            const supportAgentStore = useProductExpertSupportAgentStore()
+            supportAgentStore.context = data
+
+            if (sessionId) {
+                supportAgentStore.sessionId = sessionId
+            }
+
+            this.shouldWakeUpAssistant = true
+        },
+        clearWakeUp () {
+            this.shouldWakeUpAssistant = false
+        },
         async hydrateClient () {
             const { featuresCheck } = useAccountBridge()
             if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
@@ -79,7 +96,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             const { featuresCheck } = useAccountBridge()
             if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
 
-            useProductExpertOperatorAgentStore().getCapabilities()
+            useProductExpertInsightsAgentStore().getCapabilities()
             // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
             return import('../components/drawers/expert/ExpertDrawer.vue')
                 .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({
@@ -94,7 +111,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 const { featuresCheck } = useAccountBridge()
                 if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
 
-                useProductExpertContextStore().clearWakeUp()
+                this.clearWakeUp()
 
                 if (shouldHydrateMessages) {
                     this.hydrateMessages(this._agentStore.context)
@@ -158,9 +175,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             this.startSessionTimer()
 
             // Clear resource selection
-            const operatorStore = useProductExpertOperatorAgentStore()
-            operatorStore.setSelectedCapabilities([])
-            await operatorStore.getCapabilities()
+            const insightsStore = useProductExpertInsightsAgentStore()
+            insightsStore.setSelectedCapabilities([])
+            await insightsStore.getCapabilities()
 
             // Add welcome message for current mode
             this.addWelcomeMessageIfNeeded()
@@ -187,8 +204,8 @@ export const useProductExpertStore = defineStore('product-expert', {
                 abortController: agentStore.abortController
             }
 
-            if (this.isOperatorAgent) {
-                payload.context.selectedCapabilities = useProductExpertOperatorAgentStore().selectedCapabilities
+            if (this.isInsightsAgent) {
+                payload.context.selectedCapabilities = useProductExpertInsightsAgentStore().selectedCapabilities
             }
 
             return expertApi.chat(payload)
@@ -203,8 +220,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             const welcomeMessages = {
-                [INSIGHTS_AGENT]: 'Hello! I am here to help you get started with FlowFuse and Node-RED. I can answer your questions, provide links to documentation, or help you build step-by-step guides to achieve your goals. How can I assist you today?',
-                [OPERATOR_AGENT]: 'Hello! I can help you gather insights by interacting with your configured resources and MCP tools in your Node-RED instances. What would you like to find out?'
+                [SUPPORT_AGENT]: 'Hello! I am here to help you get started with FlowFuse and Node-RED. I can answer your questions, provide links to documentation, or help you build step-by-step guides to achieve your goals. How can I assist you today?',
+                [INSIGHTS_AGENT]: 'Hello! I can help you gather insights by interacting with your configured resources and MCP tools in your Node-RED instances. What would you like to find out?'
             }
 
             const noResourcesMessage = 'Hello! To use Insights mode, you\'ll need to configure MCP servers in your Node-RED instances first. Once configured, I can help you interact with your flows and gather insights. Switch to Support mode if you need help getting started or watch this [introduction to Node-RED MCP server nodes](https://youtu.be/troUvaF8V68?si=P9GedupXhe5-ifaa).'
@@ -213,8 +230,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             let message = welcomeMessages[currentMode]
 
             // In Insights mode, check if capabilities are available
-            if (currentMode === OPERATOR_AGENT) {
-                const capabilities = useProductExpertOperatorAgentStore().capabilityServers
+            if (currentMode === INSIGHTS_AGENT) {
+                const capabilities = useProductExpertInsightsAgentStore().capabilityServers
                 if (!capabilities || capabilities.length === 0) {
                     message = noResourcesMessage
                 }
@@ -280,11 +297,12 @@ export const useProductExpertStore = defineStore('product-expert', {
 
         /**
          *
-         * @param {'insights-agent' | 'operator-agent'} mode
+         * @param {'support-agent' | 'insights-agent'} mode
          */
         setAgentMode (mode) {
-            if (![OPERATOR_AGENT, INSIGHTS_AGENT].includes(mode)) return
+            if (![INSIGHTS_AGENT, SUPPORT_AGENT].includes(mode)) return
             this.agentMode = mode
+            this.loadingVariant = mode
         },
 
         /**
@@ -339,9 +357,9 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
 
         updateMessageStreamedState (uuid) {
-            let message = useProductExpertInsightsAgentStore().messages.find(m => m._uuid === uuid)
+            let message = useProductExpertSupportAgentStore().messages.find(m => m._uuid === uuid)
             if (!message) {
-                message = useProductExpertOperatorAgentStore().messages.find(m => m._uuid === uuid)
+                message = useProductExpertInsightsAgentStore().messages.find(m => m._uuid === uuid)
             }
             if (message) {
                 message._streamed = true
@@ -349,9 +367,9 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
 
         updateAnswerStreamedState ({ messageUuid, answerUuid }) {
-            let message = useProductExpertInsightsAgentStore().messages.find(m => m._uuid === messageUuid)
+            let message = useProductExpertSupportAgentStore().messages.find(m => m._uuid === messageUuid)
             if (!message) {
-                message = useProductExpertOperatorAgentStore().messages.find(m => m._uuid === messageUuid)
+                message = useProductExpertInsightsAgentStore().messages.find(m => m._uuid === messageUuid)
             }
             if (message) {
                 const answer = message.answer?.find(a => a._uuid === answerUuid)
@@ -402,41 +420,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         })
                     }
 
-                    // AI response with answer array - process each item
-                    message.answer.forEach((item) => {
-                        if (item.kind === 'guide') {
-                            // Transform guide response
-                            this._agentStore.messages.push({
-                                _type: 'ai',
-                                kind: 'guide',
-                                guide: item,
-                                content: item.title || 'Setup Guide',
-                                _timestamp: Date.now(),
-                                _streamed: true,
-                                _uuid: uuidv4()
-                            })
-                        } else if (item.kind === 'resources') {
-                            // Transform resources response
-                            this._agentStore.messages.push({
-                                _type: 'ai',
-                                kind: 'resources',
-                                resources: item,
-                                content: item.title || 'Resources',
-                                _timestamp: Date.now(),
-                                _streamed: true,
-                                _uuid: uuidv4()
-                            })
-                        } else if (item.kind === 'chat') {
-                            // Transform chat response
-                            this._agentStore.messages.push({
-                                _type: 'ai',
-                                content: item.content,
-                                _timestamp: Date.now(),
-                                _streamed: true,
-                                _uuid: uuidv4()
-                            })
-                        }
-                    })
+                    this.addAiMessage(message, false)
                 } else if (message.query) {
                     // Transform user message
                     this._agentStore.messages.push({
@@ -449,5 +433,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // Else: ignore messages that don't match either format
             })
         }
+    },
+    persist: {
+        pick: ['shouldWakeUpAssistant'],
+        storage: localStorage
     }
 })

@@ -12,7 +12,7 @@
                 :class="{ 'border-blue-600': modelValue === option.id }"
                 @click="$emit('update:modelValue', option.id)"
             >
-                <img v-if="option.icon" :src="option.icon" class="w-5 h-5" :alt="option.iconAlt || option.label">
+                <img v-if="option.icon" :src="option.icon" class="w-6 h-6" :alt="option.iconAlt || option.label">
                 <span>{{ option.label }}</span>
             </li>
         </ul>

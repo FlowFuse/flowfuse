@@ -63,7 +63,7 @@ import { mapActions, mapState } from 'pinia'
 import FfCheckbox from '../../../ui-components/components/form/Checkbox.vue'
 import FfListbox from '../../../ui-components/components/form/ListBox.vue'
 
-import { useProductExpertOperatorAgentStore } from '@/stores/product-expert-operator-agent.js'
+import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
 
 export default {
     name: 'CapabilitiesSelector',
@@ -73,7 +73,7 @@ export default {
         FfListbox
     },
     computed: {
-        ...mapState(useProductExpertOperatorAgentStore, [
+        ...mapState(useProductExpertInsightsAgentStore, [
             'selectedCapabilities',
             'capabilities'
         ]),
@@ -90,7 +90,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useProductExpertOperatorAgentStore, [
+        ...mapActions(useProductExpertInsightsAgentStore, [
             'setSelectedCapabilities'
         ]),
         onCheckboxClick (option) {
