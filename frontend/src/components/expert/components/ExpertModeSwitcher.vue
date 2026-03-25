@@ -31,7 +31,7 @@ export default {
         agentModeButtons () {
             return [
                 { title: 'Support', value: 'support-agent' },
-                { title: 'Insights', value: 'operator-agent' }
+                { title: 'Insights', value: 'insights-agent' }
             ]
         },
         agentModeWrapper: {

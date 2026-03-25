@@ -18,7 +18,7 @@
                 >blogposts</a>, and more.
             </p>
         </template>
-        <template v-if="isOperatorAgent">
+        <template v-if="isInsightsAgent">
             <p class="info-text">
                 <span
                     title="This feature is still under development"
@@ -45,7 +45,7 @@ import { useProductExpertStore } from '@/stores/product-expert.js'
 export default {
     name: 'InfoBanner',
     computed: {
-        ...mapState(useProductExpertStore, ['isSupportAgent', 'isOperatorAgent'])
+        ...mapState(useProductExpertStore, ['isSupportAgent', 'isInsightsAgent'])
     }
 }
 </script>

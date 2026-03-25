@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { OPERATOR_AGENT, SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
+import { INSIGHTS_AGENT, SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
 
 vi.mock('@/stores/_account_bridge.js', () => ({
     useAccountBridge: vi.fn(() => ({ featuresCheck: { isExpertAssistantFeatureEnabled: true } }))
@@ -36,7 +36,7 @@ vi.mock('@/stores/ux-drawers.js', () => ({
 // imported after mocks so vi.mock hoisting resolves correctly
 const { useProductExpertStore } = await import('@/stores/product-expert.js')
 const { useProductExpertSupportAgentStore } = await import('@/stores/product-expert-support-agent.js')
-const { useProductExpertOperatorAgentStore } = await import('@/stores/product-expert-operator-agent.js')
+const { useProductExpertInsightsAgentStore } = await import('@/stores/product-expert-insights-agent.js')
 const { useAccountBridge } = await import('@/stores/_account_bridge.js')
 
 describe('product-expert store', () => {
@@ -70,11 +70,11 @@ describe('product-expert store', () => {
             expect(store.messages).toBe(supportAgent.messages)
         })
 
-        it('returns operator-agent store when in OPERATOR_AGENT mode', () => {
+        it('returns insights-agent store when in INSIGHTS_AGENT mode', () => {
             const store = useProductExpertStore()
-            store.agentMode = OPERATOR_AGENT
-            const operatorAgent = useProductExpertOperatorAgentStore()
-            expect(store.messages).toBe(operatorAgent.messages)
+            store.agentMode = INSIGHTS_AGENT
+            const insightsAgent = useProductExpertInsightsAgentStore()
+            expect(store.messages).toBe(insightsAgent.messages)
         })
     })
 
@@ -104,17 +104,17 @@ describe('product-expert store', () => {
         })
     })
 
-    describe('isSupportAgent / isOperatorAgent', () => {
+    describe('isSupportAgent / isInsightsAgent', () => {
         it('isSupportAgent is true by default', () => {
             const store = useProductExpertStore()
             expect(store.isSupportAgent).toBe(true)
-            expect(store.isOperatorAgent).toBe(false)
+            expect(store.isInsightsAgent).toBe(false)
         })
 
-        it('isOperatorAgent is true when mode is OPERATOR_AGENT', () => {
+        it('isInsightsAgent is true when mode is INSIGHTS_AGENT', () => {
             const store = useProductExpertStore()
-            store.agentMode = OPERATOR_AGENT
-            expect(store.isOperatorAgent).toBe(true)
+            store.agentMode = INSIGHTS_AGENT
+            expect(store.isInsightsAgent).toBe(true)
             expect(store.isSupportAgent).toBe(false)
         })
     })
@@ -122,8 +122,8 @@ describe('product-expert store', () => {
     describe('setAgentMode', () => {
         it('sets a valid mode', () => {
             const store = useProductExpertStore()
-            store.setAgentMode(OPERATOR_AGENT)
-            expect(store.agentMode).toBe(OPERATOR_AGENT)
+            store.setAgentMode(INSIGHTS_AGENT)
+            expect(store.agentMode).toBe(INSIGHTS_AGENT)
         })
 
         it('ignores an invalid mode', () => {
@@ -235,12 +235,12 @@ describe('product-expert store', () => {
             expect(msg._streamed).toBe(true)
         })
 
-        it('searches operator-agent messages if not found in support-agent', () => {
+        it('searches insights-agent messages if not found in support-agent', () => {
             const store = useProductExpertStore()
-            store.agentMode = OPERATOR_AGENT
+            store.agentMode = INSIGHTS_AGENT
             store.addPredefinedAiMessage('hello')
-            const msg = useProductExpertOperatorAgentStore().messages[0]
-            store.agentMode = SUPPORT_AGENT // switch back, message is still in operator-agent
+            const msg = useProductExpertInsightsAgentStore().messages[0]
+            store.agentMode = SUPPORT_AGENT // switch back, message is still in insights-agent
             store.updateMessageStreamedState(msg._uuid)
             expect(msg._streamed).toBe(true)
         })

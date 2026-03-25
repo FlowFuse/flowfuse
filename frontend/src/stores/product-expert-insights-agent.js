@@ -6,7 +6,7 @@ import useTimerHelper from '../composables/TimerHelper.js'
 
 import { useAccountBridge } from './_account_bridge.js'
 
-export const useProductExpertOperatorAgentStore = defineStore('product-expert-operator-agent', {
+export const useProductExpertInsightsAgentStore = defineStore('product-expert-insights-agent', {
     state: () => ({
         sessionId: null,
         messages: [],

@@ -14,7 +14,7 @@
 <script>
 import { mapState } from 'pinia'
 
-import { OPERATOR_AGENT, SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
+import { INSIGHTS_AGENT, SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
 
 import { useProductExpertStore } from '@/stores/product-expert.js'
 
@@ -32,7 +32,7 @@ export default {
                     'Analyzing your question...',
                     'Finding the best answer...'
                 ],
-                [OPERATOR_AGENT]: [
+                [INSIGHTS_AGENT]: [
                     'Connecting to MCP resources...',
                     'Querying your Node-RED instances...',
                     'Instructing MCP tooling...',

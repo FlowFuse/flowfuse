@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { useProductExpertOperatorAgentStore } from '@/stores/product-expert-operator-agent.js'
+import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
 
 vi.mock('@/stores/_account_bridge.js', () => ({
     useAccountBridge: vi.fn(() => ({ team: { id: 'team-1' } }))
@@ -16,14 +16,14 @@ vi.mock('@/api/expert.js', () => ({
 // imported after mocks so vi.mock hoisting resolves correctly
 const { default: expertApi } = await import('@/api/expert.js')
 
-describe('product-expert-operator-agent store', () => {
+describe('product-expert-insights-agent store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
         vi.clearAllMocks()
     })
 
     it('initializes with empty capabilities and messages', () => {
-        const store = useProductExpertOperatorAgentStore()
+        const store = useProductExpertInsightsAgentStore()
         expect(store.capabilities).toEqual([])
         expect(store.messages).toEqual([])
         expect(store.sessionId).toBeNull()
@@ -32,7 +32,7 @@ describe('product-expert-operator-agent store', () => {
     })
 
     it('getCapabilities fetches and stores server list', async () => {
-        const store = useProductExpertOperatorAgentStore()
+        const store = useProductExpertInsightsAgentStore()
         const server = { id: 'srv-1', resources: [], tools: [], prompts: [] }
         vi.spyOn(expertApi, 'getCapabilities').mockResolvedValue({ servers: [server] })
         await store.getCapabilities()
@@ -42,14 +42,14 @@ describe('product-expert-operator-agent store', () => {
     })
 
     it('getCapabilities handles missing servers key', async () => {
-        const store = useProductExpertOperatorAgentStore()
+        const store = useProductExpertInsightsAgentStore()
         vi.spyOn(expertApi, 'getCapabilities').mockResolvedValue({})
         await store.getCapabilities()
         expect(store.capabilityServers).toEqual([])
     })
 
     it('capabilities getter computes toolCount correctly', () => {
-        const store = useProductExpertOperatorAgentStore()
+        const store = useProductExpertInsightsAgentStore()
         store.capabilityServers = [{
             id: 'srv-1',
             resources: ['r1', 'r2'],
@@ -60,13 +60,13 @@ describe('product-expert-operator-agent store', () => {
     })
 
     it('setSelectedCapabilities updates selectedCapabilities', () => {
-        const store = useProductExpertOperatorAgentStore()
+        const store = useProductExpertInsightsAgentStore()
         store.setSelectedCapabilities(['cap-a', 'cap-b'])
         expect(store.selectedCapabilities).toEqual(['cap-a', 'cap-b'])
     })
 
     it('setSessionCheckTimer stores the timer reference', () => {
-        const store = useProductExpertOperatorAgentStore()
+        const store = useProductExpertInsightsAgentStore()
         const fakeTimer = setInterval(() => {}, 9999)
         store.setSessionCheckTimer(fakeTimer)
         expect(store.sessionCheckTimer).toBe(fakeTimer)
@@ -74,7 +74,7 @@ describe('product-expert-operator-agent store', () => {
     })
 
     it('reset clears timer and resets all state', () => {
-        const store = useProductExpertOperatorAgentStore()
+        const store = useProductExpertInsightsAgentStore()
         const fakeTimer = setInterval(() => {}, 9999)
         const clearSpy = vi.spyOn(globalThis, 'clearInterval')
         store.setSessionCheckTimer(fakeTimer)
@@ -91,7 +91,7 @@ describe('product-expert-operator-agent store', () => {
     })
 
     it('reset with no timer does not throw', () => {
-        const store = useProductExpertOperatorAgentStore()
+        const store = useProductExpertInsightsAgentStore()
         expect(() => store.reset()).not.toThrow()
     })
 })
