@@ -302,6 +302,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         setAgentMode (mode) {
             if (![INSIGHTS_AGENT, SUPPORT_AGENT].includes(mode)) return
             this.agentMode = mode
+            this.loadingVariant = mode
         },
 
         /**
