@@ -3,155 +3,95 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
 
-describe('useProductExpertInsightsAgentStore', () => {
+vi.mock('@/stores/_account_bridge.js', () => ({
+    useAccountBridge: vi.fn(() => ({ team: { id: 'team-1' } }))
+}))
+
+vi.mock('@/api/expert.js', () => ({
+    default: {
+        getCapabilities: vi.fn()
+    }
+}))
+
+// imported after mocks so vi.mock hoisting resolves correctly
+const { default: expertApi } = await import('@/api/expert.js')
+
+describe('product-expert-insights-agent store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
+        vi.clearAllMocks()
     })
 
-    describe('initial state', () => {
-        it('has null context', () => {
-            const store = useProductExpertInsightsAgentStore()
-            expect(store.context).toBeNull()
-        })
-
-        it('has null sessionId', () => {
-            const store = useProductExpertInsightsAgentStore()
-            expect(store.sessionId).toBeNull()
-        })
-
-        it('has empty messages array', () => {
-            const store = useProductExpertInsightsAgentStore()
-            expect(store.messages).toEqual([])
-        })
-
-        it('has null sessionStartTime', () => {
-            const store = useProductExpertInsightsAgentStore()
-            expect(store.sessionStartTime).toBeNull()
-        })
-
-        it('has sessionWarningShown false', () => {
-            const store = useProductExpertInsightsAgentStore()
-            expect(store.sessionWarningShown).toBe(false)
-        })
-
-        it('has sessionExpiredShown false', () => {
-            const store = useProductExpertInsightsAgentStore()
-            expect(store.sessionExpiredShown).toBe(false)
-        })
-
-        it('has null abortController', () => {
-            const store = useProductExpertInsightsAgentStore()
-            expect(store.abortController).toBeNull()
-        })
-
-        it('has null sessionCheckTimer', () => {
-            const store = useProductExpertInsightsAgentStore()
-            expect(store.sessionCheckTimer).toBeNull()
-        })
+    it('initializes with empty capabilities and messages', () => {
+        const store = useProductExpertInsightsAgentStore()
+        expect(store.capabilities).toEqual([])
+        expect(store.messages).toEqual([])
+        expect(store.sessionId).toBeNull()
+        expect(store.selectedCapabilities).toEqual([])
+        expect(store.abortController).toBeNull()
     })
 
-    describe('setSessionCheckTimer', () => {
-        it('stores the timer reference', () => {
-            const store = useProductExpertInsightsAgentStore()
-            const fakeTimer = setInterval(() => {}, 10000)
-            store.setSessionCheckTimer(fakeTimer)
-            expect(store.sessionCheckTimer).toBe(fakeTimer)
-            clearInterval(fakeTimer)
-        })
-
-        it('replaces an existing timer', () => {
-            const store = useProductExpertInsightsAgentStore()
-            const timer1 = setInterval(() => {}, 10000)
-            const timer2 = setInterval(() => {}, 10000)
-            store.setSessionCheckTimer(timer1)
-            store.setSessionCheckTimer(timer2)
-            expect(store.sessionCheckTimer).toBe(timer2)
-            clearInterval(timer1)
-            clearInterval(timer2)
-        })
+    it('getCapabilities fetches and stores server list', async () => {
+        const store = useProductExpertInsightsAgentStore()
+        const server = { id: 'srv-1', resources: [], tools: [], prompts: [] }
+        vi.spyOn(expertApi, 'getCapabilities').mockResolvedValue({ servers: [server] })
+        await store.getCapabilities()
+        // capabilities getter maps capabilityServers and adds toolCount
+        expect(store.capabilities).toEqual([{ ...server, toolCount: 0 }])
+        expect(store.capabilityServers).toEqual([server])
     })
 
-    describe('reset', () => {
-        it('clears all state back to initial values', () => {
-            const store = useProductExpertInsightsAgentStore()
-            store.context = { instanceId: 'abc' }
-            store.sessionId = 'session-123'
-            store.messages = [{ role: 'user', content: 'hello' }]
-            store.abortController = new AbortController()
-            store.sessionStartTime = Date.now()
-            store.sessionWarningShown = true
-            store.sessionExpiredShown = true
-
-            store.reset()
-
-            expect(store.context).toBeNull()
-            expect(store.sessionId).toBeNull()
-            expect(store.messages).toEqual([])
-            expect(store.abortController).toBeNull()
-            expect(store.sessionStartTime).toBeNull()
-            expect(store.sessionWarningShown).toBe(false)
-            expect(store.sessionExpiredShown).toBe(false)
-            expect(store.sessionCheckTimer).toBeNull()
-        })
-
-        it('calls clearInterval when a timer is active', () => {
-            const store = useProductExpertInsightsAgentStore()
-            const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval')
-            const fakeTimer = setInterval(() => {}, 10000)
-            store.setSessionCheckTimer(fakeTimer)
-
-            store.reset()
-
-            expect(clearIntervalSpy).toHaveBeenCalledWith(fakeTimer)
-            clearIntervalSpy.mockRestore()
-        })
-
-        it('does not throw when no timer is set', () => {
-            const store = useProductExpertInsightsAgentStore()
-            expect(() => store.reset()).not.toThrow()
-        })
-
-        it('clears sessionCheckTimer after reset', () => {
-            const store = useProductExpertInsightsAgentStore()
-            const fakeTimer = setInterval(() => {}, 10000)
-            store.setSessionCheckTimer(fakeTimer)
-
-            store.reset()
-
-            expect(store.sessionCheckTimer).toBeNull()
-        })
+    it('getCapabilities handles missing servers key', async () => {
+        const store = useProductExpertInsightsAgentStore()
+        vi.spyOn(expertApi, 'getCapabilities').mockResolvedValue({})
+        await store.getCapabilities()
+        expect(store.capabilityServers).toEqual([])
     })
 
-    describe('state mutations', () => {
-        it('allows direct state assignment for context', () => {
-            const store = useProductExpertInsightsAgentStore()
-            store.context = { instanceId: 'test-id' }
-            expect(store.context).toEqual({ instanceId: 'test-id' })
-        })
+    it('capabilities getter computes toolCount correctly', () => {
+        const store = useProductExpertInsightsAgentStore()
+        store.capabilityServers = [{
+            id: 'srv-1',
+            resources: ['r1', 'r2'],
+            tools: ['t1'],
+            prompts: ['p1', 'p2', 'p3']
+        }]
+        expect(store.capabilities[0].toolCount).toBe(6)
+    })
 
-        it('allows direct state assignment for sessionId', () => {
-            const store = useProductExpertInsightsAgentStore()
-            store.sessionId = 'abc-123'
-            expect(store.sessionId).toBe('abc-123')
-        })
+    it('setSelectedCapabilities updates selectedCapabilities', () => {
+        const store = useProductExpertInsightsAgentStore()
+        store.setSelectedCapabilities(['cap-a', 'cap-b'])
+        expect(store.selectedCapabilities).toEqual(['cap-a', 'cap-b'])
+    })
 
-        it('allows pushing to messages', () => {
-            const store = useProductExpertInsightsAgentStore()
-            store.messages.push({ role: 'user', content: 'hello' })
-            store.messages.push({ role: 'assistant', content: 'hi' })
-            expect(store.messages).toHaveLength(2)
-        })
+    it('setSessionCheckTimer stores the timer reference', () => {
+        const store = useProductExpertInsightsAgentStore()
+        const fakeTimer = setInterval(() => {}, 9999)
+        store.setSessionCheckTimer(fakeTimer)
+        expect(store.sessionCheckTimer).toBe(fakeTimer)
+        clearInterval(fakeTimer)
+    })
 
-        it('allows setting sessionWarningShown', () => {
-            const store = useProductExpertInsightsAgentStore()
-            store.sessionWarningShown = true
-            expect(store.sessionWarningShown).toBe(true)
-        })
+    it('reset clears timer and resets all state', () => {
+        const store = useProductExpertInsightsAgentStore()
+        const fakeTimer = setInterval(() => {}, 9999)
+        const clearSpy = vi.spyOn(globalThis, 'clearInterval')
+        store.setSessionCheckTimer(fakeTimer)
+        store.sessionId = 'sess-abc'
+        store.abortController = new AbortController()
+        store.capabilityServers = [{ id: 'srv-1' }]
+        store.reset()
+        expect(clearSpy).toHaveBeenCalledWith(fakeTimer)
+        expect(store.sessionId).toBeNull()
+        expect(store.abortController).toBeNull()
+        expect(store.capabilityServers).toEqual([])
+        expect(store.messages).toEqual([])
+        clearInterval(fakeTimer)
+    })
 
-        it('allows setting sessionExpiredShown', () => {
-            const store = useProductExpertInsightsAgentStore()
-            store.sessionExpiredShown = true
-            expect(store.sessionExpiredShown).toBe(true)
-        })
+    it('reset with no timer does not throw', () => {
+        const store = useProductExpertInsightsAgentStore()
+        expect(() => store.reset()).not.toThrow()
     })
 })

@@ -32,7 +32,7 @@ import InfoBanner from './components/InfoBanner.vue'
 import UpdateBanner from './components/UpdateBanner.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
-import { useProductExpertOperatorAgentStore } from '@/stores/product-expert-operator-agent.js'
+import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -74,7 +74,7 @@ export default {
             'abortController',
             'agentMode',
             'messages',
-            'isOperatorAgent'
+            'isInsightsAgent'
         ]),
         ...mapState(useUxDrawersStore, {
             isPinned: state => state.rightDrawer.fixed
@@ -101,7 +101,7 @@ export default {
         agentMode: {
             immediate: true,
             async handler () {
-                if (this.isOperatorAgent) {
+                if (this.isInsightsAgent) {
                     await this.getCapabilities()
                 }
                 this.addWelcomeMessageIfNeeded()
@@ -145,7 +145,7 @@ export default {
             'resetSessionTimer',
             'addWelcomeMessageIfNeeded'
         ]),
-        ...mapActions(useProductExpertOperatorAgentStore, ['getCapabilities']),
+        ...mapActions(useProductExpertInsightsAgentStore, ['getCapabilities']),
         ...mapActions(useProductAssistantStore, ['reset']),
         handleStopGeneration () {
             if (this.abortController) {

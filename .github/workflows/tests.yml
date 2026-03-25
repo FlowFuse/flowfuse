@@ -35,16 +35,13 @@ jobs:
     needs: check-changes
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    strategy:
-      matrix:
-        node-version: [20.x]
     steps:
     - name: Checkout
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 24
       uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 24
     - name: Install Dependencies
       run: npm ci
     - name: Build the forge
@@ -79,16 +76,13 @@ jobs:
           -m 3GB
         ports:
           - 5432:5432
-    strategy:
-      matrix:
-        node-version: [20.x]
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Setup NodeJS ${{ matrix.node-version }}
+      - name: Setup NodeJS 24
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 24
       - name: Install Dependencies
         run: npm ci
       - name: Build the forge
