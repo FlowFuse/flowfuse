@@ -8,21 +8,21 @@ import useTimerHelper from '../composables/TimerHelper.js'
 import { useAccountBridge } from './_account_bridge.js'
 import { useContextStore } from './context.js'
 import { useProductAssistantStore } from './product-assistant.js'
-import { INSIGHTS_AGENT, OPERATOR_AGENT } from './product-expert-agents.js'
-import { useProductExpertInsightsAgentStore } from './product-expert-insights-agent.js'
+import { OPERATOR_AGENT, SUPPORT_AGENT } from './product-expert-agents.js'
 import { useProductExpertOperatorAgentStore } from './product-expert-operator-agent.js'
+import { useProductExpertSupportAgentStore } from './product-expert-support-agent.js'
 import { useUxDrawersStore } from './ux-drawers.js'
 
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
-        agentMode: INSIGHTS_AGENT, // insights-agent or operator-agent
-        loadingVariant: INSIGHTS_AGENT,
+        agentMode: SUPPORT_AGENT, // support-agent or operator-agent
+        loadingVariant: SUPPORT_AGENT,
         shouldWakeUpAssistant: false
     }),
     getters: {
         _agentStore () {
-            return this.agentMode === INSIGHTS_AGENT
-                ? useProductExpertInsightsAgentStore()
+            return this.agentMode === SUPPORT_AGENT
+                ? useProductExpertSupportAgentStore()
                 : useProductExpertOperatorAgentStore()
         },
         abortController () { return this._agentStore.abortController },
@@ -30,7 +30,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         hasMessages () { return this._agentStore.messages.length > 0 },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
         isWaitingForResponse () { return !!this._agentStore.abortController },
-        isInsightsAgent: (state) => state.agentMode === INSIGHTS_AGENT,
+        isSupportAgent: (state) => state.agentMode === SUPPORT_AGENT,
         isOperatorAgent: (state) => state.agentMode === OPERATOR_AGENT,
         hasSelectedCapabilities () {
             return useProductExpertOperatorAgentStore().selectedCapabilities?.length > 0
@@ -51,11 +51,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                 return
             }
 
-            const insightsAgentStore = useProductExpertInsightsAgentStore()
-            insightsAgentStore.context = data
+            const supportAgentStore = useProductExpertSupportAgentStore()
+            supportAgentStore.context = data
 
             if (sessionId) {
-                insightsAgentStore.sessionId = sessionId
+                supportAgentStore.sessionId = sessionId
             }
 
             this.shouldWakeUpAssistant = true
@@ -220,7 +220,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             const welcomeMessages = {
-                [INSIGHTS_AGENT]: 'Hello! I am here to help you get started with FlowFuse and Node-RED. I can answer your questions, provide links to documentation, or help you build step-by-step guides to achieve your goals. How can I assist you today?',
+                [SUPPORT_AGENT]: 'Hello! I am here to help you get started with FlowFuse and Node-RED. I can answer your questions, provide links to documentation, or help you build step-by-step guides to achieve your goals. How can I assist you today?',
                 [OPERATOR_AGENT]: 'Hello! I can help you gather insights by interacting with your configured resources and MCP tools in your Node-RED instances. What would you like to find out?'
             }
 
@@ -297,10 +297,10 @@ export const useProductExpertStore = defineStore('product-expert', {
 
         /**
          *
-         * @param {'insights-agent' | 'operator-agent'} mode
+         * @param {'support-agent' | 'operator-agent'} mode
          */
         setAgentMode (mode) {
-            if (![OPERATOR_AGENT, INSIGHTS_AGENT].includes(mode)) return
+            if (![OPERATOR_AGENT, SUPPORT_AGENT].includes(mode)) return
             this.agentMode = mode
         },
 
@@ -356,7 +356,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
 
         updateMessageStreamedState (uuid) {
-            let message = useProductExpertInsightsAgentStore().messages.find(m => m._uuid === uuid)
+            let message = useProductExpertSupportAgentStore().messages.find(m => m._uuid === uuid)
             if (!message) {
                 message = useProductExpertOperatorAgentStore().messages.find(m => m._uuid === uuid)
             }
@@ -366,7 +366,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
 
         updateAnswerStreamedState ({ messageUuid, answerUuid }) {
-            let message = useProductExpertInsightsAgentStore().messages.find(m => m._uuid === messageUuid)
+            let message = useProductExpertSupportAgentStore().messages.find(m => m._uuid === messageUuid)
             if (!message) {
                 message = useProductExpertOperatorAgentStore().messages.find(m => m._uuid === messageUuid)
             }

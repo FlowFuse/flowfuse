@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { markRaw } from 'vue'
 
-export const useProductExpertInsightsAgentStore = defineStore('product-expert-insights-agent', {
+export const useProductExpertSupportAgentStore = defineStore('product-expert-support-agent', {
     state: () => ({
         context: null,
         sessionId: null,
