@@ -16,7 +16,7 @@
                 Start over
             </button>
             <div class="right-buttons">
-                <capabilities-selector v-if="isOperatorAgent" />
+                <capabilities-selector v-if="isInsightsAgent" />
             </div>
         </div>
         <div class="input-wrapper" :class="{ 'focused': isTextareaFocused }">
@@ -34,7 +34,7 @@
 
             <div class="actions">
                 <div class="left">
-                    <context-selector v-if="isImmersive && !isOperatorAgent" />
+                    <context-selector v-if="isImmersive && !isInsightsAgent" />
                 </div>
 
                 <div class="right">
@@ -120,7 +120,7 @@ export default {
         ...mapState(useProductExpertStore, [
             'messages',
             'isSessionExpired',
-            'isOperatorAgent',
+            'isInsightsAgent',
             'hasSelectedCapabilities',
             'hasMessages',
             'isWaitingForResponse'
@@ -128,7 +128,7 @@ export default {
         isInputDisabled () {
             if (this.isSessionExpired) return true
             if (this.isWaitingForResponse) return true
-            return this.isOperatorAgent && !this.hasSelectedCapabilities
+            return this.isInsightsAgent && !this.hasSelectedCapabilities
         },
         isDrawerPinned () {
             return this.rightDrawer.fixed
@@ -137,10 +137,10 @@ export default {
             return this.inputText.trim().length > 0 && !this.isInputDisabled
         },
         placeholderText () {
-            if (this.isOperatorAgent && !this.hasSelectedCapabilities) {
+            if (this.isInsightsAgent && !this.hasSelectedCapabilities) {
                 return 'Select a resource to get started'
             }
-            return this.isOperatorAgent
+            return this.isInsightsAgent
                 ? 'Tell us what you want to know about'
                 : 'Tell us what you need help with'
         },
@@ -190,7 +190,7 @@ export default {
 
             this.inputText = ''
             // When in support mode, reset/restore assistant context selection (opt-out by default)
-            if (!this.isOperatorAgent) {
+            if (!this.isInsightsAgent) {
                 this.resetContextSelection()
             }
 

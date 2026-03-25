@@ -1,5 +1,5 @@
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
-import { useProductExpertContextStore } from '@/stores/product-expert-context.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 
 const DATA_SOURCE_FLOWFUSE_WEBSITE = 'flowfuse-website'
 const DATA_SOURCE_ASSISTANT = 'nr-assistant'
@@ -126,7 +126,7 @@ class MessagingService {
     }
 
     setExpertContext (payload) {
-        useProductExpertContextStore().setContext(payload)
+        useProductExpertStore().setContext(payload)
 
         const message = {
             type: 'flowfuse-expert-response',

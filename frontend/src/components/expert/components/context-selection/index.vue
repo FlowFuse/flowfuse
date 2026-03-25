@@ -1,10 +1,10 @@
 <template>
     <div class="context-selector-container">
-        <context-selector-button v-if="!isOperatorAgent" />
+        <context-selector-button v-if="!isInsightsAgent" />
         <div class="chips-container" @wheel="horizontalScrolling">
             <context-chip v-for="(context, index) in selectedContextFiltered" :key="index" :contextItem="context" />
-            <debug-chip v-if="hasDebugLogsSelected && !isOperatorAgent" />
-            <selection-chip v-if="hasUserSelection && !isOperatorAgent" />
+            <debug-chip v-if="hasDebugLogsSelected && !isInsightsAgent" />
+            <selection-chip v-if="hasUserSelection && !isInsightsAgent" />
         </div>
     </div>
 </template>
@@ -31,10 +31,10 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, ['getSelectedContext', 'hasDebugLogsSelected', 'hasUserSelection']),
-        ...mapState(useProductExpertStore, ['isOperatorAgent']),
+        ...mapState(useProductExpertStore, ['isInsightsAgent']),
         selectedContext () {
             // for insights mode, return empty array
-            if (this.isOperatorAgent) {
+            if (this.isInsightsAgent) {
                 return []
             }
             return this.getSelectedContext

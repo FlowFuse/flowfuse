@@ -14,7 +14,7 @@
 <script>
 import { mapState } from 'pinia'
 
-import { INSIGHTS_AGENT, OPERATOR_AGENT } from '@/stores/product-expert-agents.js'
+import { INSIGHTS_AGENT, SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
 
 import { useProductExpertStore } from '@/stores/product-expert.js'
 
@@ -25,14 +25,14 @@ export default {
             showMessage: false,
             currentMessageIndex: 0,
             messageVariants: {
-                [INSIGHTS_AGENT]: [
+                [SUPPORT_AGENT]: [
                     'Ingesting the docs...',
                     'Reading the blog...',
                     'Searching through FlowFuse knowledge base',
                     'Analyzing your question...',
                     'Finding the best answer...'
                 ],
-                [OPERATOR_AGENT]: [
+                [INSIGHTS_AGENT]: [
                     'Connecting to MCP resources...',
                     'Querying your Node-RED instances...',
                     'Instructing MCP tooling...',
