@@ -142,7 +142,7 @@ export default {
         Roles () {
             return Roles
         },
-        ...mapVuexState('account', ['user', 'team', 'features']),
+        ...mapVuexState('account', ['team', 'features']),
         ...mapState(useProductBrokersStore, {
             clients: state => state.UNS.clients
         }),

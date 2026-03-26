@@ -20,13 +20,13 @@ client.interceptors.response.use(function (response) {
 
     // This is an error response from our own API (or failure to reach it)
     // Lazy require to avoid circular dependency:
-    // api/client.js → store/index.js → account/index.js → routes.js → page components → api modules → api/client.js
-    // TODO: remove once the `account` Vuex module is migrated to Pinia — replace with a direct import of the Pinia account store.
+    // api/client.js → stores/account-auth.js → api/user.js → api/client.js
+    const { useAccountAuthStore } = require('../stores/account-auth.js')
     const store = require('../store/index.js').default
     if (error.code === 'ERR_NETWORK') {
         // Backend failed to respond
-        store.dispatch('account/setOffline', true)
-    } else if (error.response && error.response.status === 401 && !store.state.account.pending && !store.state.account.loginInflight) {
+        useAccountAuthStore().setOffline(true)
+    } else if (error.response && error.response.status === 401 && !useAccountAuthStore().pending && !useAccountAuthStore().loginInflight) {
         // 401 when !pending && !loginInflight means the session has expired
         store.dispatch('account/logout')
     } else if (error.response && error.response.status === 500) {

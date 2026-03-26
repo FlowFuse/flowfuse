@@ -17,13 +17,16 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import userApi from '../../api/user.js'
 import FormRow from '../../components/FormRow.vue'
 
 import FFLayoutBox from '../../layouts/Box.vue'
 import alerts from '../../services/alerts.js'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 let zxcvbn
 
@@ -47,7 +50,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings', 'pending']),
+        ...mapVuexState('account', ['settings']),
+        ...mapState(useAccountAuthStore, ['pending']),
         formValid () {
             return this.input.password &&
                    (this.input.password === this.input.confirm) &&

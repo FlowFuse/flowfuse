@@ -43,7 +43,7 @@ export default {
     emits: ['option-selected'],
     computed: {
         ...mapState(useUxNavigationStore, ['mainNav', 'mainNavContext']),
-        ...mapVuexState('account', ['user', 'team', 'features', 'notifications']),
+        ...mapVuexState('account', ['team', 'features', 'notifications']),
         ...mapGetters('account', ['requiresBilling']),
         nearestMetaMenu () {
             if (this.$route?.meta?.menu) {

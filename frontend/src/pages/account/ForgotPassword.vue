@@ -16,13 +16,16 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import userApi from '../../api/user.js'
 import FormRow from '../../components/FormRow.vue'
 import SpinnerIcon from '../../components/icons/Spinner.js'
 
 import FFLayoutBox from '../../layouts/Box.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'PasswordRequest',
@@ -43,7 +46,10 @@ export default {
             flash: ''
         }
     },
-    computed: mapState('account', ['settings', 'pending']),
+    computed: {
+        ...mapVuexState('account', ['settings']),
+        ...mapState(useAccountAuthStore, ['pending'])
+    },
     methods: {
         requestPasswordReset () {
             this.errors.email = ''

@@ -78,6 +78,7 @@ import PasswordExpired from './pages/PasswordExpired.vue'
 import TermsAndConditions from './pages/TermsAndConditions.vue'
 import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
@@ -100,7 +101,8 @@ export default {
     },
     computed: {
         ...mapState(useUxDrawersStore, ['hiddenLeftDrawer']),
-        ...mapVuexState('account', ['pending', 'user', 'team', 'offline', 'settings']),
+        ...mapState(useAccountAuthStore, ['pending', 'user', 'offline']),
+        ...mapVuexState('account', ['team', 'settings']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },
