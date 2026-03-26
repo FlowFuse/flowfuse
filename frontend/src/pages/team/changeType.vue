@@ -107,6 +107,7 @@ import Alerts from '../../services/alerts.js'
 import Product from '../../services/product.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 // eslint-disable-next-line vue/one-component-per-file
 export default {
@@ -141,7 +142,8 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['team', 'features']),
+        ...mapState(useAccountTeamStore, ['team']),
+        ...mapVuexState('account', ['features']),
         ...mapState(useAccountAuthStore, ['user']),
         formValid () {
             const isChangingTeamType = this.input.teamTypeId !== this.team.type.id
@@ -339,8 +341,8 @@ export default {
             }
 
             teamApi.updateTeam(this.team.id, opts).then(async result => {
-                await this.$store.dispatch('account/refreshTeams')
-                await this.$store.dispatch('account/refreshTeam')
+                await useAccountTeamStore().refreshTeams()
+                await useAccountTeamStore().refreshTeam()
                 // send posthog event
                 Product.capture('$ff-team-type-changed', {
                     'team-type-id': opts.type,

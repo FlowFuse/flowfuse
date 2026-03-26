@@ -40,12 +40,15 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import MultiStepInstanceForm from '../../components/multi-step-forms/instance/MultiStepInstanceForm.vue'
 
 import { getTeamProperty } from '../../composables/TeamProperties.js'
 import applicationMixin from '../../mixins/Application.js'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'ApplicationCreateInstance',
@@ -69,7 +72,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team']),
+        ...mapState(useAccountTeamStore, ['team']),
+        ...mapVuexState('account', ['features']),
         isLoading () {
             return this.loading || !this.team
         }
@@ -107,7 +111,7 @@ export default {
     },
     methods: {
         async onInstanceCreated () {
-            await this.$store.dispatch('account/refreshTeam')
+            await useAccountTeamStore().refreshTeam()
 
             this.$emit('application-updated')
 

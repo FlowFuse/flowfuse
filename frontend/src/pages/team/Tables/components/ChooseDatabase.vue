@@ -63,11 +63,12 @@
 
 <script>
 import { CheckIcon, MinusIcon } from '@heroicons/vue/outline'
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapState } from 'vuex'
 
 import MediumTile from '../../../../components/tiles/MediumTile.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
@@ -84,7 +85,7 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         options () {
             return [
                 {

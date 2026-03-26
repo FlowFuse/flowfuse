@@ -67,6 +67,7 @@ import ConfirmTeamSuspendDialog from '../dialogs/ConfirmTeamSuspendDialog.vue'
 import TeamAdminTools from './TeamAdminTools.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'TeamSettingsDanger',
@@ -82,7 +83,8 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['features', 'team']),
+        ...mapState(useAccountTeamStore, ['team']),
+        ...mapVuexState('account', ['features']),
         ...mapState(useAccountAuthStore, ['user']),
         isAdmin: function () {
             return this.user.admin
@@ -115,7 +117,7 @@ export default {
         suspendTeam () {
             teamApi.updateTeam(this.team.id, { suspended: true }).then(() => {
                 alerts.emit('Team successfully suspended', 'confirmation')
-                this.$store.dispatch('account/refreshTeam')
+                useAccountTeamStore().refreshTeam()
             }).catch(err => {
                 alerts.emit('Problem suspending team', 'warning')
                 console.warn(err)
@@ -124,7 +126,7 @@ export default {
         unsuspendTeam () {
             teamApi.updateTeam(this.team.id, { suspended: false }).then(() => {
                 alerts.emit('Team successfully reactivated', 'confirmation')
-                this.$store.dispatch('account/refreshTeam')
+                useAccountTeamStore().refreshTeam()
             }).catch(err => {
                 alerts.emit('Problem suspending team', 'warning')
                 console.warn(err)

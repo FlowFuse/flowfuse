@@ -73,7 +73,6 @@
 <script>
 import { PlusIcon } from '@heroicons/vue/solid'
 import { mapActions, mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import brokerApi from '../../../../../api/broker.js'
 import FormRow from '../../../../../components/FormRow.vue'
@@ -81,6 +80,7 @@ import { generateUuid } from '../../../../../composables/strings/String.js'
 
 import AclItem from './AclItem.vue'
 
+import { useAccountTeamStore } from '@/stores/account-team.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
@@ -149,7 +149,7 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         ...mapState(useProductBrokersStore, {
             clients: state => state.UNS.clients
         }),

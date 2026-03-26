@@ -53,6 +53,7 @@ import EmptyState from '../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 
+import { useAccountTeamStore } from '@/stores/account-team.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default defineComponent({
@@ -69,7 +70,8 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team', 'pendingTeamChange']),
+        ...mapState(useAccountTeamStore, ['pendingTeamChange']),
+        ...mapGetters('account', ['featuresCheck']),
         ...mapState(useProductTablesStore, ['databases'])
     },
     watch: {

@@ -10,13 +10,16 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters } from 'vuex'
 
 import userApi from '../../../api/user.js'
+
 import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
 import TeamCell from '../../../components/tables/cells/TeamCell.vue'
 import Alerts from '../../../services/alerts.js'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'UserInviteTable',
@@ -38,22 +41,20 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', {
-            invitations: 'teamInvitations'
-        })
+        ...mapState(useAccountTeamStore, { invitations: 'teamInvitations' })
     },
     mounted () {
-        this.$store.dispatch('account/getInvitations')
+        useAccountTeamStore().getInvitations()
     },
     methods: {
         async acceptInvite (invite) {
             await userApi.acceptTeamInvitation(invite.id, invite.team.id)
-            await this.$store.dispatch('account/getNotifications')
-            await this.$store.dispatch('account/getInvitations')
-            await this.$store.dispatch('account/refreshTeams')
+            await useAccountTeamStore().getNotifications()
+            await useAccountTeamStore().getInvitations()
+            await useAccountTeamStore().refreshTeams()
             Alerts.emit(`Invite to "${invite.team.name}" has been accepted.`, 'confirmation')
             // navigate to team dashboad once invite accepted
-            this.$store.dispatch('account/setTeam', invite.team.slug)
+            useAccountTeamStore().setTeam(invite.team.slug)
                 .then(() => this.$router.push({
                     name: 'Team',
                     params: {
@@ -64,8 +65,8 @@ export default {
         },
         async rejectInvite (invite) {
             await userApi.rejectTeamInvitation(invite.id, invite.team.id)
-            await this.$store.dispatch('account/getNotifications')
-            await this.$store.dispatch('account/getInvitations')
+            await useAccountTeamStore().getNotifications()
+            await useAccountTeamStore().getInvitations()
             Alerts.emit(`Invite to "${invite.team.name}" has been rejected.`, 'confirmation')
         }
     }

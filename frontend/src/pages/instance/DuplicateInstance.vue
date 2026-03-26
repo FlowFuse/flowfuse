@@ -54,10 +54,12 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import instanceApi from '../../api/instances.js'
 import MultiStepDuplicateInstanceForm from '../../components/multi-step-forms/instance/MultiStepDuplicateInstanceForm.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'DuplicateInstance',
@@ -73,13 +75,13 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState(useAccountTeamStore, ['team'])
     },
     mounted () {
         this.getInstance()
             .then(() => {
                 if (!this.team) {
-                    this.$store.dispatch('account/setTeam', this.instance.team.slug)
+                    useAccountTeamStore().setTeam(this.instance.team.slug)
                 }
             }).catch(e => e)
     },

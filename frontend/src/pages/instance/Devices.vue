@@ -22,10 +22,12 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import DevicesBrowser from '../../components/DevicesBrowser.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'InstanceRemoteInstances',
@@ -42,7 +44,7 @@ export default {
     },
     emits: ['instance-updated'],
     computed: {
-        ...mapState('account', ['team', 'teamMembership'])
+        ...mapState(useAccountTeamStore, ['team', 'teamMembership'])
     }
 }
 </script>

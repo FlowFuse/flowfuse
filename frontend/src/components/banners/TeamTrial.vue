@@ -38,9 +38,11 @@
 <script>
 import { ChevronRightIcon, ExclamationCircleIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import usePermissions from '../../composables/Permissions.js'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'TeamTrialBanner',
@@ -54,7 +56,7 @@ export default {
         return { hasPermission }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
+        ...mapState(useAccountTeamStore, ['team']),
         billingPath () {
             return '/team/' + this.team.slug + '/settings/change-type'
         },

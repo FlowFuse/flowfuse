@@ -42,10 +42,13 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import MultiStepApplicationsInstanceForm
     from '../../components/multi-step-forms/instance/MultiStepApplicationsInstanceForm.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'CreateApplication',
@@ -66,8 +69,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team']),
-        ...mapGetters('account', ['isFreeTeamType'])
+        ...mapState(useAccountTeamStore, ['isFreeTeamType']),
+        ...mapVuexState('account', ['features'])
     },
     methods: {
         onApplicationCreated (payload) {

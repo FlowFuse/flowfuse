@@ -33,7 +33,8 @@
 <script>
 // import { ChipIcon, ClockIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 // import PipelinesIcon from '../../components/icons/Pipelines.js'
@@ -46,6 +47,8 @@ import instanceActionsMixin from '../../mixins/InstanceActions.js'
 import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
 import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'ApplicationPage',
@@ -61,7 +64,8 @@ export default {
         return { hasPermission, isVisitingAdmin }
     },
     computed: {
-        ...mapState('account', ['features', 'team']),
+        ...mapState(useAccountTeamStore, ['team']),
+        ...mapVuexState('account', ['features']),
         navigation () {
             const routes = [
                 {

@@ -39,11 +39,12 @@
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
-import SemVer from 'semver'
 
+import { mapState } from 'pinia'
+import SemVer from 'semver'
 import { markRaw } from 'vue'
 import { useRouter } from 'vue-router'
-import { mapState } from 'vuex'
+import { mapState as mapVuexState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
@@ -64,6 +65,8 @@ import {
 } from '../../admin/Template/utils.js'
 
 import TokenDialog from './dialogs/TokenDialog.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'InstanceSettingsSecurity',
@@ -119,7 +122,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'settings']),
+        ...mapState(useAccountTeamStore, ['team']),
+        ...mapVuexState('account', ['settings']),
         projectLauncherCompatible () {
             const launcherVersion = this.project?.meta?.versions?.launcher
             if (!launcherVersion) {

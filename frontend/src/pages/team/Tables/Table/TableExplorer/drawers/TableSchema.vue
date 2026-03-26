@@ -25,12 +25,13 @@
 </template>
 
 <script>
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapState } from 'vuex'
 
 import Alerts from '../../../../../../services/alerts.js'
 import Dialog from '../../../../../../services/dialog.js'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
@@ -44,7 +45,7 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState(useAccountTeamStore, ['team'])
     },
     mounted () {
         this.setHeader()

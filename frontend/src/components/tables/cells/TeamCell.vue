@@ -8,13 +8,15 @@
     </div>
 </template>
 <script>
+import { useAccountTeamStore } from '@/stores/account-team.js'
+
 export default {
     name: 'TeamCell',
     props: ['avatar', 'name', 'id', 'slug'],
     methods: {
         goToTeam () {
             if (this.slug) {
-                this.$store.dispatch('account/setTeam', this.slug)
+                useAccountTeamStore().setTeam(this.slug)
                     .then(() => this.$router.push({
                         name: 'Team',
                         params: {

@@ -47,7 +47,7 @@
 
 <script>
 import { StatusOnlineIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import brokerApi from '../../../../../api/broker.js'
 import EmptyState from '../../../../../components/EmptyState.vue'
@@ -56,6 +56,8 @@ import MainTitle from '../components/MainTitle.vue'
 
 import PayloadMetadata from './PayloadMetadata.vue'
 import PayloadSchema from './PayloadSchema.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'TopicInspector',
@@ -88,7 +90,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         brokerId () {
             return this.$route.params.brokerId
         },

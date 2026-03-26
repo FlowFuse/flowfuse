@@ -57,7 +57,8 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import instanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
@@ -66,6 +67,8 @@ import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.v
 import featuresMixin from '../../../mixins/Features.js'
 import Alerts from '../../../services/alerts.js'
 import DateTimePicker from '../../../ui-components/components/form/DateTime.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'InstanceSettingsMaintenance',
@@ -135,7 +138,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team', 'settings']),
+        ...mapState(useAccountTeamStore, ['team']),
+        ...mapVuexState('account', ['features', 'settings']),
         saveButton () {
             return {
                 visible: true,

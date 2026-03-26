@@ -65,7 +65,7 @@
 <script>
 import { ChipIcon, PencilIcon, TrashIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import FfAccordion from '../../../../../components/Accordion.vue'
 import TextCopier from '../../../../../components/TextCopier.vue'
@@ -74,6 +74,8 @@ import usePermissions from '../../../../../composables/Permissions.js'
 import { Roles } from '../../../../../utils/roles.js'
 
 import BrokerAclRule from './BrokerAclRule.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'BrokerClient',
@@ -101,7 +103,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         Roles () {
             return Roles
         },

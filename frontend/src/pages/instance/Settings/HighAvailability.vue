@@ -39,7 +39,8 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 
@@ -49,6 +50,8 @@ import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavail
 import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'InstanceSettingsStages',
@@ -80,7 +83,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features']),
+        ...mapState(useAccountTeamStore, ['team']),
+        ...mapVuexState('account', ['features']),
         isHA () {
             return this.instance?.ha?.replicas !== undefined
         },

@@ -61,8 +61,8 @@
 <script>
 import { CheckCircleIcon, PlusIcon } from '@heroicons/vue/outline'
 import { SearchIcon } from '@heroicons/vue/solid'
+import { mapState } from 'pinia'
 import { defineAsyncComponent } from 'vue'
-import { mapState } from 'vuex'
 
 import ProjectIcon from '../../components/icons/Projects.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
@@ -70,6 +70,8 @@ import product from '../../services/product.js'
 import FfDialog from '../../ui-components/components/DialogBox.vue'
 import FormRow from '../FormRow.vue'
 import AssetDetailDialog from '../dialogs/AssetDetailDialog.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'BlueprintTile',
@@ -132,7 +134,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         categoryClass () {
             // to lower case and strip spaces
             return this.blueprint?.category.toLowerCase().replace(/\s/g, '-')

@@ -41,7 +41,9 @@
 
 <script>
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'ResultSection',
@@ -74,7 +76,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         resultCount () {
             return this.results.length
         },

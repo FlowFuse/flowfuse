@@ -58,7 +58,7 @@
 <script>
 import { ChevronRightIcon, PencilAltIcon, TrashIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import ApplicationAPI from '../../api/application.js'
 import { StageAction, StageType } from '../../api/pipeline.js'
@@ -70,6 +70,8 @@ import Dialog from '../../services/dialog.js'
 import { Roles } from '../../utils/roles.js'
 
 import PipelineStage from './Stage.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'PipelineRow',
@@ -124,7 +126,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
+        ...mapState(useAccountTeamStore, ['teamMembership']),
         saveRowEnabled () {
             return this.scopedPipeline.name?.length > 0
         },

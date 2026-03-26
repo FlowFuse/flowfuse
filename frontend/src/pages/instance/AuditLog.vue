@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import InstanceApi from '../../api/instances.js'
 import TeamAPI from '../../api/team.js'
@@ -30,6 +30,8 @@ import FormHeading from '../../components/FormHeading.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
 import FfListbox from '../../ui-components/components/form/ListBox.vue'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'InstanceAuditLog',
@@ -63,7 +65,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState(useAccountTeamStore, ['team'])
     },
     watch: {
         instance () {

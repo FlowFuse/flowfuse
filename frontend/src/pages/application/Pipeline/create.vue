@@ -52,13 +52,15 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import ApplicationsAPI from '../../../api/application.js'
 import FormRow from '../../../components/FormRow.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
+
+import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
     name: 'CreatePipeline',
@@ -90,7 +92,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountTeamStore, ['team']),
         submitEnabled () {
             return this.input.name?.length > 0
         }
