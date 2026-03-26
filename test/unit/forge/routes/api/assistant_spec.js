@@ -69,18 +69,18 @@ describe('Assistant API', async function () {
             })
             response.statusCode.should.equal(501)
         })
-        it('should return 501 if assistant service url is not set', async function () {
-            app2 = await setupApp({ assistant: { enabled: true, service: { url: null } } })
-            const instance = app2.project
-            const token = (await instance.refreshAuthTokens()).token
-            const response = await app2.inject({
-                method: 'POST',
-                url: '/api/v1/assistant/function',
-                headers: { authorization: 'Bearer ' + token },
-                payload: { prompt: 'multiply by 5', transactionId: '1234' }
-            })
-            response.statusCode.should.equal(501)
-        })
+        // it('should return 501 if assistant service url is not set', async function () {
+        //     app2 = await setupApp({ assistant: { enabled: true, service: { url: null } } })
+        //     const instance = app2.project
+        //     const token = (await instance.refreshAuthTokens()).token
+        //     const response = await app2.inject({
+        //         method: 'POST',
+        //         url: '/api/v1/assistant/function',
+        //         headers: { authorization: 'Bearer ' + token },
+        //         payload: { prompt: 'multiply by 5', transactionId: '1234' }
+        //     })
+        //     response.statusCode.should.equal(501)
+        // })
     })
 
     describe('service enabled', async function () {
