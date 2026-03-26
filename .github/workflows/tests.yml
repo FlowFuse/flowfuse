@@ -134,7 +134,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Run UI E2E (Cypress) Tests - OS
-        uses: cypress-io/github-action@bc22e01685c56e89e7813fd8e26f33dc47f87e15 # v7.1.5
+        uses: cypress-io/github-action@4c06c48f3ffea349b7189aa06dfcda47a9fa7b92 # v7.1.8
         with:
           install: false
           config-file: config/cypress-os.config.js
@@ -145,7 +145,7 @@ jobs:
           SMTP_HOST: 'localhost'
           SMTP_PORT: '1025'
           SMTP_WEB_PORT: '8025'
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: failure()
         with:
           name: os-cypress-output-${{ github.run_id }}-${{ github.run_number }}
@@ -174,7 +174,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Run UI E2E (Cypress) Tests - EE
-        uses: cypress-io/github-action@bc22e01685c56e89e7813fd8e26f33dc47f87e15 # v7.1.5
+        uses: cypress-io/github-action@4c06c48f3ffea349b7189aa06dfcda47a9fa7b92 # v7.1.8
         with:
             install: false
             config-file: config/cypress-ee.config.js
@@ -185,7 +185,7 @@ jobs:
           SMTP_HOST: 'localhost'
           SMTP_PORT: '1025'
           SMTP_WEB_PORT: '8025'
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: failure()
         with:
           name: ee-cypress-output-${{ github.run_id }}-${{ github.run_number }}
