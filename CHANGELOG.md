@@ -1,3 +1,38 @@
+#### 2.28.1: Release
+
+ - Bump aws-actions/amazon-ecr-login from 2.0.1 to 2.0.2 (#6877)
+ - Bump geekyeggo/delete-artifact from 5.1.0 to 6.0.0 (#6880)
+ - Bump slackapi/slack-github-action from 2.1.1 to 3.0.1 (#6876)
+ - Bump actions/setup-node from 6.2.0 to 6.3.0 (#6879)
+ - Bump actions/download-artifact from 8.0.0 to 8.0.1 (#6878)
+ - Run pre-staging on traefik (#6890)
+ - Replace custom html with alert boxes (#6884)
+ - Add Azure DevOps to GitOps pipelines (#6896) @hardillb
+ - ci: Use NodeJS v24 as a default GitHub Actions runtime (#6946) @ppawlowski
+ - Persist expert state (#6892) @Steve-Mcl
+ - Fix `StreamableContent` render/sanitization order (#6936) @cstns
+ - Bump flatted from 3.2.7 to 3.4.2 (#6912) @app/dependabot
+ - Add rate limiting to team suspension instance shutdown (#6914) @hardillb
+ - [6887] Make reusable dialog components for multiple option (#6891) @n-lark
+ - Update RBAC documentation for Enterprise licensing (#6915) @hardillb
+ - [6822] Pinia Task 5 - context (#6863) @n-lark
+ - Fix expert messages reactivity when switching between agent modes (#6894) @cstns
+ - [6791] Sentry: SecurityError removeEventListener from cross-origin Window (Part III) (#6888) @n-lark
+ - Support for Expert Assistant inline action links (#6864) @Steve-Mcl
+ - Expert/scalability (#6839) @cstns
+ - Remove community support link from README (#6889) @allthedoll
+ - Rate limit AutoStackUpdate task (#6874) @hardillb
+ - [6820] Pinia Task 4 - ux-drawers (#6856) @n-lark
+ - [6806] Pinia Task 3 - ux-navigation (#6838) @n-lark
+ - [6804] Pinia Task 1 - ux-dialog (#6813) @n-lark
+ - Ensure Certified Nodes always first in the list (#6869) @hardillb
+ - [6805] Pinia Task 2 - ux-tours (#6837) @n-lark
+ - docs: Clarify FlowFuse storage options (#6875) @ppawlowski
+ - [6791] Sentry: SecurityError removeEventListener from cross-origin Window (Part II) (#6851) @n-lark
+ - Ensure getProjectsToUpgrade Matches all Project Settings (#6870) @hardillb
+ - ci: replace `tibdex/github-app-token` with `actions/create-github-app-token` (#6866) @ppawlowski
+ - ci: switch to actions/create-github-app-token (#6865) @ppawlowski
+
 #### 2.28.0: Release
 
  - Replace Ingress Nginx with Traefik (#6817)

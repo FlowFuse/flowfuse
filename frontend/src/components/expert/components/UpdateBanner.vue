@@ -26,8 +26,10 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'pinia'
 import SemVer from 'semver'
-import { mapActions, mapGetters, mapState } from 'vuex'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 const assistantVerWithAvailableUpdatesSupport = '0.11.0' // Minimum version of assistant package that supports update available detection
 const nrVerWithAvailableUpdatesSupport = '4.1.6' // Minimum Node-RED version that provides available updates to editorState
@@ -35,8 +37,7 @@ const nrVerWithAvailableUpdatesSupport = '4.1.6' // Minimum Node-RED version tha
 export default {
     name: 'UpdateBanner',
     computed: {
-        ...mapState('product/assistant', ['palette', 'editorState', 'version', 'nodeRedVersion', 'supportedActions']),
-        ...mapGetters('product/assistant', ['isFeaturePaletteEnabled', 'isEditorRunning']),
+        ...mapState(useProductAssistantStore, ['palette', 'editorState', 'version', 'nodeRedVersion', 'supportedActions', 'isEditorRunning']),
         assistantLoaded () {
             // If one of version, nodeRedVersion or palette are present, we know it is loaded
             return !!(this.version || this.nodeRedVersion || this.palette)
@@ -116,7 +117,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('product/assistant', ['manageNodePackage', 'installNodePackage']),
+        ...mapActions(useProductAssistantStore, ['manageNodePackage', 'installNodePackage']),
         onButtonClick () {
             if (typeof this.assistantState?.buttonAction === 'function') {
                 this.assistantState.buttonAction()

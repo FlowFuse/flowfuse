@@ -1,3 +1,5 @@
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
+
 const DATA_SOURCE_FLOWFUSE_WEBSITE = 'flowfuse-website'
 const DATA_SOURCE_ASSISTANT = 'nr-assistant'
 const DATA_TARGET_ASSISTANT = 'flowfuse-expert'
@@ -109,7 +111,7 @@ class MessagingService {
     }
 
     async handleAssistantMessage (event) {
-        await this.$store.dispatch('product/assistant/handleMessage', event)
+        await useProductAssistantStore().handleMessage(event)
     }
 
     sendReadyMessage () {

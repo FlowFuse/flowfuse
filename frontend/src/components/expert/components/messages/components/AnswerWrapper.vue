@@ -71,7 +71,8 @@
 
 <script>
 
-import { mapActions, mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapActions as mapVuexActions, mapState as mapVuexState } from 'vuex'
 
 import useTimerHelper from '../../../../../composables/TimerHelper.js'
 
@@ -85,6 +86,8 @@ import PackagesList from './resources/PackagesList.vue'
 import ResourcesList from './resources/ResourcesList.vue'
 import RichContent from './resources/RichContent.vue'
 import SuggestionsList from './resources/SuggestionsList.vue'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
     name: 'AnswerWrapper',
@@ -122,8 +125,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('product/assistant', ['supportedActions']),
-        ...mapState('product/expert', ['agentMode']),
+        ...mapState(useProductAssistantStore, ['supportedActions']),
+        ...mapVuexState('product/expert', ['agentMode']),
         hasGuideHeader () {
             // chat answers contain generic titles, they don't need to be displayed
             return !!(this.answer.title && !this.isChatAnswer)
@@ -247,7 +250,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('product/expert', ['updateAnswerStreamedState', 'updateMessageStreamedState']),
+        ...mapVuexActions('product/expert', ['updateAnswerStreamedState', 'updateMessageStreamedState']),
         buildStreamingOrder () {
             // order matters
             // this is where the decision of the streaming order of components is decided
@@ -303,7 +306,7 @@ export default {
                     params[paramName] = value
                 }
             }
-            this.$store.dispatch('product/assistant/invokeAction', { action, params })
+            useProductAssistantStore().invokeAction({ action, params })
         }
     }
 }

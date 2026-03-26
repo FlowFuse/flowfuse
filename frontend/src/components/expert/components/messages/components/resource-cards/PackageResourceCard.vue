@@ -41,10 +41,14 @@
 </template>
 
 <script>
+
+import { mapActions, mapState } from 'pinia'
 import { computed } from 'vue'
-import { mapActions, mapGetters } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import StreamableContent from '../resources/StreamableContent.vue'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
     name: 'PackageResourceCard',
@@ -88,6 +92,7 @@ export default {
     },
     computed: {
         ...mapGetters('product/expert', ['canManagePalette']),
+        ...mapState(useProductAssistantStore, ['palette']),
         packageFaviconUrl () {
             const url = this.nodePackage.metadata?.streamable?.source || this.nodePackage.url.streamable
             try {
@@ -105,7 +110,7 @@ export default {
         isPackageInstalled () {
             const pkg = this.nodePackage
 
-            return !!this.$store.state.product.assistant?.palette?.[pkg.id.streamable]
+            return !!this.palette?.[pkg.id.streamable]
         },
         urlWithUTMTracking () {
             const url = this.packageUrl
@@ -131,7 +136,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('product/assistant', ['installNodePackage', 'manageNodePackage']),
+        ...mapActions(useProductAssistantStore, ['installNodePackage', 'manageNodePackage']),
         handleImageError (event) {
             // Hide broken image icon
             event.target.style.display = 'none'

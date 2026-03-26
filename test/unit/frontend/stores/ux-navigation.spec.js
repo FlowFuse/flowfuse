@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 
-// Prevent _account-bridge from importing the real Vuex store
+// Prevent _account_bridge from importing the real Vuex store
 vi.mock('@/stores/_account_bridge.js', () => ({
     useAccountBridge: vi.fn(() => ({
         team: null,

@@ -47,11 +47,14 @@
 
 <script>
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/solid'
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions } from 'pinia'
+import { mapGetters } from 'vuex'
 
 import TextCopier from '../../../../../TextCopier.vue'
 import FlowViewer from '../../../../../flow-viewer/FlowViewer.vue'
 import StreamableContent from '../resources/StreamableContent.vue'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
     name: 'StandardResourceCard',
@@ -93,7 +96,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('product/assistant', ['sendFlowsToImport']),
+        ...mapActions(useProductAssistantStore, ['sendFlowsToImport']),
         importFlows () {
             this.sendFlowsToImport(this.flowsJson)
             // TODO: hide the ff-expert panel after importing. Ideally after a "success" message is received from the assistant

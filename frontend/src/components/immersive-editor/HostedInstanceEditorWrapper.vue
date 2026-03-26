@@ -23,9 +23,12 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions } from 'pinia'
 
 import LoadingScreenWrapper from './LoadingScreenWrapper.vue'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
+
 const States = {
     STOPPED: 'stopped',
     LOADING: 'loading',
@@ -97,7 +100,7 @@ export default {
         this.resetAssistant()
     },
     methods: {
-        ...mapActions('product/assistant', {
+        ...mapActions(useProductAssistantStore, {
             resetAssistant: 'reset'
         }),
         // todo this event listener should be moved in the messaging.service.js

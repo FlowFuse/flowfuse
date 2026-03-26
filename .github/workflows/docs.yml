@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
-          node-version: '18'
+          node-version: 24
       - name: Install Dependencies
         run: npm ci
       - name: Test Documentation Links
@@ -37,7 +37,7 @@ jobs:
           path: 'website'
       - name: Generate a token
         id: generate_token
-        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
         with:
           app-id: ${{ secrets.GH_BOT_APP_ID }}
           private-key: ${{ secrets.GH_BOT_APP_KEY }}
@@ -51,7 +51,7 @@ jobs:
           path: 'blueprint-library'
           token: ${{ steps.generate_token.outputs.token }}
       - name: Cache image pipeline output
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           key: img-pipeline-cache
           path: website/_site/img         
@@ -82,7 +82,7 @@ jobs:
     steps:
       - name: Generate token
         id: generate_token
-        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
         with:
           app-id: ${{ secrets.GH_BOT_APP_ID }}
           private-key: ${{ secrets.GH_BOT_APP_KEY }}
