@@ -178,18 +178,20 @@ export default {
             }
         }
     },
-    async mounted () {
-        await this.checkAccess()
+    mounted () {
+        if (!this.checkAccess()) return
         this.getSettings()
         if (this.featuresCheck.isHTTPBearerTokensFeatureEnabled) {
             this.getTokens()
         }
     },
     methods: {
-        checkAccess: async function () {
+        checkAccess: function () {
             if (!this.hasPermission('project:edit', { application: this.project.application })) {
                 useRouter().push({ replace: true, path: 'general' })
+                return false
             }
+            return true
         },
         getSettings: function () {
             if (this.project.template) {
