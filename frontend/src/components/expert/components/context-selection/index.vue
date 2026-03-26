@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import { mapGetters } from 'vuex'
 
 import ContextChip from '../chips/ContextChip.vue'
@@ -17,6 +18,8 @@ import DebugChip from '../chips/DebugChip.vue'
 import SelectionChip from '../chips/SelectionChip.vue'
 
 import ContextSelectorButton from './ContextSelectorButton.vue'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
     name: 'ContextSelector',
@@ -27,7 +30,7 @@ export default {
         ContextSelectorButton
     },
     computed: {
-        ...mapGetters('product/assistant', ['getSelectedContext', 'hasDebugLogsSelected', 'hasUserSelection']),
+        ...mapState(useProductAssistantStore, ['getSelectedContext', 'hasDebugLogsSelected', 'hasUserSelection']),
         ...mapGetters('product/expert', ['isOperatorAgent']),
         selectedContext () {
             // for insights mode, return empty array

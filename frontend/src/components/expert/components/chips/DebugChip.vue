@@ -12,11 +12,13 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import { pluralize } from '../../../../composables/strings/String.js'
 
 import DefaultChip from './DefaultChip.vue'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
     name: 'DebugChip',
@@ -32,7 +34,7 @@ export default {
     },
     emits: ['update:modelValue'],
     computed: {
-        ...mapState('product/assistant', ['debugLog']),
+        ...mapState(useProductAssistantStore, ['debugLog']),
         selectedCounter () {
             return this.debugLog.length
         },
@@ -75,7 +77,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('product/assistant', ['resetDebugLogContext']),
+        ...mapActions(useProductAssistantStore, ['resetDebugLogContext']),
         pluralize,
         toggleSelection () {
             this.$emit('update:modelValue', !this.modelValue)

@@ -10,10 +10,12 @@
 
 <script>
 import { marked } from 'marked'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import useStreamingWords from '@/composables/strings/StreamingWords.js'
 import { sanitize } from '@/composables/strings/String.js'
+
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
 export default {
     name: 'StreamableContent',
@@ -73,7 +75,7 @@ export default {
         return { stream, streamedText: text, isStreaming, sanitize }
     },
     computed: {
-        ...mapState('product/assistant', ['supportedActions']),
+        ...mapState(useProductAssistantStore, ['supportedActions']),
         rawText () {
             const rawText = this.modelValue ? this.modelValue.streamable : this.string
 

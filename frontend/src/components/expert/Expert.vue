@@ -23,8 +23,8 @@
 </template>
 
 <script>
-import { mapState } from 'pinia'
-import { mapActions, mapGetters, mapState as mapVuexState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapGetters, mapActions as mapVuexActions, mapState as mapVuexState } from 'vuex'
 
 import ExpertChatInput from './components/ExpertChatInput.vue'
 import ExpertMessages from './components/ExpertMessages.vue'
@@ -32,6 +32,7 @@ import ExpertModeSwitcher from './components/ExpertModeSwitcher.vue'
 import InfoBanner from './components/InfoBanner.vue'
 import UpdateBanner from './components/UpdateBanner.vue'
 
+import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -148,12 +149,11 @@ export default {
         this.resetSessionTimer()
     },
     methods: {
-        ...mapActions('product/expert', [
-            'handleQuery',
-            'handleMessageResponse',
+        ...mapVuexActions('product/expert', [
             'setAbortController',
             'resetSessionTimer'
         ]),
+        ...mapActions(useProductAssistantStore, ['reset']),
         handleStopGeneration () {
             if (this.abortController) {
                 this.abortController.abort()
