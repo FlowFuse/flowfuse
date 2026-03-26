@@ -505,7 +505,11 @@ module.exports = async function (app) {
             tags: ['Authentication', 'X-HIDDEN']
         }
     }, async (request, reply) => {
-        if (request.params.ownerType === request.session.ownerType && request.params.ownerId === request.session.ownerId) {
+        let sesOwnerId = request.session.ownerId
+        if (request.session.ownerType === 'npm') {
+            sesOwnerId = sesOwnerId.toLowerCase()
+        }
+        if (request.params.ownerType === request.session.ownerType && request.params.ownerId === sesOwnerId) {
             let response
             if (request.headers['ff-quota']) {
                 const project = await app.db.models.Project.byId(request.session.ownerId)
