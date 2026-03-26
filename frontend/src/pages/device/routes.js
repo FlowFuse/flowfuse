@@ -1,6 +1,3 @@
-// import { useStore } from 'vuex'
-import store from '../../store/index.js'
-
 import DeviceAuditLog from './AuditLog.vue'
 import DeviceDeveloperMode from './DeveloperMode/index.vue'
 import DeviceLogs from './Logs.vue'
@@ -17,6 +14,8 @@ import VersionHistory from './VersionHistory/index.vue'
 import VersionHistoryRoutes from './VersionHistory/routes.js'
 
 import Device from './index.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 const children = [
     {
@@ -99,7 +98,7 @@ const children = [
             title: 'Device - Version History'
         },
         redirect: to => {
-            const features = store.getters['account/featuresCheck']
+            const { featuresCheck: features } = useAccountSettingsStore()
             let name = features.isTimelineFeatureEnabled ? 'device-version-history-timeline' : 'device-snapshots'
 
             if (to.name.startsWith('device-editor-')) { // redirect to immersive mode when needed

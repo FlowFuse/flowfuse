@@ -74,7 +74,6 @@
 
 import { SparklesIcon, TemplateIcon } from '@heroicons/vue/outline'
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import teamsApi from '../../../api/teams.js'
@@ -83,6 +82,7 @@ import FormRow from '../../../components/FormRow.vue'
 import alerts from '../../../services/alerts.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -110,7 +110,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         ...mapState(useAccountAuthStore, ['user']),
         formValid () {
             return this.input.teamName && !this.pendingSlugCheck && !this.errors.slug && !this.errors.teamName

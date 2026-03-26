@@ -43,7 +43,6 @@
 
 <script>
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import MultiStepApplicationsInstanceForm
     from '../../components/multi-step-forms/instance/MultiStepApplicationsInstanceForm.vue'
@@ -69,8 +68,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['isFreeTeamType']),
-        ...mapVuexState('account', ['features'])
+        ...mapState(useAccountTeamStore, ['isFreeTeamType'])
     },
     methods: {
         onApplicationCreated (payload) {

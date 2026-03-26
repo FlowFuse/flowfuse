@@ -52,7 +52,6 @@
 
 <script>
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import teamTypesApi from '../../../api/teamTypes.js'
@@ -67,6 +66,7 @@ import ConfirmTeamSuspendDialog from '../dialogs/ConfirmTeamSuspendDialog.vue'
 import TeamAdminTools from './TeamAdminTools.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -84,7 +84,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         ...mapState(useAccountAuthStore, ['user']),
         isAdmin: function () {
             return this.user.admin

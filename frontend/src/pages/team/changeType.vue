@@ -94,7 +94,6 @@
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/outline'
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import billingApi from '../../api/billing.js'
 import instanceTypesApi from '../../api/instanceTypes.js'
@@ -107,6 +106,7 @@ import Alerts from '../../services/alerts.js'
 import Product from '../../services/product.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 // eslint-disable-next-line vue/one-component-per-file
@@ -143,7 +143,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         ...mapState(useAccountAuthStore, ['user']),
         formValid () {
             const isChangingTeamType = this.input.teamTypeId !== this.team.type.id

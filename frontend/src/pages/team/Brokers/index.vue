@@ -78,7 +78,6 @@
 
 import { PlusIcon } from '@heroicons/vue/outline'
 import { mapActions, mapState } from 'pinia'
-import { mapGetters } from 'vuex'
 
 import brokerAPI from '../../../api/broker.js'
 
@@ -90,6 +89,7 @@ import { Roles } from '../../../utils/roles.js'
 
 import BrokerStatusBadge from './components/BrokerStatusBadge.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
@@ -116,7 +116,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team', 'pendingTeamChange']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useProductBrokersStore, ['hasFfUnsClients', 'hasBrokers']),
         ...mapState(useProductBrokersStore, {
             brokers: state => state.UNS.brokers

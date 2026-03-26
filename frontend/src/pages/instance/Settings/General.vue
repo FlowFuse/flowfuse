@@ -97,7 +97,6 @@ import { BadgeCheckIcon, ExclamationIcon, RefreshIcon } from '@heroicons/vue/sol
 
 import { mapState } from 'pinia'
 import SemVer from 'semver'
-import { mapState as mapVuexState } from 'vuex'
 
 import instanceAPI from '../../../api/instances.js'
 
@@ -110,6 +109,7 @@ import Dialog from '../../../services/dialog.js'
 
 import DangerSettings from './Danger.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -167,7 +167,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['features', 'settings']),
+        ...mapState(useAccountSettingsStore, ['features', 'settings']),
         isHA () {
             return !!this.instance?.ha
         },

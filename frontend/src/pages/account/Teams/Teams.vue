@@ -12,8 +12,6 @@
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 
-import { mapState as mapVuexState } from 'vuex'
-
 import teamApi from '../../../api/team.js'
 
 import TeamCell from '../../../components/tables/cells/TeamCell.vue'
@@ -22,6 +20,7 @@ import Dialog from '../../../services/dialog.js'
 import CreateTeamButton from '../components/CreateTeamButton.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -41,7 +40,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['teams']),
-        ...mapVuexState('account', ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         ...mapState(useAccountAuthStore, ['user']),
         teamCount () {
             return this.teams ? this.teams.length : 0

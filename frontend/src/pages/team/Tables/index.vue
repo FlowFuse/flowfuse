@@ -47,12 +47,12 @@
 <script>
 import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapGetters } from 'vuex'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
@@ -71,7 +71,7 @@ export default defineComponent({
     },
     computed: {
         ...mapState(useAccountTeamStore, ['pendingTeamChange']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useProductTablesStore, ['databases'])
     },
     watch: {

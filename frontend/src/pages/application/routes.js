@@ -1,5 +1,3 @@
-import store from '../../store/index.js'
-
 import ApplicationActivity from './Activity.vue'
 import ApplicationCreateInstanceMultiStep from './CreateInstanceMultiStep.vue'
 import Dependencies from './Dependencies/Dependencies.vue'
@@ -23,11 +21,13 @@ import ApplicationSettings from './Settings/index.vue'
 import ApplicationSnapshots from './Snapshots.vue'
 import ApplicationIndex from './index.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+
 export default [
     {
         path: ':id',
         redirect: function () {
-            const features = store.getters['account/featuresCheck']
+            const { featuresCheck: features } = useAccountSettingsStore()
             if (features.isHostedInstancesEnabledForTeam) {
                 return { name: 'ApplicationInstances' }
             } else {

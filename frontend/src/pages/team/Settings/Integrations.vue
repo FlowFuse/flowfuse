@@ -82,7 +82,6 @@
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { mapState } from 'pinia'
-import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -93,6 +92,7 @@ import Dialog from '../../../services/dialog.js'
 
 import CreateGitTokenDialog from './dialogs/CreateGitTokenDialog.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -119,8 +119,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['features']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['features', 'featuresCheck']),
         addEnabled: function () {
             return this.hasPermission('team:git:tokens:create')
         },

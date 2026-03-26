@@ -1,7 +1,8 @@
-import store from '../../../store/index.js'
 import { children } from '../routes.js'
 
 import DeviceEditor from './index.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 const renameRoute = (child) => {
     return {
@@ -21,7 +22,8 @@ export default [
             layout: 'plain'
         },
         redirect: to => {
-            const name = store.getters['account/featuresCheck'].isExpertAssistantFeatureEnabled
+            const { featuresCheck } = useAccountSettingsStore()
+            const name = featuresCheck.isExpertAssistantFeatureEnabled
                 ? 'device-editor-expert'
                 : 'device-editor-overview'
             return { name, params: { id: to.params.id } }

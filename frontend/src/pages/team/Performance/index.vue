@@ -62,7 +62,6 @@
 <script>
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 
@@ -75,6 +74,7 @@ import InstanceStatusBadge from '../../instance/components/InstanceStatusBadge.v
 
 import CPUUtilizationCell from './components/CPUUtilizationCell.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -128,7 +128,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         rows () {
             return this.instances.map(instance => ({
                 instanceId: instance.id,

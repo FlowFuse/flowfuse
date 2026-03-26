@@ -34,7 +34,6 @@ import { RefreshIcon, TrashIcon } from '@heroicons/vue/outline'
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
@@ -43,6 +42,7 @@ import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -73,7 +73,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team', 'teamMembership']),
-        ...mapVuexState('account', ['settings'])
+        ...mapState(useAccountSettingsStore, ['settings'])
     },
     watch: {
         teamMembership: 'fetchData',

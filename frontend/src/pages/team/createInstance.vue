@@ -47,7 +47,6 @@
 
 <script>
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../api/team.js'
 import MultiStepApplicationsInstanceForm from '../../components/multi-step-forms/instance/MultiStepApplicationsInstanceForm.vue'
@@ -93,7 +92,6 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['features']),
         isLandingFromExternalLink () {
             return this.$route.name === 'DeployBlueprint'
         },

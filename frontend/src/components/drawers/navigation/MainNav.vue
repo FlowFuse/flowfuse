@@ -30,7 +30,6 @@
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/outline'
 import { mapActions, mapState } from 'pinia'
-import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import NavItem from '../../NavItem.vue'
 
@@ -45,8 +44,6 @@ export default {
     computed: {
         ...mapState(useUxNavigationStore, ['mainNav', 'mainNavContext']),
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['features']),
-        ...mapGetters('account', ['requiresBilling']),
         nearestMetaMenu () {
             if (this.$route?.meta?.menu) {
                 return this.$route.meta.menu

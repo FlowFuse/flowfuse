@@ -160,7 +160,6 @@
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters } from 'vuex'
 
 import instanceApi from '../../api/instances.js'
 import teamApi from '../../api/team.js'
@@ -180,6 +179,7 @@ import DashboardLink from '../instance/components/DashboardLink.vue'
 import InstanceEditorLink from '../instance/components/EditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -259,7 +259,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         instances () {
             return Array.from(this.instancesMap.values())
         },

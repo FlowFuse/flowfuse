@@ -52,7 +52,6 @@
 
 <script>
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../api/team.js'
 import userApi from '../../api/user.js'
@@ -64,6 +63,7 @@ import dialog from '../../services/dialog.js'
 import { RoleNames, Roles } from '../../utils/roles.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -93,7 +93,7 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         ...mapState(useAccountTeamStore, { storeTeams: 'teams' }),
         formValid () {
             return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam) &&

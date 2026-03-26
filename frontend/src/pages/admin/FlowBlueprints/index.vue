@@ -63,9 +63,9 @@
 
 <script>
 import { DownloadIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
-import { markRaw } from 'vue'
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { markRaw } from 'vue'
 
 import FlowBlueprintsApi from '../../../api/flowBlueprints.js'
 import teamTypesApi from '../../../api/teamTypes.js'
@@ -81,6 +81,8 @@ import Dialog from '../../../services/dialog.js'
 
 import FlowBlueprintFormDialog from './dialogs/FlowBlueprintFormDialog.vue'
 import ImportFlowBlueprintsDialog from './dialogs/ImportFlowBlueprintsDialog.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 const marked = require('marked')
 
@@ -109,7 +111,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'settings']),
+        ...mapState(useAccountSettingsStore, ['features']),
         flowBlueprintsArray () {
             return Array.from(this.flowBlueprints.values()).map((fb) => {
                 fb.htmlDescription = marked.parse(fb.description)

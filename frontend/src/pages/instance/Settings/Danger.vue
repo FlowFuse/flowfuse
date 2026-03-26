@@ -135,7 +135,6 @@
 
 import { mapState } from 'pinia'
 import { useRouter } from 'vue-router'
-import { mapState as mapVuexState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 
@@ -147,6 +146,7 @@ import alerts from '../../../services/alerts.js'
 import ChangeStackDialog from './dialogs/ChangeStackDialog.vue'
 import ImportInstanceDialog from './dialogs/ImportInstanceDialog.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -183,7 +183,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         isLoading () {
             return this.loading.deleting || this.loading.suspend || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
         }

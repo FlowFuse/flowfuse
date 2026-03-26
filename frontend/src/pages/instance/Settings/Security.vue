@@ -44,12 +44,10 @@ import { mapState } from 'pinia'
 import SemVer from 'semver'
 import { markRaw } from 'vue'
 import { useRouter } from 'vue-router'
-import { mapState as mapVuexState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import usePermissions from '../../../composables/Permissions.js'
-import featuresMixin from '../../../mixins/Features.js'
 import Dialog from '../../../services/dialog.js'
 import TokenCreated from '../../account/Security/dialogs/TokenCreated.vue'
 import ExpiryCell from '../../account/components/ExpiryCell.vue'
@@ -66,6 +64,7 @@ import {
 
 import TokenDialog from './dialogs/TokenDialog.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -77,7 +76,6 @@ export default {
         TokenCreated,
         TokenDialog
     },
-    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         project: {
@@ -122,8 +120,8 @@ export default {
         }
     },
     computed: {
+        ...mapState(useAccountSettingsStore, ['featuresCheck', 'settings']),
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['settings']),
         projectLauncherCompatible () {
             const launcherVersion = this.project?.meta?.versions?.launcher
             if (!launcherVersion) {
@@ -183,7 +181,7 @@ export default {
     mounted () {
         this.checkAccess()
         this.getSettings()
-        if (this.isHTTPBearerTokensFeatureEnabled()) {
+        if (this.featuresCheck.isHTTPBearerTokensFeatureEnabled) {
             this.getTokens()
         }
     },

@@ -20,11 +20,13 @@
 <script>
 
 import { DocumentDownloadIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import { downloadData } from '../../../../composables/Download.js'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
 import Alerts from '../../../../services/alerts.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'ProvisioningCredentialsDialog',
@@ -56,7 +58,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         hasCredentials: function () {
             return !!this.token?.token
         },
