@@ -505,9 +505,9 @@ module.exports = async function (app) {
             tags: ['Authentication', 'X-HIDDEN']
         }
     }, async (request, reply) => {
-        console.log(request.session)
         let sesOwnerId = request.session.ownerId
-        if (request.session.ownerType === 'npm' && request.session.scope.includes('team:packages:manage') ) {
+        // allow lowercase usernames for npm when publishing nodes to Team Library
+        if (request.session.ownerType === 'npm' && request.session.scope.includes('team:packages:manage')) {
             sesOwnerId = sesOwnerId.toLowerCase()
         }
         if (request.params.ownerType === request.session.ownerType && request.params.ownerId === sesOwnerId) {
