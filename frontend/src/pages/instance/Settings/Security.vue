@@ -178,8 +178,8 @@ export default {
             }
         }
     },
-    mounted () {
-        this.checkAccess()
+    async mounted () {
+        await this.checkAccess()
         this.getSettings()
         if (this.featuresCheck.isHTTPBearerTokensFeatureEnabled) {
             this.getTokens()
