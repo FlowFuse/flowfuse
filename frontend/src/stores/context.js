@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 
-import { useAccountBridge } from './_account_bridge.js'
+import { useAccountAuthStore } from './account-auth.js'
+import { useAccountTeamStore } from './account-team.js'
 import { useProductAssistantStore } from './product-assistant.js'
 
 export const useContextStore = defineStore('context', {
@@ -11,7 +12,8 @@ export const useContextStore = defineStore('context', {
     }),
     getters: {
         expert (state) {
-            const account = useAccountBridge()
+            const { user } = useAccountAuthStore()
+            const { team, isTrialAccount } = useAccountTeamStore()
             const assistant = useProductAssistantStore()
 
             if (!state.route) {
@@ -20,13 +22,13 @@ export const useContextStore = defineStore('context', {
                     assistantFeatures: assistant.assistantFeatures,
                     palette: null,
                     debugLog: null,
-                    userId: account.userId,
-                    teamId: account.teamId,
-                    teamSlug: account.teamSlug,
+                    userId: user?.id ?? null,
+                    teamId: team?.id ?? null,
+                    teamSlug: team?.slug ?? null,
                     instanceId: null,
                     deviceId: null,
                     applicationId: null,
-                    isTrialAccount: account.isTrialAccount,
+                    isTrialAccount,
                     nodeRedVersion: assistant.nodeRedVersion,
                     pageName: null,
                     rawRoute: {},
@@ -72,13 +74,13 @@ export const useContextStore = defineStore('context', {
                 assistantFeatures: assistant.assistantFeatures,
                 palette,
                 debugLog: assistant.debugLog,
-                userId: account.userId,
-                teamId: account.teamId,
-                teamSlug: account.teamSlug,
+                userId: user?.id ?? null,
+                teamId: team?.id ?? null,
+                teamSlug: team?.slug ?? null,
                 instanceId: instanceId ?? null,
                 deviceId: deviceId ?? null,
                 applicationId: applicationId ?? null,
-                isTrialAccount: account.isTrialAccount,
+                isTrialAccount,
                 pageName: state.route.name,
                 nodeRedVersion: assistant.nodeRedVersion,
                 rawRoute,

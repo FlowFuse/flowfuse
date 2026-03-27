@@ -32,7 +32,6 @@ import { mapActions, mapState } from 'pinia'
 
 import userApi from '../api/user.js'
 import FFLayoutBox from '../layouts/Box.vue'
-import store from '../store/index.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
@@ -89,7 +88,7 @@ export default {
             tick()
         },
         logout () {
-            store.dispatch('account/logout')
+            useAccountAuthStore().logout()
         }
     }
 }

@@ -3,8 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { INSIGHTS_AGENT, SUPPORT_AGENT } from '@/stores/product-expert-agents.js'
 
-vi.mock('@/stores/_account_bridge.js', () => ({
-    useAccountBridge: vi.fn(() => ({ featuresCheck: { isExpertAssistantFeatureEnabled: true } }))
+vi.mock('@/stores/account-settings.js', () => ({
+    useAccountSettingsStore: vi.fn(() => ({ featuresCheck: { isExpertAssistantFeatureEnabled: true } }))
+}))
+
+vi.mock('@/stores/account-team.js', () => ({
+    useAccountTeamStore: vi.fn(() => ({ team: null }))
 }))
 
 vi.mock('@/stores/context.js', () => ({
@@ -37,8 +41,6 @@ vi.mock('@/stores/ux-drawers.js', () => ({
 const { useProductExpertStore } = await import('@/stores/product-expert.js')
 const { useProductExpertSupportAgentStore } = await import('@/stores/product-expert-support-agent.js')
 const { useProductExpertInsightsAgentStore } = await import('@/stores/product-expert-insights-agent.js')
-const { useAccountBridge } = await import('@/stores/_account_bridge.js')
-
 describe('product-expert store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
@@ -290,8 +292,9 @@ describe('product-expert store', () => {
             expect(supportAgent.sessionId).toBeNull()
         })
 
-        it('setContext does nothing when feature is disabled', () => {
-            vi.mocked(useAccountBridge).mockReturnValueOnce({ featuresCheck: { isExpertAssistantFeatureEnabled: false } })
+        it('setContext does nothing when feature is disabled', async () => {
+            const { useAccountSettingsStore } = await import('@/stores/account-settings.js')
+            vi.mocked(useAccountSettingsStore).mockReturnValueOnce({ featuresCheck: { isExpertAssistantFeatureEnabled: false } })
             const store = useProductExpertStore()
             store.setContext({ data: { history: [] } })
             expect(store.shouldWakeUpAssistant).toBe(false)

@@ -9,13 +9,12 @@ vi.mock('@/stores/product-expert.js', () => ({
     useProductExpertStore: vi.fn(() => ({ isSupportAgent: true }))
 }))
 
-vi.mock('@/stores/_account_bridge.js', () => ({
-    useAccountBridge: () => ({
-        userId: null,
-        teamId: null,
-        teamSlug: null,
-        isTrialAccount: false
-    })
+vi.mock('@/stores/account-auth.js', () => ({
+    useAccountAuthStore: vi.fn(() => ({ user: null }))
+}))
+
+vi.mock('@/stores/account-team.js', () => ({
+    useAccountTeamStore: vi.fn(() => ({ team: null, isTrialAccount: false }))
 }))
 
 describe('context store', () => {

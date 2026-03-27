@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import tablesApi from '../api/tables.js'
 import { hashString } from '../composables/strings/String.js'
 
-import { useAccountBridge } from './_account_bridge.js'
+import { useAccountTeamStore } from './account-team.js'
 
 const emptyColumn = {
     name: '',
@@ -50,13 +50,13 @@ export const useProductTablesStore = defineStore('product-tables', {
             return database
         },
         async getDatabases () {
-            const { team } = useAccountBridge()
+            const { team } = useAccountTeamStore()
             const databases = await tablesApi.getDataBases(team.id)
             databases.forEach(db => { this.databases[db.id] = db })
             return databases
         },
         async getTables (databaseId) {
-            const { team } = useAccountBridge()
+            const { team } = useAccountTeamStore()
             let tables = await tablesApi.getTables(team.id, databaseId)
             tables = [...tables].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }))
             this.tables[databaseId] = tables
@@ -88,7 +88,7 @@ export const useProductTablesStore = defineStore('product-tables', {
             })
         },
         async createTable ({ databaseId }) {
-            const { team } = useAccountBridge()
+            const { team } = useAccountTeamStore()
             const sanitizedColumns = this.newTable.columns.map(col => {
                 const c = { ...col }
                 if (!c.hasDefault) delete c.default
