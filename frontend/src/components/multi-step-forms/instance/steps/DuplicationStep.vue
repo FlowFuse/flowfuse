@@ -100,7 +100,6 @@
 <script>
 import { PencilIcon, RefreshIcon } from '@heroicons/vue/outline'
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import billingApi from '../../../../api/billing.js'
 import instanceTypesApi from '../../../../api/instanceTypes.js'
@@ -118,6 +117,7 @@ import NameGenerator from '../../../../utils/name-generator/index.js'
 
 import FfLoading from '../../../Loading.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -178,7 +178,7 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         ...mapState(useAccountTeamStore, ['team']),
         isTrialProjectSelected () {
             //  - Team is in trial mode, and

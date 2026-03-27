@@ -343,7 +343,6 @@
 import { InformationCircleIcon } from '@heroicons/vue/outline'
 
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import { StageAction, StageType } from '../../../api/pipeline.js'
 import teamApi from '../../../api/team.js'
@@ -356,6 +355,7 @@ import IconDeviceSolid from '../../../components/icons/DeviceSolid.js'
 import IconGit from '../../../components/icons/Git.js'
 import IconNodeRedSolid from '../../../components/icons/NodeRedSolid.js'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -441,7 +441,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         isEdit () {
             return !!this.stage.id
         },

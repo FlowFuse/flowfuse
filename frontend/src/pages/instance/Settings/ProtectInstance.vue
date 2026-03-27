@@ -24,7 +24,6 @@
 
 <script>
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 
@@ -67,7 +66,6 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team', 'teamMembership']),
-        ...mapVuexState('account', ['features']),
         isProtected () {
             return this.instance?.protected?.enabled
         },

@@ -38,7 +38,6 @@
 <script>
 
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import EmptyState from '../components/EmptyState.vue'
 
@@ -47,6 +46,7 @@ import FlowFuseLogo from '../components/Logo.vue'
 import TeamTypeSelection from '../components/TeamTypeSelection.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -63,7 +63,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team', 'teams', 'defaultUserTeam']),
-        ...mapVuexState('account', ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         ...mapState(useAccountAuthStore, ['pending', 'user', 'redirectUrlAfterLogin']),
         canCreateTeam () {
             if (this.user.admin) return true

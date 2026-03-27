@@ -95,7 +95,6 @@
 <script>
 import { PlusSmIcon, RssIcon, SearchIcon } from '@heroicons/vue/outline'
 import { mapActions, mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
 import EmptyState from '../../../../components/EmptyState.vue'
@@ -104,7 +103,6 @@ import usePermissions from '../../../../composables/Permissions.js'
 import { getTeamProperty } from '../../../../composables/TeamProperties.js'
 import { slugify } from '../../../../composables/strings/String.js'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
-import featuresMixin from '../../../../mixins/Features.js'
 import Alerts from '../../../../services/alerts.js'
 import Dialog from '../../../../services/dialog.js'
 import { Roles } from '../../../../utils/roles.js'
@@ -127,7 +125,7 @@ export default {
         EmptyState,
         ClientDialog
     },
-    mixins: [featuresMixin, clipboardMixin],
+    mixins: [clipboardMixin],
     setup () {
         const { hasPermission, hasAMinimumTeamRoleOf } = usePermissions()
 
@@ -144,7 +142,6 @@ export default {
             return Roles
         },
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['features']),
         ...mapState(useProductBrokersStore, {
             clients: state => state.UNS.clients
         }),

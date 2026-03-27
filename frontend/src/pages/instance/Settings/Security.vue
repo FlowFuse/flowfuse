@@ -44,12 +44,10 @@ import { mapState } from 'pinia'
 import SemVer from 'semver'
 import { markRaw } from 'vue'
 import { useRouter } from 'vue-router'
-import { mapState as mapVuexState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import usePermissions from '../../../composables/Permissions.js'
-import featuresMixin from '../../../mixins/Features.js'
 import Dialog from '../../../services/dialog.js'
 import TokenCreated from '../../account/Security/dialogs/TokenCreated.vue'
 import ExpiryCell from '../../account/components/ExpiryCell.vue'
@@ -66,6 +64,7 @@ import {
 
 import TokenDialog from './dialogs/TokenDialog.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -77,7 +76,6 @@ export default {
         TokenCreated,
         TokenDialog
     },
-    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         project: {
@@ -122,8 +120,8 @@ export default {
         }
     },
     computed: {
+        ...mapState(useAccountSettingsStore, ['featuresCheck', 'settings']),
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['settings']),
         projectLauncherCompatible () {
             const launcherVersion = this.project?.meta?.versions?.launcher
             if (!launcherVersion) {
@@ -174,24 +172,26 @@ export default {
         },
         'editable.settings.httpNodeAuth_type': {
             handler (v) {
-                if (v === 'flowforge-user') {
+                if (v === 'flowforge-user' && this.hasPermission('project:edit', { application: this.project.application })) {
                     this.getTokens()
                 }
             }
         }
     },
     mounted () {
-        this.checkAccess()
+        if (!this.checkAccess()) return
         this.getSettings()
-        if (this.isHTTPBearerTokensFeatureEnabled()) {
+        if (this.featuresCheck.isHTTPBearerTokensFeatureEnabled) {
             this.getTokens()
         }
     },
     methods: {
-        checkAccess: async function () {
+        checkAccess: function () {
             if (!this.hasPermission('project:edit', { application: this.project.application })) {
                 useRouter().push({ replace: true, path: 'general' })
+                return false
             }
+            return true
         },
         getSettings: function () {
             if (this.project.template) {
@@ -263,8 +263,13 @@ export default {
             }
         },
         async getTokens () {
-            const response = await InstanceApi.getHTTPTokens(this.project.id)
-            this.tokens = response.tokens
+            try {
+                const response = await InstanceApi.getHTTPTokens(this.project.id)
+                this.tokens = response.tokens
+            } catch (_) {
+                // 403 can occur when the user is an application-level owner but only a team-level
+                // viewer/member — the server checks team membership for this endpoint
+            }
         },
         newToken () {
             this.$refs.tokenDialog.showCreate()

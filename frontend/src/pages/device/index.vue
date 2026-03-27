@@ -138,7 +138,6 @@
 import { CogIcon } from '@heroicons/vue/solid/index.js'
 import { mapActions, mapState } from 'pinia'
 import semver from 'semver'
-import { mapState as mapVuexState } from 'vuex'
 
 import deviceApi from '../../api/devices.js'
 import DropdownMenu from '../../components/DropdownMenu.vue'
@@ -167,8 +166,8 @@ import DeviceEditorLink from './components/DeviceEditorLink.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
-
 import { useUxStore } from '@/stores/ux.js'
 
 // constants
@@ -225,7 +224,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['features', 'settings']),
+        ...mapState(useAccountSettingsStore, ['features']),
         actionsButtonKind () {
             switch (true) {
             case this.neverConnected:

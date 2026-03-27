@@ -5,9 +5,9 @@
             <ChangeIndicator class="!inline-block ml-4 mt-0" :value="editable.changed.settings.palette_npmrc" />
         </FormHeading>
 
-        <FeatureUnavailable v-if="!isCustomCatalogsFeatureEnabledForPlatform" :minimal="true" class="!my-5 !mx-0 !p-0 !justify-start" />
+        <FeatureUnavailable v-if="!featuresCheck.isCustomCatalogsFeatureEnabledForPlatform" :minimal="true" class="!my-5 !mx-0 !p-0 !justify-start" />
 
-        <FeatureUnavailableToTeam v-if="!isCustomCatalogsFeatureEnabledForTeam" :minimal="true" class="!my-5 !mx-0 !p-0 !justify-start" />
+        <FeatureUnavailableToTeam v-if="!featuresCheck.isCustomCatalogsFeatureEnabledForTeam" :minimal="true" class="!my-5 !mx-0 !p-0 !justify-start" />
 
         <form class="space-y-4 max-w-2xl" @submit.prevent>
             <div v-if="!projectLauncherCompatible" class="text-red-400 space-y-1">
@@ -23,7 +23,7 @@
                             <template #input>
                                 <textarea
                                     v-model="editable.settings.palette_npmrc"
-                                    :disabled="!isCustomCatalogsFeatureEnabled"
+                                    :disabled="!featuresCheck.isCustomCatalogsFeatureEnabled"
                                     class="font-mono w-full"
                                     placeholder=".npmrc"
                                     rows="8"
@@ -43,7 +43,7 @@
                             <template #input>
                                 <textarea
                                     v-model="editable.settings.palette_npmrc"
-                                    :disabled="!isCustomCatalogsFeatureEnabled ? true : readOnly"
+                                    :disabled="!featuresCheck.isCustomCatalogsFeatureEnabled ? true : readOnly"
                                     class="font-mono w-full"
                                     placeholder=".npmrc"
                                     rows="8"
@@ -63,15 +63,17 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import SemVer from 'semver'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
 import FeatureUnavailable from '../../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
-import featuresMixin from '../../../../mixins/Features.js'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'TemplateNPMEditor',
@@ -83,7 +85,6 @@ export default {
         ChangeIndicator,
         LockSetting
     },
-    mixins: [featuresMixin],
     props: {
         editTemplate: {
             type: Boolean,
@@ -110,6 +111,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         editable: {
             get () {
                 return this.modelValue

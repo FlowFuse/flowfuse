@@ -1,11 +1,10 @@
-import store from '../../../../store/index.js'
 import { getTeamProperty } from '../../../TeamProperties.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export function useInstanceFormHelper () {
-    const _store = store
-
     const teamRuntimeLimitReached = () => {
         const { team } = useAccountTeamStore()
         let teamTypeRuntimeLimit = getTeamProperty(team, 'runtimes.limit')
@@ -18,6 +17,7 @@ export function useInstanceFormHelper () {
 
     const decorateInstanceTypes = (instanceTypes) => {
         const { team } = useAccountTeamStore()
+        const { features } = useAccountSettingsStore()
         // Do a first pass of the instance types to disable any not allowed for this team
         instanceTypes = instanceTypes.map(instanceType => {
             // Need to combine the projectType billing info with any overrides
@@ -47,8 +47,7 @@ export function useInstanceFormHelper () {
 
             return instanceType
         })
-
-        if (_store.state.account.features.billing) {
+        if (features.billing) {
         // With billing enabled, do a second pass through the instance types
         // to populate their billing info
             instanceTypes = instanceTypes.map(instanceType => {

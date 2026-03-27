@@ -105,7 +105,6 @@
 import { BeakerIcon } from '@heroicons/vue/outline'
 import { mapState } from 'pinia'
 import semver from 'semver'
-import { mapState as mapVuexState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 
@@ -115,6 +114,7 @@ import InfoCardRow from '../../../components/InfoCardRow.vue'
 import alerts from '../../../services/alerts.js'
 import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -150,7 +150,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         developerMode: function () {
             return this.device?.mode === 'developer'
         },

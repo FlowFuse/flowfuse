@@ -18,7 +18,6 @@
 
 <script>
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import userApi from '../../api/user.js'
 import FormRow from '../../components/FormRow.vue'
@@ -50,7 +49,6 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['settings']),
         ...mapState(useAccountAuthStore, ['pending']),
         formValid () {
             return this.input.password &&

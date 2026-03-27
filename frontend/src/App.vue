@@ -63,7 +63,6 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
@@ -79,6 +78,7 @@ import TermsAndConditions from './pages/TermsAndConditions.vue'
 import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
@@ -102,7 +102,7 @@ export default {
     computed: {
         ...mapState(useUxDrawersStore, ['hiddenLeftDrawer']),
         ...mapState(useAccountAuthStore, ['pending', 'user', 'offline']),
-        ...mapVuexState('account', ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },

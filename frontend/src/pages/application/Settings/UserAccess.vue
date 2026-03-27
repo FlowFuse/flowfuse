@@ -17,7 +17,6 @@
 
 import { mapState } from 'pinia'
 import { defineComponent, markRaw } from 'vue'
-import { mapGetters } from 'vuex'
 
 import teamClient from '../../../api/team.js'
 import EditApplicationPermissionsDialog from '../../../components/dialogs/EditApplicationPermissionsDialog.vue'
@@ -27,6 +26,7 @@ import usePermissions from '../../../composables/Permissions.js'
 import RoleRow from './components/RoleRow.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default defineComponent({
@@ -51,7 +51,7 @@ export default defineComponent({
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useAccountAuthStore, ['isAdminUser']),
         columns () {
             return [

@@ -1,7 +1,7 @@
 <template>
     <div class="ff-team-library overflow-auto flex flex-col">
         <SectionTopMenu hero="Team Library" info="Centralized management of common Javascript functions and Node-RED flows for your team." />
-        <div v-if="isSharedLibraryFeatureEnabled" class="breadcrumbs-wrapper">
+        <div v-if="featuresCheck.isSharedLibraryFeatureEnabled" class="breadcrumbs-wrapper">
             <div :class="{'ff-breadcrumbs': true, 'disable-last': !viewingFile}">
                 <span v-for="(crumb, $index) in breadcrumbs" :key="$index" class="flex items-center">
                     <label @click="entrySelected(crumb)">{{ crumb.name }}</label>
@@ -25,7 +25,7 @@
         <!-- file viewer -->
         <ff-flow-viewer v-else-if="viewingFile && file.meta.type === 'flows'" :flow="file?.contents" />
         <ff-code-previewer v-else-if="viewingFile && file.meta.type === 'functions'" ref="code-preview" :snippet="file?.contents" />
-        <EmptyState v-else :featureUnavailable="!isSharedLibraryFeatureEnabledForPlatform" :featureUnavailableToTeam="!isSharedLibraryFeatureEnabledForTeam">
+        <EmptyState v-else :featureUnavailable="!featuresCheck.isSharedLibraryFeatureEnabledForPlatform" :featureUnavailableToTeam="!featuresCheck.isSharedLibraryFeatureEnabledForTeam">
             <template #img>
                 <img src="../../../images/empty-states/team-library.png" alt="team-logo">
             </template>
@@ -39,7 +39,7 @@
                 </p>
             </template>
             <template #actions>
-                <ff-button v-if="isSharedLibraryFeatureEnabled" :to="{name: 'Instances'}" data-el="go-to-instances">Go To Instances</ff-button>
+                <ff-button v-if="featuresCheck.isSharedLibraryFeatureEnabled" :to="{name: 'Instances'}" data-el="go-to-instances">Go To Instances</ff-button>
                 <ff-button v-else :to="{name: 'Instances'}" :disabled="true">
                     Add To Library
                     <template #icon-right><PlusIcon /></template>
@@ -66,11 +66,11 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import FlowViewer from '../../../components/flow-viewer/FlowViewer.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import formatDateMixin from '../../../mixins/DateTime.js'
-import featuresMixin from '../../../mixins/Features.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 import TypeIcon from '../components/LibraryEntryTypeIcon.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -84,7 +84,7 @@ export default {
         PlusIcon,
         SectionTopMenu
     },
-    mixins: [formatDateMixin, featuresMixin],
+    mixins: [formatDateMixin],
     setup () {
         const { hasPermission } = usePermissions()
 
@@ -116,6 +116,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useAccountTeamStore, ['team'])
     },
     watch: {
@@ -158,7 +159,7 @@ export default {
             this.loadEntry(pathArray.filter((entry) => entry))
         },
         async loadEntry (entryPathArray) {
-            if (!this.isSharedLibraryFeatureEnabled || !this.hasPermission('library:entry:list')) {
+            if (!this.featuresCheck.isSharedLibraryFeatureEnabled || !this.hasPermission('library:entry:list')) {
                 return
             }
 

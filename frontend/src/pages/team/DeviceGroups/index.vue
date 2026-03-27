@@ -118,7 +118,6 @@
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters } from 'vuex'
 
 import ApplicationAPI from '../../../api/application.js'
 
@@ -132,6 +131,7 @@ import FfButton from '../../../ui-components/components/Button.vue'
 import FfListbox from '../../../ui-components/components/form/ListBox.vue'
 import TargetSnapshotCell from '../../application/components/cells/TargetSnapshot.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -195,7 +195,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         applicationOptions () {
             return this.applications
                 .filter(application => this.hasPermission('device:create', { application }))

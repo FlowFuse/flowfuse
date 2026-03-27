@@ -4,8 +4,6 @@
 
 <script>
 
-import { mapState as mapVuexState } from 'vuex'
-
 import adminApi from '../../api/admin.js'
 
 export default {
@@ -16,7 +14,6 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['features'])
     },
     async mounted () {
         try {

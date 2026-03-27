@@ -89,7 +89,6 @@
 <script>
 import { SearchIcon } from '@heroicons/vue/outline'
 import { mapState } from 'pinia'
-import { mapGetters } from 'vuex'
 
 import pipelineAPI from '../../../api/pipeline.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -97,6 +96,7 @@ import usePermissions from '../../../composables/Permissions.js'
 
 import TeamPipeline from './components/TeamPipeline.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -120,7 +120,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountTeamStore, ['team']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         filteredPipelines () {
             if (this.filterTerm) {
                 return this.pipelines

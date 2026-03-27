@@ -1,8 +1,8 @@
 <template>
     <div class="ff-instance-assets flex-1 flex flex-col overflow-auto">
         <div class="banner-wrapper">
-            <FeatureUnavailable v-if="!isStaticAssetFeatureEnabledForPlatform" />
-            <FeatureUnavailableToTeam v-else-if="!isStaticAssetsFeatureEnabledForTeam" />
+            <FeatureUnavailable v-if="!featuresCheck.isStaticAssetFeatureEnabledForPlatform" />
+            <FeatureUnavailableToTeam v-else-if="!featuresCheck.isStaticAssetsFeatureEnabledForTeam" />
             <FeatureUnavailable
                 v-else-if="!launcherSatisfiesVersion"
                 :message="launcherVersionMessage"
@@ -45,11 +45,11 @@ import FeatureUnavailable from '../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
 import FileBrowser from '../../components/file-browser/FileBrowser.vue'
 import usePermissions from '../../composables/Permissions.js'
-import featuresMixin from '../../mixins/Features.js'
 import Alerts from '../../services/alerts.js'
 
 import FolderBreadcrumbs from './components/FolderBreadcrumbs.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export default {
@@ -60,7 +60,6 @@ export default {
         FeatureUnavailableToTeam,
         FileBrowser
     },
-    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         instance: {
@@ -84,6 +83,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useAccountTeamStore, ['teamMembership', 'team']),
         currentDirectory () {
             if (this.breadcrumbs.length) {
@@ -100,8 +100,8 @@ export default {
             return SemVer.satisfies(nrLauncherVersion, '>=2.8.0')
         },
         isFeatureEnabled () {
-            return this.isStaticAssetFeatureEnabledForPlatform &&
-                this.isStaticAssetsFeatureEnabledForTeam &&
+            return this.featuresCheck.isStaticAssetFeatureEnabledForPlatform &&
+                this.featuresCheck.isStaticAssetsFeatureEnabledForTeam &&
                 this.launcherSatisfiesVersion &&
                 this.isInstanceRunning
         },
