@@ -20,17 +20,19 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'pinia'
 import { defineComponent, markRaw } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapState as mapVuexState } from 'vuex'
 
 import TextCell from './table-cells/text-cell.vue'
+
+import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default defineComponent({
     name: 'RowsList',
     computed: {
-        ...mapState('product/tables', ['tableSelection', 'isLoading']),
-        ...mapGetters('product/tables', ['selectedTable']),
-        ...mapState('account', ['team']),
+        ...mapState(useProductTablesStore, ['tableSelection', 'isLoading', 'selectedTable']),
+        ...mapVuexState('account', ['team']),
         columns () {
             return (this.selectedTable?.schema ?? []).map((row) => {
                 return {
@@ -73,7 +75,7 @@ export default defineComponent({
         this.updateTableSelection(null)
     },
     methods: {
-        ...mapActions('product/tables', ['getTableSchema', 'getTableData', 'updateTableSelection']),
+        ...mapActions(useProductTablesStore, ['getTableSchema', 'getTableData', 'updateTableSelection']),
         getTableComponent (type) {
             const componentMap = {
                 text: TextCell

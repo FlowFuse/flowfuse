@@ -16,6 +16,7 @@ import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insi
 import { useProductExpertSupportAgentStore } from '@/stores/product-expert-support-agent.js'
 
 import { useProductExpertStore } from '@/stores/product-expert.js'
+import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
@@ -530,7 +531,7 @@ const actions = {
                     useUxDrawersStore().$reset()
                     useUxStore().$reset()
                     useContextStore().$reset()
-                    // Task 6:  useProductTablesStore().$reset()
+                    useProductTablesStore().$reset()
                     // Task 7:  useProductBrokersStore().$reset()
                     useProductAssistantStore().$reset()
                     useProductExpertSupportAgentStore().$reset()
@@ -607,8 +608,8 @@ const actions = {
             })
             .catch(_ => {})
     },
-    async clearOtherStores (state) {
-        await state.dispatch('product/tables/clearState', null, { root: true })
+    clearOtherStores () {
+        useProductTablesStore().clearState()
     },
     async checkIfAuthenticated ({ commit }) {
         return userApi.getUser()

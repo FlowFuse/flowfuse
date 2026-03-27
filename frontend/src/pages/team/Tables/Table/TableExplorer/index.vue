@@ -9,13 +9,15 @@
 </template>
 
 <script>
+import { mapActions } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapActions } from 'vuex'
 
 import RowsHeader from './components/RowsHeader.vue'
 
 import RowsList from './components/RowsList.vue'
 import TablesList from './components/TablesList.vue'
+
+import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default defineComponent({
     name: 'TableExplorer',
@@ -33,7 +35,7 @@ export default defineComponent({
             })
     },
     methods: {
-        ...mapActions('product/tables', ['getTables'])
+        ...mapActions(useProductTablesStore, ['getTables'])
     }
 })
 </script>

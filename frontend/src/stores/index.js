@@ -1,5 +1,6 @@
 // Barrel export — add store exports here as each task is merged
 export { useContextStore } from './context.js'
+export { useProductTablesStore } from './product-tables.js'
 export { useProductAssistantStore } from './product-assistant.js'
 export { useProductExpertInsightsAgentStore } from './product-expert-insights-agent.js'
 export { useProductExpertStore } from './product-expert.js'
