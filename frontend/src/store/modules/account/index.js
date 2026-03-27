@@ -12,6 +12,7 @@ import product from '../../../services/product.js'
 
 import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
 import { useProductExpertSupportAgentStore } from '@/stores/product-expert-support-agent.js'
 
@@ -532,7 +533,7 @@ const actions = {
                     useUxStore().$reset()
                     useContextStore().$reset()
                     useProductTablesStore().$reset()
-                    // Task 7:  useProductBrokersStore().$reset()
+                    useProductBrokersStore().$reset()
                     useProductAssistantStore().$reset()
                     useProductExpertSupportAgentStore().$reset()
                     useProductExpertInsightsAgentStore().$reset()
