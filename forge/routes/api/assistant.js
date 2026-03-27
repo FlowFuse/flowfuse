@@ -25,7 +25,7 @@ module.exports = async function (app) {
     app.decorate('assistant', { assetCache, tablesSchemaCache })
 
     // Get the assistant service configuration
-    const serviceUrl = app.config.assistant?.service?.url
+    const serviceUrl = app.config.assistant?.service?.url || 'https://expert.flowfuse/v1/openai'
     const serviceToken = app.config.assistant?.service?.token
     const serviceEnabled = app.config.assistant?.enabled !== false && serviceUrl
     const requestTimeout = app.config.assistant?.service?.requestTimeout || 60000

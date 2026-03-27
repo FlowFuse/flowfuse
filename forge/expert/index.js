@@ -5,7 +5,7 @@ const { LRUCache } = require('lru-cache')
 module.exports = fp(async function (app, _opts) {
     // Get the assistant service configuration
     const serviceEnabled = app.config.expert?.enabled === true
-    const expertUrl = app.config.expert?.service?.url
+    const expertUrl = app.config.expert?.service?.url || 'https://expert.flowfuse/v4/expert'
     const serviceToken = app.config.expert?.service?.token
     const requestTimeout = app.config.expert?.service?.requestTimeout || 60000
 
