@@ -646,8 +646,8 @@ jobs:
                 fields:
                   - type: mrkdwn
                     text: "*Status:*\n${{ needs.deploy.result == 'success' && ':white_check_mark: Success' || ':x: Failure '}}"
-              - type: mrkdwn
-                text: "*Pull Request:*\n<https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>"
+                  - type: mrkdwn
+                    text: "*Pull Request:*\n<https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>"
                   - type: mrkdwn
                     text: "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
               - type: section
