@@ -13,7 +13,9 @@ import product from '../../../services/product.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
-import { useProductExpertOperatorAgentStore } from '@/stores/product-expert-operator-agent.js'
+import { useProductExpertSupportAgentStore } from '@/stores/product-expert-support-agent.js'
+
+import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
@@ -531,9 +533,9 @@ const actions = {
                     // Task 6:  useProductTablesStore().$reset()
                     // Task 7:  useProductBrokersStore().$reset()
                     useProductAssistantStore().$reset()
+                    useProductExpertSupportAgentStore().$reset()
                     useProductExpertInsightsAgentStore().$reset()
-                    useProductExpertOperatorAgentStore().$reset()
-                    // Task 11: useProductExpertStore().$reset()
+                    useProductExpertStore().$reset()
                 }
             })
             .catch(_ => {})

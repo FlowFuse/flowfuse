@@ -1,7 +1,7 @@
 <template>
     <!-- Info Banner -->
     <div class="info-banner">
-        <template v-if="isFfAgent">
+        <template v-if="isSupportAgent">
             <p class="info-text">
                 AI agent has access to all of FlowFuse's
                 <a
@@ -18,7 +18,7 @@
                 >blogposts</a>, and more.
             </p>
         </template>
-        <template v-if="isOperatorAgent">
+        <template v-if="isInsightsAgent">
             <p class="info-text">
                 <span
                     title="This feature is still under development"
@@ -38,12 +38,14 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
+
+import { useProductExpertStore } from '@/stores/product-expert.js'
 
 export default {
     name: 'InfoBanner',
     computed: {
-        ...mapGetters('product/expert', ['isFfAgent', 'isOperatorAgent'])
+        ...mapState(useProductExpertStore, ['isSupportAgent', 'isInsightsAgent'])
     }
 }
 </script>

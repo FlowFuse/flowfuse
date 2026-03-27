@@ -10,6 +10,12 @@ vi.mock('@/services/messaging.service.js', () => ({
     })
 }))
 
+// product-expert.js imports ExpertDrawer.vue which pulls in @flowfuse/flow-renderer
+// (CJS/ESM conflict). Mock it to keep the test environment clean.
+vi.mock('@/stores/product-expert.js', () => ({
+    useProductExpertStore: vi.fn(() => ({ isSupportAgent: true }))
+}))
+
 describe('product-assistant store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())

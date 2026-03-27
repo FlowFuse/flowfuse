@@ -13,9 +13,9 @@
 </template>
 
 <script>
-import { mapState } from 'pinia'
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
+import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -28,12 +28,9 @@ export default {
         }
     },
     methods: {
-        ...mapActions('product/expert', ['openAssistantDrawer']),
+        ...mapActions(useProductExpertStore, ['openAssistantDrawer']),
         onClick () {
-            const openOptions = {
-                openPinned: this.rightDrawer.expertState.pinned
-            }
-            this.openAssistantDrawer(openOptions)
+            this.openAssistantDrawer({ openPinned: this.rightDrawer.expertState.pinned })
         }
     }
 }

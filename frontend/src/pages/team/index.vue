@@ -18,7 +18,7 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
-import { mapGetters, mapActions as mapVuexActions, mapState as mapVuexState } from 'vuex'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
@@ -27,6 +27,7 @@ import { Roles } from '../../utils/roles.js'
 
 import TeamInstances from './Instances.vue'
 
+import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
 export default {
@@ -52,7 +53,7 @@ export default {
         ...mapVuexState('account', ['user', 'team', 'teamMembership', 'pendingTeamChange', 'features']),
         ...mapGetters('account', ['requiresBilling', 'isAdminUser']),
         ...mapState(useUxToursStore, ['shouldPresentTour']),
-        ...mapVuexState('product/expert', ['shouldWakeUpAssistant']),
+        ...mapState(useProductExpertStore, ['shouldWakeUpAssistant']),
         isVisitingAdmin: function () {
             return (this.teamMembership.role === Roles.Admin)
         },
@@ -80,6 +81,11 @@ export default {
                     this.dispatchTour()
                 }
             }
+        },
+        shouldWakeUpAssistant (val) {
+            if (val) {
+                this.wakeUpAssistant({ shouldHydrateMessages: true })
+            }
         }
     },
     mounted () {
@@ -96,7 +102,7 @@ export default {
         this.checkRoute(this.$route)
     },
     methods: {
-        ...mapVuexActions('product/expert', ['wakeUpAssistant']),
+        ...mapActions(useProductExpertStore, ['wakeUpAssistant']),
         ...mapActions(useUxToursStore, ['setWelcomeTour', 'openModal']),
         checkRoute: async function (route) {
             const allowedRoutes = []
