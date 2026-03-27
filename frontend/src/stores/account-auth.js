@@ -68,6 +68,11 @@ export const useAccountAuthStore = defineStore('account-auth', {
         async checkState (redirectUrlAfterLogin) {
             // Lazy require to break circular: account-auth.js → routes.js → Home.vue → ... → account-auth.js
             const router = require('../routes.js').default
+            // Ensure the initial navigation has resolved before reading router.currentRoute.
+            // checkState is called from App.vue mounted(), which can fire before the router
+            // finishes navigating to the initial URL. Without this, currentRoute may still be
+            // at the START location ('/') and the redirect logic will silently do nothing.
+            await router.isReady()
             try {
                 const settings = await settingsApi.getSettings()
                 useAccountSettingsStore().setSettings(settings)
