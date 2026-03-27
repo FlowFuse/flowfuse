@@ -4,11 +4,9 @@ import { nextTick } from 'vue'
 import settingsApi from '../api/settings.js'
 import teamApi from '../api/team.js'
 import userApi from '../api/user.js'
-import router from '../routes.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
-import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
@@ -68,6 +66,8 @@ export const useAccountAuthStore = defineStore('account-auth', {
             this.user = user
         },
         async checkState (redirectUrlAfterLogin) {
+            // Lazy require to break circular: account-auth.js → routes.js → Home.vue → ... → account-auth.js
+            const router = require('../routes.js').default
             try {
                 const settings = await settingsApi.getSettings()
                 useAccountSettingsStore().setSettings(settings)
@@ -200,7 +200,8 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     useUxNavigationStore().$reset()
                     useUxDrawersStore().$reset()
                     useUxStore().$reset()
-                    useContextStore().$reset()
+                    // Lazy require to break circular: account-auth.js → context.js → account-auth.js
+                    require('@/stores/context.js').useContextStore().$reset()
                     useProductTablesStore().$reset()
                     useProductBrokersStore().$reset()
                     useProductAssistantStore().$reset()

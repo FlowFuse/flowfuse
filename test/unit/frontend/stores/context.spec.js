@@ -3,14 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useContextStore } from '@/stores/context.js'
 
+// account-auth.js imports routes.js which loads the full Vue component tree
+// (including components that pull in @flowfuse/flow-renderer — a CJS/ESM conflict).
+// Mock it to keep the test environment clean.
+vi.mock('@/stores/account-auth.js', () => ({
+    useAccountAuthStore: vi.fn(() => ({ user: null }))
+}))
+
 // product-expert.js imports ExpertDrawer.vue which pulls in @flowfuse/flow-renderer
 // (CJS/ESM conflict). Mock it to keep the test environment clean.
 vi.mock('@/stores/product-expert.js', () => ({
     useProductExpertStore: vi.fn(() => ({ isSupportAgent: true }))
-}))
-
-vi.mock('@/stores/account-auth.js', () => ({
-    useAccountAuthStore: vi.fn(() => ({ user: null }))
 }))
 
 vi.mock('@/stores/account-team.js', () => ({
