@@ -3,12 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 
-// Prevent _account_bridge from importing the real Vuex store
-vi.mock('@/stores/_account_bridge.js', () => ({
-    useAccountBridge: vi.fn(() => ({
+vi.mock('@/stores/account-team.js', () => ({
+    useAccountTeamStore: vi.fn(() => ({
         team: null,
-        features: {},
         teamMembership: { role: 0 },
+        isTrialAccountExpired: false
+    }))
+}))
+
+vi.mock('@/stores/account-settings.js', () => ({
+    useAccountSettingsStore: vi.fn(() => ({
+        features: {},
         featuresCheck: {
             isBlueprintsFeatureEnabledForPlatform: true,
             isCertifiedNodesFeatureEnabledForPlatform: false,
@@ -25,8 +30,7 @@ vi.mock('@/stores/_account_bridge.js', () => ({
             isSharedLibraryFeatureEnabledForPlatform: true,
             isSharedLibraryFeatureEnabledForTeam: true
         },
-        requiresBilling: false,
-        isTrialAccountExpired: false
+        requiresBilling: false
     }))
 }))
 
@@ -127,14 +131,17 @@ describe('ux-navigation store', () => {
         })
 
         it('returns team entries when bridge provides a team', async () => {
-            const { useAccountBridge } = await import('@/stores/_account_bridge.js')
-            useAccountBridge.mockReturnValue({
+            const { useAccountTeamStore } = await import('@/stores/account-team.js')
+            const { useAccountSettingsStore } = await import('@/stores/account-settings.js')
+            vi.mocked(useAccountTeamStore).mockReturnValue({
                 team: TEAM_STUB,
-                features: {},
                 teamMembership: { role: 50 }, // Owner
-                featuresCheck: FEATURES_STUB,
-                requiresBilling: false,
                 isTrialAccountExpired: false
+            })
+            vi.mocked(useAccountSettingsStore).mockReturnValue({
+                features: {},
+                featuresCheck: FEATURES_STUB,
+                requiresBilling: false
             })
 
             const store = useUxNavigationStore()

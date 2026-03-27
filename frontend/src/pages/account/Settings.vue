@@ -276,7 +276,7 @@ export default {
                         if (this.settings['user:offboarding-required']) {
                             window.location.href = this.settings['user:offboarding-url']
                         } else {
-                            this.$store.dispatch('account/checkState')
+                            useAccountAuthStore().checkState()
                         }
                     })
                     .catch(error => {

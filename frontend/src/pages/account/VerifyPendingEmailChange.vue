@@ -8,10 +8,12 @@
 
 <script>
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import userApi from '../../api/user.js'
 import alerts from '../../services/alerts.js'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'VerifyPendingEmailChange',
@@ -19,7 +21,7 @@ export default {
         token: { type: String, required: true }
     },
     computed: {
-        ...mapState(['pending'])
+        ...mapState(useAccountAuthStore, ['pending'])
     },
     methods: {
         async verify () {

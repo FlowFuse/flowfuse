@@ -1,8 +1,8 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/stores/_account_bridge.js', () => ({
-    useAccountBridge: vi.fn(() => ({ team: { id: 'team-1' } }))
+vi.mock('@/stores/account-team.js', () => ({
+    useAccountTeamStore: vi.fn(() => ({ team: { id: 'team-1' } }))
 }))
 
 vi.mock('@/api/tables.js', () => ({

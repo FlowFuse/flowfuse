@@ -1,17 +1,17 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import * as bridge from '@/stores/_account_bridge.js'
+import { useAccountTeamStore } from '@/stores/account-team.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
-vi.mock('@/stores/_account_bridge.js', () => ({
-    useAccountBridge: vi.fn()
+vi.mock('@/stores/account-team.js', () => ({
+    useAccountTeamStore: vi.fn(() => ({ team: { id: 'team-1', slug: 'my-team' } }))
 }))
 
 describe('product-brokers store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
-        vi.spyOn(bridge, 'useAccountBridge').mockReturnValue({ team: { id: 'team-1', slug: 'my-team' } })
+        vi.mocked(useAccountTeamStore).mockReturnValue({ team: { id: 'team-1', slug: 'my-team' } })
     })
 
     describe('initial state', () => {
@@ -57,7 +57,7 @@ describe('product-brokers store', () => {
         })
 
         it('brokerExpandedTopics returns empty object when no team', () => {
-            vi.spyOn(bridge, 'useAccountBridge').mockReturnValue({ team: null })
+            vi.mocked(useAccountTeamStore).mockReturnValue({ team: null })
             const store = useProductBrokersStore()
             expect(store.brokerExpandedTopics('broker-1')).toEqual({})
         })

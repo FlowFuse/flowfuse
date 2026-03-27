@@ -12,23 +12,21 @@ const client = axios.create({
 // Common error handler
 client.interceptors.response.use(function (response) {
     return response
-}, function (error) {
+}, async function (error) {
     if (/^http/.test(error.config.url)) {
         // This request is to an external URL. Allow this error to pass back to the caller
         return Promise.reject(error)
     }
 
-    // This is an error response from our own API (or failure to reach it)
-    // Lazy require to avoid circular dependency:
-    // api/client.js → stores/account-auth.js → api/user.js → api/client.js
-    const { useAccountAuthStore } = require('../stores/account-auth.js')
-    const store = require('../store/index.js').default
+    // Dynamic import breaks the circular dep: client.js → account-auth.js → api/* → client.js
+    const { useAccountAuthStore } = await import('../stores/account-auth.js')
+    const authStore = useAccountAuthStore()
     if (error.code === 'ERR_NETWORK') {
         // Backend failed to respond
-        useAccountAuthStore().setOffline(true)
-    } else if (error.response && error.response.status === 401 && !useAccountAuthStore().pending && !useAccountAuthStore().loginInflight) {
+        authStore.setOffline(true)
+    } else if (error.response && error.response.status === 401 && !authStore.pending && !authStore.loginInflight) {
         // 401 when !pending && !loginInflight means the session has expired
-        store.dispatch('account/logout')
+        authStore.logout()
     } else if (error.response && error.response.status === 500) {
         // show toast notification
         Alerts.emit(error.response.data.error + ': ' + error.response.data.message, 'warning', 7500)

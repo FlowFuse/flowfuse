@@ -35,11 +35,6 @@ class MessagingService {
     $app
 
     /**
-     * @type {import('vuex').Store} - Vuex store instance
-     */
-    $store
-
-    /**
      * @type {import('vue-router').Router} - Vue router instance
      */
     $router
@@ -50,16 +45,14 @@ class MessagingService {
     $services
 
     /**
-     * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options - Constructor options
+     * @param {{app: import('vue').App, router: import('vue-router').Router, services?: Object}} options - Constructor options
      */
     constructor ({
         app,
-        store,
         router,
         services = {}
     }) {
         this.$app = app
-        this.$store = store
         this.$router = router
         this.$services = services
 
@@ -224,19 +217,17 @@ let MessagingServiceInstance = null
 
 /**
  * Get or create the MessagingService singleton instance
- * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options - Constructor options
+ * @param {{app: import('vue').App, router: import('vue-router').Router, services?: Object}} options - Constructor options
  * @returns {MessagingService}
  */
 export function createMessagingService ({
     app,
-    store,
     router,
     services = {}
 } = {}) {
     if (!MessagingServiceInstance) {
         MessagingServiceInstance = new MessagingService({
             app,
-            store,
             router,
             services
         })

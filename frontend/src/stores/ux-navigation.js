@@ -13,7 +13,8 @@ import QueueIcon from '../components/icons/Queue.js'
 import { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } from '../composables/Permissions.js'
 import { Roles } from '../utils/roles.js'
 
-import { useAccountBridge } from './_account_bridge.js'
+import { useAccountSettingsStore } from './account-settings.js'
+import { useAccountTeamStore } from './account-team.js'
 import { useUxStore } from './ux.js'
 
 export const useUxNavigationStore = defineStore('ux-navigation', {
@@ -25,14 +26,8 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
     }),
     getters: {
         mainNavContexts (state) {
-            const {
-                team,
-                features: accountFeatures,
-                teamMembership,
-                featuresCheck: features,
-                requiresBilling,
-                isTrialAccountExpired
-            } = useAccountBridge()
+            const { team, teamMembership, isTrialAccountExpired } = useAccountTeamStore()
+            const { features: accountFeatures, featuresCheck: features, requiresBilling } = useAccountSettingsStore()
 
             const { isNewlyCreatedUser, userActions } = useUxStore()
 
@@ -415,7 +410,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
             }
         },
         mainNavContext (state) {
-            const { team, teamMembership } = useAccountBridge()
+            const { team, teamMembership } = useAccountTeamStore()
 
             if (!team && !['admin', 'user'].includes(state.mainNav.context)) {
                 // todo this compensates for a brief moment after logging in where we don't have a team loaded and can't properly
