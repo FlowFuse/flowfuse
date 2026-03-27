@@ -172,7 +172,7 @@ export default {
         },
         'editable.settings.httpNodeAuth_type': {
             handler (v) {
-                if (v === 'flowforge-user') {
+                if (v === 'flowforge-user' && this.hasPermission('project:edit', { application: this.project.application })) {
                     this.getTokens()
                 }
             }
@@ -267,7 +267,8 @@ export default {
                 const response = await InstanceApi.getHTTPTokens(this.project.id)
                 this.tokens = response.tokens
             } catch (_) {
-                // endpoint may return 403 if the feature is unavailable for this instance
+                // 403 can occur when the user is an application-level owner but only a team-level
+                // viewer/member — the server checks team membership for this endpoint
             }
         },
         newToken () {
