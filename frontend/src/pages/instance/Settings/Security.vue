@@ -263,8 +263,12 @@ export default {
             }
         },
         async getTokens () {
-            const response = await InstanceApi.getHTTPTokens(this.project.id)
-            this.tokens = response.tokens
+            try {
+                const response = await InstanceApi.getHTTPTokens(this.project.id)
+                this.tokens = response.tokens
+            } catch (_) {
+                // endpoint may return 403 if the feature is unavailable for this instance
+            }
         },
         newToken () {
             this.$refs.tokenDialog.showCreate()
