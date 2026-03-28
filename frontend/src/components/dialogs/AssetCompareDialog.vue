@@ -37,7 +37,19 @@
             <div v-else class="mt-2">
                 <div class="text-sm text-gray-500 flex-grow truncate overflow-ellipsis ml-2">No differences found</div>
             </div>
-            <div ref="compareViewer" data-el="ff-flow-compare-view" class="ff-flow-compare-viewer pt-4" @click.stop.prevent>
+            <SnapshotDiffChangePanel
+                v-if="currentChangedProp"
+                :prop="currentChangedProp.prop"
+                :value1="currentChangedProp.value1"
+                :value2="currentChangedProp.value2"
+            />
+            <div
+                ref="compareViewer"
+                data-el="ff-flow-compare-view"
+                class="ff-flow-compare-viewer pt-4"
+                :class="{ 'ff-flow-compare-viewer--with-panel': currentChangedProp }"
+                @click.stop.prevent
+            >
               &nbsp;
             </div>
         </template>
@@ -56,8 +68,11 @@ import SnapshotsApi from '../../api/snapshots.js'
 
 import Alerts from '../../services/alerts.js'
 
+import SnapshotDiffChangePanel from './SnapshotDiffChangePanel.vue'
+
 export default {
     name: 'AssetCompareDialog',
+    components: { SnapshotDiffChangePanel },
     props: {
         title: {
             type: String,
@@ -99,6 +114,15 @@ export default {
         },
         header () {
             return this.payload?.name || this.title || 'Flow'
+        },
+        // Returns the prop/value1/value2 for the current change if it's a property-level
+        // change (diffType === 'changed'). Returns null for added/deleted/moved/positionChanged
+        // since those are node-level events already well described by toString().
+        currentChangedProp () {
+            const change = this.changes[this.changeIndex]
+            if (!change || change.diffType !== 'changed') return null
+            if (change.value1 === change.value2) return null
+            return { prop: change.prop, value1: change.value1, value2: change.value2 }
         }
     },
     mounted () {
@@ -149,5 +173,8 @@ export default {
 <style scoped>
 .ff-flow-compare-viewer {
   height: calc(100% - 4.5rem);
+}
+.ff-flow-compare-viewer--with-panel {
+  height: calc(100% - 12rem);
 }
 </style>
