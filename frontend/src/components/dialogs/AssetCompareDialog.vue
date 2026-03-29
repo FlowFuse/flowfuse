@@ -15,17 +15,6 @@
                     option-title-key="description"
                     class="flex-grow"
                 />
-                <ff-button
-                    v-if="true"
-                    :disabled="!compareSnapshot"
-                    data-action="compare-snapshots"
-                    kind="secondary"
-                    style="height: 30px; width: 106px"
-                    class="w-32"
-                    @click="renderComparison"
-                >
-                    Compare
-                </ff-button>
             </div>
 
             <!-- Tab bar — shown after a comparison is run -->
@@ -58,35 +47,86 @@
                 <div v-if="groupedChanges.length === 0" class="flex items-center justify-center py-8 text-sm text-gray-400">
                     No differences found
                 </div>
-                <div v-for="(group, gi) in groupedChanges" :key="group.nodeId" class="border-b border-gray-200">
-                    <!-- Node section header -->
-                    <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
-                        <span
-                            class="text-xs font-semibold px-1.5 py-0.5 rounded"
-                            :class="diffTypeBadgeClass(group.diffType)"
-                        >{{ group.diffType }}</span>
-                        <span class="font-semibold text-sm text-gray-800">{{ group.name }}</span>
-                        <span class="text-xs text-gray-400">{{ group.type }}</span>
-                        <span v-if="group.movedTo" class="ml-auto text-xs text-gray-400">
-                            moved to <span class="font-medium text-gray-600">{{ group.movedTo }}</span>
-                        </span>
+                <template v-else>
+                    <!-- Global collapse/expand -->
+                    <div class="flex items-center justify-end px-3 py-1 border-b border-gray-100 bg-white sticky top-0 z-20">
+                        <button
+                            class="text-xs text-blue-600 hover:text-blue-800"
+                            @click="allCollapsed ? expandAll() : collapseAll()"
+                        >
+                            {{ allCollapsed ? 'Expand all' : 'Collapse all' }}
+                        </button>
                     </div>
-                    <!-- Property-level diffs for changed nodes -->
-                    <div v-if="group.propertyChanges.length">
-                        <SnapshotDiffChangePanel
-                            v-for="(change, ci) in group.propertyChanges"
-                            :key="change.prop"
-                            :prop="change.prop"
-                            :value1="change.value1"
-                            :value2="change.value2"
-                            :auto-scroll-to-first="gi === 0 && ci === 0"
-                        />
+                    <!-- Node sections -->
+                    <div v-for="(group, gi) in groupedChanges" :key="group.nodeId" class="border-b border-gray-200">
+                        <!-- Node header (click to collapse/expand) -->
+                        <div
+                            class="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200 sticky top-7 z-10 cursor-pointer select-none"
+                            @click="toggleNodeCollapse(group.nodeId)"
+                        >
+                            <svg
+                                class="w-3 h-3 text-gray-400 transition-transform duration-150 flex-shrink-0"
+                                :class="{ 'rotate-90': !collapsedNodes.has(group.nodeId) }"
+                                viewBox="0 0 20 20" fill="currentColor"
+                            >
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="text-xs font-semibold px-1.5 py-0.5 rounded" :class="diffTypeBadgeClass(group.diffType)">{{ group.diffType }}</span>
+                            <span class="font-semibold text-sm text-gray-800">{{ group.name }}</span>
+                            <span class="text-xs text-gray-400">{{ group.type }}</span>
+                            <span v-if="group.movedTo" class="ml-auto text-xs text-gray-400">
+                                moved to <span class="font-medium text-gray-600">{{ group.movedTo }}</span>
+                            </span>
+                        </div>
+                        <!-- Node body (hidden when collapsed) -->
+                        <template v-if="!collapsedNodes.has(group.nodeId)">
+                            <template v-if="group.diffType === 'changed'">
+                                <!-- Libraries -->
+                                <template v-if="group.libsDiff">
+                                    <div class="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Libraries</div>
+                                    <SnapshotDiffChangePanel prop="libs" :value1="group.libsDiff.v1" :value2="group.libsDiff.v2" />
+                                </template>
+                                <!-- Code -->
+                                <template v-if="group.categorizedChanges.code.length">
+                                    <div class="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Code</div>
+                                    <SnapshotDiffChangePanel
+                                        v-for="(change, ci) in group.categorizedChanges.code"
+                                        :key="change.prop"
+                                        :prop="change.prop"
+                                        :value1="change.value1"
+                                        :value2="change.value2"
+                                        :auto-scroll-to-first="gi === 0 && ci === 0 && !group.libsDiff"
+                                    />
+                                </template>
+                                <!-- Wires -->
+                                <template v-if="group.categorizedChanges.wires.length">
+                                    <div class="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Wires</div>
+                                    <SnapshotDiffChangePanel
+                                        v-for="change in group.categorizedChanges.wires"
+                                        :key="change.prop"
+                                        :prop="change.prop"
+                                        :value1="change.value1"
+                                        :value2="change.value2"
+                                    />
+                                </template>
+                                <!-- Properties -->
+                                <template v-if="group.categorizedChanges.properties.length">
+                                    <div class="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Properties</div>
+                                    <SnapshotDiffChangePanel
+                                        v-for="change in group.categorizedChanges.properties"
+                                        :key="change.prop"
+                                        :prop="change.prop"
+                                        :value1="change.value1"
+                                        :value2="change.value2"
+                                    />
+                                </template>
+                            </template>
+                            <div v-else class="px-3 py-2 text-xs text-gray-400 italic">
+                                {{ group.diffType === 'added' ? 'Node was added to the flow.' : group.diffType === 'deleted' ? 'Node was removed from the flow.' : '' }}
+                            </div>
+                        </template>
                     </div>
-                    <!-- Added/deleted nodes have no property diff to show -->
-                    <div v-else-if="group.diffType !== 'changed'" class="px-3 py-2 text-xs text-gray-400 italic">
-                        {{ group.diffType === 'added' ? 'Node was added to the flow.' : group.diffType === 'deleted' ? 'Node was removed from the flow.' : '' }}
-                    </div>
-                </div>
+                </template>
             </div>
 
             <!-- Flow canvas — always in the DOM so the renderer can inject into it.
@@ -141,6 +181,8 @@ export default {
                 this.activeTab = 'changes'
                 this.nodeMap = {}
                 this.compareSnapshotList = snapshotList
+                this.collapsedNodes = new Set()
+                this.allCollapsed = false
                 this.$refs.dialog.show()
             }
         }
@@ -155,7 +197,9 @@ export default {
             changes: [],
             hasCompared: false,
             activeTab: 'changes',
-            nodeMap: {}
+            nodeMap: {},
+            collapsedNodes: new Set(),
+            allCollapsed: false
         }
     },
     computed: {
@@ -165,9 +209,8 @@ export default {
         header () {
             return this.payload?.name || this.title || 'Flow'
         },
-        // Group all changes by node, skipping position-only changes (those are best seen in Flow tab).
-        // Each group: { nodeId, name, type, diffType, propertyChanges, movedTo }
         groupedChanges () {
+            const CODE_PROPS = new Set(['func', 'initialize', 'finalize'])
             const groups = new Map()
             for (const change of this.changes) {
                 if (change.diffType === 'positionChanged') continue
@@ -179,8 +222,9 @@ export default {
                         name: node.name || node.label || key,
                         type: node.type || '',
                         diffType: change.diffType,
-                        propertyChanges: [],
-                        movedTo: null
+                        movedTo: null,
+                        libsDiff: null,
+                        categorizedChanges: { libraries: [], code: [], wires: [], properties: [] }
                     })
                 }
                 const group = groups.get(key)
@@ -189,10 +233,25 @@ export default {
                 } else if (change.diffType === 'moved') {
                     group.movedTo = this.nodeMap[change.value2]?.label || change.value2
                 } else if (change.diffType === 'changed' && change.value1 !== change.value2) {
-                    group.propertyChanges.push(change)
+                    const { prop } = change
+                    if (/^libs\[/.test(prop)) group.categorizedChanges.libraries.push(change)
+                    else if (CODE_PROPS.has(prop)) group.categorizedChanges.code.push(change)
+                    else if (/^wires\[/.test(prop)) group.categorizedChanges.wires.push(change)
+                    else group.categorizedChanges.properties.push(change)
                 }
             }
-            return [...groups.values()]
+            const result = [...groups.values()]
+            for (const group of result) {
+                if (group.categorizedChanges.libraries.length) {
+                    group.libsDiff = this.buildLibsDiff(group.categorizedChanges.libraries)
+                }
+            }
+            return result
+        }
+    },
+    watch: {
+        compareSnapshot (newVal) {
+            if (newVal) this.renderComparison()
         }
     },
     methods: {
@@ -225,11 +284,13 @@ export default {
             this.nodeMap = map
 
             const flowRenderer = new FlowRenderer()
-            const result = flowRenderer.compare([this.flow, compareFlow], {
+            const result = flowRenderer.compare([compareFlow, this.flow], {
                 container: this.$refs.compareViewer
             })
             this.changes = result?.changes || []
             this.hasCompared = true
+            this.collapsedNodes = new Set()
+            this.allCollapsed = false
             this.activeTab = 'changes'
         },
         diffTypeBadgeClass (diffType) {
@@ -244,6 +305,36 @@ export default {
             while (this.$refs.compareViewer?.firstChild) {
                 this.$refs.compareViewer.removeChild(this.$refs.compareViewer.firstChild)
             }
+        },
+        toggleNodeCollapse (nodeId) {
+            const next = new Set(this.collapsedNodes)
+            if (next.has(nodeId)) next.delete(nodeId)
+            else next.add(nodeId)
+            this.collapsedNodes = next
+            this.allCollapsed = next.size === this.groupedChanges.length
+        },
+        collapseAll () {
+            this.collapsedNodes = new Set(this.groupedChanges.map(g => g.nodeId))
+            this.allCollapsed = true
+        },
+        expandAll () {
+            this.collapsedNodes = new Set()
+            this.allCollapsed = false
+        },
+        buildLibsDiff (libraryChanges) {
+            const entries = {}
+            for (const change of libraryChanges) {
+                const match = change.prop.match(/^libs\[(\d+)\]$/)
+                if (match) entries[match[1]] = { value1: change.value1, value2: change.value2 }
+            }
+            const v1Lines = []
+            const v2Lines = []
+            for (const idx of Object.keys(entries).sort((a, b) => +a - +b)) {
+                const { value1, value2 } = entries[idx]
+                if (value1 && typeof value1 === 'object') v1Lines.push(`${value1.var} = require("${value1.module}")`)
+                if (value2 && typeof value2 === 'object') v2Lines.push(`${value2.var} = require("${value2.module}")`)
+            }
+            return { v1: v1Lines.join('\n'), v2: v2Lines.join('\n') }
         }
     }
 }

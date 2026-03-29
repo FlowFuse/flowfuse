@@ -2,7 +2,7 @@
     <div class="font-mono text-xs border-b border-gray-200 overflow-hidden">
         <div class="px-3 py-1 text-xs bg-gray-50 border-b border-gray-100 text-gray-500 sticky top-0 flex items-center gap-1">
             <span>property</span>
-            <span class="font-semibold text-gray-700">{{ prop }}</span>
+            <span class="font-semibold text-gray-700">{{ label ?? prop }}</span>
         </div>
         <div ref="content">
             <template v-for="(line, i) in lines" :key="i">
@@ -41,6 +41,7 @@ export default {
     name: 'SnapshotDiffChangePanel',
     props: {
         prop: { type: String, default: '' },
+        label: { type: String, default: null },
         value1: { default: undefined },
         value2: { default: undefined },
         autoScrollToFirst: { type: Boolean, default: false }
