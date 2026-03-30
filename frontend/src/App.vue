@@ -7,7 +7,7 @@
                 </div>
             </main>
         </template>
-        <template v-else-if="pending">
+        <template v-else-if="appLoader">
             <main class="ff-bg-dark flex-grow flex flex-col">
                 <div class="w-full mx-auto flex-grow flex flex-col">
                     <Loading color="white" />
@@ -82,6 +82,7 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'App',
@@ -101,7 +102,8 @@ export default {
     },
     computed: {
         ...mapState(useUxDrawersStore, ['hiddenLeftDrawer']),
-        ...mapState(useAccountAuthStore, ['pending', 'user', 'offline']),
+        ...mapState(useAccountAuthStore, ['user']),
+        ...mapState(useUxLoadingStore, ['appLoader', 'offline']),
         ...mapVuexState('account', ['settings']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false

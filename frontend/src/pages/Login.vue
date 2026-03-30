@@ -1,6 +1,6 @@
 <template>
     <ff-layout-box class="ff-login">
-        <div v-if="!pending" data-form="login">
+        <div v-if="!appLoader" data-form="login">
             <ff-loading v-if="loggingIn" message="Logging in..." color="white" />
             <template v-else-if="!mfaRequired">
                 <label>Username / E-Mail</label>
@@ -98,6 +98,7 @@ import SpinnerIcon from '../components/icons/Spinner.js'
 import FFLayoutBox from '../layouts/Box.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'LoginPage',
@@ -128,7 +129,8 @@ export default {
     },
     computed: {
         ...mapVuexState('account', ['settings']),
-        ...mapState(useAccountAuthStore, ['pending', 'loginError', 'redirectUrlAfterLogin']),
+        ...mapState(useAccountAuthStore, ['loginError', 'redirectUrlAfterLogin']),
+        ...mapState(useUxLoadingStore, ['appLoader']),
         tokenInvalid () {
             return this.mfaRequired && !/^\d{6}$/.test(this.input.token)
         },

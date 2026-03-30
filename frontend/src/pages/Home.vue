@@ -1,6 +1,6 @@
 <template>
     <main class="min-h-full">
-        <template v-if="pending">
+        <template v-if="appLoader">
             <div class="flex-grow flex flex-col items-center justify-center mx-auto text-gray-600 opacity-50">
                 <FlowFuseLogo class="max-w-xs mx-auto w-full" />
             </div>
@@ -48,6 +48,7 @@ import TeamTypeSelection from '../components/TeamTypeSelection.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'HomePage',
@@ -64,7 +65,8 @@ export default {
     computed: {
         ...mapState(useAccountTeamStore, ['team', 'teams', 'defaultUserTeam']),
         ...mapVuexState('account', ['settings']),
-        ...mapState(useAccountAuthStore, ['pending', 'user', 'redirectUrlAfterLogin']),
+        ...mapState(useAccountAuthStore, ['user', 'redirectUrlAfterLogin']),
+        ...mapState(useUxLoadingStore, ['appLoader']),
         canCreateTeam () {
             if (this.user.admin) return true
             return Object.prototype.hasOwnProperty.call(this.settings, 'team:create') && this.settings['team:create'] === true

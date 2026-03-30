@@ -5,11 +5,9 @@ import userApi from '../api/user.js'
 export const useAccountAuthStore = defineStore('account-auth', {
     state: () => ({
         user: null,
-        pending: true,
         loginInflight: false,
         loginError: null,
-        redirectUrlAfterLogin: null,
-        offline: null
+        redirectUrlAfterLogin: null
     }),
     getters: {
         isAdminUser: (state) => !!state.user?.admin
@@ -18,12 +16,6 @@ export const useAccountAuthStore = defineStore('account-auth', {
         login (user) {
             this.user = user
             this.loginInflight = false
-        },
-        clearPending () {
-            this.pending = false
-        },
-        setPending (value) {
-            this.pending = value
         },
         setLoginInflight () {
             this.loginInflight = true
@@ -37,9 +29,6 @@ export const useAccountAuthStore = defineStore('account-auth', {
         },
         setUser (user) {
             this.user = user
-        },
-        setOffline (value) {
-            this.offline = value
         },
         setRedirectUrl (url) {
             this.redirectUrlAfterLogin = url
