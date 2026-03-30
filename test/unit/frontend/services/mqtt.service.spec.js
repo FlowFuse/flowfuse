@@ -22,7 +22,18 @@ function createMockClient () {
     return {
         on: vi.fn(),
         off: vi.fn(),
-        end: vi.fn().mockResolvedValue(),
+        end: vi.fn((force, options, callback) => {
+            if (typeof options === 'function') {
+                options()
+                return
+            }
+            if (typeof callback === 'function') {
+                callback()
+            }
+        }),
+        publish: vi.fn((topic, payload, options, callback) => {
+            callback()
+        }),
         connected: true
     }
 }
@@ -52,7 +63,16 @@ describe('MqttService', async () => {
         const thirdClient = createMockClient()
         const firstDestroyDeferred = createDeferred()
 
-        firstClient.end = vi.fn().mockImplementation(() => firstDestroyDeferred.promise)
+        firstClient.end = vi.fn().mockImplementation(async (force, options, callback) => {
+            await firstDestroyDeferred.promise
+            if (typeof options === 'function') {
+                options()
+                return
+            }
+            if (typeof callback === 'function') {
+                callback()
+            }
+        })
 
         mockConnect
             .mockReturnValueOnce(firstClient)
@@ -86,5 +106,106 @@ describe('MqttService', async () => {
                 thirdCreate
             ])
         }
+    })
+
+    test('publishMessage auto mode keeps binary payloads and stringifies plain objects', async () => {
+        const service = createMqttService({
+            app: {},
+            store: {},
+            router: {}
+        })
+
+        const client = createMockClient()
+        mockConnect.mockReturnValueOnce(client)
+
+        await service.createClient('publish-key', { url: 'mqtt://example.com' })
+
+        const bytes = new Uint8Array([1, 2, 3])
+        await service.publishMessage('publish-key', {
+            topic: 'binary/topic',
+            payload: bytes
+        })
+
+        await service.publishMessage('publish-key', {
+            topic: 'json/topic',
+            payload: { enabled: true }
+        })
+
+        expect(client.publish).toHaveBeenNthCalledWith(
+            1,
+            'binary/topic',
+            Buffer.from(bytes),
+            expect.any(Object),
+            expect.any(Function)
+        )
+
+        expect(client.publish).toHaveBeenNthCalledWith(
+            2,
+            'json/topic',
+            JSON.stringify({ enabled: true }),
+            expect.any(Object),
+            expect.any(Function)
+        )
+    })
+
+    test('publishMessage supports explicit serialization modes', async () => {
+        const service = createMqttService({
+            app: {},
+            store: {},
+            router: {}
+        })
+
+        const client = createMockClient()
+        mockConnect.mockReturnValueOnce(client)
+
+        await service.createClient('serialize-key', { url: 'mqtt://example.com' })
+
+        await service.publishMessage('serialize-key', {
+            topic: 'json/topic',
+            payload: { a: 1 },
+            serialize: 'json'
+        })
+
+        await service.publishMessage('serialize-key', {
+            topic: 'string/topic',
+            payload: { b: 2 },
+            serialize: 'string'
+        })
+
+        await service.publishMessage('serialize-key', {
+            topic: 'raw/topic',
+            payload: 'raw',
+            serialize: 'raw'
+        })
+
+        await expect(service.publishMessage('serialize-key', {
+            topic: 'raw/error',
+            payload: { invalid: true },
+            serialize: 'raw'
+        })).rejects.toThrow('MQTT raw payload must be a string or binary value')
+
+        expect(client.publish).toHaveBeenNthCalledWith(
+            1,
+            'json/topic',
+            JSON.stringify({ a: 1 }),
+            expect.any(Object),
+            expect.any(Function)
+        )
+
+        expect(client.publish).toHaveBeenNthCalledWith(
+            2,
+            'string/topic',
+            '[object Object]',
+            expect.any(Object),
+            expect.any(Function)
+        )
+
+        expect(client.publish).toHaveBeenNthCalledWith(
+            3,
+            'raw/topic',
+            'raw',
+            expect.any(Object),
+            expect.any(Function)
+        )
     })
 })

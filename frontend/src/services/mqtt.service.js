@@ -262,7 +262,7 @@ class MqttService {
     /**
      * Publish a message only when the connection is alive.
      * @param {string} key
-     * @param {{topic: string, payload: string | Buffer | object, qos?: number, retain?: boolean, onError?: Function}} options
+     * @param {{topic: string, payload: unknown, qos?: number, retain?: boolean, onError?: Function, correlationData?: string | Buffer, userProperties?: Record<string, string>, serialize?: 'auto' | 'raw' | 'json' | 'string'}} options
      * @returns {Promise<void>}
      */
     publishMessage (key, {
@@ -272,7 +272,8 @@ class MqttService {
         retain,
         onError = null,
         correlationData = null,
-        userProperties = null
+        userProperties = null,
+        serialize = 'auto'
     } = {}) {
         const managed = this.getManagedClient(key)
 
@@ -289,8 +290,10 @@ class MqttService {
             return Promise.reject(new Error('MQTT publish topic is required'))
         }
 
-        if (typeof payload !== 'string') {
-            payload = JSON.stringify(payload)
+        try {
+            payload = this.normalizePublishPayload(payload, serialize)
+        } catch (error) {
+            return Promise.reject(error)
         }
 
         /** @type {Mqtt.IClientPublishOptions} */
@@ -398,6 +401,92 @@ class MqttService {
         await this.destroy()
         this.$destroyed = false
         this.$mqtt = Mqtt
+    }
+
+    /**
+     * @param {unknown} value
+     * @returns {boolean}
+     */
+    isPlainObject (value) {
+        if (value === null || typeof value !== 'object') return false
+        const prototype = Object.getPrototypeOf(value)
+        return prototype === Object.prototype || prototype === null
+    }
+
+    /**
+     * @param {unknown} payload
+     * @returns {boolean}
+     */
+    isBinaryPayload (payload) {
+        return (
+            (typeof Buffer !== 'undefined' && Buffer.isBuffer(payload)) ||
+            payload instanceof Uint8Array ||
+            payload instanceof ArrayBuffer
+        )
+    }
+
+    /**
+     * @param {Buffer | Uint8Array | ArrayBuffer} payload
+     * @returns {Buffer | Uint8Array}
+     */
+    normalizeBinaryPayload (payload) {
+        if (typeof Buffer !== 'undefined' && Buffer.isBuffer(payload)) {
+            return payload
+        }
+
+        if (payload instanceof ArrayBuffer) {
+            if (typeof Buffer !== 'undefined') {
+                return Buffer.from(payload)
+            }
+            return new Uint8Array(payload)
+        }
+
+        if (typeof Buffer !== 'undefined') {
+            return Buffer.from(payload.buffer, payload.byteOffset, payload.byteLength)
+        }
+
+        return payload
+    }
+
+    /**
+     * @param {unknown} payload
+     * @param {'auto' | 'raw' | 'json' | 'string'} [serialize='auto']
+     * @returns {string | Buffer | Uint8Array}
+     */
+    normalizePublishPayload (payload, serialize = 'auto') {
+        if (!['auto', 'raw', 'json', 'string'].includes(serialize)) {
+            throw new TypeError(`Invalid MQTT payload serialization mode: "${serialize}"`)
+        }
+
+        if (serialize === 'json') {
+            return JSON.stringify(payload)
+        }
+
+        if (serialize === 'string') {
+            return String(payload)
+        }
+
+        if (serialize === 'raw') {
+            if (typeof payload === 'string' || this.isBinaryPayload(payload)) {
+                return this.isBinaryPayload(payload)
+                    ? this.normalizeBinaryPayload(payload)
+                    : payload
+            }
+            throw new TypeError('MQTT raw payload must be a string or binary value')
+        }
+
+        // auto
+        if (typeof payload === 'string' || this.isBinaryPayload(payload)) {
+            return this.isBinaryPayload(payload)
+                ? this.normalizeBinaryPayload(payload)
+                : payload
+        }
+
+        if (Array.isArray(payload) || this.isPlainObject(payload)) {
+            return JSON.stringify(payload)
+        }
+
+        throw new TypeError('Unsupported MQTT payload type for auto serialization')
     }
 }
 
