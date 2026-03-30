@@ -47,12 +47,12 @@ curl -L -o .env https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/h
 
 ## Step 3: Provide domain name
 
-Edit downloaded `.env` file with the editor of your choice and update the `DOMAIN` variable with the domain you will be using for the platform.
+Edit the downloaded `.env` file with the editor of your choice and update the `DOMAIN` variable with your domain.
 
 You can use `sed` to update the `DOMAIN` variable in the `.env` file:
 
 ```bash
-sed -i 's/^DOMAIN=.*/DOMAIN=example.com/' .env
+sed -i.bak 's/^DOMAIN=.*/DOMAIN=example.com/' .env
 ```
 
 ## Step 4: Start the Application
