@@ -7,9 +7,9 @@ import Mqtt from 'mqtt'
  * @property {string} [password]
  * @property {number} [reconnectPeriod=0]
  * @property {string} [clientId]
- * @property {(client: import('mqtt').MqttClient) => void} [onConnect]
- * @property {(client: import('mqtt').MqttClient) => void} [onClose]
- * @property {(client: import('mqtt').MqttClient) => void} [onOffline]
+ * @property {(client: import('mqtt').Client) => void} [onConnect]
+ * @property {(client: import('mqtt').Client) => void} [onClose]
+ * @property {(client: import('mqtt').Client) => void} [onOffline]
  * @property {(error: Error, client: import('mqtt').MqttClient) => void} [onError]
  * @property {(topic: string, message: Buffer, packet: any, client: import('mqtt').MqttClient) => void} [onMessage]
  */
@@ -17,7 +17,7 @@ import Mqtt from 'mqtt'
 /**
  * @typedef {Object} ManagedMqttClient
  * @property {string} key
- * @property {import('mqtt').MqttClient} client
+ * @property {import('mqtt').Client} client
  * @property {Set<Function>} listeners
  * @property {boolean} destroyed
  */
@@ -52,6 +52,12 @@ class MqttService {
      * @type {Map<string, ManagedMqttClient>}
      */
     $clients = new Map()
+
+    /**
+     * Per-key operation queue used to serialize lifecycle operations.
+     * @type {Map<string, Promise<any>>}
+     */
+    $clientOperations = new Map()
 
     /**
      * @type {boolean}
@@ -110,11 +116,38 @@ class MqttService {
         }
     }
 
+    async runClientOperation (key, operation) {
+        const previous = this.$clientOperations.get(key) || Promise.resolve()
+
+        const current = previous
+            .catch(() => {})
+            .then(operation)
+
+        const tracked = current.finally(() => {
+            if (this.$clientOperations.get(key) === tracked) {
+                this.$clientOperations.delete(key)
+            }
+        })
+        this.$clientOperations.set(key, tracked)
+
+        return tracked
+    }
+
     /**
      * Remove and detach a managed connection without assuming it is still alive.
      * @param {string} key
      */
     async destroyClient (key) {
+        await this.runClientOperation(key, async () => {
+            await this._destroyClientUnlocked(key)
+        })
+    }
+
+    /**
+     * Internal destroy helper that assumes per-key serialization is already handled.
+     * @param {string} key
+     */
+    async _destroyClientUnlocked (key) {
         const managed = this.$clients.get(key)
         if (!managed) return
 
@@ -134,7 +167,7 @@ class MqttService {
         }
 
         try {
-            client.end(true)
+            await client.end(true)
         } catch (_) {
             // ignore close failures during cleanup
         }
@@ -149,10 +182,6 @@ class MqttService {
      * @returns {Promise<import('mqtt').MqttClient>}
      */
     async createClient (key, options = {}) {
-        if (this.$destroyed) {
-            throw new Error('MqttService has been destroyed')
-        }
-
         const {
             url,
             username,
@@ -174,46 +203,52 @@ class MqttService {
             throw new Error(`Invalid MQTT url for connection "${key}"`)
         }
 
-        // Replace the existing connection cleanly
-        if (this.hasClient(key)) {
-            await this.destroyClient(key)
-        }
-
-        const client = this.$mqtt.connect(url, {
-            username,
-            password,
-            reconnectPeriod,
-            clientId,
-            protocolVersion: 5
-        })
-
-        /** @type {ManagedMqttClient} */
-        const managed = {
-            key,
-            client,
-            listeners: new Set(),
-            destroyed: false
-        }
-
-        const register = (eventName, handler) => {
-            if (typeof handler !== 'function') return
-            const wrapped = (...args) => {
-                if (managed.destroyed || this.$destroyed) return
-                handler(...args, client)
+        return this.runClientOperation(key, async () => {
+            if (this.$destroyed) {
+                throw new Error('MqttService has been destroyed')
             }
-            client.on(eventName, wrapped)
-            managed.listeners.add(() => client.off(eventName, wrapped))
-        }
 
-        register('connect', onConnect)
-        register('close', onClose)
-        register('offline', onOffline)
-        register('error', onError)
-        register('message', onMessage)
+            // Replace the existing connection cleanly
+            if (this.hasClient(key)) {
+                await this._destroyClientUnlocked(key)
+            }
 
-        this.$clients.set(key, managed)
+            const client = this.$mqtt.connect(url, {
+                username,
+                password,
+                reconnectPeriod,
+                clientId,
+                protocolVersion: 5
+            })
 
-        return client
+            /** @type {ManagedMqttClient} */
+            const managed = {
+                key,
+                client,
+                listeners: new Set(),
+                destroyed: false
+            }
+
+            const register = (eventName, handler) => {
+                if (typeof handler !== 'function') return
+                const wrapped = (...args) => {
+                    if (managed.destroyed || this.$destroyed) return
+                    handler(...args, client)
+                }
+                client.on(eventName, wrapped)
+                managed.listeners.add(() => client.off(eventName, wrapped))
+            }
+
+            register('connect', onConnect)
+            register('close', onClose)
+            register('offline', onOffline)
+            register('error', onError)
+            register('message', onMessage)
+
+            this.$clients.set(key, managed)
+
+            return client
+        })
     }
 
     /**
