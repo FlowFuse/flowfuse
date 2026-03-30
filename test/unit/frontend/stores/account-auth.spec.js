@@ -33,11 +33,9 @@ describe('account-auth store', () => {
         it('initializes with default state', () => {
             const store = useAccountAuthStore()
             expect(store.user).toBeNull()
-            expect(store.pending).toBe(true)
             expect(store.loginInflight).toBe(false)
             expect(store.loginError).toBeNull()
             expect(store.redirectUrlAfterLogin).toBeNull()
-            expect(store.offline).toBeNull()
         })
     })
 
@@ -68,22 +66,6 @@ describe('account-auth store', () => {
             store.login(user)
             expect(store.user).toEqual(user)
             expect(store.loginInflight).toBe(false)
-        })
-    })
-
-    describe('pending', () => {
-        it('clearPending sets pending to false', () => {
-            const store = useAccountAuthStore()
-            store.clearPending()
-            expect(store.pending).toBe(false)
-        })
-
-        it('setPending sets pending to the given value', () => {
-            const store = useAccountAuthStore()
-            store.setPending(false)
-            expect(store.pending).toBe(false)
-            store.setPending(true)
-            expect(store.pending).toBe(true)
         })
     })
 
@@ -124,16 +106,6 @@ describe('account-auth store', () => {
         })
     })
 
-    describe('setOffline', () => {
-        it('sets the offline flag', () => {
-            const store = useAccountAuthStore()
-            store.setOffline(true)
-            expect(store.offline).toBe(true)
-            store.setOffline(false)
-            expect(store.offline).toBe(false)
-        })
-    })
-
     describe('setRedirectUrl', () => {
         it('sets redirectUrlAfterLogin', () => {
             const store = useAccountAuthStore()
@@ -170,16 +142,12 @@ describe('account-auth store', () => {
         it('restores default state', () => {
             const store = useAccountAuthStore()
             store.user = { id: '1' }
-            store.pending = false
             store.loginInflight = true
             store.loginError = { code: 'error' }
-            store.offline = true
             store.$reset()
             expect(store.user).toBeNull()
-            expect(store.pending).toBe(true)
             expect(store.loginInflight).toBe(false)
             expect(store.loginError).toBeNull()
-            expect(store.offline).toBeNull()
         })
 
         it('does not reset redirectUrlAfterLogin (persisted)', () => {

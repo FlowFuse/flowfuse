@@ -27,17 +27,7 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
     actions: {
         reset () {
             if (this.sessionCheckTimer) clearInterval(this.sessionCheckTimer)
-            Object.assign(this, {
-                sessionId: null,
-                messages: [],
-                abortController: null,
-                sessionStartTime: null,
-                sessionWarningShown: false,
-                sessionExpiredShown: false,
-                sessionCheckTimer: null,
-                capabilityServers: [],
-                selectedCapabilities: []
-            })
+            this.$reset()
         },
         setSelectedCapabilities (caps) { this.selectedCapabilities = caps },
         setSessionCheckTimer (timer) { this.sessionCheckTimer = markRaw(timer) },
@@ -52,9 +42,5 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
             const data = await expertApi.getCapabilities({ context: { teamId: team.id } })
             this.capabilityServers = data.servers || []
         }
-    },
-    persist: {
-        pick: ['sessionId'],
-        storage: localStorage
     }
 })
