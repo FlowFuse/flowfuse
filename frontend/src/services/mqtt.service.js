@@ -263,8 +263,6 @@ class MqttService {
         }
 
         return new Promise((resolve, reject) => {
-            console.log('publishing payloaaaaad', { topic, payload, options })
-
             client.publish(topic, payload, options, (err) => {
                 if (err) {
                     if (typeof onError === 'function') onError(err)
