@@ -30,6 +30,9 @@
                     <span class="text-xs font-semibold px-1.5 py-0.5 rounded shrink-0" :class="diffTypeBadgeClass(currentGroup.diffType)">{{ currentGroup.diffType }}</span>
                     <span class="font-semibold text-sm text-gray-800 truncate">{{ currentGroup.name }}</span>
                     <span class="text-xs text-gray-400 shrink-0">{{ currentGroup.type }}</span>
+                    <span v-if="currentGroupTabMove" class="text-xs text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded shrink-0">
+                        {{ currentGroupTabMove.from }} → {{ currentGroupTabMove.to }}
+                    </span>
                 </div>
                 <div v-else class="flex-1 text-sm text-gray-400 text-center">No differences found</div>
                 <span class="text-xs text-gray-400 shrink-0">{{ groupedChanges.length ? `${currentGroupIndex + 1} / ${groupedChanges.length}` : '0' }}</span>
@@ -171,6 +174,15 @@ export default {
         currentGroupChanges () {
             const raw = this.currentGroup?.propChanges || []
             return this.transformChanges(raw)
+        },
+        currentGroupTabMove () {
+            // Returns { from, to } if the current node changed tabs, null otherwise
+            const zChange = this.currentGroup?.propChanges?.find(c => c.prop === 'z')
+            if (!zChange || zChange.value1 === zChange.value2) return null
+            return {
+                from: this.resolveTabName(zChange.value1),
+                to: this.resolveTabName(zChange.value2)
+            }
         }
     },
     beforeUnmount () {
@@ -211,7 +223,7 @@ export default {
             this.changes = this.computeDiff(compareFlow, this.flow)
             this.currentGroupIndex = 0
             this.hasCompared = true
-            this.$nextTick(() => this.highlightCurrent())
+            this.$nextTick(() => this.$nextTick(() => this.highlightCurrent()))
         },
         navigate (dir) {
             const next = this.currentGroupIndex + dir
@@ -222,8 +234,11 @@ export default {
         highlightCurrent () {
             const group = this.currentGroup
             if (!group) return
-            const rc = this.rendererChanges.find(c => c.item === group.nodeId)
-            if (rc?.highlight) rc.highlight()
+            // Highlight all renderer changes for this node — handles nodes that
+            // appear in multiple tabs (e.g. moved from one tab to another)
+            for (const rc of this.rendererChanges) {
+                if (rc.item === group.nodeId && rc.highlight) rc.highlight()
+            }
         },
         diffTypeBadgeClass (diffType) {
             switch (diffType) {
@@ -295,6 +310,9 @@ export default {
                     value2: (v2x !== undefined || v2y !== undefined) ? { x: v2x, y: v2y } : undefined
                 })
             }
+            // Compact props always appear first as a block
+            const compactFirst = (p) => this.isCompactProp(p) ? 0 : 1
+            result.sort((a, b) => compactFirst(a.prop) - compactFirst(b.prop))
             return result
         },
         resolveWires (wires) {
