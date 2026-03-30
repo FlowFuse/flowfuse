@@ -92,6 +92,8 @@ import Alerts from '../../services/alerts.js'
 import SnapshotDiffChangePanel from './SnapshotDiffChangePanel.vue'
 
 const COMPACT_PROPS = new Set(['position', 'z', 'name', 'label', 'type', 'wires'])
+const SIDEBAR_MIN_WIDTH = 200
+const SIDEBAR_MAX_WIDTH = 800
 
 export default {
     name: 'AssetCompareDialog',
@@ -104,6 +106,11 @@ export default {
     },
     setup () {
         return {
+            /**
+             * Shows the compare flows dialog and presents the user with a list of snapshots to compare against
+             * @param {{flows: { flows: [] }}} v1Snapshot - A snapshot object as the base for comparison
+             * @param {Array<{label: string, value: string}>} snapshotList - Snapshots to compare against
+             */
             show (v1Snapshot, snapshotList) {
                 this.payload = v1Snapshot
                 this.compareSnapshot = null
@@ -262,7 +269,7 @@ export default {
         onResize (e) {
             if (!this.resizing) return
             const delta = this.resizeStartX - e.clientX
-            this.sidebarWidth = Math.max(200, Math.min(800, this.resizeStartWidth + delta))
+            this.sidebarWidth = Math.max(SIDEBAR_MIN_WIDTH, Math.min(SIDEBAR_MAX_WIDTH, this.resizeStartWidth + delta))
         },
         stopResize () {
             this.resizing = false
