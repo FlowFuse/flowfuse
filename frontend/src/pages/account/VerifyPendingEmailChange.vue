@@ -1,5 +1,5 @@
 <template>
-    <form v-if="!pending" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
+    <form v-if="!appLoader" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
         <div>
             <ff-button class="m-auto" @click="verify()">Click here to verify your change of email address</ff-button>
         </div>
@@ -13,7 +13,7 @@ import { mapState } from 'pinia'
 import userApi from '../../api/user.js'
 import alerts from '../../services/alerts.js'
 
-import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'VerifyPendingEmailChange',
@@ -21,7 +21,7 @@ export default {
         token: { type: String, required: true }
     },
     computed: {
-        ...mapState(useAccountAuthStore, ['pending'])
+        ...mapState(useUxLoadingStore, ['appLoader'])
     },
     methods: {
         async verify () {

@@ -15,6 +15,7 @@ import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 import { useUxStore } from '@/stores/ux.js'
@@ -61,7 +62,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                 const settings = await settingsApi.getSettings()
                 useAccountSettingsStore().setSettings(settings)
 
-                this.setOffline(false)
+                useUxLoadingStore().setOffline(false)
 
                 const user = await userApi.getUser()
                 this.login(user)
@@ -73,7 +74,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     window.location = '/'
                     return
                 } else if (user.email_verified === false || user.password_expired) {
-                    this.clearPending()
+                    useUxLoadingStore().clearAppLoader()
                     router.push({ name: 'Home' })
                     return
                 }
@@ -87,7 +88,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                 useAccountTeamStore().setTeams(teams.teams)
 
                 if (teams.count === 0) {
-                    this.clearPending()
+                    useUxLoadingStore().clearAppLoader()
                     useAccountTeamStore().setTeam(null)
                     if (/^\/team\//.test(router.currentRoute.value.path)) {
                         router.push({ name: 'Home' })
@@ -121,7 +122,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                         const team = await teamApi.getTeam(teamId || { slug: teamSlug })
                         await useAccountTeamStore().setTeam(team)
                     }
-                    this.clearPending()
+                    useUxLoadingStore().clearAppLoader()
                     if (redirectUrlAfterLogin) {
                         // If this is a user-driven login, take them to the profile page
                         router.push(redirectUrlAfterLogin)
@@ -129,7 +130,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                         nextTick(() => { this.setRedirectUrl(null) })
                     }
                 } catch (teamLoadErr) {
-                    this.clearPending()
+                    useUxLoadingStore().clearAppLoader()
                     // This means the team doesn't exist, or the user doesn't have access
                     router.push({
                         name: 'page-not-found',
@@ -141,7 +142,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                 }
             } catch (err) {
                 // Not logged in
-                this.clearPending()
+                useUxLoadingStore().clearAppLoader()
                 // do we have a user session to clear?
                 if (this.user) {
                     try {
@@ -168,7 +169,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                 } else if (credentials.token) {
                     await userApi.verifyMFAToken(credentials.token)
                 }
-                this.setPending(true)
+                useUxLoadingStore().setAppLoader(true)
                 this.checkState(this.redirectUrlAfterLogin)
             } catch (err) {
                 if (err.response?.status >= 401) {
@@ -183,6 +184,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                 .then(() => {
                     useAccountAuthStore().$reset()
                     useAccountTeamStore().$reset()
+                    useUxLoadingStore().$reset()
                     useAccountSettingsStore().$reset()
                     useUxDialogStore().$reset()
                     useUxToursStore().$reset()
