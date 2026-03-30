@@ -167,7 +167,15 @@ class MqttService {
         }
 
         try {
-            await client.end(true)
+            await new Promise((resolve, reject) => {
+                client.end(true, undefined, (error) => {
+                    if (error) {
+                        reject(error)
+                        return
+                    }
+                    resolve()
+                })
+            })
         } catch (_) {
             // ignore close failures during cleanup
         }
