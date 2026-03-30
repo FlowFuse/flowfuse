@@ -44,11 +44,11 @@
 
 import { mapActions, mapState } from 'pinia'
 import { computed } from 'vue'
-import { mapGetters } from 'vuex'
 
 import StreamableContent from '../resources/StreamableContent.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 
 export default {
     name: 'PackageResourceCard',
@@ -91,7 +91,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('product/expert', ['canManagePalette']),
+        ...mapState(useProductExpertStore, ['canManagePalette']),
         ...mapState(useProductAssistantStore, ['palette']),
         packageFaviconUrl () {
             const url = this.nodePackage.metadata?.streamable?.source || this.nodePackage.url.streamable

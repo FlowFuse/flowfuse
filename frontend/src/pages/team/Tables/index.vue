@@ -45,12 +45,15 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
+
+import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default defineComponent({
     name: 'TeamTables',
@@ -67,7 +70,7 @@ export default defineComponent({
     },
     computed: {
         ...mapGetters('account', ['featuresCheck', 'team', 'pendingTeamChange']),
-        ...mapState('product/tables', ['databases'])
+        ...mapState(useProductTablesStore, ['databases'])
     },
     watch: {
         '$route.params.id': {
@@ -105,7 +108,7 @@ export default defineComponent({
         }
     },
     methods: {
-        ...mapActions('product/tables', ['getDatabases', 'updateDatabaseSelection']),
+        ...mapActions(useProductTablesStore, ['getDatabases', 'updateDatabaseSelection']),
         redirectIfNeeded () {
             if (Object.keys(this.databases).length === 0) {
                 // if the user doesn't have any tables, we'll redirect him to the offering page

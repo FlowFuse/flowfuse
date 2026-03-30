@@ -43,8 +43,8 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
-import { mapActions as mapVuexActions } from 'vuex'
 
+import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 const DRAWER_MIN_WIDTH = 310
@@ -204,7 +204,7 @@ export default {
         }
     },
     methods: {
-        ...mapVuexActions('product/expert', ['openAssistantDrawer']),
+        ...mapActions(useProductExpertStore, ['openAssistantDrawer']),
         ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'togglePinDrawer']),
         closeDrawer () {
             if (this.rightDrawer.state && this.rightDrawer.closeOnClickOutside) {

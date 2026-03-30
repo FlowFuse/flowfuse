@@ -13,7 +13,10 @@ import product from '../../../services/product.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
-import { useProductExpertOperatorAgentStore } from '@/stores/product-expert-operator-agent.js'
+import { useProductExpertSupportAgentStore } from '@/stores/product-expert-support-agent.js'
+
+import { useProductExpertStore } from '@/stores/product-expert.js'
+import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
@@ -528,12 +531,12 @@ const actions = {
                     useUxDrawersStore().$reset()
                     useUxStore().$reset()
                     useContextStore().$reset()
-                    // Task 6:  useProductTablesStore().$reset()
+                    useProductTablesStore().$reset()
                     // Task 7:  useProductBrokersStore().$reset()
                     useProductAssistantStore().$reset()
+                    useProductExpertSupportAgentStore().$reset()
                     useProductExpertInsightsAgentStore().$reset()
-                    useProductExpertOperatorAgentStore().$reset()
-                    // Task 11: useProductExpertStore().$reset()
+                    useProductExpertStore().$reset()
                 }
             })
             .catch(_ => {})
@@ -605,8 +608,8 @@ const actions = {
             })
             .catch(_ => {})
     },
-    async clearOtherStores (state) {
-        await state.dispatch('product/tables/clearState', null, { root: true })
+    clearOtherStores () {
+        useProductTablesStore().clearState()
     },
     async checkIfAuthenticated ({ commit }) {
         return userApi.getUser()

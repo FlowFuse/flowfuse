@@ -8,12 +8,14 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions } from 'pinia'
 
 import useStreamingWords from '../../../../../../composables/strings/StreamingWords.js'
 import { sanitize } from '../../../../../../composables/strings/String.js'
 
 import StreamableContent from './StreamableContent.vue'
+
+import { useProductExpertStore } from '@/stores/product-expert.js'
 
 export default {
     name: 'RichContent',
@@ -54,7 +56,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('product/expert', ['updateAnswerStreamedState']),
+        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState']),
         async onStreamComplete () {
             await this.updateAnswerStreamedState({
                 messageUuid: this.messageUuid,

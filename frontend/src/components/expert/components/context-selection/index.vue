@@ -1,17 +1,16 @@
 <template>
     <div class="context-selector-container">
-        <context-selector-button v-if="!isOperatorAgent" />
+        <context-selector-button v-if="!isInsightsAgent" />
         <div class="chips-container" @wheel="horizontalScrolling">
             <context-chip v-for="(context, index) in selectedContextFiltered" :key="index" :contextItem="context" />
-            <debug-chip v-if="hasDebugLogsSelected && !isOperatorAgent" />
-            <selection-chip v-if="hasUserSelection && !isOperatorAgent" />
+            <debug-chip v-if="hasDebugLogsSelected && !isInsightsAgent" />
+            <selection-chip v-if="hasUserSelection && !isInsightsAgent" />
         </div>
     </div>
 </template>
 
 <script>
 import { mapState } from 'pinia'
-import { mapGetters } from 'vuex'
 
 import ContextChip from '../chips/ContextChip.vue'
 import DebugChip from '../chips/DebugChip.vue'
@@ -20,6 +19,7 @@ import SelectionChip from '../chips/SelectionChip.vue'
 import ContextSelectorButton from './ContextSelectorButton.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 
 export default {
     name: 'ContextSelector',
@@ -31,10 +31,10 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, ['getSelectedContext', 'hasDebugLogsSelected', 'hasUserSelection']),
-        ...mapGetters('product/expert', ['isOperatorAgent']),
+        ...mapState(useProductExpertStore, ['isInsightsAgent']),
         selectedContext () {
             // for insights mode, return empty array
-            if (this.isOperatorAgent) {
+            if (this.isInsightsAgent) {
                 return []
             }
             return this.getSelectedContext
