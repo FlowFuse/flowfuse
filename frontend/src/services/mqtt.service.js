@@ -450,6 +450,19 @@ class MqttService {
 
     /**
      * @param {unknown} payload
+     * @param {'auto' | 'json'} mode
+     * @returns {string}
+     */
+    stringifyPayload (payload, mode) {
+        try {
+            return JSON.stringify(payload)
+        } catch (error) {
+            throw new TypeError(`Failed to serialize MQTT payload in "${mode}" mode: ${error.message}`)
+        }
+    }
+
+    /**
+     * @param {unknown} payload
      * @param {'auto' | 'raw' | 'json' | 'string'} [serialize='auto']
      * @returns {string | Buffer | Uint8Array}
      */
@@ -459,7 +472,7 @@ class MqttService {
         }
 
         if (serialize === 'json') {
-            return JSON.stringify(payload)
+            return this.stringifyPayload(payload, 'json')
         }
 
         if (serialize === 'string') {
@@ -483,7 +496,7 @@ class MqttService {
         }
 
         if (Array.isArray(payload) || this.isPlainObject(payload)) {
-            return JSON.stringify(payload)
+            return this.stringifyPayload(payload, 'auto')
         }
 
         throw new TypeError('Unsupported MQTT payload type for auto serialization')

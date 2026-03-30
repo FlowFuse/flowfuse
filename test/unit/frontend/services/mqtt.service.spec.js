@@ -208,4 +208,31 @@ describe('MqttService', async () => {
             expect.any(Function)
         )
     })
+
+    test('publishMessage rejects circular payloads with clear serialization error', async () => {
+        const service = createMqttService({
+            app: {},
+            store: {},
+            router: {}
+        })
+
+        const client = createMockClient()
+        mockConnect.mockReturnValueOnce(client)
+
+        await service.createClient('circular-key', { url: 'mqtt://example.com' })
+
+        const circularPayload = { state: 'bad' }
+        circularPayload.self = circularPayload
+
+        await expect(service.publishMessage('circular-key', {
+            topic: 'circular/auto',
+            payload: circularPayload
+        })).rejects.toThrow('Failed to serialize MQTT payload in "auto" mode')
+
+        await expect(service.publishMessage('circular-key', {
+            topic: 'circular/json',
+            payload: circularPayload,
+            serialize: 'json'
+        })).rejects.toThrow('Failed to serialize MQTT payload in "json" mode')
+    })
 })
