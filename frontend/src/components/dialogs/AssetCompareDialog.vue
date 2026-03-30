@@ -61,8 +61,10 @@
                         v-for="change in currentGroupChanges"
                         :key="change.prop"
                         :prop="change.prop"
+                        :label="change.label"
                         :value1="change.value1"
                         :value2="change.value2"
+                        :compact="isCompactProp(change.prop)"
                     />
                 </div>
             </div>
@@ -160,7 +162,8 @@ export default {
             return this.groupedChanges[this.currentGroupIndex] || null
         },
         currentGroupChanges () {
-            return this.currentGroup?.propChanges || []
+            const raw = this.currentGroup?.propChanges || []
+            return this.transformChanges(raw)
         }
     },
     watch: {
@@ -223,6 +226,64 @@ export default {
             while (this.$refs.compareViewer?.firstChild) {
                 this.$refs.compareViewer.removeChild(this.$refs.compareViewer.firstChild)
             }
+        },
+        isCompactProp (prop) {
+            return ['position', 'z', 'name', 'label', 'type', 'wires'].includes(prop)
+        },
+        transformChanges (changes) {
+            const result = []
+            let xChange = null
+            let yChange = null
+            for (const c of changes) {
+                if (c.prop === 'x') { xChange = c; continue }
+                if (c.prop === 'y') { yChange = c; continue }
+                if (c.prop === 'z') {
+                    result.push({
+                        prop: 'z',
+                        label: 'tab',
+                        value1: this.resolveTabName(c.value1),
+                        value2: this.resolveTabName(c.value2)
+                    })
+                    continue
+                }
+                if (c.prop === 'wires') {
+                    result.push({
+                        prop: 'wires',
+                        value1: this.resolveWires(c.value1),
+                        value2: this.resolveWires(c.value2)
+                    })
+                    continue
+                }
+                result.push(c)
+            }
+            if (xChange || yChange) {
+                const v1x = xChange?.value1
+                const v1y = yChange?.value1
+                const v2x = xChange?.value2
+                const v2y = yChange?.value2
+                result.push({
+                    prop: 'position',
+                    value1: (v1x !== undefined || v1y !== undefined) ? { x: v1x, y: v1y } : undefined,
+                    value2: (v2x !== undefined || v2y !== undefined) ? { x: v2x, y: v2y } : undefined
+                })
+            }
+            return result
+        },
+        resolveWires (wires) {
+            if (!Array.isArray(wires)) return wires
+            return wires.map(outputs =>
+                Array.isArray(outputs)
+                    ? outputs.map(id => {
+                        const node = this.nodeMap[id]
+                        return node ? (node.name || node.label || id) : id
+                    })
+                    : outputs
+            )
+        },
+        resolveTabName (tabId) {
+            if (!tabId) return tabId
+            const tab = this.nodeMap[tabId]
+            return tab ? (tab.label || tabId) : tabId
         },
         computeDiff (flow1, flow2) {
             const SKIP = new Set(['id'])

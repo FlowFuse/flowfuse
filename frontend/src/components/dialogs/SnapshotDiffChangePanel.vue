@@ -1,46 +1,69 @@
 <template>
-    <div class="font-mono text-xs border-b border-gray-200 overflow-hidden">
-        <!-- Collapsible header -->
-        <div
-            class="px-3 py-1 text-xs bg-gray-50 border-b border-gray-100 text-gray-500 sticky top-0 flex items-center gap-1 cursor-pointer select-none hover:bg-gray-100"
-            @click="collapsed = !collapsed"
-        >
-            <svg
-                class="w-2.5 h-2.5 text-gray-400 transition-transform duration-150 flex-shrink-0"
-                :class="{ 'rotate-90': !collapsed }"
-                viewBox="0 0 20 20" fill="currentColor"
+    <div class="text-xs border-b border-gray-200 overflow-hidden">
+        <!-- ── Compact mode (structural props: name, type, position, wires, tab …) ── -->
+        <div v-if="compact" class="flex items-start gap-3 px-3 py-2">
+            <span class="text-gray-500 shrink-0 w-20 pt-0.5 truncate">{{ label ?? prop }}</span>
+            <div class="flex-1 flex flex-wrap items-center gap-1.5">
+                <template v-for="(seg, i) in compactSegments" :key="i">
+                    <span v-if="seg.type === 'arrow'" class="text-gray-400">→</span>
+                    <span v-else-if="seg.type === 'sep'" class="text-gray-300">|</span>
+                    <span
+                        v-else
+                        class="px-1.5 py-0.5 rounded font-mono"
+                        :class="{
+                            'bg-red-50 text-red-700 line-through': seg.kind === 'removed',
+                            'bg-green-50 text-green-700': seg.kind === 'added',
+                            'bg-gray-100 text-gray-600': seg.kind === 'unchanged'
+                        }"
+                    >{{ seg.text }}</span>
+                </template>
+            </div>
+        </div>
+
+        <!-- ── Git diff mode ── -->
+        <template v-else>
+            <!-- Collapsible header -->
+            <div
+                class="px-3 py-1 bg-gray-50 border-b border-gray-100 text-gray-500 sticky top-0 flex items-center gap-1 cursor-pointer select-none hover:bg-gray-100"
+                @click="collapsed = !collapsed"
             >
-                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-            </svg>
-            <span>property</span>
-            <span class="font-semibold text-gray-700">{{ label ?? prop }}</span>
-            <span class="ml-auto text-gray-400">{{ changeSummary }}</span>
-        </div>
-        <div v-show="!collapsed" ref="content">
-            <template v-for="(line, i) in lines" :key="i">
-                <!-- Collapsed unchanged section -->
-                <div
-                    v-if="line.type === 'collapsed'"
-                    class="flex leading-5 text-blue-600 bg-blue-50 cursor-pointer hover:bg-blue-100 select-none border-y border-blue-100"
-                    @click="expandSection(i)"
+                <svg
+                    class="w-2.5 h-2.5 text-gray-400 transition-transform duration-150 flex-shrink-0"
+                    :class="{ 'rotate-90': !collapsed }"
+                    viewBox="0 0 20 20" fill="currentColor"
                 >
-                    <span class="line-num border-r border-blue-200 text-blue-400" />
-                    <span class="line-num border-r border-blue-200 text-blue-400" />
-                    <span class="px-3 flex-1 text-center">&#8597; {{ line.count }} unchanged lines</span>
-                </div>
-                <!-- Diff line -->
-                <div
-                    v-else
-                    :class="lineClass(line)"
-                    :data-change="line.type !== 'unchanged' || undefined"
-                    class="flex leading-5"
-                >
-                    <span class="line-num border-r select-none" :class="lineNumClass(line)">{{ line.oldNum || '' }}</span>
-                    <span class="line-num border-r select-none" :class="lineNumClass(line)">{{ line.newNum || '' }}</span>
-                    <span class="px-2 whitespace-pre flex-1">{{ linePrefix(line) }}{{ line.text }}</span>
-                </div>
-            </template>
-        </div>
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+                <span>property</span>
+                <span class="font-semibold text-gray-700">{{ label ?? prop }}</span>
+                <span class="ml-auto text-gray-400">{{ changeSummary }}</span>
+            </div>
+            <div v-show="!collapsed" ref="content" class="overflow-x-auto font-mono">
+                <template v-for="(line, i) in lines" :key="i">
+                    <!-- Collapsed unchanged section -->
+                    <div
+                        v-if="line.type === 'collapsed'"
+                        class="flex leading-5 text-blue-600 bg-blue-50 cursor-pointer hover:bg-blue-100 select-none border-y border-blue-100"
+                        @click="expandSection(i)"
+                    >
+                        <span class="line-num border-r border-blue-200 text-blue-400" />
+                        <span class="line-num border-r border-blue-200 text-blue-400" />
+                        <span class="px-3 flex-1 text-center">&#8597; {{ line.count }} unchanged lines</span>
+                    </div>
+                    <!-- Diff line -->
+                    <div
+                        v-else
+                        :class="lineClass(line)"
+                        :data-change="line.type !== 'unchanged' || undefined"
+                        class="flex leading-5"
+                    >
+                        <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.oldNum || '' }}</span>
+                        <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.newNum || '' }}</span>
+                        <span class="px-2 whitespace-pre">{{ linePrefix(line) }}{{ line.text }}</span>
+                    </div>
+                </template>
+            </div>
+        </template>
     </div>
 </template>
 
@@ -56,6 +79,7 @@ export default {
         label: { type: String, default: null },
         value1: { default: undefined },
         value2: { default: undefined },
+        compact: { type: Boolean, default: false },
         autoScrollToFirst: { type: Boolean, default: false }
     },
     data () {
@@ -69,6 +93,44 @@ export default {
             if (added) return `+${added}`
             if (removed) return `-${removed}`
             return ''
+        },
+        compactSegments () {
+            const f1 = this.formatCompact(this.value1)
+            const f2 = this.formatCompact(this.value2)
+            const segments = []
+
+            // Wires: array-of-arrays → show per output port
+            if (Array.isArray(this.value1) || Array.isArray(this.value2)) {
+                const w1 = Array.isArray(this.value1) ? this.value1 : []
+                const w2 = Array.isArray(this.value2) ? this.value2 : []
+                const len = Math.max(w1.length, w2.length)
+                for (let i = 0; i < len; i++) {
+                    if (i > 0) segments.push({ type: 'sep' })
+                    const port1 = w1[i]
+                    const port2 = w2[i]
+                    const s1 = port1 ? this.formatWirePort(port1) : null
+                    const s2 = port2 ? this.formatWirePort(port2) : null
+                    if (s1 === s2) {
+                        if (s1) segments.push({ type: 'value', kind: 'unchanged', text: s1 })
+                    } else {
+                        if (s1) segments.push({ type: 'value', kind: 'removed', text: s1 })
+                        if (s1 && s2) segments.push({ type: 'arrow' })
+                        if (s2) segments.push({ type: 'value', kind: 'added', text: s2 })
+                    }
+                }
+                if (!segments.length) segments.push({ type: 'value', kind: 'unchanged', text: '(empty)' })
+                return segments
+            }
+
+            // Scalar / object
+            if (f1 === f2) {
+                segments.push({ type: 'value', kind: 'unchanged', text: f1 || '—' })
+            } else {
+                if (f1) segments.push({ type: 'value', kind: 'removed', text: f1 })
+                if (f1 && f2) segments.push({ type: 'arrow' })
+                if (f2) segments.push({ type: 'value', kind: 'added', text: f2 })
+            }
+            return segments
         }
     },
     watch: {
@@ -82,13 +144,12 @@ export default {
     },
     methods: {
         rebuildLines () {
-            this.lines = this.buildLines()
+            if (!this.compact) this.lines = this.buildLines()
         },
         buildLines () {
             const v1 = this.stringify(this.value1)
             const v2 = this.stringify(this.value2)
 
-            // Single-line: just show before/after without line numbers
             if (!v1.includes('\n') && !v2.includes('\n')) {
                 const result = []
                 if (v1 !== '') result.push({ type: 'removed', text: v1, oldNum: 1, newNum: null })
@@ -96,23 +157,17 @@ export default {
                 return result
             }
 
-            // Flatten diffLines parts into per-line objects with line numbers
             const flat = []
             let oldNum = 1
             let newNum = 1
             for (const part of diffLines(v1, v2)) {
                 const type = part.added ? 'added' : part.removed ? 'removed' : 'unchanged'
                 for (const text of part.value.replace(/\n$/, '').split('\n')) {
-                    if (type === 'removed') {
-                        flat.push({ type, text, oldNum: oldNum++, newNum: null })
-                    } else if (type === 'added') {
-                        flat.push({ type, text, oldNum: null, newNum: newNum++ })
-                    } else {
-                        flat.push({ type, text, oldNum: oldNum++, newNum: newNum++ })
-                    }
+                    if (type === 'removed') flat.push({ type, text, oldNum: oldNum++, newNum: null })
+                    else if (type === 'added') flat.push({ type, text, oldNum: null, newNum: newNum++ })
+                    else flat.push({ type, text, oldNum: oldNum++, newNum: newNum++ })
                 }
             }
-
             return this.collapseContext(flat)
         },
         collapseContext (flat) {
@@ -150,11 +205,21 @@ export default {
             return result
         },
         expandSection (index) {
-            // Replace the collapsed marker with the actual line objects (which already have line numbers)
             this.lines.splice(index, 1, ...this.lines[index].hiddenLines)
         },
         scrollToFirstChange () {
             this.$refs.content?.querySelector('[data-change]')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+        },
+        formatCompact (v) {
+            if (v === undefined || v === null) return ''
+            if (typeof v === 'object' && 'x' in v && 'y' in v) return `(${v.x}, ${v.y})`
+            if (typeof v === 'object') return JSON.stringify(v)
+            return String(v)
+        },
+        formatWirePort (port) {
+            if (!Array.isArray(port)) return String(port)
+            if (port.length === 0) return '(none)'
+            return port.join(', ')
         },
         stringify (v) {
             if (v === undefined || v === null) return ''
