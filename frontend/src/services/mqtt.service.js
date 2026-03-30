@@ -352,6 +352,10 @@ class MqttService {
             return Promise.resolve()
         }
 
+        if (!managed.client.connected) {
+            return Promise.reject(new Error(`MQTT connection "${key}" is not connected`))
+        }
+
         return new Promise((resolve, reject) => {
             managed.client.unsubscribe(topic, (err) => {
                 if (err) {
