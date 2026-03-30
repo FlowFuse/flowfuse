@@ -31,7 +31,7 @@ module.exports = async function (app) {
                     const noPermissions = request.body?.permissions === undefined
                     if (await app.sso.isUserMembershipManaged(request.user, request.team) && noPermissions) {
                         // The user's membership for this team is sso managed - do not allow api changes to be applied
-                        reply.code(400).send({ code: 'invalid_request', error: 'Cannot modify team membershipt for an SSO managed user' })
+                        reply.code(400).send({ code: 'invalid_request', error: 'Cannot modify team membership for an SSO managed user' })
                         // eslint-disable-next-line no-useless-return
                         return
                     }

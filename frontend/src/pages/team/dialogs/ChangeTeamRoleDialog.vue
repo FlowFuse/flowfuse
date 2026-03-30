@@ -51,6 +51,10 @@ export default {
                     alerts.emit("User's role successfully updated", 'confirmation')
                 } catch (err) {
                     console.warn(err)
+                    if (err.response?.status === 400 && err.response?.data.error === 'Cannot modify team membership for an SSO managed user') {
+                        alerts.emit("User's roles are managed by SSO Groups")
+                    }
+                    
                 }
             }
         }
