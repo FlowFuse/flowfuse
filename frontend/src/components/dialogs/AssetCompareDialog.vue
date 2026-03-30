@@ -80,49 +80,57 @@
                         </div>
                         <!-- Node body (hidden when collapsed) -->
                         <template v-if="!collapsedNodes.has(group.nodeId)">
-                            <template v-if="group.diffType === 'changed'">
-                                <!-- Libraries -->
-                                <template v-if="group.libsDiff">
-                                    <div class="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Libraries</div>
-                                    <SnapshotDiffChangePanel prop="libs" :value1="group.libsDiff.v1" :value2="group.libsDiff.v2" />
-                                </template>
-                                <!-- Code -->
-                                <template v-if="group.categorizedChanges.code.length">
-                                    <div class="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Code</div>
-                                    <SnapshotDiffChangePanel
-                                        v-for="(change, ci) in group.categorizedChanges.code"
-                                        :key="change.prop"
-                                        :prop="change.prop"
-                                        :value1="change.value1"
-                                        :value2="change.value2"
-                                        :auto-scroll-to-first="gi === 0 && ci === 0 && !group.libsDiff"
-                                    />
-                                </template>
-                                <!-- Wires -->
-                                <template v-if="group.categorizedChanges.wires.length">
-                                    <div class="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Wires</div>
-                                    <SnapshotDiffChangePanel
-                                        v-for="change in group.categorizedChanges.wires"
-                                        :key="change.prop"
-                                        :prop="change.prop"
-                                        :value1="change.value1"
-                                        :value2="change.value2"
-                                    />
-                                </template>
-                                <!-- Properties -->
-                                <template v-if="group.categorizedChanges.properties.length">
-                                    <div class="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Properties</div>
-                                    <SnapshotDiffChangePanel
-                                        v-for="change in group.categorizedChanges.properties"
-                                        :key="change.prop"
-                                        :prop="change.prop"
-                                        :value1="change.value1"
-                                        :value2="change.value2"
-                                    />
-                                </template>
+                            <!-- Libraries -->
+                            <template v-if="group.categorizedChanges.libraries.length">
+                                <div class="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Libraries</div>
+                                <SnapshotDiffChangePanel
+                                    v-for="change in group.categorizedChanges.libraries"
+                                    :key="change.prop"
+                                    :prop="change.prop"
+                                    :value1="change.value1"
+                                    :value2="change.value2"
+                                />
                             </template>
-                            <div v-else class="px-3 py-2 text-xs text-gray-400 italic">
-                                {{ group.diffType === 'added' ? 'Node was added to the flow.' : group.diffType === 'deleted' ? 'Node was removed from the flow.' : '' }}
+                            <!-- Code -->
+                            <template v-if="group.categorizedChanges.code.length">
+                                <div class="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Code</div>
+                                <SnapshotDiffChangePanel
+                                    v-for="(change, ci) in group.categorizedChanges.code"
+                                    :key="change.prop"
+                                    :prop="change.prop"
+                                    :value1="change.value1"
+                                    :value2="change.value2"
+                                    :auto-scroll-to-first="gi === 0 && ci === 0 && !group.categorizedChanges.libraries.length"
+                                />
+                            </template>
+                            <!-- Wires -->
+                            <template v-if="group.categorizedChanges.wires.length">
+                                <div class="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Wires</div>
+                                <SnapshotDiffChangePanel
+                                    v-for="change in group.categorizedChanges.wires"
+                                    :key="change.prop"
+                                    :prop="change.prop"
+                                    :value1="change.value1"
+                                    :value2="change.value2"
+                                />
+                            </template>
+                            <!-- Properties -->
+                            <template v-if="group.categorizedChanges.properties.length">
+                                <div class="px-3 pt-2 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Properties</div>
+                                <SnapshotDiffChangePanel
+                                    v-for="change in group.categorizedChanges.properties"
+                                    :key="change.prop"
+                                    :prop="change.prop"
+                                    :value1="change.value1"
+                                    :value2="change.value2"
+                                />
+                            </template>
+                            <!-- Fallback -->
+                            <div
+                                v-if="!group.categorizedChanges.libraries.length && !group.categorizedChanges.code.length && !group.categorizedChanges.wires.length && !group.categorizedChanges.properties.length"
+                                class="px-3 py-2 text-xs text-gray-400 italic"
+                            >
+                                Visual or positional changes only — see the Flow tab for details.
                             </div>
                         </template>
                     </div>
@@ -210,10 +218,10 @@ export default {
             return this.payload?.name || this.title || 'Flow'
         },
         groupedChanges () {
-            const CODE_PROPS = new Set(['func', 'initialize', 'finalize'])
+            const CODE_PROPS = new Set(['func', 'initialize', 'finalize', 'template'])
+            const SKIP_PROPS = new Set(['id', 'x', 'y', 'z', 'type', 'name', 'label'])
             const groups = new Map()
             for (const change of this.changes) {
-                if (change.diffType === 'positionChanged') continue
                 const key = change.item
                 if (!groups.has(key)) {
                     const node = this.nodeMap[key] || {}
@@ -223,30 +231,29 @@ export default {
                         type: node.type || '',
                         diffType: change.diffType,
                         movedTo: null,
-                        libsDiff: null,
                         categorizedChanges: { libraries: [], code: [], wires: [], properties: [] }
                     })
                 }
                 const group = groups.get(key)
+                const categorize = (prop, v1, v2) => {
+                    if (prop === 'libs') group.categorizedChanges.libraries.push({ prop, value1: v1, value2: v2 })
+                    else if (CODE_PROPS.has(prop)) group.categorizedChanges.code.push({ prop, value1: v1, value2: v2 })
+                    else if (prop === 'wires') group.categorizedChanges.wires.push({ prop, value1: v1, value2: v2 })
+                    else group.categorizedChanges.properties.push({ prop, value1: v1, value2: v2 })
+                }
                 if (change.diffType === 'added' || change.diffType === 'deleted') {
                     group.diffType = change.diffType
-                } else if (change.diffType === 'moved') {
-                    group.movedTo = this.nodeMap[change.value2]?.label || change.value2
-                } else if (change.diffType === 'changed' && change.value1 !== change.value2) {
-                    const { prop } = change
-                    if (/^libs\[/.test(prop)) group.categorizedChanges.libraries.push(change)
-                    else if (CODE_PROPS.has(prop)) group.categorizedChanges.code.push(change)
-                    else if (/^wires\[/.test(prop)) group.categorizedChanges.wires.push(change)
-                    else group.categorizedChanges.properties.push(change)
+                    const node = this.nodeMap[key] || {}
+                    for (const [prop, val] of Object.entries(node)) {
+                        if (SKIP_PROPS.has(prop) || prop.startsWith('_')) continue
+                        const isAdded = change.diffType === 'added'
+                        categorize(prop, isAdded ? undefined : val, isAdded ? val : undefined)
+                    }
+                } else if (change.diffType === 'changed') {
+                    categorize(change.prop, change.value1, change.value2)
                 }
             }
-            const result = [...groups.values()]
-            for (const group of result) {
-                if (group.categorizedChanges.libraries.length) {
-                    group.libsDiff = this.buildLibsDiff(group.categorizedChanges.libraries)
-                }
-            }
-            return result
+            return [...groups.values()]
         }
     },
     watch: {
@@ -287,7 +294,7 @@ export default {
             const result = flowRenderer.compare([compareFlow, this.flow], {
                 container: this.$refs.compareViewer
             })
-            this.changes = result?.changes || []
+            this.changes = this.computeDiff(compareFlow, this.flow)
             this.hasCompared = true
             this.collapsedNodes = new Set()
             this.allCollapsed = false
@@ -321,20 +328,41 @@ export default {
             this.collapsedNodes = new Set()
             this.allCollapsed = false
         },
-        buildLibsDiff (libraryChanges) {
-            const entries = {}
-            for (const change of libraryChanges) {
-                const match = change.prop.match(/^libs\[(\d+)\]$/)
-                if (match) entries[match[1]] = { value1: change.value1, value2: change.value2 }
+        computeDiff (flow1, flow2) {
+            // flow1 = older (compareSnapshot), flow2 = newer (this.flow)
+            // Returns change objects compatible with groupedChanges expectations
+            const SKIP = new Set(['id', 'x', 'y', 'z', '_'])
+            const map1 = {}
+            const map2 = {}
+            for (const n of flow1) { if (n.id) map1[n.id] = n }
+            for (const n of flow2) { if (n.id) map2[n.id] = n }
+
+            const changes = []
+
+            // Deleted (in older, not in newer)
+            for (const id of Object.keys(map1)) {
+                if (!map2[id]) changes.push({ item: id, diffType: 'deleted', prop: '', value1: 'deleted', value2: '' })
             }
-            const v1Lines = []
-            const v2Lines = []
-            for (const idx of Object.keys(entries).sort((a, b) => +a - +b)) {
-                const { value1, value2 } = entries[idx]
-                if (value1 && typeof value1 === 'object') v1Lines.push(`${value1.var} = require("${value1.module}")`)
-                if (value2 && typeof value2 === 'object') v2Lines.push(`${value2.var} = require("${value2.module}")`)
+            // Added (in newer, not in older)
+            for (const id of Object.keys(map2)) {
+                if (!map1[id]) changes.push({ item: id, diffType: 'added', prop: '', value1: '', value2: 'added' })
             }
-            return { v1: v1Lines.join('\n'), v2: v2Lines.join('\n') }
+            // Changed
+            for (const id of Object.keys(map1)) {
+                if (!map2[id]) continue
+                const n1 = map1[id]
+                const n2 = map2[id]
+                const props = new Set([...Object.keys(n1), ...Object.keys(n2)])
+                for (const prop of props) {
+                    if (SKIP.has(prop)) continue
+                    const v1 = n1[prop]
+                    const v2 = n2[prop]
+                    if (JSON.stringify(v1) !== JSON.stringify(v2)) {
+                        changes.push({ item: id, diffType: 'changed', prop, value1: v1, value2: v2 })
+                    }
+                }
+            }
+            return changes
         }
     }
 }

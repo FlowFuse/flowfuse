@@ -1,10 +1,22 @@
 <template>
     <div class="font-mono text-xs border-b border-gray-200 overflow-hidden">
-        <div class="px-3 py-1 text-xs bg-gray-50 border-b border-gray-100 text-gray-500 sticky top-0 flex items-center gap-1">
+        <!-- Collapsible header -->
+        <div
+            class="px-3 py-1 text-xs bg-gray-50 border-b border-gray-100 text-gray-500 sticky top-0 flex items-center gap-1 cursor-pointer select-none hover:bg-gray-100"
+            @click="collapsed = !collapsed"
+        >
+            <svg
+                class="w-2.5 h-2.5 text-gray-400 transition-transform duration-150 flex-shrink-0"
+                :class="{ 'rotate-90': !collapsed }"
+                viewBox="0 0 20 20" fill="currentColor"
+            >
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
             <span>property</span>
             <span class="font-semibold text-gray-700">{{ label ?? prop }}</span>
+            <span class="ml-auto text-gray-400">{{ changeSummary }}</span>
         </div>
-        <div ref="content">
+        <div v-show="!collapsed" ref="content">
             <template v-for="(line, i) in lines" :key="i">
                 <!-- Collapsed unchanged section -->
                 <div
@@ -47,7 +59,17 @@ export default {
         autoScrollToFirst: { type: Boolean, default: false }
     },
     data () {
-        return { lines: [] }
+        return { lines: [], collapsed: true }
+    },
+    computed: {
+        changeSummary () {
+            const added = this.lines.filter(l => l.type === 'added').length
+            const removed = this.lines.filter(l => l.type === 'removed').length
+            if (added && removed) return `+${added} -${removed}`
+            if (added) return `+${added}`
+            if (removed) return `-${removed}`
+            return ''
+        }
     },
     watch: {
         value1: { immediate: true, handler: 'rebuildLines' },
