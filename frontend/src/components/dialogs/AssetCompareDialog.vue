@@ -168,8 +168,9 @@ export default {
                     const node = this.nodeMap[key] || {}
                     const isAdded = change.diffType === 'added'
                     for (const [prop, val] of Object.entries(node)) {
-                        // Skip id (internal), type (shown in nav header), and z (tab shown in nav header)
-                        if (prop === 'id' || prop === 'type' || prop === 'z') continue
+                        // Skip id (internal) and props already represented in the nav header:
+                        // type (shown as badge), name/label (shown as node display name), z (tab)
+                        if (prop === 'id' || prop === 'type' || prop === 'z' || prop === 'name' || prop === 'label') continue
                         group.propChanges.push({ prop, value1: isAdded ? undefined : val, value2: isAdded ? val : undefined })
                     }
                 } else if (change.diffType === 'changed') {
