@@ -201,7 +201,7 @@ module.exports = async function (app) {
     })
 
     /**
-     * Test is user already has a npm password
+     * create an Auth Token for user to generate a npm password
      *
      * @name /api/v1/teams/:teamId/npm/userToken
      * @memberof forge.routes.api.team.npm
