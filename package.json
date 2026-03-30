@@ -101,7 +101,7 @@
         "marked": "^15.0.7",
         "mqtt": "^5.1.1",
         "mqtt-match": "^3.0.0",
-        "nodemailer": "^7.0.9",
+        "nodemailer": "^8.0.4",
         "pg": "^8.11.3",
         "pinia": "3.0.4",
         "pinia-plugin-persistedstate": "4.7.1",
