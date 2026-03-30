@@ -28,7 +28,7 @@ const allowedOrigins = ['https://flowfuse.com', 'https://app.flowfuse.com', 'htt
  * Messaging Service - Handles postMessage communication
  * @class
  */
-class MessagingService {
+class PostMessageService {
     /**
      * @type {import('vue').App} - Vue app instance
      */
@@ -225,7 +225,7 @@ let MessagingServiceInstance = null
 /**
  * Get or create the MessagingService singleton instance
  * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options - Constructor options
- * @returns {MessagingService}
+ * @returns {PostMessageService}
  */
 export function createMessagingService ({
     app,
@@ -234,7 +234,7 @@ export function createMessagingService ({
     services = {}
 } = {}) {
     if (!MessagingServiceInstance) {
-        MessagingServiceInstance = new MessagingService({
+        MessagingServiceInstance = new PostMessageService({
             app,
             store,
             router,
@@ -246,6 +246,6 @@ export function createMessagingService ({
 }
 
 /**
- * @returns {MessagingService}
+ * @returns {PostMessageService}
  */
 export default createMessagingService

@@ -1,6 +1,6 @@
 import { createBootstrapService } from './bootstrap.service.js'
 import { createMqttService, destroyMqttService } from './mqtt.service.js'
-import { createMessagingService } from './post-messaging.service.js'
+import { createMessagingService } from './post-message.service.js'
 
 /**
  * Service Factory - Manages service creation with dependency injection
@@ -8,7 +8,7 @@ import { createMessagingService } from './post-messaging.service.js'
 class ServicesOrchestrator {
     /** @typedef {{
      bootstrap: import('./bootstrap.service.js').BootstrapService|null,
-     messaging: import('./post-messaging.service.js').PostMessagingService|null,
+     messaging: import('./post-message.service.js').PostMessageService|null,
      mqtt: import('./mqtt.service.js').MqttService|null
      }} ServiceInstances */
     $serviceInstances = {
