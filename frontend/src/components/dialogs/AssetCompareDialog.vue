@@ -51,7 +51,7 @@
                 <div
                     ref="compareViewer"
                     data-el="ff-flow-compare-view"
-                    class="flex-1 min-w-0 pt-4"
+                    class="ff-flow-compare-view flex-1 min-w-0 pt-4"
                     @click.stop.prevent
                 >&nbsp;</div>
 
@@ -223,7 +223,11 @@ export default {
 
             const flowRenderer = new FlowRenderer()
             const result = flowRenderer.compare([compareFlow, this.flow], {
-                container: this.$refs.compareViewer
+                container: this.$refs.compareViewer,
+                // Explicit scope prevents the renderer from using Tailwind utility
+                // classes (e.g. flex-1) as CSS selectors, which would leak
+                // svg sizing rules to the rest of the page.
+                scope: 'ff-flow-compare-view'
             })
             this.rendererChanges = result?.changes || []
             this.changes = this.computeDiff(compareFlow, this.flow)
