@@ -126,7 +126,7 @@ export default {
             this.loading.credentials = true
             try {
                 const creds = await TeamAPI.generateRegistryUserToken(this.team.id)
-                this.credentials.username = creds.data.username
+                this.credentials.username = creds.data.username.toLowerCase()
                 this.credentials.token = creds.data.token
             } catch (err) {
                 console.error(err)

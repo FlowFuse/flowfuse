@@ -19,6 +19,7 @@ import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 import { useUxStore } from '@/stores/ux.js'
@@ -33,7 +34,7 @@ const actions = {
             const settings = await settingsApi.getSettings()
             useAccountSettingsStore().setSettings(settings)
 
-            useAccountAuthStore().setOffline(false)
+            useUxLoadingStore().setOffline(false)
 
             const user = await userApi.getUser()
             useAccountAuthStore().login(user)
@@ -45,7 +46,7 @@ const actions = {
                 window.location = '/'
                 return
             } else if (user.email_verified === false || user.password_expired) {
-                useAccountAuthStore().clearPending()
+                useUxLoadingStore().clearAppLoader()
                 router.push({ name: 'Home' })
                 return
             }
@@ -59,7 +60,7 @@ const actions = {
             useAccountTeamStore().setTeams(teams.teams)
 
             if (teams.count === 0) {
-                useAccountAuthStore().clearPending()
+                useUxLoadingStore().clearAppLoader()
                 useAccountTeamStore().setTeam(null)
                 if (/^\/team\//.test(router.currentRoute.value.path)) {
                     router.push({ name: 'Home' })
@@ -94,7 +95,7 @@ const actions = {
                     const team = await teamApi.getTeam(teamId || { slug: teamSlug })
                     await useAccountTeamStore().setTeam(team)
                 }
-                useAccountAuthStore().clearPending()
+                useUxLoadingStore().clearAppLoader()
                 if (redirectUrlAfterLogin) {
                     // If this is a user-driven login, take them to the profile page
                     router.push(redirectUrlAfterLogin)
@@ -102,7 +103,7 @@ const actions = {
                     nextTick(() => { useAccountAuthStore().setRedirectUrl(null) })
                 }
             } catch (teamLoadErr) {
-                useAccountAuthStore().clearPending()
+                useUxLoadingStore().clearAppLoader()
                 // This means the team doesn't exist, or the user doesn't have access
                 router.push({
                     name: 'page-not-found',
@@ -114,7 +115,7 @@ const actions = {
             }
         } catch (err) {
             // Not logged in
-            useAccountAuthStore().clearPending()
+            useUxLoadingStore().clearAppLoader()
             // do we have a user session to clear?
             if (useAccountAuthStore().user) {
                 try {
@@ -141,7 +142,7 @@ const actions = {
             } else if (credentials.token) {
                 await userApi.verifyMFAToken(credentials.token)
             }
-            useAccountAuthStore().setPending(true)
+            useUxLoadingStore().setAppLoader(true)
             dispatch('checkState', useAccountAuthStore().redirectUrlAfterLogin)
         } catch (err) {
             if (err.response?.status >= 401) {
@@ -164,6 +165,7 @@ const actions = {
                     useAccountTeamStore().$reset()
                     useAccountSettingsStore().$reset()
                     useUxDialogStore().$reset()
+                    useUxLoadingStore().$reset()
                     useUxToursStore().$reset()
                     useUxNavigationStore().$reset()
                     useUxDrawersStore().$reset()
