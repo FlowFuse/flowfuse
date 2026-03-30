@@ -1,10 +1,10 @@
 import { nextTick, reactive, ref } from 'vue'
 
-import { getServiceFactory } from '../services/service.factory.js'
+import { getServicesOrchestrator } from '../services/services.orchestrator.js'
 
 export function useDrawerHelper () {
-    const serviceFactory = getServiceFactory()
-    const $services = serviceFactory.$serviceInstances
+    const servicesOrchestrator = getServicesOrchestrator()
+    const $services = servicesOrchestrator.$serviceInstances
 
     const drawer = reactive({ open: false })
 
