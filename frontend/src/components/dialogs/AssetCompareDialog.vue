@@ -52,8 +52,11 @@
                     @click.stop.prevent
                 >&nbsp;</div>
 
+                <!-- Drag handle -->
+                <div v-if="hasCompared" class="ff-resize-handle shrink-0" @mousedown.prevent="startResize" />
+
                 <!-- Property diff sidebar -->
-                <div v-if="hasCompared" class="ff-compare-sidebar border-l border-gray-200 overflow-y-auto bg-white shrink-0">
+                <div v-if="hasCompared" class="ff-compare-sidebar border-l border-gray-200 overflow-y-auto bg-white shrink-0" :style="{ width: sidebarWidth + 'px' }">
                     <div v-if="!currentGroupChanges.length" class="px-3 py-4 text-xs text-gray-400 italic text-center">
                         No property changes for this node.
                     </div>
@@ -119,7 +122,11 @@ export default {
             rendererChanges: [],
             hasCompared: false,
             nodeMap: {},
-            currentGroupIndex: 0
+            currentGroupIndex: 0,
+            sidebarWidth: 380,
+            resizing: false,
+            resizeStartX: 0,
+            resizeStartWidth: 0
         }
     },
     computed: {
@@ -165,6 +172,10 @@ export default {
             const raw = this.currentGroup?.propChanges || []
             return this.transformChanges(raw)
         }
+    },
+    beforeUnmount () {
+        document.removeEventListener('mousemove', this.onResize)
+        document.removeEventListener('mouseup', this.stopResize)
     },
     watch: {
         compareSnapshot (newVal) {
@@ -226,6 +237,23 @@ export default {
             while (this.$refs.compareViewer?.firstChild) {
                 this.$refs.compareViewer.removeChild(this.$refs.compareViewer.firstChild)
             }
+        },
+        startResize (e) {
+            this.resizing = true
+            this.resizeStartX = e.clientX
+            this.resizeStartWidth = this.sidebarWidth
+            document.addEventListener('mousemove', this.onResize)
+            document.addEventListener('mouseup', this.stopResize)
+        },
+        onResize (e) {
+            if (!this.resizing) return
+            const delta = this.resizeStartX - e.clientX
+            this.sidebarWidth = Math.max(200, Math.min(800, this.resizeStartWidth + delta))
+        },
+        stopResize () {
+            this.resizing = false
+            document.removeEventListener('mousemove', this.onResize)
+            document.removeEventListener('mouseup', this.stopResize)
         },
         isCompactProp (prop) {
             return ['position', 'z', 'name', 'label', 'type', 'wires'].includes(prop)
@@ -327,7 +355,13 @@ export default {
 .ff-compare-main--with-nav {
     height: calc(100% - 5rem);
 }
-.ff-compare-sidebar {
-    width: 380px;
+.ff-resize-handle {
+    width: 4px;
+    cursor: col-resize;
+    background: transparent;
+    transition: background 0.15s;
+}
+.ff-resize-handle:hover {
+    background: #93c5fd; /* blue-300 */
 }
 </style>

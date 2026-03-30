@@ -39,6 +39,7 @@
                 <span class="ml-auto text-gray-400">{{ changeSummary }}</span>
             </div>
             <div v-show="!collapsed" ref="content" class="overflow-x-auto font-mono">
+                <div class="min-w-max">
                 <template v-for="(line, i) in lines" :key="i">
                     <!-- Collapsed unchanged section -->
                     <div
@@ -62,6 +63,7 @@
                         <span class="px-2 whitespace-pre">{{ linePrefix(line) }}{{ line.text }}</span>
                     </div>
                 </template>
+                </div>
             </div>
         </template>
     </div>
