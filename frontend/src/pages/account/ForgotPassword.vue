@@ -1,6 +1,6 @@
 <template>
     <ff-layout-box class="ff-forgot-password ff--center-box">
-        <form v-if="!pending" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
+        <form v-if="!appLoader" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
             <div v-if="flash" class="font-medium" v-text="flash" />
             <template v-else>
                 <FormRow id="reset_email" v-model="input.email" class="!max-w-full" :error="errors.email">Email address</FormRow>
@@ -25,7 +25,7 @@ import SpinnerIcon from '../../components/icons/Spinner.js'
 
 import FFLayoutBox from '../../layouts/Box.vue'
 
-import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'PasswordRequest',
@@ -48,7 +48,7 @@ export default {
     },
     computed: {
         ...mapVuexState('account', ['settings']),
-        ...mapState(useAccountAuthStore, ['pending'])
+        ...mapState(useUxLoadingStore, ['appLoader'])
     },
     methods: {
         requestPasswordReset () {

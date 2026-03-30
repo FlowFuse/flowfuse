@@ -22,11 +22,12 @@ client.interceptors.response.use(function (response) {
     // Lazy require to avoid circular dependency:
     // api/client.js → stores/account-auth.js → api/user.js → api/client.js
     const { useAccountAuthStore } = require('../stores/account-auth.js')
+    const { useUxLoadingStore } = require('../stores/ux-loading.js')
     const store = require('../store/index.js').default
     if (error.code === 'ERR_NETWORK') {
         // Backend failed to respond
-        useAccountAuthStore().setOffline(true)
-    } else if (error.response && error.response.status === 401 && !useAccountAuthStore().pending && !useAccountAuthStore().loginInflight) {
+        useUxLoadingStore().setOffline(true)
+    } else if (error.response && error.response.status === 401 && !useUxLoadingStore().appLoader && !useAccountAuthStore().loginInflight) {
         // 401 when !pending && !loginInflight means the session has expired
         store.dispatch('account/logout')
     } else if (error.response && error.response.status === 500) {
