@@ -79,6 +79,7 @@ import TermsAndConditions from './pages/TermsAndConditions.vue'
 import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 
 import { useContextStore } from '@/stores/context.js'
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -142,7 +143,7 @@ export default {
     },
     mounted () {
         this.$store.dispatch('account/checkState')
-        this.$store.dispatch('product/checkFlags')
+        useProductBrokersStore().checkFlags()
     },
     methods: {
         ...mapActions(useContextStore, ['updateRoute'])
