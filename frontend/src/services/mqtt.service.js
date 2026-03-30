@@ -6,6 +6,7 @@ import Mqtt from 'mqtt'
  * @property {string} [username]
  * @property {string} [password]
  * @property {number} [reconnectPeriod=0]
+ * @property {string} [clientId]
  * @property {(client: import('mqtt').MqttClient) => void} [onConnect]
  * @property {(client: import('mqtt').MqttClient) => void} [onClose]
  * @property {(client: import('mqtt').MqttClient) => void} [onOffline]
@@ -169,7 +170,8 @@ class MqttService {
             onClose,
             onOffline,
             onError,
-            onMessage
+            onMessage,
+            clientId
         } = options
 
         if (!key || typeof key !== 'string') {
@@ -180,7 +182,7 @@ class MqttService {
             throw new Error(`Invalid MQTT url for connection "${key}"`)
         }
 
-        // Replace existing connection cleanly
+        // Replace the existing connection cleanly
         if (this.hasClient(key)) {
             await this.destroyClient(key)
         }
@@ -189,6 +191,7 @@ class MqttService {
             username,
             password,
             reconnectPeriod,
+            clientId,
             protocolVersion: 5
         })
 
