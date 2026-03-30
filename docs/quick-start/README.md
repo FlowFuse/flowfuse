@@ -19,7 +19,7 @@ meta:
 
 This guide provides a streamlined process for setting up and running the FlowFuse platform using [Docker](https://docs.docker.com/get-started/) and [Docker Compose](https://docs.docker.com/compose/). 
 
-The provided Docker Compose file facilitates the deployment of the following services:
+The Docker Compose file deploys the following services:
 * **FlowFuse Platform**: Includes the core application, MQTT broker, and file server for storage
 * **Database:** A pre-configured database for storing platform data
 * **Proxy Server:** A pre-configured proxy server for managing HTTP traffic
@@ -28,7 +28,7 @@ For a full installation guide, including how to setup FlowFuse in a production e
 
 ## Prerequisites
 
-Before you begin, ensure you have [Docker](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) (in `2.23.1` version or higher) installed on your system (either as a standalone binary or as docker plugin).
+Before you begin, ensure you have [Docker](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) (in `2.23.1` version or higher) installed on your system (either as a standalone binary or as a Docker plugin).
 
 ## Step 1: Prepare your domain
 
@@ -63,12 +63,12 @@ Run the following command to deploy FlowFuse:
 docker compose up -d
 ```
 
-This command will download the necessary Docker images, run initial setup and start all the required services in detached mode.
+This downloads the necessary Docker images, runs initial setup, and starts all services in detached mode.
 
 ## Step 5: Complete the application Setup
 
 Open your web browser and navigate to `http://forge.<your-domain>/setup` (e.g., `http://forge.example.com/setup`). You will be redirected to the setup page where you can create your admin account and set up your instance.
-For detailed information about first setup and configuration, please follow [this guide](../install/first-run.md).
+For detailed information about first setup and configuration, follow [this guide](../install/first-run.md).
 
 
 ## Cleanup
