@@ -48,9 +48,12 @@
 <script>
 
 import { CheckIcon, MinusIcon } from '@heroicons/vue/outline'
+import { mapState } from 'pinia'
 import { mapGetters } from 'vuex'
 
 import MediumTile from '../../../components/tiles/MediumTile.vue'
+
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
     name: 'ChooseBroker',
@@ -60,7 +63,7 @@ export default {
         MinusIcon
     },
     computed: {
-        ...mapGetters('product', ['hasFfUnsClients', 'hasBrokers']),
+        ...mapState(useProductBrokersStore, ['hasFfUnsClients', 'hasBrokers']),
         ...mapGetters('account', ['featuresCheck']),
         options () {
             return [

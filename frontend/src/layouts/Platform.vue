@@ -63,7 +63,7 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
-import { mapGetters, mapState as mapVuexState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import InterviewPopup from '../components/InterviewPopup.vue'
 import PageHeader from '../components/PageHeader.vue'
@@ -73,8 +73,8 @@ import NoticeBanner from '../components/notices/NoticeBanner.vue'
 import AlertsMixin from '../mixins/Alerts.js'
 import dialogService from '../services/dialog.js'
 
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
-
 import { useUxStore } from '@/stores/ux.js'
 
 export default {
@@ -90,7 +90,7 @@ export default {
     computed: {
         ...mapState(useUxDialogStore, ['dialog']),
         ...mapState(useUxStore, ['overlay']),
-        ...mapVuexState('product', ['interview']),
+        ...mapState(useProductBrokersStore, ['interview']),
         ...mapGetters('account', ['hasAvailableTeams'])
     },
     watch: {
