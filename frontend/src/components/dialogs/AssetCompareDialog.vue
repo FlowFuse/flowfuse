@@ -155,7 +155,9 @@ export default {
                     const node = this.nodeMap[key] || {}
                     groups.set(key, {
                         nodeId: key,
-                        name: node.name || node.label || key,
+                        // Prefer explicit name/label; fall back to type (e.g. "inject")
+                    // before the raw UUID so the nav bar stays readable
+                    name: node.name || node.label || node.type || key,
                         type: node.type || '',
                         diffType: change.diffType,
                         propChanges: []
@@ -166,7 +168,8 @@ export default {
                     const node = this.nodeMap[key] || {}
                     const isAdded = change.diffType === 'added'
                     for (const [prop, val] of Object.entries(node)) {
-                        if (prop === 'id') continue
+                        // Skip id (internal), type (shown in nav header), and z (tab shown in nav header)
+                        if (prop === 'id' || prop === 'type' || prop === 'z') continue
                         group.propChanges.push({ prop, value1: isAdded ? undefined : val, value2: isAdded ? val : undefined })
                     }
                 } else if (change.diffType === 'changed') {
@@ -182,7 +185,10 @@ export default {
             return this.transformChanges(this.currentGroup?.propChanges || [])
         },
         currentGroupTabMove () {
-            // Returns { from, to } if the current node changed tabs, null otherwise
+            // Returns { from, to } if a changed node moved between tabs, null otherwise.
+            // Not shown for added/deleted nodes — the tab is part of their identity,
+            // not a move.
+            if (this.currentGroup?.diffType !== 'changed') return null
             const zChange = this.currentGroup?.propChanges?.find(c => c.prop === 'z')
             if (!zChange || zChange.value1 === zChange.value2) return null
             return {
