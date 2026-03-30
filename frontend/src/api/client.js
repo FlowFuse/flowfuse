@@ -21,13 +21,12 @@ client.interceptors.response.use(function (response) {
     // Dynamic import breaks the circular dep: client.js → account-auth.js → api/* → client.js
     const { useAccountAuthStore } = await import('../stores/account-auth.js')
     const { useUxLoadingStore } = await import('../stores/ux-loading.js')
-    const authStore = useAccountAuthStore()
     if (error.code === 'ERR_NETWORK') {
         // Backend failed to respond
         useUxLoadingStore().setOffline(true)
-    } else if (error.response && error.response.status === 401 && !useUxLoadingStore().appLoader && !authStore.loginInflight) {
+    } else if (error.response && error.response.status === 401 && !useUxLoadingStore().appLoader && !useAccountAuthStore().loginInflight) {
         // 401 when !pending && !loginInflight means the session has expired
-        authStore.logout()
+        useAccountAuthStore().logout()
     } else if (error.response && error.response.status === 500) {
         // show toast notification
         Alerts.emit(error.response.data.error + ': ' + error.response.data.message, 'warning', 7500)
