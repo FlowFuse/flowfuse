@@ -2,7 +2,7 @@
     <ff-dialog
         ref="dialog" :header="header" confirm-label="Close" :closeOnConfirm="true" data-el="flow-view-dialog"
         boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]" contentClass="overflow-hidden flex-grow"
-        @confirm="confirm()"
+        @confirm="confirm"
     >
         <template #default>
             <!-- Toolbar -->
@@ -77,20 +77,21 @@
         </template>
         <template #actions>
             <div class="flex justify-end">
-                <ff-button data-action="dialog-confirm" @click="confirm()">Close</ff-button>
+                <ff-button data-action="dialog-confirm" @click="confirm">Close</ff-button>
             </div>
         </template>
     </ff-dialog>
 </template>
-<script>
 
+<script>
 import FlowRenderer from '@flowfuse/flow-renderer'
 
 import SnapshotsApi from '../../api/snapshots.js'
-
 import Alerts from '../../services/alerts.js'
 
 import SnapshotDiffChangePanel from './SnapshotDiffChangePanel.vue'
+
+const COMPACT_PROPS = new Set(['position', 'z', 'name', 'label', 'type', 'wires'])
 
 export default {
     name: 'AssetCompareDialog',
@@ -155,7 +156,6 @@ export default {
                 }
                 const group = groups.get(key)
                 if (change.diffType === 'added' || change.diffType === 'deleted') {
-                    group.diffType = change.diffType
                     const node = this.nodeMap[key] || {}
                     const isAdded = change.diffType === 'added'
                     for (const [prop, val] of Object.entries(node)) {
@@ -172,8 +172,7 @@ export default {
             return this.groupedChanges[this.currentGroupIndex] || null
         },
         currentGroupChanges () {
-            const raw = this.currentGroup?.propChanges || []
-            return this.transformChanges(raw)
+            return this.transformChanges(this.currentGroup?.propChanges || [])
         },
         currentGroupTabMove () {
             // Returns { from, to } if the current node changed tabs, null otherwise
@@ -185,14 +184,14 @@ export default {
             }
         }
     },
+    watch: {
+        compareSnapshot (val) {
+            if (val) this.renderComparison()
+        }
+    },
     beforeUnmount () {
         document.removeEventListener('mousemove', this.onResize)
         document.removeEventListener('mouseup', this.stopResize)
-    },
-    watch: {
-        compareSnapshot (newVal) {
-            if (newVal) this.renderComparison()
-        }
     },
     methods: {
         confirm () {
@@ -210,7 +209,7 @@ export default {
             const compareFlow = compareSnapshot.flows.flows
 
             const map = {}
-            for (const node of [...this.flow, ...compareFlow]) {
+            for (const node of [...compareFlow, ...this.flow]) {
                 if (node.id) map[node.id] = node
             }
             this.nodeMap = map
@@ -271,7 +270,7 @@ export default {
             document.removeEventListener('mouseup', this.stopResize)
         },
         isCompactProp (prop) {
-            return ['position', 'z', 'name', 'label', 'type', 'wires'].includes(prop)
+            return COMPACT_PROPS.has(prop)
         },
         transformChanges (changes) {
             const result = []
@@ -281,20 +280,11 @@ export default {
                 if (c.prop === 'x') { xChange = c; continue }
                 if (c.prop === 'y') { yChange = c; continue }
                 if (c.prop === 'z') {
-                    result.push({
-                        prop: 'z',
-                        label: 'tab',
-                        value1: this.resolveTabName(c.value1),
-                        value2: this.resolveTabName(c.value2)
-                    })
+                    result.push({ prop: 'z', label: 'tab', value1: this.resolveTabName(c.value1), value2: this.resolveTabName(c.value2) })
                     continue
                 }
                 if (c.prop === 'wires') {
-                    result.push({
-                        prop: 'wires',
-                        value1: this.resolveWires(c.value1),
-                        value2: this.resolveWires(c.value2)
-                    })
+                    result.push({ prop: 'wires', value1: this.resolveWires(c.value1), value2: this.resolveWires(c.value2) })
                     continue
                 }
                 result.push(c)
@@ -311,8 +301,7 @@ export default {
                 })
             }
             // Compact props always appear first as a block
-            const compactFirst = (p) => this.isCompactProp(p) ? 0 : 1
-            result.sort((a, b) => compactFirst(a.prop) - compactFirst(b.prop))
+            result.sort((a, b) => (this.isCompactProp(a.prop) ? 0 : 1) - (this.isCompactProp(b.prop) ? 0 : 1))
             return result
         },
         resolveWires (wires) {
@@ -332,7 +321,6 @@ export default {
             return tab ? (tab.label || tabId) : tabId
         },
         computeDiff (flow1, flow2) {
-            const SKIP = new Set(['id'])
             const map1 = {}
             const map2 = {}
             for (const n of flow1) { if (n.id) map1[n.id] = n }
@@ -341,18 +329,17 @@ export default {
             const changes = []
 
             for (const id of Object.keys(map1)) {
-                if (!map2[id]) changes.push({ item: id, diffType: 'deleted', prop: '' })
+                if (!map2[id]) changes.push({ item: id, diffType: 'deleted' })
             }
             for (const id of Object.keys(map2)) {
-                if (!map1[id]) changes.push({ item: id, diffType: 'added', prop: '' })
+                if (!map1[id]) changes.push({ item: id, diffType: 'added' })
             }
             for (const id of Object.keys(map1)) {
                 if (!map2[id]) continue
                 const n1 = map1[id]
                 const n2 = map2[id]
-                const props = new Set([...Object.keys(n1), ...Object.keys(n2)])
-                for (const prop of props) {
-                    if (SKIP.has(prop)) continue
+                for (const prop of new Set([...Object.keys(n1), ...Object.keys(n2)])) {
+                    if (prop === 'id') continue
                     const v1 = n1[prop]
                     const v2 = n2[prop]
                     if (JSON.stringify(v1) !== JSON.stringify(v2)) {

@@ -1,6 +1,6 @@
 <template>
     <div class="text-xs border-b border-gray-200 overflow-hidden">
-        <!-- ── Compact mode (structural props: name, type, position, wires, tab …) ── -->
+        <!-- Compact mode (structural props: name, type, position, wires, tab …) -->
         <div v-if="compact" class="flex items-start gap-3 px-3 py-2">
             <span class="text-gray-500 shrink-0 w-20 pt-0.5 truncate">{{ label ?? prop }}</span>
             <div class="flex-1 flex flex-wrap items-center gap-1.5">
@@ -20,7 +20,7 @@
             </div>
         </div>
 
-        <!-- ── Git diff mode ── -->
+        <!-- Git diff mode -->
         <template v-else>
             <!-- Collapsible header -->
             <div
@@ -38,31 +38,31 @@
                 <span class="font-semibold text-gray-700">{{ label ?? prop }}</span>
                 <span class="ml-auto text-gray-400">{{ changeSummary }}</span>
             </div>
-            <div v-show="!collapsed" ref="content" class="overflow-x-auto font-mono">
+            <div v-show="!collapsed" class="overflow-x-auto font-mono">
                 <div class="min-w-max">
-                <template v-for="(line, i) in lines" :key="i">
-                    <!-- Collapsed unchanged section -->
-                    <div
-                        v-if="line.type === 'collapsed'"
-                        class="flex leading-5 text-blue-600 bg-blue-50 cursor-pointer hover:bg-blue-100 select-none border-y border-blue-100"
-                        @click="expandSection(i)"
-                    >
-                        <span class="line-num border-r border-blue-200 text-blue-400" />
-                        <span class="line-num border-r border-blue-200 text-blue-400" />
-                        <span class="px-3 flex-1 text-center">&#8597; {{ line.count }} unchanged lines</span>
-                    </div>
-                    <!-- Diff line -->
-                    <div
-                        v-else
-                        :class="lineClass(line)"
-                        :data-change="line.type !== 'unchanged' || undefined"
-                        class="flex leading-5"
-                    >
-                        <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.oldNum || '' }}</span>
-                        <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.newNum || '' }}</span>
-                        <span class="px-2 whitespace-pre">{{ linePrefix(line) }}{{ line.text }}</span>
-                    </div>
-                </template>
+                    <template v-for="(line, i) in lines" :key="i">
+                        <!-- Collapsed unchanged section -->
+                        <div
+                            v-if="line.type === 'collapsed'"
+                            class="flex leading-5 text-blue-600 bg-blue-50 cursor-pointer hover:bg-blue-100 select-none border-y border-blue-100"
+                            @click="expandSection(i)"
+                        >
+                            <span class="line-num border-r border-blue-200 text-blue-400" />
+                            <span class="line-num border-r border-blue-200 text-blue-400" />
+                            <span class="px-3 flex-1 text-center">&#8597; {{ line.count }} unchanged lines</span>
+                        </div>
+                        <!-- Diff line -->
+                        <div
+                            v-else
+                            :class="lineClass(line)"
+                            :data-change="line.type !== 'unchanged' || undefined"
+                            class="flex leading-5"
+                        >
+                            <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.oldNum || '' }}</span>
+                            <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.newNum || '' }}</span>
+                            <span class="px-2 whitespace-pre">{{ linePrefix(line) }}{{ line.text }}</span>
+                        </div>
+                    </template>
                 </div>
             </div>
         </template>
@@ -81,8 +81,7 @@ export default {
         label: { type: String, default: null },
         value1: { default: undefined },
         value2: { default: undefined },
-        compact: { type: Boolean, default: false },
-        autoScrollToFirst: { type: Boolean, default: false }
+        compact: { type: Boolean, default: false }
     },
     data () {
         return { lines: [], collapsed: true }
@@ -97,8 +96,6 @@ export default {
             return ''
         },
         compactSegments () {
-            const f1 = this.formatCompact(this.value1)
-            const f2 = this.formatCompact(this.value2)
             const segments = []
 
             // Wires: array-of-arrays → show per output port
@@ -108,10 +105,8 @@ export default {
                 const len = Math.max(w1.length, w2.length)
                 for (let i = 0; i < len; i++) {
                     if (i > 0) segments.push({ type: 'sep' })
-                    const port1 = w1[i]
-                    const port2 = w2[i]
-                    const s1 = port1 ? this.formatWirePort(port1) : null
-                    const s2 = port2 ? this.formatWirePort(port2) : null
+                    const s1 = w1[i] ? this.formatWirePort(w1[i]) : null
+                    const s2 = w2[i] ? this.formatWirePort(w2[i]) : null
                     if (s1 === s2) {
                         if (s1) segments.push({ type: 'value', kind: 'unchanged', text: s1 })
                     } else {
@@ -125,6 +120,8 @@ export default {
             }
 
             // Scalar / object
+            const f1 = this.formatCompact(this.value1)
+            const f2 = this.formatCompact(this.value2)
             if (f1 === f2) {
                 segments.push({ type: 'value', kind: 'unchanged', text: f1 || '—' })
             } else {
@@ -138,11 +135,6 @@ export default {
     watch: {
         value1: { immediate: true, handler: 'rebuildLines' },
         value2: 'rebuildLines'
-    },
-    mounted () {
-        if (this.autoScrollToFirst) {
-            this.$nextTick(this.scrollToFirstChange)
-        }
     },
     methods: {
         rebuildLines () {
@@ -208,9 +200,6 @@ export default {
         },
         expandSection (index) {
             this.lines.splice(index, 1, ...this.lines[index].hiddenLines)
-        },
-        scrollToFirstChange () {
-            this.$refs.content?.querySelector('[data-change]')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
         },
         formatCompact (v) {
             if (v === undefined || v === null) return ''
