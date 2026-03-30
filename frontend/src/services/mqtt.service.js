@@ -45,12 +45,12 @@ class MqttService {
     /**
      * @type {typeof import('mqtt') | null}
      */
-    $mqttClient = null
+    $mqtt = null
 
     /**
      * @type {Map<string, ManagedMqttConnection>}
      */
-    $connections = new Map()
+    $clients = new Map()
 
     /**
      * @type {boolean}
@@ -70,11 +70,12 @@ class MqttService {
         this.$store = store
         this.$router = router
         this.$services = services
+
         this.init()
     }
 
     init () {
-        this.$mqttClient = Mqtt
+        this.$mqtt = Mqtt
     }
 
     /**
@@ -82,7 +83,7 @@ class MqttService {
      * @returns {ManagedMqttConnection || null}
      */
     getConnection (key) {
-        return this.$connections.get(key) || null
+        return this.$clients.get(key) || null
     }
 
     /**
@@ -90,15 +91,15 @@ class MqttService {
      * @returns {import('mqtt').MqttClient | null}
      */
     getClient (key) {
-        return this.$connections.get(key)?.client || null
+        return this.$clients.get(key)?.client || null
     }
 
     /**
      * @param {string} key
      * @returns {boolean}
      */
-    hasConnection (key) {
-        return this.$connections.has(key)
+    hasClient (key) {
+        return this.$clients.has(key)
     }
 
     /**
@@ -120,8 +121,8 @@ class MqttService {
      * Remove and detach a managed connection without assuming it is still alive.
      * @param {string} key
      */
-    async destroyConnection (key) {
-        const managed = this.$connections.get(key)
+    async destroyClient (key) {
+        const managed = this.$clients.get(key)
         if (!managed) return
 
         managed.destroyed = true
@@ -145,7 +146,7 @@ class MqttService {
             // ignore close failures during cleanup
         }
 
-        this.$connections.delete(key)
+        this.$clients.delete(key)
     }
 
     /**
@@ -154,7 +155,7 @@ class MqttService {
      * @param {MqttConnectionOptions} options
      * @returns {Promise<import('mqtt').MqttClient>}
      */
-    async createConnection (key, options = {}) {
+    async createClient (key, options = {}) {
         if (this.$destroyed) {
             throw new Error('MqttService has been destroyed')
         }
@@ -180,11 +181,11 @@ class MqttService {
         }
 
         // Replace existing connection cleanly
-        if (this.hasConnection(key)) {
-            await this.destroyConnection(key)
+        if (this.hasClient(key)) {
+            await this.destroyClient(key)
         }
 
-        const client = this.$mqttClient.connect(url, {
+        const client = this.$mqtt.connect(url, {
             username,
             password,
             reconnectPeriod,
@@ -215,7 +216,7 @@ class MqttService {
         register('error', onError)
         register('message', onMessage)
 
-        this.$connections.set(key, managed)
+        this.$clients.set(key, managed)
 
         return client
     }
@@ -283,7 +284,7 @@ class MqttService {
      * @returns {Promise<void>}
      */
     subscribe (key, topic, options = {}) {
-        const managed = this.$connections.get(key)
+        const managed = this.$clients.get(key)
         if (!managed || managed.destroyed) {
             return Promise.reject(new Error(`MQTT connection "${key}" does not exist`))
         }
@@ -332,7 +333,7 @@ class MqttService {
      * @returns {Promise<void>}
      */
     async endConnection (key) {
-        await this.destroyConnection(key)
+        await this.destroyClient(key)
     }
 
     /**
@@ -342,11 +343,11 @@ class MqttService {
     async destroy () {
         this.$destroyed = true
 
-        const keys = [...this.$connections.keys()]
-        await Promise.all(keys.map(key => this.destroyConnection(key)))
+        const keys = [...this.$clients.keys()]
+        await Promise.all(keys.map(key => this.destroyClient(key)))
 
-        this.$connections.clear()
-        this.$mqttClient = null
+        this.$clients.clear()
+        this.$mqtt = null
     }
 
     /**
@@ -356,7 +357,7 @@ class MqttService {
     async reset () {
         await this.destroy()
         this.$destroyed = false
-        this.$mqttClient = Mqtt
+        this.$mqtt = Mqtt
     }
 }
 
