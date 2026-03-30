@@ -15,7 +15,7 @@ import Mqtt from 'mqtt'
  */
 
 /**
- * @typedef {Object} ManagedMqttConnection
+ * @typedef {Object} ManagedMqttClient
  * @property {string} key
  * @property {import('mqtt').MqttClient} client
  * @property {Set<Function>} listeners
@@ -49,7 +49,7 @@ class MqttService {
     $mqtt = null
 
     /**
-     * @type {Map<string, ManagedMqttConnection>}
+     * @type {Map<string, ManagedMqttClient>}
      */
     $clients = new Map()
 
@@ -81,18 +81,10 @@ class MqttService {
 
     /**
      * @param {string} key
-     * @returns {ManagedMqttConnection || null}
+     * @returns {ManagedMqttClient || null}
      */
-    getConnection (key) {
+    getManagedClient (key) {
         return this.$clients.get(key) || null
-    }
-
-    /**
-     * @param {string} key
-     * @returns {import('mqtt').MqttClient | null}
-     */
-    getClient (key) {
-        return this.$clients.get(key)?.client || null
     }
 
     /**
@@ -195,7 +187,7 @@ class MqttService {
             protocolVersion: 5
         })
 
-        /** @type {ManagedMqttConnection} */
+        /** @type {ManagedMqttClient} */
         const managed = {
             key,
             client,
@@ -239,7 +231,7 @@ class MqttService {
         correlationData = null,
         userProperties = null
     } = {}) {
-        const managed = this.getConnection(key)
+        const managed = this.getManagedClient(key)
 
         if (!managed || managed.destroyed) {
             return Promise.reject(new Error(`MQTT connection "${key}" does not exist`))
@@ -312,7 +304,7 @@ class MqttService {
      * @returns {Promise<void>}
      */
     unsubscribe (key, topic) {
-        const managed = this.getConnection(key)
+        const managed = this.getManagedClient(key)
         if (!managed || managed.destroyed) {
             return Promise.resolve()
         }
