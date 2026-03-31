@@ -39,7 +39,7 @@ export function useDrawerHelper () {
         if (iframe) {
             const targetOrigin = instance.url || window.location.origin
 
-            $services.messaging.sendMessage({
+            $services.postMessage.sendMessage({
                 message: {
                     type: 'drawer-state',
                     payload: { open: drawer.open }

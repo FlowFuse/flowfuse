@@ -4,7 +4,7 @@ import { createMessagingService } from './post-message.service.js'
 
 const SERVICE_REGISTRY = [
     { key: 'bootstrap', create: createBootstrapService, requiredLifecycle: ['init', 'destroy'] },
-    { key: 'post-message', create: createMessagingService, requiredLifecycle: ['destroy'] },
+    { key: 'postMessage', create: createMessagingService, requiredLifecycle: ['destroy'] },
     { key: 'mqtt', create: createMqttService, requiredLifecycle: ['destroy'] }
 ]
 
@@ -14,14 +14,10 @@ const SERVICE_REGISTRY = [
 class ServicesOrchestrator {
     /** @typedef {{
      bootstrap: import('./bootstrap.service.js').BootstrapService|null,
-     messaging: import('./post-message.service.js').PostMessageService|null,
+     postMessage: import('./post-message.service.js').PostMessageService|null,
      mqtt: import('./mqtt.service.js').MqttService|null
      }} ServiceInstances */
-    $serviceInstances = {
-        bootstrap: null,
-        messaging: null,
-        mqtt: null
-    }
+    $serviceInstances = Object.fromEntries(SERVICE_REGISTRY.map(service => [service.key, null]))
 
     /**
      * @type {import('vue').App} - Vue app instance
