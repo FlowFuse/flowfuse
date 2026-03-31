@@ -60,7 +60,7 @@ class PostMessageService extends BaseService {
         router,
         services = {}
     }) {
-        super('post-message')
+        super('postMessage')
 
         this.$app = app
         this.$store = store
