@@ -8,7 +8,8 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+
+import { mapState as mapVuexState } from 'vuex'
 
 import SectionSideMenu from '../../components/SectionSideMenu.vue'
 
@@ -18,7 +19,8 @@ export default {
         SectionSideMenu
     },
     computed: {
-        ...mapState('account', ['user', 'features']),
+        ...mapVuexState('account', ['features']),
+
         sideNavigation () {
             const navigation = [
                 { name: 'Password', path: '/account/security/password' },

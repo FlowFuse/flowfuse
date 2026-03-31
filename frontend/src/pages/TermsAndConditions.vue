@@ -17,11 +17,14 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import userApi from '../api/user.js'
 import FFLayoutBox from '../layouts/Box.vue'
 import store from '../store/index.js'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'TermsAndConditions',
@@ -34,7 +37,10 @@ export default {
             accept: false
         }
     },
-    computed: mapState('account', ['user', 'settings']),
+    computed: {
+        ...mapVuexState('account', ['settings']),
+        ...mapState(useAccountAuthStore, ['user'])
+    },
     methods: {
         logout () {
             store.dispatch('account/logout')
