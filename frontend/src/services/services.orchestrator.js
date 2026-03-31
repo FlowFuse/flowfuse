@@ -1,6 +1,12 @@
 import { createBootstrapService } from './bootstrap.service.js'
-import { createMqttService, destroyMqttService } from './mqtt.service.js'
+import { createMqttService } from './mqtt.service.js'
 import { createMessagingService } from './post-message.service.js'
+
+const SERVICE_REGISTRY = [
+    { key: 'bootstrap', create: createBootstrapService, requiredLifecycle: ['init', 'destroy'] },
+    { key: 'post-message', create: createMessagingService, requiredLifecycle: ['destroy'] },
+    { key: 'mqtt', create: createMqttService, requiredLifecycle: ['destroy'] }
+]
 
 /**
  * Service Factory - Manages service creation with dependency injection
@@ -63,28 +69,19 @@ class ServicesOrchestrator {
         const store = this.$store
         const router = this.$router
 
-        this.$serviceInstances.bootstrap = createBootstrapService({
-            app,
-            store,
-            router,
-            services: this.$serviceInstances
-        })
+        for (const serviceDefinition of SERVICE_REGISTRY) {
+            const instance = serviceDefinition.create({
+                app,
+                store,
+                router,
+                services: this.$serviceInstances
+            })
 
-        this.$serviceInstances.messaging = createMessagingService({
-            app,
-            store,
-            router,
-            services: this.$serviceInstances
-        })
+            this.assertServiceContract(serviceDefinition, instance)
+            this.$serviceInstances[serviceDefinition.key] = instance
+        }
 
-        this.$serviceInstances.mqtt = createMqttService({
-            app,
-            store,
-            router,
-            services: this.$serviceInstances
-        })
-
-        this.$serviceInstances.bootstrap.init()
+        await this.$serviceInstances.bootstrap.init()
 
         app.provide('$services', this.$serviceInstances)
 
@@ -92,17 +89,12 @@ class ServicesOrchestrator {
     }
 
     async dispose () {
-        const customDisposalRules = {
-            mqtt: async () => {
-                await Promise.allSettled([
-                    this.$serviceInstances.mqtt?.destroy?.(),
-                    destroyMqttService()
-                ])
-            }
-        }
-
         for (const service of Object.keys(this.$serviceInstances)) {
-            if (Object.prototype.hasOwnProperty.call(customDisposalRules, service)) await customDisposalRules[service]()
+            try {
+                await this.$serviceInstances[service]?.destroy?.()
+            } catch (_) {
+                // teardown should be resilient and continue for remaining services
+            }
             this.$serviceInstances[service] = null
         }
 
@@ -127,6 +119,27 @@ class ServicesOrchestrator {
                 import.meta.hot.dispose(async () => {
                     await this.dispose()
                 })
+            }
+        }
+    }
+
+    /**
+     * Runtime guard used until service contracts are enforced with TypeScript interfaces.
+     * @param {{key: string, requiredLifecycle: string[]}} definition
+     * @param {import('./service.contract.js').AppService | null | undefined} instance
+     */
+    assertServiceContract (definition, instance) {
+        if (!instance || typeof instance !== 'object') {
+            throw new Error(`Service "${definition.key}" factory returned an invalid value`)
+        }
+
+        if (typeof instance.name !== 'string' || !instance.name.trim()) {
+            throw new Error(`Service "${definition.key}" must expose a non-empty "name"`)
+        }
+
+        for (const lifecycleMethod of definition.requiredLifecycle) {
+            if (typeof instance[lifecycleMethod] !== 'function') {
+                throw new Error(`Service "${definition.key}" is missing lifecycle method "${lifecycleMethod}"`)
             }
         }
     }

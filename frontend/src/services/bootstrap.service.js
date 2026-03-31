@@ -1,10 +1,12 @@
 import { nextTick } from 'vue'
 
+import { BaseService } from './service.contract.js'
+
 /**
  * Bootstrap Service - Handles application lifecycle and readiness detection
  * @class
  */
-class BootstrapService {
+class BootstrapService extends BaseService {
     /**
      * @type {import('vue').App} - Vue app instance
      */
@@ -34,6 +36,8 @@ class BootstrapService {
         router,
         services = {}
     }) {
+        super('bootstrap')
+
         this.$app = app
         this.$store = store
         this.$router = router
@@ -44,6 +48,12 @@ class BootstrapService {
         this.readyResolve = null
 
         this.setupReadyPromise()
+    }
+
+    async destroy () {
+        this.isReady = false
+        this.readyPromise = null
+        this.readyResolve = null
     }
 
     setupReadyPromise () {

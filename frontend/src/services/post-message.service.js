@@ -1,3 +1,5 @@
+import { BaseService } from './service.contract.js'
+
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 
@@ -28,7 +30,7 @@ const allowedOrigins = ['https://flowfuse.com', 'https://app.flowfuse.com', 'htt
  * Messaging Service - Handles postMessage communication
  * @class
  */
-class PostMessageService {
+class PostMessageService extends BaseService {
     /**
      * @type {import('vue').App} - Vue app instance
      */
@@ -58,10 +60,13 @@ class PostMessageService {
         router,
         services = {}
     }) {
+        super('post-message')
+
         this.$app = app
         this.$store = store
         this.$router = router
         this.$services = services
+        this.$onMessage = null
 
         this.init()
     }
@@ -80,7 +85,7 @@ class PostMessageService {
     }
 
     setupMessageHandlers () {
-        window.addEventListener('message', async (event) => {
+        this.$onMessage = async (event) => {
             const isSourceWebsite = event.data.source === DATA_SOURCE_FLOWFUSE_WEBSITE
             const isWebsiteExpertScope = event.data.scope === dataSourceScopes[DATA_SOURCE_FLOWFUSE_WEBSITE].FLOWFUSE_EXPERT
             const shouldHandleWebsiteExpertMessages = isSourceWebsite && isWebsiteExpertScope
@@ -98,7 +103,16 @@ class PostMessageService {
             default:
                 // do nothing
             }
-        })
+        }
+
+        window.addEventListener('message', this.$onMessage)
+    }
+
+    async destroy () {
+        if (this.$onMessage) {
+            window.removeEventListener('message', this.$onMessage)
+            this.$onMessage = null
+        }
     }
 
     async handleFlowFuseExpertMessage (event) {

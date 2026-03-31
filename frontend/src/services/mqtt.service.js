@@ -1,5 +1,7 @@
 import Mqtt from 'mqtt'
 
+import { BaseService } from './service.contract.js'
+
 /**
  * @typedef {Object} MqttConnectionOptions
  * @property {string} url
@@ -22,7 +24,7 @@ import Mqtt from 'mqtt'
  * @property {boolean} destroyed
  */
 
-class MqttService {
+class MqttService extends BaseService {
     /**
      * @type {import('vue').App}
      */
@@ -73,6 +75,8 @@ class MqttService {
         router,
         services = {}
     }) {
+        super('mqtt')
+
         this.$app = app
         this.$store = store
         this.$router = router

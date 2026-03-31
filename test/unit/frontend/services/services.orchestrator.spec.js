@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 const mockCreateBootstrapService = vi.fn()
 const mockCreateMessagingService = vi.fn()
 const mockCreateMqttService = vi.fn()
-const mockDestroyMqttService = vi.fn()
 
 vi.mock('../../../../frontend/src/services/bootstrap.service.js', () => {
     return {
@@ -19,8 +18,7 @@ vi.mock('../../../../frontend/src/services/post-message.service.js', () => {
 
 vi.mock('../../../../frontend/src/services/mqtt.service.js', () => {
     return {
-        createMqttService: mockCreateMqttService,
-        destroyMqttService: mockDestroyMqttService
+        createMqttService: mockCreateMqttService
     }
 })
 
@@ -34,18 +32,16 @@ describe('ServicesOrchestrator', () => {
         mockCreateBootstrapService.mockReset()
         mockCreateMessagingService.mockReset()
         mockCreateMqttService.mockReset()
-        mockDestroyMqttService.mockReset()
     })
 
     test('init boots services, injects shared instances, and provides them on the app', async () => {
-        const bootstrapService = { init: vi.fn() }
-        const messagingService = { id: 'messaging' }
-        const mqttService = { destroy: vi.fn().mockResolvedValue() }
+        const bootstrapService = { name: 'bootstrap', init: vi.fn(), destroy: vi.fn().mockResolvedValue() }
+        const messagingService = { name: 'messaging', destroy: vi.fn().mockResolvedValue() }
+        const mqttService = { name: 'mqtt', destroy: vi.fn().mockResolvedValue() }
 
         mockCreateBootstrapService.mockReturnValue(bootstrapService)
         mockCreateMessagingService.mockReturnValue(messagingService)
         mockCreateMqttService.mockReturnValue(mqttService)
-        mockDestroyMqttService.mockResolvedValue()
 
         const app = {
             provide: vi.fn(),
@@ -79,15 +75,14 @@ describe('ServicesOrchestrator', () => {
         expect(app.provide).toHaveBeenCalledWith('$services', bootstrapArgs.services)
     })
 
-    test('dispose applies MQTT custom cleanup and resets internal state', async () => {
-        const bootstrapService = { init: vi.fn() }
-        const messagingService = { id: 'messaging' }
-        const mqttService = { destroy: vi.fn().mockRejectedValue(new Error('destroy failed')) }
+    test('dispose calls destroy on all services and resets internal state', async () => {
+        const bootstrapService = { name: 'bootstrap', init: vi.fn(), destroy: vi.fn().mockResolvedValue() }
+        const messagingService = { name: 'messaging', destroy: vi.fn().mockResolvedValue() }
+        const mqttService = { name: 'mqtt', destroy: vi.fn().mockRejectedValue(new Error('destroy failed')) }
 
         mockCreateBootstrapService.mockReturnValue(bootstrapService)
         mockCreateMessagingService.mockReturnValue(messagingService)
         mockCreateMqttService.mockReturnValue(mqttService)
-        mockDestroyMqttService.mockRejectedValue(new Error('module cleanup failed'))
 
         const app = {
             provide: vi.fn(),
@@ -100,12 +95,14 @@ describe('ServicesOrchestrator', () => {
         const orchestrator = getServicesOrchestrator()
 
         await orchestrator.init(app, store, router)
+        bootstrapService.destroy.mockClear()
+        messagingService.destroy.mockClear()
         mqttService.destroy.mockClear()
-        mockDestroyMqttService.mockClear()
         await orchestrator.dispose()
 
+        expect(bootstrapService.destroy).toHaveBeenCalledTimes(1)
+        expect(messagingService.destroy).toHaveBeenCalledTimes(1)
         expect(mqttService.destroy).toHaveBeenCalledTimes(1)
-        expect(mockDestroyMqttService).toHaveBeenCalledTimes(1)
         expect(orchestrator.$serviceInstances).toEqual({
             bootstrap: null,
             messaging: null,
@@ -118,14 +115,13 @@ describe('ServicesOrchestrator', () => {
     })
 
     test('registerCleanup wraps unmount once and runs dispose before original unmount', async () => {
-        const bootstrapService = { init: vi.fn() }
-        const messagingService = { id: 'messaging' }
-        const mqttService = { destroy: vi.fn().mockResolvedValue() }
+        const bootstrapService = { name: 'bootstrap', init: vi.fn(), destroy: vi.fn().mockResolvedValue() }
+        const messagingService = { name: 'messaging', destroy: vi.fn().mockResolvedValue() }
+        const mqttService = { name: 'mqtt', destroy: vi.fn().mockResolvedValue() }
 
         mockCreateBootstrapService.mockReturnValue(bootstrapService)
         mockCreateMessagingService.mockReturnValue(messagingService)
         mockCreateMqttService.mockReturnValue(mqttService)
-        mockDestroyMqttService.mockResolvedValue()
 
         const app = {
             provide: vi.fn(),
@@ -157,5 +153,23 @@ describe('ServicesOrchestrator', () => {
         const second = getServicesOrchestrator()
 
         expect(first).toBe(second)
+    })
+
+    test('init rejects when a service does not respect the runtime contract', async () => {
+        mockCreateBootstrapService.mockReturnValue({ name: 'bootstrap', init: vi.fn(), destroy: vi.fn() })
+        mockCreateMessagingService.mockReturnValue({ name: 'messaging' })
+        mockCreateMqttService.mockReturnValue({ name: 'mqtt', destroy: vi.fn() })
+
+        const app = {
+            provide: vi.fn(),
+            unmount: vi.fn()
+        }
+
+        const { getServicesOrchestrator } = await loadOrchestratorModule()
+        const orchestrator = getServicesOrchestrator()
+
+        await expect(orchestrator.init(app, {}, {}))
+            .rejects
+            .toThrow('Service "messaging" is missing lifecycle method "destroy"')
     })
 })
