@@ -92,9 +92,6 @@ export default {
                 // is reset when the user is active inside the cross-origin iframe.
                 window.dispatchEvent(new MouseEvent('mousemove'))
             }
-            if (event.data?.type === 'nr-assistant/workspace:change' && event.data?.source === 'nr-assistant' && event.data.tab?.label) {
-                document.title = `Node-RED: ${event.data.tab.label} - FlowFuse`
-            }
         }
     }
 }
