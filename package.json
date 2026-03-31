@@ -82,7 +82,7 @@
         "@sentry/webpack-plugin": "^2.7.1",
         "@vuepic/vue-datepicker": "^11.0.2",
         "axios": "^1.4.0",
-        "bcrypt": "^5.1.0",
+        "bcrypt": "^6.0.0",
         "cronosjs": "^1.7.1",
         "dompurify": "^3.3.0",
         "dotenv": "^16.3.1",
