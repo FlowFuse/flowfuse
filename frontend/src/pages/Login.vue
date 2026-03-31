@@ -1,6 +1,6 @@
 <template>
     <ff-layout-box class="ff-login">
-        <div v-if="!pending" data-form="login">
+        <div v-if="!appLoader" data-form="login">
             <ff-loading v-if="loggingIn" message="Logging in..." color="white" />
             <template v-else-if="!mfaRequired">
                 <label>Username / E-Mail</label>
@@ -86,15 +86,19 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import { GoogleLogin } from 'vue3-google-login'
 
-import { mapState } from 'vuex'
+import { mapState as mapVuexState } from 'vuex'
 
 import SSOApi from '../api/sso.js'
 import Logo from '../components/Logo.vue'
 import SpinnerIcon from '../components/icons/Spinner.js'
 
 import FFLayoutBox from '../layouts/Box.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'LoginPage',
@@ -124,7 +128,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings', 'pending', 'loginError', 'redirectUrlAfterLogin']),
+        ...mapVuexState('account', ['settings']),
+        ...mapState(useAccountAuthStore, ['loginError', 'redirectUrlAfterLogin']),
+        ...mapState(useUxLoadingStore, ['appLoader']),
         tokenInvalid () {
             return this.mfaRequired && !/^\d{6}$/.test(this.input.token)
         },
