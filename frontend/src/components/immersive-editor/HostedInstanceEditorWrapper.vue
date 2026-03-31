@@ -126,6 +126,11 @@ export default {
                 case 'request-drawer-state':
                     this.$emit('request-drawer-state')
                     break
+                case 'nr-assistant/workspace:change':
+                    if (event.data.tab?.label) {
+                        document.title = `Node-RED: ${event.data.tab.label} - FlowFuse`
+                    }
+                    break
                 default:
                 }
             }
