@@ -7,6 +7,25 @@
  * Other components (ie EE-specific features) can register their own additional ACLs
  */
 module.exports = function (app) {
+    const expertRbacToolCheck = async (teamMembership, application, toolName) => {
+        const applicationHash = typeof application === 'object' ? application.hashid : application
+        if (toolName === 'expert:status-message') {
+            return true
+        }
+        // TODO: Understand all automations and which permissions they should require.
+        // For now, basic starter automations are added here, any not matching this list will require project:flows:edit permission
+        const toolAccessPermission = {
+            'automation:select-nodes': 'project:flows:view',
+            'automation:get-nodes': 'project:flows:view',
+            'automation:get-flows': 'project:flows:view'
+        }
+        const requiredPermission = toolAccessPermission[toolName] || 'project:flows:edit' // default to highest level of access if tool isn't in the list, to be safe
+        if (!app.hasPermission(teamMembership, requiredPermission, { applicationId: applicationHash })) {
+            return false
+        }
+        return true
+    }
+
     // Standard set of verify functions to ensure the request meets particular criteria
     const verifyFunctions = {
         checkTeamAndObjectIds: async function (requestParts, ids) {
@@ -93,6 +112,142 @@ module.exports = function (app) {
             } catch (err) {
                 // Any error likely means requestParts[2] isn't a valid uuid - which
                 // postgres with throw over, unlike sqlite that returns no results.
+                return false
+            }
+        },
+        checkExpertTopic: async function (topicParts, usernameParts, acl) {
+            // topicParts = [ _ , <userid>, <sessionid>, <entityType>, <entityId> [, <inflightType>] ]
+            // usernameParts = [ 'expert-client' | 'expert-agent', <userid> [, <sessionid>] ]
+            // acl = { channel: 'inflight'|'chat', isPub: true/false, isSub: true/false, isClient: true/false, isAgent: true/false, allowWildcard: { user: true/false, session: true/false, entity: true/false } }
+
+            const ValidationError = function (message) {
+                const error = new Error(message)
+                error.name = 'ACLValidationError'
+                return error
+            }
+
+            try {
+                const [, userId, sessionId, entityType, entityId, inflightType] = topicParts
+                const [clientType, usernameUserId, usernameSessionId] = usernameParts
+
+                const isInflight = acl.channel === 'inflight'
+                const isChat = acl.channel === 'chat'
+                const validateUserMatch = acl.isClient
+                const validateUserExists = acl.isClient || (acl.isAgent && acl.isPub)
+                const validateSession = acl.isClient
+
+                // ensure correct selected acl for the client
+                if (acl.isAgent && clientType !== 'expert-agent') {
+                    throw ValidationError('invalid client type - expected an expert-agent client')
+                } else if (!acl.isAgent && clientType !== 'expert-client') {
+                    throw ValidationError('invalid client type - expected an expert-client client')
+                }
+
+                // ensure topic part count is valid for the type of subscription
+                if (isInflight && topicParts.length !== 6) {
+                    throw ValidationError('topic is invalid')
+                } else if (isChat && topicParts.length !== 5) {
+                    throw ValidationError('topic is invalid')
+                }
+
+                if (!userId) {
+                    throw ValidationError('invalid userId')
+                }
+                if (validateUserMatch && userId !== usernameUserId) {
+                    throw ValidationError('userId does not match')
+                }
+                if (acl.allowWildcard?.user && userId === '+') {
+                    // this is valid, the client is subscribing to all topics for this session
+                } else if (validateUserExists) {
+                    const user = await app.db.models.User.byId(userId)
+                    if (!user) {
+                        throw ValidationError('userId does not exist')
+                    }
+                }
+
+                // at minimum, ensure session is present 8 or more chars
+                if (!sessionId) {
+                    throw ValidationError('invalid sessionId')
+                } else {
+                    if (acl.allowWildcard?.session && sessionId === '+') {
+                        // this is valid for agent subs (as they service all sessions for the users)
+                    } else if (validateSession && sessionId !== usernameSessionId) {
+                        throw ValidationError('sessionId does not match')
+                    } else if (sessionId.length < 8) {
+                        throw ValidationError('invalid sessionId')
+                    }
+                }
+
+                // not all inflight subscriptions require an entity, but if one is provided it must be valid
+                let teamId
+                let applicationHash
+                let isWildcardEntity = false
+                if (acl.allowWildcard?.entity && (entityType === '+' || entityId === '+')) {
+                    if (entityType !== '+' && entityId !== '+') {
+                        throw ValidationError('invalid entity wildcards - both entityType and entityId must be wildcarded together')
+                    }
+                    isWildcardEntity = true
+                } else if (entityType === 'p') {
+                    const project = await app.db.models.Project.byId(entityId)
+                    if (!project) {
+                        throw ValidationError('project does not exist')
+                    } else {
+                        teamId = project.TeamId
+                        applicationHash = project.Application?.hashid || app.db.models.Application.encodeHashid(project.ApplicationId)
+                    }
+                } else if (entityType === 'd') {
+                    const device = await app.db.models.Device.byId(entityId)
+                    if (!device) {
+                        throw ValidationError('device does not exist')
+                    } else {
+                        teamId = device.TeamId
+                        applicationHash = device.Application?.hashid || app.db.models.Application.encodeHashid(device.ApplicationId)
+                    }
+                } else if (entityType === 'a') {
+                    const application = await app.db.models.Application.byId(entityId)
+                    if (!application) {
+                        throw ValidationError('application does not exist')
+                    } else {
+                        teamId = application.TeamId
+                        applicationHash = application.hashid
+                    }
+                } else if (entityType === 't') {
+                    const team = await app.db.models.Team.byId(entityId)
+                    if (!team) {
+                        throw ValidationError('team does not exist')
+                    } else {
+                        teamId = team.id
+                        applicationHash = null // NA
+                    }
+                } else {
+                    throw ValidationError('invalid entity')
+                }
+
+                // must be member of a team
+                if (!isWildcardEntity) {
+                    const teamMembership = await app.db.models.TeamMember.getTeamMembership(userId, teamId, false)
+                    if (!teamMembership) {
+                        throw ValidationError('user is not a member of the team that owns this project')
+                    }
+
+                    // if this is an inflight channel messages we must validate the user has appropriate RBAC permission
+                    if (isInflight) {
+                        const result = await expertRbacToolCheck(teamMembership, applicationHash, inflightType)
+                        if (!result) {
+                            throw ValidationError('user does not have permission to access this inflight topic')
+                        }
+                    }
+                }
+
+                return true
+            } catch (error) {
+                if (error.name === 'ACLValidationError') {
+                    // ↓ Useful for debugging ↓
+                    // console.warn('ACL DENY:', { topicParts, usernameParts, acl, reason: error.message })
+                } else {
+                    // unexpected error during ACL checking - log to app
+                    app.log.error('Unexpected error during ACL check', { topicParts, usernameParts, acl, error })
+                }
                 return false
             }
         }
@@ -191,16 +346,46 @@ module.exports = function (app) {
                 // - ff/v1/<team>/d/<device/resources/heartbeat
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources\/heartbeat$/, verify: 'checkDeviceIsAssigned' }
             ]
+        },
+        // frontend client (user)
+        expertClient: {
+            sub: [
+                // topic: ff/v1/expert/<userid>/<sessionid>/<a|p|d|t>/<appid|projid|devid|teamid>/support/chat/response
+                // topic captures, 0 = full topic, 1 = userid, 2 = sessionid, 3 = entity type (a|p|d|t), 4 = entity id, 5 = inflight type (only for inflight topics)
+                // example topic: ff/v1/expert/user123/session123/p/abc-123-456-789/support/chat/response
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { entity: true }, isClient: true, isSub: true },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { entity: true, inflightType: true }, isClient: true, isSub: true }
+            ],
+            pub: [
+                // topic: ff/v1/expert/<userid>/<sessionid>/<a|p|d|t>/<appid|projid|devid|teamid>/support/chat/request
+                // topic captures, 0 = full topic, 1 = userid, 2 = sessionid, 3 = entity type (a|p|d|t), 4 = entity id, 5 = inflight type (only for inflight topics)
+                // example topic: ff/v1/expert/user123/session123/p/abc-111-222-333/support/chat/request
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', isClient: true, isPub: true },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', isClient: true, isPub: true }
+            ]
+        },
+        // backend client (agent)
+        expertAgent: {
+            sub: [
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { user: true, session: true, entity: true }, isAgent: true, isSub: true },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { user: true, session: true, entity: true, inflightType: true }, isAgent: true, isSub: true }
+            ],
+            pub: [
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', isAgent: true, isPub: true },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true }
+            ]
         }
     }
 
     return {
         verify: async function (username, topic, accessLevel) {
-            // Four types of client
+            // Types of client
             // - forge_platform
             // - project:<teamid>:<projectid>
             // - device:<teamid>:<deviceid>
             // - frontend:<teamid>:<deviceid>
+            // - expert-client:<userid>:<sessionid>
+            // - expert-agent:<userid>:<apiversion>
 
             let allowed = false
             let aclList = []
@@ -216,6 +401,10 @@ module.exports = function (app) {
                 aclList = ACLS.device[aclType]
             } else if (/^frontend:/.test(username)) {
                 aclList = ACLS.frontend[aclType]
+            } else if (/^expert-agent:/.test(username)) {
+                aclList = ACLS.expertAgent[aclType]
+            } else if (/^expert-client:/.test(username)) {
+                aclList = ACLS.expertClient[aclType]
             } else {
                 return false
             }
@@ -244,7 +433,12 @@ module.exports = function (app) {
                             // This isn't allowed to be a sharedSub
                             break
                         } else if (acl.verify && verifyFunctions[acl.verify]) {
-                            allowed = await verifyFunctions[acl.verify](m, usernameParts, acl)
+                            try {
+                                allowed = await verifyFunctions[acl.verify](m, usernameParts, acl)
+                            } catch (err) {
+                                allowed = false
+                                app.log.error('Error in ACL verify function', { error: err, topic, username, acl })
+                            }
                             // ↓ Useful for debugging ↓
                             // if (allowed !== true) {
                             //     console.log('DENIED!', topic, acl)
