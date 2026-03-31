@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
-vi.mock('@/services/messaging.service.js', () => ({
+vi.mock('@/services/post-message.service.js', () => ({
     default: () => ({
         sendMessage: vi.fn().mockResolvedValue(undefined)
     })
