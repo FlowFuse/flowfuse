@@ -247,11 +247,11 @@ class MqttService {
                 managed.listeners.add(() => client.off(eventName, wrapped))
             }
 
-            register('connect', onConnect)
-            register('close', onClose)
-            register('offline', onOffline)
-            register('error', onError)
-            register('message', onMessage)
+            if (onConnect) register('connect', onConnect)
+            if (onClose) register('close', onClose)
+            if (onOffline) register('offline', onOffline)
+            if (onError) register('error', onError)
+            if (onMessage) register('message', onMessage)
 
             this.$clients.set(key, managed)
 
@@ -262,13 +262,13 @@ class MqttService {
     /**
      * Publish a message only when the connection is alive.
      * @param {string} key
-     * @param {{topic: string, payload: unknown, qos?: number, retain?: boolean, onError?: Function, correlationData?: string | Buffer, userProperties?: Record<string, string>, serialize?: 'auto' | 'raw' | 'json' | 'string'}} options
+     * @param {{topic: string, payload: unknown, qos?: number, retain?: boolean, onError?: Function | null, correlationData?: string | Buffer | Uint8Array | ArrayBuffer | null, userProperties?: Record<string, string | string[]> | null, serialize?: 'auto' | 'raw' | 'json' | 'string'}} options
      * @returns {Promise<void>}
      */
     publishMessage (key, {
         topic,
         payload,
-        qos,
+        qos = 2,
         retain,
         onError = null,
         correlationData = null,
@@ -282,25 +282,42 @@ class MqttService {
         }
 
         const { client } = managed
+
         if (!client.connected) {
             return Promise.reject(new Error(`MQTT connection "${key}" is not connected`))
         }
 
-        if (!topic || typeof topic !== 'string') {
+        if (!topic || typeof topic !== 'string' || !topic.trim()) {
             return Promise.reject(new Error('MQTT publish topic is required'))
         }
+        if (topic.includes('+') || topic.includes('#')) {
+            return Promise.reject(new Error('MQTT publish topic must not contain wildcard characters'))
+        }
 
+        if (qos !== undefined && (!Number.isInteger(qos) || qos < 0 || qos > 2)) {
+            return Promise.reject(new TypeError('MQTT publish qos must be one of: 0, 1, 2'))
+        }
+
+        if (retain !== undefined && typeof retain !== 'boolean') {
+            return Promise.reject(new TypeError('MQTT publish retain must be a boolean'))
+        }
+
+        if (onError !== null && onError !== undefined && typeof onError !== 'function') {
+            return Promise.reject(new TypeError('MQTT publish onError must be a function'))
+        }
+
+        let properties
         try {
             payload = this.normalizePublishPayload(payload, serialize)
+            properties = this.normalizePublishProperties({ correlationData, userProperties })
         } catch (error) {
             return Promise.reject(error)
         }
 
-        /** @type {Mqtt.IClientPublishOptions} */
-        const options = {
-            qos,
-            retain,
-            properties: { correlationData, userProperties }
+        const options = { qos, retain }
+
+        if (properties) {
+            options.properties = properties
         }
 
         return new Promise((resolve, reject) => {
@@ -319,7 +336,7 @@ class MqttService {
      * Subscribe to topics on a managed connection.
      * @param {string} key
      * @param {string | string[]} topic
-     * @param {Mqtt.IClientSubscribeOptions} [options]
+     * @param {Mqtt.ClientSubscribeOptions} [options]
      * @returns {Promise<void>}
      */
     subscribe (key, topic, options = {}) {
@@ -500,6 +517,81 @@ class MqttService {
         }
 
         throw new TypeError('Unsupported MQTT payload type for auto serialization')
+    }
+
+    /**
+     * @param {unknown} correlationData
+     * @returns {Buffer | Uint8Array | undefined}
+     */
+    normalizeCorrelationData (correlationData) {
+        if (correlationData === null || correlationData === undefined) {
+            return undefined
+        }
+
+        if (typeof correlationData === 'string') {
+            return typeof Buffer !== 'undefined'
+                ? Buffer.from(correlationData)
+                : new TextEncoder().encode(correlationData)
+        }
+
+        if (this.isBinaryPayload(correlationData)) {
+            return this.normalizeBinaryPayload(correlationData)
+        }
+
+        throw new TypeError('MQTT publish correlationData must be a string or binary value')
+    }
+
+    /**
+     * @param {unknown} userProperties
+     * @returns {Record<string, string | string[]> | undefined}
+     */
+    normalizeUserProperties (userProperties) {
+        if (userProperties === null || userProperties === undefined) {
+            return undefined
+        }
+
+        if (!this.isPlainObject(userProperties)) {
+            throw new TypeError('MQTT publish userProperties must be a plain object')
+        }
+
+        const normalized = {}
+        for (const [key, value] of Object.entries(userProperties)) {
+            if (!key.trim()) {
+                throw new TypeError('MQTT publish userProperties keys must be non-empty strings')
+            }
+
+            if (typeof value === 'string') {
+                normalized[key] = value
+                continue
+            }
+
+            if (Array.isArray(value) && value.every(item => typeof item === 'string')) {
+                normalized[key] = value
+                continue
+            }
+
+            throw new TypeError(`MQTT publish userProperties["${key}"] must be a string or string[]`)
+        }
+
+        return Object.keys(normalized).length ? normalized : undefined
+    }
+
+    /**
+     * @param {{correlationData: unknown, userProperties: unknown}} properties
+     * @returns {{correlationData?: Buffer | Uint8Array, userProperties?: Record<string, string | string[]>} | undefined}
+     */
+    normalizePublishProperties ({ correlationData, userProperties }) {
+        const normalizedCorrelationData = this.normalizeCorrelationData(correlationData)
+        const normalizedUserProperties = this.normalizeUserProperties(userProperties)
+
+        if (!normalizedCorrelationData && !normalizedUserProperties) {
+            return undefined
+        }
+
+        return {
+            correlationData: normalizedCorrelationData,
+            userProperties: normalizedUserProperties
+        }
     }
 }
 

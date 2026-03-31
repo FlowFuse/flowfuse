@@ -235,4 +235,101 @@ describe('MqttService', async () => {
             serialize: 'json'
         })).rejects.toThrow('Failed to serialize MQTT payload in "json" mode')
     })
+
+    test('publishMessage validates topic, qos, retain and onError', async () => {
+        const service = createMqttService({
+            app: {},
+            store: {},
+            router: {}
+        })
+
+        const client = createMockClient()
+        mockConnect.mockReturnValueOnce(client)
+
+        await service.createClient('validate-key', { url: 'mqtt://example.com' })
+
+        await expect(service.publishMessage('validate-key', {
+            topic: ' ',
+            payload: 'ok'
+        })).rejects.toThrow('MQTT publish topic is required')
+
+        await expect(service.publishMessage('validate-key', {
+            topic: 'bad/+',
+            payload: 'ok'
+        })).rejects.toThrow('MQTT publish topic must not contain wildcard characters')
+
+        await expect(service.publishMessage('validate-key', {
+            topic: 'test/topic',
+            payload: 'ok',
+            qos: 3
+        })).rejects.toThrow('MQTT publish qos must be one of: 0, 1, 2')
+
+        await expect(service.publishMessage('validate-key', {
+            topic: 'test/topic',
+            payload: 'ok',
+            retain: 'yes'
+        })).rejects.toThrow('MQTT publish retain must be a boolean')
+
+        await expect(service.publishMessage('validate-key', {
+            topic: 'test/topic',
+            payload: 'ok',
+            onError: 'not-a-function'
+        })).rejects.toThrow('MQTT publish onError must be a function')
+    })
+
+    test('publishMessage validates and normalizes correlationData and userProperties', async () => {
+        const service = createMqttService({
+            app: {},
+            store: {},
+            router: {}
+        })
+
+        const client = createMockClient()
+        mockConnect.mockReturnValueOnce(client)
+
+        await service.createClient('properties-key', { url: 'mqtt://example.com' })
+
+        await service.publishMessage('properties-key', {
+            topic: 'valid/topic',
+            payload: 'ok',
+            correlationData: 'request-123',
+            userProperties: {
+                source: 'ui',
+                tags: ['alpha', 'beta']
+            }
+        })
+
+        const validOptions = client.publish.mock.calls[0][2]
+        expect(validOptions.properties.correlationData).toBeInstanceOf(Buffer)
+        expect(validOptions.properties.userProperties).toEqual({
+            source: 'ui',
+            tags: ['alpha', 'beta']
+        })
+
+        await service.publishMessage('properties-key', {
+            topic: 'no/properties',
+            payload: 'ok',
+            correlationData: null,
+            userProperties: null
+        })
+        expect(client.publish.mock.calls[1][2].properties).toBeUndefined()
+
+        await expect(service.publishMessage('properties-key', {
+            topic: 'bad/properties',
+            payload: 'ok',
+            correlationData: 123
+        })).rejects.toThrow('MQTT publish correlationData must be a string or binary value')
+
+        await expect(service.publishMessage('properties-key', {
+            topic: 'bad/properties',
+            payload: 'ok',
+            userProperties: []
+        })).rejects.toThrow('MQTT publish userProperties must be a plain object')
+
+        await expect(service.publishMessage('properties-key', {
+            topic: 'bad/properties',
+            payload: 'ok',
+            userProperties: { trace: 1 }
+        })).rejects.toThrow('MQTT publish userProperties["trace"] must be a string or string[]')
+    })
 })
