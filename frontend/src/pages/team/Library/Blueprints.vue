@@ -44,12 +44,15 @@
 
 <script>
 import { PlusIcon } from '@heroicons/vue/solid'
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import BlueprintTile from '../../../components/blueprints/BlueprintTile.vue'
 import featuresMixin from '../../../mixins/Features.js'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'BluePrints',
@@ -65,8 +68,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
-        ...mapGetters('account', ['isAdminUser']),
+        ...mapVuexState('account', ['team']),
+        ...mapState(useAccountAuthStore, ['isAdminUser']),
         blueprintsByCategory () {
             return [...this.blueprints].sort((a, b) => {
                 return a.order - b.order

@@ -9,8 +9,10 @@
 
 <script>
 
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
+
+import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 
@@ -18,6 +20,8 @@ import TeamCell from '../../../components/tables/cells/TeamCell.vue'
 import alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 import CreateTeamButton from '../components/CreateTeamButton.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'AccountTeams',
@@ -35,7 +39,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'teams', 'settings']),
+        ...mapVuexState('account', ['teams', 'settings']),
+        ...mapState(useAccountAuthStore, ['user']),
         teamCount () {
             return this.teams ? this.teams.length : 0
         }

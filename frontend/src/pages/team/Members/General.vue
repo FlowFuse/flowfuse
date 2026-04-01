@@ -49,8 +49,10 @@
 
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+
+import { mapActions, mapGetters, mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
@@ -68,6 +70,9 @@ import InviteMemberDialog from '../dialogs/InviteMemberDialog.vue'
 import ApplicationPermissionOverride from './components/ApplicationPermissionOverride.vue'
 
 import ApplicationPermissionRow from './components/ApplicationPermissionsRow.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+
 export default {
     name: 'TeamUsersGeneral',
     components: {
@@ -101,8 +106,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'team']),
-        ...mapGetters('account', ['requiresBilling', 'featuresCheck', 'isAdminUser']),
+        ...mapVuexState('account', ['team']),
+        ...mapGetters('account', ['requiresBilling', 'featuresCheck']),
+        ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
         canEditUser: function () {
             return this.hasPermission('team:user:remove') || this.hasPermission('team:user:change-role') || this.isAdminUser
         },
