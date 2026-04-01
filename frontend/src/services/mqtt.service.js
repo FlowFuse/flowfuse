@@ -3,78 +3,179 @@ import Mqtt from 'mqtt'
 import { BaseService } from './service.contract.js'
 
 /**
+ * @typedef {import('mqtt').MqttClient} MqttJsClient
+ * @typedef {import('mqtt').IPublishPacket} MqttJsPublishPacket
+ * @typedef {import('mqtt').IClientSubscribeOptions} MqttJsSubscribeOptions
+ */
+
+/**
+ * @typedef {Object} MqttCredentials
+ * @property {string} url - Broker URL using the `mqtt`, `mqtts`, `ws`, or `wss` protocol.
+ * @property {string} username - Username used to authenticate the MQTT client.
+ * @property {string} password - Password used to authenticate the MQTT client.
+ * @property {string} [clientId] - Optional explicit MQTT client identifier.
+ */
+
+/**
+ * @typedef {() => Promise<MqttCredentials>} MqttCredentialProvider
+ */
+
+/**
+ * @typedef {Object} MqttReconnectOptions
+ * @property {boolean} [enabled] - Enables reconnection scheduling for the managed client.
+ * @property {number} [initialDelay] - Delay in milliseconds before the first reconnect attempt.
+ * @property {number} [maxDelay] - Upper bound in milliseconds for exponential reconnect backoff.
+ * @property {number} [factor] - Exponential backoff multiplier applied after each failure.
+ */
+
+/**
+ * @typedef {Object} MqttReconnectPolicy
+ * @property {boolean} enabled - Whether reconnect scheduling is currently enabled.
+ * @property {number} initialDelay - Delay in milliseconds before the first reconnect attempt.
+ * @property {number} maxDelay - Maximum delay in milliseconds allowed between reconnect attempts.
+ * @property {number} factor - Exponential backoff multiplier applied between reconnect attempts.
+ */
+
+/**
+ * @typedef {Object} MqttConnectionHandlers
+ * @property {(client: MqttJsClient) => void} [onConnect] - Invoked after the broker reports a successful connection.
+ * @property {(client: MqttJsClient) => void} [onClose] - Invoked after the active client closes.
+ * @property {(client: MqttJsClient) => void} [onOffline] - Invoked after the active client transitions offline.
+ * @property {(error: Error, client: MqttJsClient | null) => void} [onError] - Invoked when the connection or lifecycle emits an error.
+ * @property {(topic: string, message: Buffer, packet: MqttJsPublishPacket, client: MqttJsClient) => void} [onMessage] - Invoked for incoming MQTT messages.
+ */
+
+/**
+ * @typedef {Object} MqttPublishRequest
+ * @property {string} topic - Exact publish topic. Wildcards are not allowed.
+ * @property {unknown} payload - Message payload before serialization.
+ * @property {0 | 1 | 2} [qos=2] - MQTT QoS level for the publish request.
+ * @property {boolean} [retain] - Whether the broker should retain the published payload.
+ * @property {((error: Error) => void) | null} [onError] - Optional error callback invoked when publish preparation or delivery fails.
+ * @property {string | Buffer | Uint8Array | ArrayBuffer | null} [correlationData] - Optional MQTT v5 correlation data.
+ * @property {Record<string, string | string[]> | null} [userProperties] - Optional MQTT v5 user properties.
+ * @property {'auto' | 'raw' | 'json' | 'string'} [serialize='auto'] - Serialization mode used to normalize the payload before publish.
+ * @property {boolean} [waitForConnection=true] - Wait for the managed connection to become ready before publishing.
+ * @property {number} [connectionTimeout=5000] - Maximum time in milliseconds to wait for a live connection.
+ */
+
+/**
+ * @typedef {Object} MqttWaitForConnectionOptions
+ * @property {number} [timeout=5000] - Maximum time in milliseconds to wait for the connection to become active.
+ */
+
+/**
+ * @typedef {Object} MqttNormalizedPublishProperties
+ * @property {Buffer | Uint8Array} [correlationData] - Normalized MQTT v5 correlation data.
+ * @property {Record<string, string | string[]>} [userProperties] - Normalized MQTT v5 user properties.
+ */
+
+/**
+ * @typedef {() => void} ManagedMqttListenerCleanup
+ */
+
+/**
+ * @typedef {Object} ManagedMqttSubscription
+ * @property {string} topic - Topic filter to restore after reconnecting.
+ * @property {MqttJsSubscribeOptions} options - Subscribe options originally used for the topic.
+ */
+
+/**
+ * @typedef {Object} MqttConnectionWaiter
+ * @property {() => void} resolve - Resolves a pending wait-for-connection promise.
+ * @property {(error: Error) => void} reject - Rejects a pending wait-for-connection promise.
+ * @property {ReturnType<typeof setTimeout> | null} timer - Timeout handle used to fail the waiter if it takes too long.
+ */
+
+/**
+ * @typedef {Object} MqttServiceOptions
+ * @property {import('vue').App} app - Vue application instance that owns the service.
+ * @property {import('vuex').Store} store - Vuex store instance shared across the frontend.
+ * @property {import('vue-router').Router} router - Vue Router instance for navigation-aware integrations.
+ * @property {Record<string, unknown>} [services={}] - Service registry used for cross-service coordination.
+ */
+
+/**
  * @typedef {Object} MqttConnectionOptions
- * @property {number} [reconnectPeriod=0]
- * @property {() => Promise<{url: string, username: string, password: string, clientId?: string}>} getCredentials
- * @property {{enabled?: boolean, initialDelay?: number, maxDelay?: number, factor?: number}} [reconnect]
- * @property {(client: import('mqtt').Client) => void} [onConnect]
- * @property {(client: import('mqtt').Client) => void} [onClose]
- * @property {(client: import('mqtt').Client) => void} [onOffline]
- * @property {(error: Error, client: import('mqtt').MqttClient) => void} [onError]
- * @property {(topic: string, message: Buffer, packet: any, client: import('mqtt').MqttClient) => void} [onMessage]
+ * @property {number} [reconnectPeriod=0] - Legacy reconnect base delay in milliseconds when no explicit reconnect policy is provided.
+ * @property {MqttCredentialProvider} getCredentials - Async callback that returns fresh broker credentials for each connection attempt.
+ * @property {MqttReconnectOptions} [reconnect] - Reconnect policy overrides for the managed connection.
+ * @property {(client: MqttJsClient) => void} [onConnect] - Lifecycle callback fired when the client connects.
+ * @property {(client: MqttJsClient) => void} [onClose] - Lifecycle callback fired when the client closes.
+ * @property {(client: MqttJsClient) => void} [onOffline] - Lifecycle callback fired when the client goes offline.
+ * @property {(error: Error, client: MqttJsClient | null) => void} [onError] - Lifecycle callback fired when an error occurs.
+ * @property {(topic: string, message: Buffer, packet: MqttJsPublishPacket, client: MqttJsClient) => void} [onMessage] - Lifecycle callback fired for inbound messages.
  */
 
 /**
  * @typedef {Object} ManagedMqttClient
- * @property {string} key
- * @property {import('mqtt').Client | null} client
- * @property {Set<Function>} listeners
- * @property {boolean} destroyed
- * @property {boolean} intentionalDisconnect
- * @property {'idle' | 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'failed'} status
- * @property {() => Promise<{url: string, username: string, password: string, clientId?: string}>} getCredentials
- * @property {{enabled: boolean, initialDelay: number, maxDelay: number, factor: number}} reconnectPolicy
- * @property {number} reconnectAttempt
- * @property {ReturnType<typeof setTimeout> | null} reconnectTimer
- * @property {Map<string, {topic: string, options: Mqtt.ClientSubscribeOptions}>} subscriptions
- * @property {{onConnect?: Function, onClose?: Function, onOffline?: Function, onError?: Function, onMessage?: Function}} handlers
- * @property {Set<{resolve: Function, reject: Function, timer: ReturnType<typeof setTimeout> | null}>} connectionWaiters
+ * @property {string} key - Stable identifier used to store and retrieve the managed connection.
+ * @property {MqttJsClient | null} client - Active mqtt.js client instance for this managed connection.
+ * @property {Set<ManagedMqttListenerCleanup>} listeners - Registered listener cleanup callbacks for the active client.
+ * @property {boolean} destroyed - Indicates that the managed connection has been permanently torn down.
+ * @property {boolean} intentionalDisconnect - Marks whether the last disconnect was initiated by service cleanup.
+ * @property {'idle' | 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'failed'} status - Current lifecycle state of the managed connection.
+ * @property {MqttCredentialProvider} getCredentials - Credential provider invoked before each connection attempt.
+ * @property {MqttReconnectPolicy} reconnectPolicy - Effective reconnect policy currently applied to the connection.
+ * @property {number} reconnectAttempt - Number of reconnect attempts that have been scheduled since the last successful connect.
+ * @property {ReturnType<typeof setTimeout> | null} reconnectTimer - Pending reconnect timer, if one is currently scheduled.
+ * @property {Map<string, ManagedMqttSubscription>} subscriptions - Remembered subscriptions used to replay topics after reconnects.
+ * @property {MqttConnectionHandlers} handlers - Lifecycle handlers bound to this managed connection.
+ * @property {Set<MqttConnectionWaiter>} connectionWaiters - Pending callers waiting for the connection to become usable.
  */
 
 class MqttService extends BaseService {
     /**
+     * Vue application instance that owns the service lifecycle.
      * @type {import('vue').App}
      */
     $app
 
     /**
+     * Shared Vuex store instance.
      * @type {import('vuex').Store}
      */
     $store
 
     /**
+     * Shared Vue Router instance.
      * @type {import('vue-router').Router}
      */
     $router
 
     /**
-     * @type {Object}
+     * Registry of sibling services available for coordination.
+     * @type {Record<string, unknown>}
      */
     $services
 
     /**
+     * mqtt.js module reference used to create clients.
      * @type {typeof import('mqtt') | null}
      */
     $mqtt = null
 
     /**
+     * Managed MQTT connections indexed by their logical key.
      * @type {Map<string, ManagedMqttClient>}
      */
     $clients = new Map()
 
     /**
      * Per-key operation queue used to serialize lifecycle operations.
-     * @type {Map<string, Promise<any>>}
+     * @type {Map<string, Promise<unknown>>}
      */
     $clientOperations = new Map()
 
     /**
+     * Marks the service as unusable after teardown.
      * @type {boolean}
      */
     $destroyed = false
 
     /**
-     * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options
+     * Create the MQTT service with the shared frontend dependencies.
+     * @param {MqttServiceOptions} options - Dependencies injected by the frontend service container.
      */
     constructor ({
         app,
@@ -92,26 +193,39 @@ class MqttService extends BaseService {
         this.init()
     }
 
+    /**
+     * Initialize the mqtt.js module reference used by this service instance.
+     * @returns {void}
+     */
     init () {
         this.$mqtt = Mqtt
     }
 
     /**
-     * @param {string} key
-     * @returns {ManagedMqttClient || null}
+     * Return the managed connection record for a given key.
+     * @param {string} key - Logical connection identifier.
+     * @returns {ManagedMqttClient | null} Managed client state or `null` when the key is unknown.
      */
     getManagedClient (key) {
         return this.$clients.get(key) || null
     }
 
     /**
-     * @param {string} key
-     * @returns {boolean}
+     * Check whether a managed connection exists for the given key.
+     * @param {string} key - Logical connection identifier.
+     * @returns {boolean} `true` when a managed connection exists for the key.
      */
     hasClient (key) {
         return this.$clients.has(key)
     }
 
+    /**
+     * Queue a lifecycle operation so only one operation runs at a time for a given connection key.
+     * @template T
+     * @param {string} key - Logical connection identifier.
+     * @param {() => Promise<T> | T} operation - Operation to execute after any previous queued work completes.
+     * @returns {Promise<T>} Result of the queued operation.
+     */
     async runClientOperation (key, operation) {
         const previous = this.$clientOperations.get(key) || Promise.resolve()
 
@@ -131,7 +245,8 @@ class MqttService extends BaseService {
 
     /**
      * Remove and detach a managed connection without assuming it is still alive.
-     * @param {string} key
+     * @param {string} key - Logical connection identifier.
+     * @returns {Promise<void>} Resolves once cleanup for the keyed connection finishes.
      */
     async destroyClient (key) {
         await this.runClientOperation(key, async () => {
@@ -141,9 +256,9 @@ class MqttService extends BaseService {
 
     /**
      * Create or replace a connection safely.
-     * @param {string} key
-     * @param {MqttConnectionOptions} options
-     * @returns {Promise<import('mqtt').MqttClient>}
+     * @param {string} key - Logical connection identifier.
+     * @param {MqttConnectionOptions} [options={}] - Connection settings and lifecycle callbacks.
+     * @returns {Promise<MqttJsClient>} Newly created mqtt.js client instance.
      */
     async createClient (key, options = {}) {
         const {
@@ -205,8 +320,7 @@ class MqttService extends BaseService {
             this.$clients.set(key, managed)
 
             try {
-                await this.connectManagedClient(managed, false)
-                return managed.client
+                return await this.connectManagedClient(managed, false)
             } catch (error) {
                 this.$clients.delete(key)
                 throw error
@@ -216,9 +330,9 @@ class MqttService extends BaseService {
 
     /**
      * Publish a message only when the connection is alive.
-     * @param {string} key
-     * @param {{topic: string, payload: unknown, qos?: number, retain?: boolean, onError?: Function | null, correlationData?: string | Buffer | Uint8Array | ArrayBuffer | null, userProperties?: Record<string, string | string[]> | null, serialize?: 'auto' | 'raw' | 'json' | 'string', waitForConnection?: boolean, connectionTimeout?: number}} options
-     * @returns {Promise<void>}
+     * @param {string} key - Logical connection identifier.
+     * @param {MqttPublishRequest} [options={}] - Publish request details.
+     * @returns {Promise<void>} Resolves after the broker accepts the publish request.
      */
     async publishMessage (key, {
         topic,
@@ -229,7 +343,7 @@ class MqttService extends BaseService {
         correlationData = null,
         userProperties = null,
         serialize = 'auto',
-        waitForConnection = false,
+        waitForConnection = true,
         connectionTimeout = 5000
     } = {}) {
         const managed = this.getManagedClient(key)
@@ -314,10 +428,10 @@ class MqttService extends BaseService {
 
     /**
      * Subscribe to topics on a managed connection.
-     * @param {string} key
-     * @param {string | string[]} topic
-     * @param {Mqtt.ClientSubscribeOptions} [options]
-     * @returns {Promise<void>}
+     * @param {string} key - Logical connection identifier.
+     * @param {string | string[]} topic - Topic filter or filters to subscribe to.
+     * @param {MqttJsSubscribeOptions} [options={}] - mqtt.js subscribe options applied to each topic.
+     * @returns {Promise<void>} Resolves after the broker acknowledges the subscription.
      */
     subscribe (key, topic, options = {}) {
         const managed = this.$clients.get(key)
@@ -343,9 +457,9 @@ class MqttService extends BaseService {
 
     /**
      * Unsubscribe from topics on a managed connection.
-     * @param {string} key
-     * @param {string | string[]} topic
-     * @returns {Promise<void>}
+     * @param {string} key - Logical connection identifier.
+     * @param {string | string[]} topic - Topic filter or filters to unsubscribe from.
+     * @returns {Promise<void>} Resolves after the broker acknowledges the unsubscribe.
      */
     unsubscribe (key, topic) {
         const managed = this.getManagedClient(key)
@@ -371,8 +485,8 @@ class MqttService extends BaseService {
 
     /**
      * End a specific connection and remove it from the registry.
-     * @param {string} key
-     * @returns {Promise<void>}
+     * @param {string} key - Logical connection identifier.
+     * @returns {Promise<void>} Resolves once the connection has been destroyed and deregistered.
      */
     async endConnection (key) {
         await this.destroyClient(key)
@@ -380,7 +494,7 @@ class MqttService extends BaseService {
 
     /**
      * Destroy all managed connections and prevent further use.
-     * @returns {Promise<void>}
+     * @returns {Promise<void>} Resolves after every managed connection has been cleaned up.
      */
     async destroy () {
         this.$destroyed = true
@@ -394,7 +508,7 @@ class MqttService extends BaseService {
 
     /**
      * Reset the service so it can be reused in tests or HMR.
-     * @returns {Promise<void>}
+     * @returns {Promise<void>} Resolves after cleanup and module reinitialization complete.
      */
     async reset () {
         await this.destroy()
@@ -403,9 +517,10 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {import('mqtt').MqttClient} client
-     * @param {boolean} [force=true]
-     * @returns {Promise<void>}
+     * Close an mqtt.js client and treat common double-close errors as harmless.
+     * @param {MqttJsClient} client - Active mqtt.js client instance.
+     * @param {boolean} [force=true] - Whether to force-close the client immediately.
+     * @returns {Promise<void>} Resolves once the client finishes closing.
      */
     endMqttClient (client, force = true) {
         return new Promise((resolve, reject) => {
@@ -424,7 +539,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {ManagedMqttClient} managed
+     * Cancel any pending reconnect timer for the managed connection.
+     * @param {ManagedMqttClient} managed - Managed connection state to update.
+     * @returns {void}
      */
     clearReconnectTimer (managed) {
         if (managed.reconnectTimer) {
@@ -434,7 +551,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {ManagedMqttClient} managed
+     * Remove all event listeners currently registered for the managed connection.
+     * @param {ManagedMqttClient} managed - Managed connection state to clean up.
+     * @returns {void}
      */
     cleanupManagedListeners (managed) {
         for (const off of managed.listeners) {
@@ -448,7 +567,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {ManagedMqttClient} managed
+     * Resolve every pending caller waiting for this connection to become ready.
+     * @param {ManagedMqttClient} managed - Managed connection state that owns the waiters.
+     * @returns {void}
      */
     resolveConnectionWaiters (managed) {
         if (!managed.connectionWaiters) {
@@ -464,8 +585,10 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {ManagedMqttClient} managed
-     * @param {Error} error
+     * Reject every pending caller waiting for this connection to become ready.
+     * @param {ManagedMqttClient} managed - Managed connection state that owns the waiters.
+     * @param {Error} error - Error reported to each pending waiter.
+     * @returns {void}
      */
     rejectConnectionWaiters (managed, error) {
         if (!managed.connectionWaiters) {
@@ -481,9 +604,10 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {string} key
-     * @param {{timeout?: number}} [options]
-     * @returns {Promise<void>}
+     * Wait until a managed connection becomes active or the timeout elapses.
+     * @param {string} key - Logical connection identifier.
+     * @param {MqttWaitForConnectionOptions} [options={}] - Wait behavior overrides.
+     * @returns {Promise<void>} Resolves when the connection is active.
      */
     waitForConnection (key, { timeout = 5000 } = {}) {
         const managed = this.getManagedClient(key)
@@ -525,9 +649,10 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {ManagedMqttClient} managed
-     * @param {boolean} isReconnect
-     * @returns {Promise<import('mqtt').MqttClient>}
+     * Create a fresh mqtt.js client for a managed connection and bind its listeners.
+     * @param {ManagedMqttClient} managed - Managed connection state to connect.
+     * @param {boolean} isReconnect - Whether this call is part of the reconnect flow.
+     * @returns {Promise<MqttJsClient>} Fresh mqtt.js client instance bound to the managed state.
      */
     async connectManagedClient (managed, isReconnect) {
         if (managed.destroyed || this.$destroyed) {
@@ -568,8 +693,10 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {ManagedMqttClient} managed
-     * @param {import('mqtt').MqttClient} client
+     * Bind lifecycle listeners for the active mqtt.js client.
+     * @param {ManagedMqttClient} managed - Managed connection state that owns the client.
+     * @param {MqttJsClient} client - Active mqtt.js client instance.
+     * @returns {void}
      */
     bindManagedListeners (managed, client) {
         const register = (eventName, handler) => {
@@ -628,7 +755,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {ManagedMqttClient} managed
+     * Schedule a reconnect attempt using the managed connection's backoff policy.
+     * @param {ManagedMqttClient} managed - Managed connection state to reconnect.
+     * @returns {void}
      */
     scheduleReconnect (managed) {
         if (
@@ -656,8 +785,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {string} key
-     * @returns {Promise<void>}
+     * Reconnect a managed client if it still exists and reconnects remain enabled.
+     * @param {string} key - Logical connection identifier.
+     * @returns {Promise<void>} Resolves after the reconnect attempt has been processed.
      */
     async reconnectClient (key) {
         await this.runClientOperation(key, async () => {
@@ -679,9 +809,11 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {ManagedMqttClient} managed
-     * @param {string | string[]} topic
-     * @param {Mqtt.ClientSubscribeOptions} options
+     * Store subscription details so they can be replayed after reconnecting.
+     * @param {ManagedMqttClient} managed - Managed connection state that owns the subscriptions.
+     * @param {string | string[]} topic - Topic filter or filters to remember.
+     * @param {MqttJsSubscribeOptions} [options={}] - Subscribe options to store alongside each topic.
+     * @returns {void}
      */
     rememberSubscriptions (managed, topic, options = {}) {
         if (!managed.subscriptions) {
@@ -697,8 +829,10 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {ManagedMqttClient} managed
-     * @param {string | string[]} topic
+     * Remove remembered subscriptions for the provided topic filters.
+     * @param {ManagedMqttClient} managed - Managed connection state that owns the subscriptions.
+     * @param {string | string[]} topic - Topic filter or filters to forget.
+     * @returns {void}
      */
     forgetSubscriptions (managed, topic) {
         if (!managed.subscriptions) {
@@ -711,9 +845,10 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {ManagedMqttClient} managed
-     * @param {import('mqtt').MqttClient} client
-     * @returns {Promise<void>}
+     * Replay remembered subscriptions after the client reconnects.
+     * @param {ManagedMqttClient} managed - Managed connection state that owns the subscriptions.
+     * @param {MqttJsClient} client - Newly connected mqtt.js client instance.
+     * @returns {Promise<void>} Resolves after all remembered subscriptions are restored.
      */
     async replaySubscriptions (managed, client) {
         if (!managed.subscriptions) {
@@ -741,9 +876,10 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {string} key
-     * @param {MqttConnectionOptions['getCredentials']} getCredentials
-     * @returns {ManagedMqttClient['getCredentials']}
+     * Wrap the credential provider with validation so invalid credentials fail fast.
+     * @param {string} key - Logical connection identifier.
+     * @param {MqttCredentialProvider} getCredentials - Raw credential provider supplied by the caller.
+     * @returns {MqttCredentialProvider} Validated credential provider.
      */
     _buildCredentialsProvider (key, getCredentials) {
         return async () => {
@@ -777,7 +913,8 @@ class MqttService extends BaseService {
 
     /**
      * Internal destroy helper that assumes per-key serialization is already handled.
-     * @param {string} key
+     * @param {string} key - Logical connection identifier.
+     * @returns {Promise<void>} Resolves once teardown for the keyed connection completes.
      */
     async _destroyClientUnlocked (key) {
         const managed = this.$clients.get(key)
@@ -815,8 +952,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {unknown} error
-     * @returns {boolean}
+     * Check whether an MQTT client close error can be safely ignored during cleanup.
+     * @param {unknown} error - Candidate close error.
+     * @returns {boolean} `true` when the error matches a known harmless close condition.
      */
     _isIgnorableClientCloseError (error) {
         return (
@@ -827,8 +965,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {unknown} value
-     * @returns {boolean}
+     * Check whether a value is a plain object suitable for JSON serialization or user properties.
+     * @param {unknown} value - Value to inspect.
+     * @returns {boolean} `true` when the value is a plain object.
      */
     _isPlainObject (value) {
         if (value === null || typeof value !== 'object') return false
@@ -837,8 +976,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {unknown} url
-     * @returns {boolean}
+     * Validate that a value is a supported MQTT broker URL.
+     * @param {unknown} url - Value to inspect.
+     * @returns {boolean} `true` when the value is a supported MQTT broker URL.
      */
     _isValidUrl (url) {
         if (typeof url !== 'string' || !url.trim()) return false
@@ -852,8 +992,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {unknown} payload
-     * @returns {boolean}
+     * Check whether a payload is already represented as binary data.
+     * @param {unknown} payload - Payload candidate to inspect.
+     * @returns {boolean} `true` when the payload is binary data accepted by mqtt.js.
      */
     _isBinaryPayload (payload) {
         return (
@@ -864,8 +1005,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {{reconnect?: MqttConnectionOptions['reconnect'], reconnectPeriod?: number, hasDynamicCredentials?: boolean}} options
-     * @returns {ManagedMqttClient['reconnectPolicy']}
+     * Normalize caller-provided reconnect settings into the internal reconnect policy shape.
+     * @param {{reconnect?: MqttReconnectOptions, reconnectPeriod?: number, hasDynamicCredentials?: boolean}} [options={}] - Raw reconnect inputs.
+     * @returns {MqttReconnectPolicy} Normalized reconnect policy.
      */
     _normalizeReconnectPolicy ({
         reconnect,
@@ -895,9 +1037,10 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {unknown} payload
-     * @param {'auto' | 'raw' | 'json' | 'string'} [serialize='auto']
-     * @returns {string | Buffer | Uint8Array}
+     * Normalize a publish payload according to the requested serialization mode.
+     * @param {unknown} payload - Raw payload supplied by the caller.
+     * @param {'auto' | 'raw' | 'json' | 'string'} [serialize='auto'] - Serialization mode used to convert the payload.
+     * @returns {string | Buffer | Uint8Array} Normalized payload ready for mqtt.js publishing.
      */
     _normalizePublishPayload (payload, serialize = 'auto') {
         if (!['auto', 'raw', 'json', 'string'].includes(serialize)) {
@@ -936,8 +1079,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {{correlationData: unknown, userProperties: unknown}} properties
-     * @returns {{correlationData?: Buffer | Uint8Array, userProperties?: Record<string, string | string[]>} | undefined}
+     * Normalize MQTT v5 publish properties accepted by this service.
+     * @param {{correlationData: unknown, userProperties: unknown}} properties - Raw publish properties to normalize.
+     * @returns {MqttNormalizedPublishProperties | undefined} Normalized MQTT v5 publish properties, if any were provided.
      */
     _normalizePublishProperties ({
         correlationData,
@@ -957,8 +1101,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {unknown} correlationData
-     * @returns {Buffer | Uint8Array | undefined}
+     * Normalize correlation data into the binary form expected by mqtt.js.
+     * @param {unknown} correlationData - Raw correlation data value.
+     * @returns {Buffer | Uint8Array | undefined} Normalized correlation data or `undefined` when omitted.
      */
     _normalizeCorrelationData (correlationData) {
         if (correlationData === null || correlationData === undefined) {
@@ -979,8 +1124,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {unknown} userProperties
-     * @returns {Record<string, string | string[]> | undefined}
+     * Normalize MQTT v5 user properties and validate their value types.
+     * @param {unknown} userProperties - Raw user properties object.
+     * @returns {Record<string, string | string[]> | undefined} Normalized user properties or `undefined` when omitted.
      */
     _normalizeUserProperties (userProperties) {
         if (userProperties === null || userProperties === undefined) {
@@ -1014,8 +1160,9 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {Buffer | Uint8Array | ArrayBuffer} payload
-     * @returns {Buffer | Uint8Array}
+     * Convert binary payload variants into a consistent representation for mqtt.js.
+     * @param {Buffer | Uint8Array | ArrayBuffer} payload - Binary payload to normalize.
+     * @returns {Buffer | Uint8Array} Normalized binary payload.
      */
     _normalizeBinaryPayload (payload) {
         if (typeof Buffer !== 'undefined' && Buffer.isBuffer(payload)) {
@@ -1037,9 +1184,10 @@ class MqttService extends BaseService {
     }
 
     /**
-     * @param {unknown} payload
-     * @param {'auto' | 'json'} mode
-     * @returns {string}
+     * Serialize a payload to JSON while exposing the serialization mode in any thrown error.
+     * @param {unknown} payload - Raw payload to serialize.
+     * @param {'auto' | 'json'} mode - Serialization mode name used for error reporting.
+     * @returns {string} JSON string representation of the payload.
      */
     _stringifyPayload (payload, mode) {
         try {
@@ -1050,12 +1198,16 @@ class MqttService extends BaseService {
     }
 }
 
+/**
+ * Singleton MQTT service instance shared across the frontend app.
+ * @type {MqttService | null}
+ */
 let MqttServiceInstance = null
 
 /**
  * Get or create the MQTT service singleton instance.
- * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options
- * @returns {MqttService}
+ * @param {MqttServiceOptions} [options={}] - Dependencies injected by the frontend service container.
+ * @returns {MqttService} Shared MQTT service instance.
  */
 export function createMqttService ({
     app,
@@ -1076,7 +1228,8 @@ export function createMqttService ({
 }
 
 /**
- * @returns {Promise<void>}
+ * Destroy the MQTT service singleton and all managed connections.
+ * @returns {Promise<void>} Resolves once the singleton has been fully destroyed.
  */
 export async function destroyMqttService () {
     if (!MqttServiceInstance) return
@@ -1085,6 +1238,7 @@ export async function destroyMqttService () {
 }
 
 /**
- * @returns {MqttService}
+ * Default factory export for retrieving the shared MQTT service instance.
+ * @returns {MqttService} Shared MQTT service instance.
  */
 export default createMqttService

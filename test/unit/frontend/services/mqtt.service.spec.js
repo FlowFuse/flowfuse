@@ -686,7 +686,7 @@ describe('MqttService', async () => {
         expect(service.$clientOperations.has('ops-key-2')).toBe(true)
     })
 
-    test('publishMessage handles missing/disconnected client and publish callback error path', async () => {
+    test('publishMessage handles missing client, disconnected client without waiting, and publish callback error path', async () => {
         const service = createMqttService({
             app: {},
             store: {},
@@ -708,7 +708,8 @@ describe('MqttService', async () => {
         })
         await expect(service.publishMessage('disconnected-key', {
             topic: 'topic/a',
-            payload: 'x'
+            payload: 'x',
+            waitForConnection: false
         })).rejects.toThrow('MQTT connection "disconnected-key" is not connected')
 
         const failing = createMockClient()
