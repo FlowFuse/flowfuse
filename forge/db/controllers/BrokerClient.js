@@ -10,7 +10,7 @@ module.exports = {
             attributes: ['username', 'password']
         })
         if (compareHash(password || '', user ? user.password : '')) {
-            if (username.startsWith('frontend:')) {
+            if (username.startsWith('frontend:') || username.startsWith('expert-client:')) {
                 await user.destroy()
             }
             return true
