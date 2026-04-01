@@ -71,8 +71,7 @@
 
 <script>
 
-import { mapState } from 'pinia'
-import { mapActions as mapVuexActions, mapState as mapVuexState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import useTimerHelper from '../../../../../composables/TimerHelper.js'
 
@@ -88,6 +87,7 @@ import RichContent from './resources/RichContent.vue'
 import SuggestionsList from './resources/SuggestionsList.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 
 export default {
     name: 'AnswerWrapper',
@@ -126,7 +126,7 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, ['supportedActions']),
-        ...mapVuexState('product/expert', ['agentMode']),
+        ...mapState(useProductExpertStore, ['agentMode']),
         hasGuideHeader () {
             // chat answers contain generic titles, they don't need to be displayed
             return !!(this.answer.title && !this.isChatAnswer)
@@ -250,7 +250,7 @@ export default {
         }
     },
     methods: {
-        ...mapVuexActions('product/expert', ['updateAnswerStreamedState', 'updateMessageStreamedState']),
+        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState']),
         buildStreamingOrder () {
             // order matters
             // this is where the decision of the streaming order of components is decided

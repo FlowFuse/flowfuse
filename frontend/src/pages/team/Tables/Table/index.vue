@@ -5,8 +5,8 @@
 </template>
 
 <script>
+
 import { defineComponent } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
 
 export default defineComponent({
     name: 'TeamTable',
@@ -17,8 +17,6 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapGetters('account', ['team']),
-        ...mapState('product/tables', ['tables']),
         tabs () {
             return [
                 {
@@ -54,9 +52,6 @@ export default defineComponent({
     },
     mounted () {
         this.$emit('set-tabs', this.tabs)
-    },
-    methods: {
-        ...mapActions('product/tables', ['getTables'])
     }
 })
 </script>

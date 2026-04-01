@@ -12,14 +12,17 @@
 </template>
 
 <script>
+
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters } from 'vuex'
 
 import ExpertLoadingIndicator from './ExpertLoadingIndicator.vue'
 
 import AiMessage from './messages/AiMessage.vue'
 import HumanMessage from './messages/HumanMessage.vue'
 import SystemMessage from './messages/SystemMessage.vue'
+
+import { useProductExpertStore } from '@/stores/product-expert.js'
 
 export default {
     name: 'ExpertMessages',
@@ -32,7 +35,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('product/expert', ['messages', 'isWaitingForResponse']),
+        ...mapState(useProductExpertStore, ['messages', 'isWaitingForResponse']),
         messageTypes () {
             return {
                 ai: markRaw(AiMessage),

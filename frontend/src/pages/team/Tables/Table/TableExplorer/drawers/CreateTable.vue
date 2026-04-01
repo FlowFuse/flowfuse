@@ -39,12 +39,13 @@
 </template>
 
 <script>
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapGetters, mapState, mapActions as mapVuexActions } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import TableColumn from './components/TableColumn.vue'
 
+import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default defineComponent({
@@ -57,7 +58,7 @@ export default defineComponent({
     },
     computed: {
         ...mapGetters('account', ['team']),
-        ...mapState('product/tables', ['newTable']),
+        ...mapState(useProductTablesStore, ['newTable']),
         hasErrors () {
             return Object.values(this.errors).some(v => v != null)
         }
@@ -77,7 +78,7 @@ export default defineComponent({
     },
     methods: {
         ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'setRightDrawerHeader']),
-        ...mapVuexActions('product/tables', ['createTable', 'getTables', 'addNewTableColumn', 'removeNewTableColumn']),
+        ...mapActions(useProductTablesStore, ['createTable', 'getTables', 'addNewTableColumn', 'removeNewTableColumn']),
         validateForm () {
             const columnsHaveDuplicateNames = new Set(this.newTable.columns.map(col => col.name)).size !== this.newTable.columns.length
             const allColumnDoesntHaveATypeAssigned = this.newTable.columns.some(col => !col.type)

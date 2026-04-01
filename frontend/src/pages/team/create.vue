@@ -85,7 +85,8 @@
 
 <script>
 import { ChevronLeftIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../api/team.js'
 import teamTypesApi from '../../api/teamTypes.js'
@@ -95,6 +96,8 @@ import FormRow from '../../components/FormRow.vue'
 import TeamTypeTile from '../../components/TeamTypeTile.vue'
 import { useHubspotHelper } from '../../composables/Hubspot.js'
 import slugify from '../../utils/slugify.js'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'CreateTeam',
@@ -167,7 +170,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'teams', 'features']),
+        ...mapVuexState('account', ['team', 'teams', 'features']),
+        ...mapState(useAccountAuthStore, ['user']),
         formValid () {
             return this.input.teamTypeId && this.input.name && this.input.slug && !this.pendingSlugCheck && !this.input.slugError && !this.errors.name
         },

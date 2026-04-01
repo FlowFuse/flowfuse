@@ -16,7 +16,7 @@
                 Start over
             </button>
             <div class="right-buttons">
-                <capabilities-selector v-if="isOperatorAgent" />
+                <capabilities-selector v-if="isInsightsAgent" />
             </div>
         </div>
         <div class="input-wrapper" :class="{ 'focused': isTextareaFocused }">
@@ -34,7 +34,7 @@
 
             <div class="actions">
                 <div class="left">
-                    <context-selector v-if="isImmersive && !isOperatorAgent" />
+                    <context-selector v-if="isImmersive && !isInsightsAgent" />
                 </div>
 
                 <div class="right">
@@ -63,7 +63,6 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
-import { mapGetters, mapActions as mapVuexActions } from 'vuex'
 
 import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 
@@ -73,6 +72,7 @@ import CapabilitiesSelector from './CapabilitiesSelector.vue'
 import ContextSelector from './context-selection/index.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -116,10 +116,11 @@ export default {
             'immersiveInstance',
             'immersiveDevice'
         ]),
-        ...mapGetters('product/expert', [
+        ...mapState(useUxDrawersStore, ['rightDrawer']),
+        ...mapState(useProductExpertStore, [
             'messages',
             'isSessionExpired',
-            'isOperatorAgent',
+            'isInsightsAgent',
             'hasSelectedCapabilities',
             'hasMessages',
             'isWaitingForResponse'
@@ -127,20 +128,19 @@ export default {
         isInputDisabled () {
             if (this.isSessionExpired) return true
             if (this.isWaitingForResponse) return true
-            return this.isOperatorAgent && !this.hasSelectedCapabilities
+            return this.isInsightsAgent && !this.hasSelectedCapabilities
         },
         isDrawerPinned () {
-            const uxDrawerStore = useUxDrawersStore()
-            return uxDrawerStore.rightDrawer.fixed
+            return this.rightDrawer.fixed
         },
         canSend () {
             return this.inputText.trim().length > 0 && !this.isInputDisabled
         },
         placeholderText () {
-            if (this.isOperatorAgent && !this.hasSelectedCapabilities) {
+            if (this.isInsightsAgent && !this.hasSelectedCapabilities) {
                 return 'Select a resource to get started'
             }
-            return this.isOperatorAgent
+            return this.isInsightsAgent
                 ? 'Tell us what you want to know about'
                 : 'Tell us what you need help with'
         },
@@ -158,7 +158,7 @@ export default {
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
-        ...mapVuexActions('product/expert', ['startOver', 'handleQuery', 'handleMessageResponse']),
+        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'handleMessageResponse']),
         async handleSend () {
             if (!this.canSend) return
 
@@ -190,7 +190,7 @@ export default {
 
             this.inputText = ''
             // When in support mode, reset/restore assistant context selection (opt-out by default)
-            if (!this.isOperatorAgent) {
+            if (!this.isInsightsAgent) {
                 this.resetContextSelection()
             }
 

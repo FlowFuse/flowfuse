@@ -1,4 +1,5 @@
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 
 const DATA_SOURCE_FLOWFUSE_WEBSITE = 'flowfuse-website'
 const DATA_SOURCE_ASSISTANT = 'nr-assistant'
@@ -125,16 +126,15 @@ class MessagingService {
     }
 
     setExpertContext (payload) {
-        return this.$store.dispatch('product/expert/setContext', payload)
-            .then(() => {
-                const message = {
-                    type: 'flowfuse-expert-response',
-                    action: 'confirm',
-                    timestamp: Date.now()
-                }
+        useProductExpertStore().setContext(payload)
 
-                this.sendMessage({ message })
-            })
+        const message = {
+            type: 'flowfuse-expert-response',
+            action: 'confirm',
+            timestamp: Date.now()
+        }
+
+        this.sendMessage({ message })
     }
 
     sendMessage ({

@@ -10,9 +10,11 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
+
+import { useProductExpertStore } from '@/stores/product-expert.js'
 
 export default {
     name: 'ExpertModeSwitcher',
@@ -25,14 +27,11 @@ export default {
         }
     },
     computed: {
-        ...mapState('product/expert', [
-            'agentMode'
-
-        ]),
+        ...mapState(useProductExpertStore, ['agentMode']),
         agentModeButtons () {
             return [
-                { title: 'Support', value: 'ff-agent' },
-                { title: 'Insights', value: 'operator-agent' }
+                { title: 'Support', value: 'support-agent' },
+                { title: 'Insights', value: 'insights-agent' }
             ]
         },
         agentModeWrapper: {
@@ -40,9 +39,12 @@ export default {
                 return this.agentMode
             },
             set (value) {
-                this.$store.dispatch('product/expert/setAgentMode', value)
+                this.setAgentMode(value)
             }
         }
+    },
+    methods: {
+        ...mapActions(useProductExpertStore, ['setAgentMode'])
     }
 }
 </script>

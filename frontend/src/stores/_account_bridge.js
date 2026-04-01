@@ -1,5 +1,7 @@
-// Temporary bridge — reads account data from Vuex during migration.
+// Temporary bridge — reads account data from Vuex/Pinia during migration.
 // Delete this file after the account stores are migrated to Pinia.
+
+import { useAccountAuthStore } from './account-auth.js'
 
 export function useAccountBridge () {
     // Use require() instead of a top-level import to avoid a circular module dependency.
@@ -7,7 +9,7 @@ export function useAccountBridge () {
     // ux-drawers.js → ux-navigation.js → _account_bridge.js → store/index.js → account/index.js → ux-navigation.js
     // By requiring lazily inside the function body, the Vuex store is fully initialized before this runs.
     const store = require('../store/index.js').default
-    const user = store.state.account.user
+    const { user } = useAccountAuthStore()
     const team = store.state.account.team
     return {
         user,

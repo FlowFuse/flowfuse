@@ -10,12 +10,18 @@ import router from '../../../routes.js'
 
 import product from '../../../services/product.js'
 
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
-import { useProductExpertOperatorAgentStore } from '@/stores/product-expert-operator-agent.js'
+import { useProductExpertSupportAgentStore } from '@/stores/product-expert-support-agent.js'
+
+import { useProductExpertStore } from '@/stores/product-expert.js'
+import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 import { useUxStore } from '@/stores/ux.js'
@@ -26,14 +32,6 @@ const initialState = () => ({
     settings: null,
     // Feature flags
     features: {},
-    // We do not know if there is a valid session yet
-    pending: true,
-    // A login attempt is inflight
-    loginInflight: false,
-    // redirect url,
-    redirectUrlAfterLogin: null,
-    // The active user
-    user: null,
     // The active team
     team: null,
     // The active user's membership details of the active team
@@ -45,23 +43,14 @@ const initialState = () => ({
         payload: []
     },
     invitations: [],
-    // An error during login
-    loginError: null,
     //
     pendingTeamChange: false,
-    // As an SPA, if we get a network error we should present
-    // a suitable 'offline' message.
-    offline: null,
 
     teamBlueprints: {}
 })
 
 const meta = {
     persistence: {
-        redirectUrlAfterLogin: {
-            storage: 'localStorage'
-            // clearOnLogout: true (cleared by default)
-        },
         settings: {
             storage: 'localStorage',
             clearOnLogout: false
@@ -86,9 +75,6 @@ const getters = {
     settings (state) {
         return state.settings
     },
-    user (state) {
-        return state.user
-    },
     teams (state) {
         return state.teams
     },
@@ -101,20 +87,12 @@ const getters = {
     teamMembership (state) {
         return state.teamMembership
     },
-    redirectUrlAfterLogin (state) {
-        return state.redirectUrlAfterLogin
-    },
-    pending (state) {
-        return state.pending
-    },
     pendingTeamChange (state) {
         return state.pendingTeamChange
     },
-    offline (state) {
-        return state.offline
-    },
     requiresBilling (state, getters) {
-        const isNotAdmin = (state.user && !state.user.admin)
+        const { user } = useAccountAuthStore()
+        const isNotAdmin = (user && !user.admin)
 
         return isNotAdmin &&
         state.features.billing &&
@@ -132,13 +110,13 @@ const getters = {
     isTrialAccountExpired (state, getters) {
         return getters.isTrialAccount && state.team?.billing?.trialEnded
     },
-    isAdminUser: (state) => !!state.user.admin,
     defaultUserTeam: (state, getters) => {
-        const defaultTeamId = state.user.defaultTeam || getters.teams[0]?.id
+        const { user } = useAccountAuthStore()
+        const defaultTeamId = user?.defaultTeam || getters.teams[0]?.id
         return state.teams.find(team => team.id === defaultTeamId)
     },
     canCreateTeam (state, getters) {
-        if (getters.isAdminUser) {
+        if (useAccountAuthStore().isAdminUser) {
             return true
         }
 
@@ -304,29 +282,9 @@ const mutations = {
         state.settings = settings
         state.features = settings.features || {}
     },
-    clearPending (state) {
-        state.pending = false
-    },
-    setPending (state, pending) {
-        state.pending = pending
-    },
-    setLoginInflight (state) {
-        state.loginInflight = true
-    },
-    login (state, user) {
-        state.loginInflight = false
-        state.user = user
-    },
     logout (state) {
-        state.loginInflight = false
-        state.pending = true
-        state.user = null
         state.teams = []
         state.team = null
-        state.redirectUrlAfterLogin = null
-    },
-    setUser (state, user) {
-        state.user = user
     },
     setTeam (state, team) {
         // update the product session "team" to record all future events against them
@@ -342,24 +300,11 @@ const mutations = {
     setNotifications (state, notifications) {
         state.notifications = notifications
     },
-    sessionExpired (state) {
-        state.user = null
-    },
-    loginFailed (state, error) {
-        state.loginInflight = false
-        state.loginError = error
-    },
-    setRedirectUrl (state, url) {
-        state.redirectUrlAfterLogin = url
-    },
     setPendingTeamChange (state) {
         state.pendingTeamChange = true
     },
     clearPendingTeamChange (state) {
         state.pendingTeamChange = false
-    },
-    setOffline (state, value) {
-        state.offline = value
     },
     setTeamBlueprints (state, { teamId, blueprints }) {
         state.teamBlueprints[teamId] = blueprints
@@ -376,10 +321,10 @@ const actions = {
             const settings = await settingsApi.getSettings()
             commit('setSettings', settings)
 
-            commit('setOffline', false)
+            useUxLoadingStore().setOffline(false)
 
             const user = await userApi.getUser()
-            commit('login', user)
+            useAccountAuthStore().login(user)
             useUxStore().checkIfIsNewlyCreatedUser(user)
 
             // User is logged in
@@ -388,7 +333,7 @@ const actions = {
                 window.location = '/'
                 return
             } else if (user.email_verified === false || user.password_expired) {
-                commit('clearPending')
+                useUxLoadingStore().clearAppLoader()
                 router.push({ name: 'Home' })
                 return
             }
@@ -402,7 +347,7 @@ const actions = {
             commit('setTeams', teams.teams)
 
             if (teams.count === 0) {
-                commit('clearPending')
+                useUxLoadingStore().clearAppLoader()
                 commit('setTeam', null)
                 if (/^\/team\//.test(router.currentRoute.value.path)) {
                     router.push({ name: 'Home' })
@@ -439,15 +384,15 @@ const actions = {
                     commit('setTeam', team)
                     commit('setTeamMembership', teamMembership)
                 }
-                commit('clearPending')
+                useUxLoadingStore().clearAppLoader()
                 if (redirectUrlAfterLogin) {
                     // If this is a user-driven login, take them to the profile page
                     router.push(redirectUrlAfterLogin)
                     // Clear the redirectUrl on nextTick
-                    nextTick(() => { commit('setRedirectUrl', null) })
+                    nextTick(() => { useAccountAuthStore().setRedirectUrl(null) })
                 }
             } catch (teamLoadErr) {
-                commit('clearPending')
+                useUxLoadingStore().clearAppLoader()
                 // This means the team doesn't exist, or the user doesn't have access
                 router.push({
                     name: 'page-not-found',
@@ -459,9 +404,9 @@ const actions = {
             }
         } catch (err) {
             // Not logged in
-            commit('clearPending')
+            useUxLoadingStore().clearAppLoader()
             // do we have a user session to clear?
-            if (state.user) {
+            if (useAccountAuthStore().user) {
                 try {
                     window.posthog?.reset()
                 } catch (err) {
@@ -472,7 +417,7 @@ const actions = {
             if (router.currentRoute.value.meta.requiresLogin !== false) {
                 if (router.currentRoute.value.path !== '/') {
                     // Only remember the url if it isn't the default / path
-                    commit('setRedirectUrl', router.currentRoute.value.fullPath)
+                    useAccountAuthStore().setRedirectUrl(router.currentRoute.value.fullPath)
                 }
                 router.push({ name: 'Home' })
             }
@@ -495,19 +440,19 @@ const actions = {
         const teams = await teamApi.getTeams()
         state.commit('setTeams', teams.teams)
     },
-    async login ({ state, dispatch, commit, getters }, credentials) {
+    async login ({ dispatch }, credentials) {
         try {
-            commit('setLoginInflight')
+            useAccountAuthStore().setLoginInflight()
             if (credentials.username) {
                 await userApi.login(credentials.username, credentials.password)
             } else if (credentials.token) {
                 await userApi.verifyMFAToken(credentials.token)
             }
-            commit('setPending', true)
-            dispatch('checkState', getters.redirectUrlAfterLogin)
+            useUxLoadingStore().setAppLoader(true)
+            dispatch('checkState', useAccountAuthStore().redirectUrlAfterLogin)
         } catch (err) {
             if (err.response?.status >= 401) {
-                commit('loginFailed', err.response.data)
+                useAccountAuthStore().loginFailed(err.response.data)
             } else {
                 console.error(err)
             }
@@ -522,18 +467,20 @@ const actions = {
                 // Reset migrated Pinia stores — uncomment each line as its store is migrated
                 const pinia = getActivePinia()
                 if (pinia) {
+                    useAccountAuthStore().$reset()
                     useUxDialogStore().$reset()
+                    useUxLoadingStore().$reset()
                     useUxToursStore().$reset()
                     useUxNavigationStore().$reset()
                     useUxDrawersStore().$reset()
                     useUxStore().$reset()
                     useContextStore().$reset()
-                    // Task 6:  useProductTablesStore().$reset()
-                    // Task 7:  useProductBrokersStore().$reset()
+                    useProductTablesStore().$reset()
+                    useProductBrokersStore().$reset()
                     useProductAssistantStore().$reset()
+                    useProductExpertSupportAgentStore().$reset()
                     useProductExpertInsightsAgentStore().$reset()
-                    useProductExpertOperatorAgentStore().$reset()
-                    // Task 11: useProductExpertStore().$reset()
+                    useProductExpertStore().$reset()
                 }
             })
             .catch(_ => {})
@@ -569,24 +516,15 @@ const actions = {
         state.commit('setTeamMembership', teamMembership)
         state.commit('clearPendingTeamChange')
     },
-    async setUser (state, user) {
-        state.commit('setUser', user)
-    },
     async refreshSettings (state) {
         const settings = await settingsApi.getSettings()
         state.commit('setSettings', settings)
-    },
-    setOffline (state, value) {
-        state.commit('setOffline', value)
     },
     async getTeamBlueprints (state, teamId) {
         const response = await flowBlueprintsApi.getFlowBlueprintsForTeam(teamId)
         const blueprints = response.blueprints
 
         return state.commit('setTeamBlueprints', { teamId, blueprints })
-    },
-    setRedirectUrl (state, url) {
-        state.commit('setRedirectUrl', url)
     },
     async getNotifications (state) {
         await userApi.getNotifications()
@@ -605,14 +543,11 @@ const actions = {
             })
             .catch(_ => {})
     },
-    async clearOtherStores (state) {
-        await state.dispatch('product/tables/clearState', null, { root: true })
+    clearOtherStores () {
+        useProductTablesStore().clearState()
     },
-    async checkIfAuthenticated ({ commit }) {
-        return userApi.getUser()
-            .then(user => {
-                commit('login', user)
-            })
+    checkIfAuthenticated () {
+        return useAccountAuthStore().checkIfAuthenticated()
     },
     async refreshTeamMembership ({ commit, state }) {
         const teamMembership = await teamApi.getTeamUserMembership(state.team.id)

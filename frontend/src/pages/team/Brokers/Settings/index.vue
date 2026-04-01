@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import Alerts from '../../../../services/alerts.js'
 
@@ -14,6 +14,8 @@ import Dialog from '../../../../services/dialog.js'
 
 import BrokerError from '../components/BrokerError.vue'
 import BrokerForm from '../components/BrokerForm.vue'
+
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
     name: 'BrokerSettings',
@@ -30,8 +32,8 @@ export default {
     },
     emits: ['broker-updated'],
     computed: {
-        ...mapGetters('product', ['hasFfUnsClients']),
-        ...mapState('product', {
+        ...mapState(useProductBrokersStore, ['hasFfUnsClients']),
+        ...mapState(useProductBrokersStore, {
             brokers: state => state.UNS.brokers
         }),
         activeBroker () {
@@ -52,7 +54,7 @@ export default {
                 .catch(e => e)
         },
         deleteBroker () {
-            return this.$store.dispatch('product/deleteBroker', this.activeBroker.id)
+            return useProductBrokersStore().deleteBroker(this.activeBroker.id)
                 .then(() => {
                     let name = 'team-brokers'
 
@@ -67,7 +69,7 @@ export default {
             if (payload.credentials.username.length && payload.credentials.password.length) {
                 delete payload.credentials
             }
-            return this.$store.dispatch('product/updateBroker', { payload, brokerId: this.activeBroker.id })
+            return useProductBrokersStore().updateBroker({ payload, brokerId: this.activeBroker.id })
                 .then((res) => {
                     this.$emit('broker-updated')
                     Alerts.emit(`Broker ${res.name} updated successfully.`, 'confirmation')

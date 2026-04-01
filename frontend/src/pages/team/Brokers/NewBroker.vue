@@ -4,9 +4,12 @@
 
 <script>
 
+import { mapActions } from 'pinia'
 import { mapGetters } from 'vuex'
 
 import BrokerForm from './components/BrokerForm.vue'
+
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
     name: 'NewBroker',
@@ -20,8 +23,9 @@ export default {
         }
     },
     methods: {
+        ...mapActions(useProductBrokersStore, ['createBroker']),
         onSubmit (payload) {
-            return this.$store.dispatch('product/createBroker', payload)
+            return this.createBroker(payload)
                 .then(res => this.$router.push({
                     name: 'team-brokers-hierarchy',
                     params: { brokerId: res.id }
