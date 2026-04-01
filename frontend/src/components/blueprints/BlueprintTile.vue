@@ -16,7 +16,9 @@
         </div>
         <div class="ff-blueprint-tile--info">
             <label>{{ blueprint.name }}</label>
-            <p :title="blueprint.description">{{ blueprint.description }}</p>
+            <p v-if="blueprint.description" :title="blueprint.description">
+                <ff-markdown-viewer :content="blueprint.description"/>
+            </p>
         </div>
         <div class="ff-blueprint-tile--actions justify-between">
             <div v-if="showDefault" class="left flex gap-2">
