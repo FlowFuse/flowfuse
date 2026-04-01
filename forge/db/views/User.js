@@ -100,7 +100,7 @@ module.exports = function (app) {
 
     async function ssoManaged (users, team) {
         const list = {}
-        for (u of users) {
+        for (const u of users) {
             list[u.hashid] = await app.sso.isUserMembershipManaged(u, team)
         }
         return list
