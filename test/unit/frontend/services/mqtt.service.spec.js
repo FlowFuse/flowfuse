@@ -100,10 +100,10 @@ describe('MqttService', async () => {
         let thirdCreate
 
         try {
-            await service.createClient('shared-key', { url: 'mqtt://example.com' })
+            await service.createClient('shared-key', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }) })
 
-            secondCreate = service.createClient('shared-key', { url: 'mqtt://example.com' })
-            thirdCreate = service.createClient('shared-key', { url: 'mqtt://example.com' })
+            secondCreate = service.createClient('shared-key', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }) })
+            thirdCreate = service.createClient('shared-key', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }) })
 
             await vi.waitFor(() => {
                 expect(firstClient.end).toHaveBeenCalledTimes(1)
@@ -135,7 +135,7 @@ describe('MqttService', async () => {
         const client = createMockClient()
         mockConnect.mockReturnValueOnce(client)
 
-        await service.createClient('publish-key', { url: 'mqtt://example.com' })
+        await service.createClient('publish-key', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }) })
 
         const bytes = new Uint8Array([1, 2, 3])
         await service.publishMessage('publish-key', {
@@ -175,7 +175,7 @@ describe('MqttService', async () => {
         const client = createMockClient()
         mockConnect.mockReturnValueOnce(client)
 
-        await service.createClient('serialize-key', { url: 'mqtt://example.com' })
+        await service.createClient('serialize-key', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }) })
 
         await service.publishMessage('serialize-key', {
             topic: 'json/topic',
@@ -236,7 +236,7 @@ describe('MqttService', async () => {
         const client = createMockClient()
         mockConnect.mockReturnValueOnce(client)
 
-        await service.createClient('circular-key', { url: 'mqtt://example.com' })
+        await service.createClient('circular-key', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }) })
 
         const circularPayload = { state: 'bad' }
         circularPayload.self = circularPayload
@@ -263,7 +263,7 @@ describe('MqttService', async () => {
         const client = createMockClient()
         mockConnect.mockReturnValueOnce(client)
 
-        await service.createClient('validate-key', { url: 'mqtt://example.com' })
+        await service.createClient('validate-key', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }) })
 
         await expect(service.publishMessage('validate-key', {
             topic: ' ',
@@ -304,7 +304,7 @@ describe('MqttService', async () => {
         const client = createMockClient()
         mockConnect.mockReturnValueOnce(client)
 
-        await service.createClient('properties-key', { url: 'mqtt://example.com' })
+        await service.createClient('properties-key', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }) })
 
         await service.publishMessage('properties-key', {
             topic: 'valid/topic',
@@ -349,7 +349,7 @@ describe('MqttService', async () => {
             userProperties: { trace: 1 }
         })).rejects.toThrow('MQTT publish userProperties["trace"] must be a string or string[]')
 
-        const normalizedBinaryCorrelationData = service.normalizeCorrelationData(new Uint8Array([1, 2, 3]))
+        const normalizedBinaryCorrelationData = service._normalizeCorrelationData(new Uint8Array([1, 2, 3]))
         expect(normalizedBinaryCorrelationData).toBeInstanceOf(Buffer)
     })
 
@@ -360,20 +360,24 @@ describe('MqttService', async () => {
             router: {}
         })
 
-        expect(service.isValidUrl('mqtt://broker.local')).toBe(true)
-        expect(service.isValidUrl('mqtts://broker.local')).toBe(true)
-        expect(service.isValidUrl('ws://broker.local')).toBe(true)
-        expect(service.isValidUrl('wss://broker.local')).toBe(true)
-        expect(service.isValidUrl('')).toBe(false)
-        expect(service.isValidUrl('ftp://broker.local')).toBe(false)
-        expect(service.isValidUrl('://broken')).toBe(false)
-        expect(service.isValidUrl(null)).toBe(false)
+        expect(service._isValidUrl('mqtt://broker.local')).toBe(true)
+        expect(service._isValidUrl('mqtts://broker.local')).toBe(true)
+        expect(service._isValidUrl('ws://broker.local')).toBe(true)
+        expect(service._isValidUrl('wss://broker.local')).toBe(true)
+        expect(service._isValidUrl('')).toBe(false)
+        expect(service._isValidUrl('ftp://broker.local')).toBe(false)
+        expect(service._isValidUrl('://broken')).toBe(false)
+        expect(service._isValidUrl(null)).toBe(false)
 
-        await expect(service.createClient('', { url: 'mqtt://example.com' })).rejects.toThrow('MQTT connection key is required')
-        await expect(service.createClient('bad-url', { url: 'http://example.com' })).rejects.toThrow('Invalid MQTT url for connection "bad-url"')
+        await expect(service.createClient('', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }) })).rejects.toThrow('MQTT connection key is required')
+        await expect(service.createClient('bad-url', { getCredentials: async () => ({ url: 'http://example.com', username: 'user', password: 'pass' }) })).rejects.toThrow('MQTT credential provider for connection "bad-url" must return a valid url')
+        await expect(service.createClient('missing-provider')).rejects.toThrow('MQTT connection "missing-provider" requires a getCredentials callback')
+        await expect(service.createClient('missing-username', { getCredentials: async () => ({ url: 'mqtt://example.com', password: 'pass' }) })).rejects.toThrow('MQTT credential provider for connection "missing-username" must return a non-empty username')
+        await expect(service.createClient('missing-password', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user' }) })).rejects.toThrow('MQTT credential provider for connection "missing-password" must return a non-empty password')
+        await expect(service.createClient('blank-client-id', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass', clientId: '   ' }) })).rejects.toThrow('MQTT credential provider for connection "blank-client-id" must return a non-empty clientId when provided')
 
         service.$destroyed = true
-        await expect(service.createClient('destroyed-create', { url: 'mqtt://example.com' })).rejects.toThrow('MqttService has been destroyed')
+        await expect(service.createClient('destroyed-create', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }) })).rejects.toThrow('MqttService has been destroyed')
     })
 
     test('registers event handlers and skips invocation when destroyed', async () => {
@@ -394,7 +398,8 @@ describe('MqttService', async () => {
         const onMessage = vi.fn()
 
         await service.createClient('events-key', {
-            url: 'mqtt://example.com',
+            getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }),
+            reconnect: { enabled: false },
             onConnect,
             onClose,
             onOffline,
@@ -408,7 +413,9 @@ describe('MqttService', async () => {
         client.emit('error', new Error('boom'))
         client.emit('message', 'topic/a', Buffer.from('x'), { qos: 1 })
 
-        expect(onConnect).toHaveBeenCalledTimes(1)
+        await vi.waitFor(() => {
+            expect(onConnect).toHaveBeenCalledTimes(1)
+        })
         expect(onClose).toHaveBeenCalledTimes(1)
         expect(onOffline).toHaveBeenCalledTimes(1)
         expect(onError).toHaveBeenCalledTimes(1)
@@ -433,14 +440,202 @@ describe('MqttService', async () => {
         mockConnect.mockReturnValueOnce(first).mockReturnValueOnce(second)
 
         await service.createClient('replace-key', {
-            url: 'mqtt://example.com',
+            getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }),
             onConnect: true
         })
-        await service.createClient('replace-key', { url: 'mqtt://example.com' })
+        await service.createClient('replace-key', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }) })
 
         expect(first.end).toHaveBeenCalledTimes(1)
-        expect(first.off).not.toHaveBeenCalled()
+        expect(first.off).toHaveBeenCalled()
         expect(service.getManagedClient('replace-key').client).toBe(second)
+    })
+
+    test('reconnects with fresh credentials and replays remembered subscriptions', async () => {
+        vi.useFakeTimers()
+
+        const service = createMqttService({
+            app: {},
+            store: {},
+            router: {}
+        })
+
+        const firstClient = createMockClient()
+        const secondClient = createMockClient()
+        firstClient.connected = true
+        secondClient.connected = true
+
+        mockConnect
+            .mockReturnValueOnce(firstClient)
+            .mockReturnValueOnce(secondClient)
+
+        const getCredentials = vi.fn()
+            .mockResolvedValueOnce({
+                url: 'mqtt://example.com',
+                username: 'first',
+                password: 'one'
+            })
+            .mockResolvedValueOnce({
+                url: 'mqtt://example.com',
+                username: 'second',
+                password: 'two'
+            })
+
+        try {
+            await service.createClient('reconnect-key', {
+                getCredentials,
+                reconnect: {
+                    enabled: true,
+                    initialDelay: 1000,
+                    maxDelay: 5000,
+                    factor: 2
+                }
+            })
+
+            await service.subscribe('reconnect-key', 'topic/a', { qos: 1 })
+
+            firstClient.emit('connect')
+            firstClient.emit('offline')
+
+            await vi.advanceTimersByTimeAsync(1000)
+
+            expect(getCredentials).toHaveBeenCalledTimes(2)
+            expect(firstClient.end).toHaveBeenCalledTimes(1)
+            expect(service.getManagedClient('reconnect-key').client).toBe(secondClient)
+
+            secondClient.emit('connect')
+
+            expect(secondClient.subscribe).toHaveBeenCalledWith(
+                'topic/a',
+                { qos: 1 },
+                expect.any(Function)
+            )
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
+    test('publishMessage can wait for a connection before publishing', async () => {
+        vi.useFakeTimers()
+
+        const service = createMqttService({
+            app: {},
+            store: {},
+            router: {}
+        })
+
+        const client = createMockClient()
+        client.connected = false
+        mockConnect.mockReturnValueOnce(client)
+
+        try {
+            await service.createClient('wait-publish', {
+                getCredentials: async () => ({
+                    url: 'mqtt://example.com',
+                    username: 'user',
+                    password: 'pass'
+                }),
+                reconnect: { enabled: false }
+            })
+
+            const publishPromise = service.publishMessage('wait-publish', {
+                topic: 'topic/a',
+                payload: 'x',
+                waitForConnection: true,
+                connectionTimeout: 5000
+            })
+
+            await vi.advanceTimersByTimeAsync(1000)
+            expect(client.publish).not.toHaveBeenCalled()
+
+            client.connected = true
+            client.emit('connect')
+
+            await publishPromise
+
+            expect(client.publish).toHaveBeenCalledTimes(1)
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
+    test('publishMessage waitForConnection times out cleanly', async () => {
+        vi.useFakeTimers()
+
+        const service = createMqttService({
+            app: {},
+            store: {},
+            router: {}
+        })
+
+        const client = createMockClient()
+        client.connected = false
+        mockConnect.mockReturnValueOnce(client)
+
+        try {
+            await service.createClient('wait-timeout', {
+                getCredentials: async () => ({
+                    url: 'mqtt://example.com',
+                    username: 'user',
+                    password: 'pass'
+                }),
+                reconnect: { enabled: false }
+            })
+
+            const onPublishError = vi.fn()
+            const publishPromise = service.publishMessage('wait-timeout', {
+                topic: 'topic/a',
+                payload: 'x',
+                waitForConnection: true,
+                connectionTimeout: 1000,
+                onError: onPublishError
+            })
+            const publishExpectation = expect(publishPromise).rejects.toThrow('MQTT connection "wait-timeout" did not connect before the timeout elapsed')
+
+            await vi.advanceTimersByTimeAsync(1000)
+
+            await publishExpectation
+            expect(onPublishError).toHaveBeenCalledTimes(1)
+            expect(client.publish).not.toHaveBeenCalled()
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
+    test('endConnection prevents reconnect attempts for managed clients', async () => {
+        vi.useFakeTimers()
+
+        const service = createMqttService({
+            app: {},
+            store: {},
+            router: {}
+        })
+
+        const client = createMockClient()
+        mockConnect.mockReturnValueOnce(client)
+
+        try {
+            await service.createClient('intentional-close', {
+                getCredentials: async () => ({
+                    url: 'mqtt://example.com',
+                    username: 'user',
+                    password: 'pass'
+                }),
+                reconnect: {
+                    enabled: true,
+                    initialDelay: 1000
+                }
+            })
+
+            await service.endConnection('intentional-close')
+            client.emit('offline')
+
+            await vi.advanceTimersByTimeAsync(2000)
+
+            expect(mockConnect).toHaveBeenCalledTimes(1)
+            expect(service.getManagedClient('intentional-close')).toBeNull()
+        } finally {
+            vi.useRealTimers()
+        }
     })
 
     test('destroyClient handles missing client, throwing listeners and end callback error', async () => {
@@ -520,7 +715,7 @@ describe('MqttService', async () => {
         const publishError = new Error('publish failed')
         failing.publish = vi.fn((topic, payload, options, callback) => callback(publishError))
         mockConnect.mockReturnValueOnce(failing)
-        await service.createClient('publish-error-key', { url: 'mqtt://example.com' })
+        await service.createClient('publish-error-key', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }) })
 
         const onPublishError = vi.fn()
         await expect(service.publishMessage('publish-error-key', {
@@ -611,19 +806,19 @@ describe('MqttService', async () => {
             router: {}
         })
 
-        expect(service.isPlainObject({ a: 1 })).toBe(true)
-        expect(service.isPlainObject(Object.create(null))).toBe(true)
-        expect(service.isPlainObject([])).toBe(false)
-        expect(service.isPlainObject(null)).toBe(false)
-        expect(service.isBinaryPayload(new Uint8Array([1]))).toBe(true)
-        expect(service.isBinaryPayload(new ArrayBuffer(2))).toBe(true)
-        expect(service.isBinaryPayload('nope')).toBe(false)
+        expect(service._isPlainObject({ a: 1 })).toBe(true)
+        expect(service._isPlainObject(Object.create(null))).toBe(true)
+        expect(service._isPlainObject([])).toBe(false)
+        expect(service._isPlainObject(null)).toBe(false)
+        expect(service._isBinaryPayload(new Uint8Array([1]))).toBe(true)
+        expect(service._isBinaryPayload(new ArrayBuffer(2))).toBe(true)
+        expect(service._isBinaryPayload('nope')).toBe(false)
 
         const buf = Buffer.from([1, 2])
-        expect(service.normalizeBinaryPayload(buf)).toBe(buf)
-        expect(service.normalizeBinaryPayload(new Uint8Array([1, 2]))).toBeInstanceOf(Buffer)
-        expect(service.normalizeBinaryPayload(new ArrayBuffer(2))).toBeInstanceOf(Buffer)
-        expect(service.normalizePublishPayload(new Uint8Array([1, 2]), 'raw')).toBeInstanceOf(Buffer)
+        expect(service._normalizeBinaryPayload(buf)).toBe(buf)
+        expect(service._normalizeBinaryPayload(new Uint8Array([1, 2]))).toBeInstanceOf(Buffer)
+        expect(service._normalizeBinaryPayload(new ArrayBuffer(2))).toBeInstanceOf(Buffer)
+        expect(service._normalizePublishPayload(new Uint8Array([1, 2]), 'raw')).toBeInstanceOf(Buffer)
 
         await expect(service.publishMessage('missing', {
             topic: 'a',
@@ -631,24 +826,24 @@ describe('MqttService', async () => {
             serialize: 'invalid'
         })).rejects.toThrow('MQTT connection "missing" does not exist')
 
-        expect(() => service.normalizePublishPayload(Symbol('s'))).toThrow('Unsupported MQTT payload type for auto serialization')
-        expect(() => service.normalizePublishPayload('x', 'unknown')).toThrow('Invalid MQTT payload serialization mode: "unknown"')
-        expect(() => service.normalizeCorrelationData(123)).toThrow('MQTT publish correlationData must be a string or binary value')
-        expect(service.normalizeUserProperties({})).toBeUndefined()
-        expect(() => service.normalizeUserProperties({ '': 'x' })).toThrow('MQTT publish userProperties keys must be non-empty strings')
-        expect(service.normalizePublishProperties({ correlationData: null, userProperties: null })).toBeUndefined()
+        expect(() => service._normalizePublishPayload(Symbol('s'))).toThrow('Unsupported MQTT payload type for auto serialization')
+        expect(() => service._normalizePublishPayload('x', 'unknown')).toThrow('Invalid MQTT payload serialization mode: "unknown"')
+        expect(() => service._normalizeCorrelationData(123)).toThrow('MQTT publish correlationData must be a string or binary value')
+        expect(service._normalizeUserProperties({})).toBeUndefined()
+        expect(() => service._normalizeUserProperties({ '': 'x' })).toThrow('MQTT publish userProperties keys must be non-empty strings')
+        expect(service._normalizePublishProperties({ correlationData: null, userProperties: null })).toBeUndefined()
 
         const originalBuffer = global.Buffer
         // Exercise browser fallback branches by temporarily hiding Buffer.
         global.Buffer = undefined
         try {
-            const typed = service.normalizeBinaryPayload(new Uint8Array([9, 8]))
+            const typed = service._normalizeBinaryPayload(new Uint8Array([9, 8]))
             expect(typed).toBeInstanceOf(Uint8Array)
 
-            const fromArrayBuffer = service.normalizeBinaryPayload(new ArrayBuffer(3))
+            const fromArrayBuffer = service._normalizeBinaryPayload(new ArrayBuffer(3))
             expect(fromArrayBuffer).toBeInstanceOf(Uint8Array)
 
-            const correlationFallback = service.normalizeCorrelationData('abc')
+            const correlationFallback = service._normalizeCorrelationData('abc')
             expect(correlationFallback.constructor.name).toBe('Uint8Array')
         } finally {
             global.Buffer = originalBuffer
@@ -671,12 +866,12 @@ describe('MqttService', async () => {
 
         const fresh = new first.constructor({ app: {}, store: {}, router: {} })
         expect(fresh.$services).toEqual({})
-        await expect(fresh.createClient('missing-options')).rejects.toThrow('Invalid MQTT url for connection "missing-options"')
+        await expect(fresh.createClient('missing-options', { getCredentials: async () => ({ url: 'mqtt://example.com', username: '', password: 'pass' }) })).rejects.toThrow('MQTT credential provider for connection "missing-options" must return a non-empty username')
         await expect(fresh.publishMessage('missing-key')).rejects.toThrow('MQTT connection "missing-key" does not exist')
 
         const client = createMockClient()
         mockConnect.mockReturnValueOnce(client)
-        await first.createClient('lifecycle-key', { url: 'mqtt://example.com' })
+        await first.createClient('lifecycle-key', { getCredentials: async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' }) })
 
         await first.endConnection('lifecycle-key')
         expect(first.getManagedClient('lifecycle-key')).toBeNull()
