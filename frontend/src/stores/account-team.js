@@ -68,7 +68,7 @@ export const useAccountTeamStore = defineStore('account-team', {
                 if (currentTeam?.id === team?.id) {
                     // Same team — skip full reload but always refresh membership
                     if (team?.id) {
-                        context.teamMembership = await teamApi.getTeamUserMembership(team.id)
+                        context.setTeamMembership(await teamApi.getTeamUserMembership(team.id))
                     }
                     this.pendingTeamChange = false
                     return
@@ -78,9 +78,9 @@ export const useAccountTeamStore = defineStore('account-team', {
                 teamMembership = await teamApi.getTeamUserMembership(team.id)
             }
             product.setTeam(team)
-            context.team = team
+            context.setTeam(team)
             this.clearOtherStores()
-            context.teamMembership = teamMembership
+            context.setTeamMembership(teamMembership)
             this.pendingTeamChange = false
         },
         async refreshTeams () {

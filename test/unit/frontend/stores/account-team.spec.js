@@ -37,7 +37,12 @@ vi.mock('@/stores/account-auth.js', () => ({
 }))
 
 // Shared mutable state used by the context store mock
-const mockContext = { team: null, teamMembership: null }
+const mockContext = {
+    team: null,
+    teamMembership: null,
+    setTeam (team) { this.team = team },
+    setTeamMembership (membership) { this.teamMembership = membership }
+}
 
 vi.mock('@/stores/context.js', () => ({
     useContextStore: () => mockContext

@@ -106,6 +106,9 @@ export const useContextStore = defineStore('context', {
         setInstance (instance) { this.instance = instance },
         setDevice (device) { this.device = device },
         clearInstance () { this.instance = null },
+        setTeam (team) {
+            this.team = team
+        },
         setTeamMembership (teamMembership) {
             this.teamMembership = teamMembership
         },
