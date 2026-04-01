@@ -16,7 +16,7 @@
         </div>
         <div class="ff-blueprint-tile--info">
             <label>{{ blueprint.name }}</label>
-            <p :title="blueprint.description">
+            <p v-if="blueprint.description" :title="blueprint.description">
                 <ff-markdown-viewer :content="blueprint.description"/>
             </p>
         </div>
