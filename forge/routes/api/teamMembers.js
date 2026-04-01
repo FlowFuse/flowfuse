@@ -73,13 +73,10 @@ module.exports = async function (app) {
         let result = app.db.views.User.teamMemberList(members)
         if (app.config.features.enabled('sso')) {
             const sso = await app.db.views.User.ssoManaged(members, request.team)
-            console.log(result)
-            console.log(sso)
             result = result.map(r => {
                 r.ssoManaged = sso[r.id]
                 return r
             })
-            console.log(result)
         }
         reply.send({
             meta: {}, // For future pagination
