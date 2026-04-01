@@ -129,7 +129,7 @@ Download the latest version of the FlowFuse Docker Compose file and example `.en
 
 ```bash
 curl -L -o docker-compose.yml https://github.com/FlowFuse/docker-compose/releases/latest/download/docker-compose.yml
-curl -o .env https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/.env.example
+curl -L -o .env https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/.env.example
 ```
 
 ### Configure

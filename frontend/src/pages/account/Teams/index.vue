@@ -13,9 +13,12 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'AccountTeams',
@@ -28,8 +31,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'teams']),
-        ...mapGetters('account', ['teamInvitationsCount'])
+        ...mapVuexState('account', ['teams']),
+        ...mapGetters('account', ['teamInvitationsCount']),
+        ...mapState(useAccountAuthStore, ['user'])
     },
     watch: {
         teamInvitationsCount: {

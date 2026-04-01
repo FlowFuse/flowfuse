@@ -94,7 +94,8 @@
 
 <script>
 import { PlusSmIcon, RssIcon, SearchIcon } from '@heroicons/vue/outline'
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
 import EmptyState from '../../../../components/EmptyState.vue'
@@ -111,6 +112,8 @@ import { Roles } from '../../../../utils/roles.js'
 import BrokerClient from './components/BrokerClient.vue'
 
 import ClientDialog from './dialogs/ClientDialog.vue'
+
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
     name: 'BrokerClients',
@@ -139,8 +142,8 @@ export default {
         Roles () {
             return Roles
         },
-        ...mapState('account', ['user', 'team', 'features']),
-        ...mapState('product', {
+        ...mapVuexState('account', ['team', 'features']),
+        ...mapState(useProductBrokersStore, {
             clients: state => state.UNS.clients
         }),
         filteredClients () {
@@ -173,7 +176,7 @@ export default {
     },
     methods: {
         slugify,
-        ...mapActions('product', ['fetchUnsClients']),
+        ...mapActions(useProductBrokersStore, ['fetchUnsClients', 'removeFfBroker']),
         async createClient () {
             this.$refs.clientDialog.showCreate()
         },
@@ -188,11 +191,11 @@ export default {
                 confirmLabel: 'Delete'
             }, async () => {
                 brokerApi.deleteClient(this.team.id, client.username)
-                    .then(() => this.$store.dispatch('product/fetchUnsClients'))
+                    .then(() => this.fetchUnsClients())
                     .then(() => Alerts.emit('Successfully deleted Client.', 'confirmation'))
                     .then(async () => {
                         if (this.clients.length === 0) {
-                            await this.$store.dispatch('product/removeFfBroker')
+                            this.removeFfBroker()
                             await this.$router.push({ name: 'team-brokers' })
                         }
                     })

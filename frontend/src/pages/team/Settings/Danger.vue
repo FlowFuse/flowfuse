@@ -51,7 +51,8 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import teamTypesApi from '../../../api/teamTypes.js'
@@ -64,6 +65,8 @@ import ConfirmTeamDeleteDialog from '../dialogs/ConfirmTeamDeleteDialog.vue'
 import ConfirmTeamSuspendDialog from '../dialogs/ConfirmTeamSuspendDialog.vue'
 
 import TeamAdminTools from './TeamAdminTools.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'TeamSettingsDanger',
@@ -79,7 +82,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'features', 'team']),
+        ...mapVuexState('account', ['features', 'team']),
+        ...mapState(useAccountAuthStore, ['user']),
         isAdmin: function () {
             return this.user.admin
         }
