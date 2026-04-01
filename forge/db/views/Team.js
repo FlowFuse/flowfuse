@@ -105,6 +105,7 @@ module.exports = function (app) {
                 suspended: d.Team.suspended,
                 role: d.role,
                 instanceCount: d.projectCount,
+                deviceCount: d.deviceCount,
                 memberCount: d.memberCount,
                 links: d.Team.links
             }

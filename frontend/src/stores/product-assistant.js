@@ -297,6 +297,11 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                 return this.removeDebugLogContext(payload.data.debugLog)
             case payload.data.type === 'debug-log-context-clear':
                 return this.resetDebugLogContext()
+            case payload.data.type === 'nr-assistant/workspace:change':
+                if (payload.data.tab?.label) {
+                    document.title = `Node-RED: ${payload.data.tab.label} - FlowFuse`
+                }
+                break
             default:
                 // do nothing
             }
