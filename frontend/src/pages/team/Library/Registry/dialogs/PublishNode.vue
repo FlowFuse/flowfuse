@@ -73,7 +73,7 @@ import CodeSnippet from '../../../../../components/CodeSnippet.vue'
 import CopySnippet from '../../../../../components/CopySnippet.vue'
 import Alerts from '../../../../instance/Settings/Alerts.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'PublishNodeDialog',
@@ -100,7 +100,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapVuexState('account', ['settings']),
         registryHost () {
             return this.settings ? this.settings['team:npm:registry'] : ''

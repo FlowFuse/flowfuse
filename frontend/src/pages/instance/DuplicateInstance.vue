@@ -60,6 +60,7 @@ import instanceApi from '../../api/instances.js'
 import MultiStepDuplicateInstanceForm from '../../components/multi-step-forms/instance/MultiStepDuplicateInstanceForm.vue'
 
 import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DuplicateInstance',
@@ -75,7 +76,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team'])
+        ...mapState(useContextStore, ['team'])
     },
     mounted () {
         this.getInstance()

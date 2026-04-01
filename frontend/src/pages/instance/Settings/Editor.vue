@@ -23,7 +23,7 @@ import {
     templateValidators
 } from '../../admin/Template/utils.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceSettingsEditor',
@@ -62,7 +62,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         saveButton () {
             return {
                 visible: true,

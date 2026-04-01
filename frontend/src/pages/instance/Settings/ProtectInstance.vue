@@ -34,7 +34,7 @@ import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavail
 import usePermissions from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceSettingsProtect',
@@ -66,7 +66,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team', 'teamMembership']),
+        ...mapState(useContextStore, ['team', 'teamMembership']),
         ...mapVuexState('account', ['features']),
         isProtected () {
             return this.instance?.protected?.enabled

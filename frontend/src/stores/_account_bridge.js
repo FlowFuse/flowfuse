@@ -7,13 +7,11 @@ export function useAccountBridge () {
     // Use require() instead of top-level imports to avoid circular module dependencies.
     // Static imports of store/index.js here would create a cycle:
     // ux-drawers.js → ux-navigation.js → _account_bridge.js → store/index.js → account/index.js → ux-navigation.js
-    // account-team.js imports routes.js which imports all route files — pulling that in statically
-    // here would drag the full router (and heavy Vue components) into every file that uses the bridge.
-    // By requiring lazily inside the function body both stores are fully initialized before this runs.
+    // context.js imports _account_bridge.js statically; requiring context.js lazily here avoids a cycle.
     const store = require('../store/index.js').default
-    const { useAccountTeamStore } = require('@/stores/account-team.js')
+    const { useContextStore } = require('@/stores/context.js')
     const { user } = useAccountAuthStore()
-    const { team, teamMembership, isTrialAccount, isTrialAccountExpired } = useAccountTeamStore()
+    const { team, teamMembership, isTrialAccount, isTrialAccountExpired } = useContextStore()
     return {
         user,
         userId: user?.id || null,

@@ -113,7 +113,7 @@ import BrokerClient from './components/BrokerClient.vue'
 
 import ClientDialog from './dialogs/ClientDialog.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
@@ -143,7 +143,7 @@ export default {
         Roles () {
             return Roles
         },
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapVuexState('account', ['features']),
         ...mapState(useProductBrokersStore, {
             clients: state => state.UNS.clients

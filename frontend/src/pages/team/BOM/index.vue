@@ -83,7 +83,7 @@ import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavail
 import BomDependencies from '../../../components/bill-of-materials/BomDependencies.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamBOM',
@@ -108,7 +108,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapGetters('account', ['featuresCheck']),
         payload () {
             const payload = { children: [] }

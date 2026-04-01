@@ -110,7 +110,7 @@ import Dialog from '../../../services/dialog.js'
 
 import DangerSettings from './Danger.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceSettings',
@@ -166,7 +166,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapVuexState('account', ['features', 'settings']),
         isHA () {
             return !!this.instance?.ha

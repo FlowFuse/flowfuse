@@ -54,7 +54,7 @@ const getters = {
     },
     requiresBilling (state, getters) {
         const { user } = useAccountAuthStore()
-        const { team, isTrialAccount } = useAccountTeamStore()
+        const { team, isTrialAccount } = useContextStore()
         const isNotAdmin = (user && !user.admin)
 
         return isNotAdmin &&
@@ -76,7 +76,7 @@ const getters = {
             getters.settings['team:create']
     },
     featuresCheck: (state) => {
-        const { teamMembership, team } = useAccountTeamStore()
+        const { teamMembership, team } = useContextStore()
 
         const preCheck = {
             // Instances

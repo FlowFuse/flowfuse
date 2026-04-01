@@ -15,7 +15,7 @@
 import { ExclamationCircleIcon } from '@heroicons/vue/outline'
 import { mapState } from 'pinia'
 
-import { useAccountTeamStore } from '@/stores'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamSuspended',
@@ -23,7 +23,7 @@ export default {
         ExclamationCircleIcon
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team'])
+        ...mapState(useContextStore, ['team'])
     }
 }
 </script>

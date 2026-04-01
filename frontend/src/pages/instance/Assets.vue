@@ -50,7 +50,7 @@ import Alerts from '../../services/alerts.js'
 
 import FolderBreadcrumbs from './components/FolderBreadcrumbs.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceAssets',
@@ -84,7 +84,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['teamMembership', 'team']),
+        ...mapState(useContextStore, ['teamMembership', 'team']),
         currentDirectory () {
             if (this.breadcrumbs.length) {
                 return this.breadcrumbs[this.breadcrumbs.length - 1]

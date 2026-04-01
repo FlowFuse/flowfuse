@@ -45,7 +45,7 @@ import applicationMixin from '../../mixins/Application.js'
 import Alerts from '../../services/alerts.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'ApplicationCreateInstance',
@@ -76,7 +76,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapVuexState('account', ['features']),
         isLoading () {
             return this.loading || !this.team
@@ -105,7 +105,7 @@ export default {
 
             try {
                 await this.createInstance(instanceFields, copyParts)
-                await useAccountTeamStore().refreshTeam()
+                await useContextStore().refreshTeam()
 
                 this.$emit('application-updated')
 

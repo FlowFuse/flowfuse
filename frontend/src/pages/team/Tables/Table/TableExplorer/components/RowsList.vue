@@ -25,14 +25,14 @@ import { defineComponent, markRaw } from 'vue'
 
 import TextCell from './table-cells/text-cell.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default defineComponent({
     name: 'RowsList',
     computed: {
         ...mapState(useProductTablesStore, ['tableSelection', 'isLoading', 'selectedTable']),
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         columns () {
             return (this.selectedTable?.schema ?? []).map((row) => {
                 return {

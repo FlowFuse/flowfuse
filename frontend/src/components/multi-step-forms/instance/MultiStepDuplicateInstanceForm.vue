@@ -32,7 +32,7 @@ import ApplicationStep from './steps/ApplicationStep.vue'
 import DuplicationStep from './steps/DuplicationStep.vue'
 import InstanceStep from './steps/InstanceStep.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 const INSTANCE_SLUG = 'instance'
 const APPLICATION_SLUG = 'application'
@@ -68,7 +68,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         formSteps () {
             return [
                 {

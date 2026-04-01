@@ -22,7 +22,7 @@ import usePermissions from '../../../composables/Permissions.js'
 
 import ConfirmDeviceDeleteDialog from './dialogs/ConfirmDeviceDeleteDialog.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceSettingsDanger',
@@ -34,7 +34,7 @@ export default {
         FormHeading
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team'])
+        ...mapState(useContextStore, ['team'])
     },
     setup () {
         const { hasPermission } = usePermissions()

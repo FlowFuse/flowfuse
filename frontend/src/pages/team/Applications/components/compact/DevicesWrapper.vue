@@ -30,7 +30,7 @@ import teamApi from '../../../../../api/team.js'
 import InstanceCounter from '../../../../../components/tiles/InstanceCounter.vue'
 import { useInstanceStates } from '../../../../../composables/InstanceStates.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DevicesWrapper',
@@ -57,7 +57,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         groupedStates () {
             return this.groupBySimplifiedStates(this.instanceStates)
         },

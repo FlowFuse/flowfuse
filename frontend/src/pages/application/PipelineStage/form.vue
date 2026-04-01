@@ -356,7 +356,7 @@ import IconDeviceSolid from '../../../components/icons/DeviceSolid.js'
 import IconGit from '../../../components/icons/Git.js'
 import IconNodeRedSolid from '../../../components/icons/NodeRedSolid.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'PipelineForm',
@@ -440,7 +440,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapVuexState('account', ['features']),
         isEdit () {
             return !!this.stage.id

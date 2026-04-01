@@ -207,6 +207,7 @@ import ConfirmTeamManualBillingDialog from '../dialogs/ConfirmTeamManualBillingD
 import ExtendTeamTrialDialog from '../dialogs/ExtendTeamTrialDialog.vue'
 
 import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamAdminTools',
@@ -336,7 +337,7 @@ export default {
         async setupManualBilling (teamTypeId) {
             billingApi.setupManualBilling(this.team.id, teamTypeId).then(async () => {
                 await useAccountTeamStore().refreshTeams()
-                await useAccountTeamStore().refreshTeam()
+                await useContextStore().refreshTeam()
             }).catch(err => {
                 console.warn(err)
             })
@@ -349,7 +350,7 @@ export default {
             }, async () => {
                 billingApi.disableManualBilling(this.team.id).then(async () => {
                     await useAccountTeamStore().refreshTeams()
-                    await useAccountTeamStore().refreshTeam()
+                    await useContextStore().refreshTeam()
                 }).catch(err => {
                     console.warn(err)
                 })
@@ -362,7 +363,7 @@ export default {
             const newEndDate = Date.parse(`${endDate}T12:00:00.000Z`)
             billingApi.setTrialExpiry(this.team.id, newEndDate).then(async () => {
                 await useAccountTeamStore().refreshTeams()
-                await useAccountTeamStore().refreshTeam()
+                await useContextStore().refreshTeam()
             }).catch(err => {
                 console.warn(err)
             })
@@ -470,7 +471,7 @@ export default {
             })
 
             await teamApi.updateTeam(this.team.id, { properties })
-            await useAccountTeamStore().refreshTeam()
+            await useContextStore().refreshTeam()
             this.editingLimits = false
         }
     }

@@ -34,7 +34,7 @@ import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import NavItem from '../../NavItem.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 
@@ -44,7 +44,7 @@ export default {
     emits: ['option-selected'],
     computed: {
         ...mapState(useUxNavigationStore, ['mainNav', 'mainNavContext']),
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapVuexState('account', ['features']),
         ...mapGetters('account', ['requiresBilling']),
         nearestMetaMenu () {

@@ -168,6 +168,7 @@ import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
 
 import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 import { useUxStore } from '@/stores/ux.js'
 
@@ -224,7 +225,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapVuexState('account', ['features', 'settings']),
         actionsButtonKind () {
             switch (true) {
@@ -578,7 +579,7 @@ export default {
                     await deviceApi.deleteDevice(this.device.id)
                     Alerts.emit('Successfully deleted the device', 'confirmation')
                     // Trigger a refresh of team info to resync following device changes
-                    await useAccountTeamStore().refreshTeam()
+                    await useContextStore().refreshTeam()
                     this.$router.push({ name: 'TeamDevices', params: { team_slug: this.team.slug } })
                 } catch (err) {
                     Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)

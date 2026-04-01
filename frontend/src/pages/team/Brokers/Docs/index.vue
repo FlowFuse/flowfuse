@@ -30,7 +30,7 @@ import { useNavigationHelper } from '../../../../composables/NavigationHelper.js
 
 import FFTopicDocs from './components/TopicDocs.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 const { openInANewTab } = useNavigationHelper()
 
 export default {
@@ -48,7 +48,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         brokerId () {
             return this.$route.params.brokerId
         }

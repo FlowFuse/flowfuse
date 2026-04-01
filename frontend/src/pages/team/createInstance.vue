@@ -55,7 +55,7 @@ import MultiStepApplicationsInstanceForm from '../../components/multi-step-forms
 import LocalStorageService from '../../services/storage/local-storage.service.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'CreateInstance',
@@ -92,7 +92,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapVuexState('account', ['features']),
         isLandingFromExternalLink () {
             return this.$route.name === 'DeployBlueprint'

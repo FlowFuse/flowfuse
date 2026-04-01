@@ -71,7 +71,7 @@ import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 import TypeIcon from '../components/LibraryEntryTypeIcon.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamLibrary',
@@ -116,7 +116,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team'])
+        ...mapState(useContextStore, ['team'])
     },
     watch: {
         '$route.params': {

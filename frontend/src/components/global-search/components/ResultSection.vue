@@ -43,7 +43,7 @@
 
 import { mapState } from 'pinia'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'ResultSection',
@@ -76,7 +76,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         resultCount () {
             return this.results.length
         },

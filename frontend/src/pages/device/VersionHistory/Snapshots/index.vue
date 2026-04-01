@@ -123,7 +123,7 @@ import DaysSince from '../../../application/Snapshots/components/cells/DaysSince
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
 import SnapshotSource from '../../../application/Snapshots/components/cells/SnapshotSource.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -204,7 +204,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapVuexState('account', ['features']),
         canCreateSnapshot () {
             if (!this.developerMode || this.busy) {

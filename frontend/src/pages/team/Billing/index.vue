@@ -130,7 +130,7 @@ import formatDateMixin from '../../../mixins/DateTime.js'
 import UsageOverview from './components/UsageOverview.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 const priceCell = {
     name: 'PriceCell',
@@ -203,7 +203,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountAuthStore, ['isAdminUser']),
         billingSetUp () {
             return !this.missingSubscription && this.team.billing?.active

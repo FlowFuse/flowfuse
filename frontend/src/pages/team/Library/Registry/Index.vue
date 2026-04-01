@@ -100,7 +100,7 @@ import RegistryEntry from './components/RegistryEntry.vue'
 
 import PublishNodeDialog from './dialogs/PublishNode.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'NodeRegistry',
@@ -121,7 +121,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapVuexState('account', ['settings']),
         ...mapGetters('account', ['featuresCheck']),
         enabled () {

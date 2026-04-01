@@ -29,6 +29,7 @@ import TeamInstances from './Instances.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -52,7 +53,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team', 'teamMembership']),
+        ...mapState(useContextStore, ['team', 'teamMembership']),
         ...mapVuexState('account', ['features']),
         ...mapGetters('account', ['requiresBilling']),
         ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),

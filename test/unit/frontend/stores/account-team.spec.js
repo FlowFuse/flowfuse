@@ -22,14 +22,7 @@ vi.mock('@/api/user.js', () => ({
     }
 }))
 
-vi.mock('@/routes.js', () => ({
-    default: {
-        replace: vi.fn(),
-        currentRoute: { value: { name: 'TeamRoute', params: {} } }
-    }
-}))
-
-vi.mock('@/services/product', () => ({
+vi.mock('@/services/product.js', () => ({
     default: {
         setTeam: vi.fn()
     }
@@ -43,24 +36,32 @@ vi.mock('@/stores/account-auth.js', () => ({
     useAccountAuthStore: () => ({ user: { id: 'u1', defaultTeam: 'team-1' } })
 }))
 
+// Shared mutable state used by the context store mock
+const mockContext = { team: null, teamMembership: null }
+
+vi.mock('@/stores/context.js', () => ({
+    useContextStore: () => mockContext
+}))
+
 // Imported after mocks so vi.mock hoisting resolves correctly
 const { useAccountTeamStore } = await import('@/stores/account-team.js')
 const teamApi = (await import('@/api/team.js')).default
 const flowBlueprintsApi = (await import('@/api/flowBlueprints.js')).default
 const userApi = (await import('@/api/user.js')).default
-const product = (await import('@/services/product')).default
+const product = (await import('@/services/product.js')).default
 
 describe('account-team store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
         vi.clearAllMocks()
+        // Reset shared context mock state
+        mockContext.team = null
+        mockContext.teamMembership = null
     })
 
     describe('initial state', () => {
         it('initializes with default state', () => {
             const store = useAccountTeamStore()
-            expect(store.team).toBeNull()
-            expect(store.teamMembership).toBeNull()
             expect(store.teams).toEqual([])
             expect(store.teamBlueprints).toEqual({})
             expect(store.pendingTeamChange).toBe(false)
@@ -71,21 +72,21 @@ describe('account-team store', () => {
 
     describe('getters', () => {
         describe('blueprints', () => {
-            it('returns empty array when team is null', () => {
+            it('returns empty array when context team is null', () => {
                 const store = useAccountTeamStore()
                 expect(store.blueprints).toEqual([])
             })
 
-            it('returns blueprints for the current team', () => {
+            it('returns blueprints for the current team from context', () => {
+                mockContext.team = { id: 'team-1' }
                 const store = useAccountTeamStore()
-                store.team = { id: 'team-1' }
                 store.teamBlueprints = { 'team-1': [{ id: 'bp-1' }] }
                 expect(store.blueprints).toEqual([{ id: 'bp-1' }])
             })
 
             it('returns empty array when no blueprints for current team', () => {
+                mockContext.team = { id: 'team-1' }
                 const store = useAccountTeamStore()
-                store.team = { id: 'team-1' }
                 store.teamBlueprints = {}
                 expect(store.blueprints).toEqual([])
             })
@@ -98,8 +99,8 @@ describe('account-team store', () => {
             })
 
             it('returns the blueprint marked as default', () => {
+                mockContext.team = { id: 'team-1' }
                 const store = useAccountTeamStore()
-                store.team = { id: 'team-1' }
                 store.teamBlueprints = {
                     'team-1': [
                         { id: 'bp-1', default: false },
@@ -120,65 +121,12 @@ describe('account-team store', () => {
                 expect(store.defaultUserTeam).toEqual(team1)
             })
 
-            it('falls back to the first team when no defaultTeam match', () => {
+            it('falls back to undefined when no defaultTeam match', () => {
                 const store = useAccountTeamStore()
                 const team1 = { id: 'team-99', name: 'Other' }
                 store.teams = [team1]
                 // user.defaultTeam = 'team-1' but only 'team-99' exists
                 expect(store.defaultUserTeam).toBeUndefined()
-            })
-        })
-
-        describe('isFreeTeamType', () => {
-            it('returns false when team is null', () => {
-                const store = useAccountTeamStore()
-                expect(store.isFreeTeamType).toBe(false)
-            })
-
-            it('returns false when billing is not disabled', () => {
-                const store = useAccountTeamStore()
-                store.team = { type: { properties: { billing: { disabled: false } } } }
-                expect(store.isFreeTeamType).toBe(false)
-            })
-
-            it('returns true when billing.disabled is true', () => {
-                const store = useAccountTeamStore()
-                store.team = { type: { properties: { billing: { disabled: true } } } }
-                expect(store.isFreeTeamType).toBe(true)
-            })
-        })
-
-        describe('isTrialAccount', () => {
-            it('returns false when team has no billing', () => {
-                const store = useAccountTeamStore()
-                store.team = {}
-                expect(store.isTrialAccount).toBe(false)
-            })
-
-            it('returns true when billing.trial is true', () => {
-                const store = useAccountTeamStore()
-                store.team = { billing: { trial: true } }
-                expect(store.isTrialAccount).toBe(true)
-            })
-        })
-
-        describe('isTrialAccountExpired', () => {
-            it('returns false when not a trial account', () => {
-                const store = useAccountTeamStore()
-                store.team = { billing: { trial: false } }
-                expect(store.isTrialAccountExpired).toBe(false)
-            })
-
-            it('returns false when trial has not ended', () => {
-                const store = useAccountTeamStore()
-                store.team = { billing: { trial: true, trialEnded: false } }
-                expect(store.isTrialAccountExpired).toBe(false)
-            })
-
-            it('returns true when trial has ended', () => {
-                const store = useAccountTeamStore()
-                store.team = { billing: { trial: true, trialEnded: true } }
-                expect(store.isTrialAccountExpired).toBe(true)
             })
         })
 
@@ -268,25 +216,18 @@ describe('account-team store', () => {
             })
         })
 
-        describe('setTeamMembership', () => {
-            it('sets teamMembership', () => {
-                const store = useAccountTeamStore()
-                const membership = { role: 50 }
-                store.setTeamMembership(membership)
-                expect(store.teamMembership).toEqual(membership)
-            })
-        })
-
         describe('setTeam', () => {
-            it('refreshes membership but skips full reload when same team is already set (by id)', async () => {
+            it('refreshes context membership but skips full reload when same team is already set (by id)', async () => {
                 const store = useAccountTeamStore()
                 const team = { id: 'team-1', slug: 'alpha' }
                 const membership = { role: 50 }
-                store.team = team
+                mockContext.team = team
                 teamApi.getTeamUserMembership.mockResolvedValue(membership)
+
                 await store.setTeam(team)
+
                 expect(teamApi.getTeamUserMembership).toHaveBeenCalledWith(team.id)
-                expect(store.teamMembership).toEqual(membership)
+                expect(mockContext.teamMembership).toEqual(membership)
                 // team object itself should NOT be re-set (no product.setTeam call)
                 expect(product.setTeam).not.toHaveBeenCalled()
             })
@@ -297,7 +238,7 @@ describe('account-team store', () => {
                 expect(teamApi.getTeamUserMembership).not.toHaveBeenCalled()
             })
 
-            it('sets team, membership, and calls product.setTeam', async () => {
+            it('sets team + membership on context and calls product.setTeam', async () => {
                 const store = useAccountTeamStore()
                 const team = { id: 'team-2', slug: 'beta' }
                 const membership = { role: 50 }
@@ -305,8 +246,8 @@ describe('account-team store', () => {
 
                 await store.setTeam(team)
 
-                expect(store.team).toEqual(team)
-                expect(store.teamMembership).toEqual(membership)
+                expect(mockContext.team).toEqual(team)
+                expect(mockContext.teamMembership).toEqual(membership)
                 expect(product.setTeam).toHaveBeenCalledWith(team)
                 expect(store.pendingTeamChange).toBe(false)
             })
@@ -321,7 +262,7 @@ describe('account-team store', () => {
                 await store.setTeam('gamma')
 
                 expect(teamApi.getTeam).toHaveBeenCalledWith({ slug: 'gamma' })
-                expect(store.team).toEqual(fetchedTeam)
+                expect(mockContext.team).toEqual(fetchedTeam)
             })
         })
 
@@ -395,17 +336,11 @@ describe('account-team store', () => {
         describe('$reset', () => {
             it('restores default state', async () => {
                 const store = useAccountTeamStore()
-                const team = { id: 'team-1' }
-                const membership = { role: 50 }
-                teamApi.getTeamUserMembership.mockResolvedValue(membership)
-                await store.setTeam(team)
-                store.teams = [team]
+                store.teams = [{ id: 'team-1' }]
                 store.invitations = [{ id: 'inv-1' }]
 
                 store.$reset()
 
-                expect(store.team).toBeNull()
-                expect(store.teamMembership).toBeNull()
                 expect(store.teams).toEqual([])
                 expect(store.invitations).toEqual([])
                 expect(store.pendingTeamChange).toBe(false)

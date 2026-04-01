@@ -27,7 +27,7 @@ import { mapState } from 'pinia'
 import DevicesBrowser from '../../components/DevicesBrowser.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceRemoteInstances',
@@ -44,7 +44,7 @@ export default {
     },
     emits: ['instance-updated'],
     computed: {
-        ...mapState(useAccountTeamStore, ['team', 'teamMembership'])
+        ...mapState(useContextStore, ['team', 'teamMembership'])
     }
 }
 </script>

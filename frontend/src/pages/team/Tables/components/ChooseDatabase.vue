@@ -68,7 +68,7 @@ import { defineComponent } from 'vue'
 
 import MediumTile from '../../../../components/tiles/MediumTile.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
@@ -85,7 +85,7 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         options () {
             return [
                 {

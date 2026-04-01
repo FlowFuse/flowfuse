@@ -72,7 +72,7 @@ import ApplicationPermissionOverride from './components/ApplicationPermissionOve
 import ApplicationPermissionRow from './components/ApplicationPermissionsRow.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamUsersGeneral',
@@ -107,7 +107,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapGetters('account', ['requiresBilling', 'featuresCheck']),
         ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
         canEditUser: function () {
@@ -184,7 +184,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useAccountTeamStore, ['refreshTeamMembership']),
+        ...mapActions(useContextStore, ['refreshTeamMembership']),
         inviteMember () {
             this.$refs.inviteMemberDialog.show()
         },

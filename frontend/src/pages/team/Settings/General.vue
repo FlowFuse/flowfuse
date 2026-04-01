@@ -84,6 +84,7 @@ import alerts from '../../../services/alerts.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamSettingsGeneral',
@@ -109,7 +110,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapVuexState('account', ['features']),
         ...mapState(useAccountAuthStore, ['user']),
         formValid () {
@@ -177,7 +178,7 @@ export default {
             teamApi.updateTeam(this.team.id, options).then(async result => {
                 this.editing = false
                 await useAccountTeamStore().refreshTeams()
-                await useAccountTeamStore().refreshTeam()
+                await useContextStore().refreshTeam()
                 alerts.emit('Team Settings updated.', 'confirmation')
             }).catch(err => {
                 if (err.response.data) {

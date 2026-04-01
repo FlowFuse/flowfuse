@@ -93,7 +93,7 @@ import Dialog from '../../../services/dialog.js'
 
 import CreateGitTokenDialog from './dialogs/CreateGitTokenDialog.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamIntegrations',
@@ -118,7 +118,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapVuexState('account', ['features']),
         ...mapGetters('account', ['featuresCheck']),
         addEnabled: function () {

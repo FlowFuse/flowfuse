@@ -75,7 +75,7 @@ import { Roles } from '../../../../../utils/roles.js'
 
 import BrokerAclRule from './BrokerAclRule.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'BrokerClient',
@@ -103,7 +103,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         Roles () {
             return Roles
         },

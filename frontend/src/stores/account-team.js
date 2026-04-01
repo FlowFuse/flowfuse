@@ -3,14 +3,13 @@ import { defineStore } from 'pinia'
 import flowBlueprintsApi from '@/api/flowBlueprints.js'
 import teamApi from '@/api/team.js'
 import userApi from '@/api/user.js'
-import product from '@/services/product'
+import product from '@/services/product.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export const useAccountTeamStore = defineStore('account-team', {
     state: () => ({
-        team: null,
-        teamMembership: null,
         teams: [],
         teamBlueprints: {},
         pendingTeamChange: false,
@@ -18,21 +17,15 @@ export const useAccountTeamStore = defineStore('account-team', {
         invitations: []
     }),
     getters: {
-        blueprints: state => state.teamBlueprints[state.team?.id] || [],
+        blueprints (state) {
+            const teamId = useContextStore().team?.id
+            return state.teamBlueprints[teamId] || []
+        },
         defaultBlueprint () { return this.blueprints?.find(blueprint => blueprint.default) },
         defaultUserTeam: (state) => {
             const { user } = useAccountAuthStore()
             const defaultTeamId = user?.defaultTeam || state.teams[0]?.id
             return state.teams.find(team => team.id === defaultTeamId)
-        },
-        isFreeTeamType (state) {
-            return !!(state.team?.type?.properties?.billing?.disabled)
-        },
-        isTrialAccount (state) {
-            return !!state.team?.billing?.trial
-        },
-        isTrialAccountExpired (state) {
-            return this.isTrialAccount && state.team?.billing?.trialEnded
         },
         notificationsCount: state => state.notifications?.length || 0,
         unreadNotificationsCount: state => {
@@ -52,14 +45,12 @@ export const useAccountTeamStore = defineStore('account-team', {
         hasAvailableTeams: state => state.teams.length > 0
     },
     actions: {
-        setTeamMembership (teamMembership) {
-            this.teamMembership = teamMembership
-        },
         setTeams (teams) {
             this.teams = teams
         },
         async setTeam (team) {
-            const currentTeam = this.team
+            const context = useContextStore()
+            const currentTeam = context.team
             this.pendingTeamChange = true
             let teamMembership
             if (typeof team === 'string') {
@@ -77,7 +68,7 @@ export const useAccountTeamStore = defineStore('account-team', {
                 if (currentTeam?.id === team?.id) {
                     // Same team — skip full reload but always refresh membership
                     if (team?.id) {
-                        this.teamMembership = await teamApi.getTeamUserMembership(team.id)
+                        context.teamMembership = await teamApi.getTeamUserMembership(team.id)
                     }
                     this.pendingTeamChange = false
                     return
@@ -87,34 +78,14 @@ export const useAccountTeamStore = defineStore('account-team', {
                 teamMembership = await teamApi.getTeamUserMembership(team.id)
             }
             product.setTeam(team)
-            this.team = team
+            context.team = team
             this.clearOtherStores()
-            this.teamMembership = teamMembership
+            context.teamMembership = teamMembership
             this.pendingTeamChange = false
-        },
-        async refreshTeam () {
-            const currentTeam = this.team
-            if (currentTeam) {
-                const currentSlug = currentTeam.slug
-                const team = await teamApi.getTeam(currentTeam.id)
-                const teamMembership = await teamApi.getTeamUserMembership(team.id)
-                product.setTeam(team)
-                this.team = team
-                this.teamMembership = teamMembership
-                if (currentSlug !== team.slug) {
-                    const router = require('@/routes.js').default
-                    router.replace({ name: router.currentRoute.value.name, params: { team_slug: team.slug } })
-                }
-            }
         },
         async refreshTeams () {
             const teams = await teamApi.getTeams()
             this.teams = teams.teams
-        },
-        async refreshTeamMembership () {
-            const teamMembership = await teamApi.getTeamUserMembership(this.team.id)
-
-            this.teamMembership = teamMembership
         },
         async getTeamBlueprints (teamId) {
             const response = await flowBlueprintsApi.getFlowBlueprintsForTeam(teamId)
@@ -142,8 +113,5 @@ export const useAccountTeamStore = defineStore('account-team', {
         clearOtherStores () {
             useProductTablesStore().clearState()
         }
-    },
-    persist: [
-        { pick: ['team', 'teamMembership'], storage: sessionStorage }
-    ]
+    }
 })

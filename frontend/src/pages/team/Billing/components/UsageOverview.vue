@@ -75,7 +75,7 @@ import { getObjectValue } from '../../../admin/Template/utils.js'
 
 import UsageValue from './UsageValue.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'UsageOverview',
@@ -94,7 +94,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         usedInstancesByType () {
             return Object.keys(this.team.instanceCountByType).map(key => {
                 return {
@@ -111,7 +111,7 @@ export default {
         await this.refreshTeam()
     },
     methods: {
-        ...mapActions(useAccountTeamStore, ['refreshTeam']),
+        ...mapActions(useContextStore, ['refreshTeam']),
         getTeamProperty (property) {
             if (this.team.properties) {
                 const teamProperty = getObjectValue(this.team.properties, property)
