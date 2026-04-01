@@ -22,7 +22,8 @@ describe('BrokerClient', function () {
                         create: sandbox.stub(),
                         destroy: sandbox.stub(),
                         findOne: sandbox.stub(),
-                        findOrCreate: sandbox.stub()
+                        findOrCreate: sandbox.stub(),
+                        byUsername: sandbox.stub()
                     }
                 }
             },
@@ -52,6 +53,43 @@ describe('BrokerClient', function () {
             save: sinon.stub().resolves()
         }
     }
+
+    describe('authenticateCredentials', function () {
+        it('should return true if password matches', async function () {
+            app.db.models.BrokerClient.findOne.resolves(fakeBrokerClient({ username: 'expert-client:abc123:sess123', password: 'pass123' }))
+            const result = await BrokerClient.authenticateCredentials(app, 'expert-client:abc123:sess123', 'pass123')
+            should(result).be.true()
+        })
+        it('should return false if password does not match', async function () {
+            app.db.models.BrokerClient.findOne.resolves(fakeBrokerClient({ username: 'expert-client:abc123:sess123', password: 'pass123' }))
+            const result = await BrokerClient.authenticateCredentials(app, 'expert-client:abc123:sess123', 'wrongpass')
+            should(result).be.false()
+        })
+        it('should return false if user not found', async function () {
+            app.db.models.BrokerClient.findOne.resolves(null)
+            const result = await BrokerClient.authenticateCredentials(app, 'expert-client:abc123:sess123', 'pass123')
+            should(result).be.false()
+        })
+        it('should return false if password is missing', async function () {
+            app.db.models.BrokerClient.findOne.resolves(fakeBrokerClient({ username: 'expert-client:abc123:sess123', password: 'pass123' }))
+            const result = await BrokerClient.authenticateCredentials(app, 'expert-client:abc123:sess123', null)
+            should(result).be.false()
+        })
+        it('should delete broker client if username starts with frontend: and password is correct', async function () {
+            const fakeClient = fakeBrokerClient({ username: 'frontend:abc123:sess123', password: 'pass123' })
+            app.db.models.BrokerClient.findOne.resolves(fakeClient)
+            const result = await BrokerClient.authenticateCredentials(app, 'frontend:abc123:sess123', 'pass123')
+            should(result).be.true()
+            fakeClient.destroy.called.should.be.true()
+        })
+        it('should delete broker client if username starts with expert-client: and password is correct', async function () {
+            const fakeClient = fakeBrokerClient({ username: 'expert-client:abc123:sess123', password: 'pass123' })
+            app.db.models.BrokerClient.findOne.resolves(fakeClient)
+            const result = await BrokerClient.authenticateCredentials(app, 'expert-client:abc123:sess123', 'pass123')
+            should(result).be.true()
+            fakeClient.destroy.called.should.be.true()
+        })
+    })
 
     describe('createClientForExpertAgent', function () {
         it('should create broker client and return username and password', async function () {
