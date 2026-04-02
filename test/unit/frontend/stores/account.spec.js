@@ -49,13 +49,13 @@ vi.mock('@/stores/context.js', () => ({
 }))
 
 // Imported after mocks so vi.mock hoisting resolves correctly
-const { useAccountTeamStore } = await import('@/stores/account-team.js')
+const { useAccountStore } = await import('@/stores/account.js')
 const teamApi = (await import('@/api/team.js')).default
 const flowBlueprintsApi = (await import('@/api/flowBlueprints.js')).default
 const userApi = (await import('@/api/user.js')).default
 const product = (await import('@/services/product.js')).default
 
-describe('account-team store', () => {
+describe('account store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
         vi.clearAllMocks()
@@ -66,7 +66,7 @@ describe('account-team store', () => {
 
     describe('initial state', () => {
         it('initializes with default state', () => {
-            const store = useAccountTeamStore()
+            const store = useAccountStore()
             expect(store.teams).toEqual([])
             expect(store.teamBlueprints).toEqual({})
             expect(store.pendingTeamChange).toBe(false)
@@ -78,20 +78,20 @@ describe('account-team store', () => {
     describe('getters', () => {
         describe('blueprints', () => {
             it('returns empty array when context team is null', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 expect(store.blueprints).toEqual([])
             })
 
             it('returns blueprints for the current team from context', () => {
                 mockContext.team = { id: 'team-1' }
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 store.teamBlueprints = { 'team-1': [{ id: 'bp-1' }] }
                 expect(store.blueprints).toEqual([{ id: 'bp-1' }])
             })
 
             it('returns empty array when no blueprints for current team', () => {
                 mockContext.team = { id: 'team-1' }
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 store.teamBlueprints = {}
                 expect(store.blueprints).toEqual([])
             })
@@ -99,13 +99,13 @@ describe('account-team store', () => {
 
         describe('defaultBlueprint', () => {
             it('returns undefined when no blueprints', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 expect(store.defaultBlueprint).toBeUndefined()
             })
 
             it('returns the blueprint marked as default', () => {
                 mockContext.team = { id: 'team-1' }
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 store.teamBlueprints = {
                     'team-1': [
                         { id: 'bp-1', default: false },
@@ -118,7 +118,7 @@ describe('account-team store', () => {
 
         describe('defaultUserTeam', () => {
             it('returns the team matching the user defaultTeam', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 const team1 = { id: 'team-1', name: 'Alpha' }
                 const team2 = { id: 'team-2', name: 'Beta' }
                 store.teams = [team1, team2]
@@ -127,7 +127,7 @@ describe('account-team store', () => {
             })
 
             it('falls back to undefined when no defaultTeam match', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 const team1 = { id: 'team-99', name: 'Other' }
                 store.teams = [team1]
                 // user.defaultTeam = 'team-1' but only 'team-99' exists
@@ -137,12 +137,12 @@ describe('account-team store', () => {
 
         describe('notificationsCount', () => {
             it('returns 0 when notifications is initial state', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 expect(store.notificationsCount).toBe(0)
             })
 
             it('returns the length of the notifications array', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 store.notifications = [{ id: 1 }, { id: 2 }]
                 expect(store.notificationsCount).toBe(2)
             })
@@ -150,13 +150,13 @@ describe('account-team store', () => {
 
         describe('unreadNotificationsCount', () => {
             it('returns 0 when no notifications', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 store.notifications = []
                 expect(store.unreadNotificationsCount).toBe(0)
             })
 
             it('counts unread notifications', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 store.notifications = [
                     { id: 1, read: false, data: { meta: {} } },
                     { id: 2, read: true, data: { meta: {} } }
@@ -165,7 +165,7 @@ describe('account-team store', () => {
             })
 
             it('adds grouped notification counter values', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 store.notifications = [
                     { id: 1, read: false, data: { meta: { counter: 3 } } }
                 ]
@@ -176,13 +176,13 @@ describe('account-team store', () => {
 
         describe('hasNotifications', () => {
             it('returns false when empty', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 store.notifications = []
                 expect(store.hasNotifications).toBe(false)
             })
 
             it('returns true when there are notifications', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 store.notifications = [{ id: 1 }]
                 expect(store.hasNotifications).toBe(true)
             })
@@ -190,7 +190,7 @@ describe('account-team store', () => {
 
         describe('teamInvitations / teamInvitationsCount', () => {
             it('returns invitations array', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 store.invitations = [{ id: 'inv-1' }]
                 expect(store.teamInvitations).toEqual([{ id: 'inv-1' }])
                 expect(store.teamInvitationsCount).toBe(1)
@@ -199,12 +199,12 @@ describe('account-team store', () => {
 
         describe('hasAvailableTeams', () => {
             it('returns false when teams is empty', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 expect(store.hasAvailableTeams).toBe(false)
             })
 
             it('returns true when teams exist', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 store.teams = [{ id: 'team-1' }]
                 expect(store.hasAvailableTeams).toBe(true)
             })
@@ -214,7 +214,7 @@ describe('account-team store', () => {
     describe('actions', () => {
         describe('setTeams', () => {
             it('replaces the teams array', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 const teams = [{ id: 'team-1' }, { id: 'team-2' }]
                 store.setTeams(teams)
                 expect(store.teams).toEqual(teams)
@@ -223,7 +223,7 @@ describe('account-team store', () => {
 
         describe('setTeam', () => {
             it('refreshes context membership but skips full reload when same team is already set (by id)', async () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 const team = { id: 'team-1', slug: 'alpha' }
                 const membership = { role: 50 }
                 mockContext.team = team
@@ -238,13 +238,13 @@ describe('account-team store', () => {
             })
 
             it('does nothing if both current and new team are null', async () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 await store.setTeam(null)
                 expect(teamApi.getTeamUserMembership).not.toHaveBeenCalled()
             })
 
             it('sets team + membership on context and calls product.setTeam', async () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 const team = { id: 'team-2', slug: 'beta' }
                 const membership = { role: 50 }
                 teamApi.getTeamUserMembership.mockResolvedValue(membership)
@@ -258,7 +258,7 @@ describe('account-team store', () => {
             })
 
             it('fetches team by slug when passed a string', async () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 const fetchedTeam = { id: 'team-3', slug: 'gamma' }
                 const membership = { role: 50 }
                 teamApi.getTeam.mockResolvedValue(fetchedTeam)
@@ -273,7 +273,7 @@ describe('account-team store', () => {
 
         describe('getTeamBlueprints', () => {
             it('fetches and stores blueprints for the given team', async () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 const blueprints = [{ id: 'bp-1' }, { id: 'bp-2' }]
                 flowBlueprintsApi.getFlowBlueprintsForTeam.mockResolvedValue({ blueprints })
 
@@ -286,7 +286,7 @@ describe('account-team store', () => {
 
         describe('getNotifications', () => {
             it('sets notifications from API response', async () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 const notifications = [{ id: 'n1' }, { id: 'n2' }]
                 userApi.getNotifications.mockResolvedValue({ notifications })
 
@@ -296,7 +296,7 @@ describe('account-team store', () => {
             })
 
             it('sets notifications to empty array when API returns no notifications key', async () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 userApi.getNotifications.mockResolvedValue({})
 
                 await store.getNotifications()
@@ -305,7 +305,7 @@ describe('account-team store', () => {
             })
 
             it('does not throw on API failure', async () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 userApi.getNotifications.mockRejectedValue(new Error('network'))
                 await expect(store.getNotifications()).resolves.not.toThrow()
             })
@@ -313,7 +313,7 @@ describe('account-team store', () => {
 
         describe('setNotifications', () => {
             it('directly sets notifications', () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 const notifications = [{ id: 'n1' }]
                 store.setNotifications(notifications)
                 expect(store.notifications).toEqual(notifications)
@@ -322,7 +322,7 @@ describe('account-team store', () => {
 
         describe('getInvitations', () => {
             it('sets invitations from API response', async () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 const invitations = [{ id: 'inv-1' }]
                 userApi.getTeamInvitations.mockResolvedValue({ invitations })
 
@@ -332,7 +332,7 @@ describe('account-team store', () => {
             })
 
             it('does not throw on API failure', async () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 userApi.getTeamInvitations.mockRejectedValue(new Error('network'))
                 await expect(store.getInvitations()).resolves.not.toThrow()
             })
@@ -340,7 +340,7 @@ describe('account-team store', () => {
 
         describe('$reset', () => {
             it('restores default state', async () => {
-                const store = useAccountTeamStore()
+                const store = useAccountStore()
                 store.teams = [{ id: 'team-1' }]
                 store.invitations = [{ id: 'inv-1' }]
 

@@ -47,7 +47,7 @@ import FlowFuseLogo from '../components/Logo.vue'
 import TeamTypeSelection from '../components/TeamTypeSelection.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
@@ -65,7 +65,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useAccountTeamStore, ['teams', 'defaultUserTeam']),
+        ...mapState(useAccountStore, ['teams', 'defaultUserTeam']),
         ...mapVuexState('account', ['settings']),
         ...mapState(useAccountAuthStore, ['user', 'redirectUrlAfterLogin']),
         ...mapState(useUxLoadingStore, ['appLoader']),

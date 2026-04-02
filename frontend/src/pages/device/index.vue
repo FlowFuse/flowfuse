@@ -167,7 +167,7 @@ import DeviceEditorLink from './components/DeviceEditorLink.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
 import { useUxStore } from '@/stores/ux.js'
@@ -414,7 +414,7 @@ export default {
             }
             this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')
             this.agentSupportsActions = this.device.agentVersion && semver.gte(this.device.agentVersion, '2.3.0')
-            useAccountTeamStore().setTeam(this.device.team.slug)
+            useAccountStore().setTeam(this.device.team.slug)
         },
         deviceRefresh: async function () {
             if (this.pollTimer.running) {

@@ -30,7 +30,7 @@ import InstanceStep from './steps/InstanceStep.vue'
 import TeamStep from './steps/TeamStep.vue'
 import FlowsStep from './steps/flows-step/index.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
 const TEAM_STEP_SLUG = 'team'
@@ -89,7 +89,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team', 'isFreeTeamType']),
-        ...mapState(useAccountTeamStore, ['teams']),
+        ...mapState(useAccountStore, ['teams']),
         formSteps () {
             return [
                 {

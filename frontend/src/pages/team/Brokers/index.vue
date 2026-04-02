@@ -90,7 +90,7 @@ import { Roles } from '../../../utils/roles.js'
 
 import BrokerStatusBadge from './components/BrokerStatusBadge.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
@@ -117,7 +117,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useAccountTeamStore, ['pendingTeamChange']),
+        ...mapState(useAccountStore, ['pendingTeamChange']),
         ...mapGetters('account', ['featuresCheck']),
         ...mapState(useProductBrokersStore, ['hasFfUnsClients', 'hasBrokers']),
         ...mapState(useProductBrokersStore, {

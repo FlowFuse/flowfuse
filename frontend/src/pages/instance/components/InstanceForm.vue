@@ -261,7 +261,7 @@ import ExportInstanceComponents from './ExportImportComponents.vue'
 import InstanceChargesTable from './InstanceChargesTable.vue'
 import InstanceCreditBanner from './InstanceCreditBanner.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'InstanceForm',
@@ -387,7 +387,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['blueprints', 'defaultBlueprint']),
+        ...mapState(useAccountStore, ['blueprints', 'defaultBlueprint']),
         ...mapVuexState('account', ['settings']),
         ...mapGetters('account', ['featuresCheck']),
         creatingApplication () {
@@ -695,7 +695,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useAccountTeamStore, ['getTeamBlueprints']),
+        ...mapActions(useAccountStore, ['getTeamBlueprints']),
         refreshName () {
             this.input.name = NameGenerator()
         },

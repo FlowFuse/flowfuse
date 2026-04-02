@@ -1,12 +1,12 @@
 import { mapState } from 'pinia'
 
-import { useAccountTeamStore } from '@/stores'
+import { useAccountStore } from '@/stores'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useAccountTeamStore, ['defaultUserTeam']),
+        ...mapState(useAccountStore, ['defaultUserTeam']),
         homeLink () {
             if (this.team?.slug) {
                 return { name: 'Team', params: { team_slug: this.team.slug } }

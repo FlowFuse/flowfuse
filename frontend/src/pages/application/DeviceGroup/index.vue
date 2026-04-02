@@ -70,7 +70,7 @@ import TeamTrialBanner from '../../../components/banners/TeamTrial.vue'
 import DeviceSolidIcon from '../../../components/icons/DeviceSolid.js'
 import usePermissions from '../../../composables/Permissions.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -173,7 +173,7 @@ export default {
                 } while (cursor)
                 this.applicationDevices = devices.flat()
 
-                useAccountTeamStore().setTeam(this.application.team.slug)
+                useAccountStore().setTeam(this.application.team.slug)
             } catch (err) {
                 this.$router.push({
                     name: 'page-not-found',

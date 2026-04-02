@@ -107,7 +107,7 @@ import Alerts from '../../services/alerts.js'
 import Product from '../../services/product.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
 // eslint-disable-next-line vue/one-component-per-file
@@ -342,7 +342,7 @@ export default {
             }
 
             teamApi.updateTeam(this.team.id, opts).then(async result => {
-                await useAccountTeamStore().refreshTeams()
+                await useAccountStore().refreshTeams()
                 await useContextStore().refreshTeam()
                 // send posthog event
                 Product.capture('$ff-team-type-changed', {

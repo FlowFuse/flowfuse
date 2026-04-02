@@ -83,7 +83,7 @@ import FormRow from '../../../components/FormRow.vue'
 import alerts from '../../../services/alerts.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -177,7 +177,7 @@ export default {
 
             teamApi.updateTeam(this.team.id, options).then(async result => {
                 this.editing = false
-                await useAccountTeamStore().refreshTeams()
+                await useAccountStore().refreshTeams()
                 await useContextStore().refreshTeam()
                 alerts.emit('Team Settings updated.', 'confirmation')
             }).catch(err => {

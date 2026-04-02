@@ -64,7 +64,7 @@ import dialog from '../../services/dialog.js'
 import { RoleNames, Roles } from '../../utils/roles.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -95,7 +95,7 @@ export default {
     },
     computed: {
         ...mapVuexState('account', ['settings']),
-        ...mapState(useAccountTeamStore, { storeTeams: 'teams' }),
+        ...mapState(useAccountStore, { storeTeams: 'teams' }),
         formValid () {
             return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam) &&
                    (!this.emailEditingEnabled || (this.input.email && !this.errors.email)) &&
@@ -297,15 +297,15 @@ export default {
                     .then(() => {
                         alerts.emit('Team successfully deleted', 'confirmation')
                         // refresh teams
-                        return useAccountTeamStore().refreshTeams()
+                        return useAccountStore().refreshTeams()
                     }).then(() => {
-                        const { teams } = storeToRefs(useAccountTeamStore())
+                        const { teams } = storeToRefs(useAccountStore())
                         const team = useContextStore().team
                         // check if the active team is one deleted
                         if (team?.id === teamId) {
                             if (teams.value.length > 0) {
                                 // get another team
-                                useAccountTeamStore().setTeam(teams.value[0].slug)
+                                useAccountStore().setTeam(teams.value[0].slug)
                             }
                         }
                     }).catch(err => {
@@ -315,7 +315,7 @@ export default {
             })
         },
         selectTeam (team) {
-            useAccountTeamStore().setTeam(team.slug)
+            useAccountStore().setTeam(team.slug)
                 .then(() => this.$router.push({
                     name: 'Team',
                     params: {

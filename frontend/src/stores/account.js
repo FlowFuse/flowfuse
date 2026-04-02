@@ -8,7 +8,7 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
-export const useAccountTeamStore = defineStore('account-team', {
+export const useAccountStore = defineStore('account', {
     state: () => ({
         teams: [],
         teamBlueprints: {},

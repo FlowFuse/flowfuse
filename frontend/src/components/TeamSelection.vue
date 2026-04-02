@@ -49,7 +49,7 @@ import usePermissions from '../composables/Permissions.js'
 
 import NavItem from './NavItem.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -66,7 +66,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useAccountTeamStore, ['teams', 'hasAvailableTeams']),
+        ...mapState(useAccountStore, ['teams', 'hasAvailableTeams']),
         ...mapVuexState('account', ['settings']),
         ...mapGetters('account', ['canCreateTeam']),
         teamOptions () {
@@ -107,7 +107,7 @@ export default {
     methods: {
         selectTeam (team) {
             if (team) {
-                useAccountTeamStore().setTeam(team.slug)
+                useAccountStore().setTeam(team.slug)
                     .then(() => this.$router.push({
                         name: 'Team',
                         params: {

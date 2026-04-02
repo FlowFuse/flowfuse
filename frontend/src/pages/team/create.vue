@@ -98,7 +98,7 @@ import { useHubspotHelper } from '../../composables/Hubspot.js'
 import slugify from '../../utils/slugify.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'CreateTeam',
@@ -171,7 +171,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team', 'teams']),
+        ...mapState(useAccountStore, ['team', 'teams']),
         ...mapVuexState('account', ['features']),
         ...mapState(useAccountAuthStore, ['user']),
         formValid () {
@@ -255,8 +255,8 @@ export default {
             }
 
             teamApi.create(opts).then(async result => {
-                await useAccountTeamStore().refreshTeams()
-                await useAccountTeamStore().setTeam(result)
+                await useAccountStore().refreshTeams()
+                await useAccountStore().setTeam(result)
                 // are we in EE?
                 if (result.billingURL) {
                     this.redirecting = true

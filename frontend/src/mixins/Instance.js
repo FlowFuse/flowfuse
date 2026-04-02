@@ -7,7 +7,7 @@ import alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import { InstanceStateMutator } from '../utils/InstanceStateMutator.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -66,7 +66,7 @@ export default {
             try {
                 const data = await InstanceApi.getInstance(instanceId)
                 this.instance = { ...{ deviceSettings: {} }, ...this.instance, ...data }
-                useAccountTeamStore().setTeam(this.instance.team.slug)
+                useAccountStore().setTeam(this.instance.team.slug)
                 this.instance.deviceSettings = await InstanceApi.getInstanceDeviceSettings(instanceId)
                 if (this.instance.deviceSettings?.targetSnapshot) {
                     this.instance.targetSnapshot = await SnapshotApi.getSnapshot(instanceId, this.instance.deviceSettings.targetSnapshot)
