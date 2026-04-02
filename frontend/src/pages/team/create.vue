@@ -171,7 +171,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountStore, ['team', 'teams']),
+        ...mapState(useAccountStore, ['teams']),
         ...mapVuexState('account', ['features']),
         ...mapState(useAccountAuthStore, ['user']),
         formValid () {
