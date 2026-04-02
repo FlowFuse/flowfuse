@@ -26,10 +26,19 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
     }),
     getters: {
         mainNavContexts (state) {
-            const { team, teamMembership, isTrialAccountExpired } = useContextStore()
-            const { features: accountFeatures, featuresCheck: features, requiresBilling } = useAccountSettingsStore()
+            const contextStore = useContextStore()
+            const team = contextStore.team
+            const teamMembership = contextStore.teamMembership
+            const isTrialAccountExpired = contextStore.isTrialAccountExpired
 
-            const { isNewlyCreatedUser, userActions } = useUxStore()
+            const accountSettingsStore = useAccountSettingsStore()
+            const accountFeatures = accountSettingsStore.features
+            const features = accountSettingsStore.featuresCheck
+            const requiresBilling = accountSettingsStore.requiresBilling
+
+            const uxStore = useUxStore()
+            const isNewlyCreatedUser = uxStore.isNewlyCreatedUser
+            const userActions = uxStore.userActions
 
             const adminContext = [
                 {

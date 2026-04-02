@@ -38,7 +38,7 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
             const { waitWhile } = useTimerHelper()
             await waitWhile(() => !useContextStore().team, { cutoffTries: 60 })
 
-            const { team } = useContextStore()
+            const team = useContextStore().team
             const data = await expertApi.getCapabilities({ context: { teamId: team.id } })
             this.capabilityServers = data.servers || []
         }

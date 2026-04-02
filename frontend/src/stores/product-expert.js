@@ -46,7 +46,7 @@ export const useProductExpertStore = defineStore('product-expert', {
     },
     actions: {
         setContext ({ data, sessionId }) {
-            const { featuresCheck } = useAccountSettingsStore()
+            const featuresCheck = useAccountSettingsStore().featuresCheck
             if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
                 return
             }
@@ -64,7 +64,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             this.shouldWakeUpAssistant = false
         },
         async hydrateClient () {
-            const { featuresCheck } = useAccountSettingsStore()
+            const featuresCheck = useAccountSettingsStore().featuresCheck
             if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
                 return
             }
@@ -93,7 +93,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
 
         openAssistantDrawer (options = {}) {
-            const { featuresCheck } = useAccountSettingsStore()
+            const featuresCheck = useAccountSettingsStore().featuresCheck
             if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
 
             useProductExpertInsightsAgentStore().getCapabilities()
@@ -108,7 +108,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
         wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
             if (this.shouldWakeUpAssistant) {
-                const { featuresCheck } = useAccountSettingsStore()
+                const featuresCheck = useAccountSettingsStore().featuresCheck
                 if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
 
                 this.clearWakeUp()
