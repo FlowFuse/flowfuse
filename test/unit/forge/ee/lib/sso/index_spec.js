@@ -399,7 +399,7 @@ d
         })
         it('ignores invalid role in group', async function () {
             // Validates that it ignores both unknown roles, but also roles that
-            // exist but are not valid for a team membershipt (ie admin)
+            // exist but are not valid for a team membership (ie admin)
 
             // Starting state:
             // Alice owner ATeam

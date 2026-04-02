@@ -19,16 +19,20 @@
             </template>
             <template v-if="canEditUser" #context-menu="{row}">
                 <ff-kebab-item
-                    v-if="(hasPermission('team:user:change-role') && !requiresBilling) || isAdminUser"
+                    v-if="((hasPermission('team:user:change-role') && !requiresBilling) || isAdminUser) && !ssoManaged({row})"
                     data-action="member-change-role"
                     label="Change Role" @click="changeRoleDialog(row)"
                 />
                 <ff-kebab-item
-                    v-if="hasPermission('team:user:remove') || isAdminUser"
+                    v-if="(hasPermission('team:user:remove') || isAdminUser) && !ssoManaged({row})"
                     data-action="member-remove-from-team"
                     label="Remove From Team"
                     kind="danger"
                     @click="removeUserDialog(row)"
+                />
+                <ff-kebab-item
+                    v-if="ssoManaged({row})"
+                    label="User role is SSO Managed"
                 />
             </template>
         </ff-data-table>
@@ -237,6 +241,9 @@ export default {
         },
         onApplicationRoleClick ({ application, user }) {
             this.$refs.editApplicationPermissionsDialog.show(user, application)
+        },
+        ssoManaged (row) {
+            return row.row.ssoManaged
         }
     }
 }
