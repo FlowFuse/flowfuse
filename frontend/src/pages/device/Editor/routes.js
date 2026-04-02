@@ -22,8 +22,7 @@ export default [
             layout: 'plain'
         },
         redirect: to => {
-            const { featuresCheck } = useAccountSettingsStore()
-            const name = featuresCheck.isExpertAssistantFeatureEnabled
+            const name = useAccountSettingsStore().featuresCheck.isExpertAssistantFeatureEnabled
                 ? 'device-editor-expert'
                 : 'device-editor-overview'
             return { name, params: { id: to.params.id } }

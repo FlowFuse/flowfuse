@@ -51,7 +51,7 @@
 </template>
 
 <script>
-import { mapState, storeToRefs } from 'pinia'
+import { mapState } from 'pinia'
 
 import teamApi from '../../api/team.js'
 import userApi from '../../api/user.js'
@@ -299,13 +299,13 @@ export default {
                         // refresh teams
                         return useAccountStore().refreshTeams()
                     }).then(() => {
-                        const { teams } = storeToRefs(useAccountStore())
+                        const teams = useAccountStore().teams
                         const team = useContextStore().team
                         // check if the active team is one deleted
                         if (team?.id === teamId) {
-                            if (teams.value.length > 0) {
+                            if (teams.length > 0) {
                                 // get another team
-                                useAccountStore().setTeam(teams.value[0].slug)
+                                useAccountStore().setTeam(teams[0].slug)
                             }
                         }
                     }).catch(err => {

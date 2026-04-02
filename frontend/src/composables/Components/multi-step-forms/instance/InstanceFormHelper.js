@@ -1,5 +1,3 @@
-import { storeToRefs } from 'pinia'
-
 import { getTeamProperty } from '../../../TeamProperties.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -7,8 +5,7 @@ import { useContextStore } from '@/stores/context.js'
 
 export function useInstanceFormHelper () {
     const teamRuntimeLimitReached = () => {
-        const { team: teamRef } = storeToRefs(useContextStore())
-        const team = teamRef.value
+        const team = useContextStore().team
         let teamTypeRuntimeLimit = getTeamProperty(team, 'runtimes.limit')
         const currentRuntimeCount = (team?.deviceCount ?? 0) + (team?.instanceCount ?? 0)
         if (team?.billing?.trial && !team?.billing?.active && getTeamProperty(team, 'trial.runtimesLimit')) {
@@ -18,10 +15,8 @@ export function useInstanceFormHelper () {
     }
 
     const decorateInstanceTypes = (instanceTypes) => {
-        const { team: teamRef } = storeToRefs(useContextStore())
-        const { features: featuresRef } = useAccountSettingsStore()
-        const team = teamRef.value
-        const features = featuresRef.value
+        const team = useContextStore().team
+        const features = useAccountSettingsStore().features
         // Do a first pass of the instance types to disable any not allowed for this team
         instanceTypes = instanceTypes.map(instanceType => {
             // Need to combine the projectType billing info with any overrides

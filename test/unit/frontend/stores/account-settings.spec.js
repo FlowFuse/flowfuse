@@ -11,22 +11,22 @@ vi.mock('@/stores/account-auth.js', () => ({
     useAccountAuthStore: vi.fn()
 }))
 
-vi.mock('@/stores/account-team.js', () => ({
-    useAccountTeamStore: vi.fn()
+vi.mock('@/stores/context.js', () => ({
+    useContextStore: vi.fn()
 }))
 
 // Imported after mocks so vi.mock hoisting resolves correctly
 const { useAccountSettingsStore } = await import('@/stores/account-settings.js')
 const settingsApi = (await import('@/api/settings.js')).default
 const { useAccountAuthStore } = await import('@/stores/account-auth.js')
-const { useAccountTeamStore } = await import('@/stores/account-team.js')
+const { useContextStore } = await import('@/stores/context.js')
 
 function mockAuth ({ admin = false, isAdminUser = false } = {}) {
     useAccountAuthStore.mockReturnValue({ user: { id: 'u1', admin }, isAdminUser })
 }
 
 function mockTeam (overrides = {}) {
-    useAccountTeamStore.mockReturnValue({
+    useContextStore.mockReturnValue({
         team: {
             id: 'team-1',
             billing: {},
@@ -167,7 +167,7 @@ describe('account-settings store', () => {
 
         describe('featuresCheck', () => {
             it('returns false for isHostedInstancesEnabledForTeam when team is null', () => {
-                useAccountTeamStore.mockReturnValue({ team: null, teamMembership: { role: 1 }, isTrialAccount: false })
+                useContextStore.mockReturnValue({ team: null, teamMembership: { role: 1 }, isTrialAccount: false })
                 const store = useAccountSettingsStore()
                 expect(store.featuresCheck.isHostedInstancesEnabledForTeam).toBe(false)
             })

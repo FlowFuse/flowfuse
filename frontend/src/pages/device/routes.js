@@ -98,7 +98,7 @@ const children = [
             title: 'Device - Version History'
         },
         redirect: to => {
-            const { featuresCheck: features } = useAccountSettingsStore()
+            const features = useAccountSettingsStore().featuresCheck
             let name = features.isTimelineFeatureEnabled ? 'device-version-history-timeline' : 'device-snapshots'
 
             if (to.name.startsWith('device-editor-')) { // redirect to immersive mode when needed

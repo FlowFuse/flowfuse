@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import settingsApi from '@/api/settings.js'
 import { getTeamProperty } from '@/composables/TeamProperties.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export const useAccountSettingsStore = defineStore('account-settings', {
     state: () => ({
@@ -13,15 +13,15 @@ export const useAccountSettingsStore = defineStore('account-settings', {
     getters: {
         isBillingEnabled: state => !!state.features.billing,
         requiresBilling (state) {
-            const { user } = useAccountAuthStore()
-            const { team, isTrialAccount } = useAccountTeamStore()
-            const isNotAdmin = user && !user.admin
+            const authStore = useAccountAuthStore()
+            const contextStore = useContextStore()
+            const isNotAdmin = authStore.user && !authStore.user.admin
             return isNotAdmin &&
                 state.features.billing &&
-                !team?.billing?.unmanaged &&
-                (!isTrialAccount || team?.billing?.trialEnded) &&
-                !team?.type?.properties?.billing?.disabled &&
-                !team?.billing?.active
+                !contextStore.team?.billing?.unmanaged &&
+                (!contextStore.isTrialAccount || contextStore.team?.billing?.trialEnded) &&
+                !contextStore.team?.type?.properties?.billing?.disabled &&
+                !contextStore.team?.billing?.active
         },
         canCreateTeam (state) {
             if (useAccountAuthStore().isAdminUser) {
@@ -31,7 +31,9 @@ export const useAccountSettingsStore = defineStore('account-settings', {
                 state.settings['team:create']
         },
         featuresCheck (state) {
-            const { team, teamMembership } = useAccountTeamStore()
+            const contextStore = useContextStore()
+            const team = contextStore.team
+            const teamMembership = contextStore.teamMembership
 
             const preCheck = {
                 // Instances

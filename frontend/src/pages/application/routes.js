@@ -27,7 +27,7 @@ export default [
     {
         path: ':id',
         redirect: function () {
-            const { featuresCheck: features } = useAccountSettingsStore()
+            const features = useAccountSettingsStore().featuresCheck
             if (features.isHostedInstancesEnabledForTeam) {
                 return { name: 'ApplicationInstances' }
             } else {
