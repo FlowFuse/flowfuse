@@ -48,7 +48,7 @@ import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
 import usePermissions from '../../composables/Permissions.js'
 import FfListbox from '../../ui-components/components/form/ListBox.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamAuditLog',
@@ -82,7 +82,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team', 'teamMembership']),
+        ...mapState(useContextStore, ['team', 'teamMembership']),
         logScope () {
             return !this.auditFilters.selectedEventScope ? 'application' : 'project' // cannot use 'instance' due to legacy naming
         }

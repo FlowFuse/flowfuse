@@ -46,7 +46,7 @@ import usePermissions from '../../../composables/Permissions.js'
 import instanceActionsMixin from '../../../mixins/InstanceActions.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceSettings',
@@ -83,7 +83,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features', 'settings']),
         navigation () {
             const canEditProject = this.hasPermission('project:edit', { application: this.instance.application })

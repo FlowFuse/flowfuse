@@ -21,7 +21,7 @@ import { useRouter } from 'vue-router'
 
 import usePermissions from '../../../composables/Permissions.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamSettings',
@@ -41,7 +41,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team', 'teamMembership'])
+        ...mapState(useContextStore, ['team', 'teamMembership'])
     },
     watch: {
         teamMembership: 'checkAccess'

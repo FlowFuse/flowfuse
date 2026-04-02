@@ -85,7 +85,7 @@ import GenericNotification from '../../notifications/Generic.vue'
 import TeamInvitationAcceptedNotification from '../../notifications/invitations/Accepted.vue'
 import TeamInvitationReceivedNotification from '../../notifications/invitations/Received.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -101,7 +101,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['notifications']),
+        ...mapState(useAccountStore, ['notifications']),
         canSelectAll () {
             return this.filteredNotifications.length !== this.selections.length
         },
@@ -126,7 +126,7 @@ export default {
     },
     methods: {
         ...mapActions(useUxDrawersStore, ['closeRightDrawer']),
-        ...mapActions(useAccountTeamStore, ['setNotifications']),
+        ...mapActions(useAccountStore, ['setNotifications']),
         closeDrawer () {
             this.closeRightDrawer()
         },

@@ -42,7 +42,7 @@ import { mapState } from 'pinia'
 
 import usePermissions from '../../composables/Permissions.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamTrialBanner',
@@ -56,7 +56,7 @@ export default {
         return { hasPermission }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         billingPath () {
             return '/team/' + this.team.slug + '/settings/change-type'
         },

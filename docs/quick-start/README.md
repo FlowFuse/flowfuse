@@ -17,9 +17,9 @@ meta:
 
 # Quick Start Guide
 
-This guide provides a streamlined process for setting up and running the FlowFuse platform using Docker and docker-compose. 
+This guide provides a streamlined process for setting up and running the FlowFuse platform using [Docker](https://docs.docker.com/get-started/) and [Docker Compose](https://docs.docker.com/compose/). 
 
-The provided docker-compose file facilitates the deployment of the following services:
+The Docker Compose file deploys the following services:
 * **FlowFuse Platform**: Includes the core application, MQTT broker, and file server for storage
 * **Database:** A pre-configured database for storing platform data
 * **Proxy Server:** A pre-configured proxy server for managing HTTP traffic
@@ -28,51 +28,55 @@ For a full installation guide, including how to setup FlowFuse in a production e
 
 ## Prerequisites
 
-Before you begin, ensure you have [Docker](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) (in `2.23.1` version or higher) installed on your system (either as a standalone binary or as docker plugin)
+Before you begin, ensure you have [Docker](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) (in `2.23.1` version or higher) installed on your system (either as a standalone binary or as a Docker plugin).
 
-## Step 1: Configure Domain
+## Step 1: Prepare your domain
 
-### No DNS Server
+FlowFuse requires a domain name to work properly — it uses subdomains to run each Node-RED instance separately, so `localhost` won't work here.
 
-If you're just looking to test FlowFuse locally, and do not have a local DNS server, then we recommend [setting up an alternative to DNS](../install/dns-setup.md#no-local-dns-server). 
+If you own a domain (e.g., `example.com` or `flowfuse.example.com`), create an **A record** pointing to your server's IP address, and another **A record** for the wildcard subdomain (e.g., `*.example.com` or `*.flowfuse.example.com`) pointing to the same address. That's all the setup needed.
 
-### DNS Server
+If you don't have a domain yet and just want to try FlowFuse locally, see [setting up an alternative to DNS](../install/dns-setup.md#no-local-dns-server).
 
-Otherwise, before running FlowFuse, you need to configure your fully qualified domain name settings, and will need a domain name that you own and can configure DNS settings for:
-
-1. Set up an A record for your domain (e.g., `example.com`) to your server's IP address (this works with subdomain as well e.g. `flowfuse.example.com`). FlowFuse will run here.
-2. In the same manner, set up a wildcard DNS record (e.g., `*.example.com`, `*.flowfuse.example.com`) to point to your server's IP address. Any Node-RED instances setup by FlowFuse will run here.
-
-This step is crucial for the proper functioning of the application. FlowFuse will not run properly on `localhost` domain.
-
-## Step 2: Download Compose file
+## Step 2: Download files
 
 ```bash
-curl -L -o docker-compose.yml https://github.com/FlowFuse/docker-compose/releases/latest/download/docker-compose-quick-start.yml
+curl -L -o docker-compose.yml https://github.com/FlowFuse/docker-compose/releases/latest/download/docker-compose.yml
+curl -L -o .env https://raw.githubusercontent.com/FlowFuse/docker-compose/refs/heads/main/.env.example
 ```
 
-## Step 3: Start the Application
+## Step 3: Provide domain name
 
-Run the following command to deploy FlowFuse. Replace the  `yourdomain.com` with your domain name configured in step 1.:
+Edit the downloaded `.env` file with the editor of your choice and update the `DOMAIN` variable with your domain.
+
+You can use `sed` to update the `DOMAIN` variable in the `.env` file:
 
 ```bash
-DOMAIN=example.com docker compose up -d
+sed -i.bak 's/^DOMAIN=.*/DOMAIN=example.com/' .env
 ```
 
-This command will download the necessary Docker images, run initial setup and start all the required services in detached mode.
+## Step 4: Start the Application
 
-## Step 4: Complete the application Setup
+Run the following command to deploy FlowFuse:
 
-Open your web browser and navigate to `http://forge.example.com/setup` . You will be redirected to the setup page where you can create your admin account and set up your instance.
-For detailed information about first setup and configuration, please follow [this guide](../install/first-run.md).
+```bash
+docker compose up -d
+```
+
+This downloads the necessary Docker images, runs initial setup, and starts all services in detached mode.
+
+## Step 5: Complete the application Setup
+
+Open your web browser and navigate to `http://forge.<your-domain>/setup` (e.g., `http://forge.example.com/setup`). You will be redirected to the setup page where you can create your admin account and set up your instance.
+For detailed information about first setup and configuration, follow [this guide](../install/first-run.md).
 
 
 ## Cleanup
 
-To stop and remove the FlowFuse application, run the following command. Replace `yourdomain.com` with your domain name:
+To stop and remove the FlowFuse application, run the following command:
 
 ```bash
-DOMAIN=example.com docker compose down -v
+docker compose down -v
 ```
 
 ## Troubleshooting

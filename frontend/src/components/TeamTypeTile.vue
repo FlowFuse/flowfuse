@@ -35,7 +35,7 @@ import { mapState } from 'pinia'
 import { useHubspotHelper } from '../composables/Hubspot.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'TeamTypeTile',
@@ -59,7 +59,7 @@ export default {
         return { talkToSalesCalendarModal }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['teams']),
+        ...mapState(useAccountStore, ['teams']),
         ...mapState(useAccountAuthStore, ['user']),
         pricing: function () {
             const billingDescriptionKey = this.billingInterval === 'year' ? 'yrDescription' : 'description'

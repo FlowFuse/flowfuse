@@ -52,7 +52,7 @@ import BlueprintTile from '../../../components/blueprints/BlueprintTile.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'BluePrints',
@@ -68,7 +68,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountAuthStore, ['isAdminUser']),
         blueprintsByCategory () {
             return [...this.blueprints].sort((a, b) => {

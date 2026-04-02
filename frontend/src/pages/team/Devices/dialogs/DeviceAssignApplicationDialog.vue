@@ -40,7 +40,7 @@ import TeamAPI from '../../../../api/team.js'
 import FormRow from '../../../../components/FormRow.vue'
 import usePermissions from '../../../../composables/Permissions.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceAssignApplicationDialog',
@@ -73,7 +73,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         Application () {
             return this.input.application
         },

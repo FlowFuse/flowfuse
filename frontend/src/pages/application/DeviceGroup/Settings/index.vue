@@ -17,7 +17,7 @@ import { useRouter } from 'vue-router'
 import SectionSideMenu from '../../../../components/SectionSideMenu.vue'
 import SectionTopMenu from '../../../../components/SectionTopMenu.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceGroupSettings',
@@ -42,7 +42,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['teamMembership'])
+        ...mapState(useContextStore, ['teamMembership'])
     },
     watch: {
         deviceGroup: function (newVal, oldVal) {

@@ -93,7 +93,7 @@ import Dialog from '../../../services/dialog.js'
 import CreateGitTokenDialog from './dialogs/CreateGitTokenDialog.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamIntegrations',
@@ -118,7 +118,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features', 'featuresCheck']),
         addEnabled: function () {
             return this.hasPermission('team:git:tokens:create')

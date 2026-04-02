@@ -32,7 +32,7 @@ import BrokerError from '../components/BrokerError.vue'
 import TopicHierarchy from './TopicHierarchy/index.vue'
 import TopicInspector from './TopicInspector/index.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'BrokerHierarchy',
@@ -56,7 +56,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team'])
+        ...mapState(useContextStore, ['team'])
     },
     watch: {
         $route: function () {

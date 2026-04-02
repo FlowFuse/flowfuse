@@ -27,7 +27,7 @@ import MultiStepForm from '../MultiStepForm.vue'
 import InstanceStep from './steps/InstanceStep.vue'
 import FlowsStep from './steps/flows-step/index.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 const INSTANCE_SLUG = 'instance'
 const FLOWS_SLUG = 'flows'
@@ -57,7 +57,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         formSteps () {
             return [
                 {

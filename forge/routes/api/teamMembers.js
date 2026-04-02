@@ -31,7 +31,7 @@ module.exports = async function (app) {
                     const noPermissions = request.body?.permissions === undefined
                     if (await app.sso.isUserMembershipManaged(request.user, request.team) && noPermissions) {
                         // The user's membership for this team is sso managed - do not allow api changes to be applied
-                        reply.code(400).send({ code: 'invalid_request', error: 'Cannot modify team membershipt for an SSO managed user' })
+                        reply.code(400).send({ code: 'invalid_request', error: 'Cannot modify team membership for an SSO managed user' })
                         // eslint-disable-next-line no-useless-return
                         return
                     }
@@ -70,7 +70,14 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const members = await app.db.models.User.inTeam(request.params.teamId)
-        const result = app.db.views.User.teamMemberList(members)
+        let result = app.db.views.User.teamMemberList(members)
+        if (app.config.features.enabled('sso')) {
+            const sso = await app.db.views.User.ssoManaged(members, request.team)
+            result = result.map(r => {
+                r.ssoManaged = sso[r.id]
+                return r
+            })
+        }
         reply.send({
             meta: {}, // For future pagination
             count: result.length,

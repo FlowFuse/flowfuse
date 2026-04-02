@@ -53,7 +53,7 @@ import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.v
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default defineComponent({
@@ -70,7 +70,7 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['pendingTeamChange']),
+        ...mapState(useAccountStore, ['pendingTeamChange']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useProductTablesStore, ['databases'])
     },

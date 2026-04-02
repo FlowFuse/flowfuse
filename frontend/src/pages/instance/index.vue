@@ -94,7 +94,7 @@ import InstanceEditorLink from './components/EditorLink.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstancePage',
@@ -129,7 +129,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         navigation () {
             if (!this.instance.id) return []
             let versionHistoryRoute

@@ -18,7 +18,7 @@ import { ChevronLeftIcon, CogIcon, LockClosedIcon, UserGroupIcon } from '@heroic
 import { mapState } from 'pinia'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'UserSettings',
@@ -36,7 +36,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['teamInvitationsCount']),
+        ...mapState(useAccountStore, ['teamInvitationsCount']),
         ...mapState(useAccountAuthStore, ['user'])
     },
     watch: {

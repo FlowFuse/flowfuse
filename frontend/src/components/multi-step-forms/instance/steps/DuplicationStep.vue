@@ -118,7 +118,7 @@ import NameGenerator from '../../../../utils/name-generator/index.js'
 import FfLoading from '../../../Loading.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DuplicationStep',
@@ -179,7 +179,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountSettingsStore, ['features']),
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         isTrialProjectSelected () {
             //  - Team is in trial mode, and
             //  - Team billing is not configured, or

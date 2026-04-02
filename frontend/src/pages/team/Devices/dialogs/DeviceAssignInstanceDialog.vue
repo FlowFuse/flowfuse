@@ -30,7 +30,7 @@ import { mapState } from 'pinia'
 
 import SelectInstance from '../../../../components/SelectInstance.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceAssignInstanceDialog',
@@ -55,7 +55,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         bulkOp () {
             return Array.isArray(this.selection)
         },

@@ -49,8 +49,8 @@ import usePermissions from '../composables/Permissions.js'
 import NavItem from './NavItem.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'FFTeamSelection',
@@ -65,7 +65,8 @@ export default {
         return { PlusIcon, UserAddIcon, hasPermission }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team', 'teams', 'hasAvailableTeams']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountStore, ['teams', 'hasAvailableTeams']),
         ...mapState(useAccountSettingsStore, ['canCreateTeam']),
         teamOptions () {
             return [
@@ -105,7 +106,7 @@ export default {
     methods: {
         selectTeam (team) {
             if (team) {
-                useAccountTeamStore().setTeam(team.slug)
+                useAccountStore().setTeam(team.slug)
                     .then(() => this.$router.push({
                         name: 'Team',
                         params: {

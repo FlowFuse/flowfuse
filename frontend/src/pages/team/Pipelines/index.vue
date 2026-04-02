@@ -97,7 +97,7 @@ import usePermissions from '../../../composables/Permissions.js'
 import TeamPipeline from './components/TeamPipeline.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamPipelines',
@@ -119,7 +119,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         filteredPipelines () {
             if (this.filterTerm) {

@@ -83,7 +83,7 @@ import BomDependencies from '../../../components/bill-of-materials/BomDependenci
 import usePermissions from '../../../composables/Permissions.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamBOM',
@@ -108,7 +108,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         payload () {
             const payload = { children: [] }

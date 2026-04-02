@@ -27,7 +27,7 @@ import RoleRow from './components/RoleRow.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default defineComponent({
     name: 'UserAccess',
@@ -50,7 +50,7 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useAccountAuthStore, ['isAdminUser']),
         columns () {

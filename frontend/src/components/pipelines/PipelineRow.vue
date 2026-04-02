@@ -71,7 +71,7 @@ import { Roles } from '../../utils/roles.js'
 
 import PipelineStage from './Stage.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'PipelineRow',
@@ -126,7 +126,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['teamMembership']),
+        ...mapState(useContextStore, ['teamMembership']),
         saveRowEnabled () {
             return this.scopedPipeline.name?.length > 0
         },

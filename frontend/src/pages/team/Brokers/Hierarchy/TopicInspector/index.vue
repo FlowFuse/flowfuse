@@ -57,7 +57,7 @@ import MainTitle from '../components/MainTitle.vue'
 import PayloadMetadata from './PayloadMetadata.vue'
 import PayloadSchema from './PayloadSchema.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TopicInspector',
@@ -90,7 +90,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         brokerId () {
             return this.$route.params.brokerId
         },

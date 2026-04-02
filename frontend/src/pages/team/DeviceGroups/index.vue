@@ -132,7 +132,7 @@ import FfListbox from '../../../ui-components/components/form/ListBox.vue'
 import TargetSnapshotCell from '../../application/components/cells/TargetSnapshot.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceGroups',
@@ -194,7 +194,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         applicationOptions () {
             return this.applications

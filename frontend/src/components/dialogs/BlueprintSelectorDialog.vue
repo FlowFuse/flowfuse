@@ -33,7 +33,7 @@ import { mapState } from 'pinia'
 
 import BlueprintSelection from '../../pages/instance/Blueprints/BlueprintSelection.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'BlueprintSelectorDialog',
@@ -61,7 +61,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['blueprints', 'defaultBlueprint'])
+        ...mapState(useAccountStore, ['blueprints', 'defaultBlueprint'])
     },
     watch: {
         currentBlueprint (val) {

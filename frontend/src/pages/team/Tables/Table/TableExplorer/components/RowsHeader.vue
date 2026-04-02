@@ -21,7 +21,7 @@ import { mapActions, mapState } from 'pinia'
 import MenuCollapse from '../../.././../../../components/icons/menu-collapse.js'
 import MenuExpand from '../../.././../../../components/icons/menu-expand.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default {
@@ -35,7 +35,7 @@ export default {
     },
     emits: ['toggle-collapse'],
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useProductTablesStore, ['tableSelection'])
     },
     methods: {

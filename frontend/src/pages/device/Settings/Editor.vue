@@ -45,7 +45,7 @@ import Alerts from '../../../services/alerts.js'
 import ChangeIndicator from '../../admin/Template/components/ChangeIndicator.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceSettingsEditor',
@@ -86,7 +86,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
         limitsLauncherEnabled () {
             if (!this.device.agentVersion) {

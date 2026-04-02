@@ -28,7 +28,7 @@ import { SparklesIcon } from '@heroicons/vue/outline'
 
 import { mapState } from 'pinia'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'FeatureUnavailableToTeam',
@@ -51,7 +51,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         upgradePath () {
             return { name: 'TeamChangeType', params: { team_slug: this.team.slug } }
         }
