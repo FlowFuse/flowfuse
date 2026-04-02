@@ -120,7 +120,8 @@ import GlobalSearch from './global-search/GlobalSearch.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -133,7 +134,8 @@ export default {
         },
         ...mapState(useUxDrawersStore, ['leftDrawer', 'hiddenLeftDrawer']),
         ...mapState(useAccountAuthStore, ['user']),
-        ...mapState(useAccountTeamStore, ['team', 'teams', 'notifications', 'hasAvailableTeams', 'defaultUserTeam']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountStore, ['teams', 'notifications', 'hasAvailableTeams', 'defaultUserTeam']),
         ...mapState(useAccountSettingsStore, ['canCreateTeam', 'featuresCheck']),
         navigationOptions () {
             return [

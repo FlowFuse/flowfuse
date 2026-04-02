@@ -18,7 +18,7 @@ import { mapState } from 'pinia'
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'AccountTeams',
@@ -31,7 +31,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['teamInvitationsCount']),
+        ...mapState(useAccountStore, ['teamInvitationsCount']),
         ...mapState(useAccountAuthStore, ['user'])
     },
     watch: {

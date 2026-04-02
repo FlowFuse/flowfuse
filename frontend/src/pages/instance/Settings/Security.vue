@@ -65,7 +65,7 @@ import {
 import TokenDialog from './dialogs/TokenDialog.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceSettingsSecurity',
@@ -121,7 +121,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountSettingsStore, ['featuresCheck', 'settings']),
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         projectLauncherCompatible () {
             const launcherVersion = this.project?.meta?.versions?.launcher
             if (!launcherVersion) {

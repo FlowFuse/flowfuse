@@ -48,7 +48,7 @@ import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmIns
 import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'ApplicationPage',
@@ -64,7 +64,7 @@ export default {
         return { hasPermission, isVisitingAdmin }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
         navigation () {
             const routes = [

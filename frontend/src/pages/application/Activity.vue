@@ -39,7 +39,7 @@ import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
 import usePermissions from '../../composables/Permissions.js'
 import FfListbox from '../../ui-components/components/form/ListBox.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'ApplicationActivity',
@@ -73,7 +73,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team', 'teamMembership']),
+        ...mapState(useContextStore, ['team', 'teamMembership']),
         instanceList () {
             return [
                 { name: 'This Application', id: '' },

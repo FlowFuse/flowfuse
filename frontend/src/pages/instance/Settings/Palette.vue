@@ -29,7 +29,7 @@ import {
 } from '../../admin/Template/utils.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceSettingsPalette',
@@ -73,7 +73,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
         catalogFeatureEnabledForTeam () {
             if (!this.features.customCatalogs) {

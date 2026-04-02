@@ -35,7 +35,7 @@ import Alerts from '../../../services/alerts.js'
 
 import TemplateSettingsSecurity from '../../admin/Template/sections/Security.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceSettingsSecurity',
@@ -91,7 +91,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         securityOptionsSupported () {
             if (!this.device.agentVersion) {
                 // Device has not called home yet - so we don't know what agent

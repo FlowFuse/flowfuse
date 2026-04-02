@@ -75,7 +75,7 @@ import InformationWell from '../../../components/wells/InformationWell.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 let mqtt
 
@@ -117,7 +117,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         deviceOnline () {
             const offline = ['stopped', 'offline', 'error']
             return !offline.includes(this.device.status)

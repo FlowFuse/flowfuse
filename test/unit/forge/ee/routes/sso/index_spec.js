@@ -428,7 +428,7 @@ describe('SSO managed membership', async function () {
         response.statusCode.should.equal(400)
         const result = response.json()
         result.should.have.property('code', 'invalid_request')
-        result.should.have.property('error', 'Cannot modify team membershipt for an SSO managed user')
+        result.should.have.property('error', 'Cannot modify team membership for an SSO managed user')
     })
     it('cannot modify membership for SSO managed user/team', async function () {
         // BTeam is listed as a groupTeam in the SSO config
@@ -443,7 +443,7 @@ describe('SSO managed membership', async function () {
         response.statusCode.should.equal(400)
         const result = response.json()
         result.should.have.property('code', 'invalid_request')
-        result.should.have.property('error', 'Cannot modify team membershipt for an SSO managed user')
+        result.should.have.property('error', 'Cannot modify team membership for an SSO managed user')
     })
 
     it('can delete membership for non-SSO managed user/team', async function () {
@@ -483,7 +483,7 @@ describe('SSO managed membership', async function () {
         response.statusCode.should.equal(400)
         const result = response.json()
         result.should.have.property('code', 'invalid_request')
-        result.should.have.property('error', 'Cannot modify team membershipt for an SSO managed user')
+        result.should.have.property('error', 'Cannot modify team membership for an SSO managed user')
     })
 
     it('cannot modify membership for non-SSO managed user/team when groupAllTeams selected', async function () {
@@ -504,6 +504,6 @@ describe('SSO managed membership', async function () {
         response.statusCode.should.equal(400)
         const result = response.json()
         result.should.have.property('code', 'invalid_request')
-        result.should.have.property('error', 'Cannot modify team membershipt for an SSO managed user')
+        result.should.have.property('error', 'Cannot modify team membership for an SSO managed user')
     })
 })

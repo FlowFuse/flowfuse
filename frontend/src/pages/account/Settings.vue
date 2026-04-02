@@ -51,7 +51,7 @@
 </template>
 
 <script>
-import { mapState } from 'pinia'
+import { mapState, storeToRefs } from 'pinia'
 
 import teamApi from '../../api/team.js'
 import userApi from '../../api/user.js'
@@ -64,7 +64,8 @@ import { RoleNames, Roles } from '../../utils/roles.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'AccountSettings',
@@ -94,7 +95,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountSettingsStore, ['settings']),
-        ...mapState(useAccountTeamStore, { storeTeams: 'teams' }),
+        ...mapState(useAccountStore, { storeTeams: 'teams' }),
         formValid () {
             return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam) &&
                    (!this.emailEditingEnabled || (this.input.email && !this.errors.email)) &&
@@ -296,14 +297,15 @@ export default {
                     .then(() => {
                         alerts.emit('Team successfully deleted', 'confirmation')
                         // refresh teams
-                        return useAccountTeamStore().refreshTeams()
+                        return useAccountStore().refreshTeams()
                     }).then(() => {
-                        const { team, teams } = useAccountTeamStore()
+                        const { teams } = storeToRefs(useAccountStore())
+                        const team = useContextStore().team
                         // check if the active team is one deleted
                         if (team?.id === teamId) {
-                            if (teams.length > 0) {
+                            if (teams.value.length > 0) {
                                 // get another team
-                                useAccountTeamStore().setTeam(teams[0].slug)
+                                useAccountStore().setTeam(teams.value[0].slug)
                             }
                         }
                     }).catch(err => {
@@ -313,7 +315,7 @@ export default {
             })
         },
         selectTeam (team) {
-            useAccountTeamStore().setTeam(team.slug)
+            useAccountStore().setTeam(team.slug)
                 .then(() => this.$router.push({
                     name: 'Team',
                     params: {

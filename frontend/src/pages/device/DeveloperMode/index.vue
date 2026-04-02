@@ -115,7 +115,7 @@ import alerts from '../../../services/alerts.js'
 import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceDeveloperMode',
@@ -149,7 +149,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
         developerMode: function () {
             return this.device?.mode === 'developer'

@@ -8,7 +8,7 @@ import { defineComponent } from 'vue'
 
 import DatabaseForm from './DatabaseForm.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
@@ -23,7 +23,7 @@ export default defineComponent({
         return next()
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team'])
+        ...mapState(useContextStore, ['team'])
     },
     methods: {
         ...mapActions(useProductTablesStore, ['createDatabase']),

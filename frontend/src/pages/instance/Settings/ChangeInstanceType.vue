@@ -21,7 +21,7 @@ import Alerts from '../../../services/alerts.js'
 import InstanceForm from '../components/InstanceForm.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'ChangeInstanceType',
@@ -48,7 +48,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features'])
     },
     mounted () {

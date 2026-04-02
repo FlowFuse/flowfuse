@@ -14,7 +14,7 @@ import { markRaw } from 'vue'
 
 import NotificationsDrawer from './drawers/notifications/NotificationsDrawer.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -22,7 +22,7 @@ export default {
     components: { MailIcon },
     computed: {
         ...mapState(useUxDrawersStore, ['rightDrawer']),
-        ...mapState(useAccountTeamStore, ['hasNotifications', 'unreadNotificationsCount']),
+        ...mapState(useAccountStore, ['hasNotifications', 'unreadNotificationsCount']),
         notificationsCount: function () {
             // Return null if count = 0 so we don't show a 0 in the pill
             if (!this.unreadNotificationsCount) {

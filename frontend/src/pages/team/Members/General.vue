@@ -19,16 +19,20 @@
             </template>
             <template v-if="canEditUser" #context-menu="{row}">
                 <ff-kebab-item
-                    v-if="(hasPermission('team:user:change-role') && !requiresBilling) || isAdminUser"
+                    v-if="((hasPermission('team:user:change-role') && !requiresBilling) || isAdminUser) && !ssoManaged({row})"
                     data-action="member-change-role"
                     label="Change Role" @click="changeRoleDialog(row)"
                 />
                 <ff-kebab-item
-                    v-if="hasPermission('team:user:remove') || isAdminUser"
+                    v-if="(hasPermission('team:user:remove') || isAdminUser) && !ssoManaged({row})"
                     data-action="member-remove-from-team"
                     label="Remove From Team"
                     kind="danger"
                     @click="removeUserDialog(row)"
+                />
+                <ff-kebab-item
+                    v-if="ssoManaged({row})"
+                    label="User role is SSO Managed"
                 />
             </template>
         </ff-data-table>
@@ -71,7 +75,7 @@ import ApplicationPermissionRow from './components/ApplicationPermissionsRow.vue
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamUsersGeneral',
@@ -106,7 +110,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['requiresBilling', 'featuresCheck']),
         ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
         canEditUser: function () {
@@ -183,7 +187,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useAccountTeamStore, ['refreshTeamMembership']),
+        ...mapActions(useContextStore, ['refreshTeamMembership']),
         inviteMember () {
             this.$refs.inviteMemberDialog.show()
         },
@@ -236,6 +240,9 @@ export default {
         },
         onApplicationRoleClick ({ application, user }) {
             this.$refs.editApplicationPermissionsDialog.show(user, application)
+        },
+        ssoManaged (row) {
+            return row.row.ssoManaged
         }
     }
 }

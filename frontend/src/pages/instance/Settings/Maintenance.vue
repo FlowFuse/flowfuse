@@ -67,7 +67,7 @@ import Alerts from '../../../services/alerts.js'
 import DateTimePicker from '../../../ui-components/components/form/DateTime.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceSettingsMaintenance',
@@ -137,7 +137,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         saveButton () {
             return {
                 visible: true,

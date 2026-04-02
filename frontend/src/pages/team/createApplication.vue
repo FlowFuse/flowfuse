@@ -47,7 +47,7 @@ import { mapState } from 'pinia'
 import MultiStepApplicationsInstanceForm
     from '../../components/multi-step-forms/instance/MultiStepApplicationsInstanceForm.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'CreateApplication',
@@ -68,7 +68,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['isFreeTeamType'])
+        ...mapState(useContextStore, ['isFreeTeamType'])
     },
     methods: {
         onApplicationCreated (payload) {

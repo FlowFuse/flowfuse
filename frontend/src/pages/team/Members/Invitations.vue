@@ -43,7 +43,7 @@ import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'MemberInviteTable',
@@ -72,7 +72,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team', 'teamMembership']),
+        ...mapState(useContextStore, ['team', 'teamMembership']),
         ...mapState(useAccountSettingsStore, ['settings'])
     },
     watch: {

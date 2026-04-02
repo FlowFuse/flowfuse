@@ -20,7 +20,7 @@ import { mapState } from 'pinia'
 import teamApi from '../../../api/team.js'
 import usePermissions from '../../../composables/Permissions.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamUsers',
@@ -36,7 +36,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team'])
+        ...mapState(useContextStore, ['team'])
     },
     watch: {
         teamMembership: 'checkAccess'

@@ -147,7 +147,7 @@ import Loading from '../../../Loading.vue'
 import FeatureUnavailableToTeam from '../../../banners/FeatureUnavailableToTeam.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceStep',
@@ -212,7 +212,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountSettingsStore, ['features']),
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         activeInstanceTypeCount () {
             return this.decoratedInstanceTypes.filter(instance => !instance.disabled).length
         },

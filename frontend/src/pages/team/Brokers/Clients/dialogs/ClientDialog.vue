@@ -80,7 +80,7 @@ import { generateUuid } from '../../../../../composables/strings/String.js'
 
 import AclItem from './AclItem.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
@@ -149,7 +149,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useProductBrokersStore, {
             clients: state => state.UNS.clients
         }),

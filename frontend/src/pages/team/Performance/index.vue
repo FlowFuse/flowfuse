@@ -75,7 +75,7 @@ import InstanceStatusBadge from '../../instance/components/InstanceStatusBadge.v
 import CPUUtilizationCell from './components/CPUUtilizationCell.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamPerformance',
@@ -127,7 +127,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         rows () {
             return this.instances.map(instance => ({

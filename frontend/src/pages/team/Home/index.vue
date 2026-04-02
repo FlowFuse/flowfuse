@@ -149,7 +149,8 @@ import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
 import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
 export default {
@@ -194,7 +195,8 @@ export default {
     },
     computed: {
         ...mapState(useUxToursStore, ['tours']),
-        ...mapState(useAccountTeamStore, ['team', 'pendingTeamChange']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountStore, ['pendingTeamChange']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         instanceStats () {
             return this.groupBySimplifiedStates(this.instanceStateCounts)

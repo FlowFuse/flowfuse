@@ -13,7 +13,7 @@ import TeamAPI from '../../api/team.js'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceAuditLog',
@@ -36,7 +36,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team'])
+        ...mapState(useContextStore, ['team'])
     },
     watch: {
         device () {

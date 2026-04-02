@@ -19,7 +19,7 @@ import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
 import TeamCell from '../../../components/tables/cells/TeamCell.vue'
 import Alerts from '../../../services/alerts.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'UserInviteTable',
@@ -41,20 +41,20 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, { invitations: 'teamInvitations' })
+        ...mapState(useAccountStore, { invitations: 'teamInvitations' })
     },
     mounted () {
-        useAccountTeamStore().getInvitations()
+        useAccountStore().getInvitations()
     },
     methods: {
         async acceptInvite (invite) {
             await userApi.acceptTeamInvitation(invite.id, invite.team.id)
-            await useAccountTeamStore().getNotifications()
-            await useAccountTeamStore().getInvitations()
-            await useAccountTeamStore().refreshTeams()
+            await useAccountStore().getNotifications()
+            await useAccountStore().getInvitations()
+            await useAccountStore().refreshTeams()
             Alerts.emit(`Invite to "${invite.team.name}" has been accepted.`, 'confirmation')
             // navigate to team dashboad once invite accepted
-            useAccountTeamStore().setTeam(invite.team.slug)
+            useAccountStore().setTeam(invite.team.slug)
                 .then(() => this.$router.push({
                     name: 'Team',
                     params: {
@@ -65,8 +65,8 @@ export default {
         },
         async rejectInvite (invite) {
             await userApi.rejectTeamInvitation(invite.id, invite.team.id)
-            await useAccountTeamStore().getNotifications()
-            await useAccountTeamStore().getInvitations()
+            await useAccountStore().getNotifications()
+            await useAccountStore().getInvitations()
             Alerts.emit(`Invite to "${invite.team.name}" has been rejected.`, 'confirmation')
         }
     }

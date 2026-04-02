@@ -147,7 +147,7 @@ import ChangeStackDialog from './dialogs/ChangeStackDialog.vue'
 import ImportInstanceDialog from './dialogs/ImportInstanceDialog.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceSettingsDanger',
@@ -182,7 +182,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
         isLoading () {
             return this.loading.deleting || this.loading.suspend || this.loading.changingStack || this.loading.duplicating || this.loading.settingType

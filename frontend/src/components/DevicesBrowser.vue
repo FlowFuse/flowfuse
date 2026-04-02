@@ -386,7 +386,7 @@ import AddDeviceToGroupDialog from './dialogs/device-group-management/AddDeviceT
 import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/RemoveDeviceFromGroupDialog.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -462,7 +462,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useUxDialogStore, ['dialog']),
         ...mapState(useUxToursStore, ['tours']),
@@ -616,7 +616,7 @@ export default {
         if (this.deviceCountDeltaSincePageLoad !== 0) {
             // Trigger a refresh of team info to resync following device
             // changes
-            await useAccountTeamStore().refreshTeam()
+            await useContextStore().refreshTeam()
         }
     },
     methods: {

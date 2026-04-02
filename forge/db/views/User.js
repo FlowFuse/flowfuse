@@ -83,7 +83,8 @@ module.exports = function (app) {
             allOf: [{ $ref: 'UserSummary' }],
             properties: {
                 role: { type: 'number' },
-                permissions: { $ref: 'TeamMemberPermissions' }
+                permissions: { $ref: 'TeamMemberPermissions' },
+                ssoManaged: { type: 'boolean' }
             }
         }
     })
@@ -97,6 +98,14 @@ module.exports = function (app) {
         return result
     }
 
+    async function ssoManaged (users, team) {
+        const list = {}
+        for (const u of users) {
+            list[u.hashid] = await app.sso.isUserMembershipManaged(u, team)
+        }
+        return list
+    }
+
     app.addSchema({
         $id: 'UserList',
         type: 'array',
@@ -108,6 +117,7 @@ module.exports = function (app) {
     return {
         userSummary,
         userProfile,
-        teamMemberList
+        teamMemberList,
+        ssoManaged
     }
 }

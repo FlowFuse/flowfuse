@@ -59,7 +59,8 @@ import { mapState } from 'pinia'
 import instanceApi from '../../api/instances.js'
 import MultiStepDuplicateInstanceForm from '../../components/multi-step-forms/instance/MultiStepDuplicateInstanceForm.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DuplicateInstance',
@@ -75,13 +76,13 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team'])
+        ...mapState(useContextStore, ['team'])
     },
     mounted () {
         this.getInstance()
             .then(() => {
                 if (!this.team) {
-                    useAccountTeamStore().setTeam(this.instance.team.slug)
+                    useAccountStore().setTeam(this.instance.team.slug)
                 }
             }).catch(e => e)
     },

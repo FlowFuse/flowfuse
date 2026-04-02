@@ -110,7 +110,7 @@ import usePermissions from '../../composables/Permissions.js'
 import Alerts from '../../services/alerts.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'ApplicationPipelines',
@@ -155,7 +155,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['teamMembership']),
+        ...mapState(useContextStore, ['teamMembership']),
         ...mapState(useAccountSettingsStore, ['features']),
         featureEnabled () {
             return this.features['devops-pipelines']

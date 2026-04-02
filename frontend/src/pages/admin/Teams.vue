@@ -75,7 +75,7 @@ import TeamCell from '../../components/tables/cells/TeamCell.vue'
 import TeamTypeCell from '../../components/tables/cells/TeamTypeCell.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'AdminTeams',
@@ -228,7 +228,7 @@ export default {
             this.loading = false
         },
         viewTeam (row) {
-            useAccountTeamStore().setTeam(row.slug)
+            useAccountStore().setTeam(row.slug)
                 .then(() => this.$router.push({
                     name: 'Team',
                     params: {

@@ -1,25 +1,29 @@
 // Temporary bridge — reads account data from Pinia during migration.
 // Delete this file after the account stores are migrated to Pinia (Task 15).
 
+import { storeToRefs } from 'pinia'
+
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
 
 export function useAccountBridge () {
-    const { user } = useAccountAuthStore()
-    const { team, teamMembership, isTrialAccount, isTrialAccountExpired } = useAccountTeamStore()
-    const { features, featuresCheck, requiresBilling } = useAccountSettingsStore()
+    // Use require() instead of top-level imports to avoid circular module dependencies.
+    // context.js imports _account_bridge.js statically; requiring context.js lazily here avoids a cycle.
+    const { useContextStore } = require('@/stores/context.js')
+    const { user } = storeToRefs(useAccountAuthStore())
+    const { features, featuresCheck, requiresBilling } = storeToRefs(useAccountSettingsStore())
+    const { team, teamMembership, isTrialAccount, isTrialAccountExpired } = storeToRefs(useContextStore())
     return {
-        user,
-        userId: user?.id || null,
-        team,
-        teamId: team?.id || null,
-        teamSlug: team?.slug || null,
+        user: user.value,
+        userId: user.value?.id || null,
+        team: team.value,
+        teamId: team.value?.id || null,
+        teamSlug: team.value?.slug || null,
         features,
-        teamMembership: teamMembership ?? { role: 0 },
+        teamMembership: teamMembership.value ?? { role: 0 },
         featuresCheck,
         requiresBilling,
-        isTrialAccount,
-        isTrialAccountExpired
+        isTrialAccount: isTrialAccount.value,
+        isTrialAccountExpired: isTrialAccountExpired.value
     }
 }

@@ -62,7 +62,7 @@ import DeviceTile from '../../Applications/components/compact/DeviceTile.vue'
 import DeviceCredentialsDialog from '../../Devices/dialogs/DeviceCredentialsDialog.vue'
 import TeamDeviceCreateDialog from '../../Devices/dialogs/TeamDeviceCreateDialog.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'RecentlyModified',
@@ -88,7 +88,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         instancesLeft () {
             return this.totalDevices - this.devices.length
         }

@@ -10,7 +10,7 @@
 import { mapState } from 'pinia'
 import { RouterLink as DefaultRouterLink } from 'vue-router'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamLink',
@@ -19,7 +19,7 @@ export default {
         ...DefaultRouterLink.props
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         extendedProps () {
             const props = { ...this.$props }
 

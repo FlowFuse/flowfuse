@@ -60,7 +60,7 @@ import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'CreatePipeline',
@@ -92,7 +92,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         submitEnabled () {
             return this.input.name?.length > 0
         }

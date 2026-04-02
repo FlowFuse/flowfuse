@@ -57,7 +57,7 @@ import alerts from '../../../../services/alerts.js'
 import InstanceChargesTable from '../../../instance/components/InstanceChargesTable.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamDeviceCreateDialog',
@@ -120,7 +120,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
         deviceIsBillable () {
             let freeAllocation = getTeamProperty(this.team, 'devices.free') || 0

@@ -8,7 +8,7 @@
     </div>
 </template>
 <script>
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'TeamCell',
@@ -16,7 +16,7 @@ export default {
     methods: {
         goToTeam () {
             if (this.slug) {
-                useAccountTeamStore().setTeam(this.slug)
+                useAccountStore().setTeam(this.slug)
                     .then(() => this.$router.push({
                         name: 'Team',
                         params: {

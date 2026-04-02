@@ -122,7 +122,7 @@ import ProjectsIcon from '../icons/Projects.js'
 import ResultSection from './components/ResultSection.vue'
 import SearchTrigger from './components/SearchTrigger.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'GlobalSearch',
@@ -148,7 +148,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         resApplication () {
             return this.results.filter(res => res.object === 'application')
         },

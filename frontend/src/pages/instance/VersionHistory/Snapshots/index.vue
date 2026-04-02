@@ -68,7 +68,7 @@ import DaysSince from '../../../application/Snapshots/components/cells/DaysSince
 import DeviceCount from '../../../application/Snapshots/components/cells/DeviceCount.vue'
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -138,7 +138,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         columns () {
             const cols = [
                 {

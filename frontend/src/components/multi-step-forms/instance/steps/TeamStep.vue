@@ -26,7 +26,8 @@
 <script>
 import { mapState } from 'pinia'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamStep',
@@ -38,7 +39,8 @@ export default {
     },
     emits: ['next-step', 'step-updated'],
     computed: {
-        ...mapState(useAccountTeamStore, ['team', 'teams'])
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountStore, ['teams'])
     },
     mounted () {
         this.$emit('step-updated', {
@@ -50,7 +52,7 @@ export default {
     },
     methods: {
         selectTeam (team) {
-            return useAccountTeamStore().setTeam(team.slug)
+            return useAccountStore().setTeam(team.slug)
                 .then(() => this.$emit('next-step'))
         }
     }

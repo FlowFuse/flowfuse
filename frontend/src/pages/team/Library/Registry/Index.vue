@@ -100,7 +100,7 @@ import RegistryEntry from './components/RegistryEntry.vue'
 import PublishNodeDialog from './dialogs/PublishNode.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'NodeRegistry',
@@ -121,7 +121,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountTeamStore, ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         enabled () {
             return this.featuresCheck?.isPrivateRegistryFeatureEnabledForPlatform && this.featuresCheck?.isPrivateRegistryFeatureEnabledForTeam
