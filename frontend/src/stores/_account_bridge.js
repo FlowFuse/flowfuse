@@ -1,6 +1,8 @@
 // Temporary bridge — reads account data from Vuex/Pinia during migration.
 // Delete this file after the account stores are migrated to Pinia.
 
+import { storeToRefs } from 'pinia'
+
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export function useAccountBridge () {
@@ -10,19 +12,19 @@ export function useAccountBridge () {
     // context.js imports _account_bridge.js statically; requiring context.js lazily here avoids a cycle.
     const store = require('../store/index.js').default
     const { useContextStore } = require('@/stores/context.js')
-    const { user } = useAccountAuthStore()
-    const { team, teamMembership, isTrialAccount, isTrialAccountExpired } = useContextStore()
+    const { user } = storeToRefs(useAccountAuthStore())
+    const { team, teamMembership, isTrialAccount, isTrialAccountExpired } = storeToRefs(useContextStore())
     return {
-        user,
-        userId: user?.id || null,
-        team,
-        teamId: team?.id || null,
-        teamSlug: team?.slug || null,
+        user: user.value,
+        userId: user.value?.id || null,
+        team: team.value,
+        teamId: team.value?.id || null,
+        teamSlug: team.value?.slug || null,
         features: store.state.account.features,
-        teamMembership: teamMembership ?? { role: 0 },
+        teamMembership: teamMembership.value ?? { role: 0 },
         featuresCheck: store.getters['account/featuresCheck'],
         requiresBilling: store.getters['account/requiresBilling'],
-        isTrialAccount,
-        isTrialAccountExpired
+        isTrialAccount: isTrialAccount.value,
+        isTrialAccountExpired: isTrialAccountExpired.value
     }
 }

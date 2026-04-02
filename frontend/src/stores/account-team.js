@@ -23,8 +23,7 @@ export const useAccountTeamStore = defineStore('account-team', {
         },
         defaultBlueprint () { return this.blueprints?.find(blueprint => blueprint.default) },
         defaultUserTeam: (state) => {
-            const { user } = useAccountAuthStore()
-            const defaultTeamId = user?.defaultTeam || state.teams[0]?.id
+            const defaultTeamId = useAccountAuthStore().user?.defaultTeam || state.teams[0]?.id
             return state.teams.find(team => team.id === defaultTeamId)
         },
         notificationsCount: state => state.notifications?.length || 0,

@@ -1,4 +1,4 @@
-import { getActivePinia } from 'pinia'
+import { getActivePinia, storeToRefs } from 'pinia'
 import { nextTick } from 'vue'
 
 import settingsApi from '../../../api/settings.js'
@@ -53,8 +53,11 @@ const getters = {
         return state.settings
     },
     requiresBilling (state, getters) {
-        const { user } = useAccountAuthStore()
-        const { team, isTrialAccount } = useContextStore()
+        const { user: userRef } = storeToRefs(useAccountAuthStore())
+        const { team: teamRef, isTrialAccount: isTrialAccountRef } = storeToRefs(useContextStore())
+        const user = userRef.value
+        const team = teamRef.value
+        const isTrialAccount = isTrialAccountRef.value
         const isNotAdmin = (user && !user.admin)
 
         return isNotAdmin &&
@@ -76,7 +79,9 @@ const getters = {
             getters.settings['team:create']
     },
     featuresCheck: (state) => {
-        const { teamMembership, team } = useContextStore()
+        const { teamMembership: teamMembershipRef, team: teamRef } = storeToRefs(useContextStore())
+        const teamMembership = teamMembershipRef.value
+        const team = teamRef.value
 
         const preCheck = {
             // Instances

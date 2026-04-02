@@ -51,7 +51,7 @@
 </template>
 
 <script>
-import { mapState } from 'pinia'
+import { mapState, storeToRefs } from 'pinia'
 import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../api/team.js'
@@ -65,6 +65,7 @@ import { RoleNames, Roles } from '../../utils/roles.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'AccountSettings',
@@ -298,12 +299,13 @@ export default {
                         // refresh teams
                         return useAccountTeamStore().refreshTeams()
                     }).then(() => {
-                        const { team, teams } = useAccountTeamStore()
+                        const { teams } = storeToRefs(useAccountTeamStore())
+                        const team = useContextStore().team
                         // check if the active team is one deleted
                         if (team?.id === teamId) {
-                            if (teams.length > 0) {
+                            if (teams.value.length > 0) {
                                 // get another team
-                                useAccountTeamStore().setTeam(teams[0].slug)
+                                useAccountTeamStore().setTeam(teams.value[0].slug)
                             }
                         }
                     }).catch(err => {
