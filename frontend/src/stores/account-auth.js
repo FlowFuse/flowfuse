@@ -6,7 +6,7 @@ import teamApi from '../api/team.js'
 import userApi from '../api/user.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
@@ -80,16 +80,16 @@ export const useAccountAuthStore = defineStore('account-auth', {
                 }
 
                 // check notifications count
-                await useAccountTeamStore().getNotifications()
+                await useAccountStore().getNotifications()
                 // check notifications count
-                await useAccountTeamStore().getInvitations()
+                await useAccountStore().getInvitations()
 
                 const teams = await teamApi.getTeams()
-                useAccountTeamStore().setTeams(teams.teams)
+                useAccountStore().setTeams(teams.teams)
 
                 if (teams.count === 0) {
                     useUxLoadingStore().clearAppLoader()
-                    useAccountTeamStore().setTeam(null)
+                    useAccountStore().setTeam(null)
                     if (/^\/team\//.test(router.currentRoute.value.path)) {
                         router.push({ name: 'Home' })
                     }
@@ -120,7 +120,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                             teamSlug = teamIdMatch[1]
                         }
                         const team = await teamApi.getTeam(teamId || { slug: teamSlug })
-                        await useAccountTeamStore().setTeam(team)
+                        await useAccountStore().setTeam(team)
                     }
                     useUxLoadingStore().clearAppLoader()
                     if (redirectUrlAfterLogin) {
@@ -183,7 +183,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
             return userApi.logout()
                 .then(() => {
                     useAccountAuthStore().$reset()
-                    useAccountTeamStore().$reset()
+                    useAccountStore().$reset()
                     useUxLoadingStore().$reset()
                     useAccountSettingsStore().$reset()
                     useUxDialogStore().$reset()

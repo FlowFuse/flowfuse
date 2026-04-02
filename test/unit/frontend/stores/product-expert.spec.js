@@ -7,12 +7,8 @@ vi.mock('@/stores/account-settings.js', () => ({
     useAccountSettingsStore: vi.fn(() => ({ featuresCheck: { isExpertAssistantFeatureEnabled: true } }))
 }))
 
-vi.mock('@/stores/account-team.js', () => ({
-    useAccountTeamStore: vi.fn(() => ({ team: null }))
-}))
-
 vi.mock('@/stores/context.js', () => ({
-    useContextStore: vi.fn(() => ({ expert: {} }))
+    useContextStore: vi.fn(() => ({ team: null, expert: {} }))
 }))
 
 vi.mock('@/stores/product-assistant.js', () => ({

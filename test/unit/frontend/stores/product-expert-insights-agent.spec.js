@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
 
-vi.mock('@/stores/account-team.js', () => ({
-    useAccountTeamStore: vi.fn(() => ({ team: { id: 'team-1' } }))
+vi.mock('@/stores/context.js', () => ({
+    useContextStore: vi.fn(() => ({ team: { id: 'team-1' } }))
 }))
 
 vi.mock('@/api/expert.js', () => ({

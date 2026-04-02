@@ -2,7 +2,7 @@ import { nextTick } from 'vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 
 /**
  * Bootstrap Service - Handles application lifecycle and readiness detection
@@ -55,9 +55,9 @@ class BootstrapService {
     async init () {
         return this.waitForAppMount()
             .then(() => {
-                // Eagerly create account stores — restores persisted state from localStorage instantly
+                // Eagerly create account & context stores — restores persisted state from localStorage instantly
                 useAccountAuthStore()
-                useAccountTeamStore()
+                useContextStore()
                 useAccountSettingsStore()
             })
             .then(() => this.checkUser())

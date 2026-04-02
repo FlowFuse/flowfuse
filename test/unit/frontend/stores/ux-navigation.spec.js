@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 
-vi.mock('@/stores/account-team.js', () => ({
-    useAccountTeamStore: vi.fn(() => ({
+vi.mock('@/stores/context.js', () => ({
+    useContextStore: vi.fn(() => ({
         team: null,
         teamMembership: { role: 0 },
         isTrialAccountExpired: false
@@ -131,9 +131,9 @@ describe('ux-navigation store', () => {
         })
 
         it('returns team entries when bridge provides a team', async () => {
-            const { useAccountTeamStore } = await import('@/stores/account-team.js')
+            const { useContextStore } = await import('@/stores/context.js')
             const { useAccountSettingsStore } = await import('@/stores/account-settings.js')
-            vi.mocked(useAccountTeamStore).mockReturnValue({
+            vi.mocked(useContextStore).mockReturnValue({
                 team: TEAM_STUB,
                 teamMembership: { role: 50 }, // Owner
                 isTrialAccountExpired: false

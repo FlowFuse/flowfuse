@@ -14,7 +14,7 @@ import { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } fr
 import { Roles } from '../utils/roles.js'
 
 import { useAccountSettingsStore } from './account-settings.js'
-import { useAccountTeamStore } from './account-team.js'
+import { useContextStore } from './context.js'
 import { useUxStore } from './ux.js'
 
 export const useUxNavigationStore = defineStore('ux-navigation', {
@@ -26,7 +26,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
     }),
     getters: {
         mainNavContexts (state) {
-            const { team, teamMembership, isTrialAccountExpired } = useAccountTeamStore()
+            const { team, teamMembership, isTrialAccountExpired } = useContextStore()
             const { features: accountFeatures, featuresCheck: features, requiresBilling } = useAccountSettingsStore()
 
             const { isNewlyCreatedUser, userActions } = useUxStore()
@@ -410,7 +410,9 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
             }
         },
         mainNavContext (state) {
-            const { team, teamMembership } = useAccountTeamStore()
+            const contextStore = useContextStore()
+            const team = contextStore.team
+            const teamMembership = contextStore.teamMembership
 
             if (!team && !['admin', 'user'].includes(state.mainNav.context)) {
                 // todo this compensates for a brief moment after logging in where we don't have a team loaded and can't properly

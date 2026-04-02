@@ -4,7 +4,7 @@ import { markRaw } from 'vue'
 import expertApi from '../api/expert.js'
 import useTimerHelper from '../composables/TimerHelper.js'
 
-import { useAccountTeamStore } from './account-team.js'
+import { useContextStore } from './context.js'
 
 export const useProductExpertInsightsAgentStore = defineStore('product-expert-insights-agent', {
     state: () => ({
@@ -36,9 +36,9 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
             //  https://github.com/FlowFuse/flowfuse/issues/6519 as it's a hacky workaround to the expert drawer opening up
             //  before we have a team loaded
             const { waitWhile } = useTimerHelper()
-            await waitWhile(() => !useAccountTeamStore().team, { cutoffTries: 60 })
+            await waitWhile(() => !useContextStore().team, { cutoffTries: 60 })
 
-            const { team } = useAccountTeamStore()
+            const { team } = useContextStore()
             const data = await expertApi.getCapabilities({ context: { teamId: team.id } })
             this.capabilityServers = data.servers || []
         }

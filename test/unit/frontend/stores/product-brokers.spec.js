@@ -1,17 +1,17 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { useAccountTeamStore } from '@/stores/account-team.js'
+import { useContextStore } from '@/stores/context.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
-vi.mock('@/stores/account-team.js', () => ({
-    useAccountTeamStore: vi.fn(() => ({ team: { id: 'team-1', slug: 'my-team' } }))
+vi.mock('@/stores/context.js', () => ({
+    useContextStore: vi.fn(() => ({ team: { id: 'team-1', slug: 'my-team' } }))
 }))
 
 describe('product-brokers store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
-        vi.mocked(useAccountTeamStore).mockReturnValue({ team: { id: 'team-1', slug: 'my-team' } })
+        vi.mocked(useContextStore).mockReturnValue({ team: { id: 'team-1', slug: 'my-team' } })
     })
 
     describe('initial state', () => {
@@ -57,7 +57,7 @@ describe('product-brokers store', () => {
         })
 
         it('brokerExpandedTopics returns empty object when no team', () => {
-            vi.mocked(useAccountTeamStore).mockReturnValue({ team: null })
+            vi.mocked(useContextStore).mockReturnValue({ team: null })
             const store = useProductBrokersStore()
             expect(store.brokerExpandedTopics('broker-1')).toEqual({})
         })

@@ -4,7 +4,7 @@ import teamApi from '../api/team.js'
 import product from '../services/product.js'
 
 import { useAccountAuthStore } from './account-auth.js'
-import { useProductAssistantStore } from './product-assistantStore.js'
+import { useProductAssistantStore } from './product-assistant.js'
 
 export const useContextStore = defineStore('context', {
     state: () => ({

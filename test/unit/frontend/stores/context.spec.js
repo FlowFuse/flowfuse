@@ -16,10 +16,6 @@ vi.mock('@/stores/product-expert.js', () => ({
     useProductExpertStore: vi.fn(() => ({ isSupportAgent: true }))
 }))
 
-vi.mock('@/stores/account-team.js', () => ({
-    useAccountTeamStore: vi.fn(() => ({ team: null, isTrialAccount: false }))
-}))
-
 vi.mock('@/api/team.js', () => ({
     default: {
         getTeam: vi.fn(),
