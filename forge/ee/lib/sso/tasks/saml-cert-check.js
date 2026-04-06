@@ -33,7 +33,7 @@ module.exports = {
                             app.log.debug(`Problem checking SSO certificate ${err.toString()}`)
                         }
                     }
-                }   
+                }
             }
         } catch (err) {
             app.log.debug(`Problem checking SSO certificate ${err.toString()}`)

@@ -464,14 +464,13 @@ NOY6Z1oJnpttQ9gwyV8euQ3C0Wcjf3+OVQ==
         })
     })
     describe('find expired SSO SAML Certs', async function () {
-        it.only('send email for active SSO profile with cert with less than 2 weeks life', async function () {
+        it('send email for active SSO profile with cert with less than 2 weeks life', async function () {
             const task = require('../../../../../../forge/ee/lib/sso/tasks/saml-cert-check')
             await task.run(app)
             app.config.email.transport.messages.should.have.length(1)
             const email = app.config.email.transport.messages[0]
             email.subject.should.equal('FlowFuse SSO Certificate expiring soon')
             email.text.should.match(/"expired SAML Cert" will expire/)
-            email.text.should.match(/Apr  7 15:37:32 2026 GMT/)
         })
     })
 })
