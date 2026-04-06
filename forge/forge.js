@@ -141,18 +141,6 @@ module.exports = async (options = {}) => {
             }
         }
     }
-    const server = fastify({
-        forceCloseConnections: true,
-        bodyLimit: 10485760, // 10mb max payload size, set to allow for VERY large flows
-        routerOptions: {
-            maxParamLength: 500
-        },
-        trustProxy: true,
-        logger: loggerConfig,
-        // Increase the default timeout
-        pluginTimeout: 20000
-    })
-
     if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
         const environment = process.env.SENTRY_ENV ?? (process.env.NODE_ENV ?? 'unknown')
         const sentrySampleRate = environment === 'production' ? 0.1 : 0.5
@@ -203,6 +191,18 @@ module.exports = async (options = {}) => {
         })
     }
 
+    const server = fastify({
+        forceCloseConnections: true,
+        bodyLimit: 10485760, // 10mb max payload size, set to allow for VERY large flows
+        routerOptions: {
+            maxParamLength: 500
+        },
+        trustProxy: true,
+        logger: loggerConfig,
+        // Increase the default timeout
+        pluginTimeout: 20000
+    })
+
     if (runtimeConfig.telemetry.backend?.prometheus?.enabled) {
         const metricsPlugin = require('fastify-metrics')
         await server.register(metricsPlugin, { endpoint: '/metrics' })
@@ -210,17 +210,6 @@ module.exports = async (options = {}) => {
 
     if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
         Sentry.setupFastifyErrorHandler(server)
-        server.addHook('onRequest', async (request) => {
-            const user = request.session?.User || request.user
-            if (user) {
-                Sentry.setUser({
-                    id: user.hashid,
-                    username: user.username,
-                    email: user.email,
-                    name: user.name
-                })
-            }
-        })
     }
 
     server.addHook('onError', async (request, reply, error) => {
