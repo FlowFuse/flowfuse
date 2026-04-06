@@ -57,6 +57,25 @@ d
     e`
             }
         })
+        app.samlProviders.provider5 = await app.db.models.SAMLProvider.create({
+            name: 'expired SAML Cert',
+            domainFilter: 'certtest3.com',
+            active: true,
+            options: {
+                cert: `-----BEGIN CERTIFICATE-----
+MIIBlTCCAT+gAwIBAgIUbplhRkxz5Bi/PNX0XVoDXweALacwDQYJKoZIhvcNAQEL
+BQAwHzEdMBsGA1UEAwwUZXhwaXJlZCBGRiBTQU1MIGNlcnQwHhcNMjYwNDA2MTUz
+NzMyWhcNMjYwNDA3MTUzNzMyWjAfMR0wGwYDVQQDDBRleHBpcmVkIEZGIFNBTUwg
+Y2VydDBcMA0GCSqGSIb3DQEBAQUAA0sAMEgCQQC8C1+SXu71Bfg/QDgYkdVlk4lG
+yB2R6TAuQcRmXhKpjSTFx8UZinwDIJsSvIHF7ogFwZxveOzeExIFw702Tm2LAgMB
+AAGjUzBRMB0GA1UdDgQWBBTWj9s9V3qdJGtSapocX7r3YhG86TAfBgNVHSMEGDAW
+gBTWj9s9V3qdJGtSapocX7r3YhG86TAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3
+DQEBCwUAA0EADtdIpFInwMnjjhv4AMaeFsAUnKJzGmd9Gg/ugd13Adto6ReEC7+s
+NOY6Z1oJnpttQ9gwyV8euQ3C0Wcjf3+OVQ==
+-----END CERTIFICATE-----
+`
+            }
+        })
     })
 
     after(async function () {
@@ -442,6 +461,17 @@ d
             })
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Member)
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.BTeam.id)).should.have.property('role', Roles.Owner)
+        })
+    })
+    describe('find expired SSO SAML Certs', async function () {
+        it.only('send email for active SSO profile with cert with less than 2 weeks life', async function () {
+            const task = require('../../../../../../forge/ee/lib/sso/tasks/saml-cert-check')
+            await task.run(app)
+            app.config.email.transport.messages.should.have.length(1)
+            const email = app.config.email.transport.messages[0]
+            email.subject.should.equal('FlowFuse SSO Certificate expiring soon')
+            email.text.should.match(/"expired SAML Cert" will expire/)
+            email.text.should.match(/Apr  7 15:37:32 2026 GMT/)
         })
     })
 })

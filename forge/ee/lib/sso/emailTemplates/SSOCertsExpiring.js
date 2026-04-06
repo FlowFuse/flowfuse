@@ -9,7 +9,7 @@ module.exports = {
     text:
 `Hello {{{user.name}}},
 
-The certificate for the SSO Profile {{name}} will expire
+The certificate for the SSO Profile "{{name}}" will expire
 at {{{date}}}.
 
 Please talk to your SSO administrator about issuing a new
@@ -21,7 +21,7 @@ Your friendly FlowFuse Team
 `
 <p>Hello {{{user.name}}},</p>
 
-<p>The certificate for the SSO Profile {{name}} will expire
+<p>The certificate for the SSO Profile "{{name}}" will expire
 at {{{date}}}.</p
 
 <p>Please talk to your SSO administrator about issuing a new

@@ -18,11 +18,16 @@ module.exports = {
                 if (sso.active && sso.type === 'saml') {
                     if (sso.options.cert) {
                         try {
-                            const cert = new crypto.X509Certificate(`-----BEGIN CERTIFICATE-----\n${sso.options.cert}\n-----END CERTIFICATE-----`)
-                            const life = cert.validToDate - Date.now()
+                            let pem = sso.options.cert
+                            if (!pem.startsWith('-----BEGIN CERTIFICATE-----\n')) {
+                                pem = `-----BEGIN CERTIFICATE-----\n${pem}\n-----END CERTIFICATE-----\n`
+                            }
+                            const cert = new crypto.X509Certificate(pem)
+                            const expiry = Date.parse(cert.validTo)
+                            const life = expiry - Date.now()
                             if (life < TWO_WEEKS) {
                                 app.log.info(`SSO Certificate expires soon ${sso.name} ${cert.validTo}`)
-                                emailAdmins(app, 'SSOCertsExpiring', { name: sso.name, date: cert.validTo })
+                                await emailAdmins(app, 'SSOCertsExpiring', { name: sso.name, date: cert.validTo })
                             }
                         } catch (err) {
                             app.log.debug(`Problem checking SSO certificate ${err.toString()}`)
@@ -37,7 +42,7 @@ module.exports = {
 }
 
 async function emailAdmins (app, template, context) {
-    const admins = await app.db.models.Users.admins()
+    const admins = await app.db.models.User.admins()
     for (const admin of admins) {
         await app.postoffice.send(admin, template, context)
     }
