@@ -40,15 +40,19 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import userApi from '../../api/user.js'
 import store from '../../store/index.js'
 import FormRow from '../FormRow.vue'
 
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+
 export default {
     name: 'UpdateExpiredPassword',
-    computed: mapState('account', ['loginError']),
+    computed: {
+        ...mapState(useAccountAuthStore, ['loginError'])
+    },
     data () {
         return {
             input: {

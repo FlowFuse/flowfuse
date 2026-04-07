@@ -18,7 +18,7 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import ApplicationAPI from '../../../api/application.js'
 import PipelinesAPI from '../../../api/pipeline.js'
@@ -27,6 +27,8 @@ import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 
 import PipelineStageForm from './form.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'EditPipelineStage',
@@ -69,7 +71,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState(useContextStore, ['team'])
     },
     watch: {
         team: {

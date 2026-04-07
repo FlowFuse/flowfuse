@@ -104,7 +104,7 @@
 import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, XIcon } from '@heroicons/vue/solid'
 import { mapActions, mapState } from 'pinia'
 import { ref } from 'vue'
-import { mapGetters, mapState as mapVuexState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import usePermissions from '../composables/Permissions.js'
 
@@ -119,6 +119,9 @@ import NotificationsButton from './NotificationsButton.vue'
 import TeamSelection from './TeamSelection.vue'
 import GlobalSearch from './global-search/GlobalSearch.vue'
 
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -130,8 +133,10 @@ export default {
             return Roles
         },
         ...mapState(useUxDrawersStore, ['leftDrawer', 'hiddenLeftDrawer']),
-        ...mapVuexState('account', ['user', 'team', 'teams']),
-        ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount', 'featuresCheck']),
+        ...mapState(useAccountAuthStore, ['user']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountStore, ['teams', 'notifications', 'hasAvailableTeams', 'defaultUserTeam']),
+        ...mapGetters('account', ['canCreateTeam', 'featuresCheck']),
         navigationOptions () {
             return [
                 {

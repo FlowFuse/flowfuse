@@ -103,8 +103,9 @@
 
 <script>
 import { BeakerIcon } from '@heroicons/vue/outline'
+import { mapState } from 'pinia'
 import semver from 'semver'
-import { mapState } from 'vuex'
+import { mapState as mapVuexState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 
@@ -113,6 +114,8 @@ import InfoCard from '../../../components/InfoCard.vue'
 import InfoCardRow from '../../../components/InfoCardRow.vue'
 import alerts from '../../../services/alerts.js'
 import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceDeveloperMode',
@@ -146,7 +149,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership', 'features']),
+        ...mapState(useContextStore, ['team']),
+        ...mapVuexState('account', ['features']),
         developerMode: function () {
             return this.device?.mode === 'developer'
         },

@@ -37,8 +37,8 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import SemVer from 'semver'
-import { mapState } from 'vuex'
 
 import AssetsAPI from '../../api/assets.js'
 import FeatureUnavailable from '../../components/banners/FeatureUnavailable.vue'
@@ -49,6 +49,8 @@ import featuresMixin from '../../mixins/Features.js'
 import Alerts from '../../services/alerts.js'
 
 import FolderBreadcrumbs from './components/FolderBreadcrumbs.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceAssets',
@@ -82,7 +84,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team']),
+        ...mapState(useContextStore, ['teamMembership', 'team']),
         currentDirectory () {
             if (this.breadcrumbs.length) {
                 return this.breadcrumbs[this.breadcrumbs.length - 1]

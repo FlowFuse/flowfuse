@@ -12,11 +12,13 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import AdminAPI from '../../api/admin.js'
 import UsersAPI from '../../api/users.js'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'PlatformAuditLog',
@@ -31,7 +33,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user'])
+        ...mapState(useAccountAuthStore, ['user'])
     },
     created () {
         this.loadUsers()

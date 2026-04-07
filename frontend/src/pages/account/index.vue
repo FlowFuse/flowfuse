@@ -15,7 +15,10 @@
 
 <script>
 import { ChevronLeftIcon, CogIcon, LockClosedIcon, UserGroupIcon } from '@heroicons/vue/solid'
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'UserSettings',
@@ -33,8 +36,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'team']),
-        ...mapGetters('account', ['teamInvitationsCount'])
+        ...mapState(useAccountStore, ['teamInvitationsCount']),
+        ...mapState(useAccountAuthStore, ['user'])
     },
     watch: {
         teamInvitationsCount: {

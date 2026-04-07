@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import instanceApi from '../../../api/instances.js'
@@ -26,6 +26,8 @@ import MultiStepForm from '../MultiStepForm.vue'
 
 import InstanceStep from './steps/InstanceStep.vue'
 import FlowsStep from './steps/flows-step/index.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 const INSTANCE_SLUG = 'instance'
 const FLOWS_SLUG = 'flows'
@@ -55,7 +57,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         formSteps () {
             return [
                 {
