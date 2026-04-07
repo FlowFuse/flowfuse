@@ -308,7 +308,7 @@ module.exports = {
                     if (result) {
                         if (key === 'settings') {
                             result.value = result.value || {}
-                            result.value.env = await Controllers.Project.insertPlatformSpecificEnvVars(this, result.value.env)
+                            result.value.env = Controllers.Project.insertPlatformSpecificEnvVars(this, result.value.env)
                         }
                         return result.value
                     }
