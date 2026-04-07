@@ -8,12 +8,14 @@
             >
                 <div class="header flex flex-row justify-between mb-2">
                     <span class="title font-bold">Flows:</span>
-                    <span
-                        class="compare ff-link" data-action="compare-snapshot"
+                    <ff-button
+                        size="small"
+                        kind="secondary"
+                        data-action="compare-snapshot"
                         @click="showCompareSnapshotDialog(snapshot)"
                     >
-                        compare...
-                    </span>
+                        Compare
+                    </ff-button>
                 </div>
                 <information-well
                     class="flex-grow-1 min-h-0 flex-col !mb-2"
