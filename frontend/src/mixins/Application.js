@@ -1,6 +1,8 @@
 import ApplicationApi from '../api/application.js'
 import alerts from '../services/alerts.js'
 
+import { useContextStore } from '@/stores/context.js'
+
 export default {
     data () {
         return {
@@ -78,7 +80,7 @@ export default {
 
             try {
                 await ApplicationApi.deleteApplication(this.application.id, this.team.id)
-                await this.$store.dispatch('account/refreshTeam')
+                await useContextStore().refreshTeam()
                 this.$router.push({ name: 'Applications' })
                 alerts.emit('Application successfully deleted.', 'confirmation')
             } catch (err) {

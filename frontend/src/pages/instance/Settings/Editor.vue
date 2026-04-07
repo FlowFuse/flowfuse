@@ -6,8 +6,8 @@
 
 <script>
 
+import { mapState } from 'pinia'
 import { useRouter } from 'vue-router'
-import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import usePermissions from '../../../composables/Permissions.js'
@@ -22,6 +22,8 @@ import {
     templateFields,
     templateValidators
 } from '../../admin/Template/utils.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceSettingsEditor',
@@ -60,7 +62,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         saveButton () {
             return {
                 visible: true,

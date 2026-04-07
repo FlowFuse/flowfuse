@@ -51,7 +51,7 @@
 
 <script>
 import { ChevronRightIcon } from '@heroicons/vue/outline'
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
 
 import teamAPI from '../../../../api/team.js'
 
@@ -61,6 +61,8 @@ import DeviceActions from '../../../../mixins/DeviceActions.js'
 import DeviceTile from '../../Applications/components/compact/DeviceTile.vue'
 import DeviceCredentialsDialog from '../../Devices/dialogs/DeviceCredentialsDialog.vue'
 import TeamDeviceCreateDialog from '../../Devices/dialogs/TeamDeviceCreateDialog.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'RecentlyModified',
@@ -86,7 +88,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         instancesLeft () {
             return this.totalDevices - this.devices.length
         }

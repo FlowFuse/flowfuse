@@ -74,6 +74,8 @@ import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import TeamCell from '../../components/tables/cells/TeamCell.vue'
 import TeamTypeCell from '../../components/tables/cells/TeamTypeCell.vue'
 
+import { useAccountStore } from '@/stores/account.js'
+
 export default {
     name: 'AdminTeams',
     components: {
@@ -225,7 +227,7 @@ export default {
             this.loading = false
         },
         viewTeam (row) {
-            this.$store.dispatch('account/setTeam', row.slug)
+            useAccountStore().setTeam(row.slug)
                 .then(() => this.$router.push({
                     name: 'Team',
                     params: {

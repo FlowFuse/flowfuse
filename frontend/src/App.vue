@@ -104,7 +104,7 @@ export default {
         ...mapState(useUxDrawersStore, ['hiddenLeftDrawer']),
         ...mapState(useAccountAuthStore, ['user']),
         ...mapState(useUxLoadingStore, ['appLoader', 'offline']),
-        ...mapVuexState('account', ['team', 'settings']),
+        ...mapVuexState('account', ['settings']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },
