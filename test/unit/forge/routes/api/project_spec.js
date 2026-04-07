@@ -2800,9 +2800,10 @@ describe('Project API', function () {
             response.statusCode.should.eqls(200)
 
             const json = response.json()
-            json.settings.env[4].should.have.property('name', 'hidden_var')
-            json.settings.env[4].should.have.property('value', '')
-            json.settings.env[4].should.have.property('hidden', true)
+            const hiddenVar = json.settings.env.find(envVar => envVar.name === 'hidden_var')
+            should.exist(hiddenVar)
+            hiddenVar.should.have.property('value', '')
+            hiddenVar.should.have.property('hidden', true)
         })
         it('should store hidden env vars', async () => {
             const projectSettings = await TestObjects.project1.getSetting('settings')
@@ -2823,9 +2824,10 @@ describe('Project API', function () {
             })
             const json = response.json()
 
-            json.settings.env[4].should.have.property('name', 'hidden_var')
-            json.settings.env[4].should.have.property('value', '')
-            json.settings.env[4].should.have.property('hidden', true)
+            const hiddenVar = json.settings.env.find(envVar => envVar.name === 'hidden_var')
+            should.exist(hiddenVar)
+            hiddenVar.should.have.property('value', '')
+            hiddenVar.should.have.property('hidden', true)
 
             const updatedProjectSettings = await TestObjects.project1.getSetting('settings')
             updatedProjectSettings.env[0].should.have.property('name', 'hidden_var')

@@ -382,7 +382,7 @@ module.exports = {
         }
         if (options.settings?.env) {
             // derive the project's service env but not the rest
-            const serviceEnv = ['FF_INSTANCE_ID', 'FF_INSTANCE_NAME', 'FF_PROJECT_ID', 'FF_PROJECT_NAME']
+            const serviceEnv = ['FF_INSTANCE_ID', 'FF_INSTANCE_NAME', 'FF_PROJECT_ID', 'FF_PROJECT_NAME', 'FF_INSTANCE_URL']
             snapshotOptions.settings.env = {
                 ...options.settings.env,
                 ...serviceEnv.reduce((obj, key) => {
