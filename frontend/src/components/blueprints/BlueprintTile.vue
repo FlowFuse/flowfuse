@@ -16,7 +16,9 @@
         </div>
         <div class="ff-blueprint-tile--info">
             <label>{{ blueprint.name }}</label>
-            <p :title="blueprint.description">{{ blueprint.description }}</p>
+            <p v-if="blueprint.description" :title="blueprint.description">
+                <ff-markdown-viewer :content="blueprint.description" />
+            </p>
         </div>
         <div class="ff-blueprint-tile--actions justify-between">
             <div v-if="showDefault" class="left flex gap-2">
@@ -61,8 +63,8 @@
 <script>
 import { CheckCircleIcon, PlusIcon } from '@heroicons/vue/outline'
 import { SearchIcon } from '@heroicons/vue/solid'
+import { mapState } from 'pinia'
 import { defineAsyncComponent } from 'vue'
-import { mapState } from 'vuex'
 
 import ProjectIcon from '../../components/icons/Projects.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
@@ -70,6 +72,8 @@ import product from '../../services/product.js'
 import FfDialog from '../../ui-components/components/DialogBox.vue'
 import FormRow from '../FormRow.vue'
 import AssetDetailDialog from '../dialogs/AssetDetailDialog.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'BlueprintTile',
@@ -132,7 +136,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         categoryClass () {
             // to lower case and strip spaces
             return this.blueprint?.category.toLowerCase().replace(/\s/g, '-')

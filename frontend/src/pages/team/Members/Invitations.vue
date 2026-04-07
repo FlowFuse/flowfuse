@@ -30,10 +30,11 @@
 
 <script>
 import { RefreshIcon, TrashIcon } from '@heroicons/vue/outline'
-import { markRaw } from 'vue'
 
+import { mapState } from 'pinia'
+import { markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { mapState } from 'vuex'
+import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import InviteUserCell from '../../../components/tables/cells/InviteUserCell.vue'
@@ -41,6 +42,8 @@ import usePermissions from '../../../composables/Permissions.js'
 
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'MemberInviteTable',
@@ -69,7 +72,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings', 'team', 'teamMembership'])
+        ...mapState(useContextStore, ['team', 'teamMembership']),
+        ...mapVuexState('account', ['settings'])
     },
     watch: {
         teamMembership: 'fetchData',

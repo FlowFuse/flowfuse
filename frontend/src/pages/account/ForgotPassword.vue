@@ -1,6 +1,6 @@
 <template>
     <ff-layout-box class="ff-forgot-password ff--center-box">
-        <form v-if="!pending" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
+        <form v-if="!appLoader" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
             <div v-if="flash" class="font-medium" v-text="flash" />
             <template v-else>
                 <FormRow id="reset_email" v-model="input.email" class="!max-w-full" :error="errors.email">Email address</FormRow>
@@ -16,13 +16,16 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import userApi from '../../api/user.js'
 import FormRow from '../../components/FormRow.vue'
 import SpinnerIcon from '../../components/icons/Spinner.js'
 
 import FFLayoutBox from '../../layouts/Box.vue'
+
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'PasswordRequest',
@@ -43,7 +46,10 @@ export default {
             flash: ''
         }
     },
-    computed: mapState('account', ['settings', 'pending']),
+    computed: {
+        ...mapVuexState('account', ['settings']),
+        ...mapState(useUxLoadingStore, ['appLoader'])
+    },
     methods: {
         requestPasswordReset () {
             this.errors.email = ''

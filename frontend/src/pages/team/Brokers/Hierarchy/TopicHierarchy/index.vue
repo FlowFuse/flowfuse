@@ -127,7 +127,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team']),
+        ...mapGetters('account', ['featuresCheck']),
         ...mapState(useProductBrokersStore, ['brokerExpandedTopics']),
         brokerId () {
             return this.$route.params.brokerId

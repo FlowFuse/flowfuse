@@ -19,16 +19,20 @@
             </template>
             <template v-if="canEditUser" #context-menu="{row}">
                 <ff-kebab-item
-                    v-if="(hasPermission('team:user:change-role') && !requiresBilling) || isAdminUser"
+                    v-if="((hasPermission('team:user:change-role') && !requiresBilling) || isAdminUser) && !ssoManaged({row})"
                     data-action="member-change-role"
                     label="Change Role" @click="changeRoleDialog(row)"
                 />
                 <ff-kebab-item
-                    v-if="hasPermission('team:user:remove') || isAdminUser"
+                    v-if="(hasPermission('team:user:remove') || isAdminUser) && !ssoManaged({row})"
                     data-action="member-remove-from-team"
                     label="Remove From Team"
                     kind="danger"
                     @click="removeUserDialog(row)"
+                />
+                <ff-kebab-item
+                    v-if="ssoManaged({row})"
+                    label="User role is SSO Managed"
                 />
             </template>
         </ff-data-table>
@@ -49,8 +53,10 @@
 
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
+import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+
+import { mapGetters } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
@@ -68,6 +74,10 @@ import InviteMemberDialog from '../dialogs/InviteMemberDialog.vue'
 import ApplicationPermissionOverride from './components/ApplicationPermissionOverride.vue'
 
 import ApplicationPermissionRow from './components/ApplicationPermissionsRow.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useContextStore } from '@/stores/context.js'
+
 export default {
     name: 'TeamUsersGeneral',
     components: {
@@ -101,8 +111,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'team']),
-        ...mapGetters('account', ['requiresBilling', 'featuresCheck', 'isAdminUser']),
+        ...mapState(useContextStore, ['team']),
+        ...mapGetters('account', ['requiresBilling', 'featuresCheck']),
+        ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
         canEditUser: function () {
             return this.hasPermission('team:user:remove') || this.hasPermission('team:user:change-role') || this.isAdminUser
         },
@@ -177,7 +188,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('account', ['refreshTeamMembership']),
+        ...mapActions(useContextStore, ['refreshTeamMembership']),
         inviteMember () {
             this.$refs.inviteMemberDialog.show()
         },
@@ -230,6 +241,9 @@ export default {
         },
         onApplicationRoleClick ({ application, user }) {
             this.$refs.editApplicationPermissionsDialog.show(user, application)
+        },
+        ssoManaged (row) {
+            return row.row.ssoManaged
         }
     }
 }

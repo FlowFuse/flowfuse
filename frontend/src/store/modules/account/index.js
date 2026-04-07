@@ -1,15 +1,14 @@
-import { getActivePinia } from 'pinia'
+import { getActivePinia, storeToRefs } from 'pinia'
 import { nextTick } from 'vue'
 
-import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import settingsApi from '../../../api/settings.js'
 import teamApi from '../../../api/team.js'
 import userApi from '../../../api/user.js'
 import { getTeamProperty } from '../../../composables/TeamProperties.js'
 import router from '../../../routes.js'
 
-import product from '../../../services/product.js'
-
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
@@ -20,6 +19,7 @@ import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 import { useUxStore } from '@/stores/ux.js'
@@ -29,43 +29,11 @@ const initialState = () => ({
     // Runtime settings
     settings: null,
     // Feature flags
-    features: {},
-    // We do not know if there is a valid session yet
-    pending: true,
-    // A login attempt is inflight
-    loginInflight: false,
-    // redirect url,
-    redirectUrlAfterLogin: null,
-    // The active user
-    user: null,
-    // The active team
-    team: null,
-    // The active user's membership details of the active team
-    teamMembership: null,
-    // The user's teams
-    teams: [],
-    // stores active notifications that require user attention, key'd by notification type (e.g. invites) alongside a payload bucket to store all notifications
-    notifications: {
-        payload: []
-    },
-    invitations: [],
-    // An error during login
-    loginError: null,
-    //
-    pendingTeamChange: false,
-    // As an SPA, if we get a network error we should present
-    // a suitable 'offline' message.
-    offline: null,
-
-    teamBlueprints: {}
+    features: {}
 })
 
 const meta = {
     persistence: {
-        redirectUrlAfterLogin: {
-            storage: 'localStorage'
-            // clearOnLogout: true (cleared by default)
-        },
         settings: {
             storage: 'localStorage',
             clearOnLogout: false
@@ -73,12 +41,6 @@ const meta = {
         features: {
             storage: 'localStorage',
             clearOnLogout: false
-        },
-        teamMembership: {
-            storage: 'sessionStorage'
-        },
-        team: {
-            storage: 'sessionStorage'
         }
     }
 }
@@ -90,98 +52,47 @@ const getters = {
     settings (state) {
         return state.settings
     },
-    user (state) {
-        return state.user
-    },
-    teams (state) {
-        return state.teams
-    },
-    team (state) {
-        return state.team
-    },
-    isFreeTeamType (state) {
-        return !!(state.team?.type?.properties?.billing?.disabled)
-    },
-    teamMembership (state) {
-        return state.teamMembership
-    },
-    redirectUrlAfterLogin (state) {
-        return state.redirectUrlAfterLogin
-    },
-    pending (state) {
-        return state.pending
-    },
-    pendingTeamChange (state) {
-        return state.pendingTeamChange
-    },
-    offline (state) {
-        return state.offline
-    },
     requiresBilling (state, getters) {
-        const isNotAdmin = (state.user && !state.user.admin)
+        const { user: userRef } = storeToRefs(useAccountAuthStore())
+        const { team: teamRef, isTrialAccount: isTrialAccountRef } = storeToRefs(useContextStore())
+        const user = userRef.value
+        const team = teamRef.value
+        const isTrialAccount = isTrialAccountRef.value
+        const isNotAdmin = (user && !user.admin)
 
         return isNotAdmin &&
         state.features.billing &&
-        (!state.team?.billing?.unmanaged) &&
-        (!getters.isTrialAccount || state.team?.billing?.trialEnded) &&
-        !state.team?.type?.properties?.billing?.disabled &&
-        !state.team?.billing?.active
+        (!team?.billing?.unmanaged) &&
+        (!isTrialAccount || team?.billing?.trialEnded) &&
+        !team?.type?.properties?.billing?.disabled &&
+        !team?.billing?.active
     },
     isBillingEnabled (state) {
         return !!state.features.billing
     },
-    isTrialAccount (state) {
-        return !!state.team?.billing?.trial
-    },
-    isTrialAccountExpired (state, getters) {
-        return getters.isTrialAccount && state.team?.billing?.trialEnded
-    },
-    isAdminUser: (state) => !!state.user.admin,
-    defaultUserTeam: (state, getters) => {
-        const defaultTeamId = state.user.defaultTeam || getters.teams[0]?.id
-        return state.teams.find(team => team.id === defaultTeamId)
-    },
     canCreateTeam (state, getters) {
-        if (getters.isAdminUser) {
+        if (useAccountAuthStore().isAdminUser) {
             return true
         }
 
         return Object.prototype.hasOwnProperty.call(getters.settings, 'team:create') &&
             getters.settings['team:create']
     },
-    blueprints: state => state.teamBlueprints[state.team?.id] || [],
-    defaultBlueprint: (state, getters) => getters.blueprints?.find(blueprint => blueprint.default),
-
-    notifications: state => state.notifications,
-    notificationsCount: state => state.notifications?.length || 0,
-    unreadNotificationsCount: state => {
-        const unread = state.notifications?.filter(n => !n.read) || []
-        let count = unread.length || 0
-        // check data.meta.counter for any notifications that have been grouped
-        unread.forEach(n => {
-            if (n.data.meta?.counter && typeof n.data.meta.counter === 'number' && n.data.meta.counter > 1) {
-                count += n.data.meta.counter - 1 // decrement by 1 as the first notification is already counted
-            }
-        })
-        return count
-    },
-    hasNotifications: (state, getters) => getters.notificationsCount > 0,
-
-    teamInvitations: state => state.invitations,
-    teamInvitationsCount: state => state.invitations?.length || 0,
-    hasAvailableTeams: state => state.teams.length > 0,
-
     featuresCheck: (state) => {
+        const { teamMembership: teamMembershipRef, team: teamRef } = storeToRefs(useContextStore())
+        const teamMembership = teamMembershipRef.value
+        const team = teamRef.value
+
         const preCheck = {
             // Instances
             // deprecated, use the isFreeTeamType getter
-            isHostedInstancesEnabledForTeam: ((state) => {
-                if (!state.team) {
+            isHostedInstancesEnabledForTeam: (() => {
+                if (!team) {
                     return false
                 }
 
                 // // dashboard users don't receive the team.type in the response payload
-                if (state.teamMembership?.role === 5 && !state.team?.type?.properties) {
+                if (teamMembership?.role === 5 && !team?.type?.properties) {
                     return true
                 }
 
@@ -190,8 +101,8 @@ const getters = {
                 // loop over the different instance types. Reference the team type properties to get the list
                 // of instance types, but use getTeamProperty to check the individual types to take into account
                 // any team level overrides
-                for (const instanceType of Object.keys(state.team.type.properties?.instances) || []) {
-                    if (getTeamProperty(state.team, `instances.${instanceType}.active`)) {
+                for (const instanceType of Object.keys(team.type.properties?.instances) || []) {
+                    if (getTeamProperty(team, `instances.${instanceType}.active`)) {
                         available = true
                         break
                     }
@@ -200,29 +111,29 @@ const getters = {
             })(state),
 
             // Shared Library
-            isSharedLibraryFeatureEnabledForTeam: ((state) => {
-                const flag = state.team?.type?.properties?.features?.['shared-library']
-                return (flag === undefined || flag) || state.team?.type?.properties?.enableAllFeatures
+            isSharedLibraryFeatureEnabledForTeam: (() => {
+                const flag = team?.type?.properties?.features?.['shared-library']
+                return (flag === undefined || flag) || team?.type?.properties?.enableAllFeatures
             })(state),
             isSharedLibraryFeatureEnabledForPlatform: state.features?.['shared-library'],
 
             // Blueprints
-            isBlueprintsFeatureEnabledForTeam: ((state) => {
-                const flag = state.team?.type?.properties?.features?.flowBlueprints
-                return (flag === undefined || flag) || state.team?.type?.properties?.enableAllFeatures
+            isBlueprintsFeatureEnabledForTeam: (() => {
+                const flag = team?.type?.properties?.features?.flowBlueprints
+                return (flag === undefined || flag) || team?.type?.properties?.enableAllFeatures
             })(state),
             isBlueprintsFeatureEnabledForPlatform: !!state.features?.flowBlueprints,
 
             // Custom Catalogs
             isCustomCatalogsFeatureEnabledForPlatform: !!state.features?.customCatalogs,
-            isCustomCatalogsFeatureEnabledForTeam: ((state) => {
-                const flag = state.team?.type?.properties.features?.customCatalogs
-                return (flag === undefined || flag) || state.team?.type?.properties?.enableAllFeatures
+            isCustomCatalogsFeatureEnabledForTeam: (() => {
+                const flag = team?.type?.properties.features?.customCatalogs
+                return (flag === undefined || flag) || team?.type?.properties?.enableAllFeatures
             })(state),
 
             // Private NPM Registry (Custom Nodes)
             isPrivateRegistryFeatureEnabledForPlatform: !!state.features?.npm,
-            isPrivateRegistryFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.npm || state.team?.type?.properties?.enableAllFeatures,
+            isPrivateRegistryFeatureEnabledForTeam: !!team?.type?.properties?.features?.npm || team?.type?.properties?.enableAllFeatures,
 
             // Certified Nodes
             isCertifiedNodesFeatureEnabledForPlatform: !!state.features?.certifiedNodes,
@@ -231,23 +142,23 @@ const getters = {
 
             // Static Assets
             isStaticAssetFeatureEnabledForPlatform: !!state.features?.staticAssets,
-            isStaticAssetsFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.staticAssets || state.team?.type?.properties?.enableAllFeatures,
+            isStaticAssetsFeatureEnabledForTeam: !!team?.type?.properties?.features?.staticAssets || team?.type?.properties?.enableAllFeatures,
 
             // HTTP BearerTokens
             isHTTPBearerTokensFeatureEnabledForPlatform: !!state.settings?.features.httpBearerTokens,
-            isHTTPBearerTokensFeatureEnabledForTeam: !!state.team?.type?.properties.features.teamHttpSecurity || state.team?.type?.properties?.enableAllFeatures,
+            isHTTPBearerTokensFeatureEnabledForTeam: !!team?.type?.properties.features.teamHttpSecurity || team?.type?.properties?.enableAllFeatures,
 
             // BOM
             isBOMFeatureEnabledForPlatform: !!state.features?.bom,
-            isBOMFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.bom || state.team?.type?.properties?.enableAllFeatures,
+            isBOMFeatureEnabledForTeam: !!team?.type?.properties?.features?.bom || team?.type?.properties?.enableAllFeatures,
 
             // Timeline
             isTimelineFeatureEnabledForPlatform: !!state.features?.projectHistory,
-            isTimelineFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.projectHistory || state.team?.type?.properties?.enableAllFeatures,
+            isTimelineFeatureEnabledForTeam: !!team?.type?.properties?.features?.projectHistory || team?.type?.properties?.enableAllFeatures,
 
             // Mqtt Broker
             isMqttBrokerFeatureEnabledForPlatform: !!state.features?.teamBroker,
-            isMqttBrokerFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.teamBroker || state.team?.type?.properties?.enableAllFeatures,
+            isMqttBrokerFeatureEnabledForTeam: !!team?.type?.properties?.features?.teamBroker || team?.type?.properties?.enableAllFeatures,
 
             isExternalMqttBrokerFeatureEnabledForPlatform: !!state.features?.externalBroker,
 
@@ -258,19 +169,19 @@ const getters = {
 
             // Instance Resources
             isInstanceResourcesFeatureEnabledForPlatform: !!state.features?.instanceResources,
-            isInstanceResourcesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.instanceResources || state.team?.type?.properties?.enableAllFeatures,
+            isInstanceResourcesFeatureEnabledForTeam: !!team?.type?.properties?.features?.instanceResources || team?.type?.properties?.enableAllFeatures,
 
             // Tables
             isTablesFeatureEnabledForPlatform: !!state.features.tables,
-            isTablesFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.tables || state.team?.type?.properties?.enableAllFeatures,
+            isTablesFeatureEnabledForTeam: !!team?.type?.properties?.features?.tables || team?.type?.properties?.enableAllFeatures,
 
             // Generate Snapshot Descriptions with AI
             isGeneratedSnapshotDescriptionFeatureEnabledForPlatform: !!state.features.generatedSnapshotDescription,
-            isGeneratedSnapshotDescriptionFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.generatedSnapshotDescription || state.team?.type?.properties?.enableAllFeatures,
+            isGeneratedSnapshotDescriptionFeatureEnabledForTeam: !!team?.type?.properties?.features?.generatedSnapshotDescription || team?.type?.properties?.enableAllFeatures,
 
             // Applications Role Based Access Control
             isApplicationsRBACFeatureEnabledForPlatform: !!state.features.rbacApplication,
-            isApplicationsRBACFeatureEnabledForTeam: !!state.team?.type?.properties?.features?.rbacApplication || state.team?.type?.properties?.enableAllFeatures,
+            isApplicationsRBACFeatureEnabledForTeam: !!team?.type?.properties?.features?.rbacApplication || team?.type?.properties?.enableAllFeatures,
 
             // Expert Assistant
             isExpertAssistantFeatureEnabledForPlatform: !!state.features.expertAssistant,
@@ -291,8 +202,8 @@ const getters = {
             // external broker must be enabled for platform, and share the same team-level feature flag as the team broker
             isExternalMqttBrokerFeatureEnabled: preCheck.isExternalMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
             devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
-            isDeviceGroupsFeatureEnabled: !!state.team?.type?.properties?.features?.deviceGroups || !!state.team?.type?.properties?.enableAllFeatures,
-            isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!state.team?.type?.properties?.features?.gitIntegration,
+            isDeviceGroupsFeatureEnabled: !!team?.type?.properties?.features?.deviceGroups || !!team?.type?.properties?.enableAllFeatures,
+            isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!team?.type?.properties?.features?.gitIntegration,
             isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam,
             isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam,
             isGeneratedSnapshotDescriptionEnabled: preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForPlatform && preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForTeam,
@@ -307,83 +218,20 @@ const mutations = {
     setSettings (state, settings) {
         state.settings = settings
         state.features = settings.features || {}
-    },
-    clearPending (state) {
-        state.pending = false
-    },
-    setPending (state, pending) {
-        state.pending = pending
-    },
-    setLoginInflight (state) {
-        state.loginInflight = true
-    },
-    login (state, user) {
-        state.loginInflight = false
-        state.user = user
-    },
-    logout (state) {
-        state.loginInflight = false
-        state.pending = true
-        state.user = null
-        state.teams = []
-        state.team = null
-        state.redirectUrlAfterLogin = null
-    },
-    setUser (state, user) {
-        state.user = user
-    },
-    setTeam (state, team) {
-        // update the product session "team" to record all future events against them
-        product.setTeam(team)
-        state.team = team
-    },
-    setTeamMembership (state, membership) {
-        state.teamMembership = membership
-    },
-    setTeams (state, teams) {
-        state.teams = teams
-    },
-    setNotifications (state, notifications) {
-        state.notifications = notifications
-    },
-    sessionExpired (state) {
-        state.user = null
-    },
-    loginFailed (state, error) {
-        state.loginInflight = false
-        state.loginError = error
-    },
-    setRedirectUrl (state, url) {
-        state.redirectUrlAfterLogin = url
-    },
-    setPendingTeamChange (state) {
-        state.pendingTeamChange = true
-    },
-    clearPendingTeamChange (state) {
-        state.pendingTeamChange = false
-    },
-    setOffline (state, value) {
-        state.offline = value
-    },
-    setTeamBlueprints (state, { teamId, blueprints }) {
-        state.teamBlueprints[teamId] = blueprints
-    },
-    setTeamInvitations (state, invitations) {
-        state.invitations = invitations
     }
 }
 
 // actions
 const actions = {
-    async checkState ({ commit, dispatch }, redirectUrlAfterLogin) {
+    async checkState ({ commit }, redirectUrlAfterLogin) {
         try {
             const settings = await settingsApi.getSettings()
             commit('setSettings', settings)
 
-            commit('setOffline', false)
+            useUxLoadingStore().setOffline(false)
 
             const user = await userApi.getUser()
-            commit('login', user)
+            useAccountAuthStore().login(user)
             useUxStore().checkIfIsNewlyCreatedUser(user)
 
             // User is logged in
@@ -392,22 +240,22 @@ const actions = {
                 window.location = '/'
                 return
             } else if (user.email_verified === false || user.password_expired) {
-                commit('clearPending')
+                useUxLoadingStore().clearAppLoader()
                 router.push({ name: 'Home' })
                 return
             }
 
             // check notifications count
-            await dispatch('getNotifications')
+            await useAccountStore().getNotifications()
             // check notifications count
-            await dispatch('getInvitations')
+            await useAccountStore().getInvitations()
 
             const teams = await teamApi.getTeams()
-            commit('setTeams', teams.teams)
+            useAccountStore().setTeams(teams.teams)
 
             if (teams.count === 0) {
-                commit('clearPending')
-                commit('setTeam', null)
+                useUxLoadingStore().clearAppLoader()
+                useAccountStore().setTeam(null)
                 if (/^\/team\//.test(router.currentRoute.value.path)) {
                     router.push({ name: 'Home' })
                 }
@@ -439,19 +287,17 @@ const actions = {
                         teamSlug = teamIdMatch[1]
                     }
                     const team = await teamApi.getTeam(teamId || { slug: teamSlug })
-                    const teamMembership = await teamApi.getTeamUserMembership(team.id)
-                    commit('setTeam', team)
-                    commit('setTeamMembership', teamMembership)
+                    await useAccountStore().setTeam(team)
                 }
-                commit('clearPending')
+                useUxLoadingStore().clearAppLoader()
                 if (redirectUrlAfterLogin) {
                     // If this is a user-driven login, take them to the profile page
                     router.push(redirectUrlAfterLogin)
                     // Clear the redirectUrl on nextTick
-                    nextTick(() => { commit('setRedirectUrl', null) })
+                    nextTick(() => { useAccountAuthStore().setRedirectUrl(null) })
                 }
             } catch (teamLoadErr) {
-                commit('clearPending')
+                useUxLoadingStore().clearAppLoader()
                 // This means the team doesn't exist, or the user doesn't have access
                 router.push({
                     name: 'page-not-found',
@@ -463,9 +309,9 @@ const actions = {
             }
         } catch (err) {
             // Not logged in
-            commit('clearPending')
+            useUxLoadingStore().clearAppLoader()
             // do we have a user session to clear?
-            if (state.user) {
+            if (useAccountAuthStore().user) {
                 try {
                     window.posthog?.reset()
                 } catch (err) {
@@ -476,48 +322,31 @@ const actions = {
             if (router.currentRoute.value.meta.requiresLogin !== false) {
                 if (router.currentRoute.value.path !== '/') {
                     // Only remember the url if it isn't the default / path
-                    commit('setRedirectUrl', router.currentRoute.value.fullPath)
+                    useAccountAuthStore().setRedirectUrl(router.currentRoute.value.fullPath)
                 }
                 router.push({ name: 'Home' })
             }
         }
     },
-    async refreshTeam (state) {
-        const currentTeam = state.getters.team
-        if (currentTeam) {
-            const currentSlug = currentTeam.slug
-            const team = await teamApi.getTeam(currentTeam.id)
-            const teamMembership = await teamApi.getTeamUserMembership(team.id)
-            state.commit('setTeam', team)
-            state.commit('setTeamMembership', teamMembership)
-            if (currentSlug !== team.slug) {
-                router.replace({ name: router.currentRoute.value.name, params: { team_slug: team.slug } })
-            }
-        }
-    },
-    async refreshTeams (state) {
-        const teams = await teamApi.getTeams()
-        state.commit('setTeams', teams.teams)
-    },
-    async login ({ state, dispatch, commit, getters }, credentials) {
+    async login ({ dispatch }, credentials) {
         try {
-            commit('setLoginInflight')
+            useAccountAuthStore().setLoginInflight()
             if (credentials.username) {
                 await userApi.login(credentials.username, credentials.password)
             } else if (credentials.token) {
                 await userApi.verifyMFAToken(credentials.token)
             }
-            commit('setPending', true)
-            dispatch('checkState', getters.redirectUrlAfterLogin)
+            useUxLoadingStore().setAppLoader(true)
+            dispatch('checkState', useAccountAuthStore().redirectUrlAfterLogin)
         } catch (err) {
             if (err.response?.status >= 401) {
-                commit('loginFailed', err.response.data)
+                useAccountAuthStore().loginFailed(err.response.data)
             } else {
                 console.error(err)
             }
         }
     },
-    async logout ({ rootState, dispatch, commit }) {
+    async logout ({ dispatch }) {
         return userApi.logout()
             .then(() => {
                 // Reset Vuex state (existing behaviour)
@@ -526,7 +355,10 @@ const actions = {
                 // Reset migrated Pinia stores — uncomment each line as its store is migrated
                 const pinia = getActivePinia()
                 if (pinia) {
+                    useAccountAuthStore().$reset()
+                    useAccountStore().$reset()
                     useUxDialogStore().$reset()
+                    useUxLoadingStore().$reset()
                     useUxToursStore().$reset()
                     useUxNavigationStore().$reset()
                     useUxDrawersStore().$reset()
@@ -548,80 +380,12 @@ const actions = {
                 window.location = '/'
             })
     },
-    async setTeam (state, team) {
-        const currentTeam = state.getters.team
-        state.commit('setPendingTeamChange')
-        let teamMembership
-        if (typeof team === 'string') {
-            if (!currentTeam || currentTeam.slug !== team) {
-                team = await teamApi.getTeam({ slug: team })
-            } else {
-                state.commit('clearPendingTeamChange')
-                return
-            }
-        } else {
-            if ((!currentTeam && !team) || currentTeam?.id === team?.id) {
-                state.commit('clearPendingTeamChange')
-                return
-            }
-        }
-        if (team?.id) {
-            teamMembership = await teamApi.getTeamUserMembership(team.id)
-        }
-        state.commit('setTeam', team)
-        await state.dispatch('clearOtherStores')
-        state.commit('setTeamMembership', teamMembership)
-        state.commit('clearPendingTeamChange')
-    },
-    async setUser (state, user) {
-        state.commit('setUser', user)
-    },
     async refreshSettings (state) {
         const settings = await settingsApi.getSettings()
         state.commit('setSettings', settings)
     },
-    setOffline (state, value) {
-        state.commit('setOffline', value)
-    },
-    async getTeamBlueprints (state, teamId) {
-        const response = await flowBlueprintsApi.getFlowBlueprintsForTeam(teamId)
-        const blueprints = response.blueprints
-
-        return state.commit('setTeamBlueprints', { teamId, blueprints })
-    },
-    setRedirectUrl (state, url) {
-        state.commit('setRedirectUrl', url)
-    },
-    async getNotifications (state) {
-        await userApi.getNotifications()
-            .then((notifications) => {
-                state.commit('setNotifications', notifications.notifications)
-            })
-            .catch(_ => {})
-    },
-    setNotifications (state, notifications) {
-        state.commit('setNotifications', notifications)
-    },
-    async getInvitations (state) {
-        await userApi.getTeamInvitations()
-            .then((invitations) => {
-                state.commit('setTeamInvitations', invitations.invitations)
-            })
-            .catch(_ => {})
-    },
-    clearOtherStores () {
-        useProductTablesStore().clearState()
-    },
-    async checkIfAuthenticated ({ commit }) {
-        return userApi.getUser()
-            .then(user => {
-                commit('login', user)
-            })
-    },
-    async refreshTeamMembership ({ commit, state }) {
-        const teamMembership = await teamApi.getTeamUserMembership(state.team.id)
-
-        commit('setTeamMembership', teamMembership)
+    checkIfAuthenticated () {
+        return useAccountAuthStore().checkIfAuthenticated()
     }
 }
 
