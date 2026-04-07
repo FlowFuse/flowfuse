@@ -94,10 +94,11 @@ export default {
             this.nextCursor = result.meta.next_cursor
             result.templates.forEach(v => {
                 // map owner to top tier to show in table
-                v.owner_avatar = v.owner.avatar
-                v.owner_id = v.owner.id
-                v.owner_username = v.owner.username
-
+                if (v.owner) {
+                    v.owner_avatar = v.owner.avatar
+                    v.owner_id = v.owner.id
+                    v.owner_username = v.owner.username
+                }
                 this.templates.push(v)
             })
             this.loading = false
