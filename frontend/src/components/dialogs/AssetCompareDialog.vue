@@ -58,7 +58,9 @@
                     data-el="ff-flow-compare-view"
                     class="ff-flow-compare-view flex-1 min-w-0 pt-4"
                     @click.stop.prevent
-                >&nbsp;</div>
+                >
+&nbsp;
+                </div>
 
                 <!-- Drag handle -->
                 <div v-if="hasCompared" class="ff-resize-handle shrink-0" @mousedown.prevent="startResize" />
@@ -161,8 +163,8 @@ export default {
                     groups.set(key, {
                         nodeId: key,
                         // Prefer explicit name/label; fall back to type (e.g. "inject")
-                    // before the raw UUID so the nav bar stays readable
-                    name: node.name || node.label || node.type || key,
+                        // before the raw UUID so the nav bar stays readable
+                        name: node.name || node.label || node.type || key,
                         type: node.type || '',
                         diffType: change.diffType,
                         propChanges: []
@@ -249,7 +251,9 @@ export default {
             this.changes = this.computeDiff(compareFlow, this.flow)
             this.currentGroupIndex = 0
             this.hasCompared = true
-            this.$nextTick(() => this.$nextTick(() => this.highlightCurrent()))
+            await this.$nextTick()
+            await this.$nextTick()
+            this.highlightCurrent()
         },
         navigate (dir) {
             const next = this.currentGroupIndex + dir
@@ -260,8 +264,7 @@ export default {
         onKeyDown (e) {
             if (!this.hasCompared) return
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
-            if (e.key === 'ArrowLeft') { e.preventDefault(); this.navigate(-1) }
-            else if (e.key === 'ArrowRight') { e.preventDefault(); this.navigate(1) }
+            if (e.key === 'ArrowLeft') { e.preventDefault(); this.navigate(-1) } else if (e.key === 'ArrowRight') { e.preventDefault(); this.navigate(1) }
         },
         highlightCurrent () {
             const group = this.currentGroup

@@ -80,8 +80,8 @@ export default {
     props: {
         prop: { type: String, default: '' },
         label: { type: String, default: null },
-        value1: { default: undefined },
-        value2: { default: undefined },
+        value1: { type: [String, Number, Boolean, Array, Object], default: undefined },
+        value2: { type: [String, Number, Boolean, Array, Object], default: undefined },
         compact: { type: Boolean, default: false }
     },
     data () {
