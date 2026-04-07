@@ -51,6 +51,7 @@ within the platform:
 
 - `FF_INSTANCE_ID`
 - `FF_INSTANCE_NAME`
+- `FF_INSTANCE_URL`
 
 In addition, the following variables are set when running on a device:
 
