@@ -256,6 +256,19 @@ export default {
             // The renderer's fallback (no layerNo) infers from rc.diffType, which can
             // be unreliable for tab entries ('tab' diffType → defaults to layer 0 → 10%).
             const layerNo = group.diffType === 'added' ? 1 : group.diffType === 'deleted' ? 0 : -1
+            // The renderer only animates the slider when value < 10 || value > 90.
+            // After landing at exactly 10 (deleted) or 90 (added), navigating in the
+            // opposite direction leaves the slider stuck because the boundary check is
+            // strict (10 < 10 is false). Reset to the opposite extreme only when the
+            // slider is not already at the correct target, so the animation always fires
+            // when needed but is skipped when the right layer is already showing.
+            if (layerNo !== -1) {
+                const slider = this.$refs.compareViewer?.querySelector('.flow-compare-slider')
+                const target = layerNo === 1 ? 90 : 10
+                if (slider && parseInt(slider.value) !== target) {
+                    slider.value = layerNo === 1 ? 0 : 100
+                }
+            }
             if (group.type === 'tab') {
                 // The renderer's highlight() for a tab entry looks up the item as an
                 // SVG node, which fails (tabs are DOM elements, not SVG nodes). Instead,
