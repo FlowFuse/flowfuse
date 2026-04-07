@@ -1,13 +1,15 @@
 import semver from 'semver'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
 
 import deviceApi from '../api/devices.js'
+
 import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import { DeviceStateMutator } from '../utils/DeviceStateMutator.js'
 import { createPollTimer } from '../utils/timers.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 // constants
 const POLL_TIME = 5000
@@ -22,7 +24,6 @@ const deviceTransitionStates = [
 ]
 
 export function useDeviceHelper () {
-    const $store = useStore()
     const $router = useRouter()
 
     let deviceStateMutator = null
@@ -147,8 +148,8 @@ export function useDeviceHelper () {
                 await deviceApi.deleteDevice(device.value.id)
                 Alerts.emit('Successfully deleted the device', 'confirmation')
                 // Trigger a refresh of team info to resync following device changes
-                await $store.dispatch('account/refreshTeam')
-                await $router.push({ name: 'TeamDevices', params: { team_slug: $store.state.account.team.slug } })
+                await useContextStore().refreshTeam()
+                await $router.push({ name: 'TeamDevices', params: { team_slug: useContextStore().team.slug } })
             } catch (err) {
                 Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
             }

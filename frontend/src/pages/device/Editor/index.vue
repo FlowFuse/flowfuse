@@ -83,6 +83,7 @@ import usePermissions from '../../../composables/Permissions.js'
 import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 import Alerts from '../../../services/alerts.js'
 
+import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
 const DRAWER_DEFAULT_WIDTH = 550 // Default drawer width in pixels
@@ -344,7 +345,7 @@ export default {
             }
 
             this.device = device
-            await this.$store.dispatch('account/setTeam', this.device.team.slug)
+            await useAccountStore().setTeam(this.device.team.slug)
         },
         showConfirmDeleteDialog () {
             this.showDeleteDeviceDialog()

@@ -27,6 +27,7 @@ import usePermissions from '../../../composables/Permissions.js'
 import RoleRow from './components/RoleRow.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default defineComponent({
     name: 'UserAccess',
@@ -49,7 +50,8 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapGetters('account', ['team', 'featuresCheck']),
+        ...mapState(useContextStore, ['team']),
+        ...mapGetters('account', ['featuresCheck']),
         ...mapState(useAccountAuthStore, ['isAdminUser']),
         columns () {
             return [
