@@ -91,7 +91,7 @@ import Alerts from '../../services/alerts.js'
 
 import SnapshotDiffChangePanel from './SnapshotDiffChangePanel.vue'
 
-const COMPACT_PROPS = new Set(['position', 'z', 'name', 'label', 'type', 'wires'])
+const COMPACT_PROPS = new Set(['position', 'z', 'name', 'label', 'type', 'wires', 'disabled'])
 const SIDEBAR_MIN_WIDTH = 200
 const SIDEBAR_MAX_WIDTH = 800
 
@@ -251,6 +251,15 @@ export default {
         highlightCurrent () {
             const group = this.currentGroup
             if (!group) return
+            if (group.type === 'tab') {
+                // The renderer's highlight() for a tab entry looks up the item as an
+                // SVG node, which fails (tabs are DOM elements, not SVG nodes). Instead,
+                // find any node that lives on this tab and highlight that — the renderer
+                // will click the tab and navigate there as a side effect.
+                const proxy = this.rendererChanges.find(rc => rc.tab === group.nodeId && rc.highlight)
+                if (proxy) proxy.highlight()
+                return
+            }
             // Highlight all renderer changes for this node — handles nodes that
             // appear in multiple tabs (e.g. moved from one tab to another)
             for (const rc of this.rendererChanges) {
@@ -301,6 +310,11 @@ export default {
                     result.push({ prop: 'z', label: 'tab', value1: this.resolveTabName(c.value1), value2: this.resolveTabName(c.value2) })
                     continue
                 }
+                if (c.prop === 'disabled') {
+                    // Show as "enabled" / "disabled" rather than raw true/false
+                    result.push({ prop: 'disabled', label: 'status', value1: this.resolveDisabled(c.value1), value2: this.resolveDisabled(c.value2) })
+                    continue
+                }
                 if (c.prop === 'wires') {
                     result.push({ prop: 'wires', value1: this.resolveWires(c.value1), value2: this.resolveWires(c.value2) })
                     continue
@@ -337,6 +351,10 @@ export default {
             if (!tabId) return tabId
             const tab = this.nodeMap[tabId]
             return tab ? (tab.label || tabId) : tabId
+        },
+        resolveDisabled (val) {
+            if (val === undefined || val === null) return undefined
+            return val ? 'disabled' : 'enabled'
         },
         computeDiff (flow1, flow2) {
             const map1 = {}
