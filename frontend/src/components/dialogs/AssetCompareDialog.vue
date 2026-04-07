@@ -390,6 +390,13 @@ export default {
 </script>
 
 <style scoped>
+/* The renderer applies -webkit-appearance:none but leaves the input box
+   with a white user-agent background. Make it transparent so only the
+   styled track is visible. */
+.ff-flow-compare-view :deep(input[type='range'].flow-compare-slider) {
+    background: transparent;
+}
+
 .ff-compare-main {
     height: calc(100% - 2.5rem);
 }
