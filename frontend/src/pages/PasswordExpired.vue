@@ -7,7 +7,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
 
 import UpdateExpiredPassword from '../components/auth/UpdateExpiredPassword.vue'
 
@@ -19,7 +18,6 @@ export default {
         'ff-layout-box': FFLayoutBox,
         UpdateExpiredPassword
     },
-    computed: mapState('account', ['user']),
     methods: {
     }
 }

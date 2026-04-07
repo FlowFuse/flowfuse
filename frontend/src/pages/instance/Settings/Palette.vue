@@ -9,9 +9,9 @@
 
 <script>
 
+import { mapState } from 'pinia'
 import { useRouter } from 'vue-router'
-
-import { mapState } from 'vuex'
+import { mapState as mapVuexState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import usePermissions from '../../../composables/Permissions.js'
@@ -28,6 +28,8 @@ import {
     setTemplateValue,
     templateFields
 } from '../../admin/Template/utils.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceSettingsPalette',
@@ -71,7 +73,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features']),
+        ...mapState(useContextStore, ['team']),
+        ...mapVuexState('account', ['features']),
         catalogFeatureEnabledForTeam () {
             if (!this.features.customCatalogs) {
                 return false

@@ -17,11 +17,11 @@
 <script>
 import { RefreshIcon } from '@heroicons/vue/outline'
 import { mapActions, mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import MenuCollapse from '../../.././../../../components/icons/menu-collapse.js'
 import MenuExpand from '../../.././../../../components/icons/menu-expand.js'
 
+import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default {
@@ -35,7 +35,7 @@ export default {
     },
     emits: ['toggle-collapse'],
     computed: {
-        ...mapVuexState('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useProductTablesStore, ['tableSelection'])
     },
     methods: {

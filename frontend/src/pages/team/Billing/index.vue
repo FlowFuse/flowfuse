@@ -114,8 +114,9 @@
 <script>
 
 import { ExternalLinkIcon } from '@heroicons/vue/outline'
+
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters, mapState } from 'vuex'
 
 import billingApi from '../../../api/billing.js'
 
@@ -127,6 +128,9 @@ import formatCurrency from '../../../mixins/Currency.js'
 import formatDateMixin from '../../../mixins/DateTime.js'
 
 import UsageOverview from './components/UsageOverview.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useContextStore } from '@/stores/context.js'
 
 const priceCell = {
     name: 'PriceCell',
@@ -199,8 +203,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
-        ...mapGetters('account', ['isAdminUser']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountAuthStore, ['isAdminUser']),
         billingSetUp () {
             return !this.missingSubscription && this.team.billing?.active
         },

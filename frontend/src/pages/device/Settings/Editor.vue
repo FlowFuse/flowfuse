@@ -29,9 +29,10 @@
 </template>
 
 <script>
-import semver from 'semver'
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import semver from 'semver'
+import { mapState as mapVuexState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
@@ -43,6 +44,8 @@ import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 
 import ChangeIndicator from '../../admin/Template/components/ChangeIndicator.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceSettingsEditor',
@@ -83,7 +86,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team']),
+        ...mapState(useContextStore, ['team']),
+        ...mapVuexState('account', ['features']),
         limitsLauncherEnabled () {
             if (!this.device.agentVersion) {
                 // Device has not called home yet - so we don't know what agent
