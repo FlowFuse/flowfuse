@@ -195,7 +195,7 @@ describe('FlowFuse - Devices - With Billing', () => {
         cy.wait('@fullSnapshot')
 
         // select the snapshot to compare with — comparison starts automatically on selection
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-el="listbox"]').click()
+        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-el="snapshots-list"]').click()
         cy.get('[data-el="listbox-options"] > .ff-option:first').click()
         cy.wait('@fullSnapshot')
 

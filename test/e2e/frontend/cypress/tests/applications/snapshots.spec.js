@@ -194,7 +194,7 @@ describe('FlowFuse - Application - Snapshots', () => {
         cy.get('[data-el="dialog-compare-snapshot"] .ff-dialog-header').contains(instanceFullSnapshot.name)
 
         // select a comparison snapshot — comparison starts automatically on selection
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-el="listbox"]').click()
+        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-el="snapshots-list"]').click()
         cy.get('[data-el="listbox-options"] > .ff-option:first').click()
         cy.wait('@fullSnapshot')
 
