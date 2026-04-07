@@ -251,19 +251,24 @@ export default {
         highlightCurrent () {
             const group = this.currentGroup
             if (!group) return
+            // Always pass layerNo explicitly from our own diffType so the renderer
+            // shows the correct layer regardless of its internal change classification.
+            // The renderer's fallback (no layerNo) infers from rc.diffType, which can
+            // be unreliable for tab entries ('tab' diffType → defaults to layer 0 → 10%).
+            const layerNo = group.diffType === 'added' ? 1 : group.diffType === 'deleted' ? 0 : -1
             if (group.type === 'tab') {
                 // The renderer's highlight() for a tab entry looks up the item as an
                 // SVG node, which fails (tabs are DOM elements, not SVG nodes). Instead,
                 // find any node that lives on this tab and highlight that — the renderer
                 // will click the tab and navigate there as a side effect.
                 const proxy = this.rendererChanges.find(rc => rc.tab === group.nodeId && rc.highlight)
-                if (proxy) proxy.highlight()
+                if (proxy) proxy.highlight(layerNo)
                 return
             }
             // Highlight all renderer changes for this node — handles nodes that
             // appear in multiple tabs (e.g. moved from one tab to another)
             for (const rc of this.rendererChanges) {
-                if (rc.item === group.nodeId && rc.highlight) rc.highlight()
+                if (rc.item === group.nodeId && rc.highlight) rc.highlight(layerNo)
             }
         },
         diffTypeBadgeClass (diffType) {
