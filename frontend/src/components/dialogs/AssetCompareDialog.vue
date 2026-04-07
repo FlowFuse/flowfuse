@@ -19,13 +19,6 @@
 
             <!-- Navigation bar — shown after comparison -->
             <div v-if="hasCompared" class="flex items-center gap-2 px-3 py-1.5 border-b border-gray-200 bg-white shrink-0">
-                <button
-                    class="px-2 py-0.5 text-sm rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
-                    :disabled="currentGroupIndex === 0"
-                    @click="navigate(-1)"
-                >
-                    ‹ Prev
-                </button>
                 <div v-if="currentGroup" class="flex-1 flex items-center gap-2 min-w-0">
                     <span class="text-xs font-semibold px-1.5 py-0.5 rounded shrink-0" :class="diffTypeBadgeClass(currentGroup.diffType)">{{ currentGroup.diffType }}</span>
                     <span class="font-semibold text-sm text-gray-800 truncate">{{ currentGroup.name }}</span>
@@ -35,14 +28,26 @@
                     </span>
                 </div>
                 <div v-else class="flex-1 text-sm text-gray-400 text-center">No differences found</div>
-                <span class="text-xs text-gray-400 shrink-0">{{ groupedChanges.length ? `${currentGroupIndex + 1} / ${groupedChanges.length}` : '0' }}</span>
-                <button
-                    class="px-2 py-0.5 text-sm rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
-                    :disabled="currentGroupIndex >= groupedChanges.length - 1"
-                    @click="navigate(1)"
-                >
-                    Next ›
-                </button>
+                <!-- Prev / counter / Next grouped so the two buttons are adjacent -->
+                <div class="flex items-center gap-1 shrink-0">
+                    <button
+                        class="px-2 py-0.5 text-sm rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                        :disabled="currentGroupIndex === 0"
+                        title="Previous change (←)"
+                        @click="navigate(-1)"
+                    >
+                        ‹ Prev
+                    </button>
+                    <span class="text-xs text-gray-400 px-1">{{ groupedChanges.length ? `${currentGroupIndex + 1} / ${groupedChanges.length}` : '0' }}</span>
+                    <button
+                        class="px-2 py-0.5 text-sm rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                        :disabled="currentGroupIndex >= groupedChanges.length - 1"
+                        title="Next change (→)"
+                        @click="navigate(1)"
+                    >
+                        Next ›
+                    </button>
+                </div>
             </div>
 
             <!-- Main area: flow canvas (always visible) + property diff panel (when compared) -->
@@ -203,7 +208,11 @@ export default {
             if (val) this.renderComparison()
         }
     },
+    mounted () {
+        document.addEventListener('keydown', this.onKeyDown)
+    },
     beforeUnmount () {
+        document.removeEventListener('keydown', this.onKeyDown)
         document.removeEventListener('mousemove', this.onResize)
         document.removeEventListener('mouseup', this.stopResize)
     },
@@ -247,6 +256,12 @@ export default {
             if (next < 0 || next >= this.groupedChanges.length) return
             this.currentGroupIndex = next
             this.highlightCurrent()
+        },
+        onKeyDown (e) {
+            if (!this.hasCompared) return
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
+            if (e.key === 'ArrowLeft') { e.preventDefault(); this.navigate(-1) }
+            else if (e.key === 'ArrowRight') { e.preventDefault(); this.navigate(1) }
         },
         highlightCurrent () {
             const group = this.currentGroup
