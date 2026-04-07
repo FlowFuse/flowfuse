@@ -30,7 +30,7 @@
                     aria-label="Close"
                     @click="close"
                 >
-                    <XIcon class="ff-btn--icon" />
+                    <XIcon class="ff-icon" />
                 </button>
             </div>
         </template>
@@ -158,16 +158,17 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
     background: none;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 4px;
-    color: $ff-grey-500;
+    color: inherit;
 
     &:hover {
         background: $ff-grey-100;
-        color: $ff-grey-800;
     }
 }
 </style>
