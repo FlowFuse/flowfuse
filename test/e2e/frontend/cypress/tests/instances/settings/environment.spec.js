@@ -25,7 +25,7 @@ describe('FlowFuse - Instance - Settings Environment', () => {
     it('can add, remove mark as hidden instance environment variables', () => {
         cy.get('[data-el="env-vars-table"]').should('exist')
         cy.get('[data-el="env-vars-table"]').should('be.visible')
-        cy.get('[data-el="env-vars-table"] tbody tr').should('have.length', 2)
+        cy.get('[data-el="env-vars-table"] tbody tr').should('have.length', 3)
 
         cy.get('[data-el="save-settings-button"]').should('be.disabled')
 
