@@ -122,6 +122,8 @@ import { BaseService } from './service.contract.js'
  * @property {Map<string, ManagedMqttSubscription>} subscriptions - Remembered subscriptions used to replay topics after reconnects.
  * @property {MqttConnectionHandlers} handlers - Lifecycle handlers bound to this managed connection.
  * @property {Set<MqttConnectionWaiter>} connectionWaiters - Pending callers waiting for the connection to become usable.
+ * @property {boolean} terminalFailure - Marks the connection as permanently failed until it is recreated.
+ * @property {Error | null} lastError - Most recent terminal connection error, if one exists.
  */
 
 class MqttService extends BaseService {
@@ -308,6 +310,8 @@ class MqttService extends BaseService {
                 reconnectTimer: null,
                 subscriptions: new Map(),
                 connectionWaiters: new Set(),
+                terminalFailure: false,
+                lastError: null,
                 handlers: {
                     onConnect,
                     onClose,
@@ -623,6 +627,10 @@ class MqttService extends BaseService {
             managed.connectionWaiters = new Set()
         }
 
+        if (managed.status === 'failed' && managed.lastError) {
+            return Promise.reject(managed.lastError)
+        }
+
         if (managed.client?.connected && managed.status !== 'reconnecting') {
             return Promise.resolve()
         }
@@ -660,6 +668,7 @@ class MqttService extends BaseService {
         }
 
         managed.status = isReconnect ? 'reconnecting' : 'connecting'
+        managed.lastError = null
 
         const credentials = await managed.getCredentials()
 
@@ -711,6 +720,8 @@ class MqttService extends BaseService {
         register('connect', async () => {
             managed.status = 'connected'
             managed.reconnectAttempt = 0
+            managed.terminalFailure = false
+            managed.lastError = null
             this.clearReconnectTimer(managed)
             this.resolveConnectionWaiters(managed)
 
@@ -764,6 +775,7 @@ class MqttService extends BaseService {
             managed.destroyed ||
             this.$destroyed ||
             managed.intentionalDisconnect ||
+            managed.terminalFailure ||
             !managed.reconnectPolicy.enabled ||
             managed.reconnectTimer
         ) {
@@ -800,10 +812,18 @@ class MqttService extends BaseService {
                 await this.connectManagedClient(managed, true)
             } catch (error) {
                 managed.status = 'failed'
+                managed.lastError = error
+                if (this._isTerminalConnectionError(error)) {
+                    managed.terminalFailure = true
+                    this.clearReconnectTimer(managed)
+                    this.rejectConnectionWaiters(managed, error)
+                }
                 if (typeof managed.handlers.onError === 'function') {
                     managed.handlers.onError(error, managed.client)
                 }
-                this.scheduleReconnect(managed)
+                if (!managed.terminalFailure) {
+                    this.scheduleReconnect(managed)
+                }
             }
         })
     }
@@ -883,32 +903,77 @@ class MqttService extends BaseService {
      */
     _buildCredentialsProvider (key, getCredentials) {
         return async () => {
-            const credentials = await getCredentials()
+            let credentials
+            try {
+                credentials = await getCredentials()
+            } catch (error) {
+                throw this._asTerminalConnectionError(
+                    error,
+                    `MQTT credential provider for connection "${key}" failed`
+                )
+            }
+
             if (!credentials || typeof credentials !== 'object') {
-                throw new Error(`MQTT credential provider for connection "${key}" must resolve to an object`)
+                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${key}" must resolve to an object`)
             }
 
             if (!this._isValidUrl(credentials.url)) {
-                throw new Error(`MQTT credential provider for connection "${key}" must return a valid url`)
+                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${key}" must return a valid url`)
             }
 
             if (typeof credentials.username !== 'string' || !credentials.username.trim()) {
-                throw new Error(`MQTT credential provider for connection "${key}" must return a non-empty username`)
+                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${key}" must return a non-empty username`)
             }
 
             if (typeof credentials.password !== 'string' || !credentials.password.trim()) {
-                throw new Error(`MQTT credential provider for connection "${key}" must return a non-empty password`)
+                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${key}" must return a non-empty password`)
             }
 
             if (
                 credentials.clientId !== undefined &&
                 (typeof credentials.clientId !== 'string' || !credentials.clientId.trim())
             ) {
-                throw new Error(`MQTT credential provider for connection "${key}" must return a non-empty clientId when provided`)
+                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${key}" must return a non-empty clientId when provided`)
+            }
+
+            if (!credentials.clientId) {
+                credentials.clientId = credentials.username
             }
 
             return credentials
         }
+    }
+
+    /**
+     * Create a connection error that should permanently stop reconnect attempts.
+     * @param {string} message - Error message exposed to callers.
+     * @returns {Error} Error marked as terminal for reconnect handling.
+     */
+    _createTerminalConnectionError (message) {
+        const error = new Error(message)
+        error.code = 'MQTT_TERMINAL_CONNECTION_ERROR'
+        return error
+    }
+
+    /**
+     * Mark an existing error as terminal for reconnect handling.
+     * @param {unknown} error - Original thrown value.
+     * @param {string} fallbackMessage - Message used when the thrown value is not an Error instance.
+     * @returns {Error} Error marked as terminal for reconnect handling.
+     */
+    _asTerminalConnectionError (error, fallbackMessage) {
+        const normalized = error instanceof Error ? error : new Error(fallbackMessage)
+        normalized.code = 'MQTT_TERMINAL_CONNECTION_ERROR'
+        return normalized
+    }
+
+    /**
+     * Check whether a connection error should permanently stop reconnect attempts.
+     * @param {unknown} error - Error to inspect.
+     * @returns {boolean} `true` when the error is terminal.
+     */
+    _isTerminalConnectionError (error) {
+        return error instanceof Error && error.code === 'MQTT_TERMINAL_CONNECTION_ERROR'
     }
 
     /**

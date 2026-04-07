@@ -514,6 +514,58 @@ describe('MqttService', async () => {
         }
     })
 
+    test('credential provider failure during reconnect stops retrying and fails waiters immediately', async () => {
+        vi.useFakeTimers()
+
+        const service = createMqttService({
+            app: {},
+            store: {},
+            router: {}
+        })
+
+        const firstClient = createMockClient()
+        firstClient.connected = true
+        mockConnect.mockReturnValueOnce(firstClient)
+
+        const credentialError = new Error('credential lookup failed')
+        const getCredentials = vi.fn()
+            .mockResolvedValueOnce({
+                url: 'mqtt://example.com',
+                username: 'first',
+                password: 'one'
+            })
+            .mockRejectedValueOnce(credentialError)
+
+        try {
+            await service.createClient('reconnect-credential-failure', {
+                getCredentials,
+                reconnect: {
+                    enabled: true,
+                    initialDelay: 1000,
+                    maxDelay: 5000,
+                    factor: 2
+                }
+            })
+
+            firstClient.emit('connect')
+            firstClient.emit('offline')
+
+            await vi.advanceTimersByTimeAsync(1000)
+
+            await expect(service.waitForConnection('reconnect-credential-failure', { timeout: 5000 })).rejects.toThrow('credential lookup failed')
+
+            await vi.advanceTimersByTimeAsync(10000)
+
+            const managed = service.getManagedClient('reconnect-credential-failure')
+            expect(getCredentials).toHaveBeenCalledTimes(2)
+            expect(mockConnect).toHaveBeenCalledTimes(1)
+            expect(managed.status).toBe('failed')
+            expect(managed.terminalFailure).toBe(true)
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+
     test('publishMessage can wait for a connection before publishing', async () => {
         vi.useFakeTimers()
 
