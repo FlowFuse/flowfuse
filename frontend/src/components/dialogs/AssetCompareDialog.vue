@@ -256,17 +256,17 @@ export default {
             // The renderer's fallback (no layerNo) infers from rc.diffType, which can
             // be unreliable for tab entries ('tab' diffType → defaults to layer 0 → 10%).
             const layerNo = group.diffType === 'added' ? 1 : group.diffType === 'deleted' ? 0 : -1
-            // The renderer only animates the slider when value < 10 || value > 90.
-            // After landing at exactly 10 (deleted) or 90 (added), navigating in the
-            // opposite direction leaves the slider stuck because the boundary check is
-            // strict (10 < 10 is false). Reset to the opposite extreme only when the
-            // slider is not already at the correct target, so the animation always fires
-            // when needed but is skipped when the right layer is already showing.
+            // Jump the slider directly to the target and dispatch one input event so
+            // the renderer updates layer opacities immediately. This bypasses the
+            // renderer's slow JS stepping loop (1 unit / 10 ms → up to 900 ms).
+            // The visual smoothness comes from a CSS transition on the SVG layers
+            // defined in the <style> block below.
             if (layerNo !== -1) {
                 const slider = this.$refs.compareViewer?.querySelector('.flow-compare-slider')
                 const target = layerNo === 1 ? 90 : 10
                 if (slider && parseInt(slider.value) !== target) {
-                    slider.value = layerNo === 1 ? 0 : 100
+                    slider.value = target
+                    slider.dispatchEvent(new Event('input', { bubbles: true }))
                 }
             }
             if (group.type === 'tab') {
@@ -413,6 +413,17 @@ export default {
    styled track is visible. */
 .ff-flow-compare-view :deep(input[type='range'].flow-compare-slider) {
     background: transparent;
+}
+
+/* Smooth opacity transitions for SVG flow layers and tab labels.
+   The renderer normally steps opacity via a slow JS loop; we bypass that
+   loop and let CSS handle the fade (see highlightCurrent). */
+.ff-flow-compare-view :deep(.flow-layer-0),
+.ff-flow-compare-view :deep(.flow-layer-1) {
+    transition: opacity 250ms ease;
+}
+.ff-flow-compare-view :deep(.red-ui-tab-label) {
+    transition: opacity 250ms ease;
 }
 
 .ff-compare-main {
