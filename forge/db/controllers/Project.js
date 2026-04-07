@@ -318,7 +318,7 @@ module.exports = {
         let customHostname
         if (app.config.features.enabled('customHostnames')) {
             const projectURL = URL.parse(project.url)
-            const hostnameSetting = project.ProjectSettings?.find(settings => setting.key === KEY_CUSTOM_HOSTNAME)
+            const hostnameSetting = project.ProjectSettings?.find(setting => setting.key === KEY_CUSTOM_HOSTNAME)
             customHostname = hostnameSetting?.value ? `${projectURL.protocol}//${hostnameSetting.value}` : undefined
         }
 
