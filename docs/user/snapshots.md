@@ -250,7 +250,7 @@ _Screenshot to an example flow preview for a Snapshot in FlowFuse_
 
 ### Comparing Snapshots
 
-From any Snapshots tab, you can compare two snapshots by selecting the Snapshot's actions, 
+From any Snapshots tab, you can compare two snapshots by selecting the Snapshot's action, 
 then selecting "Compare Snapshots". This will open a new dialog with the option to choose 
 a second snapshot to compare with.
 
