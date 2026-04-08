@@ -7,6 +7,9 @@ module.exports.init = async function (app) {
     // Set the SSO feature flag
     app.config.features.register('sso', true, true)
 
+    app.postoffice.registerTemplate('SSOCertsExpiring', require('./emailTemplates/SSOCertsExpiring'))
+    app.housekeeper.registerTask(require('./tasks/saml-cert-check'))
+
     async function getProviderOptions (id) {
         const provider = await app.db.models.SAMLProvider.byId(id)
         if (provider) {
