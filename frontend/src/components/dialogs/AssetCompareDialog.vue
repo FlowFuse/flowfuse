@@ -17,8 +17,13 @@
                 />
             </div>
 
+            <!-- Loading state -->
+            <div v-if="loading" class="flex-1 flex items-center justify-center text-sm text-gray-400">
+                Loading snapshot…
+            </div>
+
             <!-- Navigation bar — shown after comparison -->
-            <div v-if="hasCompared" class="flex items-center gap-2 px-3 py-1.5 border-b border-gray-200 bg-white shrink-0">
+            <div v-if="hasCompared && !loading" class="flex items-center gap-2 px-3 py-1.5 border-b border-gray-200 bg-white shrink-0">
                 <div v-if="currentGroup" class="flex-1 flex items-center gap-2 min-w-0">
                     <span class="text-xs font-semibold px-1.5 py-0.5 rounded shrink-0" :class="diffTypeBadgeClass(currentGroup.diffType)">{{ currentGroup.diffType }}</span>
                     <span class="font-semibold text-sm text-gray-800 truncate">{{ currentGroup.name }}</span>
@@ -51,7 +56,7 @@
             </div>
 
             <!-- Main area: flow canvas (always visible) + property diff panel (when compared) -->
-            <div class="ff-compare-main flex overflow-hidden" :class="hasCompared ? 'ff-compare-main--with-nav' : ''">
+            <div v-show="!loading" class="ff-compare-main flex overflow-hidden" :class="hasCompared ? 'ff-compare-main--with-nav' : ''">
                 <!-- Flow canvas -->
                 <div
                     ref="compareViewer"
@@ -139,9 +144,10 @@ export default {
             changes: [],
             rendererChanges: [],
             hasCompared: false,
+            loading: false,
             nodeMap: {},
             currentGroupIndex: 0,
-            sidebarWidth: 380,
+            sidebarWidth: 570,
             resizing: false,
             resizeStartX: 0,
             resizeStartWidth: 0
@@ -226,7 +232,13 @@ export default {
         async renderComparison () {
             this.cleanup()
             this.hasCompared = false
-            const compareSnapshot = await SnapshotsApi.getFullSnapshot(this.compareSnapshot)
+            this.loading = true
+            let compareSnapshot
+            try {
+                compareSnapshot = await SnapshotsApi.getFullSnapshot(this.compareSnapshot)
+            } finally {
+                this.loading = false
+            }
             if (!compareSnapshot?.flows?.flows) {
                 Alerts.emit('Flows not found in the selected snapshot', 'warning')
                 return
