@@ -1,5 +1,5 @@
 <template>
-    <div class="streamable-content">
+    <div class="streamable-content" v-on="richContent ? { click: handleClick } : {}">
         <span v-if="!richContent" :key="text">{{ text }}</span>
         <template v-else>
             <!-- eslint-disable-next-line vue/no-v-html -->
@@ -9,9 +9,9 @@
 </template>
 
 <script>
-import { marked } from 'marked'
 import { mapState } from 'pinia'
 
+import { markedInstance } from '@/composables/strings/Markdown.js'
 import useStreamingWords from '@/composables/strings/StreamingWords.js'
 import { sanitize } from '@/composables/strings/String.js'
 
@@ -80,10 +80,7 @@ export default {
             const rawText = this.modelValue ? this.modelValue.streamable : this.string
 
             if (this.richContent) {
-                return marked(rawText || '', {
-                    breaks: true,
-                    gfm: true
-                })
+                return markedInstance.parse(rawText || '')
             }
 
             return rawText
@@ -119,9 +116,39 @@ export default {
         if (this.shouldStream) {
             this.stream(this.rawText)
         }
+    },
+    methods: {
+        handleClick (event) {
+            const btn = event.target.closest('.ff-code-block--copy')
+            if (!btn) return
+            const codeEl = btn.closest('.ff-code-block')?.querySelector('pre code')
+            if (!codeEl) return
+            navigator.clipboard.writeText(codeEl.textContent || '').then(() => {
+                btn.textContent = 'Copied!'
+                btn.classList.add('ff-code-block--copy-success')
+                setTimeout(() => {
+                    btn.textContent = 'Copy'
+                    btn.classList.remove('ff-code-block--copy-success')
+                }, 2000)
+            }).catch(() => {
+                // execCommand is deprecated but remains the only fallback for non-secure
+                // contexts (HTTP) where the Clipboard API is unavailable
+                const range = document.createRange()
+                range.selectNodeContents(codeEl)
+                window.getSelection()?.removeAllRanges()
+                window.getSelection()?.addRange(range)
+                document.execCommand('copy')
+                window.getSelection()?.removeAllRanges()
+            })
+        }
     }
 }
 </script>
+
+<!-- Unscoped: hljs theme must apply to v-html rendered content which lacks the scoped data attribute -->
+<style>
+@import 'highlight.js/styles/github.css';
+</style>
 
 <style scoped lang="scss">
 .streamable-content {
@@ -130,6 +157,71 @@ export default {
 
         li {
             list-style: initial;
+        }
+    }
+
+    :deep(.ff-code-block) {
+        margin: 0.75rem 0;
+        border: 1px solid $ff-grey-200;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        font-size: 0.8125rem;
+
+        pre {
+            margin: 0;
+            padding: 1rem;
+            overflow-x: auto;
+            background: $ff-grey-50;
+            border-radius: 0;
+
+            code {
+                font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                background: transparent;
+                border: none;
+                padding: 0;
+                white-space: pre;
+                word-break: normal;
+            }
+        }
+    }
+
+    :deep(.ff-code-block--header) {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.3rem 0.75rem;
+        background: $ff-grey-100;
+        border-bottom: 1px solid $ff-grey-200;
+        min-height: 2rem;
+    }
+
+    :deep(.ff-code-block--lang) {
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+        font-size: 0.6875rem;
+        color: $ff-grey-500;
+        text-transform: lowercase;
+    }
+
+    :deep(.ff-code-block--copy) {
+        margin-left: auto;
+        font-size: 0.6875rem;
+        color: $ff-grey-500;
+        background: none;
+        border: 1px solid $ff-grey-300;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        padding: 0.125rem 0.5rem;
+        line-height: 1.4;
+        transition: background-color 0.15s, color 0.15s;
+
+        &:hover {
+            background: $ff-grey-200;
+            color: $ff-grey-700;
+        }
+
+        &.ff-code-block--copy-success {
+            color: $ff-green-600;
+            border-color: $ff-green-300;
         }
     }
 }
