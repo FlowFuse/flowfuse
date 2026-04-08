@@ -30,7 +30,7 @@ module.exports = {
                                 await emailAdmins(app, 'SSOCertsExpiring', { name: sso.name, date: cert.validTo })
                             }
                         } catch (err) {
-                            app.log.debug(`Problem checking SSO certificate ${err.toString()}`)
+                            app.log.debug(`Problem checking ${sso.name}'s SSO certificate ${err.toString()}`)
                         }
                     }
                 }
