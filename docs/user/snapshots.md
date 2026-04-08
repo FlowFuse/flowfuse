@@ -250,7 +250,22 @@ _Screenshot to an example flow preview for a Snapshot in FlowFuse_
 
 ### Comparing Snapshots
 
-From any Snapshots tab, you can compare two snapshots by selecting the Snapshot's actions, then selecting "Compare Snapshots". This will open a new Dialog with option to chose a second snapshot to compare with.
+From any Snapshots tab, you can compare two snapshots by selecting the Snapshot's actions, 
+then selecting "Compare Snapshots". This will open a new dialog with the option to choose 
+a second snapshot to compare with.
 
-![Compare snapshots](images/snapshots/compare.png)
-_Screenshot demonstrating the compare snapshots feature_
+In the top left, a sidebar lists every changed, added, and deleted node, showing what action 
+occurred for each. The flow canvas highlights the selected node and scrolls to it 
+automatically, giving you a visual indication of where the change is in your flow. The right 
+side shows the property and code changes for the affected node. You can step through them 
+one at a time using the **Prev / Next** buttons. For each change you can see:
+
+- **Property diffs** - Each changed property is shown inline with the old and new value side by side, with red `-` for removed and green `+` for added
+
+![Screenshot showing property-level diff with old and new values displayed side by side](images/snapshots/snapshot-diff-prop-change.png)
+_Screenshot showing property-level diff with old and new values displayed side by side_
+
+- **Code diffs** - For function and template nodes, code changes appear as a line-level diff with red `-` for removed lines and green `+` for added, the same format you'd expect from a git diff
+
+![Screenshot showing a code diff for a function node with red and green line-level changes](images/snapshots/snapshot-diff-code-change.png)
+_Screenshot showing a code diff for a function node with red and green line-level changes_
