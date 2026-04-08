@@ -358,14 +358,13 @@ export default {
                 result.push(c)
             }
             if (xChange || yChange) {
-                const v1x = xChange?.value1
-                const v1y = yChange?.value1
-                const v2x = xChange?.value2
-                const v2y = yChange?.value2
+                const node = this.nodeMap[this.currentGroup?.nodeId] || {}
+                const v1 = { x: xChange ? xChange.value1 : node.x, y: yChange ? yChange.value1 : node.y }
+                const v2 = { x: xChange ? xChange.value2 : node.x, y: yChange ? yChange.value2 : node.y }
                 result.push({
                     prop: 'position',
-                    value1: (v1x !== undefined || v1y !== undefined) ? { x: v1x, y: v1y } : undefined,
-                    value2: (v2x !== undefined || v2y !== undefined) ? { x: v2x, y: v2y } : undefined
+                    value1: (v1.x !== undefined || v1.y !== undefined) ? v1 : undefined,
+                    value2: (v2.x !== undefined || v2.y !== undefined) ? v2 : undefined
                 })
             }
             // Compact props always appear first as a block
