@@ -128,14 +128,6 @@ export default {
     overflow: hidden;
 }
 
-:deep(.ff-dialog-content) {
-    padding: 0;
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-}
-
 .modal-title {
     font-size: 1.25rem;
     font-weight: 600;
