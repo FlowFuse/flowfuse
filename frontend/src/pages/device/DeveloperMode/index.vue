@@ -5,7 +5,7 @@
                 <BeakerIcon />
             </template>
             <template #content>
-                <InfoCardRow property="Editor Access:">
+                <InfoCardRow v-if="!isImmersiveEditor" property="Editor Access:">
                     <template #value>
                         <div class="flex gap-9 items-center">
                             <div class="font-medium forge-badge" :class="'forge-status-' + (editorEnabled ? (editorTunnelConnected ? 'running' : 'error') : 'stopped')">
@@ -84,7 +84,7 @@
                             <ff-button
                                 :disabled="createSnapshotDisabled"
                                 kind="secondary"
-                                class="w-28 whitespace-nowrap"
+                                class="whitespace-nowrap"
                                 size="small"
                                 data-action="create-snapshot-dialog"
                                 @click="showCreateSnapshotDialog"
@@ -180,6 +180,9 @@ export default {
         },
         deviceIsApplicationOwned () {
             return this.device.ownerType === 'application'
+        },
+        isImmersiveEditor () {
+            return this.$route.name === 'device-editor-developer-mode'
         }
     },
     watch: {
