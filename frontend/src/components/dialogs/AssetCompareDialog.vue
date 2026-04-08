@@ -147,7 +147,7 @@ export default {
             loading: false,
             nodeMap: {},
             currentGroupIndex: 0,
-            sidebarWidth: 570,
+            sidebarWidth: 380,
             resizing: false,
             resizeStartX: 0,
             resizeStartWidth: 0
