@@ -265,7 +265,7 @@ one at a time using the **Prev / Next** buttons. For each change you can see:
 ![Screenshot showing property-level diff with old and new values displayed side by side](images/snapshots/snapshot-diff-prop-change.png)
 _Screenshot showing property-level diff with old and new values displayed side by side_
 
-- **Code diffs** - For function and template nodes, code changes appear as a line-level diff with red `-` for removed lines and green `+` for added, the same format you'd expect from a git diff
+- **Code diffs** - For multiline properties — for example in function and template nodes — code changes appear as a line-level diff with red `-` for removed lines and green `+` for added, the same format you'd expect from a git diff
 
 ![Screenshot showing a code diff for a function node with red and green line-level changes](images/snapshots/snapshot-diff-code-change.png)
 _Screenshot showing a code diff for a function node with red and green line-level changes_
