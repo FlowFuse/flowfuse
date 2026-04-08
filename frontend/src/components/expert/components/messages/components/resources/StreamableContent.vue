@@ -11,7 +11,7 @@
 <script>
 import { mapState } from 'pinia'
 
-import { markedInstance } from '@/composables/strings/Markdown.js'
+import { CODE_BLOCK_ICONS, useMarkdownHelper } from '@/composables/strings/Markdown.js'
 import useStreamingWords from '@/composables/strings/StreamingWords.js'
 import { sanitize } from '@/composables/strings/String.js'
 
@@ -71,8 +71,9 @@ export default {
         const { stream, text, isStreaming } = useStreamingWords({
             delayMs: 30
         })
+        const { markedInstance } = useMarkdownHelper()
 
-        return { stream, streamedText: text, isStreaming, sanitize }
+        return { stream, streamedText: text, isStreaming, sanitize, markedInstance }
     },
     computed: {
         ...mapState(useProductAssistantStore, ['supportedActions']),
@@ -80,7 +81,7 @@ export default {
             const rawText = this.modelValue ? this.modelValue.streamable : this.string
 
             if (this.richContent) {
-                return markedInstance.parse(rawText || '')
+                return this.markedInstance.parse(rawText || '')
             }
 
             return rawText
@@ -124,31 +125,24 @@ export default {
             const codeEl = btn.closest('.ff-code-block')?.querySelector('pre code')
             if (!codeEl) return
             navigator.clipboard.writeText(codeEl.textContent || '').then(() => {
-                btn.textContent = 'Copied!'
-                btn.classList.add('ff-code-block--copy-success')
-                setTimeout(() => {
-                    btn.textContent = 'Copy'
-                    btn.classList.remove('ff-code-block--copy-success')
-                }, 2000)
+                btn.innerHTML = CODE_BLOCK_ICONS.ICON_CHECK
+                setTimeout(() => { btn.innerHTML = CODE_BLOCK_ICONS.ICON_DUPLICATE }, 2000)
             }).catch(() => {
                 // execCommand is deprecated but remains the only fallback for non-secure
                 // contexts (HTTP) where the Clipboard API is unavailable
-                const range = document.createRange()
-                range.selectNodeContents(codeEl)
-                window.getSelection()?.removeAllRanges()
-                window.getSelection()?.addRange(range)
+                const textarea = document.createElement('textarea')
+                textarea.value = codeEl.textContent || ''
+                textarea.style.position = 'fixed'
+                textarea.style.left = '-999999px'
+                document.body.appendChild(textarea)
+                textarea.select()
                 document.execCommand('copy')
-                window.getSelection()?.removeAllRanges()
+                document.body.removeChild(textarea)
             })
         }
     }
 }
 </script>
-
-<!-- Unscoped: hljs theme must apply to v-html rendered content which lacks the scoped data attribute -->
-<style>
-@import 'highlight.js/styles/github.css';
-</style>
 
 <style scoped lang="scss">
 .streamable-content {
@@ -173,6 +167,9 @@ export default {
             overflow-x: auto;
             background: $ff-grey-50;
             border-radius: 0;
+            white-space: pre;
+            overflow-wrap: normal;
+            word-break: normal;
 
             code {
                 font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
@@ -203,25 +200,26 @@ export default {
     }
 
     :deep(.ff-code-block--copy) {
-        margin-left: auto;
-        font-size: 0.6875rem;
-        color: $ff-grey-500;
-        background: none;
-        border: 1px solid $ff-grey-300;
-        border-radius: 0.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        background: transparent;
+        border: none;
+        border-radius: 4px;
         cursor: pointer;
-        padding: 0.125rem 0.5rem;
-        line-height: 1.4;
-        transition: background-color 0.15s, color 0.15s;
+        color: $ff-color--action;
+        transition: all 0.2s ease;
 
-        &:hover {
-            background: $ff-grey-200;
-            color: $ff-grey-700;
+        svg {
+            width: 1rem;
+            height: 1rem;
+            pointer-events: none;
         }
 
-        &.ff-code-block--copy-success {
-            color: $ff-green-600;
-            border-color: $ff-green-300;
+        &:hover {
+            color: $ff-white;
+            background-color: $ff-color--highlight;
         }
     }
 }
