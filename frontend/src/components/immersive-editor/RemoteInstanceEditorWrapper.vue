@@ -64,7 +64,6 @@ export default {
         }
     },
     mounted () {
-        window.addEventListener('message', this.eventListener)
         // Dispatch a synthetic mousemove every 25 minutes to keep PostHog's idle
         // session timer alive. PostHog resets its recording after ~30 minutes of
         // inactivity on the parent page — but the user may be actively working
@@ -75,23 +74,10 @@ export default {
     },
     beforeUnmount () {
         clearInterval(this.posthogKeepAliveInterval)
-        // Clear the iframe src before unmount so PostHog's rrweb recorder can safely
-        // detach its event listeners. Without this, rrweb throws a SecurityError when
-        // calling contentWindow.removeEventListener on the cross-origin Node-RED iframe.
+        // Remove from DOM before unmount so rrweb doesn't try to access the
+        // cross-origin contentWindow during teardown.
         if (this.$refs.iframe) {
-            this.$refs.iframe.src = 'about:blank'
-        }
-    },
-    unmounted () {
-        window.removeEventListener('message', this.eventListener)
-    },
-    methods: {
-        eventListener (event) {
-            if (this.device?.editor?.url && event.origin === this.device.editor.url) {
-                // Forward iframe activity to the parent page so PostHog's idle timer
-                // is reset when the user is active inside the cross-origin iframe.
-                window.dispatchEvent(new MouseEvent('mousemove'))
-            }
+            this.$refs.iframe.parentNode?.removeChild(this.$refs.iframe)
         }
     }
 }
