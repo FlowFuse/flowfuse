@@ -8,11 +8,13 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import { useRouter } from 'vue-router'
-import { mapState } from 'vuex'
 
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import usePermissions from '../../../composables/Permissions.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceSettings',
@@ -29,7 +31,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
+        ...mapState(useContextStore, ['teamMembership']),
         sideNav () {
             const canEditDevice = this.hasPermission('device:edit', { application: this.device.application })
             const isApplicationOwned = this.device.ownerType === 'application'

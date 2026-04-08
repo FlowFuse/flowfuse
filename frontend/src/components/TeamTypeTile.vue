@@ -31,11 +31,11 @@
 
 <script>
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import { useHubspotHelper } from '../composables/Hubspot.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'TeamTypeTile',
@@ -59,7 +59,7 @@ export default {
         return { talkToSalesCalendarModal }
     },
     computed: {
-        ...mapVuexState('account', ['teams']),
+        ...mapState(useAccountStore, ['teams']),
         ...mapState(useAccountAuthStore, ['user']),
         pricing: function () {
             const billingDescriptionKey = this.billingInterval === 'year' ? 'yrDescription' : 'description'

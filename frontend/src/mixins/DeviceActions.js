@@ -1,4 +1,4 @@
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import ApplicationApi from '../api/application.js'
 
@@ -8,9 +8,11 @@ import teamApi from '../api/team.js'
 import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 
+import { useContextStore } from '@/stores/context.js'
+
 export default {
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         displayingTeam () {
             return this.team !== null && !this.displayingInstance && !this.displayingApplication
         },
