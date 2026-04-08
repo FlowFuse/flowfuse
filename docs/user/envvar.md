@@ -49,17 +49,17 @@ The image below shows an instance with the following environment variables:
 Standard environment variables are set for all Node-RED instances running
 within the platform:
 
-- `FF_INSTANCE_ID`
-- `FF_INSTANCE_NAME`
-- `FF_INSTANCE_URL`
+- `FF_INSTANCE_ID` - The unique identifier of the instance
+- `FF_INSTANCE_NAME` - The name of the instance as set in FlowFuse
+- `FF_INSTANCE_URL` - The full URL of the instance (e.g. `https://my-instance.flowfuse.cloud`)
 
 In addition, the following variables are set when running on a device:
 
-- `FF_DEVICE_ID`
-- `FF_DEVICE_NAME`
-- `FF_DEVICE_TYPE`
-- `FF_SNAPSHOT_ID`
-- `FF_SNAPSHOT_NAME`
+- `FF_DEVICE_ID` - The unique identifier of the device
+- `FF_DEVICE_NAME` - The name of the device as set in FlowFuse
+- `FF_DEVICE_TYPE` - The device type label assigned in FlowFuse
+- `FF_SNAPSHOT_ID` - The unique identifier of the snapshot currently deployed to the device
+- `FF_SNAPSHOT_NAME` - The name of the snapshot currently deployed to the device
 
 When deploying the same set of flows out to multiple devices, these variables can
 be used by the flows to identify the specific device being run on.
