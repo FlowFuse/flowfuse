@@ -186,7 +186,7 @@ export default {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0.3rem 0.75rem;
+        padding: 0.3rem 1rem;
         background: $ff-grey-100;
         border-bottom: 1px solid $ff-grey-200;
         min-height: 2rem;
@@ -212,8 +212,8 @@ export default {
         transition: all 0.2s ease;
 
         svg {
-            width: 1rem;
-            height: 1rem;
+            width: 1.5rem;
+            height: 1.5rem;
             pointer-events: none;
         }
 
