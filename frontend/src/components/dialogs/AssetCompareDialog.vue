@@ -125,7 +125,7 @@ export default {
                 this.rendererChanges = []
                 this.hasCompared = false
                 this.nodeMap = {}
-                this.compareSnapshotList = snapshotList
+                this.compareSnapshotList = snapshotList.filter(s => s.value !== v1Snapshot?.id)
                 this.currentGroupIndex = 0
                 this.$refs.dialog.show()
             }
