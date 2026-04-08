@@ -5,6 +5,7 @@
         :show-actions="false"
         box-class="snapshot-details-modal"
         style="z-index: 100"
+        content-class="!p-0"
     >
         <template #header>
             <h2 class="modal-title" :title="headerTitle">{{ headerTitle }}</h2>
