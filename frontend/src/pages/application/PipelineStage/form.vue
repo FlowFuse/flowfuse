@@ -343,7 +343,7 @@
 import { InformationCircleIcon } from '@heroicons/vue/outline'
 
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import { StageAction, StageType } from '../../../api/pipeline.js'
 import teamApi from '../../../api/team.js'
@@ -442,6 +442,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapVuexState('account', ['features']),
+        ...mapGetters('account', ['featuresCheck']),
         isEdit () {
             return !!this.stage.id
         },
@@ -598,7 +599,7 @@ export default {
             return 'Choose Remote Instance'
         },
         deviceGroupsEnabled () {
-            return this.features?.deviceGroups && this.team?.type.properties.features?.deviceGroups
+            return this.featuresCheck?.isDeviceGroupsFeatureEnabled
         },
         devicesGroupsNotInUse () {
             const deviceGroupIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
@@ -635,7 +636,7 @@ export default {
             return 'Choose Application Level Device Group'
         },
         gitReposEnabled () {
-            return this.features?.gitIntegration && this.team?.type.properties.features?.gitIntegration
+            return this.featuresCheck?.isGitIntegrationFeatureEnabled
         },
         actionOptions () {
             const type = this.input.stageType === StageType.DEVICE ? 'device' : 'instance'

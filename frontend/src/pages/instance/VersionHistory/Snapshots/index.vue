@@ -1,5 +1,11 @@
 <template>
     <div class="space-y-6 flex-1 flex flex-col overflow-auto">
+        <SnapshotDetailsModal
+            ref="snapshotDetailsModal"
+            @updated-snapshot="fetchData(true)"
+            @restored-snapshot="fetchData(true)"
+            @deleted-snapshot="fetchData(true)"
+        />
         <ff-loading v-if="loading" message="Loading Snapshots..." />
         <template v-if="snapshots.length > 0 && !loading">
             <ff-data-table
@@ -57,6 +63,7 @@ import SnapshotApi from '../../../../api/projectSnapshots.js'
 import DropdownMenu from '../../../../components/DropdownMenu.vue'
 
 import EmptyState from '../../../../components/EmptyState.vue'
+import SnapshotDetailsModal from '../../../../components/dialogs/SnapshotDetailsModal.vue'
 import SnapshotDetailsDrawer from '../../../../components/drawers/snapshots/SnapshotDetailsDrawer.vue'
 import UserCell from '../../../../components/tables/cells/UserCell.vue'
 import usePermissions from '../../../../composables/Permissions.js'
@@ -77,7 +84,8 @@ export default {
     components: {
         DropdownMenu,
         EmptyState,
-        FilterIcon
+        FilterIcon,
+        SnapshotDetailsModal
     },
     mixins: [snapshotsMixin],
     inheritAttrs: false,
@@ -241,6 +249,10 @@ export default {
             return deviceCounts
         },
         onRowSelected (snapshot) {
+            if (this.$route.name?.startsWith('instance-editor-')) {
+                this.$refs.snapshotDetailsModal.show(snapshot, this.snapshotList, this.instance)
+                return
+            }
             this.openRightDrawer({
                 component: markRaw(SnapshotDetailsDrawer),
                 props: { snapshot, snapshotList: this.snapshotList, instance: this.instance },

@@ -193,14 +193,9 @@ describe('FlowFuse - Application - Snapshots', () => {
         cy.get('[data-el="dialog-compare-snapshot"]').should('be.visible')
         cy.get('[data-el="dialog-compare-snapshot"] .ff-dialog-header').contains(instanceFullSnapshot.name)
 
-        // initially, the compare button should be disabled
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-action="compare-snapshots"]').should('be.disabled')
-
-        // select a comparison snapshot
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"]').click()
+        // select a comparison snapshot — comparison starts automatically on selection
+        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-el="snapshots-list"]').click()
         cy.get('[data-el="listbox-options"] > .ff-option:first').click()
-        // click compare button
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-action="compare-snapshots"]').click()
         cy.wait('@fullSnapshot')
 
         // check an SVG in present the content section

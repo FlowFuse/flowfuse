@@ -8,12 +8,14 @@
             >
                 <div class="header flex flex-row justify-between mb-2">
                     <span class="title font-bold">Flows:</span>
-                    <span
-                        class="compare ff-link" data-action="compare-snapshot"
+                    <ff-button
+                        size="small"
+                        kind="secondary"
+                        data-action="compare-snapshot"
                         @click="showCompareSnapshotDialog(snapshot)"
                     >
-                        compare...
-                    </span>
+                        Compare
+                    </ff-button>
                 </div>
                 <information-well
                     class="flex-grow-1 min-h-0 flex-col !mb-2"
@@ -218,6 +220,12 @@ export default defineComponent({
             required: false,
             default: false
         },
+        headerMode: {
+            type: String,
+            required: false,
+            default: 'drawer',
+            validator: (value) => ['drawer', 'modal'].includes(value)
+        },
         snapshot: {
             type: Object,
             required: true
@@ -227,7 +235,7 @@ export default defineComponent({
             required: true
         }
     },
-    emits: ['restored-snapshot', 'updated-snapshot', 'deleted-snapshot'],
+    emits: ['restored-snapshot', 'updated-snapshot', 'deleted-snapshot', 'header-changed'],
     setup () {
         const { hasPermission } = usePermissions()
 
@@ -323,7 +331,7 @@ export default defineComponent({
         },
         setHeader () {
             const context = this
-            return this.setRightDrawerHeader({
+            const headerConfig = {
                 title: this.snapshot.name,
                 actions: [
                     {
@@ -397,7 +405,12 @@ export default defineComponent({
                         }
                     }
                 ]
-            })
+            }
+            if (this.headerMode === 'modal') {
+                this.$emit('header-changed', headerConfig)
+            } else {
+                this.setRightDrawerHeader(headerConfig)
+            }
         },
         loadFlows () {
             return snapshotsApi.getFullSnapshot(this.snapshot.id)
