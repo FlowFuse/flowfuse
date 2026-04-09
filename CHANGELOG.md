@@ -1,3 +1,8 @@
+#### 2.29.1: Release
+
+ - docs: update snapshot comparison section with property and code diff details (#7045) @sumitshinde-84
+ - docs: document Expert open-by-default and close-persistence behaviour (v2.29) (#7060) @sumitshinde-84
+
 #### 2.29.0: Release
 
  - docs: refactor the Quick Start page (#6982)
