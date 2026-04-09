@@ -40,7 +40,7 @@ export function useMarkdownHelper () {
                     highlighted = hljs.highlightAuto(text).value
                 }
                 const langLabel = language ? `<span class="ff-code-block--lang">${language}</span>` : ''
-                return `<div class="ff-code-block"><div class="ff-code-block--header">${langLabel}<button class="ff-code-block--copy">${ICON_DUPLICATE}</button></div><pre><code class="hljs">${highlighted}</code></pre></div>`
+                return `<div class="ff-code-block"><div class="ff-code-block--header">${langLabel}<button class="ff-code-block--copy">${ICON_DUPLICATE}</button></div><pre><code class="hljs">${highlighted.replace(/\n/g, '&#10;')}</code></pre></div>`
             }
         }
     })
