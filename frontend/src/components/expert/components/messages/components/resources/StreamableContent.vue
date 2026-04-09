@@ -1,5 +1,5 @@
 <template>
-    <div class="streamable-content">
+    <div class="streamable-content" v-on="richContent ? { click: handleClick } : {}">
         <span v-if="!richContent" :key="text">{{ text }}</span>
         <template v-else>
             <!-- eslint-disable-next-line vue/no-v-html -->
@@ -9,9 +9,9 @@
 </template>
 
 <script>
-import { marked } from 'marked'
 import { mapState } from 'pinia'
 
+import { CODE_BLOCK_ICONS, useMarkdownHelper } from '@/composables/strings/Markdown.js'
 import useStreamingWords from '@/composables/strings/StreamingWords.js'
 import { sanitize } from '@/composables/strings/String.js'
 
@@ -71,8 +71,9 @@ export default {
         const { stream, text, isStreaming } = useStreamingWords({
             delayMs: 30
         })
+        const { markedInstance } = useMarkdownHelper()
 
-        return { stream, streamedText: text, isStreaming, sanitize }
+        return { stream, streamedText: text, isStreaming, sanitize, markedInstance }
     },
     computed: {
         ...mapState(useProductAssistantStore, ['supportedActions']),
@@ -80,10 +81,7 @@ export default {
             const rawText = this.modelValue ? this.modelValue.streamable : this.string
 
             if (this.richContent) {
-                return marked(rawText || '', {
-                    breaks: true,
-                    gfm: true
-                })
+                return this.markedInstance.parse(rawText || '')
             }
 
             return rawText
@@ -119,6 +117,29 @@ export default {
         if (this.shouldStream) {
             this.stream(this.rawText)
         }
+    },
+    methods: {
+        handleClick (event) {
+            const btn = event.target.closest('.ff-code-block--copy')
+            if (!btn) return
+            const codeEl = btn.closest('.ff-code-block')?.querySelector('pre code')
+            if (!codeEl) return
+            navigator.clipboard.writeText(codeEl.textContent || '').then(() => {
+                btn.innerHTML = CODE_BLOCK_ICONS.ICON_CHECK
+                setTimeout(() => { btn.innerHTML = CODE_BLOCK_ICONS.ICON_DUPLICATE }, 2000)
+            }).catch(() => {
+                // execCommand is deprecated but remains the only fallback for non-secure
+                // contexts (HTTP) where the Clipboard API is unavailable
+                const textarea = document.createElement('textarea')
+                textarea.value = codeEl.textContent || ''
+                textarea.style.position = 'fixed'
+                textarea.style.left = '-999999px'
+                document.body.appendChild(textarea)
+                textarea.select()
+                document.execCommand('copy')
+                document.body.removeChild(textarea)
+            })
+        }
     }
 }
 </script>
@@ -130,6 +151,75 @@ export default {
 
         li {
             list-style: initial;
+        }
+    }
+
+    :deep(.ff-code-block) {
+        margin: 0.75rem 0;
+        border: 1px solid $ff-grey-200;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        font-size: 0.8125rem;
+
+        pre {
+            margin: 0;
+            padding: 1rem;
+            overflow-x: auto;
+            background: $ff-grey-50;
+            border-radius: 0;
+            white-space: pre;
+            overflow-wrap: normal;
+            word-break: normal;
+
+            code {
+                font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+                background: transparent;
+                border: none;
+                padding: 0;
+                white-space: pre;
+                word-break: normal;
+            }
+        }
+    }
+
+    :deep(.ff-code-block--header) {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.3rem 1rem;
+        background: $ff-grey-100;
+        border-bottom: 1px solid $ff-grey-200;
+        min-height: 2rem;
+    }
+
+    :deep(.ff-code-block--lang) {
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+        font-size: 0.6875rem;
+        color: $ff-grey-500;
+        text-transform: lowercase;
+    }
+
+    :deep(.ff-code-block--copy) {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        background: transparent;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        color: $ff-color--action;
+        transition: all 0.2s ease;
+
+        svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            pointer-events: none;
+        }
+
+        &:hover {
+            color: $ff-white;
+            background-color: $ff-color--highlight;
         }
     }
 }

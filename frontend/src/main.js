@@ -23,6 +23,7 @@ import { getServiceFactory } from './services/service.factory.js'
 import { skipResetPlugin } from './stores/plugins/skip-reset.plugin.js'
 
 import './index.css'
+import 'highlight.js/styles/github.css'
 
 import ForgeUIComponents from './ui-components/index.js'
 
