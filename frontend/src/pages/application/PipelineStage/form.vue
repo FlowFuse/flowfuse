@@ -441,7 +441,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useAccountSettingsStore, ['features, featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['features', 'featuresCheck']),
         isEdit () {
             return !!this.stage.id
         },
