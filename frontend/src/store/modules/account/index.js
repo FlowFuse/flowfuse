@@ -166,6 +166,7 @@ const getters = {
             devOpsPipelinesFeatureEnabledForPlatform: !!state.features?.['devops-pipelines'],
 
             isGitIntegrationFeatureEnabledForPlatform: !!state.features?.gitIntegration,
+            isGitIntegrationFeatureEnabledForTeam: !!team?.type?.properties?.features?.gitIntegration || team?.type?.properties?.enableAllFeatures,
 
             // Instance Resources
             isInstanceResourcesFeatureEnabledForPlatform: !!state.features?.instanceResources,
@@ -203,7 +204,7 @@ const getters = {
             isExternalMqttBrokerFeatureEnabled: preCheck.isExternalMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
             devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
             isDeviceGroupsFeatureEnabled: !!team?.type?.properties?.features?.deviceGroups || !!team?.type?.properties?.enableAllFeatures,
-            isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && !!team?.type?.properties?.features?.gitIntegration,
+            isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && preCheck.isGitIntegrationFeatureEnabledForTeam,
             isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam,
             isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam,
             isGeneratedSnapshotDescriptionEnabled: preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForPlatform && preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForTeam,
