@@ -43,11 +43,11 @@
 import { LockClosedIcon, LockOpenIcon, XIcon } from '@heroicons/vue/solid'
 
 import { mapActions, mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
 import ExpertPanel from '../../expert/Expert.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -64,7 +64,7 @@ export default {
     computed: {
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useProductExpertStore, ['agentMode']),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         agentModeButtons () {
             return [
                 { title: 'Support', value: 'support-agent' },
