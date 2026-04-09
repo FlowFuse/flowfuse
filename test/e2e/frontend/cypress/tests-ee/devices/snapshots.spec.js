@@ -194,14 +194,9 @@ describe('FlowFuse - Devices - With Billing', () => {
 
         cy.wait('@fullSnapshot')
 
-        // initially, the compare button should be disabled
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-action="compare-snapshots"]').should('be.disabled')
-
-        // select the snapshot to compare with
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"]').click()
+        // select the snapshot to compare with — comparison starts automatically on selection
+        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-el="snapshots-list"]').click()
         cy.get('[data-el="listbox-options"] > .ff-option:first').click()
-        // click compare button
-        cy.get('[data-el="dialog-compare-snapshot"] [data-el="snapshot-compare-toolbar"] [data-action="compare-snapshots"]').click()
         cy.wait('@fullSnapshot')
 
         // check the flow renders an SVG in the content section

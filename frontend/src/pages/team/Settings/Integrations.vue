@@ -141,7 +141,7 @@ export default {
         team: 'fetchData'
     },
     async mounted () {
-        if (this.features.gitIntegration && this.featuresCheck.isGitIntegrationFeatureEnabled) {
+        if (this.featuresCheck.isGitIntegrationFeatureEnabled) {
             await this.fetchData()
         }
         this.loading = false
