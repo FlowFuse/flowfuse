@@ -18,6 +18,8 @@ forge:
     enabled: true
   expert:
     enabled: true
+    insights:
+      enabled: true
   resources:
     limits:
       cpu: 1000m
