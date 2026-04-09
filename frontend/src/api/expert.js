@@ -20,7 +20,8 @@ const chat = async ({
         headers: {
             'X-Chat-Session-ID': sessionId,
             'X-Chat-Transaction-ID': transactionId
-        }
+        },
+        timeout: 60000 // TODO: get from config expert.service.requestTimeout
     }).then(res => {
         // Validate transaction ID to prevent race conditions
         if (res.data.transactionId !== transactionId) {
