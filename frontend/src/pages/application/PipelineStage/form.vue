@@ -441,7 +441,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useAccountSettingsStore, ['features, featuresCheck']),
         isEdit () {
             return !!this.stage.id
         },
@@ -598,7 +598,7 @@ export default {
             return 'Choose Remote Instance'
         },
         deviceGroupsEnabled () {
-            return this.features?.deviceGroups && this.team?.type.properties.features?.deviceGroups
+            return this.featuresCheck?.isDeviceGroupsFeatureEnabled
         },
         devicesGroupsNotInUse () {
             const deviceGroupIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
@@ -635,7 +635,7 @@ export default {
             return 'Choose Application Level Device Group'
         },
         gitReposEnabled () {
-            return this.features?.gitIntegration && this.team?.type.properties.features?.gitIntegration
+            return this.featuresCheck?.isGitIntegrationFeatureEnabled
         },
         actionOptions () {
             const type = this.input.stageType === StageType.DEVICE ? 'device' : 'instance'

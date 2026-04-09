@@ -8,14 +8,16 @@
             v-bind="$attrs"
         >
             <div class="ff-dialog-box" :class="boxClass">
-                <div class="ff-dialog-header" data-sentry-unmask>
-                    {{ header }}
-                    <span v-if="subHeader" class="ff-dialog-subheader">{{ subHeader }}</span>
+                <div class="ff-dialog-header" :class="{ 'ff-dialog-header--light': headerVariant === 'light' }" data-sentry-unmask>
+                    <slot name="header">
+                        {{ header }}
+                        <span v-if="subHeader" class="ff-dialog-subheader">{{ subHeader }}</span>
+                    </slot>
                 </div>
                 <div ref="content" class="ff-dialog-content" :class="contentClass">
                     <slot></slot>
                 </div>
-                <div class="ff-dialog-actions">
+                <div v-if="showActions" class="ff-dialog-actions">
                     <slot name="actions">
                         <ff-button v-if="canBeCanceled" kind="secondary" data-action="dialog-cancel" @click="cancel()">{{ cancelLabel }}</ff-button>
                         <ff-button :kind="kind" data-action="dialog-confirm" :disabled="disablePrimary" @click="confirm()">{{ confirmLabel }}</ff-button>
@@ -74,6 +76,15 @@ export default {
         notices: {
             type: Array,
             default: () => []
+        },
+        headerVariant: {
+            type: String,
+            default: 'default',
+            validator: (v) => ['default', 'light'].includes(v)
+        },
+        showActions: {
+            type: Boolean,
+            default: true
         }
     },
     emits: ['cancel', 'confirm'],
