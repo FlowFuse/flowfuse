@@ -114,7 +114,7 @@
 
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
-import { mapGetters, mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
@@ -165,7 +165,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership']),
         ...mapGetters('account', ['featuresCheck']),
         cloudColumns () {
             return [

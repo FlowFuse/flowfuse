@@ -16,7 +16,7 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['features', 'team'])
+        ...mapVuexState('account', ['features'])
     },
     async mounted () {
         try {

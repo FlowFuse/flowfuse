@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import applicationApi from '../../../api/application.js'
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
@@ -29,6 +29,9 @@ import ApplicationStep from './steps/ApplicationStep.vue'
 import InstanceStep from './steps/InstanceStep.vue'
 import TeamStep from './steps/TeamStep.vue'
 import FlowsStep from './steps/flows-step/index.vue'
+
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 
 const TEAM_STEP_SLUG = 'team'
 const APPLICATION_SLUG = 'application'
@@ -85,8 +88,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teams']),
-        ...mapGetters('account', ['isFreeTeamType']),
+        ...mapState(useContextStore, ['team', 'isFreeTeamType']),
+        ...mapState(useAccountStore, ['teams']),
         formSteps () {
             return [
                 {

@@ -8,7 +8,13 @@ The FlowFuse Expert chat interface is your conversational AI companion that you 
 
 ## Opening the Chat Interface
 
-To open the chat, first open your Node-RED instance using the Open Editor button. This launches Immersive Mode.
+To open the chat, first open your Node-RED instance using the **Open Editor** button. This launches Immersive Mode.
+
+As of v2.29, the FlowFuse Expert panel opens automatically when you enter the immersive editor. If you close the panel, that preference is saved — Expert will remain closed on your next visit so it doesn't get in your way.
+
+You can reopen the Expert panel at any time by clicking the **FlowFuse Expert** button in the top-left of the editor.
+
+![FlowFuse Expert open by default in the immersive editor.](../images/assistant/ff-expert-opened-by-default.png){data-zoomable}
 
 ## Chat Modes
 

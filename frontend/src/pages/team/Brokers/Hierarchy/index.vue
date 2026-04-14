@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import brokerApi from '../../../../api/broker.js'
 
@@ -31,6 +31,8 @@ import BrokerError from '../components/BrokerError.vue'
 
 import TopicHierarchy from './TopicHierarchy/index.vue'
 import TopicInspector from './TopicInspector/index.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'BrokerHierarchy',
@@ -54,7 +56,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState(useContextStore, ['team'])
     },
     watch: {
         $route: function () {

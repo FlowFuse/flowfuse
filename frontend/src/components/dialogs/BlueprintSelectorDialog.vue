@@ -29,9 +29,11 @@
 </template>
 <script>
 import FlowRenderer from '@flowfuse/flow-renderer'
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
 
 import BlueprintSelection from '../../pages/instance/Blueprints/BlueprintSelection.vue'
+
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'BlueprintSelectorDialog',
@@ -59,7 +61,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['blueprints', 'defaultBlueprint'])
+        ...mapState(useAccountStore, ['blueprints', 'defaultBlueprint'])
     },
     watch: {
         currentBlueprint (val) {

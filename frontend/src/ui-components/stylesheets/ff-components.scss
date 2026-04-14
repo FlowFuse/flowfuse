@@ -971,6 +971,15 @@ li.ff-kebab-item {
       display: flex;
       justify-content: space-between;
       gap: 12px;
+      &--light {
+        height: auto;
+        line-height: normal;
+        background-color: $ff-white;
+        border-bottom: 1px solid $ff-grey-200;
+        color: $ff-grey-800;
+        padding: $ff-unit-md $ff-unit-lg;
+        align-items: center;
+      }
     }
     &-subheader {
       opacity: 0.65;

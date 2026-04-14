@@ -22,6 +22,7 @@ import Dialog from '../../../services/dialog.js'
 import CreateTeamButton from '../components/CreateTeamButton.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'AccountTeams',
@@ -39,7 +40,8 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['teams', 'settings']),
+        ...mapState(useAccountStore, ['teams']),
+        ...mapVuexState('account', ['settings']),
         ...mapState(useAccountAuthStore, ['user']),
         teamCount () {
             return this.teams ? this.teams.length : 0
@@ -69,9 +71,9 @@ export default {
                 try {
                     await teamApi.removeTeamMember(row.id, this.user.id)
                     alerts.emit(`${this.user.username} successfully removed from ${row.name}`, 'confirmation')
-                    await this.$store.dispatch('account/refreshTeams')
+                    await useAccountStore().refreshTeams()
                     if (!this.teamCount) {
-                        await this.$store.dispatch('account/setTeam', null)
+                        await useAccountStore().setTeam(null)
                     }
                 } catch (err) {
                     alerts.emit(`Failed to remove ${this.user.username} from ${row.name}: ${err.response.data.error}`, 'warning')

@@ -81,7 +81,8 @@
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -91,6 +92,8 @@ import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
 import CreateGitTokenDialog from './dialogs/CreateGitTokenDialog.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamIntegrations',
@@ -115,7 +118,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team']),
+        ...mapState(useContextStore, ['team']),
+        ...mapVuexState('account', ['features']),
         ...mapGetters('account', ['featuresCheck']),
         addEnabled: function () {
             return this.hasPermission('team:git:tokens:create')
@@ -137,7 +141,7 @@ export default {
         team: 'fetchData'
     },
     async mounted () {
-        if (this.features.gitIntegration && this.featuresCheck.isGitIntegrationFeatureEnabled) {
+        if (this.featuresCheck.isGitIntegrationFeatureEnabled) {
             await this.fetchData()
         }
         this.loading = false

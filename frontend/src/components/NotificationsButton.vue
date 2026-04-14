@@ -11,10 +11,10 @@
 import { MailIcon } from '@heroicons/vue/outline'
 import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters } from 'vuex'
 
 import NotificationsDrawer from './drawers/notifications/NotificationsDrawer.vue'
 
+import { useAccountStore } from '@/stores/account.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -22,8 +22,7 @@ export default {
     components: { MailIcon },
     computed: {
         ...mapState(useUxDrawersStore, ['rightDrawer']),
-        ...mapGetters('account', ['hasNotifications']),
-        ...mapGetters('account', ['unreadNotificationsCount']),
+        ...mapState(useAccountStore, ['hasNotifications', 'unreadNotificationsCount']),
         notificationsCount: function () {
             // Return null if count = 0 so we don't show a 0 in the pill
             if (!this.unreadNotificationsCount) {

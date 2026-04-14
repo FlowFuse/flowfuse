@@ -2,6 +2,7 @@ const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 const { v4: uuidv4 } = require('uuid')
 
+const { KEY_CUSTOM_HOSTNAME } = require('../../../../../forge/db/models/ProjectSettings')
 const setup = require('../setup')
 
 describe('Project model', function () {
@@ -102,17 +103,38 @@ describe('Project model', function () {
             const project = await app.db.models.Project.create({
                 name: 'testProject-03',
                 type: '',
-                url: ''
+                url: 'http://localhost:18080'
             })
             const settings = await project.getAllSettings()
             should(settings).be.an.Object()
             settings.should.have.a.property('settings')
             settings.settings.should.have.a.property('env').of.Array()
-            settings.settings.env.length.should.equal(4)
+            settings.settings.env.length.should.equal(5)
             settings.settings.env.find(e => e.name === 'FF_PROJECT_ID').should.have.a.property('value', project.id) // deprecated in favour of FF_INSTANCE_ID as of 1.6.0
             settings.settings.env.find(e => e.name === 'FF_PROJECT_NAME').should.have.a.property('value', 'testProject-03') // deprecated in favour of FF_INSTANCE_NAME as of 1.6.0
             settings.settings.env.find(e => e.name === 'FF_INSTANCE_ID').should.have.a.property('value', project.id)
             settings.settings.env.find(e => e.name === 'FF_INSTANCE_NAME').should.have.a.property('value', 'testProject-03')
+            settings.settings.env.find(e => e.name === 'FF_INSTANCE_URL').should.have.a.property('value', 'http://localhost:18080')
+        })
+        it('includes custom hostname in platform specific env vars', async function () {
+            const project = await app.db.models.Project.create({
+                name: 'testProject-04',
+                type: '',
+                url: 'http://localhost:18080'
+            })
+            app.config.features.register('customHostnames', true, true)
+            await project.updateSetting(KEY_CUSTOM_HOSTNAME, 'example.com')
+            await project.reload({ include: [{ model: app.db.models.ProjectSettings }] })
+            const settings = await project.getAllSettings()
+            should(settings).be.an.Object()
+            settings.should.have.a.property('settings')
+            settings.settings.should.have.a.property('env').of.Array()
+            settings.settings.env.length.should.equal(5)
+            settings.settings.env.find(e => e.name === 'FF_PROJECT_ID').should.have.a.property('value', project.id) // deprecated in favour of FF_INSTANCE_ID as of 1.6.0
+            settings.settings.env.find(e => e.name === 'FF_PROJECT_NAME').should.have.a.property('value', 'testProject-04') // deprecated in favour of FF_INSTANCE_NAME as of 1.6.0
+            settings.settings.env.find(e => e.name === 'FF_INSTANCE_ID').should.have.a.property('value', project.id)
+            settings.settings.env.find(e => e.name === 'FF_INSTANCE_NAME').should.have.a.property('value', 'testProject-04')
+            settings.settings.env.find(e => e.name === 'FF_INSTANCE_URL').should.have.a.property('value', 'http://example.com')
         })
     })
     describe('Relations', function () {

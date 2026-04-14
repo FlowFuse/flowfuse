@@ -342,7 +342,8 @@
 <script>
 import { InformationCircleIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import { StageAction, StageType } from '../../../api/pipeline.js'
 import teamApi from '../../../api/team.js'
@@ -354,6 +355,8 @@ import IconDeviceGroupSolid from '../../../components/icons/DeviceGroupSolid.js'
 import IconDeviceSolid from '../../../components/icons/DeviceSolid.js'
 import IconGit from '../../../components/icons/Git.js'
 import IconNodeRedSolid from '../../../components/icons/NodeRedSolid.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'PipelineForm',
@@ -437,7 +440,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features']),
+        ...mapState(useContextStore, ['team']),
+        ...mapVuexState('account', ['features']),
+        ...mapGetters('account', ['featuresCheck']),
         isEdit () {
             return !!this.stage.id
         },
@@ -594,7 +599,7 @@ export default {
             return 'Choose Remote Instance'
         },
         deviceGroupsEnabled () {
-            return this.features?.deviceGroups && this.team?.type.properties.features?.deviceGroups
+            return this.featuresCheck?.isDeviceGroupsFeatureEnabled
         },
         devicesGroupsNotInUse () {
             const deviceGroupIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
@@ -631,7 +636,7 @@ export default {
             return 'Choose Application Level Device Group'
         },
         gitReposEnabled () {
-            return this.features?.gitIntegration && this.team?.type.properties.features?.gitIntegration
+            return this.featuresCheck?.isGitIntegrationFeatureEnabled
         },
         actionOptions () {
             const type = this.input.stageType === StageType.DEVICE ? 'device' : 'instance'

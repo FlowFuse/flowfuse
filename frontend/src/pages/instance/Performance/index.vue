@@ -103,7 +103,6 @@
 <script>
 import { ChipIcon, RefreshIcon } from '@heroicons/vue/outline'
 import SemVer from 'semver'
-import { mapState } from 'vuex'
 
 import instancesApi from '../../../api/instances.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -157,7 +156,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
         isInstanceRunning () {
             return this.instance.meta.state === 'running'
         },
