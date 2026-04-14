@@ -1,7 +1,7 @@
 <template>
     <div class="banner-wrapper">
-        <FeatureUnavailable v-if="!isInstanceResourcesFeatureEnabledForPlatform" />
-        <FeatureUnavailableToTeam v-else-if="!isInstanceResourcesFeatureEnabledForTeam" />
+        <FeatureUnavailable v-if="!featuresCheck.isInstanceResourcesFeatureEnabledForPlatform" />
+        <FeatureUnavailableToTeam v-else-if="!featuresCheck.isInstanceResourcesFeatureEnabledForTeam" />
         <FeatureUnavailable
             v-else-if="!launcherSatisfiesVersion"
             message="Update your instance to the latest version to enable this feature"
@@ -102,6 +102,7 @@
 
 <script>
 import { ChipIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { mapState } from 'pinia'
 import SemVer from 'semver'
 
 import instancesApi from '../../../api/instances.js'
@@ -115,7 +116,8 @@ import CpuChart from '../../../components/charts/performance/CpuChart.vue'
 import MemoryChart from '../../../components/charts/performance/MemoryChart.vue'
 import InformationWell from '../../../components/wells/InformationWell.vue'
 import usePermissions from '../../../composables/Permissions.js'
-import featuresMixin from '../../../mixins/Features.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'InstancePerformance',
@@ -131,7 +133,6 @@ export default {
         FeatureUnavailable,
         FeatureUnavailableToTeam
     },
-    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         instance: {
@@ -156,6 +157,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         isInstanceRunning () {
             return this.instance.meta.state === 'running'
         },
@@ -174,8 +176,8 @@ export default {
             return SemVer.satisfies(nrLauncherVersion, minVersion)
         },
         featureAvailable () {
-            return this.isInstanceResourcesFeatureEnabledForPlatform &&
-                this.isInstanceResourcesFeatureEnabledForTeam &&
+            return this.featuresCheck.isInstanceResourcesFeatureEnabledForPlatform &&
+                this.featuresCheck.isInstanceResourcesFeatureEnabledForTeam &&
                 this.launcherSatisfiesVersion
         }
     },

@@ -86,7 +86,6 @@ import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import InstanceActionsButton from '../../components/instance/ActionButton.vue'
 import usePermissions from '../../composables/Permissions.js'
 
-import featuresMixin from '../../mixins/Features.js'
 import instanceMixin from '../../mixins/Instance.js'
 
 import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
@@ -94,6 +93,7 @@ import DashboardLink from './components/DashboardLink.vue'
 import InstanceEditorLink from './components/EditorLink.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -110,7 +110,7 @@ export default {
         InstanceEditorLink,
         LockClosedIcon
     },
-    mixins: [instanceMixin, featuresMixin],
+    mixins: [instanceMixin],
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
 
@@ -128,11 +128,12 @@ export default {
         }
     },
     computed: {
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useContextStore, ['team']),
         navigation () {
             if (!this.instance.id) return []
             let versionHistoryRoute
-            if (!this.isTimelineFeatureEnabled) {
+            if (!this.featuresCheck.isTimelineFeatureEnabled) {
                 versionHistoryRoute = {
                     name: 'instance-snapshots',
                     params: { id: this.instance.id }

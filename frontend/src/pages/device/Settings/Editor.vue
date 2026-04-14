@@ -32,7 +32,6 @@
 
 import { mapState } from 'pinia'
 import semver from 'semver'
-import { mapState as mapVuexState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
@@ -45,6 +44,7 @@ import Alerts from '../../../services/alerts.js'
 
 import ChangeIndicator from '../../admin/Template/components/ChangeIndicator.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -87,7 +87,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         limitsLauncherEnabled () {
             if (!this.device.agentVersion) {
                 // Device has not called home yet - so we don't know what agent

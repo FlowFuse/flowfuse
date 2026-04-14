@@ -348,7 +348,6 @@ import { CogIcon, PlusSmIcon } from '@heroicons/vue/solid'
 
 import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters } from 'vuex'
 
 import deviceApi from '../api/devices.js'
 import teamApi from '../api/team.js'
@@ -386,6 +385,7 @@ import DevicesStatusBar from './charts/DeviceStatusBar.vue'
 import AddDeviceToGroupDialog from './dialogs/device-group-management/AddDeviceToGroupDialog.vue'
 import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/RemoveDeviceFromGroupDialog.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
@@ -463,7 +463,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useUxDialogStore, ['dialog']),
         ...mapState(useUxToursStore, ['tours']),
         columns () {

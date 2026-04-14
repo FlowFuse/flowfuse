@@ -51,8 +51,7 @@
 </template>
 
 <script>
-import { mapState, storeToRefs } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
+import { mapState } from 'pinia'
 
 import teamApi from '../../api/team.js'
 import userApi from '../../api/user.js'
@@ -64,6 +63,7 @@ import dialog from '../../services/dialog.js'
 import { RoleNames, Roles } from '../../utils/roles.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
@@ -94,7 +94,7 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         ...mapState(useAccountStore, { storeTeams: 'teams' }),
         formValid () {
             return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam) &&
@@ -299,13 +299,13 @@ export default {
                         // refresh teams
                         return useAccountStore().refreshTeams()
                     }).then(() => {
-                        const { teams } = storeToRefs(useAccountStore())
+                        const teams = useAccountStore().teams
                         const team = useContextStore().team
                         // check if the active team is one deleted
                         if (team?.id === teamId) {
-                            if (teams.value.length > 0) {
+                            if (teams.length > 0) {
                                 // get another team
-                                useAccountStore().setTeam(teams.value[0].slug)
+                                useAccountStore().setTeam(teams[0].slug)
                             }
                         }
                     }).catch(err => {

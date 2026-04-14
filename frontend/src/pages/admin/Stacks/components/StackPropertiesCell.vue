@@ -8,7 +8,9 @@
 </template>
 <script>
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'StackPropertiesCell',
@@ -19,7 +21,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings'])
+        ...mapState(useAccountSettingsStore, ['settings'])
     }
 }
 </script>

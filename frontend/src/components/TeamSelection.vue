@@ -43,12 +43,12 @@ import {
 } from '@headlessui/vue'
 import { PlusIcon, UserAddIcon } from '@heroicons/vue/solid'
 import { mapState } from 'pinia'
-import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import usePermissions from '../composables/Permissions.js'
 
 import NavItem from './NavItem.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
@@ -67,8 +67,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountStore, ['teams', 'hasAvailableTeams']),
-        ...mapVuexState('account', ['settings']),
-        ...mapGetters('account', ['canCreateTeam']),
+        ...mapState(useAccountSettingsStore, ['canCreateTeam']),
         teamOptions () {
             return [
                 ...this.teams.map(team => {

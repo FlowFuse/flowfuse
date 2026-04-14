@@ -25,13 +25,15 @@
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import ssoApi from '../../../../api/sso.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 
 import Alerts from '../../../../services/alerts.js'
 import Dialog from '../../../../services/dialog.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'AdminSettingsSSO',
@@ -47,7 +49,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'settings']),
+        ...mapState(useAccountSettingsStore, ['features']),
         providerColumns () {
             return [
                 { label: 'Active', key: 'active', class: ['w-16'] },

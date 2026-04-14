@@ -1,7 +1,7 @@
 <template>
     <div class="maintenance">
         <section data-el="scheduled-upgrade" class="scheduled-upgrade">
-            <FeatureUnavailable v-if="!isInstanceAutoStackUpdateFeatureEnabledForPlatform" />
+            <FeatureUnavailable v-if="!featuresCheck.isInstanceAutoStackUpdateFeatureEnabledForPlatform" />
             <FormHeading>Scheduled Restarts/Upgrades</FormHeading>
             <FormRow v-model="scheduledUpgrade.enabled" :disabled="!allowDisable" type="checkbox" class="mt-5" container-class="max-w-xl">
                 Enabled
@@ -58,16 +58,15 @@
 
 <script>
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import instanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.vue'
-import featuresMixin from '../../../mixins/Features.js'
 import Alerts from '../../../services/alerts.js'
 import DateTimePicker from '../../../ui-components/components/form/DateTime.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -78,7 +77,6 @@ export default {
         FormRow,
         FormHeading
     },
-    mixins: [featuresMixin],
     props: {
         project: {
             type: Object,
@@ -138,8 +136,8 @@ export default {
         }
     },
     computed: {
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useContextStore, ['team']),
-        ...mapVuexState('account', ['features', 'settings']),
         saveButton () {
             return {
                 visible: true,
