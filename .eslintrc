@@ -72,6 +72,20 @@
                 "n/no-missing-import": "off"
             }
         },
+        // TypeScript files in the frontend
+        {
+            "files": ["frontend/src/**/*.ts"],
+            "parser": "@typescript-eslint/parser",
+            "plugins": ["@typescript-eslint"],
+            "extends": ["plugin:@typescript-eslint/recommended"],
+            "rules": {
+                "@typescript-eslint/no-explicit-any": "warn",
+                "import/no-unresolved": "off",
+                "n/no-missing-import": "off",
+                "n/no-missing-require": "off"
+            }
+        },
+
         // Frontend runs in the browser and builds with webpack
         {
             "files": "frontend/**",
