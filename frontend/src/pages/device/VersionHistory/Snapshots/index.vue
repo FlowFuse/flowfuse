@@ -1,5 +1,11 @@
 <template>
     <div id="device-snapshots" class="flex-1 flex flex-col overflow-auto">
+        <SnapshotDetailsModal
+            ref="snapshotDetailsModal"
+            @updated-snapshot="fetchData()"
+            @restored-snapshot="onRestoredSnapshot"
+            @deleted-snapshot="fetchData()"
+        />
         <div v-if="isOwnedByAnInstance || isUnassigned" class="space-y-6">
             <EmptyState :feature-unavailable="!features.deviceEditor">
                 <template #img>
@@ -105,13 +111,16 @@
 
 <script>
 import { FilterIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
+import { mapActions, mapState } from 'pinia'
+import SemVer from 'semver'
 import { markRaw } from 'vue'
-import { mapActions, mapState } from 'vuex'
+import { mapState as mapVuexState } from 'vuex'
 
 import ApplicationApi from '../../../../api/application.js'
 import DropdownMenu from '../../../../components/DropdownMenu.vue'
 
 import EmptyState from '../../../../components/EmptyState.vue'
+import SnapshotDetailsModal from '../../../../components/dialogs/SnapshotDetailsModal.vue'
 import SnapshotDetailsDrawer from '../../../../components/drawers/snapshots/SnapshotDetailsDrawer.vue'
 import UserCell from '../../../../components/tables/cells/UserCell.vue'
 import usePermissions from '../../../../composables/Permissions.js'
@@ -121,6 +130,10 @@ import DaysSince from '../../../application/Snapshots/components/cells/DaysSince
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
 import SnapshotSource from '../../../application/Snapshots/components/cells/SnapshotSource.vue'
 
+import { useContextStore } from '@/stores/context.js'
+
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+
 export default {
     name: 'DeviceSnapshots',
     components: {
@@ -128,6 +141,7 @@ export default {
         EmptyState,
         FilterIcon,
         PlusSmIcon,
+        SnapshotDetailsModal,
         UploadIcon
     },
     inheritAttrs: false,
@@ -198,7 +212,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features']),
+        ...mapState(useContextStore, ['team']),
+        ...mapVuexState('account', ['features']),
         canCreateSnapshot () {
             if (!this.developerMode || this.busy) {
                 return false
@@ -298,7 +313,7 @@ export default {
         this.fetchData()
     },
     methods: {
-        ...mapActions('ux/drawers', ['openRightDrawer', 'closeRightDrawer']),
+        ...mapActions(useUxDrawersStore, ['openRightDrawer', 'closeRightDrawer']),
         fetchData: async function () {
             if (!this.features.deviceEditor || this.isOwnedByAnInstance || this.isUnassigned) {
                 return
@@ -334,9 +349,35 @@ export default {
         },
         // enable/disable snapshot actions
         canDeploy (_row) {
-            return !this.developerMode && this.hasPermission('device:edit', { application: this.device.application })
+            return (!this.developerMode || this.supportsDevModeSnapshotRestore()) && this.hasPermission('device:edit', { application: this.device.application })
+        },
+        canDeployReason (snapshot) {
+            if (!this.hasPermission('device:edit', { application: this.device.application })) {
+                return 'You do not have permission to deploy snapshots to this Remote Instance'
+            }
+            if (this.developerMode && !this.supportsDevModeSnapshotRestore()) {
+                return 'Snapshots deploys to Developer Mode Remote Instances requires Device Agent v3.8.0 or later'
+            }
+            return ''
+        },
+        supportsDevModeSnapshotRestore () {
+            return this.device.agentVersion && SemVer.gte(this.device.agentVersion, '3.8.0')
+        },
+        onRestoredSnapshot () {
+            setTimeout(() => { this.$emit('device-updated') }, 100)
+            this.fetchData()
         },
         onRowSelected (snapshot) {
+            if (this.$route.name?.startsWith('device-editor-')) {
+                this.$refs.snapshotDetailsModal.show(snapshot, this.snapshotList, this.device, {
+                    canSetDeviceTarget: false,
+                    canRestore: this.canDeploy(snapshot),
+                    canRestoreReason: this.canDeployReason(snapshot),
+                    isDevice: true,
+                    isDeviceDevMode: this.developerMode
+                })
+                return
+            }
             this.openRightDrawer({
                 component: markRaw(SnapshotDetailsDrawer),
                 props: {
@@ -345,13 +386,16 @@ export default {
                     instance: this.device,
                     canSetDeviceTarget: false,
                     canRestore: this.canDeploy(snapshot),
-                    isDevice: true
+                    canRestoreReason: this.canDeployReason(snapshot),
+                    isDevice: true,
+                    isDeviceDevMode: this.developerMode
                 },
                 on: {
-                    updatedSnapshot: () => this.fetchData(true),
+                    updatedSnapshot: () => this.fetchData(),
+                    restoredSnapshot: () => this.onRestoredSnapshot(),
                     deletedSnapshot: () => {
                         this.closeRightDrawer()
-                        this.fetchData(true)
+                        this.fetchData()
                     }
                 },
                 overlay: true,

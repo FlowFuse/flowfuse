@@ -9,9 +9,9 @@ jobs:
     name: Install and test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
-          node-version: 20
+          node-version: 24
       - name: install
         run: |
           npm install @flowfuse/flowfuse
@@ -42,7 +42,7 @@ jobs:
     steps:
     - name: Post to a Slack channel
       id: slack
-      uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+      uses: slackapi/slack-github-action@af78098f536edbc4de71162a307590698245be95 # v3.0.1
       with:
         method: chat.postMessage
         token: ${{ secrets.SLACK_GHBOT_TOKEN }}

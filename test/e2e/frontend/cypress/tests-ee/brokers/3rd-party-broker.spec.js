@@ -170,15 +170,15 @@ describe('FlowFuse - Brokers', () => {
             cy.get('[data-el="listbox-options"] [data-option="WS"]').click()
 
             cy.get('[data-select="protocolVersion"]').click()
-            cy.get('[data-el="listbox-options"] [data-option="3.0"]').should('exist')
-            cy.get('[data-el="listbox-options"] [data-option="3.1"]').should('exist')
-            cy.get('[data-el="listbox-options"] [data-option="5.0"]').click()
+            cy.get('[data-el="listbox-options"][data-select="protocolVersion-options"] [data-option="3.0"]').should('exist')
+            cy.get('[data-el="listbox-options"][data-select="protocolVersion-options"] [data-option="3.1"]').should('exist')
+            cy.get('[data-el="listbox-options"][data-select="protocolVersion-options"] [data-option="5.0"]').click()
 
             cy.get('[data-select="ssl"]').click()
-            cy.get('[data-el="listbox-options"] [data-option="Yes"]').click()
+            cy.get('[data-el="listbox-options"][data-select="ssl-options"] [data-option="Yes"]').click()
 
             cy.get('[data-select="verifySSL"]').click()
-            cy.get('[data-el="listbox-options"] [data-option="No"]').click()
+            cy.get('[data-el="listbox-options"][data-select="verifySSL-options"] [data-option="No"]').click()
 
             cy.get('[data-input="topicPrefix"] input').clear()
             cy.get('[data-input="topicPrefix"] input').type('hitchhikers_guide/dont_panic/helpful_statement/first_of_day')
@@ -218,18 +218,18 @@ describe('FlowFuse - Brokers', () => {
             cy.get('[data-input="port"] input').type(1880)
 
             cy.get('[data-select="protocol"]').click()
-            cy.get('[data-el="listbox-options"] [data-option="MQTT"]').click()
+            cy.get('[data-el="listbox-options"][data-select="protocol-options"] [data-option="MQTT"]').click()
 
             cy.get('[data-select="protocolVersion"]').click()
-            cy.get('[data-el="listbox-options"] [data-option="3.1"]').should('exist')
-            cy.get('[data-el="listbox-options"] [data-option="5.0"]').should('exist')
-            cy.get('[data-el="listbox-options"] [data-option="3.0"]').click()
+            cy.get('[data-el="listbox-options"][data-select="protocolVersion-options"] [data-option="3.1"]').should('exist')
+            cy.get('[data-el="listbox-options"][data-select="protocolVersion-options"] [data-option="5.0"]').should('exist')
+            cy.get('[data-el="listbox-options"][data-select="protocolVersion-options"] [data-option="3.0"]').click()
 
             cy.get('[data-select="ssl"]').click()
-            cy.get('[data-el="listbox-options"] [data-option="No"]').click()
+            cy.get('[data-el="listbox-options"][data-select="ssl-options"] [data-option="No"]').click()
 
             cy.get('[data-select="verifySSL"]').click()
-            cy.get('[data-el="listbox-options"] [data-option="Yes"]').click()
+            cy.get('[data-el="listbox-options"][data-select="verifySSL-options"] [data-option="Yes"]').click()
 
             cy.get('[data-input="topicPrefix"] input').clear()
             cy.get('[data-input="topicPrefix"] input').type('hitchhikers_guide/dont_panic/not_so_helpful_statement/first_of_day')

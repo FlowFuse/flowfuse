@@ -187,8 +187,8 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../api/application.js'
 
@@ -201,6 +201,8 @@ import { scrollToAndJiggleHighlight } from '../../../composables/Ux.js'
 
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 const semVer = require('semver')
 
@@ -228,36 +230,10 @@ export default {
                 nodeRedVersion: ''
             },
             availableNrVersions: [
-                '3.1.0',
-                '3.1.1',
-                '3.1.2',
-                '3.1.3',
-                '3.1.4',
-                '3.1.5',
-                '3.1.6',
-                '3.1.7',
-                '3.1.8',
-                '3.1.9',
-                '3.1.10',
-                '3.1.11',
-                '3.1.12',
-                '3.1.13',
-                '3.1.14',
                 '3.1.15',
-                '4.0.0',
-                '4.0.1',
-                '4.0.2',
-                '4.0.3',
-                '4.0.4',
-                '4.0.5',
-                '4.0.6',
-                '4.0.7',
-                '4.0.8',
                 '4.0.9',
-                '4.1.0',
-                '4.1.1',
-                '4.1.2',
-                '4.1.3'
+                '4.1.4',
+                '4.1.5'
 
             ]
         }
@@ -279,7 +255,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         canChangeNodeRedVersion () {
             return this.deviceOwnerType === 'application' && this.hasPermission('device:edit', { application: this.device.application })
         },

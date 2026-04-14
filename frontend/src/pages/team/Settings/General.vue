@@ -5,52 +5,54 @@
                 <FormHeading><TemplateIcon />Team Info</FormHeading>
 
                 <table class="table-fixed w-full border border-separate rounded">
-                    <tr class="border-b">
-                        <td class="w-40 font-medium">Name</td>
-                        <td>
-                            <span v-if="!editing">{{ input.teamName }} </span>
-                            <FormRow v-else id="teamName" ref="name-row" v-model="input.teamName" type="text" :error="errors.teamName" class="mt-2 mb-6">
-                                <template #description>
-                                    <div v-if="editing">eg. 'Development'</div>
-                                </template>
-                            </FormRow>
-                        </td>
-                    </tr>
-                    <tr class="border-b">
-                        <td class="w-40 font-medium">Type</td>
-                        <td class="flex flex-row items-center">
-                            <span class="flex-grow">{{ input.teamType }} </span>
-                            <ff-button v-if="!team.suspended" kind="secondary" size="small" :to="{name: 'TeamChangeType'}">Change Team Type</ff-button>
-                        </td>
-                    </tr>
-                    <tr class="border-b">
-                        <td class="w-40 font-medium">URL</td>
-                        <td>
-                            <span v-if="!editing">{{ teamUrl }}</span>
-                            <FormRow v-else id="teamName" ref="name-row" v-model="input.slug" type="text" :error="errors.slug" class="mt-2 mb-6">
-                                <template #description>
-                                    <span class="text-red-700">Warning:</span>
-                                    Changing this will modify all urls used to access the team.
-                                    The platform will not redirect requests to the old url.
-                                    <br>
-                                    <br>
-                                    <pre>{{ teamUrl }}</pre>
-                                </template>
-                            </FormRow>
-                        </td>
-                    </tr>
-                    <tr class="border-b">
-                        <td class="w-40 font-medium">ID</td>
-                        <td>
-                            <span>{{ teamId }} </span>
-                        </td>
-                    </tr>
-                    <tr v-if="ssoAvailable" class="border-b">
-                        <td class="w-40 font-medium">SSO <SparklesIcon class="ff-icon ff-icon-sm mr-2" style="stroke-width: 1px;" /></td>
-                        <td>
-                            <span><a href="https://flowfuse.com/support/" target="_blank" class="underline">Contact us to enable SSO for your team's users</a></span>
-                        </td>
-                    </tr>
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="w-40 font-medium">Name</td>
+                            <td>
+                                <span v-if="!editing">{{ input.teamName }} </span>
+                                <FormRow v-else id="teamName" ref="name-row" v-model="input.teamName" type="text" :error="errors.teamName" class="mt-2 mb-6">
+                                    <template #description>
+                                        <div v-if="editing">eg. 'Development'</div>
+                                    </template>
+                                </FormRow>
+                            </td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="w-40 font-medium">Type</td>
+                            <td class="flex flex-row items-center">
+                                <span class="flex-grow">{{ input.teamType }} </span>
+                                <ff-button v-if="!team.suspended" kind="secondary" size="small" :to="{name: 'TeamChangeType'}">Change Team Type</ff-button>
+                            </td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="w-40 font-medium">URL</td>
+                            <td>
+                                <span v-if="!editing">{{ teamUrl }}</span>
+                                <FormRow v-else id="teamName" ref="name-row" v-model="input.slug" type="text" :error="errors.slug" class="mt-2 mb-6">
+                                    <template #description>
+                                        <span class="text-red-700">Warning:</span>
+                                        Changing this will modify all urls used to access the team.
+                                        The platform will not redirect requests to the old url.
+                                        <br>
+                                        <br>
+                                        <pre>{{ teamUrl }}</pre>
+                                    </template>
+                                </FormRow>
+                            </td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="w-40 font-medium">ID</td>
+                            <td>
+                                <span>{{ teamId }} </span>
+                            </td>
+                        </tr>
+                        <tr v-if="ssoAvailable" class="border-b">
+                            <td class="w-40 font-medium">SSO <SparklesIcon class="ff-icon ff-icon-sm mr-2" style="stroke-width: 1px;" /></td>
+                            <td>
+                                <span><a href="https://flowfuse.com/support/" target="_blank" class="underline">Contact us to enable SSO for your team's users</a></span>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -71,13 +73,18 @@
 <script>
 
 import { SparklesIcon, TemplateIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import teamsApi from '../../../api/teams.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import alerts from '../../../services/alerts.js'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamSettingsGeneral',
@@ -103,7 +110,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'features', 'team']),
+        ...mapState(useContextStore, ['team']),
+        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountAuthStore, ['user']),
         formValid () {
             return this.input.teamName && !this.pendingSlugCheck && !this.errors.slug && !this.errors.teamName
         },
@@ -168,8 +177,8 @@ export default {
 
             teamApi.updateTeam(this.team.id, options).then(async result => {
                 this.editing = false
-                await this.$store.dispatch('account/refreshTeams')
-                await this.$store.dispatch('account/refreshTeam')
+                await useAccountStore().refreshTeams()
+                await useContextStore().refreshTeam()
                 alerts.emit('Team Settings updated.', 'confirmation')
             }).catch(err => {
                 if (err.response.data) {

@@ -70,8 +70,9 @@ module.exports = {
      * Sends the project id, snapshot hash and settings hash to the device
      * so that the device can determine what/if it needs to update
      * @param {forge.db.models.Device} device The device to send an "update" command to
+     * @param {boolean} forceUpdate If true, the update command will instruct the agent to apply updates even if in developerMode. This require vTBD of the device-agent.
      */
-    sendDeviceUpdateCommand: async function (app, device) {
+    sendDeviceUpdateCommand: async function (app, device, forceUpdate = false) {
         if (app.comms) {
             // ensure the device has all associations loaded
             let team = device.Team
@@ -104,6 +105,9 @@ module.exports = {
                 settings: device.settingsHash || null,
                 mode: device.mode,
                 licensed: app.license.active()
+            }
+            if (forceUpdate) {
+                payload.forceUpdate = true
             }
             // if the device is assigned to an application but has no snapshot we need to send enough
             // info to start the device in application mode so that it can start node-red and

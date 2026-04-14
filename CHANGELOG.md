@@ -1,3 +1,235 @@
+#### 2.29.1: Release
+
+ - docs: update snapshot comparison section with property and code diff details (#7045) @sumitshinde-84
+ - docs: document Expert open-by-default and close-persistence behaviour (v2.29) (#7060) @sumitshinde-84
+
+#### 2.29.0: Release
+
+ - docs: refactor the Quick Start page (#6982)
+ - Bump cypress-io/github-action from 7.1.5 to 7.1.8 (#6940)
+ - Bump actions/upload-artifact from 6.0.0 to 7.0.0 (#6939)
+ - Bump actions/create-github-app-token from 2.2.1 to 3.0.0 (#6937)
+ - Bump actions/cache from 5.0.3 to 5.0.4 (#6941)
+ - Fix `hljs` code highlighting to preserve line breaks in Markdown rendering (#7058) @cstns
+ - Enable/disable Expert Insights mode with feature flag and integrate conditional rendering in expert components (#7046) @cstns
+ - Add timeout value to FE chat API request (#7057) @Steve-Mcl
+ - feat: visual flow diff viewer for snapshot comparison (#7033) @andypalmi
+ - Fix gitIntegration feature flag check to include all-feature override (#7050) @knolleary
+ - [7047] FF Expert code blocks are not formatting correctly (#7049) @n-lark
+ - ci: Disable shared cache on pre-staging environments (#7048) @ppawlowski
+ - [7032] Immersive editor: open snapshot detail as modal rather than right drawer (#7037) @n-lark
+ - Add Housekeeping task to check SSO certificate expiry (#7016) @hardillb
+ - [7031] Immersive editor drawer: restore Developer Mode tab (#7035) @n-lark
+ - Bump hono from 4.12.9 to 4.12.12 (#7040) @app/dependabot
+ - docs: add descriptions to standard environment variables (#7041) @sumitshinde-84
+ - Bump @hono/node-server from 1.19.11 to 1.19.13 (#7039) @app/dependabot
+ - Include instance url env var (#7034) @hardillb
+ - Bump vite from 6.4.1 to 6.4.2 (#7020) @app/dependabot
+ - Guard against undefined template owner (#7028) @knolleary
+ - Bump lodash from 4.17.23 to 4.18.1 (#7023) @app/dependabot
+ - Add FF_INSTANCE_URL to hosted instance env vars (#7024) @hardillb
+ - [6942] Pinia Task 13 - account-team (#6952) @n-lark
+ - Bump defu from 6.1.4 to 6.1.6 (#7015) @app/dependabot
+ - Show error if user roles are managed by SSO (#6994) @hardillb
+ - [7001] Update embedded editor wrappers to reflect Node-RED tab title (#7007) @n-lark
+ - Show device counts on user overview (#7013) @hardillb
+ - Add default expert URLs (#6949) @hardillb
+ - Render Blueprint descriptions as markdown (#6991) @hardillb
+ - Bump @xmldom/xmldom from 0.8.10 to 0.8.12 (#7010) @app/dependabot
+ - Bump dottie from 2.0.6 to 2.0.7 (#7006) @app/dependabot
+ - Upgrade bcrypt to remove a tar dependency (#7005) @hardillb
+ - [6829] Pinia Task 12 - account-auth (#6945) @n-lark
+ - Bump sqlite3 to 6.0.1 to pick up tar fixes (#7003) @hardillb
+ - Bump node-forge from 1.3.2 to 1.4.0 (#6990) @app/dependabot
+ - Bump nodemailer from 7.0.12 to 8.0.4 (#6981) @app/dependabot
+ - [6824] Pinia Task 7 - product-brokers (#6932) @n-lark
+ - Bump path-to-regexp (#6989) @app/dependabot
+ - Bump brace-expansion (#6988) @app/dependabot
+ - Bump handlebars from 4.7.8 to 4.7.9 (#6980) @app/dependabot
+ - [6823] Pinia Task 6 - product-tables (#6931) @n-lark
+ - Force npm username lowercase (#6977) @hardillb
+ - [6828] Pinia Task 11 - product-expert (#6886) @n-lark
+ - Bump yaml (#6956) @app/dependabot
+ - Bump picomatch (#6955) @app/dependabot
+ - Bump fastify from 5.8.1 to 5.8.4 (#6954) @app/dependabot
+ - Bump fast-xml-parser and @aws-sdk/xml-builder (#6933) @app/dependabot
+ - [6947] User menu shows behind pinned expert drawer (#6948) @n-lark
+ - [6827] Pinia Task 10 - product-expert-operator-agent (#6885) @n-lark
+ - [6826] Pinia Task 9 - product-expert-ff-agent (#6882) @n-lark
+ - [6825] Pinia Task 8 - product-assistant (#6881) @n-lark
+
+#### 2.28.1: Release
+
+ - Bump aws-actions/amazon-ecr-login from 2.0.1 to 2.0.2 (#6877)
+ - Bump geekyeggo/delete-artifact from 5.1.0 to 6.0.0 (#6880)
+ - Bump slackapi/slack-github-action from 2.1.1 to 3.0.1 (#6876)
+ - Bump actions/setup-node from 6.2.0 to 6.3.0 (#6879)
+ - Bump actions/download-artifact from 8.0.0 to 8.0.1 (#6878)
+ - Run pre-staging on traefik (#6890)
+ - Replace custom html with alert boxes (#6884)
+ - Add Azure DevOps to GitOps pipelines (#6896) @hardillb
+ - ci: Use NodeJS v24 as a default GitHub Actions runtime (#6946) @ppawlowski
+ - Persist expert state (#6892) @Steve-Mcl
+ - Fix `StreamableContent` render/sanitization order (#6936) @cstns
+ - Bump flatted from 3.2.7 to 3.4.2 (#6912) @app/dependabot
+ - Add rate limiting to team suspension instance shutdown (#6914) @hardillb
+ - [6887] Make reusable dialog components for multiple option (#6891) @n-lark
+ - Update RBAC documentation for Enterprise licensing (#6915) @hardillb
+ - [6822] Pinia Task 5 - context (#6863) @n-lark
+ - Fix expert messages reactivity when switching between agent modes (#6894) @cstns
+ - [6791] Sentry: SecurityError removeEventListener from cross-origin Window (Part III) (#6888) @n-lark
+ - Support for Expert Assistant inline action links (#6864) @Steve-Mcl
+ - Expert/scalability (#6839) @cstns
+ - Remove community support link from README (#6889) @allthedoll
+ - Rate limit AutoStackUpdate task (#6874) @hardillb
+ - [6820] Pinia Task 4 - ux-drawers (#6856) @n-lark
+ - [6806] Pinia Task 3 - ux-navigation (#6838) @n-lark
+ - [6804] Pinia Task 1 - ux-dialog (#6813) @n-lark
+ - Ensure Certified Nodes always first in the list (#6869) @hardillb
+ - [6805] Pinia Task 2 - ux-tours (#6837) @n-lark
+ - docs: Clarify FlowFuse storage options (#6875) @ppawlowski
+ - [6791] Sentry: SecurityError removeEventListener from cross-origin Window (Part II) (#6851) @n-lark
+ - Ensure getProjectsToUpgrade Matches all Project Settings (#6870) @hardillb
+ - ci: replace `tibdex/github-app-token` with `actions/create-github-app-token` (#6866) @ppawlowski
+ - ci: switch to actions/create-github-app-token (#6865) @ppawlowski
+
+#### 2.28.0: Release
+
+ - Replace Ingress Nginx with Traefik (#6817)
+ - Bump docker/setup-buildx-action from 3.12.0 to 4.0.0 (#6835)
+ - Bump cypress-io/github-action from 7.1.3 to 7.1.5 (#6834)
+ - Bump docker/setup-qemu-action from 3.7.0 to 4.0.0 (#6832)
+ - Bump docker/build-push-action from 6.19.2 to 7.0.0 (#6836)
+ - Bump docker/login-action from 3.7.0 to 4.0.0 (#6833)
+ - Bump benc-uk/workflow-dispatch from 1.2.4 to 1.3.1 (#6759)
+ - Bump actions/download-artifact from 7.0.0 to 8.0.0 (#6783)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/sast_scan.yaml (#6784)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml (#6785)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml (#6786)
+ - Docs: update documentation to reflect latest release changes (#6858) @sumitshinde-84
+ - Hide Expert contextual selectors in non-immersive mode (#6859) @cstns
+ - docs: Introduce ingress controller migration plan (#6843) @ppawlowski
+ - [6803] Pinia Task 0 - Infrastructure (#6811) @n-lark
+ - [6527] Fix FrontEnd build warnings (#6850) @n-lark
+ - Bump dompurify from 3.3.1 to 3.3.2 (#6814) @app/dependabot
+ - Bump fastify from 5.7.4 to 5.8.1 (#6815) @app/dependabot
+ - Bump express-rate-limit from 8.2.1 to 8.3.0 (#6830) @app/dependabot
+ - Bump sequelize from 6.37.1 to 6.37.8 (#6853) @app/dependabot
+ - Update license reuse policy in upgrade documentation (#6842) @knolleary
+ - 6789 - VS Code: Go-to-Definition for Global Vue Components (#6790) @n-lark
+ - Update README to specify MQTT Broker requirements (#6845) @hardillb
+ - Fix tour styling (#6841) @Steve-Mcl
+ - Update Instances AutoStackUpdate when TeamType Changes (#6780) @hardillb
+ - chore: change deprecated sass imports to use/forward syntax (#6831) @Steve-Mcl
+ - FlowFuse Expert Document for Chat Interface (#6779) @sumitshinde-84
+ - Fix context hydration race condition when ingesting expert context from the website (#6810) @cstns
+ - chore: Replace deprecated node-sass with sass (#6761) @Steve-Mcl
+ - Bump @hono/node-server from 1.19.9 to 1.19.10 (#6801) @app/dependabot
+ - Bump hono from 4.12.3 to 4.12.5 (#6802) @app/dependabot
+ - Bump multer from 2.1.0 to 2.1.1 (#6807) @app/dependabot
+ - Support debug log context in FF Expert (#6726) @Steve-Mcl
+ - Add UI for device apiMaxLength (#6799) @hardillb
+ - Safeguard `dialog.close` call with optional chaining to prevent potential runtime errors (#6808) @cstns
+ - Bump fast-xml-parser and @aws-sdk/xml-builder (#6793) @app/dependabot
+ - 6791 - Sentry: SecurityError — removeEventListener from cross-origin Window (#6792) @n-lark
+ - Enhance error handling in device editor tunnel by adding detailed error context (#6798) @cstns
+ - Add assistant update available banner to FF expert (#6764) @Steve-Mcl
+ - Docs/install/intro: Replace hs script for partial (#6794) @Yndira-E
+ - Ensure Valkey/Redis cache reconnects cleanly (#6778) @hardillb
+ - Bump multer from 2.0.2 to 2.1.0 (#6788) @app/dependabot
+ - Add Device Agent on Kubernetes documentation (#6762) @hardillb
+
+#### 2.27.1: Release
+
+ - Bump pre-staging node-red custom stack to 4.1.6 (#6770)
+ - Bump reusable workflows in `create pre-staging env` to `0.51.0` (#6768)
+ - Bump cypress-io/github-action from 7.1.2 to 7.1.3 (#6760)
+ - Use Node-RED 4.1 for custom NR stack on pre-staging environment (#6721)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/sast_scan.yaml (#6716)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml (#6717)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml (#6718)
+ - Bump docker/build-push-action from 6.18.0 to 6.19.2 (#6715)
+ - Bump ajv from 6.12.6 to 6.14.0 (#6771) @app/dependabot
+ - Bump hono from 4.11.9 to 4.12.0 (#6751) @app/dependabot
+ - Bump rollup from 4.52.5 to 4.59.0 (#6769) @app/dependabot
+ - Add assistant features guard checks to avoid runtime errors (#6765) @cstns
+ - ci: Add tests-summary job to the `Tests` workflow (#6754) @ppawlowski
+ - Retry device api call when tunnel proxy returns 502 to re-set the device affinity token (#6748) @cstns
+ - Bump fast-xml-parser and @aws-sdk/xml-builder (#6732) @app/dependabot
+ - Bump fast-xml-parser and @aws-sdk/client-sesv2 (#6687) @app/dependabot
+ - Bump google-auth-library from 10.1.0 to 10.5.0 (#6613) @app/dependabot
+ - Adjust input area resizing and update min-height styling in ExpertChatInput component (#6699) @cstns
+ - Refactor Cypress tests and `ListBox` component to improve selector usage (#6727) @cstns
+ - ci: Add `nr-subflow-export` package to the pre-staging environments (#6724) @ppawlowski
+ - Fix _ vs - in device agent nodejs options docs (#6723) @hardillb
+ - ci: Add `nr-mqtt-nodes` package to the pre-staging environments (#6722) @ppawlowski
+ - Add remote instance immersive view instance controls (#6652) @cstns
+ - Add NodeJS options to device agent cmd line args docs (#6704) @hardillb
+ - Switch to immediate watcher to retrieve logs and update schedule (#6701) @cstns
+ - Fix `TokenCreated` dialog for null tokens (#6441) @GogoVega
+ - Bump webpack from 5.94.0 to 5.105.0 (#6657) @app/dependabot
+ - Bump axios from 1.12.1 to 1.13.5 (#6677) @app/dependabot
+
+#### 2.27.0: Release
+
+ - Bump JS-DevTools/npm-publish from 4.1.4 to 4.1.5 (#6614)
+ - Bump aws-actions/configure-aws-credentials from 5.1.1 to 6.0.0 (#6673)
+ - Bump cypress-io/github-action from 7.1.1 to 7.1.2 (#6674)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml (#6676)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml (#6675)
+ - Fix concurrency group setting in `Create pre-staging environment` workflow (#6656)
+ - Add X-Forwarded headers to nginx ingress docs (#6630)
+ - Ensure UI honors TeamType Enable All flag (#6686) @hardillb
+ - Bump @modelcontextprotocol/sdk from 1.25.3 to 1.26.0 (#6632) @app/dependabot
+ - Update device editor navigation to use named route configuration (#6690) @cstns
+ - Add 4.1.5 to Device Agent Node-RED versions (#6688) @hardillb
+ - Improve clarity of instance assignment in docs (#6554) @sumitshinde-84
+ - Allow snapshot to be restored to a remote instance in dev mode (#6679) @knolleary
+ - Hide billing selector when billing is disabled (#6671) @cstns
+ - fix(ui): wrap DialogBox in Teleport to fix positioning in drawer cont… (#6255) @dimitrieh
+ - Reenable immersive mode for remote instances (#6684) @cstns
+ - Use correct favicon and use provided link to package (#6678) @Steve-Mcl
+ - Ensure consistent Open Editor behavior — always default to immersive experience (#6670) @dimitrieh
+ - FlowFuse Expert context UI (#6631) @Steve-Mcl
+ - Remove WebSocket communication handling and associated methods from the immersive device editor (#6668) @cstns
+ - Add WebSocket disconnection details by logging event details (#6667) @cstns
+ - Enhance remote instance editor with connection polling, communication… (#6647) @cstns
+ - Add the drawer sub routes and the FF Expert to the immersive remote instance (#6629) @cstns
+ - Add the embedded remote instance editor route (#6628) @cstns
+ - Relocate immersive editor components to a common namespace (#6624) @cstns
+ - ci: Update NR versions on pre-staging stacks (#6641) @ppawlowski
+ - Refactor device routes and update references to use consistent naming convention (#6623) @cstns
+ - Chore: extract common immersive styling (#6622) @cstns
+ - Refactor drawer: extract reusable functionality into composable (#6621) @cstns
+ - Chore/use the resizing helper to resize the instance immersive drawer (#6610) @cstns
+ - Bump @isaacs/brace-expansion from 5.0.0 to 5.0.1 (#6627) @app/dependabot
+ - Bump dompurify from 3.3.0 to 3.3.1 (#6612) @app/dependabot
+
+#### 2.26.2: Release
+
+ - Bump cypress-io/github-action from 7.1.0 to 7.1.1 (#6616)
+ - Bump docker/login-action from 3.6.0 to 3.7.0 (#6617)
+ - Bump actions/cache from 5.0.2 to 5.0.3 (#6615)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml (#6574)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml (#6575)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/sast_scan.yaml (#6576)
+ - Bump fastify from 5.6.2 to 5.7.4 (#6620) @app/dependabot
+ - chore: Update features for teams on pre-staging (#6595) @ppawlowski
+ - Add issues and suggestions display to `ExpertChatMessage` component with icon support (#6607) @cstns
+ - Allow team owners to edit their application roles (#6555) @cstns
+ - Update Assistant Link (#6596) @sumitshinde-84
+ - Rename FlowFuse Assistant and related references to FlowFuse Expert (#6571) @sumitshinde-84
+ - Alter the expert's chat input (#6581) @cstns
+ - Create UI component to include selected flows (#6580) @cstns
+ - Add confirmation dialog for administrator privilege grant (#6548) @dimitrieh
+ - Fix Device based MCP error log in app log (#6587) @Steve-Mcl
+ - Fix Expert errors when device are present in MCPRegistrations (#6584) @cstns
+ - docs: add hosted vs remote instance comparison table (#6481) @dgatti0213
+ - Bump jsonwebtoken from 9.0.2 to 9.0.3 (#6469) @app/dependabot
+ - Bump @node-red/util from 4.0.2 to 4.1.2 (#6468) @app/dependabot
+ - Bump nodemailer from 7.0.11 to 7.0.12 (#6467) @app/dependabot
+ - Bump lodash from 4.17.21 to 4.17.23 (#6550) @app/dependabot
+
 #### 2.26.1: Release
 
  - Bump cypress-io/github-action from 6.10.8 to 7.1.0 (#6577)

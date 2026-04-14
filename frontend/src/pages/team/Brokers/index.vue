@@ -77,7 +77,8 @@
 <script>
 
 import { PlusIcon } from '@heroicons/vue/outline'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapGetters } from 'vuex'
 
 import brokerAPI from '../../../api/broker.js'
 
@@ -88,6 +89,10 @@ import usePermissions from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 
 import BrokerStatusBadge from './components/BrokerStatusBadge.vue'
+
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
     name: 'TeamBrokers',
@@ -111,9 +116,11 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team', 'pendingTeamChange']),
-        ...mapGetters('product', ['hasFfUnsClients', 'hasBrokers']),
-        ...mapState('product', {
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountStore, ['pendingTeamChange']),
+        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useProductBrokersStore, ['hasFfUnsClients', 'hasBrokers']),
+        ...mapState(useProductBrokersStore, {
             brokers: state => state.UNS.brokers
         }),
         activeBrokerId: {
@@ -293,13 +300,13 @@ export default {
         this.clearBrokerStatusPollingInterval()
     },
     methods: {
-        ...mapActions('product', ['fetchUnsClients']),
+        ...mapActions(useProductBrokersStore, ['fetchUnsClients', 'getBrokers', 'clearUns']),
         async fetchData () {
             this.loading = true
             if (this.featuresCheck.isMqttBrokerFeatureEnabled) {
-                return this.$store.dispatch('product/fetchUnsClients')
+                return this.fetchUnsClients()
                     .catch(err => console.error(err))
-                    .then(() => this.$store.dispatch('product/getBrokers'))
+                    .then(() => this.getBrokers())
                     .then(() => {
                         if (
                             Object.prototype.hasOwnProperty.call(this.$route.params, 'brokerId') &&
@@ -347,9 +354,6 @@ export default {
             default:
                  // no redirect
             }
-        },
-        clearUns () {
-            this.$store.dispatch('product/clearUns')
         },
         getBrokerState () {
             return brokerAPI.getBrokerStatus(this.team.id, this.activeBrokerId)

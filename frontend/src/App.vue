@@ -7,7 +7,7 @@
                 </div>
             </main>
         </template>
-        <template v-else-if="pending">
+        <template v-else-if="appLoader">
             <main class="ff-bg-dark flex-grow flex flex-col">
                 <div class="w-full mx-auto flex-grow flex flex-col">
                     <Loading color="white" />
@@ -62,7 +62,8 @@
 </template>
 
 <script>
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
@@ -76,6 +77,12 @@ import Login from './pages/Login.vue'
 import PasswordExpired from './pages/PasswordExpired.vue'
 import TermsAndConditions from './pages/TermsAndConditions.vue'
 import UnverifiedEmail from './pages/UnverifiedEmail.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useContextStore } from '@/stores/context.js'
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'App',
@@ -94,9 +101,10 @@ export default {
         'ff-layout-plain': FFLayoutPlain
     },
     computed: {
-        ...mapState('account', ['pending', 'user', 'team', 'offline', 'settings']),
-        ...mapState('ux/drawers', ['leftDrawer']),
-        ...mapGetters('ux/drawers', ['hiddenLeftDrawer']),
+        ...mapState(useUxDrawersStore, ['hiddenLeftDrawer']),
+        ...mapState(useAccountAuthStore, ['user']),
+        ...mapState(useUxLoadingStore, ['appLoader', 'offline']),
+        ...mapVuexState('account', ['settings']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },
@@ -139,14 +147,14 @@ export default {
     },
     mounted () {
         this.$store.dispatch('account/checkState')
-        this.$store.dispatch('product/checkFlags')
+        useProductBrokersStore().checkFlags()
     },
     methods: {
-        ...mapActions('context', ['updateRoute'])
+        ...mapActions(useContextStore, ['updateRoute'])
     }
 }
 </script>
 
 <style lang="scss">
-@import "./stylesheets/common.scss";
+@use "./stylesheets/common.scss" as *;
 </style>

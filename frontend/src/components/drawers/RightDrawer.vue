@@ -2,7 +2,7 @@
     <section
         id="right-drawer"
         v-click-outside="{handler: closeDrawer, exclude: ['right-drawer']}"
-        :class="{open: rightDrawer.state, wider: rightDrawer.wider, fixed: rightDrawer.fixed, resizing: isResizing, 'manually-resized': hasManuallyResized, pinning: isPinning, opening: isOpening, closing: isClosing}"
+        :class="{open: rightDrawer.state, wider: rightDrawer.wider, fixed: rightDrawer.fixed, resizing: isResizing, 'manually-resized': hasManuallyResized, pinning: isPinning, opening: isOpening && !isPinning, closing: isClosing}"
         :style="drawerStyle"
         data-el="right-drawer"
     >
@@ -22,6 +22,7 @@
                     :disabled="typeof action.disabled === 'function' ? action.disabled() : action.disabled"
                     :has-left-icon="!!action.iconLeft"
                     v-bind="action.bind"
+                    :title="typeof action.tooltip === 'function' ? action.tooltip() : action.tooltip"
                     @click="action.handler"
                 >
                     <template v-if="!!action.iconLeft" #icon-left>
@@ -41,7 +42,10 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+
+import { useProductExpertStore } from '@/stores/product-expert.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 const DRAWER_MIN_WIDTH = 310
 const DRAWER_DEFAULT_WIDTH = 400
@@ -73,7 +77,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('ux/drawers', ['rightDrawer']),
+        ...mapState(useUxDrawersStore, ['rightDrawer']),
         shouldAllowPinning () {
             return this.viewportWidth >= VIEWPORT_PIN_THRESHOLD
         },
@@ -102,10 +106,18 @@ export default {
     watch: {
         'rightDrawer.state': {
             handler (isOpen, wasOpen) {
+                let reopenExpert = false
+                const isExpertDrawer = this.rightDrawer.component?.name === 'ExpertDrawer'
+                if (!isOpen && wasOpen && !isExpertDrawer) {
+                    // non expert drawer is closing - check if we need to re-open expert drawer
+                    reopenExpert = this.rightDrawer.expertState.pinned && this.rightDrawer.expertState.open
+                }
+
                 // Set opening flag when drawer opens
                 if (isOpen && !wasOpen) {
                     this.isOpening = true
                     this.isClosing = false
+                    this.isPinning = isExpertDrawer && this.rightDrawer.fixed // no animation if drawer is to open pinned
                     // Clear opening flag after slide animation completes
                     setTimeout(() => {
                         this.isOpening = false
@@ -118,6 +130,10 @@ export default {
                     // Clear closing flag after slide animation completes
                     setTimeout(() => {
                         this.isClosing = false
+                        // Re-open Expert drawer if needed after other drawer closes
+                        if (reopenExpert) {
+                            this.openAssistantDrawer({ openPinned: true })
+                        }
                     }, 350)
                 }
 
@@ -163,6 +179,20 @@ export default {
     mounted () {
         // Add viewport resize listener
         window.addEventListener('resize', this.onViewportResize)
+
+        const openPinned = this.rightDrawer.expertState.open && this.rightDrawer.expertState.pinned
+
+        if (openPinned && this.shouldAllowPinning) {
+            this.isPinning = true
+            setTimeout(() => {
+                this.openAssistantDrawer({ openPinned: true })
+                setTimeout(() => {
+                    this.isPinning = false
+                }, 200)
+            }, 25)
+        } else {
+            this.isPinning = false
+        }
     },
     beforeUnmount () {
         // Clean up resize listeners
@@ -174,7 +204,8 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux/drawers', ['closeRightDrawer', 'togglePinDrawer']),
+        ...mapActions(useProductExpertStore, ['openAssistantDrawer']),
+        ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'togglePinDrawer']),
         closeDrawer () {
             if (this.rightDrawer.state && this.rightDrawer.closeOnClickOutside) {
                 this.closeRightDrawer()

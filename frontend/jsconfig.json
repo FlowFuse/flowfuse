@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "jsx": "preserve",
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["src/*"]
+        }
+    },
+    "include": [
+        "src/**/*",
+        "src/**/*.d.ts",
+        "../test/unit/frontend/**/*"
+    ]
+}

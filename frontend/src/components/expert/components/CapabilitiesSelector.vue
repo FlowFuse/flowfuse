@@ -10,7 +10,7 @@
             :value-key="['instance', 'mcpServerUrl']"
             placeholder="Resources"
             open-above
-            :min-options-width="280"
+            :options-min-width="280"
             align-right
         >
             <template #options="{ options }">
@@ -58,11 +58,12 @@
 
 <script>
 import { ListboxOption } from '@headlessui/vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
-import { OPERATOR_AGENT } from '../../../store/modules/product/expert/agents.js'
 import FfCheckbox from '../../../ui-components/components/form/Checkbox.vue'
 import FfListbox from '../../../ui-components/components/form/ListBox.vue'
+
+import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
 
 export default {
     name: 'CapabilitiesSelector',
@@ -72,10 +73,10 @@ export default {
         FfListbox
     },
     computed: {
-        ...mapState(`product/expert/${OPERATOR_AGENT}`, [
-            'selectedCapabilities'
+        ...mapState(useProductExpertInsightsAgentStore, [
+            'selectedCapabilities',
+            'capabilities'
         ]),
-        ...mapGetters(`product/expert/${OPERATOR_AGENT}`, ['capabilities']),
         hasCapabilities () {
             return this.capabilities && this.capabilities.length > 0
         },
@@ -89,7 +90,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(`product/expert/${OPERATOR_AGENT}`, [
+        ...mapActions(useProductExpertInsightsAgentStore, [
             'setSelectedCapabilities'
         ]),
         onCheckboxClick (option) {

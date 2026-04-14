@@ -25,7 +25,7 @@
 import { ChevronRightIcon } from '@heroicons/vue/outline'
 
 import ExternalClient from '../../api/external.js'
-import { pluralize } from '../../composables/String.js'
+import { pluralize } from '../../composables/strings/String.js'
 import daysSince from '../../utils/daysSince.js'
 
 import VersionsList from './VersionsList.vue'

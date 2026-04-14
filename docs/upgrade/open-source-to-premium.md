@@ -21,3 +21,9 @@ a restart of the `forge` app is required.
 After the forge application has restarted, the Node-RED runtimes need to be
 updated to leverage these features. As restarting Node-RED might need to be
 coordinated, FlowFuse will not automatically restart all instances.
+
+### Reusing FlowFuse licenses
+
+A single license may only be applied to one FlowFuse platform at any time. Running multiple FlowFuse platforms with the same license key is against the terms of the subscription.
+
+A license may be reused on another FlowFuse platform if the original platform is no longer running. For example, if the FlowFuse platform is reinstalled onto new hardware, the license from the original install can be reused.

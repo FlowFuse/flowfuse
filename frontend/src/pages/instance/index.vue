@@ -47,6 +47,7 @@
                             :disabled="!editorAvailable"
                             :disabled-reason="disabledReason"
                             :instance="instance"
+                            :primary="editorAvailable && !instance.settings.disableEditor"
                         />
                         <InstanceActionsButton :instance="instance" @instance-deleted="onInstanceDelete" />
                     </div>
@@ -76,7 +77,7 @@
 <script>
 import { LockClosedIcon } from '@heroicons/vue/outline'
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
@@ -92,6 +93,8 @@ import ConfirmInstanceDeleteDialog from './Settings/dialogs/ConfirmInstanceDelet
 import DashboardLink from './components/DashboardLink.vue'
 import InstanceEditorLink from './components/EditorLink.vue'
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstancePage',
@@ -125,7 +128,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         navigation () {
             if (!this.instance.id) return []
             let versionHistoryRoute

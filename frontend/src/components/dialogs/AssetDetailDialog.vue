@@ -1,5 +1,6 @@
 <template>
     <ff-dialog
+        v-if="visible"
         ref="dialog" :header="header" :sub-header="`Node-RED Version: ${nrVersion}`" confirm-label="Close" :closeOnConfirm="true"
         data-el="flow-view-dialog" boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]"
         contentClass="overflow-hidden flex-grow" @confirm="confirm()"
@@ -35,22 +36,26 @@ export default {
             async show (payload) { // accepts blueprints, snapshots and libraries
                 // If there is no flows property, but there is a category property, we assume this is a blueprint
                 // and try to load the content dynamically
-                if (!payload.flows && Object.hasOwn(payload, 'category')) {
-                    const blueprint = await BlueprintAPI.getFlowBlueprint(payload.id)
-                    payload.flows = blueprint.flows
-                }
-                this.mode = 'view'
-                this.$refs.dialog.show()
-                this.payload = payload
-                setTimeout(() => {
-                    this.renderFlows()
-                }, 20)
+                this.visible = true
+                this.$nextTick(async () => {
+                    if (!payload.flows && Object.hasOwn(payload, 'category')) {
+                        const blueprint = await BlueprintAPI.getFlowBlueprint(payload.id)
+                        payload.flows = blueprint.flows
+                    }
+                    this.mode = 'view'
+                    this.$refs.dialog.show()
+                    this.payload = payload
+                    setTimeout(() => {
+                        this.renderFlows()
+                    }, 20)
+                })
             }
         }
     },
     data () {
         return {
-            payload: []
+            payload: [],
+            visible: false
         }
     },
     computed: {
@@ -73,6 +78,7 @@ export default {
     methods: {
         confirm () {
             this.$refs.dialog.close()
+            this.visible = false
         },
         renderFlows () {
             const flowRenderer = new FlowRenderer()

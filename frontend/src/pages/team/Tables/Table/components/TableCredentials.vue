@@ -67,19 +67,20 @@
 
 import { DatabaseIcon, LockClosedIcon } from '@heroicons/vue/outline'
 
+import { mapState } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapGetters, mapState } from 'vuex'
 
 import TextCopier from '../../../../../components/TextCopier.vue'
 
 import PasswordField from '../../../../../ui-components/components/PasswordField.vue'
 
+import { useProductTablesStore } from '@/stores/product-tables.js'
+
 export default defineComponent({
     name: 'TableCredentials',
     components: { TextCopier, PasswordField, DatabaseIcon, LockClosedIcon },
     computed: {
-        ...mapState('product/tables', ['databases']),
-        ...mapGetters('product/tables', ['database'])
+        ...mapState(useProductTablesStore, ['database'])
     }
 })
 </script>

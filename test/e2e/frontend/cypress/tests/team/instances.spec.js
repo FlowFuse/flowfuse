@@ -5,16 +5,12 @@ describe('Team - Instances', () => {
 
         cy.get('[data-nav="team-instances"]').click()
         cy.contains('instance-1-1')
-            .parent()
-            .parent()
-            .parent()
+            .closest('tr')
             .within(() => {
                 cy.get('[data-action="open-editor"]').should('not.be.disabled')
             })
         cy.contains('instance-1-2')
-            .parent()
-            .parent()
-            .parent()
+            .closest('tr')
             .within(() => {
                 cy.get('[data-action="open-editor"]').should('be.disabled')
             })
@@ -39,16 +35,12 @@ describe('Team - Instances', () => {
         cy.wait('@getProjects')
 
         cy.contains('instance-1-1')
-            .parent()
-            .parent()
-            .parent()
+            .closest('tr')
             .within(() => {
                 cy.get('[data-action="open-dashboard"]').should('not.be.disabled')
             })
         cy.contains('instance-1-2')
-            .parent()
-            .parent()
-            .parent()
+            .closest('tr')
             .within(() => {
                 cy.get('[data-action="open-dashboard"]').should('be.disabled')
             })
@@ -90,17 +82,13 @@ describe('Team - Instances', () => {
             cy.wait('@getTeam')
 
             cy.contains('instance-1-2')
-                .parent()
-                .parent()
-                .parent()
+                .closest('tr')
                 .within(() => {
                     cy.get('[data-action="open-dashboard"]').should('be.disabled')
                 })
 
             cy.contains('instance-1-1')
-                .parent()
-                .parent()
-                .parent()
+                .closest('tr')
                 .within(() => {
                     cy.get('[data-action="open-dashboard"]').should('not.be.disabled')
                 })

@@ -80,6 +80,7 @@
 <script>
 import { SearchIcon, StatusOnlineIcon, XIcon } from '@heroicons/vue/outline'
 import { RefreshIcon } from '@heroicons/vue/solid'
+import { mapActions, mapState } from 'pinia'
 import { mapGetters } from 'vuex'
 
 import EmptyState from '../../../../../components/EmptyState.vue'
@@ -87,6 +88,8 @@ import EmptyState from '../../../../../components/EmptyState.vue'
 import MainTitle from '../components/MainTitle.vue'
 
 import TopicSegment from '../components/TopicSegment.vue'
+
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
     name: 'TopicHierarchy',
@@ -124,8 +127,8 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team']),
-        ...mapGetters('product', ['brokerExpandedTopics']),
+        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useProductBrokersStore, ['brokerExpandedTopics']),
         brokerId () {
             return this.$route.params.brokerId
         },
@@ -217,7 +220,7 @@ export default {
             set (segment) {
                 const keys = segment.topic.split('/')
                 let current = this.hierarchy
-                this.$store.dispatch('product/handleBrokerTopicState', { topic: segment.topic, brokerId: this.brokerId })
+                this.handleBrokerTopicState({ topic: segment.topic, brokerId: this.brokerId })
 
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i]
@@ -253,6 +256,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions(useProductBrokersStore, ['handleBrokerTopicState']),
         checkIfTopicOpen (topic) {
             return Object.prototype.hasOwnProperty.call(this.expandedTopics, topic)
         },

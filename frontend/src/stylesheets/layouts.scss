@@ -1,10 +1,9 @@
+@use '../ui-components/stylesheets/ff-colors.scss' as *;
+@use '../ui-components/stylesheets/ff-utility.scss' as *;
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import '../ui-components/stylesheets/ff-colors.scss';
-@import '../ui-components/stylesheets/ff-utility.scss';
 
 $sidenav_width: 250px;
 $transition_time: .15s;
@@ -332,7 +331,7 @@ $nav_height: 60px;
     }
 }
 .ff-header {
-    z-index: 110;
+    z-index: 120;
     background-color: $ff-white;
     height: $nav_height;
     border-bottom: 1px solid $ff-color--border;

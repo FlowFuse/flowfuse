@@ -37,16 +37,41 @@
                 -->
                 <div class="flex gap-2 align-center" style="height: 34px;">
                     <template v-if="isDevModeAvailable">
-                        <DeveloperModeToggle data-el="device-devmode-toggle" :device="device" :disabled="disableModeToggle" :disabledReason="disableModeToggleReason" @mode-change="setDeviceMode" />
-                        <button v-if="!isVisitingAdmin" v-ff-tooltip:left="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'" data-action="open-editor" class="ff-btn transition-fade--color ff-btn--secondary ff-btn-icon h-9" :disabled="!editorAvailable" @click="openTunnel(true)">
-                            Open Editor
-                            <span class="ff-btn--icon ff-btn--icon-right">
-                                <ExternalLinkIcon />
-                            </span>
-                        </button>
+                        <template v-if="neverConnected">
+                            <FinishSetupButton
+                                v-if="hasPermission('device:create', {application: device.application})"
+                                :is-primary="neverConnected"
+                                :device="device"
+                            />
+                        </template>
+                        <template v-else>
+                            <DeveloperModeToggle
+                                data-el="device-devmode-toggle"
+                                :device="device"
+                                :disabled="disableModeToggle"
+                                :disabledReason="disableModeToggleReason"
+                                @mode-change="setDeviceMode"
+                            />
+                            <device-editor-link
+                                :device="device"
+                                :title="!editorAvailable ? 'You can edit flows directly when Developer Mode is enabled, and your Edge Instance is connected.' : 'Open Edge Instance Editor'"
+                                :disabled="!editorAvailable"
+                                :primary="editorAvailable"
+                                data-action="open-editor"
+                                @open-immersive-editor="openTunnel({launchEditor: true, event: $event, immersive: true})"
+                                @open-editor="openTunnel({launchEditor: true, event: $event, immersive: false})"
+                            />
+                        </template>
                     </template>
-                    <FinishSetupButton v-if="hasPermission('device:create', {application: device.application}) && neverConnected" :device="device" />
-                    <DropdownMenu v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length" data-el="device-actions-dropdown" buttonClass="ff-btn ff-btn--primary" :options="actionsDropdownOptions">Actions</DropdownMenu>
+                    <DropdownMenu
+                        v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length"
+                        data-el="device-actions-dropdown"
+                        :buttonClass="`ff-btn ff-btn-icon ${ actionsButtonKind }`"
+                        :options="actionsDropdownOptions"
+                    >
+                        <CogIcon class="ff-btn--icon ff-btn--icon-left" />
+                        Actions
+                    </DropdownMenu>
                 </div>
             </template>
         </SectionNavigationHeader>
@@ -110,10 +135,10 @@
 
 <script>
 
-import { ExternalLinkIcon } from '@heroicons/vue/outline'
-// import { TerminalIcon } from '@heroicons/vue/solid'
+import { CogIcon } from '@heroicons/vue/solid/index.js'
+import { mapActions, mapState } from 'pinia'
 import semver from 'semver'
-import { mapState } from 'vuex'
+import { mapState as mapVuexState } from 'vuex'
 
 import deviceApi from '../../api/devices.js'
 import DropdownMenu from '../../components/DropdownMenu.vue'
@@ -122,11 +147,13 @@ import SectionNavigationHeader from '../../components/SectionNavigationHeader.vu
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 import deviceActionsMixin from '../../mixins/DeviceActions.js'
 
 import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
+
 import { DeviceStateMutator } from '../../utils/DeviceStateMutator.js'
 import { createPollTimer } from '../../utils/timers.js'
 
@@ -136,8 +163,14 @@ import DeviceAssignInstanceDialog from '../team/Devices/dialogs/DeviceAssignInst
 import AssignDeviceDialog from './components/AssignDeviceDialog.vue'
 
 import DeveloperModeToggle from './components/DeveloperModeToggle.vue'
+import DeviceEditorLink from './components/DeviceEditorLink.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
+
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
+
+import { useUxStore } from '@/stores/ux.js'
 
 // constants
 const POLL_TIME = 5000
@@ -155,8 +188,9 @@ const deviceTransitionStates = [
 export default {
     name: 'DevicePage',
     components: {
+        CogIcon,
+        DeviceEditorLink,
         FinishSetupButton,
-        ExternalLinkIcon,
         DeveloperModeToggle,
         DeviceModeBadge,
         DeviceLastSeenBadge,
@@ -172,8 +206,9 @@ export default {
     mixins: [deviceActionsMixin],
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
+        const { navigateTo, openInANewTab } = useNavigationHelper()
 
-        return { hasPermission, isVisitingAdmin }
+        return { hasPermission, isVisitingAdmin, navigateTo, openInANewTab }
     },
     data: function () {
         return {
@@ -190,7 +225,18 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team', 'features', 'settings']),
+        ...mapState(useContextStore, ['team']),
+        ...mapVuexState('account', ['features', 'settings']),
+        actionsButtonKind () {
+            switch (true) {
+            case this.neverConnected:
+                return 'ff-btn--secondary'
+            case this.editorAvailable:
+                return 'ff-btn--secondary'
+            default:
+                return 'ff-btn--primary'
+            }
+        },
         permissionContext () {
             if (this.device?.ownerType === 'application' || this.device?.ownerType === 'instance') {
                 return { application: this.device.application }
@@ -247,13 +293,13 @@ export default {
             return [
                 {
                     label: 'Overview',
-                    to: { name: 'DeviceOverview' },
+                    to: { name: 'device-overview' },
                     tag: 'device-overview'
                 },
                 {
                     label: 'Version History',
                     to: {
-                        name: 'DeviceSnapshots',
+                        name: 'device-version-history',
                         params: { id: this.$route.params.id }
                     },
                     tag: 'version-history'
@@ -281,7 +327,7 @@ export default {
                 },
                 {
                     label: 'Developer Mode',
-                    to: { name: 'DeviceDeveloperMode' },
+                    to: { name: 'device-developer-mode' },
                     tag: 'device-devmode',
                     hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')
                 }
@@ -328,12 +374,13 @@ export default {
         clearTimeout(this.openTunnelTimeout)
     },
     methods: {
+        ...mapActions(useUxStore, ['validateUserAction']),
         pollTimerElapsed: async function () {
             // Only refresh device via the timer if we are on the overview page, developer mode page
             // the device status is empty or the device is in a transition state
             // This is to prevent settings pages from refreshing the device state while modifying settings
             // See `watch: { device: { handler () ...  in pages/device/Settings/General.vue for why that happens
-            const settingsPages = ['DeviceOverview', 'DeviceDeveloperMode']
+            const settingsPages = ['device-overview', 'device-developer-mode']
             try {
                 if (settingsPages.includes(this.$route.name)) {
                     await this.loadDevice()
@@ -367,7 +414,7 @@ export default {
             }
             this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')
             this.agentSupportsActions = this.device.agentVersion && semver.gte(this.device.agentVersion, '2.3.0')
-            this.$store.dispatch('account/setTeam', this.device.team.slug)
+            useAccountStore().setTeam(this.device.team.slug)
         },
         deviceRefresh: async function () {
             if (this.pollTimer.running) {
@@ -425,15 +472,23 @@ export default {
 
             Alerts.emit('Device successfully assigned to application.', 'confirmation')
         },
-        openEditor () {
-            this.$store.dispatch('ux/validateUserAction', 'hasOpenedDeviceEditor')
-            window.open(this.deviceEditorURL, `device-editor-${this.device.id}`)
+        openEditor ({ event = null, immersive = false } = {}) {
+            this.validateUserAction('hasOpenedDeviceEditor')
+            if (!immersive) {
+                this.openInANewTab(this.deviceEditorURL, `device-editor-${this.device.id}`)
+            } else {
+                this.navigateTo({ name: 'device-editor' }, event, { target: `device-editor-${this.device.id}` })
+            }
         },
-        async openTunnel (launchEditor = false) {
+        async openTunnel ({
+            event,
+            immersive = true,
+            launchEditor = false
+        } = {}) {
             try {
                 if (this.deviceRunning) {
                     if (this.device.editor?.enabled && this.device.editor?.connected && this.device.editor?.local) {
-                        this.openEditor()
+                        this.openEditor({ event, immersive })
                     } else {
                         this.openingTunnel = true
                         this.$refs.dialog.show()
@@ -447,7 +502,7 @@ export default {
                                     if (this.device.editor?.enabled && this.device.editor?.connected) {
                                         if (this.device.editor?.local) {
                                             if (launchEditor) {
-                                                this.openEditor()
+                                                this.openEditor({ event, immersive })
                                             }
                                         } else {
                                             pollTunnelStatus(done, attempt + 1, 200)
@@ -470,8 +525,16 @@ export default {
                                 this.openingTunnel = false
                             })
                         } catch (err) {
-                            this.$refs.dialog.close()
+                            this.$refs.dialog?.close()
                             this.openingTunnel = false
+
+                            const enhancedError = new Error(`Failed to enable device editor tunnel: ${err.message}`)
+                            enhancedError.originalError = err
+                            enhancedError.deviceId = this.device?.id
+                            enhancedError.deviceStatus = this.device?.status
+                            enhancedError.context = 'openTunnel'
+
+                            throw enhancedError
                         }
                     }
                 } else {
@@ -479,6 +542,9 @@ export default {
                 }
             } catch (err) {
                 console.warn('Error in openTunnel', err)
+                if (Object.hasOwnProperty.call(err, 'context') && err.context === 'openTunnel') {
+                    throw err
+                }
             }
         },
         async closeTunnel () {
@@ -513,7 +579,7 @@ export default {
                     await deviceApi.deleteDevice(this.device.id)
                     Alerts.emit('Successfully deleted the device', 'confirmation')
                     // Trigger a refresh of team info to resync following device changes
-                    await this.$store.dispatch('account/refreshTeam')
+                    await useContextStore().refreshTeam()
                     this.$router.push({ name: 'TeamDevices', params: { team_slug: this.team.slug } })
                 } catch (err) {
                     Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)

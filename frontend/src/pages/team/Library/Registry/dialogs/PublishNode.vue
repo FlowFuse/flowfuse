@@ -65,12 +65,15 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import TeamAPI from '../../../../../api/team.js'
 import CodeSnippet from '../../../../../components/CodeSnippet.vue'
 import CopySnippet from '../../../../../components/CopySnippet.vue'
 import Alerts from '../../../../instance/Settings/Alerts.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'PublishNodeDialog',
@@ -97,7 +100,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings', 'team']),
+        ...mapState(useContextStore, ['team']),
+        ...mapVuexState('account', ['settings']),
         registryHost () {
             return this.settings ? this.settings['team:npm:registry'] : ''
         },
@@ -122,7 +126,7 @@ export default {
             this.loading.credentials = true
             try {
                 const creds = await TeamAPI.generateRegistryUserToken(this.team.id)
-                this.credentials.username = creds.data.username
+                this.credentials.username = creds.data.username.toLowerCase()
                 this.credentials.token = creds.data.token
             } catch (err) {
                 console.error(err)

@@ -1,4 +1,6 @@
- .ff-dropdown-option-list {
+@use "../../ui-components/stylesheets/ff-colors.scss" as *;
+
+.ff-dropdown-option-list {
   max-height: 200px;
   overflow-y: auto;
 }

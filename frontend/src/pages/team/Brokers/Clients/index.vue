@@ -94,14 +94,15 @@
 
 <script>
 import { PlusSmIcon, RssIcon, SearchIcon } from '@heroicons/vue/outline'
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import brokerApi from '../../../../api/broker.js'
 import EmptyState from '../../../../components/EmptyState.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 import usePermissions from '../../../../composables/Permissions.js'
-import { slugify } from '../../../../composables/String.js'
 import { getTeamProperty } from '../../../../composables/TeamProperties.js'
+import { slugify } from '../../../../composables/strings/String.js'
 import clipboardMixin from '../../../../mixins/Clipboard.js'
 import featuresMixin from '../../../../mixins/Features.js'
 import Alerts from '../../../../services/alerts.js'
@@ -111,6 +112,9 @@ import { Roles } from '../../../../utils/roles.js'
 import BrokerClient from './components/BrokerClient.vue'
 
 import ClientDialog from './dialogs/ClientDialog.vue'
+
+import { useContextStore } from '@/stores/context.js'
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
     name: 'BrokerClients',
@@ -139,8 +143,9 @@ export default {
         Roles () {
             return Roles
         },
-        ...mapState('account', ['user', 'team', 'features']),
-        ...mapState('product', {
+        ...mapState(useContextStore, ['team']),
+        ...mapVuexState('account', ['features']),
+        ...mapState(useProductBrokersStore, {
             clients: state => state.UNS.clients
         }),
         filteredClients () {
@@ -173,7 +178,7 @@ export default {
     },
     methods: {
         slugify,
-        ...mapActions('product', ['fetchUnsClients']),
+        ...mapActions(useProductBrokersStore, ['fetchUnsClients', 'removeFfBroker']),
         async createClient () {
             this.$refs.clientDialog.showCreate()
         },
@@ -188,11 +193,11 @@ export default {
                 confirmLabel: 'Delete'
             }, async () => {
                 brokerApi.deleteClient(this.team.id, client.username)
-                    .then(() => this.$store.dispatch('product/fetchUnsClients'))
+                    .then(() => this.fetchUnsClients())
                     .then(() => Alerts.emit('Successfully deleted Client.', 'confirmation'))
                     .then(async () => {
                         if (this.clients.length === 0) {
-                            await this.$store.dispatch('product/removeFfBroker')
+                            this.removeFfBroker()
                             await this.$router.push({ name: 'team-brokers' })
                         }
                     })

@@ -158,6 +158,7 @@
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 import { mapGetters } from 'vuex'
 
@@ -171,12 +172,15 @@ import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 import instanceActionsMixin from '../../mixins/InstanceActions.js'
 import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
+import ApplicationLink from '../application/components/cells/ApplicationLink.vue'
 import DeploymentName from '../application/components/cells/DeploymentName.vue'
 import SimpleTextCell from '../application/components/cells/SimpleTextCell.vue'
 import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from '../instance/components/DashboardLink.vue'
 import InstanceEditorLink from '../instance/components/EditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamInstances',
@@ -209,7 +213,7 @@ export default {
             loading: false,
             instancesMap: new Map(),
             columns: [
-                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName) } },
+                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName), map: { url: 'url' }, extraProps: { copyable: true } } },
                 {
                     label: 'Status',
                     class: ['w-44'],
@@ -227,7 +231,19 @@ export default {
                         }
                     }
                 },
-                { label: 'Application', class: ['flex-grow-[0.25]'], key: 'application.name', sortable: true },
+                {
+                    label: 'Application',
+                    class: ['flex-grow-[0.25]'],
+                    key: 'application.name',
+                    sortable: true,
+                    component: {
+                        is: markRaw(ApplicationLink),
+                        map: {
+                            id: 'application.id',
+                            name: 'application.name'
+                        }
+                    }
+                },
                 {
                     label: 'Last Updated',
                     class: ['w-60'],
@@ -242,7 +258,8 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team']),
+        ...mapState(useContextStore, ['team']),
+        ...mapGetters('account', ['featuresCheck']),
         instances () {
             return Array.from(this.instancesMap.values())
         },

@@ -15,7 +15,9 @@
 
 <script>
 import { ArrowSmRightIcon, TemplateIcon } from '@heroicons/vue/solid'
-import { mapState, useStore } from 'vuex'
+import { mapState } from 'pinia'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'AccessRequest',
@@ -24,12 +26,11 @@ export default {
         ArrowSmRightIcon
     },
     computed: {
-        ...mapState('account', ['user', 'team'])
+        ...mapState(useAccountAuthStore, ['user'])
     },
     mounted () {
-        const store = useStore()
         // If we've got here, remove any redirect url to prevent further unexpected redirects to this route
-        store.dispatch('account/setRedirectUrl', null)
+        useAccountAuthStore().setRedirectUrl(null)
         window.location.href = `/account/complete/${this.$router.currentRoute.value.params.id}`
     }
 }

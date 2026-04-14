@@ -151,7 +151,7 @@ describe('FlowFuse - Version History', () => {
 
             // it can view restored snapshots
             cy.intercept('GET', '/api/v1/snapshots/*/full', fullSnapshot).as('getSnapshot')
-            cy.get('[data-el="dialog-view-snapshot"]').should('not.be.visible')
+            cy.get('[data-el="dialog-view-snapshot"]').should('not.exist')
             cy.contains('Auto Snapshot - 2024-10-16 10:59:38').click()
             cy.wait('@getSnapshot')
             cy.get('[data-el="dialog-view-snapshot"]').should('be.visible')
@@ -160,7 +160,7 @@ describe('FlowFuse - Version History', () => {
                 })
 
             // it can view the pipeline deployed snapshot
-            cy.get('[data-el="dialog-view-snapshot"]').should('not.be.visible')
+            cy.get('[data-el="dialog-view-snapshot"]').should('not.exist')
             cy.get('[data-el="timeline-list"]')
                 .contains('Tatooine CNC Shop Snapshot deployed from instance-1-1')
                 .within(() => {
@@ -181,7 +181,7 @@ describe('FlowFuse - Version History', () => {
             cy.go('back')
 
             // it can view created snapshots
-            cy.get('[data-el="dialog-view-snapshot"]').should('not.be.visible')
+            cy.get('[data-el="dialog-view-snapshot"]').should('not.exist')
             cy.get('[data-el="timeline-list"]')
                 .contains('Snapshot Captured: Auto Snapshot - 2024-10-18 12:41:28')
                 .within(() => {
@@ -203,7 +203,7 @@ describe('FlowFuse - Version History', () => {
                 })
 
             // it can view manually imported snapshots
-            cy.get('[data-el="dialog-view-snapshot"]').should('not.be.visible')
+            cy.get('[data-el="dialog-view-snapshot"]').should('not.exist')
             cy.get('[data-el="timeline-list"]')
                 .contains('Imported Tatooine CNC Shop snapshot')
                 .within(() => {

@@ -11,7 +11,6 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
 
 export default {
     name: 'InstanceCounter',
@@ -36,7 +35,6 @@ export default {
     },
     emits: ['clicked'],
     computed: {
-        ...mapGetters('account', ['team']),
         accent () {
             switch (this.state) {
             case 'running':

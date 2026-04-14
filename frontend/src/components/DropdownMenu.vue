@@ -29,7 +29,7 @@
                             :key="$index"
                             :disabled="!item || item.disabled === true"
                         >
-                            <template v-if="item == null">
+                            <template v-if="item == null || item.type === 'hr'">
                                 <hr>
                             </template>
                             <template v-else-if="item.disabled">

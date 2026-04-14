@@ -102,8 +102,9 @@
 </template>
 <script>
 import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, XIcon } from '@heroicons/vue/solid'
+import { mapActions, mapState } from 'pinia'
 import { ref } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import usePermissions from '../composables/Permissions.js'
 
@@ -118,6 +119,12 @@ import NotificationsButton from './NotificationsButton.vue'
 import TeamSelection from './TeamSelection.vue'
 import GlobalSearch from './global-search/GlobalSearch.vue'
 
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { useUxToursStore } from '@/stores/ux-tours.js'
+
 export default {
     name: 'PageHeader',
     mixins: [navigationMixin],
@@ -125,10 +132,11 @@ export default {
         Roles () {
             return Roles
         },
-        ...mapState('account', ['user', 'team', 'teams']),
-        ...mapState('ux/drawers', ['leftDrawer']),
-        ...mapGetters('account', ['notifications', 'hasAvailableTeams', 'defaultUserTeam', 'canCreateTeam', 'isTrialAccount', 'featuresCheck']),
-        ...mapGetters('ux/drawers', ['hiddenLeftDrawer']),
+        ...mapState(useUxDrawersStore, ['leftDrawer', 'hiddenLeftDrawer']),
+        ...mapState(useAccountAuthStore, ['user']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountStore, ['teams', 'notifications', 'hasAvailableTeams', 'defaultUserTeam']),
+        ...mapGetters('account', ['canCreateTeam', 'featuresCheck']),
         navigationOptions () {
             return [
                 {
@@ -202,7 +210,6 @@ export default {
     setup () {
         const open = ref(false)
         const { hasPermission, hasAMinimumTeamRoleOf } = usePermissions()
-
         return {
             open,
             plusIcon: PlusIcon,
@@ -211,16 +218,16 @@ export default {
         }
     },
     methods: {
-        ...mapActions('ux/drawers', ['toggleLeftDrawer']),
+        ...mapActions(useUxDrawersStore, ['toggleLeftDrawer']),
+        ...mapActions(useUxToursStore, ['openModal', 'resetTours', 'presentTour']),
         openEducationModal () {
-            this.$store.dispatch('ux/tours/openModal', 'education')
-                .then(() => product.capture('clicked-open-education-modal'))
-                .catch(e => e)
+            this.openModal('education')
+            product.capture('clicked-open-education-modal')
         },
         startWelcomeTour () {
-            return this.$store.dispatch('ux/tours/resetTours')
-                .then(() => this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } }))
-                .then(() => this.$store.dispatch('ux/tours/presentTour'))
+            this.resetTours()
+            this.$router.push({ name: 'team-home', params: { team_slug: this.team.slug } })
+            this.presentTour()
         },
         toggleMobileTeamSelectionMenu () {
             this.mobileTeamSelectionOpen = !this.mobileTeamSelectionOpen

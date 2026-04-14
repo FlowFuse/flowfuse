@@ -111,7 +111,7 @@
                                     Device snapshots can be managed on the
                                     <router-link
                                         :to="{
-                                            name: 'DeviceSnapshots',
+                                            name: 'device-version-history',
                                             params: { id: stage.device.id },
                                         }"
                                     >
@@ -154,7 +154,7 @@
                             Device snapshots can be managed on the
                             <router-link
                                 :to="{
-                                    name: 'DeviceSnapshots',
+                                    name: 'device-version-history',
                                     params: { id: stage.device.id },
                                 }"
                             >

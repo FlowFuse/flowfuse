@@ -26,11 +26,13 @@
 
 <script>
 import { ChevronRightIcon } from '@heroicons/vue/outline'
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
 
 import teamAPI from '../../../../api/team.js'
 import TeamLink from '../../../../components/router-links/TeamLink.vue'
 import InstanceTile from '../../Applications/components/compact/InstanceTile.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'RecentlyModifiedInstances',
@@ -49,7 +51,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         instancesLeft () {
             return this.totalInstances - this.instances.length
         }
@@ -105,37 +107,39 @@ export default {
 
         .instance-tile {
             border: 1px solid $ff-grey-100;
-            padding: 2px 10px;
+            padding: 2px 4px 2px 10px;
             border-radius: 5px;
             display: flex;
             width: 100%;
             height: fit-content;
+            min-height: 55px;
             justify-content: space-between;
             align-items: center;
             gap: 10px;
-            will-change: border-color;
-            transition: ease-in-out .3s;
+            will-change: border-color, background-color;
+            transition: ease-in-out 0.3s;
+            cursor: pointer;
 
             &.has-more {
                 padding: 10px;
             }
 
             &:hover {
-                border-color: $ff-grey-200;
+                border-color: $ff-grey-300;
+                background-color: $ff-indigo-50;
             }
 
             .details {
                 flex: 1;
 
                 .detail-wrapper {
+                    .name {
+                        font-weight: 500;
+                    }
+
                     &.detail {
                         font-size: $ff-funit-sm;
                         color: $ff-grey-400;
-                    }
-                    .name, .editor-link:not(.inactive) {
-                        &:hover {
-                            color: $ff-indigo-700;
-                        }
                     }
                 }
             }
@@ -144,6 +148,21 @@ export default {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                gap: 4px;
+
+                .ff-kebab-menu .ff-btn {
+                    color: $ff-color--action;
+
+                    .ff-icon {
+                        width: 20px;
+                        height: 20px;
+                    }
+
+                    &:hover {
+                        background-color: $ff-color--highlight;
+                        color: $ff-white;
+                    }
+                }
             }
         }
     }

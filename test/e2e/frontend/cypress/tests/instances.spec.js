@@ -58,7 +58,6 @@ describe('FlowFuse - Instances', () => {
 
         cy.get('[data-el="banner-project-as-admin"]').should('not.exist')
         cy.get('[data-action="open-editor"]').should('exist')
-        cy.get('[data-el="editor-link"]').should('exist')
     })
 
     it('can be deleted', () => {

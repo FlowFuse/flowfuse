@@ -5,7 +5,7 @@
         data-action="open-dashboard"
         :disabled="buttonDisabled"
         class="whitespace-nowrap"
-        @click="openDashboard"
+        @click.stop="openDashboard"
     >
         <template v-if="!minimalView" #icon-left>
             <ChartPieIcon />
@@ -24,7 +24,7 @@ import { ChartPieIcon } from '@heroicons/vue/outline'
 
 import { useNavigationHelper } from '../../../composables/NavigationHelper.js'
 
-import { removeSlashes } from '../../../composables/String.js'
+import { removeSlashes } from '../../../composables/strings/String.js'
 
 const { openInANewTab } = useNavigationHelper()
 

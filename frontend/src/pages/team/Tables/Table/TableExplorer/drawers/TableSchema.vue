@@ -25,11 +25,16 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapActions, mapState } from 'vuex'
 
 import Alerts from '../../../../../../services/alerts.js'
 import Dialog from '../../../../../../services/dialog.js'
+
+import { useContextStore } from '@/stores/context.js'
+
+import { useProductTablesStore } from '@/stores/product-tables.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default defineComponent({
     name: 'TableSchema',
@@ -40,14 +45,14 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState(useContextStore, ['team'])
     },
     mounted () {
         this.setHeader()
     },
     methods: {
-        ...mapActions('ux/drawers', ['closeRightDrawer', 'setRightDrawerHeader']),
-        ...mapActions('product/tables', ['deleteTable', 'getTables']),
+        ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'setRightDrawerHeader']),
+        ...mapActions(useProductTablesStore, ['deleteTable', 'getTables']),
         submit () {
             Dialog.show({
                 header: 'Delete Table',

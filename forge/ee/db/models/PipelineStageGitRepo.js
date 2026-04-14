@@ -102,6 +102,7 @@ module.exports = {
                             }
                             await app.gitops.pushToRepository({
                                 token: gitToken.token,
+                                tokenType: gitToken.type,
                                 url: this.url,
                                 branch: this.branch,
                                 credentialSecret: this.credentialSecret,
@@ -154,6 +155,7 @@ module.exports = {
                         }
                         const snapshotContent = await app.gitops.pullFromRepository({
                             token: gitToken.token,
+                            tokenType: gitToken.type,
                             url: this.url,
                             branch: this.pullBranch || this.branch,
                             credentialSecret: this.credentialSecret,

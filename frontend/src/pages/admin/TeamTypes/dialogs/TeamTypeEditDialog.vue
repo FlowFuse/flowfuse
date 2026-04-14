@@ -252,6 +252,7 @@ export default {
                     this.input.properties.features = teamType.properties?.features || {}
                     this.input.properties.billing = teamType.properties?.billing || {}
                     this.input.properties.trial = teamType.properties?.trial || {}
+                    this.input.properties.enableAllFeatures = teamType.properties?.enableAllFeatures || false
                     this.input.properties.autoStackUpdate = teamType.properties?.autoStackUpdate || { enabled: false, days: [], hours: [] }
                     if (this.input.properties.trial.active && !this.input.properties.trial.instanceType) {
                         this.input.properties.trial.instanceType = '_'
@@ -454,7 +455,8 @@ export default {
                         instances: { ...this.input.properties.instances },
                         features: { ...this.input.properties.features },
                         teamBroker: { ...this.input.properties.teamBroker },
-                        autoStackUpdate: { ...this.input.properties.autoStackUpdate }
+                        autoStackUpdate: { ...this.input.properties.autoStackUpdate },
+                        enableAllFeatures: this.input.properties.enableAllFeatures
                     }
                 }
                 // Utility function that ensures the specific property is

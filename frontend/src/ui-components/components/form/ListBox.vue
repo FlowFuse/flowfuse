@@ -4,6 +4,7 @@
              :disabled="disabled"
              class="ff-listbox"
              data-el="listbox"
+             :data-select="selector"
              as="section"
              :by="compareOptions"
              :multiple="multiple"
@@ -19,9 +20,19 @@
             >
                 <input type="text" hidden="hidden" :value="selectedLabel">
                 <slot name="button">
-                    <span class="block truncate">{{ selectedLabel }}</span>
+                    <div class="flex items-center">
+                        <template v-if="$slots.icon">
+                            <span class="flex items-center">
+                                <slot name="icon" :option="selectedOption" />
+                            </span>
+                            <span v-if="!iconOnly" class="ml-2 block truncate">{{ selectedLabel }}</span>
+                        </template>
+                        <template v-else>
+                            <span class="block truncate">{{ selectedLabel }}</span>
+                        </template>
+                    </div>
                 </slot>
-                <span class="icon pointer-events-none inset-y-0 flex items-center pl-2">
+                <span v-if="!hideChevron" class="icon pointer-events-none inset-y-0 flex items-center pl-2">
                     <ChevronDownIcon :class="['h-5 w-5', disabled ? 'text-gray-500' : 'text-black']" aria-hidden="true" />
                 </span>
             </ListboxButton>
@@ -36,6 +47,7 @@
                         v-if="open"
                         ref="menu-items"
                         data-el="listbox-options"
+                        :data-select="`${selector}-options`"
                         class="fixed w-full overflow-y-auto overflow-x-hidden bg-white py-1 ff-options"
                         :style="{
                             top: position.top + 'px',
@@ -54,10 +66,12 @@
                             >
                                 <li
                                     class="ff-option"
+                                    :style="{'min-width': optionsMinWidth ? optionsMinWidth + 'px' : 'auto'}"
                                     :data-option="option[labelKey]"
                                     :title="optionTitleKey ? option[optionTitleKey] : null"
                                 >
                                     <div class="ff-option-content" :class="{selected, active}" data-click-exclude="right-drawer">
+                                        <component :is="option.icon" v-if="option.icon" class="ff-icon ff-icon-sm" />
                                         {{ option[labelKey] }}
                                     </div>
                                 </li>
@@ -135,9 +149,29 @@ export default {
             required: false,
             default: false,
             type: Boolean
+        },
+        hideChevron: {
+            required: false,
+            default: false,
+            type: Boolean
+        },
+        iconOnly: {
+            required: false,
+            default: false,
+            type: Boolean
+        },
+        optionsMinWidth: {
+            required: false,
+            default: 200,
+            type: [null, Number]
+        },
+        selector: {
+            required: false,
+            default: 'list-box',
+            type: String
         }
     },
-    emits: ['update:modelValue'],
+    emits: ['update:modelValue', 'option-selected'],
     computed: {
         value: {
             get () {
@@ -155,6 +189,8 @@ export default {
                                 .filter(v => v !== undefined)
                     )
                     return
+                } else {
+                    this.$emit('option-selected', value)
                 }
                 this.$emit('update:modelValue', this.returnModel ? value : this.extractModelValueFromOption(value))
             }

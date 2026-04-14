@@ -49,7 +49,7 @@
                                 <ff-checkbox v-model="device.selected" />
                             </ff-data-table-cell>
                             <ff-data-table-cell>
-                                <router-link :to="{name: 'DeviceOverview', params: {id: device.id}}">{{ device.name }}</router-link>
+                                <router-link :to="{name: 'device-overview', params: {id: device.id}}">{{ device.name }}</router-link>
                             </ff-data-table-cell>
                             <ff-data-table-cell>{{ device.type }}</ff-data-table-cell>
                         </ff-data-table-row>
@@ -80,7 +80,7 @@
                                 <ff-checkbox v-model="device.selected" class="inline" />
                             </ff-data-table-cell>
                             <ff-data-table-cell class="w-1/3">
-                                <router-link :to="{name: 'DeviceOverview', params: {id: device.id}}">{{ device.name }}</router-link>
+                                <router-link :to="{name: 'device-overview', params: {id: device.id}}">{{ device.name }}</router-link>
                             </ff-data-table-cell>
                             <ff-data-table-cell class="w-1/3">{{ device.name }}</ff-data-table-cell>
                             <ff-data-table-cell v-if="!editMode" class="w-1/3">
@@ -96,14 +96,13 @@
 
 <script>
 import { h } from 'vue'
-import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../api/application.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import DeployNotice from '../../../components/notices/device-groups/DeployNotice.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
-import { pluralize } from '../../../composables/String.js'
+import { pluralize } from '../../../composables/strings/String.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 
@@ -168,7 +167,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
         selectedAvailableDevices () {
             return this.localAvailableDevices.filter((device) => device.selected)
         },

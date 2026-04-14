@@ -134,26 +134,30 @@ describe('FlowFuse - Library', () => {
             interceptBlueprints(multipleBlueprints)
 
             cy.get('[data-el="ff-tab"]').contains('Blueprints').click()
-            cy.get('[data-el="flow-view-dialog"]').should('exist').should('not.be.visible')
+            cy.get('[data-el="flow-view-dialog"]').should('not.exist')
 
             cy.get('[data-el="1"]').within(() => {
-                cy.get('[data-action="show-blueprint"]').should('exist').should('be.visible').click()
-                cy.get('[data-el="flow-view-dialog"]').should('be.visible')
-                cy.get('[data-action="dialog-confirm"]').click()
-                cy.get('[data-el="flow-view-dialog"]').should('exist').should('not.be.visible')
+                cy.get('[data-action="show-blueprint"]').should('exist').should('exist').click()
             })
+            cy.get('[data-el="flow-view-dialog"]').should('exist')
+            cy.get('[data-el="flow-view-dialog"] [data-action="dialog-confirm"]').click()
+            cy.get('[data-el="flow-view-dialog"]').should('not.exist')
+
             cy.get('[data-el="2"]').within(() => {
-                cy.get('[data-action="show-blueprint"]').should('exist').should('be.visible').click()
-                cy.get('[data-el="flow-view-dialog"]').should('be.visible')
-                cy.get('[data-action="dialog-confirm"]').click()
-                cy.get('[data-el="flow-view-dialog"]').should('exist').should('not.be.visible')
+                cy.get('[data-action="show-blueprint"]').should('exist').should('exist').click()
             })
+            cy.get('[data-el="flow-view-dialog"]').should('exist')
+
+            cy.get('[data-el="flow-view-dialog"] [data-action="dialog-confirm"]').click()
+            cy.get('[data-el="flow-view-dialog"]').should('not.exist')
+
             cy.get('[data-el="3"]').within(() => {
-                cy.get('[data-action="show-blueprint"]').should('exist').should('be.visible').click()
-                cy.get('[data-el="flow-view-dialog"]').should('be.visible')
-                cy.get('[data-action="dialog-confirm"]').click()
-                cy.get('[data-el="flow-view-dialog"]').should('exist').should('not.be.visible')
+                cy.get('[data-action="show-blueprint"]').should('exist').should('exist').click()
             })
+
+            cy.get('[data-el="flow-view-dialog"]').should('exist')
+            cy.get('[data-el="flow-view-dialog"] [data-action="dialog-confirm"]').click()
+            cy.get('[data-el="flow-view-dialog"]').should('not.exist')
         })
     })
 

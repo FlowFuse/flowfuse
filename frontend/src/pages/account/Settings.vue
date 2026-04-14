@@ -51,7 +51,8 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, storeToRefs } from 'pinia'
+import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../api/team.js'
 import userApi from '../../api/user.js'
@@ -62,6 +63,10 @@ import alerts from '../../services/alerts.js'
 import dialog from '../../services/dialog.js'
 import { RoleNames, Roles } from '../../utils/roles.js'
 
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
+
 export default {
     name: 'AccountSettings',
     components: {
@@ -69,7 +74,7 @@ export default {
         FormHeading
     },
     data () {
-        const currentUser = this.$store.getters['account/user']
+        const currentUser = useAccountAuthStore().user
         const defaultTeamName = 'none'
 
         return {
@@ -89,7 +94,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
+        ...mapVuexState('account', ['settings']),
+        ...mapState(useAccountStore, { storeTeams: 'teams' }),
         formValid () {
             return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam) &&
                    (!this.emailEditingEnabled || (this.input.email && !this.errors.email)) &&
@@ -100,8 +106,8 @@ export default {
             return this.editing && !this.user.sso_enabled
         },
         teams () {
-            const currentUser = this.$store.getters['account/user']
-            const teams = this.$store.getters['account/teams']
+            const currentUser = this.user
+            const teams = this.storeTeams
             const teamOptions = teams?.map(team => {
                 if (team.id === currentUser.defaultTeam) {
                     this.defaultTeamName = team.name
@@ -219,7 +225,7 @@ export default {
             }
             if (changed) {
                 userApi.updateUser(opts).then((response) => {
-                    this.$store.dispatch('account/setUser', response)
+                    useAccountAuthStore().setUser(response)
                     alerts.emit('User successfully updated.', 'confirmation', 3000)
                     if (response?.pendingEmailChange) {
                         // delay next alert for visual separation of concerns
@@ -291,15 +297,15 @@ export default {
                     .then(() => {
                         alerts.emit('Team successfully deleted', 'confirmation')
                         // refresh teams
-                        return this.$store.dispatch('account/refreshTeams')
+                        return useAccountStore().refreshTeams()
                     }).then(() => {
-                        const activeTeam = this.$store.getters['account/team']
+                        const { teams } = storeToRefs(useAccountStore())
+                        const team = useContextStore().team
                         // check if the active team is one deleted
-                        if (activeTeam?.id === teamId) {
-                            const teams = this.$store.getters['account/teams']
-                            if (teams.length > 0) {
+                        if (team?.id === teamId) {
+                            if (teams.value.length > 0) {
                                 // get another team
-                                this.$store.dispatch('account/setTeam', teams[0].slug)
+                                useAccountStore().setTeam(teams.value[0].slug)
                             }
                         }
                     }).catch(err => {
@@ -309,7 +315,7 @@ export default {
             })
         },
         selectTeam (team) {
-            this.$store.dispatch('account/setTeam', team.slug)
+            useAccountStore().setTeam(team.slug)
                 .then(() => this.$router.push({
                     name: 'Team',
                     params: {

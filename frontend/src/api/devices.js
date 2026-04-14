@@ -242,6 +242,10 @@ const generateSnapshotDescription = async (deviceId, target) => {
         })
 }
 
+const getDeviceEditorProxy = async (editorUrl) => {
+    return client.get(editorUrl)
+}
+
 export default {
     create,
     getDevice,
@@ -266,5 +270,6 @@ export default {
     suspendDevice,
     restartDevice,
     startDevice,
-    generateSnapshotDescription
+    generateSnapshotDescription,
+    getDeviceEditorProxy
 }

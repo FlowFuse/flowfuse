@@ -20,7 +20,7 @@ export function useNavigationHelper () {
         }
     }
 
-    const navigateTo = (to, $event = null) => {
+    const navigateTo = (to, $event = null, { target = '_blank' } = {}) => {
         const internalHref = _router.resolve(to).href
         const isMiddleButtonClick = $event?.button === 1
         const newTabKeyCombination = $event && ($event?.ctrlKey || $event.metaKey || isMiddleButtonClick)
@@ -28,13 +28,13 @@ export function useNavigationHelper () {
 
         switch (true) {
         case isExternalLink && newTabKeyCombination:
-            return openInANewTab(to)
+            return openInANewTab(to, target)
 
         case isExternalLink:
             return navigateToExternal(to)
 
         case newTabKeyCombination:
-            return openInANewTab(internalHref)
+            return openInANewTab(internalHref, target)
 
         default:
             return _router.push(to)

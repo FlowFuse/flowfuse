@@ -46,11 +46,12 @@ The following command line options are available:
 ```
 Options
 
-  -c, --config file     Device configuration file. Default: device.yml
-  -d, --dir dir         Where the agent should store its state. Default: /opt/flowfuse-device
+  -c, --config file           Device configuration file. Default: device.yml
+  -d, --dir dir               Where the agent should store its state. Default: /opt/flowfuse-device
   -i, --interval secs
   -p, --port number
-  -m, --moduleCache     Use local npm module cache rather than install
+  -m, --moduleCache           Use local npm module cache rather than install
+  --node-options string       Node.js command-line options to pass to the Node-RED process. Can be specified multiple times. You must use `=` between the option and its value.
 
 Web UI Options
 
@@ -87,6 +88,38 @@ _Start the agent with a different working directory and the Web UI enabled_
 
 ```bash
 flowfuse-device-agent -d /path/to/working/directory -w --ui-user admin --ui-pass password --ui-port 8081
+```
+
+## Configuring Node.js Options
+
+Node.js command-line arguments can be passed to the Node-RED process started by the Device Agent. This is useful for memory-intensive workflows or certificate management.
+
+### Via command line
+
+Use `--node-options` — it can be specified multiple times:
+
+```bash
+# Set a custom heap size limit
+flowfuse-device-agent --node-options='--max-old-space-size=256'
+
+# Enable system certificate authorities (Linux)
+flowfuse-device-agent --node-options='--use-openssl-ca'
+
+# Enable system certificate authorities (Windows/macOS)
+flowfuse-device-agent --node-options='--use-system-ca'
+
+# Combine multiple options
+flowfuse-device-agent --node-options='--max-old-space-size=256' --node-options='--use-openssl-ca'
+```
+
+### Via `device.yml`
+
+Add a `nodeOptions` array to the `device.yml` configuration file:
+
+```yaml
+nodeOptions:
+  - "--max-old-space-size=256"
+  - "--use-openssl-ca"
 ```
 
 ## Running behind a HTTP Proxy

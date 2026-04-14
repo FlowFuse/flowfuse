@@ -16,10 +16,13 @@
 
 <script>
 import { RefreshIcon } from '@heroicons/vue/outline'
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import MenuCollapse from '../../.././../../../components/icons/menu-collapse.js'
 import MenuExpand from '../../.././../../../components/icons/menu-expand.js'
+
+import { useContextStore } from '@/stores/context.js'
+import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default {
     name: 'RowsHeader',
@@ -32,19 +35,18 @@ export default {
     },
     emits: ['toggle-collapse'],
     computed: {
-        ...mapState('account', ['team']),
-        ...mapState('product/tables', ['tableSelection'])
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useProductTablesStore, ['tableSelection'])
     },
     methods: {
-        ...mapActions('product/tables', ['getTableData', 'setTableLoadingState']),
+        ...mapActions(useProductTablesStore, ['getTableData', 'setTableLoadingState']),
         refreshTable () {
-            return this.setTableLoadingState(true)
-                .then(() => this.getTableData({
-                    teamId: this.team.id,
-                    databaseId: this.$route.params.id,
-                    tableName: this.tableSelection
-                }))
-                .finally(() => this.setTableLoadingState(false))
+            this.setTableLoadingState(true)
+            return this.getTableData({
+                teamId: this.team.id,
+                databaseId: this.$route.params.id,
+                tableName: this.tableSelection
+            }).finally(() => this.setTableLoadingState(false))
         }
     }
 }

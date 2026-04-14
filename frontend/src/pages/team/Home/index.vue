@@ -131,7 +131,8 @@
 <script>
 import { ChipIcon, DatabaseIcon, PlusIcon } from '@heroicons/vue/outline'
 
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapGetters } from 'vuex'
 
 import TeamAPI from '../../../api/team.js'
 import AuditLog from '../../../components/audit-log/AuditLog.vue'
@@ -147,6 +148,10 @@ import TeamDeviceCreateDialog from '../Devices/dialogs/TeamDeviceCreateDialog.vu
 import DashboardSection from './components/DashboardSection.vue'
 import RecentlyModifiedDevices from './components/RecentlyModifiedDevices.vue'
 import RecentlyModifiedInstances from './components/RecentlyModifiedInstances.vue'
+
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
+import { useUxToursStore } from '@/stores/ux-tours.js'
 
 export default {
     name: 'TeamHome',
@@ -189,8 +194,10 @@ export default {
         }
     },
     computed: {
-        ...mapState('ux/tours', ['tours']),
-        ...mapGetters('account', ['team', 'pendingTeamChange', 'featuresCheck']),
+        ...mapState(useUxToursStore, ['tours']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountStore, ['pendingTeamChange']),
+        ...mapGetters('account', ['featuresCheck']),
         instanceStats () {
             return this.groupBySimplifiedStates(this.instanceStateCounts)
         },

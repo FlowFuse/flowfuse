@@ -17,13 +17,15 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapState } from 'vuex'
 
 import teamApi from '../../api/team.js'
-import { capitalize } from '../../composables/String.js'
+import { capitalize } from '../../composables/strings/String.js'
 import alerts from '../../services/alerts.js'
 import { RoleNames, Roles } from '../../utils/roles.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default defineComponent({
     name: 'EditApplicationPermissionsDialog',
@@ -38,7 +40,7 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         options () {
             return Object.keys(RoleNames)
                 .filter(key => key.toString() !== '99')

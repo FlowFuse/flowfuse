@@ -13,7 +13,7 @@
     "parserOptions": {
         "ecmaVersion": 2022
     },
-    "ignorePatterns": ["frontend/dist/", "var/", "*.svg", "*.xml"],
+    "ignorePatterns": ["frontend/dist/", "var/", "*.svg", "*.xml", "**/*.d.ts"],
     "plugins": ["promise", "no-only-tests"],
     "settings": {
         "import/core-modules": [ "lottie-web-vue", "@heroicons/vue" ],
@@ -62,6 +62,16 @@
         "promise/catch-or-return": ["error", { "allowFinally": true }]
     },
     "overrides": [
+        // Ignore unresolved @ imports and Node import errors only for test stores files, has issues with aliases
+        {
+            "files": [
+                "test/unit/frontend/stores/**/*"
+            ],
+            "rules": {
+                "import/no-unresolved": [2, { "ignore": ["^@/"] }],
+                "n/no-missing-import": "off"
+            }
+        },
         // Frontend runs in the browser and builds with webpack
         {
             "files": "frontend/**",
@@ -77,15 +87,21 @@
             "rules": {
                 // plugin:vue
                 "vue/html-indent": ["warn", 4],
-                
-                // plugin:vue - style rules 
+
+                // plugin:vue - style rules
                 "vue/max-attributes-per-line": "off",
                 "vue/attribute-hyphenation": "off",
                 "vue/singleline-html-element-content-newline": "off",
                 "vue/component-definition-name-casing": "off",
 
                 // plugin:promise
-                "promise/always-return": "off" // common Vue.js pattern
+                "promise/always-return": "off", // common Vue.js pattern
+
+                // Frontend runs through webpack, not Node — Node-based resolution rules
+                // do not understand webpack aliases (@/) or .vue file resolution
+                "import/no-unresolved": "off",
+                "n/no-missing-import": "off",
+                "n/no-missing-require": "off"
             }
         },
 

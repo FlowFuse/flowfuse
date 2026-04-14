@@ -22,7 +22,7 @@ module.exports = fp(async function (app, _opts) {
     try {
         app.log.info(`Cache driver: ${cacheType}`)
         const driver = require(cacheModule)
-        await driver.initCache(app.config.cache?.options || {})
+        await driver.initCache(app.config.cache?.options || {}, app)
         app.decorate('caches', driver)
         app.addHook('onClose', async (_) => {
             app.log.info('Driver shutdown')

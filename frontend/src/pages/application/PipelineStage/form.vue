@@ -144,7 +144,7 @@
                         Choose Git Token
                     </template>
                     <template #description>
-                        This token is used to authenticate with the GitHub API. To manage your tokens, go to <strong>Team Settings -> Integrations</strong>.
+                        This token is used to authenticate with the GitHub or Azure DevOps API. To manage your tokens, go to <strong>Team Settings -> Integrations</strong>.
                     </template>
                 </FormRow>
                 <FormRow
@@ -152,13 +152,13 @@
                     :error="errors.url"
                     type="text"
                     data-form="stage-repo-url"
-                    placeholder="e.g. https://github.com/[org]/[repo]"
+                    :placeholder="gitPlaceholder"
                 >
                     <template #default>
                         Repository URL
                     </template>
                     <template #description>
-                        Only GitHub hosted repositories are currently supported.
+                        Only GitHub and Azure hosted repositories are currently supported.
                     </template>
                 </FormRow>
                 <FormRow
@@ -342,7 +342,8 @@
 <script>
 import { InformationCircleIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import { StageAction, StageType } from '../../../api/pipeline.js'
 import teamApi from '../../../api/team.js'
@@ -354,6 +355,8 @@ import IconDeviceGroupSolid from '../../../components/icons/DeviceGroupSolid.js'
 import IconDeviceSolid from '../../../components/icons/DeviceSolid.js'
 import IconGit from '../../../components/icons/Git.js'
 import IconNodeRedSolid from '../../../components/icons/NodeRedSolid.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'PipelineForm',
@@ -437,7 +440,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features']),
+        ...mapState(useContextStore, ['team']),
+        ...mapVuexState('account', ['features']),
+        ...mapGetters('account', ['featuresCheck']),
         isEdit () {
             return !!this.stage.id
         },
@@ -594,7 +599,7 @@ export default {
             return 'Choose Remote Instance'
         },
         deviceGroupsEnabled () {
-            return this.features?.deviceGroups && this.team?.type.properties.features?.deviceGroups
+            return this.featuresCheck?.isDeviceGroupsFeatureEnabled
         },
         devicesGroupsNotInUse () {
             const deviceGroupIdsInUse = this.pipeline.stages.reduce((acc, stage) => {
@@ -631,7 +636,7 @@ export default {
             return 'Choose Application Level Device Group'
         },
         gitReposEnabled () {
-            return this.features?.gitIntegration && this.team?.type.properties.features?.gitIntegration
+            return this.featuresCheck?.isGitIntegrationFeatureEnabled
         },
         actionOptions () {
             const type = this.input.stageType === StageType.DEVICE ? 'device' : 'instance'
@@ -654,6 +659,21 @@ export default {
         },
         repoStageHasCredentialSecret () {
             return this.stage.gitRepo?.credentialSecret
+        },
+        gitPlaceholder () {
+            if (this.input.gitTokenId) {
+                for (const i in this.gitTokens) {
+                    const tok = this.gitTokens[i]
+                    if (tok.value === this.input.gitTokenId) {
+                        if (tok.type === 'github') {
+                            return 'e.g. https://github.com/[org]/[repo]'
+                        } else if (tok.type === 'azure') {
+                            return 'e.g. https://dev.azure.com/[org]/_git/[repo]'
+                        }
+                    }
+                }
+            }
+            return 'e.g. https://github.com/[org]/[repo]'
         }
     },
     watch: {
@@ -669,8 +689,8 @@ export default {
         'input.url' (newUrl, oldUrl) {
             if (newUrl === '') {
                 this.errors.url = ''
-            } else if (!/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(newUrl)) {
-                this.errors.url = 'Please enter a valid GitHub repository URL'
+            } else if (!/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(newUrl) && !/^https:\/\/dev\.azure\.com\/[^/]+\/_git\/[^/]+$/.test(newUrl)) {
+                this.errors.url = 'Please enter a valid GitHub or Azure DevOps repository URL'
             } else {
                 this.errors.url = ''
             }
@@ -696,7 +716,8 @@ export default {
             this.gitTokens = tokens.tokens.map((token) => {
                 return {
                     label: token.name,
-                    value: token.id
+                    value: token.id,
+                    type: token.type
                 }
             })
         }

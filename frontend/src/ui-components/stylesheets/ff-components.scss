@@ -1,3 +1,6 @@
+@use "../../ui-components/stylesheets/ff-colors.scss" as *;
+@use "../../ui-components/stylesheets/ff-utility.scss" as *;
+
 /*
   ff-core contains styling on the custom, ff components
 */
@@ -271,6 +274,7 @@
   top: 24px;
   border: 1px solid $ff-grey-300;
   z-index: 1000;
+  padding: 0;
   box-shadow: 0px 6px 9px 0px #00000038;
   li {
     min-width: 150px;
@@ -285,6 +289,12 @@
   &--right {
     right: calc(100% - 24px);
   }
+}
+
+.ff-kebab-divider {
+  height: 1px;
+  background-color: $ff-grey-200;
+  list-style: none;
 }
 
 /*
@@ -767,6 +777,10 @@ li.ff-kebab-item {
       .ff-icon-lg {
         margin: -3px 0;
       }
+      .ff-btn .ff-icon,
+      .ff-btn .ff-icon-lg {
+        margin: 0;
+      }
       &:first-child {
         padding-left: 16px;
       }
@@ -861,6 +875,10 @@ li.ff-kebab-item {
         color: $ff-blue-600;
         background-color: $ff-grey-50;
       }
+      .selectable:hover .ff-data-table--cell button svg.ff-icon {
+        background-color: transparent;
+        color: inherit;
+      }
     }
   }
   &--row {
@@ -953,6 +971,15 @@ li.ff-kebab-item {
       display: flex;
       justify-content: space-between;
       gap: 12px;
+      &--light {
+        height: auto;
+        line-height: normal;
+        background-color: $ff-white;
+        border-bottom: 1px solid $ff-grey-200;
+        color: $ff-grey-800;
+        padding: $ff-unit-md $ff-unit-lg;
+        align-items: center;
+      }
     }
     &-subheader {
       opacity: 0.65;

@@ -3,7 +3,8 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+
+import { mapState as mapVuexState } from 'vuex'
 
 import adminApi from '../../api/admin.js'
 
@@ -15,7 +16,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'user', 'team'])
+        ...mapVuexState('account', ['features'])
     },
     async mounted () {
         try {
@@ -33,5 +34,5 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../../stylesheets/pages/admin.scss";
+@use "../../stylesheets/pages/admin.scss" as *;
 </style>

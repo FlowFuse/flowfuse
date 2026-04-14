@@ -6,12 +6,14 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import DeviceApi from '../../api/devices.js'
 import TeamAPI from '../../api/team.js'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import AuditLogBrowser from '../../components/audit-log/AuditLogBrowser.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceAuditLog',
@@ -34,7 +36,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team'])
+        ...mapState(useContextStore, ['team'])
     },
     watch: {
         device () {

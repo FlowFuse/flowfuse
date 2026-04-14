@@ -63,10 +63,14 @@
 
 <script>
 import { CheckIcon, MinusIcon } from '@heroicons/vue/outline'
+import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapActions, mapState } from 'vuex'
 
 import MediumTile from '../../../../components/tiles/MediumTile.vue'
+
+import { useContextStore } from '@/stores/context.js'
+
+import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default defineComponent({
     name: 'NewDatabase',
@@ -81,7 +85,7 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         options () {
             return [
                 {
@@ -100,7 +104,7 @@ export default defineComponent({
         }
     },
     methods: {
-        ...mapActions('product/tables', ['createDatabase']),
+        ...mapActions(useProductTablesStore, ['createDatabase']),
         onPgTableCreate () {
             this.loading = true
             return this.createDatabase({ teamId: this.team.id })

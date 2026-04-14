@@ -39,10 +39,14 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapActions, mapGetters, mapState } from 'vuex'
 
 import TableColumn from './components/TableColumn.vue'
+
+import { useProductTablesStore } from '@/stores/product-tables.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+
 export default defineComponent({
     name: 'CreateTable',
     components: { TableColumn },
@@ -52,8 +56,7 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapGetters('account', ['team']),
-        ...mapState('product/tables', ['newTable']),
+        ...mapState(useProductTablesStore, ['newTable']),
         hasErrors () {
             return Object.values(this.errors).some(v => v != null)
         }
@@ -72,8 +75,8 @@ export default defineComponent({
         this.setHeader()
     },
     methods: {
-        ...mapActions('ux/drawers', ['closeRightDrawer', 'setRightDrawerHeader']),
-        ...mapActions('product/tables', ['createTable', 'getTables', 'addNewTableColumn', 'removeNewTableColumn']),
+        ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'setRightDrawerHeader']),
+        ...mapActions(useProductTablesStore, ['createTable', 'getTables', 'addNewTableColumn', 'removeNewTableColumn']),
         validateForm () {
             const columnsHaveDuplicateNames = new Set(this.newTable.columns.map(col => col.name)).size !== this.newTable.columns.length
             const allColumnDoesntHaveATypeAssigned = this.newTable.columns.some(col => !col.type)

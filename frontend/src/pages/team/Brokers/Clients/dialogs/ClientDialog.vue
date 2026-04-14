@@ -72,13 +72,16 @@
 
 <script>
 import { PlusIcon } from '@heroicons/vue/solid'
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import brokerApi from '../../../../../api/broker.js'
 import FormRow from '../../../../../components/FormRow.vue'
-import { generateUuid } from '../../../../../composables/String.js'
+import { generateUuid } from '../../../../../composables/strings/String.js'
 
 import AclItem from './AclItem.vue'
+
+import { useContextStore } from '@/stores/context.js'
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
     name: 'ClientDialog',
@@ -146,8 +149,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
-        ...mapState('product', {
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useProductBrokersStore, {
             clients: state => state.UNS.clients
         }),
         disableConfirm () {
@@ -180,7 +183,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('product', ['fetchUnsClients']),
+        ...mapActions(useProductBrokersStore, ['fetchUnsClients', 'addFfBroker']),
         async confirm () {
             if (!this.validateForm()) {
                 return
@@ -210,7 +213,7 @@ export default {
                     this.input.acls
                 )
                     .then(() => this.fetchUnsClients())
-                    .then(() => this.$store.dispatch('product/addFfBroker'))
+                    .then(() => this.addFfBroker())
                     .then(() => this.$router.push({
                         name: 'team-brokers-clients',
                         params: { ...this.$route.params, brokerId: 'team-broker' }

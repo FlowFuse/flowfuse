@@ -3,10 +3,14 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
-import { mapActions, mapGetters } from 'vuex'
 
 import DatabaseForm from './DatabaseForm.vue'
+
+import { useContextStore } from '@/stores/context.js'
+
+import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default defineComponent({
     name: 'CreateDatabase',
@@ -19,10 +23,10 @@ export default defineComponent({
         return next()
     },
     computed: {
-        ...mapGetters('account', ['team'])
+        ...mapState(useContextStore, ['team'])
     },
     methods: {
-        ...mapActions('product/tables', ['createDatabase']),
+        ...mapActions(useProductTablesStore, ['createDatabase']),
         onSubmit (payload) {
             return this.createDatabase({ teamId: this.team.id, databaseName: payload.name })
                 .then(() => {

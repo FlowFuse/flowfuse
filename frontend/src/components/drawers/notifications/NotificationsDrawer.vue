@@ -74,15 +74,19 @@
 
 <script>
 import { XIcon } from '@heroicons/vue/solid'
+import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapActions, mapGetters } from 'vuex'
 
 import userAPI from '../../../api/user.js'
 
 import alerts from '../../../services/alerts.js'
 import GenericNotification from '../../notifications/Generic.vue'
+
 import TeamInvitationAcceptedNotification from '../../notifications/invitations/Accepted.vue'
 import TeamInvitationReceivedNotification from '../../notifications/invitations/Received.vue'
+
+import { useAccountStore } from '@/stores/account.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'NotificationsDrawer',
@@ -97,7 +101,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['notifications']),
+        ...mapState(useAccountStore, ['notifications']),
         canSelectAll () {
             return this.filteredNotifications.length !== this.selections.length
         },
@@ -121,8 +125,8 @@ export default {
         this.selections = []
     },
     methods: {
-        ...mapActions('account', ['setNotifications']),
-        ...mapActions('ux/drawers', ['closeRightDrawer']),
+        ...mapActions(useUxDrawersStore, ['closeRightDrawer']),
+        ...mapActions(useAccountStore, ['setNotifications']),
         closeDrawer () {
             this.closeRightDrawer()
         },

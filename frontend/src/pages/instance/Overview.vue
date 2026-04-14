@@ -6,145 +6,150 @@
                     <FormHeading><TemplateIcon />Info</FormHeading>
 
                     <table class="table-fixed w-full border border-separate rounded">
-                        <tr class="border-b">
-                            <td class="w-48 font-medium">Editor</td>
-                            <td>
-                                <div v-if="editorAvailable">
-                                    <div v-if="isVisitingAdmin || instance.settings.disableEditor" class="my-2">
-                                        {{ instance.url }}
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="w-48 font-medium">Direct URL</td>
+                                <td>
+                                    <div class="info-row">
+                                        <div class="info-row__content">
+                                            <TextCopier :text="instance.url" class="url-copier" />
+                                        </div>
+                                        <button
+                                            class="info-row__action"
+                                            :disabled="!editorAvailable"
+                                            @click="openUrl"
+                                        >
+                                            <ExternalLinkIcon class="ff-icon" />
+                                        </button>
                                     </div>
-                                    <a v-else :href="instance.url" target="_blank" class="ff-link flex" data-el="editor-link">
-                                        <span class="ml-r">{{ instance.url }}</span>
-                                        <ExternalLinkIcon class="w-4 ml-3" />
-                                    </a>
-                                </div>
-                                <div v-else class="my-2">
-                                    <router-link v-if="isHA" :to="{name: 'instance-settings-ha', params: { id: instance.id }}" @click.stop>
-                                        <StatusBadge class="text-gray-400 hover:text-blue-600" status="high-availability" />
-                                    </router-link>
-                                    <template v-else>
-                                        Unavailable
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="font-medium">Status</td>
+                                <td class="py-2">
+                                    <InstanceStatusBadge
+                                        :status="instance.meta.state"
+                                        :pendingStateChange="instance.pendingStateChange"
+                                        :optimisticStateChange="instance.optimisticStateChange"
+                                        :instanceId="instance.id"
+                                        instanceType="instance"
+                                    />
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="font-medium">Last Updated</td>
+                                <td class="py-2">
+                                    <template v-if="instance.flowLastUpdatedSince">
+                                        {{ instance.flowLastUpdatedSince }}
                                     </template>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="font-medium">Status</td>
-                            <td class="py-2">
-                                <InstanceStatusBadge
-                                    :status="instance.meta.state"
-                                    :pendingStateChange="instance.pendingStateChange"
-                                    :optimisticStateChange="instance.optimisticStateChange"
-                                    :instanceId="instance.id"
-                                    instanceType="instance"
-                                />
-                            </td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="font-medium">Last Updated</td>
-                            <td class="py-2">
-                                <template v-if="instance.flowLastUpdatedSince">
-                                    {{ instance.flowLastUpdatedSince }}
-                                </template>
-                                <span v-else class="text-gray-400 italic">
-                                    flows never deployed
-                                </span>
-                            </td>
-                        </tr>
+                                    <span v-else class="text-gray-400 italic">
+                                        flows never deployed
+                                    </span>
+                                </td>
+                            </tr>
 
-                        <tr class="border-b">
-                            <td class="font-medium">Security</td>
-                            <td class="py-2">
-                                <div class="flex">
-                                    <template v-if="httpNodeAuthType == 'basic'">
-                                        HTTP basic authentication
-                                    </template>
-                                    <template v-else-if="httpNodeAuthType == 'flowforge-user'">
-                                        FlowFuse User Authentication
-                                    </template>
-                                    <template v-else>
-                                        None
-                                    </template>
-                                    <router-link v-if="canEditProject" class="mt-0.5 ml-3" :to="{ name: 'instance-settings-security' }"><LinkIcon class="w-4" /></router-link>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="font-medium">Scheduled Maintenance</td>
-                            <td class="py-2">
-                                <div class="flex">
-                                    <template v-if="autoStackUpgrade">
-                                        <StatusBadge
-                                            class="forge-status-running hover:text-blue-600"
-                                            status="Enabled"
-                                        />
-                                    </template>
-                                    <template v-else>
-                                        <StatusBadge
-                                            class="text-gray-400 hover:text-blue-600"
-                                            status="Disabled"
-                                        />
-                                    </template>
-                                    <router-link v-if="canEditProject" :to="{ name: 'instance-settings-maintenance' }" @click.stop>
-                                        <LinkIcon class="mt-0.5 ml-3 w-4" />
-                                    </router-link>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="font-medium">High Availability</td>
-                            <td class="py-2">
-                                <div class="flex">
-                                    <StatusBadge
-                                        v-if="isHA"
-                                        class="forge-status-running hover:text-blue-600"
-                                        status="Enabled"
-                                    />
-                                    <StatusBadge
-                                        v-else
-                                        class="text-gray-400 hover:text-blue-600"
-                                        status="Disabled"
-                                        :text="!!features.ha ? 'Disabled' : 'Not Available'"
-                                    />
-                                    <router-link v-if="canEditProject && !!features.ha" :to="{ name: 'instance-settings-ha' }" @click.stop>
-                                        <LinkIcon class="mt-0.5 ml-3 w-4" />
-                                    </router-link>
-                                </div>
-                            </td>
-                        </tr>
+                            <tr class="border-b">
+                                <td class="font-medium">Security</td>
+                                <td>
+                                    <div class="info-row">
+                                        <span class="info-row__content">
+                                            <template v-if="httpNodeAuthType == 'basic'">
+                                                HTTP basic authentication
+                                            </template>
+                                            <template v-else-if="httpNodeAuthType == 'flowforge-user'">
+                                                FlowFuse User Authentication
+                                            </template>
+                                            <template v-else>
+                                                None
+                                            </template>
+                                        </span>
+                                        <router-link v-if="canEditProject" class="info-row__action" :to="{ name: 'instance-settings-security' }">
+                                            <ArrowRightIcon class="ff-icon ff-icon-sm" />
+                                        </router-link>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="font-medium">Scheduled Maintenance</td>
+                                <td>
+                                    <div class="info-row">
+                                        <span class="info-row__content">
+                                            <StatusBadge
+                                                v-if="autoStackUpgrade"
+                                                class="forge-status-running"
+                                                status="Enabled"
+                                            />
+                                            <StatusBadge
+                                                v-else
+                                                class="text-gray-400"
+                                                status="Disabled"
+                                            />
+                                        </span>
+                                        <router-link v-if="canEditProject" class="info-row__action" :to="{ name: 'instance-settings-maintenance' }">
+                                            <ArrowRightIcon class="ff-icon ff-icon-sm" />
+                                        </router-link>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="font-medium">High Availability</td>
+                                <td>
+                                    <div class="info-row">
+                                        <span class="info-row__content">
+                                            <StatusBadge
+                                                v-if="isHA"
+                                                class="forge-status-running"
+                                                status="Enabled"
+                                            />
+                                            <StatusBadge
+                                                v-else
+                                                class="text-gray-400"
+                                                status="Disabled"
+                                                :text="!!features.ha ? 'Disabled' : 'Not Available'"
+                                            />
+                                        </span>
+                                        <router-link v-if="canEditProject && !!features.ha" class="info-row__action" :to="{ name: 'instance-settings-ha' }">
+                                            <ArrowRightIcon class="ff-icon ff-icon-sm" />
+                                        </router-link>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
                 <div class="ff-instance-info">
                     <FormHeading><ServerIcon />Specs</FormHeading>
 
                     <table class="table-fixed w-full">
-                        <tr class="border-b">
-                            <td class="w-48 font-medium">Type</td>
-                            <td class="flex items-center">
-                                <div class="py-2 flex-grow">{{ instance.projectType?.name || 'none' }} / {{ instance.stack?.label || instance.stack?.name || 'none' }}</div>
-                                <div v-if="instance.stack?.replacedBy">
-                                    <ff-button size="small" to="./settings/general?highlight=updateStack">Update</ff-button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr v-if="instance.template?.name" class="border-b">
-                            <td class="font-medium">Template</td>
-                            <td><div class="py-2">{{ instance.template?.name }}</div></td>
-                        </tr>
-                        <template v-if="instance.meta?.versions">
+                        <tbody>
                             <tr class="border-b">
-                                <td class="font-medium">Node-RED Version</td>
-                                <td><div class="py-2">{{ instance.meta.versions['node-red'] }}</div></td>
+                                <td class="w-48 font-medium">Type</td>
+                                <td class="flex items-center">
+                                    <div class="py-2 flex-grow">{{ instance.projectType?.name || 'none' }} / {{ instance.stack?.label || instance.stack?.name || 'none' }}</div>
+                                    <div v-if="instance.stack?.replacedBy">
+                                        <ff-button size="small" to="./settings/general?highlight=updateStack">Update</ff-button>
+                                    </div>
+                                </td>
                             </tr>
-                            <tr class="border-b">
-                                <td class="font-medium">Launcher Version</td>
-                                <td><div class="py-2">{{ instance.meta.versions.launcher }}</div></td>
+                            <tr v-if="instance.template?.name" class="border-b">
+                                <td class="font-medium">Template</td>
+                                <td><div class="py-2">{{ instance.template?.name }}</div></td>
                             </tr>
-                            <tr class="border-b">
-                                <td class="font-medium">Node.js Version</td>
-                                <td><div class="py-2">{{ instance.meta.versions.node }}</div></td>
-                            </tr>
-                        </template>
+                            <template v-if="instance.meta?.versions">
+                                <tr class="border-b">
+                                    <td class="font-medium">Node-RED Version</td>
+                                    <td><div class="py-2">{{ instance.meta.versions['node-red'] }}</div></td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="font-medium">Launcher Version</td>
+                                    <td><div class="py-2">{{ instance.meta.versions.launcher }}</div></td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="font-medium">Node.js Version</td>
+                                    <td><div class="py-2">{{ instance.meta.versions.node }}</div></td>
+                                </tr>
+                            </template>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -160,13 +165,15 @@
 </template>
 
 <script>
-import { ExternalLinkIcon, LinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
+import { ArrowRightIcon, ExternalLinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
 import { mapState } from 'vuex'
 
 import InstanceApi from '../../api/instances.js'
 import FormHeading from '../../components/FormHeading.vue'
 import StatusBadge from '../../components/StatusBadge.vue'
+import TextCopier from '../../components/TextCopier.vue'
 import AuditLog from '../../components/audit-log/AuditLog.vue'
+import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
@@ -175,13 +182,14 @@ export default {
     name: 'InstanceOverview',
     components: {
         AuditLog,
+        ArrowRightIcon,
         ExternalLinkIcon,
         FormHeading,
         InstanceStatusBadge,
-        LinkIcon,
         ServerIcon,
         StatusBadge,
         TemplateIcon,
+        TextCopier,
         TrendingUpIcon
     },
     inheritAttrs: false,
@@ -193,10 +201,12 @@ export default {
     },
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
+        const { openInANewTab } = useNavigationHelper()
 
         return {
             hasPermission,
-            isVisitingAdmin
+            isVisitingAdmin,
+            openInANewTab
         }
     },
     data () {
@@ -228,31 +238,33 @@ export default {
         }
     },
     watch: {
-        'instance.id': function (old, news) {
-            this.loadLogs()
-            this.getUpdateSchedule(this.instance.id)
+        instance: {
+            handler: function (instance) {
+                if (instance) {
+                    this.loadLogs()
+                    this.getUpdateSchedule(instance.id)
+                }
+            },
+            immediate: true
         }
     },
-    mounted () {
-        this.loadLogs()
-        this.getUpdateSchedule(this.instance.id)
-    },
     methods: {
+        openUrl () {
+            this.openInANewTab(this.instance.url, `_${this.instance.id}`)
+        },
         loadLogs () {
-            if (this.instance && this.instance.id) {
-                this.loading = true
-                this.loadItems(this.instance.id)
-                    .then((data) => {
-                        this.auditLog = data.log
-                    })
-                    .catch((error) => {
-                        console.error('Error loading logs:', error)
-                        this.auditLog = []
-                    })
-                    .finally(() => {
-                        this.loading = false
-                    })
-            }
+            this.loading = true
+            this.loadItems(this.instance.id)
+                .then((data) => {
+                    this.auditLog = data.log
+                })
+                .catch((error) => {
+                    console.error('Error loading logs:', error)
+                    this.auditLog = []
+                })
+                .finally(() => {
+                    this.loading = false
+                })
         },
         loadItems: async function (instanceId, cursor) {
             return await InstanceApi.getInstanceAuditLog(instanceId, null, cursor, 4)
@@ -271,7 +283,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "../../stylesheets/pages/project.scss";
+@use "../../stylesheets/pages/project.scss" as *;
 
 // Container query for drawer context
 // Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
@@ -288,14 +300,67 @@ export default {
   }
 }
 
-// Editor URL overflow - truncate with ellipsis
-.ff-instance-info a.ff-link.flex {
-  min-width: 0;
+// Info row: content left, action button(s) pushed right
+.info-row {
+  display: flex;
+  align-items: center;
 
-  span {
+  &__content {
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  &__action {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    color: $ff-color--action;
+    transition: color 0.15s ease, background-color 0.15s ease;
+
+    .ff-icon {
+      width: 20px;
+      height: 20px;
+
+      &.ff-icon-sm {
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    &:hover {
+      background-color: $ff-color--highlight;
+      color: $ff-white;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      color: $ff-grey-300;
+
+      &:hover {
+        background-color: transparent;
+        color: $ff-grey-300;
+      }
+    }
+  }
+
+  .url-copier {
+    min-width: 0;
+
+    .text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
   }
 }
 

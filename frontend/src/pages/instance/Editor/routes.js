@@ -72,7 +72,7 @@ export default [
                 name: 'instance-editor-expert',
                 component: () => import('../../../components/expert/Expert.vue'),
                 meta: {
-                    title: 'Instance - Expert'
+                    title: 'Hosted Instance - Expert'
                 }
             }
         ]

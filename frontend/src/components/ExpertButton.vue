@@ -13,22 +13,24 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
+
+import { useProductExpertStore } from '@/stores/product-expert.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'ExpertButton',
     components: {},
     computed: {
-        ...mapState('ux/drawers', ['rightDrawer']),
+        ...mapState(useUxDrawersStore, ['rightDrawer']),
         isExpertDrawerOpen () {
-            return this.rightDrawer.state && this.rightDrawer.component?.name === 'ExpertDrawer'
+            return (this.rightDrawer.state || this.rightDrawer.fixed)
         }
     },
     methods: {
-        ...mapActions('ux/drawers', ['closeRightDrawer']),
-        ...mapActions('product/expert', ['openAssistantDrawer']),
+        ...mapActions(useProductExpertStore, ['openAssistantDrawer']),
         onClick () {
-            this.openAssistantDrawer()
+            this.openAssistantDrawer({ openPinned: this.rightDrawer.expertState.pinned })
         }
     }
 }

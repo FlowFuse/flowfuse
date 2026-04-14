@@ -1,13 +1,13 @@
 ---
 navTitle: AWS EKS Installation
 meta:
-   description: Learn how to install FlowFuse on AWS EKS with setup details for EKS, Nginx Ingress, AWS SES, and RDS PostgreSQL integration.
+   description: Learn how to install FlowFuse on AWS EKS with setup details for EKS, Traefik, AWS SES, and RDS PostgreSQL integration.
    tags:
       - flowfuse
       - nodered
       - aws
       - eks
-      - nginx ingress
+      - traefik
       - helm
       - rds postgresql
       - kubernetes
@@ -102,66 +102,133 @@ nodeGroups:
 
 ## Ingress Controller
 
-### Nginx Ingress
+### Traefik
 
-It is recommended to run the <a href="https://kubernetes.github.io/ingress-nginx/" target="_blank">Nginx Ingress controller</a> even on AWS EKS (The AWS ALB load balancer currently appears to only support up to 100 Ingress Targets which limits the number of Instance/Projects that can be run).
+It is recommended to run the <a href="https://doc.traefik.io/traefik/" target="_blank">Traefik</a> even on AWS EKS (The AWS ALB load balancer currently appears to only support up to 100 Ingress Targets which limits the number of Hosted Instances that can be run).
 
-Create a `nginx-ingress-values.yaml` file to pass the values to the nginx helm file.
+Create a `traefik-values.yaml` file to pass the values to the Traefik helm file.
 
 ```bash
-touch nginx-ingress-values.yaml
+touch traefik-values.yaml
 ```
 
-Fill the `nginx-ingress-values.yaml` file with the following content. Replace `<your-certificate-arn>` with the certificate ARN created earlier
+Fill the `traefik-values.yaml` file with the following content. Replace `<your-certificate-arn>` with the certificate ARN created earlier
 
 ```yaml
-controller:
-  # publishService required to Allow ELB Alias for DNS registration w/ external-dns
-  publishService:
-    enabled: true
-  tcp:
-    configNameSpace: $(POD_NAMESPACE)/tcp-services
-  udp:
-    configNameSpace: $(POD_NAMESPACE)/udp-services
-  config:
-    proxy-body-size: "0"
-    use-proxy-protocol: true
-  service:
-    # AWS Annotations for LoadBalaner with Certificate ARN
-    annotations:
-      service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "<your-certificate-arn>"
-      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
-      service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
-      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-      service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "120"
-      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: proxy_protocol_v2.enabled=true
-    # TLS (https) terminated at ELB, so internal endpoint is 'http'
-    targetPorts:
-      https: http
+service:
+  enabled: true
+  type: LoadBalancer
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "<your-certificate-arn>"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "120"
+    service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: "proxy_protocol_v2.enabled=true"
+  spec:
     externalTrafficPolicy: Cluster
-  ingressClassResource:
-    default: true
+
+deployment:
+  replicas: 2
+
+ports:
+  web:
+    port: 8000
+    expose:
+      default: true
+    exposedPort: 80
+    protocol: TCP
+    forwardedHeaders:
+      trustedIPs:
+        - "10.0.0.0/8"
+    proxyProtocol:
+      trustedIPs:
+        - "10.0.0.0/8"
+  websecure:
+    port: 8443
+    expose:
+      default: true
+    exposedPort: 443
+    protocol: TCP
+    http:
+      middlewares:
+        - traefik-force-https@kubernetescrd
+        - traefik-large-body@kubernetescrd
+      # Disable TLS since NLB handles termination
+      tls:
+        enabled: false
+    forwardedHeaders:
+      trustedIPs:
+        - "10.0.0.0/8"
+    proxyProtocol:
+      trustedIPs:
+        - "10.0.0.0/8"
+
+ingressClass:
+  enabled: true
+  isDefaultClass: false
+  name: traefik
+
+additionalArguments:
+  - "--entryPoints.web.proxyProtocol.insecure=true"
+  - "--entryPoints.websecure.proxyProtocol.insecure=true"
+  - "--entryPoints.web.forwardedHeaders.insecure=true"
+  - "--entryPoints.websecure.forwardedHeaders.insecure=true"
+
+providers:
+  kubernetesIngress:
+    enabled: true
+  kubernetesCRD:
+    enabled: true
+
+api:
+  dashboard: false
+  insecure: false
+
+logs:
+  access:
+    enabled: true
+    fields:
+      headers:
+        defaultMode: keep
+
+extraObjects:
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: force-https
+      namespace: traefik
+    spec:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: large-body
+      namespace: traefik
+    spec:
+      buffering:
+        maxRequestBodyBytes: 10485760
 ```
 
-> The `proxy-body-size: "0"` removes the `1m` nginx default limit, you can set this to a 
-> different vale e.g. "5m" which will match the Node-RED default.
-
-Install the Nginx Ingress controller with the following command:
+Install the Traefik with the following command:
 
 ```bash
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo add traefik https://traefik.github.io/charts
 helm repo update
-helm upgrade -i ingress-nginx ingress-nginx/ingress-nginx \
-    --create-namespace \
-    --namespace ingress \
-    --values "nginx-ingress-values.yaml" \
-    --wait \
-    --atomic
+helm upgrade --install traefik traefik/traefik \
+  --create-namespace \
+  -n traefik \
+  -f traefik-values.yaml \
+  --wait \
+  --atomic
 ```
 
 ### References
 
-https://joachim8675309.medium.com/adding-ingress-with-amazon-eks-6c4379803b2
+https://doc.traefik.io/traefik/getting-started/kubernetes/
 
 
 ## AWS ALB Ingress
