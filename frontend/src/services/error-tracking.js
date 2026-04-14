@@ -1,8 +1,7 @@
 import {
-    BrowserTracing,
-    Replay,
+    browserTracingIntegration,
     init,
-    vueRouterInstrumentation
+    replayIntegration
 } from '@sentry/vue'
 
 export const setupSentry = (app, router) => {
@@ -16,10 +15,8 @@ export const setupSentry = (app, router) => {
         app,
         dsn,
         integrations: [
-            new BrowserTracing({
-                routingInstrumentation: vueRouterInstrumentation(router)
-            }),
-            new Replay()
+            browserTracingIntegration({ router }),
+            replayIntegration()
         ],
         sendClientReports: true,
 

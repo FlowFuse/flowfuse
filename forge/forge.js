@@ -1,7 +1,8 @@
 const cookie = require('@fastify/cookie')
 const csrf = require('@fastify/csrf-protection')
 const helmet = require('@fastify/helmet')
-const { ProfilingIntegration } = require('@sentry/profiling-node')
+const Sentry = require('@sentry/node')
+const { nodeProfilingIntegration } = require('@sentry/profiling-node')
 const fastify = require('fastify')
 
 const auditLog = require('./auditLog')
@@ -140,49 +141,18 @@ module.exports = async (options = {}) => {
             }
         }
     }
-    const server = fastify({
-        forceCloseConnections: true,
-        bodyLimit: 10485760, // 10mb max payload size, set to allow for VERY large flows
-        routerOptions: {
-            maxParamLength: 500
-        },
-        trustProxy: true,
-        logger: loggerConfig,
-        // Increase the default timeout
-        pluginTimeout: 20000
-    })
-
-    if (runtimeConfig.telemetry.backend?.prometheus?.enabled) {
-        const metricsPlugin = require('fastify-metrics')
-        await server.register(metricsPlugin, { endpoint: '/metrics' })
-    }
-
     if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
         const environment = process.env.SENTRY_ENV ?? (process.env.NODE_ENV ?? 'unknown')
         const sentrySampleRate = environment === 'production' ? 0.1 : 0.5
-        server.register(require('@immobiliarelabs/fastify-sentry'), {
+        Sentry.init({
             dsn: runtimeConfig.telemetry.backend.sentry.dsn,
             sendClientReports: true,
             environment,
             release: `flowfuse@${runtimeConfig.version}`,
             profilesSampleRate: sentrySampleRate, // relative to output from tracesSampler
             integrations: [
-                new ProfilingIntegration()
+                nodeProfilingIntegration()
             ],
-            extractUserData (request) {
-                const user = request.session?.User || request.user
-                if (!user) {
-                    return {}
-                }
-                const extractedUser = {
-                    id: user.hashid,
-                    username: user.username,
-                    email: user.email,
-                    name: user.name
-                }
-
-                return extractedUser
-            },
             tracesSampler: (samplingContext) => {
                 // Adjust sample rates for routes with high volumes, sorted descending by volume
 
@@ -219,6 +189,27 @@ module.exports = async (options = {}) => {
                 return sentrySampleRate
             }
         })
+    }
+
+    const server = fastify({
+        forceCloseConnections: true,
+        bodyLimit: 10485760, // 10mb max payload size, set to allow for VERY large flows
+        routerOptions: {
+            maxParamLength: 500
+        },
+        trustProxy: true,
+        logger: loggerConfig,
+        // Increase the default timeout
+        pluginTimeout: 20000
+    })
+
+    if (runtimeConfig.telemetry.backend?.prometheus?.enabled) {
+        const metricsPlugin = require('fastify-metrics')
+        await server.register(metricsPlugin, { endpoint: '/metrics' })
+    }
+
+    if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
+        Sentry.setupFastifyErrorHandler(server)
     }
 
     server.addHook('onError', async (request, reply, error) => {
