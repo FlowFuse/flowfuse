@@ -35,12 +35,36 @@
                 >
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                 </svg>
-                <span>property</span>
+                <span>Property</span>
                 <span class="font-semibold text-gray-700">{{ label ?? prop }}</span>
-                <span class="ml-auto text-gray-400">{{ changeSummary }}</span>
+                <span class="ml-auto flex items-center gap-2">
+                    <template v-if="!collapsed">
+                        <!-- Wrap toggle (shown when any line exceeds 50 chars) -->
+                        <button
+                            v-if="hasLongLines"
+                            class="text-gray-400 hover:text-gray-600 px-1 py-0.5 rounded hover:bg-gray-200"
+                            title="Toggle word wrap"
+                            @click.stop="wrapped = !wrapped"
+                        >Wrap</button>
+                        <!-- Prettify button (shown when value looks like JSON) -->
+                        <button
+                            v-if="canPrettify && !prettified"
+                            class="text-gray-400 hover:text-gray-600 px-1 py-0.5 rounded hover:bg-gray-200"
+                            title="Pretty-print JSON and re-diff"
+                            @click.stop="prettify"
+                        >Prettify</button>
+                        <button
+                            v-if="prettified"
+                            class="text-blue-500 hover:text-blue-700 px-1 py-0.5 rounded hover:bg-blue-50"
+                            title="Show raw values"
+                            @click.stop="unprettify"
+                        >Raw</button>
+                    </template>
+                    <span class="text-gray-400">{{ changeSummary }}</span>
+                </span>
             </div>
-            <div v-show="!collapsed" class="overflow-x-auto font-mono">
-                <div class="min-w-max">
+            <div v-show="!collapsed" class="font-mono">
+                <div class="diff-scroll-container" :class="{ 'diff-wrap': wrapped }">
                     <template v-for="(line, i) in lines" :key="i">
                         <!-- Collapsed unchanged section -->
                         <div
@@ -61,7 +85,7 @@
                         >
                             <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.oldNum || '' }}</span>
                             <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.newNum || '' }}</span>
-                            <span class="px-2 whitespace-pre">{{ linePrefix(line) }}{{ line.text }}</span>
+                            <span class="px-2" :class="wrapped ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'">{{ linePrefix(line) }}{{ line.text }}</span>
                         </div>
                     </template>
                 </div>
@@ -74,6 +98,7 @@
 import { diffLines } from 'diff'
 
 const CONTEXT = 3
+const LONG_LINE_THRESHOLD = 50
 
 export default {
     name: 'SnapshotDiffChangePanel',
@@ -85,7 +110,7 @@ export default {
         compact: { type: Boolean, default: false }
     },
     data () {
-        return { lines: [], collapsed: true }
+        return { lines: [], collapsed: true, wrapped: false, prettified: false }
     },
     computed: {
         changeSummary () {
@@ -95,6 +120,12 @@ export default {
             if (added) return `+${added}`
             if (removed) return `-${removed}`
             return ''
+        },
+        hasLongLines () {
+            return this.lines.some(l => l.text && l.text.length > LONG_LINE_THRESHOLD)
+        },
+        canPrettify () {
+            return this.looksLikeJson(this.value1) || this.looksLikeJson(this.value2)
         },
         compactSegments () {
             const segments = []
@@ -139,11 +170,43 @@ export default {
     },
     methods: {
         rebuildLines () {
-            if (!this.compact) this.lines = this.buildLines()
+            if (!this.compact) {
+                this.prettified = false
+                this.lines = this.buildLines(this.value1, this.value2)
+            }
         },
-        buildLines () {
-            const v1 = this.stringify(this.value1)
-            const v2 = this.stringify(this.value2)
+        looksLikeJson (v) {
+            if (typeof v === 'string' && v.length > 2) {
+                const c = v[0]
+                return c === '{' || c === '['
+            }
+            return false
+        },
+        tryPrettify (v) {
+            if (typeof v === 'string' && v.length > 2 && (v[0] === '{' || v[0] === '[')) {
+                try { return JSON.stringify(JSON.parse(v), null, 2) } catch (_) { /* not valid JSON */ }
+            }
+            return null
+        },
+        prettify () {
+            const p1 = this.tryPrettify(this.value1)
+            const p2 = this.tryPrettify(this.value2)
+            if (p1 !== null || p2 !== null) {
+                this.prettified = true
+                this.lines = this.buildLines(
+                    p1 !== null ? p1 : this.value1,
+                    p2 !== null ? p2 : this.value2
+                )
+                this.collapsed = false
+            }
+        },
+        unprettify () {
+            this.prettified = false
+            this.lines = this.buildLines(this.value1, this.value2)
+        },
+        buildLines (v1Raw, v2Raw) {
+            const v1 = this.stringify(v1Raw)
+            const v2 = this.stringify(v2Raw)
 
             if (!v1.includes('\n') && !v2.includes('\n')) {
                 const result = []
@@ -245,5 +308,13 @@ export default {
     text-align: right;
     padding: 0 0.4rem;
     user-select: none;
+}
+.diff-scroll-container {
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+.diff-scroll-container:not(.diff-wrap) > div {
+    width: max-content;
+    min-width: 100%;
 }
 </style>
