@@ -207,6 +207,7 @@ export default {
                     const isAdded = change.diffType === 'added'
                     for (const [prop, val] of Object.entries(node)) {
                         if (HEADER_PROPS.has(prop)) continue
+                        if (IGNORED_PROPS.has(prop)) continue
                         if (this.hidePositionChanges && POSITION_PROPS.has(prop)) continue
                         group.propChanges.push({ prop, value1: isAdded ? undefined : val, value2: isAdded ? val : undefined })
                     }
