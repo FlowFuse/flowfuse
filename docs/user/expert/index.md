@@ -6,7 +6,7 @@ navTitle: FlowFuse Expert
 
 FlowFuse Expert is the AI built into FlowFuse and the Node-RED editor. It is not a generic AI assistant bolted onto the side of your workflow, it understands your flows, your installed nodes, your live data, and your environment in real time.
 
-**FlowFuse Expert is automatically installed and available in all hosted and remote instances running within or connected to FlowFuse**, no manual installation or configuration required.
+**FlowFuse Expert is automatically installed and available in all hosted and remote instances running within or connected to FlowFuse**, no manual installation or configuration required. For self-hosted Enterprise customers, FlowFuse Expert can be enabled on request. [Contact us](https://flowfuse.com/contact-us/) to get it set up on your infrastructure.
 
 ## What FlowFuse Expert Can Do
 
