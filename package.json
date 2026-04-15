@@ -51,7 +51,7 @@
         "cover:system": "nyc --silent npm run test:system && nyc report --reporter=json --report-dir ./coverage/reports/system/  && mv ./coverage/reports/system/coverage-final.json ./coverage/reports/system-coverage.json",
         "cover:report": "nyc report --reporter=html --reporter=json -t './coverage/reports'",
         "install-stack": "node scripts/install-stack.js --",
-        "generate:types": "node scripts/dump-openapi.js && openapi-typescript openapi.json -o frontend/src/types/generated.ts"
+        "generate:types": "node scripts/dump-openapi.js && openapi-typescript openapi.json -o frontend/src/types/generated.ts --root-types --root-types-no-schema-prefix"
     },
     "dependencies": {
         "@aws-sdk/client-sesv2": "^3.916.0",
