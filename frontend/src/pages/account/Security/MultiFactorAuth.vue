@@ -23,7 +23,6 @@
 
 <script>
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import userApi from '../../../api/user.js'
 import FormHeading from '../../../components/FormHeading.vue'
@@ -46,7 +45,6 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['features']),
         ...mapState(useAccountAuthStore, ['user'])
     },
     methods: {

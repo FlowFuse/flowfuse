@@ -1,3 +1,63 @@
+#### 2.29.1: Release
+
+ - docs: update snapshot comparison section with property and code diff details (#7045) @sumitshinde-84
+ - docs: document Expert open-by-default and close-persistence behaviour (v2.29) (#7060) @sumitshinde-84
+
+#### 2.29.0: Release
+
+ - docs: refactor the Quick Start page (#6982)
+ - Bump cypress-io/github-action from 7.1.5 to 7.1.8 (#6940)
+ - Bump actions/upload-artifact from 6.0.0 to 7.0.0 (#6939)
+ - Bump actions/create-github-app-token from 2.2.1 to 3.0.0 (#6937)
+ - Bump actions/cache from 5.0.3 to 5.0.4 (#6941)
+ - Fix `hljs` code highlighting to preserve line breaks in Markdown rendering (#7058) @cstns
+ - Enable/disable Expert Insights mode with feature flag and integrate conditional rendering in expert components (#7046) @cstns
+ - Add timeout value to FE chat API request (#7057) @Steve-Mcl
+ - feat: visual flow diff viewer for snapshot comparison (#7033) @andypalmi
+ - Fix gitIntegration feature flag check to include all-feature override (#7050) @knolleary
+ - [7047] FF Expert code blocks are not formatting correctly (#7049) @n-lark
+ - ci: Disable shared cache on pre-staging environments (#7048) @ppawlowski
+ - [7032] Immersive editor: open snapshot detail as modal rather than right drawer (#7037) @n-lark
+ - Add Housekeeping task to check SSO certificate expiry (#7016) @hardillb
+ - [7031] Immersive editor drawer: restore Developer Mode tab (#7035) @n-lark
+ - Bump hono from 4.12.9 to 4.12.12 (#7040) @app/dependabot
+ - docs: add descriptions to standard environment variables (#7041) @sumitshinde-84
+ - Bump @hono/node-server from 1.19.11 to 1.19.13 (#7039) @app/dependabot
+ - Include instance url env var (#7034) @hardillb
+ - Bump vite from 6.4.1 to 6.4.2 (#7020) @app/dependabot
+ - Guard against undefined template owner (#7028) @knolleary
+ - Bump lodash from 4.17.23 to 4.18.1 (#7023) @app/dependabot
+ - Add FF_INSTANCE_URL to hosted instance env vars (#7024) @hardillb
+ - [6942] Pinia Task 13 - account-team (#6952) @n-lark
+ - Bump defu from 6.1.4 to 6.1.6 (#7015) @app/dependabot
+ - Show error if user roles are managed by SSO (#6994) @hardillb
+ - [7001] Update embedded editor wrappers to reflect Node-RED tab title (#7007) @n-lark
+ - Show device counts on user overview (#7013) @hardillb
+ - Add default expert URLs (#6949) @hardillb
+ - Render Blueprint descriptions as markdown (#6991) @hardillb
+ - Bump @xmldom/xmldom from 0.8.10 to 0.8.12 (#7010) @app/dependabot
+ - Bump dottie from 2.0.6 to 2.0.7 (#7006) @app/dependabot
+ - Upgrade bcrypt to remove a tar dependency (#7005) @hardillb
+ - [6829] Pinia Task 12 - account-auth (#6945) @n-lark
+ - Bump sqlite3 to 6.0.1 to pick up tar fixes (#7003) @hardillb
+ - Bump node-forge from 1.3.2 to 1.4.0 (#6990) @app/dependabot
+ - Bump nodemailer from 7.0.12 to 8.0.4 (#6981) @app/dependabot
+ - [6824] Pinia Task 7 - product-brokers (#6932) @n-lark
+ - Bump path-to-regexp (#6989) @app/dependabot
+ - Bump brace-expansion (#6988) @app/dependabot
+ - Bump handlebars from 4.7.8 to 4.7.9 (#6980) @app/dependabot
+ - [6823] Pinia Task 6 - product-tables (#6931) @n-lark
+ - Force npm username lowercase (#6977) @hardillb
+ - [6828] Pinia Task 11 - product-expert (#6886) @n-lark
+ - Bump yaml (#6956) @app/dependabot
+ - Bump picomatch (#6955) @app/dependabot
+ - Bump fastify from 5.8.1 to 5.8.4 (#6954) @app/dependabot
+ - Bump fast-xml-parser and @aws-sdk/xml-builder (#6933) @app/dependabot
+ - [6947] User menu shows behind pinned expert drawer (#6948) @n-lark
+ - [6827] Pinia Task 10 - product-expert-operator-agent (#6885) @n-lark
+ - [6826] Pinia Task 9 - product-expert-ff-agent (#6882) @n-lark
+ - [6825] Pinia Task 8 - product-assistant (#6881) @n-lark
+
 #### 2.28.1: Release
 
  - Bump aws-actions/amazon-ecr-login from 2.0.1 to 2.0.2 (#6877)

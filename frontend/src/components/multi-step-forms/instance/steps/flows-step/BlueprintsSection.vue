@@ -63,7 +63,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
 
 import { scrollIntoView } from '../../../../../composables/Ux.js'
 
@@ -96,7 +95,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
         categories () {
             return [...this.blueprints].sort((a, b) => {
                 return a.order - b.order

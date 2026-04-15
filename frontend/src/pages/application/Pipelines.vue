@@ -97,7 +97,7 @@
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import ApplicationAPI from '../../api/application.js'
 import PipelineAPI from '../../api/pipeline.js'
@@ -108,6 +108,9 @@ import PipelineRow from '../../components/pipelines/PipelineRow.vue'
 import usePermissions from '../../composables/Permissions.js'
 
 import Alerts from '../../services/alerts.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'ApplicationPipelines',
@@ -152,7 +155,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'teamMembership', 'team']),
+        ...mapState(useContextStore, ['teamMembership']),
+        ...mapState(useAccountSettingsStore, ['features']),
         featureEnabled () {
             return this.features['devops-pipelines']
         }

@@ -86,7 +86,6 @@
 <script>
 import { ChevronLeftIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../api/team.js'
 import teamTypesApi from '../../api/teamTypes.js'
@@ -98,6 +97,8 @@ import { useHubspotHelper } from '../../composables/Hubspot.js'
 import slugify from '../../utils/slugify.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'CreateTeam',
@@ -170,7 +171,8 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['team', 'teams', 'features']),
+        ...mapState(useAccountStore, ['teams']),
+        ...mapState(useAccountSettingsStore, ['features']),
         ...mapState(useAccountAuthStore, ['user']),
         formValid () {
             return this.input.teamTypeId && this.input.name && this.input.slug && !this.pendingSlugCheck && !this.input.slugError && !this.errors.name
@@ -253,8 +255,8 @@ export default {
             }
 
             teamApi.create(opts).then(async result => {
-                await this.$store.dispatch('account/refreshTeams')
-                await this.$store.dispatch('account/setTeam', result)
+                await useAccountStore().refreshTeams()
+                await useAccountStore().setTeam(result)
                 // are we in EE?
                 if (result.billingURL) {
                     this.redirecting = true

@@ -6,10 +6,13 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
+
 import { defineComponent } from 'vue'
-import { mapGetters } from 'vuex'
 
 import { pluralize } from '../../../../composables/strings/String.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default defineComponent({
     name: 'ApplicationPermissionOverride',
@@ -25,7 +28,7 @@ export default defineComponent({
     },
     setup () { return { pluralize } },
     computed: {
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         alteredPermissions () {
             let counter = 0
             Object.keys((this.permissions?.applications || {})).forEach(key => {

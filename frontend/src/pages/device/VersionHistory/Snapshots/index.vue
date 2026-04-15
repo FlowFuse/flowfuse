@@ -1,5 +1,11 @@
 <template>
     <div id="device-snapshots" class="flex-1 flex flex-col overflow-auto">
+        <SnapshotDetailsModal
+            ref="snapshotDetailsModal"
+            @updated-snapshot="fetchData()"
+            @restored-snapshot="onRestoredSnapshot"
+            @deleted-snapshot="fetchData()"
+        />
         <div v-if="isOwnedByAnInstance || isUnassigned" class="space-y-6">
             <EmptyState :feature-unavailable="!features.deviceEditor">
                 <template #img>
@@ -105,15 +111,15 @@
 
 <script>
 import { FilterIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import SemVer from 'semver'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../../api/application.js'
 import DropdownMenu from '../../../../components/DropdownMenu.vue'
 
 import EmptyState from '../../../../components/EmptyState.vue'
+import SnapshotDetailsModal from '../../../../components/dialogs/SnapshotDetailsModal.vue'
 import SnapshotDetailsDrawer from '../../../../components/drawers/snapshots/SnapshotDetailsDrawer.vue'
 import UserCell from '../../../../components/tables/cells/UserCell.vue'
 import usePermissions from '../../../../composables/Permissions.js'
@@ -122,6 +128,9 @@ import { isAutoSnapshot } from '../../../../utils/snapshot.js'
 import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
 import SnapshotSource from '../../../application/Snapshots/components/cells/SnapshotSource.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -132,6 +141,7 @@ export default {
         EmptyState,
         FilterIcon,
         PlusSmIcon,
+        SnapshotDetailsModal,
         UploadIcon
     },
     inheritAttrs: false,
@@ -202,7 +212,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['features']),
         canCreateSnapshot () {
             if (!this.developerMode || this.busy) {
                 return false
@@ -352,7 +363,21 @@ export default {
         supportsDevModeSnapshotRestore () {
             return this.device.agentVersion && SemVer.gte(this.device.agentVersion, '3.8.0')
         },
+        onRestoredSnapshot () {
+            setTimeout(() => { this.$emit('device-updated') }, 100)
+            this.fetchData()
+        },
         onRowSelected (snapshot) {
+            if (this.$route.name?.startsWith('device-editor-')) {
+                this.$refs.snapshotDetailsModal.show(snapshot, this.snapshotList, this.device, {
+                    canSetDeviceTarget: false,
+                    canRestore: this.canDeploy(snapshot),
+                    canRestoreReason: this.canDeployReason(snapshot),
+                    isDevice: true,
+                    isDeviceDevMode: this.developerMode
+                })
+                return
+            }
             this.openRightDrawer({
                 component: markRaw(SnapshotDetailsDrawer),
                 props: {
@@ -366,16 +391,11 @@ export default {
                     isDeviceDevMode: this.developerMode
                 },
                 on: {
-                    updatedSnapshot: () => this.fetchData(true),
-                    restoredSnapshot: () => {
-                        setTimeout(() => {
-                            this.$emit('device-updated')
-                        }, 100)
-                        this.fetchData(true)
-                    },
+                    updatedSnapshot: () => this.fetchData(),
+                    restoredSnapshot: () => this.onRestoredSnapshot(),
                     deletedSnapshot: () => {
                         this.closeRightDrawer()
-                        this.fetchData(true)
+                        this.fetchData()
                     }
                 },
                 overlay: true,

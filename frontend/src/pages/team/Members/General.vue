@@ -53,10 +53,8 @@
 
 <script>
 import { UserAddIcon } from '@heroicons/vue/solid'
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
-
-import { mapActions, mapGetters, mapState as mapVuexState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
@@ -76,6 +74,8 @@ import ApplicationPermissionOverride from './components/ApplicationPermissionOve
 import ApplicationPermissionRow from './components/ApplicationPermissionsRow.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamUsersGeneral',
@@ -110,8 +110,8 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['team']),
-        ...mapGetters('account', ['requiresBilling', 'featuresCheck']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['requiresBilling', 'featuresCheck']),
         ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
         canEditUser: function () {
             return this.hasPermission('team:user:remove') || this.hasPermission('team:user:change-role') || this.isAdminUser
@@ -187,7 +187,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('account', ['refreshTeamMembership']),
+        ...mapActions(useContextStore, ['refreshTeamMembership']),
         inviteMember () {
             this.$refs.inviteMemberDialog.show()
         },

@@ -1,8 +1,8 @@
 <template>
     <div class="ff-instance-assets flex-1 flex flex-col overflow-auto">
         <div class="banner-wrapper">
-            <FeatureUnavailable v-if="!isStaticAssetFeatureEnabledForPlatform" />
-            <FeatureUnavailableToTeam v-else-if="!isStaticAssetsFeatureEnabledForTeam" />
+            <FeatureUnavailable v-if="!featuresCheck.isStaticAssetFeatureEnabledForPlatform" />
+            <FeatureUnavailableToTeam v-else-if="!featuresCheck.isStaticAssetsFeatureEnabledForTeam" />
             <FeatureUnavailable
                 v-else-if="!launcherSatisfiesVersion"
                 :message="launcherVersionMessage"
@@ -37,18 +37,20 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import SemVer from 'semver'
-import { mapState } from 'vuex'
 
 import AssetsAPI from '../../api/assets.js'
 import FeatureUnavailable from '../../components/banners/FeatureUnavailable.vue'
 import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
 import FileBrowser from '../../components/file-browser/FileBrowser.vue'
 import usePermissions from '../../composables/Permissions.js'
-import featuresMixin from '../../mixins/Features.js'
 import Alerts from '../../services/alerts.js'
 
 import FolderBreadcrumbs from './components/FolderBreadcrumbs.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceAssets',
@@ -58,7 +60,6 @@ export default {
         FeatureUnavailableToTeam,
         FileBrowser
     },
-    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         instance: {
@@ -82,7 +83,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
+        ...mapState(useContextStore, ['teamMembership', 'team']),
         currentDirectory () {
             if (this.breadcrumbs.length) {
                 return this.breadcrumbs[this.breadcrumbs.length - 1]
@@ -98,8 +100,8 @@ export default {
             return SemVer.satisfies(nrLauncherVersion, '>=2.8.0')
         },
         isFeatureEnabled () {
-            return this.isStaticAssetFeatureEnabledForPlatform &&
-                this.isStaticAssetsFeatureEnabledForTeam &&
+            return this.featuresCheck.isStaticAssetFeatureEnabledForPlatform &&
+                this.featuresCheck.isStaticAssetsFeatureEnabledForTeam &&
                 this.launcherSatisfiesVersion &&
                 this.isInstanceRunning
         },

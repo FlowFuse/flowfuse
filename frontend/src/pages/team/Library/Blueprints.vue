@@ -15,7 +15,7 @@
             </div>
         </li>
     </ul>
-    <EmptyState v-else :featureUnavailable="!isBlueprintsFeatureEnabled" :featureUnavailableToTeam="!isBlueprintsFeatureEnabledForTeam">
+    <EmptyState v-else :featureUnavailable="!featuresCheck.isBlueprintsFeatureEnabled" :featureUnavailableToTeam="!featuresCheck.isBlueprintsFeatureEnabledForTeam">
         <template #img>
             <img src="../../../images/empty-states/team-library.png" alt="team-logo">
         </template>
@@ -31,7 +31,7 @@
             </p>
         </template>
         <template v-if="isAdminUser" #actions>
-            <ff-button v-if="isSharedLibraryFeatureEnabled" :to="{name: 'admin-flow-blueprints'}" data-el="go-to-blueprints">
+            <ff-button v-if="featuresCheck.isSharedLibraryFeatureEnabled" :to="{name: 'admin-flow-blueprints'}" data-el="go-to-blueprints">
                 Go To Blueprints
             </ff-button>
             <ff-button v-else :to="{name: 'admin-templates-template'}" :disabled="true">
@@ -45,14 +45,14 @@
 <script>
 import { PlusIcon } from '@heroicons/vue/solid'
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import BlueprintTile from '../../../components/blueprints/BlueprintTile.vue'
-import featuresMixin from '../../../mixins/Features.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'BluePrints',
@@ -61,14 +61,14 @@ export default {
         EmptyState,
         BlueprintTile
     },
-    mixins: [featuresMixin],
     data () {
         return {
             blueprints: []
         }
     },
     computed: {
-        ...mapVuexState('account', ['team']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
+        ...mapState(useContextStore, ['team']),
         ...mapState(useAccountAuthStore, ['isAdminUser']),
         blueprintsByCategory () {
             return [...this.blueprints].sort((a, b) => {
@@ -85,7 +85,7 @@ export default {
     },
     methods: {
         async loadBlueprints () {
-            if (this.isBlueprintsFeatureEnabled && this.isBlueprintsFeatureEnabledForTeam) {
+            if (this.featuresCheck.isBlueprintsFeatureEnabled && this.featuresCheck.isBlueprintsFeatureEnabledForTeam) {
                 const res = await flowBlueprintsApi.getFlowBlueprintsForTeam(this.team.id)
                 if (Object.hasOwnProperty.call(res, 'blueprints')) {
                     this.blueprints = res.blueprints

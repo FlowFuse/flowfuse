@@ -99,7 +99,7 @@
 
 <script>
 import { PencilIcon, RefreshIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import billingApi from '../../../../api/billing.js'
 import instanceTypesApi from '../../../../api/instanceTypes.js'
@@ -116,6 +116,9 @@ import FfButton from '../../../../ui-components/components/Button.vue'
 import NameGenerator from '../../../../utils/name-generator/index.js'
 
 import FfLoading from '../../../Loading.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DuplicationStep',
@@ -175,7 +178,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features']),
+        ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useContextStore, ['team']),
         isTrialProjectSelected () {
             //  - Team is in trial mode, and
             //  - Team billing is not configured, or

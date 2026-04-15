@@ -16,7 +16,6 @@
 <script>
 import { ArrowSmRightIcon, TemplateIcon } from '@heroicons/vue/solid'
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 
@@ -27,7 +26,6 @@ export default {
         ArrowSmRightIcon
     },
     computed: {
-        ...mapVuexState('account', ['team']),
         ...mapState(useAccountAuthStore, ['user'])
     },
     mounted () {

@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import teamApi from '../../api/team.js'
 import MultiStepApplicationsInstanceForm from '../../components/multi-step-forms/instance/MultiStepApplicationsInstanceForm.vue'
@@ -54,6 +54,7 @@ import MultiStepApplicationsInstanceForm from '../../components/multi-step-forms
 import LocalStorageService from '../../services/storage/local-storage.service.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'CreateInstance',
@@ -90,8 +91,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team']),
-        ...mapGetters('account', ['blueprints', 'defaultBlueprint', 'defaultUserTeam']),
+        ...mapState(useContextStore, ['team']),
         isLandingFromExternalLink () {
             return this.$route.name === 'DeployBlueprint'
         },

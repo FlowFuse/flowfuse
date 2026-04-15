@@ -48,8 +48,6 @@
 
 import SemVer from 'semver'
 
-import { mapState } from 'vuex'
-
 import DropdownMenu from '../../../components/DropdownMenu.vue'
 import ProjectIcon from '../../../components/icons/Projects.js'
 import { useNavigationHelper } from '../../../composables/NavigationHelper.js'
@@ -100,7 +98,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
         isImmersiveEditor () {
             // Immersive Editor only available for:
             // - Node-RED 4.0.2+

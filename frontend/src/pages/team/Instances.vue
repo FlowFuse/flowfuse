@@ -158,8 +158,8 @@
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters } from 'vuex'
 
 import instanceApi from '../../api/instances.js'
 import teamApi from '../../api/team.js'
@@ -178,6 +178,9 @@ import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmIns
 import DashboardLink from '../instance/components/DashboardLink.vue'
 import InstanceEditorLink from '../instance/components/EditorLink.vue'
 import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamInstances',
@@ -255,7 +258,8 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         instances () {
             return Array.from(this.instancesMap.values())
         },

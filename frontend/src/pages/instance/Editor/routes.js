@@ -1,4 +1,3 @@
-import store from '../../../store/index.js'
 import InstanceSettings from '../Settings/index.vue'
 import InstanceSettingsRoutes from '../Settings/routes.js'
 import VersionHistory from '../VersionHistory/index.vue'
@@ -6,6 +5,8 @@ import VersionHistoryRoutes from '../VersionHistory/routes.js'
 import { children } from '../routes.js'
 
 import InstanceEditor from './index.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default [
     {
@@ -17,7 +18,7 @@ export default [
             layout: 'plain'
         },
         redirect: to => {
-            const name = store.getters['account/featuresCheck'].isExpertAssistantFeatureEnabled
+            const name = useAccountSettingsStore().featuresCheck.isExpertAssistantFeatureEnabled
                 ? 'instance-editor-expert'
                 : 'instance-editor-overview'
             return { name, params: { id: to.params.id } }

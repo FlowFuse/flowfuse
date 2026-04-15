@@ -94,9 +94,9 @@
 
 <script>
 import { BadgeCheckIcon, ExclamationIcon, RefreshIcon } from '@heroicons/vue/solid'
-import SemVer from 'semver'
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import SemVer from 'semver'
 
 import instanceAPI from '../../../api/instances.js'
 
@@ -108,6 +108,9 @@ import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavail
 import Dialog from '../../../services/dialog.js'
 
 import DangerSettings from './Danger.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceSettings',
@@ -163,7 +166,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team', 'settings']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['features', 'settings']),
         isHA () {
             return !!this.instance?.ha
         },
