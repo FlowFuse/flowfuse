@@ -7,6 +7,7 @@ import userApi from '../api/user.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
@@ -191,8 +192,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     useUxNavigationStore().$reset()
                     useUxDrawersStore().$reset()
                     useUxStore().$reset()
-                    // Lazy require to break circular: account-auth.js → context.js → account-auth.js
-                    require('@/stores/context.js').useContextStore().$reset()
+                    useContextStore().$reset()
                     useProductTablesStore().$reset()
                     useProductBrokersStore().$reset()
                     useProductAssistantStore().$reset()

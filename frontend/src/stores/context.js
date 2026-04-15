@@ -5,6 +5,7 @@ import product from '../services/product.js'
 
 import { useAccountAuthStore } from './account-auth.js'
 import { useProductAssistantStore } from './product-assistant.js'
+import { useProductExpertStore } from './product-expert.js'
 
 export const useContextStore = defineStore('context', {
     state: () => ({
@@ -68,9 +69,6 @@ export const useContextStore = defineStore('context', {
             let selectedNodes = null
 
             if (scope === 'immersive' && assistantStore.selectedNodes.length > 0) {
-                // Lazy require to avoid circular dependency:
-                // context.js → product-expert.js → product-assistantStore.js → context.js
-                const { useProductExpertStore } = require('./product-expert.js')
                 if (useProductExpertStore().isSupportAgent) {
                     selectedNodes = assistantStore.selectedNodes
                 }
