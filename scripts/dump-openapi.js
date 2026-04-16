@@ -12,6 +12,8 @@
 // Ensure config resolves to the repo root (same as a normal dev run)
 process.env.NODE_ENV = process.env.NODE_ENV || 'development'
 
+require('dotenv').config()
+
 const fs = require('fs')
 const path = require('path')
 
@@ -58,11 +60,14 @@ function normaliseSchemaNames (spec) {
 ;(async () => {
     let server
     try {
-        // Enterprise-tier dev license so all EE schemas (including MCP, tables) are included.
-        const DEV_LICENSE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNDFmNmRjLTBmM2QtNGFmNy1hNzk0LWIyNWFhNGJmYTliZCIsInZlciI6IjIwMjQtMDMtMDQiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGdXNlIERldmVsb3BtZW50IiwibmJmIjoxNzMwNjc4NDAwLCJleHAiOjIwNzc3NDcyMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxMCwidGVhbXMiOjEwLCJpbnN0YW5jZXMiOjEwLCJtcXR0Q2xpZW50cyI6NiwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTczMDcyMTEyNH0.02KMRf5kogkpH3HXHVSGprUm0QQFLn21-3QIORhxFgRE9N5DIE8YnTH_f8W_21T6TlYbDUmf4PtWyj120HTM2w'
+        const license = process.env.FF_LICENSE
+        if (!license) {
+            console.error('FF_LICENSE env var is required. Set it to an enterprise-tier dev license.')
+            process.exit(1)
+        }
         server = await forge({
             config: {
-                license: DEV_LICENSE,
+                license,
                 db: { type: 'sqlite', storage: ':memory:' },
                 driver: { type: 'stub' },
                 broker: { url: ':test:' },
