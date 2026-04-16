@@ -34,7 +34,6 @@
 // import { ChipIcon, ClockIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
 
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 // import PipelinesIcon from '../../components/icons/Pipelines.js'
@@ -48,6 +47,7 @@ import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmIns
 
 import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -65,7 +65,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         navigation () {
             const routes = [
                 {

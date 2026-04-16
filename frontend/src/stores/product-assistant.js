@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import SemVer from 'semver'
 
-import messagingService from '@/services/post-message.service.js'
+import messagingService from '@/services/post-message.service'
 import { useContextStore } from '@/stores/context.js'
 
 const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep

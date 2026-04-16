@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import teamApi from '../../../api/team.js'
 import FormRow from '../../../components/FormRow.vue'
@@ -32,6 +32,8 @@ import { getTeamProperty } from '../../../composables/TeamProperties.js'
 
 import alerts from '../../../services/alerts.js'
 import { Roles } from '../../../utils/roles.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'InviteMemberDialog',
@@ -94,7 +96,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         externalEnabled () {
             return this.settings.email && this.settings['team:user:invite:external']
         },

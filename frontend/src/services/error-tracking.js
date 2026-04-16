@@ -17,7 +17,15 @@ export const setupSentry = (app, router) => {
         dsn,
         integrations: [
             new BrowserTracing({
-                routingInstrumentation: vueRouterInstrumentation(router)
+                routingInstrumentation: vueRouterInstrumentation(router),
+                shouldCreateSpanForRequest: (url) => {
+                    // Exclude broker status polling (fires every 5s). PUT/DELETE on
+                    // the same URL pattern are also excluded — acceptable trade-off.
+                    if (/\/brokers\/[^/]+$/.test(url)) {
+                        return false
+                    }
+                    return true
+                }
             }),
             new Replay()
         ],
@@ -28,7 +36,7 @@ export const setupSentry = (app, router) => {
         environment: window.sentryConfig.environment,
 
         // Performance Monitoring
-        tracesSampleRate: window.sentryConfig.production ? 0.5 : 1.0,
+        tracesSampleRate: window.sentryConfig.production ? 0.05 : 0.5,
 
         // Which URLs distributed tracing should be enabled
         tracePropagationTargets: [
@@ -38,8 +46,8 @@ export const setupSentry = (app, router) => {
         ],
 
         // Session Replay
-        replaysSessionSampleRate: window.sentryConfig.production ? 0.01 : 0.25,
-        replaysOnErrorSampleRate: 0.25,
+        replaysSessionSampleRate: window.sentryConfig.production ? 0.01 : 0.1,
+        replaysOnErrorSampleRate: 0.1,
 
         // Skip localhost reporting
         beforeSend: (event) => {

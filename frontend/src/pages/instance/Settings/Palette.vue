@@ -11,7 +11,6 @@
 
 import { mapState } from 'pinia'
 import { useRouter } from 'vue-router'
-import { mapState as mapVuexState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import usePermissions from '../../../composables/Permissions.js'
@@ -29,6 +28,7 @@ import {
     templateFields
 } from '../../admin/Template/utils.js'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -74,7 +74,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         catalogFeatureEnabledForTeam () {
             if (!this.features.customCatalogs) {
                 return false

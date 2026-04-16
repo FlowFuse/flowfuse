@@ -15,10 +15,8 @@ function checkIfLandedOnLoginPage () {
     cy.intercept('GET', '/api/*/user/').as('getUser')
     cy.wait('@getUser')
 
-    cy.window()
-        .then((win) => {
-            expect(win.location.href).to.match(/^[a-zA-Z]+:\/\/localhost:\d+\/?$/)
-        })
+    // Assert that the login form is visible
+    cy.get('[data-form="login"]').should('be.visible')
 }
 
 function interceptAndSetDefaultBlueprint () {

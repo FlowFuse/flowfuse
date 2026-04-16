@@ -1,8 +1,8 @@
 <template>
     <div id="timeline" class="flex-1 flex flex-col overflow-auto">
-        <FeatureUnavailable v-if="!isTimelineFeatureEnabledForPlatform" />
-        <FeatureUnavailableToTeam v-else-if="!isTimelineFeatureEnabledForTeam" />
-        <section v-if="isTimelineFeatureEnabled" id="visual-timeline" class="relative flex-1 flex flex-col overflow-auto">
+        <FeatureUnavailable v-if="!featuresCheck.isTimelineFeatureEnabledForPlatform" />
+        <FeatureUnavailableToTeam v-else-if="!featuresCheck.isTimelineFeatureEnabledForTeam" />
+        <section v-if="featuresCheck.isTimelineFeatureEnabled" id="visual-timeline" class="relative flex-1 flex flex-col overflow-auto">
             <transition name="fade" mode="out-in">
                 <ff-loading v-if="loading" message="Loading Timeline..." class="absolute top-0" />
                 <ul v-else-if="activeTimeline.length" ref="timeline" data-el="timeline-list" class="timeline">
@@ -61,6 +61,8 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
+
 import DevicesAPI from '../../../../api/devices.js'
 import versionHistoryAPI from '../../../../api/versionHistory.js'
 import EmptyState from '../../../../components/EmptyState.vue'
@@ -70,11 +72,12 @@ import AssetDetailDialog from '../../../../components/dialogs/AssetDetailDialog.
 import SnapshotEditDialog from '../../../../components/dialogs/SnapshotEditDialog.vue'
 import TimelineEvent from '../../../../components/version-history/timeline/TimelineEvent.vue'
 import { scrollTo } from '../../../../composables/Ux.js'
-import featuresMixin from '../../../../mixins/Features.js'
 import snapshotsMixin from '../../../../mixins/Snapshots.js'
 import Alerts from '../../../../services/alerts.js'
 import Dialog from '../../../../services/dialog.js'
 import SnapshotExportDialog from '../../../application/Snapshots/components/dialogs/SnapshotExportDialog.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'HistoryTimeline',
@@ -87,7 +90,7 @@ export default {
         FeatureUnavailable,
         TimelineEvent
     },
-    mixins: [snapshotsMixin, featuresMixin],
+    mixins: [snapshotsMixin],
     inheritAttrs: false,
     props: {
         device: {
@@ -108,6 +111,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         canLoadMore () {
             return this.next_cursor !== undefined
         },
@@ -134,7 +138,7 @@ export default {
     },
     methods: {
         async fetchData (loadMore = false) {
-            if (this.isTimelineFeatureEnabled) {
+            if (this.featuresCheck.isTimelineFeatureEnabled) {
                 if (!loadMore) {
                     this.loading = true
                 }

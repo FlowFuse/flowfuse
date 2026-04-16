@@ -70,7 +70,6 @@
 import { ChevronRightIcon } from '@heroicons/vue/solid'
 
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 
 import usersApi from '../../../api/users.js'
 
@@ -107,7 +106,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features'])
     },
     watch: {
     },

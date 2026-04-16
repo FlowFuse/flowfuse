@@ -61,8 +61,8 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 
 import teamTypesApi from '../../api/teamTypes.js'
 import teamsApi from '../../api/teams.js'
@@ -74,6 +74,7 @@ import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import TeamCell from '../../components/tables/cells/TeamCell.vue'
 import TeamTypeCell from '../../components/tables/cells/TeamTypeCell.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 
 export default {
@@ -112,7 +113,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features'])
+        ...mapState(useAccountSettingsStore, ['features'])
     },
     watch: {
         teamSearch (v) {

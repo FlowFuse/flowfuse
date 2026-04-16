@@ -4,10 +4,11 @@
 
 <script>
 
-import { mapActions } from 'pinia'
-import { mapGetters } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import BrokerForm from './components/BrokerForm.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
@@ -15,7 +16,7 @@ export default {
     name: 'NewBroker',
     components: { BrokerForm },
     computed: {
-        ...mapGetters('account', ['featuresCheck'])
+        ...mapState(useAccountSettingsStore, ['featuresCheck'])
     },
     mounted () {
         if (!this.featuresCheck.isExternalMqttBrokerFeatureEnabled) {

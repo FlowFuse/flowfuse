@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import templateApi from '../../../api/templates.js'
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
@@ -44,6 +44,8 @@ import {
     templateFields,
     templateValidators
 } from './utils.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'AdminTemplate',
@@ -84,7 +86,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'settings']),
+        ...mapState(useAccountSettingsStore, ['features', 'settings']),
         sideNavigation: function () {
             const nav = [
                 { name: 'Settings', path: './settings' },

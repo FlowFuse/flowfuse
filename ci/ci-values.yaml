@@ -2,12 +2,15 @@ forge:
   domain: flowfuse.dev
   https: true
   localPostgresql: true
+  localValkey: false
   projectIngressClassName: traefik
   broker:
     enabled: true
     teamBroker:
       uiOnly: true
   cloudProvider: aws
+  cache:
+    type: memory
   email:
     ses:
       region: eu-west-1
@@ -15,6 +18,8 @@ forge:
     enabled: true
   expert:
     enabled: true
+    insights:
+      enabled: true
   resources:
     limits:
       cpu: 1000m

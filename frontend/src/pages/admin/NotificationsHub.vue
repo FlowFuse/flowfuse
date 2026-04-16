@@ -80,7 +80,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import adminApi from '../../api/admin.js'
 import teamTypesApi from '../../api/teamTypes.js'
@@ -92,6 +92,9 @@ import alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 import FfButton from '../../ui-components/components/Button.vue'
 import { RoleNames, Roles } from '../../utils/roles.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+
 export default {
     name: 'NotificationsHub',
     components: { FfButton, FormRow, FormHeading },
@@ -119,7 +122,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         roleIds () {
             return Object.values(RoleNames).filter(r => r !== 'none').reverse().map(r => r[0].toUpperCase() + r.substring(1))
         },

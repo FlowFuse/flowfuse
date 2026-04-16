@@ -62,4 +62,8 @@ module.exports = fp(async function (app, opts) {
 
     // Set the expert assistant Feature Flag
     app.config.features.register('expertAssistant', app.config?.expert?.enabled ?? false, true)
+
+    // temporary until FF Expert Insights can be enabled on Self Hosted EE instance
+    const isInsightsEnabled = app.config?.expert?.enabled && app.config?.expert?.insights?.enabled
+    app.config.features.register('expertInsights', isInsightsEnabled ?? false, false)
 }, { name: 'app.ee.lib' })

@@ -1,11 +1,11 @@
 <template>
     <div class="ff-expert">
-        <expert-mode-switcher v-if="isEditorContext" :isFloating="true" />
+        <expert-mode-switcher v-if="isInsightsModeEnabled && isEditorContext" :isFloating="true" />
 
         <div
             ref="messagesContainer"
             class="messages-container"
-            :class="{ 'has-mode-switcher': isEditorContext }"
+            :class="{ 'has-mode-switcher': isInsightsModeEnabled && isEditorContext }"
             @scroll="handleScroll"
         >
             <info-banner />
@@ -31,6 +31,7 @@ import ExpertModeSwitcher from './components/ExpertModeSwitcher.vue'
 import InfoBanner from './components/InfoBanner.vue'
 import UpdateBanner from './components/UpdateBanner.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
@@ -79,9 +80,13 @@ export default {
         ...mapState(useUxDrawersStore, {
             isPinned: state => state.rightDrawer.fixed
         }),
+        ...mapState(useAccountSettingsStore, ['features']),
         isEditorContext () {
             // In editor context, the route name includes 'editor'
             return this.$route?.name?.includes('editor') || false
+        },
+        isInsightsModeEnabled () {
+            return !!this.features.expertInsights
         },
         agentModeWrapper: {
             get () {

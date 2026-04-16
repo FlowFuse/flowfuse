@@ -29,9 +29,11 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import FormRow from '../../../components/FormRow.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'ConfirmTeamDeleteDialog',
@@ -54,8 +56,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['features', 'featuresCheck']),
         enabledFeatures () {
             // hosted instances?
             const features = {

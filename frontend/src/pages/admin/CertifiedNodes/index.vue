@@ -20,11 +20,13 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import settingsApi from '../../../api/settings.js'
 import FormRow from '../../../components/FormRow.vue'
 import Alerts from '../../../services/alerts.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'AdminCertifiedNodes',
@@ -44,7 +46,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'settings']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         sideNavigation () {
             return []
         },
@@ -61,7 +63,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions('account', ['refreshSettings']),
+        ...mapActions(useAccountSettingsStore, ['refreshSettings']),
         async saveChanges () {
             this.loading = true
             const options = {

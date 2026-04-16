@@ -1,4 +1,4 @@
-import { BaseService } from './service.contract.js'
+import { AppService, BaseService, CreateServiceOptions } from './service.contract'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
@@ -20,52 +20,66 @@ const ACTIONS_FLOWFUSE_EXPERT = {
     SET_CONTEXT: 'set-context'
 }
 
+type FlowFuseWebsiteSource = typeof DATA_SOURCE_FLOWFUSE_WEBSITE | typeof DATA_SOURCE_ASSISTANT
+type FlowFuseExpertScope = typeof dataSourceScopes[typeof DATA_SOURCE_FLOWFUSE_WEBSITE]['FLOWFUSE_EXPERT']
+type SetContextAction = typeof ACTIONS_FLOWFUSE_EXPERT.SET_CONTEXT
+type DataTargetAssistant = typeof DATA_TARGET_ASSISTANT
+
+type PostMessageBase = {
+    source: FlowFuseWebsiteSource
+    scope: FlowFuseExpertScope
+    target: DataTargetAssistant
+}
+type PostMessagePayload = PostMessageBase & (
+    {
+        type: 'onLoad'
+        status: 'ready'
+        timestamp: number
+    } | {
+        type: 'flowfuse-expert-response'
+        action: 'confirm'
+        timestamp: number
+    } | {
+        action: SetContextAction
+        payload: unknown
+    }
+)
+
+export interface PostMessageServiceI extends AppService {
+    init(): void
+    setupMessageHandlers(): void
+    destroy(): Promise<void>
+    handleFlowFuseExpertMessage(event: MessageEvent<any>): Promise<void>
+    handleAssistantMessage(event: MessageEvent<any>): Promise<void>
+    sendReadyMessage(): void
+    setExpertContext(payload: unknown): void
+    sendMessage(args: {
+        message: unknown
+        target?: Window
+        targetOrigin?: string
+    }): void
+    getWindowOrigin(targetWindow: Window): string | null
+    isWindowOriginAllowed(origin: string): boolean
+}
+
 const sourceActions = {
     [DATA_SOURCE_FLOWFUSE_WEBSITE]: ACTIONS_FLOWFUSE_EXPERT
 }
 
 const allowedOrigins = ['https://flowfuse.com', 'https://app.flowfuse.com', 'https://forge.flowfuse.dev', 'http://localhost:8080', 'http://localhost:3000']
 
+type SendMessagePayload = { message: object, target?: WindowProxy, targetOrigin?: string };
+
 /**
  * Messaging Service - Handles postMessage communication
  * @class
  */
-class PostMessageService extends BaseService {
-    /**
-     * @type {import('vue').App} - Vue app instance
-     */
-    $app
+class PostMessageService extends BaseService implements PostMessageServiceI {
+    protected $onMessage: { (event: any): Promise<void>; (this: Window, ev: MessageEvent<any>): any; (this: Window, ev: MessageEvent<any>): any }
 
-    /**
-     * @type {import('vuex').Store} - Vuex store instance
-     */
-    $store
+    constructor ({ app, router, services }: CreateServiceOptions) {
+        super({ name: 'postMessage', app, router, services })
 
-    /**
-     * @type {import('vue-router').Router} - Vue router instance
-     */
-    $router
-
-    /**
-     * @type {Object} - Map of all services for dependency injection
-     */
-    $services
-
-    /**
-     * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options - Constructor options
-     */
-    constructor ({
-        app,
-        store,
-        router,
-        services = {}
-    }) {
-        super('postMessage')
-
-        this.$app = app
-        this.$store = store
-        this.$router = router
-        this.$services = services
         this.$onMessage = null
 
         this.init()
@@ -85,15 +99,15 @@ class PostMessageService extends BaseService {
     }
 
     setupMessageHandlers () {
-        this.$onMessage = async (event) => {
+        this.$onMessage = async (event: MessageEvent<PostMessagePayload>) => {
             const isSourceWebsite = event.data.source === DATA_SOURCE_FLOWFUSE_WEBSITE
             const isWebsiteExpertScope = event.data.scope === dataSourceScopes[DATA_SOURCE_FLOWFUSE_WEBSITE].FLOWFUSE_EXPERT
             const shouldHandleWebsiteExpertMessages = isSourceWebsite && isWebsiteExpertScope
 
-            const isAssistantTargettingFlowFuseExpert = event.data.target === DATA_TARGET_ASSISTANT
+            const isAssistantTargetingFlowFuseExpert = event.data.target === DATA_TARGET_ASSISTANT
             const isSourceAssistant = event.data.source === DATA_SOURCE_ASSISTANT
-            const isAssistantScope = isAssistantTargettingFlowFuseExpert && event.data.scope === dataSourceScopes[DATA_SOURCE_ASSISTANT].FLOWFUSE_EXPERT
-            const shouldHandleAssistantMessages = isAssistantTargettingFlowFuseExpert && isSourceAssistant && isAssistantScope
+            const isAssistantScope = isAssistantTargetingFlowFuseExpert && event.data.scope === dataSourceScopes[DATA_SOURCE_ASSISTANT].FLOWFUSE_EXPERT
+            const shouldHandleAssistantMessages = isAssistantTargetingFlowFuseExpert && isSourceAssistant && isAssistantScope
 
             switch (true) {
             case shouldHandleWebsiteExpertMessages:
@@ -118,7 +132,7 @@ class PostMessageService extends BaseService {
     async handleFlowFuseExpertMessage (event) {
         switch (event.data.action) {
         case sourceActions[DATA_SOURCE_FLOWFUSE_WEBSITE].SET_CONTEXT:
-            await this.setExpertContext(event.data.payload)
+            this.setExpertContext(event.data.payload)
             break
         default:
             console.warn('Unknown message received:', event.data.action)
@@ -139,7 +153,7 @@ class PostMessageService extends BaseService {
         this.sendMessage({ message })
     }
 
-    setExpertContext (payload) {
+    setExpertContext (payload: {data: object, sessionId: string}) {
         useProductExpertStore().setContext(payload)
 
         const message = {
@@ -151,11 +165,7 @@ class PostMessageService extends BaseService {
         this.sendMessage({ message })
     }
 
-    sendMessage ({
-        message,
-        target,
-        targetOrigin
-    }) {
+    sendMessage ({ message, target, targetOrigin }: SendMessagePayload) {
         // If we have a target, we aim at that target
         if (target) {
             target.postMessage(message, targetOrigin)
@@ -200,15 +210,15 @@ class PostMessageService extends BaseService {
      * @param {Window} targetWindow - The window to get origin from
      * @returns {string|null} - The origin or null if inaccessible
      */
-    getWindowOrigin (targetWindow) {
+    getWindowOrigin (targetWindow: WindowProxy): string | null {
         try {
             return targetWindow.location.origin
-        } catch (error) {
+        } catch {
             // Cross-origin - try to get from document.referrer or other sources
             if (targetWindow === window.parent && document.referrer) {
                 try {
                     return new URL(document.referrer).origin
-                } catch (e) {
+                } catch {
                     return null
                 }
             }
@@ -216,7 +226,7 @@ class PostMessageService extends BaseService {
             if (targetWindow === window.opener && document.referrer) {
                 try {
                     return new URL(document.referrer).origin
-                } catch (e) {
+                } catch {
                     return null
                 }
             }
@@ -229,7 +239,7 @@ class PostMessageService extends BaseService {
      * @param {string} origin - The origin to check
      * @returns {boolean} - True if the origin is allowed
      */
-    isWindowOriginAllowed (origin) {
+    isWindowOriginAllowed (origin: string): boolean {
         return allowedOrigins.includes(origin)
     }
 }
@@ -238,19 +248,13 @@ let MessagingServiceInstance = null
 
 /**
  * Get or create the MessagingService singleton instance
- * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options - Constructor options
+ * @param CreateServiceOptions options - Constructor options
  * @returns {PostMessageService}
  */
-export function createMessagingService ({
-    app,
-    store,
-    router,
-    services = {}
-} = {}) {
+export function createMessagingService ({ app, router, services } : CreateServiceOptions): PostMessageService {
     if (!MessagingServiceInstance) {
         MessagingServiceInstance = new PostMessageService({
             app,
-            store,
             router,
             services
         })
