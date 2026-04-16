@@ -220,7 +220,7 @@ export default {
             }
             if (valid) {
                 this.loggingIn = true
-                this.$store.dispatch('account/login', {
+                useAccountAuthStore().loginWithCredentials({
                     username: this.input.username,
                     password: this.input.password
                 })
@@ -228,7 +228,7 @@ export default {
         },
         submitMFAToken () {
             this.loggingIn = true
-            this.$store.dispatch('account/login', {
+            useAccountAuthStore().loginWithCredentials({
                 token: this.input.token
             })
         },

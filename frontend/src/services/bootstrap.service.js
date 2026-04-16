@@ -1,5 +1,9 @@
 import { nextTick } from 'vue'
 
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
+
 /**
  * Bootstrap Service - Handles application lifecycle and readiness detection
  * @class
@@ -9,11 +13,6 @@ class BootstrapService {
      * @type {import('vue').App} - Vue app instance
      */
     $app
-
-    /**
-     * @type {import('vuex').Store} - Vuex store instance
-     */
-    $store
 
     /**
      * @type {import('vue-router').Router} - Vue router instance
@@ -26,16 +25,14 @@ class BootstrapService {
     $services
 
     /**
-     * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options - Constructor options
+     * @param {{app: import('vue').App, router: import('vue-router').Router, services?: Object}} options - Constructor options
      */
     constructor ({
         app,
-        store,
         router,
         services = {}
     }) {
         this.$app = app
-        this.$store = store
         this.$router = router
         this.$services = services
 
@@ -57,7 +54,12 @@ class BootstrapService {
      */
     async init () {
         return this.waitForAppMount()
-            .then(() => this.waitForStoreHydration())
+            .then(() => {
+                // Eagerly create account & context stores — restores persisted state from localStorage instantly
+                useAccountAuthStore()
+                useContextStore()
+                useAccountSettingsStore()
+            })
             .then(() => this.checkUser())
             .then(() => this.mountApp())
             .then(() => this.waitForRouterReady())
@@ -76,31 +78,13 @@ class BootstrapService {
         })
     }
 
-    async waitForStoreHydration () {
-        if (this.$store.state.initialized || this.$store.state._hydrated) {
-            return Promise.resolve()
-        }
-
-        // Wait for store hydration
-        return new Promise((resolve) => {
-            const unsubscribe = this.$store.subscribe((mutation) => {
-                if (mutation.type === 'initializeStore' ||
-                    mutation.type === 'HYDRATE_COMPLETE' ||
-                    this.$store.state._hydrated) {
-                    unsubscribe()
-                    resolve()
-                }
-            })
-        })
-    }
-
     async waitForRouterReady () {
         await this.$router.isReady()
     }
 
     async checkUser () {
         if (window.opener) {
-            return this.$store.dispatch('account/checkIfAuthenticated').catch(e => e)
+            return useAccountAuthStore().checkIfAuthenticated().catch(e => e)
         }
 
         return Promise.resolve()
@@ -133,19 +117,17 @@ class BootstrapService {
 let BootstrapServiceInstance = null
 
 /**
- * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options - Constructor options
+ * @param {{app: import('vue').App, router: import('vue-router').Router, services?: Object}} options - Constructor options
  * @returns {BootstrapService}
  */
 export function createBootstrapService ({
     app,
-    store,
     router,
     services = {}
 } = {}) {
     if (!BootstrapServiceInstance) {
         BootstrapServiceInstance = new BootstrapService({
             app,
-            store,
             router,
             services
         })

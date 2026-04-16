@@ -123,7 +123,6 @@
         "vue-router": "^4.2.5",
         "vue-shepherd": "^3.0.0",
         "vue3-google-login": "^2.0.33",
-        "vuex": "^4.1.0",
         "yaml": "^2.3.1",
         "zxcvbn": "^4.4.2"
     },
