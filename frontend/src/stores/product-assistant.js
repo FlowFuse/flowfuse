@@ -160,8 +160,16 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         editorState: { ...buildInitialEditorState() }
     }),
     getters: {
-        immersiveInstance: () => useContextStore().instance,
-        immersiveDevice: () => useContextStore().device,
+        immersiveInstance: () => {
+            const contextStore = useContextStore()
+
+            return contextStore.instance && contextStore.isImmersive
+        },
+        immersiveDevice: () => {
+            const contextStore = useContextStore()
+
+            return contextStore.device && contextStore.isImmersive
+        },
         hasUserSelection: (state) => state.selectedNodes.length > 0,
         hasContextSelection: (state) => state.selectedContext.length > 0,
         hasDebugLogsSelected () {

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { markRaw } from 'vue'
 
 import expertApi from '../api/expert.js'
+import userApi from '../api/user.js'
 import useTimerHelper from '../composables/TimerHelper.js'
 
 import { useAccountSettingsStore } from './account-settings.js'
@@ -12,6 +13,12 @@ import { INSIGHTS_AGENT, SUPPORT_AGENT } from './product-expert-agents.js'
 import { useProductExpertInsightsAgentStore } from './product-expert-insights-agent.js'
 import { useProductExpertSupportAgentStore } from './product-expert-support-agent.js'
 import { useUxDrawersStore } from './ux-drawers.js'
+
+import getServicesOrchestrator from '@/services/service.orchestrator'
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+
+// TODO currently hardcodded
+const IS_MQTT_ENABLED = true
 
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
@@ -42,7 +49,9 @@ export const useProductExpertStore = defineStore('product-expert', {
         canManagePalette () {
             const assistantStore = useProductAssistantStore()
             return !!assistantStore.immersiveInstance && !!assistantStore.supportedActions['core:manage-palette']
-        }
+        },
+        mqttConnectionKey () { return this._agentStore.mqttConnectionKey },
+        sessionId () { return this._agentStore.sessionId }
     },
     actions: {
         setContext ({ data, sessionId }) {
@@ -193,6 +202,14 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
 
         sendQuery ({ query }) {
+            if (IS_MQTT_ENABLED && this.isSupportAgent) {
+                return this.handleMqttQuery({ query })
+            } else {
+                return this.sendHttpQuery({ query })
+            }
+        },
+
+        async sendHttpQuery ({ query }) {
             const agentStore = this._agentStore
             const payload = {
                 query,
@@ -209,6 +226,133 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             return expertApi.chat(payload)
+        },
+
+        async handleMqttQuery ({ query }) {
+            const servicesOrchestrator = getServicesOrchestrator()
+            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const transactionId = uuidv4()
+            const sessionId = this.sessionId
+            const mqttConnectionKey = this.mqttConnectionKey
+            const authStore = useAccountAuthStore()
+
+            if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
+            const { entityId, entityType } = this._getEntityTopicPaths()
+
+            return mqttService.publishMessage(mqttConnectionKey, {
+                topic: `ff/v1/expert/${authStore.user.id}/${sessionId}/${entityType}/${entityId}/support/chat/request`,
+                qos: 2,
+                payload: {
+                    query,
+                    context: {
+                        ...useContextStore().expert,
+                        agent: this.agentMode
+                    }
+                },
+                correlationData: transactionId,
+                userProperties: {
+                    sessionId: this.sessionId
+                }
+            })
+        },
+
+        async establishMqttComms () {
+            const servicesOrchestrator = getServicesOrchestrator()
+            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const authStore = useAccountAuthStore()
+            const assistantStore = useProductAssistantStore()
+
+            await mqttService.createClient(this.mqttConnectionKey, {
+                getCredentials: () => userApi.initiateExpertChat({ sessionId: this.sessionId }),
+                onMessage: async (topic, message, packet) => {
+                    const isChatReply = topic.endsWith('/support/chat/response')
+                    const isToolRequest = topic.includes('/support/tool/') && topic.endsWith('/request')
+                    if (isChatReply) {
+                        await this.handleMessageResponse(JSON.parse(message.toString()))
+                    } else if (isToolRequest) {
+                        const msg = JSON.parse(message.toString())
+
+                        const userId = authStore.user.id
+                        const sessionId = this.sessionId
+                        const split = topic.split('/')
+                        const thingType = split[5] // d (device) or p (instance)
+                        const thingId = split[6] // the id of the device or instance
+                        const tool = split.at(-2) // the name of the tool
+                        const responseTopic = `ff/v1/expert/${userId}/${sessionId}/${thingType}/${thingId}/support/tool/${tool}/response`
+                        const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
+
+                        const pushToToolCalls = (kind, message, params) => {
+                            // push result to last message's toolCalls
+                            const messages = this._agentStore.messages
+                            const latestMessage = messages.at(-1)
+                            // Initialize toolCalls array if it doesn't exist
+                            if (!latestMessage.toolCalls2) {
+                                latestMessage.toolCalls2 = []
+                            }
+                            // Push the postMessagePayload into it
+                            latestMessage.toolCalls2.push({
+                                kind,
+                                message,
+                                params
+                            })
+                        }
+
+                        if (tool === 'expert:status-message') {
+                            // this is just a status from the agent, we can ignore it for now, but we might want to display it in the UI later
+                            console.log('Received status message from agent:', msg)
+                            pushToToolCalls('status', msg.payload.status)
+                            // just ack the msg
+                            console.log('publishing response to', responseTopic)
+                            await mqttService.publishMessage(this.mqttConnectionKey, {
+                                qos: 2,
+                                topic: responseTopic,
+                                payload: JSON.stringify({
+                                    ack: true
+                                }),
+                                correlationData: new TextEncoder().encode(transactionId),
+                                userProperties: { sessionId }
+                            })
+                        } else if (tool.startsWith('automation:')) {
+                            // thi is an automation request, we want to execute it and return the result to the agent
+                            const postMessagePayload = {
+                                action: tool.replace('automation:', 'automation/'),
+                                params: msg.payload?.params || {}
+                            }
+
+                            // push result to last message's toolCalls
+                            pushToToolCalls('automation', `Calling action '${postMessagePayload.action}'`, postMessagePayload.params)
+
+                            // const res = await dispatch('product/assistant/invokeAction', postMessagePayload, { root: true })
+                            const res = assistantStore.invokeAction(postMessagePayload)
+
+                            await mqttService.publishMessage(this.mqttConnectionKey, {
+                                qos: 2,
+                                topic: responseTopic,
+                                payload: JSON.stringify({
+                                    ack: true,
+                                    ...res
+                                }),
+                                correlationData: new TextEncoder().encode(transactionId),
+                                userProperties: { sessionId }
+                            })
+                        }
+                    }
+                },
+                onClose: () => {
+                    // TODO add error message
+                },
+                onConnect: () => {
+                    const chatResponseTopic = `ff/v1/expert/${authStore.user.id}/${this._agentStore.sessionId}/+/+/support/chat/response`
+                    mqttService.subscribe(this.mqttConnectionKey, chatResponseTopic, { qos: 2 })
+                    // mqttService.subscribe(this.mqttConnectionKey, toolRequestTopic, { qos: 2 })
+                },
+                onOffline: () => {
+                    // TODO add error message
+                },
+                onError: (e) => {
+                    // TODO add error message
+                }
+            })
         },
 
         addWelcomeMessageIfNeeded () {
@@ -432,6 +576,33 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
                 // Else: ignore messages that don't match either format
             })
+        },
+
+        _getEntityTopicPaths () {
+            const contextStore = useContextStore()
+
+            switch (true) {
+            case !!contextStore.application:
+                return {
+                    entityType: 'a',
+                    entityId: contextStore.team?.id
+                }
+            case !!contextStore.instance:
+                return {
+                    entityType: 'p',
+                    entityId: contextStore.instance.id
+                }
+            case !!contextStore.device:
+                return {
+                    entityType: 'd',
+                    entityId: contextStore.device?.id
+                }
+            default:
+                return {
+                    entityType: 't',
+                    entityId: contextStore.team?.id
+                }
+            }
         }
     },
     persist: {

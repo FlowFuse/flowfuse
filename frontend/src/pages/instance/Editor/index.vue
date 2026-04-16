@@ -221,11 +221,6 @@ export default {
             return this.$route.name === 'instance-editor-expert'
         }
     },
-    watch: {
-        instance (instance) {
-            this.setInstance(instance)
-        }
-    },
     mounted () {
         this.bindEditorResizer({
             component: this.$refs.resizeTarget,
@@ -243,13 +238,16 @@ export default {
         })
 
         this.runInitialTease()
+        this.setIsImmersive(true)
+    },
+    beforeUnmount () {
+        this.setIsImmersive(false)
     },
     unmounted () {
         this.cleanupDrawer()
-        this.clearInstance()
     },
     methods: {
-        ...mapActions(useContextStore, ['setInstance', 'clearInstance'])
+        ...mapActions(useContextStore, ['setIsImmersive'])
     }
 }
 </script>

@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { markRaw } from 'vue'
 
+import { SUPPORT_AGENT } from './product-expert-agents.js'
+
 export const useProductExpertSupportAgentStore = defineStore('product-expert-support-agent', {
     state: () => ({
         context: null,
@@ -12,7 +14,8 @@ export const useProductExpertSupportAgentStore = defineStore('product-expert-sup
         sessionStartTime: null,
         sessionWarningShown: false,
         sessionExpiredShown: false,
-        sessionCheckTimer: null
+        sessionCheckTimer: null,
+        mqttConnectionKey: `expert/${SUPPORT_AGENT}`
     }),
     actions: {
         reset () {

@@ -6,6 +6,8 @@ import useTimerHelper from '../composables/TimerHelper.js'
 
 import { useContextStore } from './context.js'
 
+import { INSIGHTS_AGENT } from './product-expert-agents.js'
+
 export const useProductExpertInsightsAgentStore = defineStore('product-expert-insights-agent', {
     state: () => ({
         sessionId: null,
@@ -16,7 +18,8 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
         sessionExpiredShown: false,
         sessionCheckTimer: null,
         capabilityServers: [],
-        selectedCapabilities: []
+        selectedCapabilities: [],
+        mqttConnectionKey: `expert/${INSIGHTS_AGENT}`
     }),
     getters: {
         capabilities: (state) => state.capabilityServers.map(c => ({
