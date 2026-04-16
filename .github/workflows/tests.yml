@@ -46,6 +46,8 @@ jobs:
           node-version: 24
       - name: Install Dependencies
         run: npm ci
+      - name: Build the forge
+        run: npm run build
       - name: Generate TypeScript types
         run: npm run generate:types
       - name: Check drift
