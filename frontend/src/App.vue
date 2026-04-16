@@ -146,7 +146,7 @@ export default {
         }
     },
     mounted () {
-        this.$store.dispatch('account/checkState')
+        useAccountAuthStore().checkState()
         useProductBrokersStore().checkFlags()
     },
     methods: {

@@ -105,7 +105,7 @@ export default {
         deleteTeam () {
             teamApi.deleteTeam(this.team.id).then(() => {
                 alerts.emit('Team successfully deleted', 'confirmation')
-                this.$store.dispatch('account/checkState', '/')
+                useAccountAuthStore().checkState('/')
             }).catch(err => {
                 alerts.emit('Problem deleting team', 'warning')
                 console.warn(err)

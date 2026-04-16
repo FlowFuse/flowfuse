@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 import brokerApi from '../api/broker.js'
 
-import { useAccountBridge } from './_account_bridge.js'
+import { useContextStore } from './context.js'
 
 export const useProductBrokersStore = defineStore('product-brokers', {
     state: () => ({
@@ -15,7 +15,7 @@ export const useProductBrokersStore = defineStore('product-brokers', {
         hasFfUnsClients: (state) => state.UNS.clients.length > 0,
         hasBrokers: (state) => state.UNS.brokers.length > 0,
         brokerExpandedTopics: (state) => (brokerId) => {
-            const { team } = useAccountBridge()
+            const team = useContextStore().team
             if (!team || !brokerId) return {}
             return state.brokers.expandedTopics?.[team.slug]?.[brokerId] ?? {}
         }
@@ -42,31 +42,31 @@ export const useProductBrokersStore = defineStore('product-brokers', {
             }
         },
         async fetchUnsClients () {
-            const { team } = useAccountBridge()
+            const team = useContextStore().team
             const response = await brokerApi.getClients(team.id)
             this.UNS.clients = response.clients
         },
         async getBrokers () {
-            const { team } = useAccountBridge()
+            const team = useContextStore().team
             const response = await brokerApi.getBrokers(team.id)
             this.UNS.brokers = response.brokers
             this.addFfBroker()
         },
         async createBroker (payload) {
-            const { team } = useAccountBridge()
+            const team = useContextStore().team
             const broker = await brokerApi.createBroker(team.id, payload).catch(e => e)
             this.UNS.brokers.push(broker)
             return broker
         },
         async updateBroker ({ payload, brokerId }) {
-            const { team } = useAccountBridge()
+            const team = useContextStore().team
             const broker = await brokerApi.updateBroker(team.id, brokerId, payload).catch(e => e)
             const i = this.UNS.brokers.findIndex(b => b.id === broker.id)
             if (i !== -1) this.UNS.brokers[i] = { ...this.UNS.brokers[i], ...broker }
             return broker
         },
         deleteBroker (brokerId) {
-            const { team } = useAccountBridge()
+            const team = useContextStore().team
             return brokerApi.deleteBroker(team.id, brokerId).then(() => {
                 const i = this.UNS.brokers.findIndex(b => b.id === brokerId)
                 if (i !== -1) this.UNS.brokers.splice(i, 1)
@@ -80,7 +80,7 @@ export const useProductBrokersStore = defineStore('product-brokers', {
         removeFfBroker () { this.UNS.brokers = this.UNS.brokers.filter(b => !b.local) },
         clearUns () { this.UNS.brokers = []; this.UNS.clients = [] },
         handleBrokerTopicState ({ topic, brokerId }) {
-            const { team } = useAccountBridge()
+            const team = useContextStore().team
             if (!this.brokers.expandedTopics[team.slug]) this.brokers.expandedTopics[team.slug] = {}
             if (!this.brokers.expandedTopics[team.slug][brokerId]) {
                 this.brokers.expandedTopics[team.slug][brokerId] = {}
