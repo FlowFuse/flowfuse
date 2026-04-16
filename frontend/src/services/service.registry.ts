@@ -1,11 +1,11 @@
 import { BootstrapServiceI, createBootstrapService } from './bootstrap.service'
-import MqttService, { createMqttService } from './mqtt.service'
+import { MqttServiceI, createMqttService } from './mqtt.service'
 import { PostMessageServiceI, createMessagingService } from './post-message.service'
 
 export type ServiceInstances = {
     bootstrap: BootstrapServiceI | null
     postMessage: PostMessageServiceI | null
-    mqtt: typeof MqttService | null
+    mqtt: MqttServiceI | null
 }
 
 export default [
