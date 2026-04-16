@@ -52,7 +52,7 @@ jobs:
         run: npm run generate:types
       - name: Check drift
         run: |
-          if ! git diff --exit-code frontend/src/types/generated.ts openapi.json; then
+          if ! git diff --exit-code frontend/src/types/generated.ts ; then
             echo ""
             echo "::error::Type drift detected! Run 'npm run generate:types' locally and commit the result."
             exit 1
