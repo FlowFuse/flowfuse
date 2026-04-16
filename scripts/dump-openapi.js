@@ -60,22 +60,25 @@ function normaliseSchemaNames (spec) {
 ;(async () => {
     let server
     try {
-        const license = process.env.FF_LICENSE
-        if (!license) {
-            console.error('FF_LICENSE env var is required. Set it to an enterprise-tier dev license.')
-            process.exit(1)
+        // When DEV_ENTERPRISE_TIER_LICENSE is set (CI), boot with a self-contained programmatic config
+        // so no external DB or config file is needed. Otherwise boot normally from
+        // flowforge.local.yml (local dev — license comes from the dev's config file).
+        const license = process.env.DEV_ENTERPRISE_TIER_LICENSE
+        if (license) {
+            server = await forge({
+                config: {
+                    license,
+                    db: { type: 'sqlite', storage: ':memory:' },
+                    driver: { type: 'stub' },
+                    broker: { url: ':test:' },
+                    tables: { enabled: true, driver: { type: 'stub' } },
+                    telemetry: { enabled: false },
+                    logging: { level: 'warn' }
+                }
+            })
+        } else {
+            server = await forge()
         }
-        server = await forge({
-            config: {
-                license,
-                db: { type: 'sqlite', storage: ':memory:' },
-                driver: { type: 'stub' },
-                broker: { url: ':test:' },
-                tables: { enabled: true, driver: { type: 'stub' } },
-                telemetry: { enabled: false },
-                logging: { level: 'warn' }
-            }
-        })
         const spec = normaliseSchemaNames(server.swagger())
         const outPath = path.resolve(__dirname, '..', 'openapi.json')
         fs.writeFileSync(outPath, JSON.stringify(spec, null, 2))
