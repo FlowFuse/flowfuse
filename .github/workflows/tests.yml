@@ -29,10 +29,39 @@ jobs:
         run: |
           ./.github/scripts/detect_changed_files.sh
 
+  check-ts-drift:
+    name: Check TypeScript drift
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: |
+      needs.check-changes.outputs.run_backend_tests == 'true' ||
+      needs.check-changes.outputs.run_postgres_tests == 'true' ||
+      needs.check-changes.outputs.run_ui_tests == 'true' 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Use Node.js 24
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 24
+      - name: Install Dependencies
+        run: npm ci
+      - name: Generate TypeScript types
+        run: npm run generate:types
+      - name: Check drift
+        run: |
+          if ! git diff --exit-code frontend/src/types/generated.ts openapi.json; then
+            echo ""
+            echo "::error::Type drift detected! Run 'npm run generate:types' locally and commit the result."
+            exit 1
+          fi
+
   backend-tests:
     if: ${{ needs.check-changes.outputs.run_backend_tests == 'true' }}
     name: Backend tests
-    needs: check-changes
+    needs: 
+      - check-changes
+      - check-ts-drift
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -59,7 +88,9 @@ jobs:
   postgres-tests:
     if: ${{ needs.check-changes.outputs.run_postgres_tests == 'true' }}
     name: Postgres tests
-    needs: check-changes
+    needs: 
+      - check-changes
+      - check-ts-drift
     runs-on: ubuntu-latest
     timeout-minutes: 45
     services:
@@ -101,7 +132,9 @@ jobs:
   ui-unit-tests:
     if: ${{ needs.check-changes.outputs.run_ui_tests == 'true' }}
     name: UI unit tests
-    needs: check-changes
+    needs: 
+      - check-changes
+      - check-ts-drift
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -116,7 +149,9 @@ jobs:
   ui-os-tests:
     if: ${{ needs.check-changes.outputs.run_ui_tests == 'true' }}
     name: UI OS tests
-    needs: check-changes
+    needs: 
+      - check-changes
+      - check-ts-drift
     runs-on: ubuntu-latest
     services:
       email-service:
@@ -156,7 +191,9 @@ jobs:
   ui-ee-tests:
     if: ${{ needs.check-changes.outputs.run_ui_tests == 'true' }}
     name: UI EE tests
-    needs: check-changes
+    needs: 
+      - check-changes
+      - check-ts-drift
     runs-on: ubuntu-latest
     services:
       email-service:
@@ -200,6 +237,7 @@ jobs:
     if: ${{ always() }}
     needs:
       - check-changes
+      - check-ts-drift
       - backend-tests
       - postgres-tests
       - ui-unit-tests
@@ -210,6 +248,7 @@ jobs:
       - name: Evaluate test job results
         run: |
           results=(
+            '${{ needs.check-ts-drift.result }}'
             '${{ needs.backend-tests.result }}'
             '${{ needs.postgres-tests.result }}'
             '${{ needs.ui-unit-tests.result }}'
