@@ -9,6 +9,9 @@
  * Usage: node scripts/dump-openapi.js
  */
 
+// Ensure config resolves to the repo root (same as a normal dev run)
+process.env.NODE_ENV = process.env.NODE_ENV || 'development'
+
 const fs = require('fs')
 const path = require('path')
 
@@ -59,6 +62,10 @@ function normaliseSchemaNames (spec) {
         const spec = normaliseSchemaNames(server.swagger())
         const outPath = path.resolve(__dirname, '..', 'openapi.json')
         fs.writeFileSync(outPath, JSON.stringify(spec, null, 2))
+        console.info(`OpenAPI spec written to ${outPath}`)
+    } catch (err) {
+        console.error('Failed to generate OpenAPI spec:', err.message || err)
+        process.exit(1)
     } finally {
         if (server) {
             await server.close()
