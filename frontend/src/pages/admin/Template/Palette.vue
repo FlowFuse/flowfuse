@@ -12,12 +12,14 @@
 
 <script>
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import TemplateSectionCatalogue from './sections/Catalogues.vue'
 import TemplateSectionNPM from './sections/NPMRegistry.vue'
 import TemplateSectionPalette from './sections/Palette.vue'
 import TemplateSectionPaletteModules from './sections/PaletteModules.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'AdminTemplatePalette',
@@ -41,7 +43,7 @@ export default {
     },
     emits: ['update:modelValue'],
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         catalogFeatureAvailable () {
             return !!this.features.customCatalogs
         },

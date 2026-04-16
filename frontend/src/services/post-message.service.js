@@ -37,11 +37,6 @@ class PostMessageService extends BaseService {
     $app
 
     /**
-     * @type {import('vuex').Store} - Vuex store instance
-     */
-    $store
-
-    /**
      * @type {import('vue-router').Router} - Vue router instance
      */
     $router
@@ -52,18 +47,16 @@ class PostMessageService extends BaseService {
     $services
 
     /**
-     * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options - Constructor options
+     * @param {{app: import('vue').App, router: import('vue-router').Router, services?: Object}} options - Constructor options
      */
     constructor ({
         app,
-        store,
         router,
         services = {}
     }) {
         super('postMessage')
 
         this.$app = app
-        this.$store = store
         this.$router = router
         this.$services = services
         this.$onMessage = null
@@ -238,19 +231,17 @@ let MessagingServiceInstance = null
 
 /**
  * Get or create the MessagingService singleton instance
- * @param {{app: import('vue').App, store: import('vuex').Store, router: import('vue-router').Router, services?: Object}} options - Constructor options
+ * @param {{app: import('vue').App, router: import('vue-router').Router, services?: Object}} options - Constructor options
  * @returns {PostMessageService}
  */
 export function createMessagingService ({
     app,
-    store,
     router,
     services = {}
 } = {}) {
     if (!MessagingServiceInstance) {
         MessagingServiceInstance = new PostMessageService({
             app,
-            store,
             router,
             services
         })

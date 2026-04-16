@@ -74,7 +74,6 @@
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapState as mapVuexState } from 'vuex'
 
 import ApplicationAPI from '../../api/application.js'
 
@@ -87,6 +86,7 @@ import Alerts from '../../services/alerts.js'
 
 import TargetSnapshotCell from './components/cells/TargetSnapshot.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -155,7 +155,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team', 'teamMembership']),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         featureEnabledForTeam () {
             return !!this.team?.type?.properties?.features?.deviceGroups
         },

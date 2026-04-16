@@ -87,7 +87,6 @@
 <script>
 import { ArrowCircleUpIcon, RefreshIcon } from '@heroicons/vue/outline'
 import { mapState } from 'pinia'
-import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import TeamAPI from '../../../../api/team.js'
 
@@ -100,6 +99,7 @@ import RegistryEntry from './components/RegistryEntry.vue'
 
 import PublishNodeDialog from './dialogs/PublishNode.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -122,8 +122,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapVuexState('account', ['settings']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         enabled () {
             return this.featuresCheck?.isPrivateRegistryFeatureEnabledForPlatform && this.featuresCheck?.isPrivateRegistryFeatureEnabledForTeam
         },

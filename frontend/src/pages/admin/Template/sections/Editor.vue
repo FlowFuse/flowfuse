@@ -199,9 +199,8 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import SemVer from 'semver'
-
-import { mapState } from 'vuex'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
@@ -209,6 +208,9 @@ import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnav
 import timezonesData from '../../../../data/timezones.json'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+
 export default {
     name: 'TemplateSettingsEditor',
     components: {
@@ -248,7 +250,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         editable: {
             get () {
                 return this.modelValue

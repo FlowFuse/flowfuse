@@ -1,8 +1,7 @@
 import { watch } from 'vue'
 
-import store from '../store/index.js'
-
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 /**
  * A 'beforeEnter' router function that ensures the user has a particular permission
@@ -11,6 +10,7 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 export default function (scope) {
     return function (to, from, next) {
         const authStore = useAccountAuthStore()
+        const settingsStore = useAccountSettingsStore()
         let settingsWatcher
         let userWatcher
 
@@ -18,7 +18,7 @@ export default function (scope) {
             if (settingsWatcher) {
                 settingsWatcher()
             }
-            if (authStore.user?.admin || store.state.account.settings[scope]) {
+            if (authStore.user?.admin || settingsStore.settings[scope]) {
                 next()
             } else {
                 next('/')
@@ -39,9 +39,9 @@ export default function (scope) {
             }
         }
         function waitForSettings () {
-            if (!store.state.account.settings) {
-                settingsWatcher = store.watch(
-                    (state) => state.account.settings,
+            if (!settingsStore.settings) {
+                settingsWatcher = watch(
+                    () => settingsStore.settings,
                     (_) => { proceed() }
                 )
             } else {
