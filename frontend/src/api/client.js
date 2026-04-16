@@ -2,6 +2,9 @@ import axios from 'axios'
 
 import Alerts from '../services/alerts.js'
 
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
+
 const client = axios.create({
     headers: {
         'Content-Type': 'application/json'
@@ -18,9 +21,6 @@ client.interceptors.response.use(function (response) {
         return Promise.reject(error)
     }
 
-    // Dynamic import breaks the circular dep: client.js → account-auth.js → api/* → client.js
-    const { useAccountAuthStore } = await import('../stores/account-auth.js')
-    const { useUxLoadingStore } = await import('../stores/ux-loading.js')
     if (error.code === 'ERR_NETWORK') {
         // Backend failed to respond
         useUxLoadingStore().setOffline(true)
