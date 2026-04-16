@@ -18,7 +18,6 @@
 <script>
 import { mapState } from 'pinia'
 import { useRouter } from 'vue-router'
-import { mapState as mapVuexState } from 'vuex'
 
 import usePermissions from '../../../composables/Permissions.js'
 
@@ -42,8 +41,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useContextStore, ['team', 'teamMembership']),
-        ...mapVuexState('account', ['features'])
+        ...mapState(useContextStore, ['team', 'teamMembership'])
     },
     watch: {
         teamMembership: 'checkAccess'

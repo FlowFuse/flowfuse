@@ -105,6 +105,24 @@
             }
         },
 
+        // TypeScript files in the frontend — must come after the Vue/frontend override so
+        // @typescript-eslint/parser wins for .ts files (later overrides take precedence)
+        {
+            "files": ["frontend/src/**/*.ts"],
+            "parser": "@typescript-eslint/parser",
+            "parserOptions": {
+                "sourceType": "module"
+            },
+            "plugins": ["@typescript-eslint"],
+            "extends": ["plugin:@typescript-eslint/recommended"],
+            "rules": {
+                "@typescript-eslint/no-explicit-any": "warn",
+                "import/no-unresolved": "off",
+                "n/no-missing-import": "off",
+                "n/no-missing-require": "off"
+            }
+        },
+
         // UI components use kebab-case
         {
             "files": "frontend/src/ui-components/**",

@@ -65,8 +65,8 @@
 
 <script>
 
+import { mapState } from 'pinia'
 import { useRoute } from 'vue-router'
-import { mapState as mapVuexState } from 'vuex'
 
 import userApi from '../../api/user.js'
 
@@ -74,6 +74,7 @@ import SpinnerIcon from '../../components/icons/Spinner.js'
 import FFLayoutBox from '../../layouts/Box.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 let zxcvbn
 
@@ -123,7 +124,7 @@ export default {
         }
     },
     computed: {
-        ...mapVuexState('account', ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         splash () {
             return this.settings['branding:account:signUpLeftBanner']
         },

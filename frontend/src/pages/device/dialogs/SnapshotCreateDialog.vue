@@ -106,7 +106,7 @@
 
 import { ClockIcon, CubeTransparentIcon } from '@heroicons/vue/outline'
 import { ChevronRightIcon, QuestionMarkCircleIcon } from '@heroicons/vue/solid'
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
 
 import applicationApi from '../../../api/application.js'
 import deviceApi from '../../../api/devices.js'
@@ -115,6 +115,8 @@ import snapshotApi from '../../../api/projectSnapshots.js'
 import FormRow from '../../../components/FormRow.vue'
 import alerts from '../../../services/alerts.js'
 import PopoverItem from '../../../ui-components/components/PopoverItem.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'SnapshotCreateDialog',
@@ -167,7 +169,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         formValid () {
             return !this.submitted && !!(this.input.name)
         },

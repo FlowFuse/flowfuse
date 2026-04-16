@@ -1,7 +1,7 @@
 const crypto = require('crypto')
 
 const { ControllerError } = require('../../lib/errors')
-const { KEY_SETTINGS, KEY_STACK_UPGRADE_HOUR } = require('../models/ProjectSettings')
+const { KEY_CUSTOM_HOSTNAME, KEY_SETTINGS, KEY_STACK_UPGRADE_HOUR } = require('../models/ProjectSettings')
 
 /**
  * inflightProjectState - when projects are transitioning between states, there
@@ -314,11 +314,20 @@ module.exports = {
         const makeVar = (name, value, deprecated) => {
             return { name, value: value || '', platform: true, deprecated } // add `platform` and `deprecated` flags for UI
         }
+
+        let customHostname
+        if (app.config.features.enabled('customHostnames')) {
+            const projectURL = URL.parse(project.url)
+            const hostnameSetting = project.ProjectSettings?.find(setting => setting.key === KEY_CUSTOM_HOSTNAME)
+            customHostname = hostnameSetting?.value ? `${projectURL.protocol}//${hostnameSetting.value}` : undefined
+        }
+
         const result = []
         result.push(makeVar('FF_INSTANCE_ID', project.id || ''))
         result.push(makeVar('FF_INSTANCE_NAME', project.name || ''))
         result.push(makeVar('FF_PROJECT_ID', project.id || '', true)) // deprecated as of V1.6.0
         result.push(makeVar('FF_PROJECT_NAME', project.name || '', true)) // deprecated as of V1.6.0
+        result.push(makeVar('FF_INSTANCE_URL', customHostname || project.url || ''))
         result.push(...app.db.controllers.Project.removePlatformSpecificEnvVars(envVars))
 
         return result

@@ -152,12 +152,14 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import ssoApi from '../../../../api/sso.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
 import Alerts from '../../../../services/alerts.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'AdminEditSSOProvider',
@@ -197,7 +199,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'settings']),
+        ...mapState(useAccountSettingsStore, ['features', 'settings']),
         isCreate () {
             return this.$route.params.id === 'create'
         },

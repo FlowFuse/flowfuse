@@ -10,11 +10,13 @@
     </div>
 </template>
 <script>
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+
 export default {
     name: 'OfflineMessage',
     methods: {
         reload () {
-            this.$store.dispatch('account/checkState')
+            useAccountAuthStore().checkState()
         }
     }
 }

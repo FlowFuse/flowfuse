@@ -166,7 +166,7 @@
 
 <script>
 import { ArrowRightIcon, ExternalLinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import InstanceApi from '../../api/instances.js'
 import FormHeading from '../../components/FormHeading.vue'
@@ -177,6 +177,8 @@ import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 
 import InstanceStatusBadge from './components/InstanceStatusBadge.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'InstanceOverview',
@@ -217,7 +219,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },

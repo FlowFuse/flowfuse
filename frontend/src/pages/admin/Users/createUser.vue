@@ -38,7 +38,6 @@
 
 <script>
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
 
 import usersApi from '../../../api/users.js'
 
@@ -77,7 +76,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
         formValid () {
             return this.input.email &&
                    (this.input.username && !this.errors.username) &&

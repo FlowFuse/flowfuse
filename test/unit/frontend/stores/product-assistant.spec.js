@@ -10,6 +10,13 @@ vi.mock('@/services/post-message.service.js', () => ({
     })
 }))
 
+// account-auth.js imports routes.js which loads the full Vue component tree
+// (including AssetDetailDialog.vue → @flowfuse/flow-renderer CJS/ESM conflict).
+// context.js imports account-auth.js, so mock it here to avoid the error.
+vi.mock('@/stores/account-auth.js', () => ({
+    useAccountAuthStore: vi.fn(() => ({ user: null, pending: false }))
+}))
+
 // product-expert.js imports ExpertDrawer.vue which pulls in @flowfuse/flow-renderer
 // (CJS/ESM conflict). Mock it to keep the test environment clean.
 vi.mock('@/stores/product-expert.js', () => ({

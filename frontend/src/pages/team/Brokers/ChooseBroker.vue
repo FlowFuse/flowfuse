@@ -49,10 +49,10 @@
 
 import { CheckIcon, MinusIcon } from '@heroicons/vue/outline'
 import { mapState } from 'pinia'
-import { mapGetters } from 'vuex'
 
 import MediumTile from '../../../components/tiles/MediumTile.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
@@ -64,7 +64,7 @@ export default {
     },
     computed: {
         ...mapState(useProductBrokersStore, ['hasFfUnsClients', 'hasBrokers']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         options () {
             return [
                 {
