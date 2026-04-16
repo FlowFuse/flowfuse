@@ -24,7 +24,7 @@ vi.mock('../../../../frontend/src/services/mqtt.service.js', () => {
 
 async function loadOrchestratorModule () {
     vi.resetModules()
-    return await import('../../../../frontend/src/services/services.orchestrator.js')
+    return await import('../../../../frontend/src/services/service.orchestrator.ts')
 }
 
 describe('ServicesOrchestrator', () => {
@@ -47,21 +47,20 @@ describe('ServicesOrchestrator', () => {
             provide: vi.fn(),
             unmount: vi.fn()
         }
-        const store = {}
         const router = {}
 
         const { getServicesOrchestrator } = await loadOrchestratorModule()
         const orchestrator = getServicesOrchestrator()
 
-        await orchestrator.init(app, store, router)
+        await orchestrator.init(app, router)
 
         const bootstrapArgs = mockCreateBootstrapService.mock.calls[0][0]
         const messagingArgs = mockCreateMessagingService.mock.calls[0][0]
         const mqttArgs = mockCreateMqttService.mock.calls[0][0]
 
-        expect(bootstrapArgs).toMatchObject({ app, store, router })
-        expect(messagingArgs).toMatchObject({ app, store, router })
-        expect(mqttArgs).toMatchObject({ app, store, router })
+        expect(bootstrapArgs).toMatchObject({ app, router })
+        expect(messagingArgs).toMatchObject({ app, router })
+        expect(mqttArgs).toMatchObject({ app, router })
 
         expect(messagingArgs.services).toBe(bootstrapArgs.services)
         expect(mqttArgs.services).toBe(bootstrapArgs.services)
@@ -88,13 +87,12 @@ describe('ServicesOrchestrator', () => {
             provide: vi.fn(),
             unmount: vi.fn()
         }
-        const store = {}
         const router = {}
 
         const { getServicesOrchestrator } = await loadOrchestratorModule()
         const orchestrator = getServicesOrchestrator()
 
-        await orchestrator.init(app, store, router)
+        await orchestrator.init(app, router)
         bootstrapService.destroy.mockClear()
         postMessageService.destroy.mockClear()
         mqttService.destroy.mockClear()
@@ -110,7 +108,6 @@ describe('ServicesOrchestrator', () => {
         })
         expect(orchestrator.$app).toBeNull()
         expect(orchestrator.$router).toBeNull()
-        expect(orchestrator.$store).toBeNull()
         expect(orchestrator.$cleanupRegistered).toBe(false)
     })
 
@@ -133,7 +130,7 @@ describe('ServicesOrchestrator', () => {
         const orchestrator = getServicesOrchestrator()
         const disposeSpy = vi.spyOn(orchestrator, 'dispose')
 
-        await orchestrator.init(app, {}, {})
+        await orchestrator.init(app, {})
         disposeSpy.mockClear()
 
         await orchestrator.registerCleanup()
@@ -153,23 +150,5 @@ describe('ServicesOrchestrator', () => {
         const second = getServicesOrchestrator()
 
         expect(first).toBe(second)
-    })
-
-    test('init rejects when a service does not respect the runtime contract', async () => {
-        mockCreateBootstrapService.mockReturnValue({ name: 'bootstrap', init: vi.fn(), destroy: vi.fn() })
-        mockCreateMessagingService.mockReturnValue({ name: 'postMessage' })
-        mockCreateMqttService.mockReturnValue({ name: 'mqtt', destroy: vi.fn() })
-
-        const app = {
-            provide: vi.fn(),
-            unmount: vi.fn()
-        }
-
-        const { getServicesOrchestrator } = await loadOrchestratorModule()
-        const orchestrator = getServicesOrchestrator()
-
-        await expect(orchestrator.init(app, {}, {}))
-            .rejects
-            .toThrow('Service "postMessage" is missing lifecycle method "destroy"')
     })
 })

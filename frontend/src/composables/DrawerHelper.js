@@ -1,6 +1,6 @@
 import { nextTick, reactive, ref } from 'vue'
 
-import { getServicesOrchestrator } from '../services/services.orchestrator.js'
+import { getServicesOrchestrator } from '../services/service.orchestrator.ts'
 
 export function useDrawerHelper () {
     const servicesOrchestrator = getServicesOrchestrator()

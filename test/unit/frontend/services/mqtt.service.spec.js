@@ -56,7 +56,7 @@ function createMockClient () {
 }
 
 describe('MqttService', async () => {
-    const mqttServiceModule = await import('../../../../frontend/src/services/mqtt.service.js')
+    const mqttServiceModule = await import('../../../../frontend/src/services/mqtt.service.ts')
     const { createMqttService, destroyMqttService } = mqttServiceModule
 
     beforeEach(async () => {
@@ -799,6 +799,7 @@ describe('MqttService', async () => {
             key: 'sub-disconnected',
             client: disconnected,
             listeners: new Set(),
+            subscriptions: new Map(),
             destroyed: false
         })
         await expect(service.subscribe('sub-disconnected', 'topic/a')).rejects.toThrow('MQTT connection "sub-disconnected" is not connected')
@@ -809,6 +810,7 @@ describe('MqttService', async () => {
             key: 'sub-error',
             client: subErrorClient,
             listeners: new Set(),
+            subscriptions: new Map(),
             destroyed: false
         })
         await expect(service.subscribe('sub-error', 'topic/a')).rejects.toThrow('sub fail')
@@ -818,6 +820,7 @@ describe('MqttService', async () => {
             key: 'sub-ok',
             client: subOkClient,
             listeners: new Set(),
+            subscriptions: new Map(),
             destroyed: false
         })
         await service.subscribe('sub-ok', 'topic/a')
@@ -828,6 +831,7 @@ describe('MqttService', async () => {
             key: 'unsub-disconnected',
             client: disconnected,
             listeners: new Set(),
+            subscriptions: new Map(),
             destroyed: false
         })
         await expect(service.unsubscribe('unsub-disconnected', 'topic/a')).rejects.toThrow('MQTT connection "unsub-disconnected" is not connected')
@@ -838,6 +842,7 @@ describe('MqttService', async () => {
             key: 'unsub-error',
             client: unsubErrorClient,
             listeners: new Set(),
+            subscriptions: new Map(),
             destroyed: false
         })
         await expect(service.unsubscribe('unsub-error', 'topic/a')).rejects.toThrow('unsub fail')
@@ -847,6 +852,7 @@ describe('MqttService', async () => {
             key: 'unsub-ok',
             client: unsubOkClient,
             listeners: new Set(),
+            subscriptions: new Map(),
             destroyed: false
         })
         await service.unsubscribe('unsub-ok', 'topic/a')
@@ -904,23 +910,22 @@ describe('MqttService', async () => {
     })
 
     test('service lifecycle exports: singleton, endConnection, reset, destroy and destroyMqttService', async () => {
-        const mqttServiceModule = await import('../../../../frontend/src/services/mqtt.service.js')
+        const mqttServiceModule = await import('../../../../frontend/src/services/mqtt.service.ts')
         const { createMqttService, destroyMqttService } = mqttServiceModule
 
         await destroyMqttService()
 
-        const implicit = createMqttService()
-        expect(implicit).toBeTruthy()
+        expect(() => createMqttService()).toThrow()
         await destroyMqttService()
 
-        const first = createMqttService({ app: { a: 1 }, store: {}, router: {} })
-        const second = createMqttService({ app: { a: 2 }, store: {}, router: {} })
+        const first = createMqttService({ app: { a: 1 }, services: {}, router: {} })
+        const second = createMqttService({ app: { a: 2 }, services: {}, router: {} })
         expect(first).toBe(second)
 
-        const fresh = new first.constructor({ app: {}, store: {}, router: {} })
+        const fresh = new first.constructor({ app: {}, services: {}, router: {} })
         expect(fresh.$services).toEqual({})
         await expect(fresh.createClient('missing-options', { getCredentials: async () => ({ url: 'mqtt://example.com', username: '', password: 'pass' }) })).rejects.toThrow('MQTT credential provider for connection "missing-options" must return a non-empty username')
-        await expect(fresh.publishMessage('missing-key')).rejects.toThrow('MQTT connection "missing-key" does not exist')
+        await expect(fresh.publishMessage('missing-key', { topic: 'a', payload: 'x' })).rejects.toThrow('MQTT connection "missing-key" does not exist')
 
         const client = createMockClient()
         mockConnect.mockReturnValueOnce(client)

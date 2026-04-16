@@ -19,7 +19,7 @@ import PageLayout from './layouts/Page.vue'
 import router from './routes.js'
 import Alerts from './services/alerts.js'
 import { setupSentry } from './services/error-tracking.js'
-import { getServicesOrchestrator } from './services/services.orchestrator.js'
+import { getServicesOrchestrator } from './services/service.orchestrator.ts'
 import { skipResetPlugin } from './stores/plugins/skip-reset.plugin.js'
 
 import './index.css'
