@@ -11,7 +11,7 @@ COPY frontend/ /build/frontend/
 COPY forge/ /build/forge/
 RUN npm install --no-audit --no-fund pg-hstore@^2.3.4 && \
     npm install --no-audit --no-fund @flowfuse/driver-kubernetes@$KUBERNETES_DRIVER_TAG && \
-    npm install --no-audit --no-fund && \    
+    npm ci --no-audit --no-fund && \    
     npm run build
 
 
