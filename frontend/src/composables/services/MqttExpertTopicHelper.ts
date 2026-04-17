@@ -21,7 +21,7 @@ type AgentChannel = 'support' | 'insights'
 type TopicType = 'chat' | 'inflight'
 type TopicAction = 'response' | 'request'
 
-interface DestructuredTopic {
+interface ParsedTopic {
     topic: string
     isReply: boolean
     isInflightRequest: boolean
@@ -30,7 +30,7 @@ interface DestructuredTopic {
     tool: string | null
 }
 
-interface TopicBuilderOptions {
+interface BuildTopicOptions {
     entityType?: EntityTopicPaths['entityType'] | null
     entityId?: string | null
     agentChannel?: AgentChannel
@@ -67,8 +67,7 @@ export function useMqttExpertTopicHelper () {
         }
     }
 
-    // todo rename to buildTopic
-    function topicBuilder (options?: TopicBuilderOptions): string {
+    function buildTopic (options?: BuildTopicOptions): string {
         const { entityType, entityId, agentChannel, topicType, topicAction } = options ?? {}
 
         if (!entityType) throw new Error('Topic "entityType" is mandatory')
@@ -102,8 +101,7 @@ export function useMqttExpertTopicHelper () {
         ].join('/')
     }
 
-    // todo rename to parseTopic
-    function destructureTopic (topic: string): DestructuredTopic {
+    function parseTopic (topic: string): ParsedTopic {
         if (!topic || topic.length === 0) throw new Error(`Invalid topic received: "${topic}"`)
 
         const split = topic.split('/')
@@ -122,7 +120,7 @@ export function useMqttExpertTopicHelper () {
 
     return {
         getEntityTopicPaths,
-        topicBuilder,
-        destructureTopic
+        buildTopic,
+        parseTopic
     }
 }

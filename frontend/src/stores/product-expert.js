@@ -178,7 +178,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
             const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
 
-            const topic = mqttTopicHelper.topicBuilder({
+            const topic = mqttTopicHelper.buildTopic({
                 entityType,
                 entityId,
                 agentChannel: 'support',
@@ -213,7 +213,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             await mqttService.createClient(this.mqttConnectionKey, {
                 getCredentials: () => userApi.initiateExpertChat({ sessionId: this.sessionId }),
                 onMessage: async (topic, message, packet) => {
-                    const parsedTopic = topicHelper.destructureTopic(topic)
+                    const parsedTopic = topicHelper.parseTopic(topic)
                     const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
 
                     if (parsedTopic.isReply) {
@@ -239,7 +239,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
                     mqttService.subscribe(
                         this.mqttConnectionKey,
-                        mqttTopicHelper.topicBuilder({
+                        mqttTopicHelper.buildTopic({
                             entityType: '+',
                             entityId: '+',
                             agentChannel: 'support',
@@ -252,7 +252,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     // todo investigate why subscribing to the inflight topic fails
                     // mqttService.subscribe(
                     //     this.mqttConnectionKey,
-                    //     mqttTopicHelper.topicBuilder({
+                    //     mqttTopicHelper.buildTopic({
                     //         entityType: '+',
                     //         entityId: '+',
                     //         agentChannel: 'support',
@@ -276,7 +276,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
                             mqttService.subscribe(
                                 this.mqttConnectionKey,
-                                mqttTopicHelper.topicBuilder({
+                                mqttTopicHelper.buildTopic({
                                     entityType: '+',
                                     entityId: '+',
                                     agentChannel: 'support',
@@ -288,7 +288,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                             // todo investigate why subscribing to the inflight topic fails
                             // mqttService.subscribe(
                             //     this.mqttConnectionKey,
-                            //     mqttTopicHelper.topicBuilder({
+                            //     mqttTopicHelper.buildTopic({
                             //         entityType: '+',
                             //         entityId: '+',
                             //         agentChannel: 'support',
@@ -315,13 +315,13 @@ export const useProductExpertStore = defineStore('product-expert', {
             const assistantStore = useProductAssistantStore()
 
             const topicHelper = useMqttExpertTopicHelper()
-            const parsedTopic = topicHelper.destructureTopic(topic)
+            const parsedTopic = topicHelper.parseTopic(topic)
 
             const msg = JSON.parse(message.toString())
             const sessionId = this.sessionId
 
             if (parsedTopic.tool === 'expert:status-message') {
-                const responseTopic = topicHelper.topicBuilder({
+                const responseTopic = topicHelper.buildTopic({
                     entityType: parsedTopic.entityType,
                     entityId: parsedTopic.entityId,
                     agentChannel: 'support',
@@ -363,8 +363,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
             const topicHelper = useMqttExpertTopicHelper()
 
-            const originalTopic = topicHelper.destructureTopic()
-            const replyTopic = topicHelper.topicBuilder({
+            const originalTopic = topicHelper.parseTopic()
+            const replyTopic = topicHelper.buildTopic({
                 entityType: originalTopic.entityType,
                 entityId: originalTopic.entityId,
                 agentChannel: 'support',
