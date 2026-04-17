@@ -496,6 +496,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         },
         sendMessage (payload) {
             const orchestrator = getServicesOrchestrator()
+            const contextStore = useContextStore()
 
             orchestrator.$serviceInstances.postMessage.sendMessage({
                 message: {
@@ -503,7 +504,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                     ...this.scope
                 },
                 target: window.frames['immersive-editor-iframe'],
-                targetOrigin: this.immersiveInstance?.url
+                targetOrigin: (contextStore.instance || contextStore.device)?.url
             })
         }
     }
