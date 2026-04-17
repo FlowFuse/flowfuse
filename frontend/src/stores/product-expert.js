@@ -14,6 +14,8 @@ import { useProductExpertInsightsAgentStore } from './product-expert-insights-ag
 import { useProductExpertSupportAgentStore } from './product-expert-support-agent.js'
 import { useUxDrawersStore } from './ux-drawers.js'
 
+import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
+
 import getServicesOrchestrator from '@/services/service.orchestrator'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 
@@ -231,15 +233,21 @@ export const useProductExpertStore = defineStore('product-expert', {
         async handleMqttQuery ({ query }) {
             const servicesOrchestrator = getServicesOrchestrator()
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const mqttTopicHelper = useMqttExpertTopicHelper()
+
             const transactionId = uuidv4()
-            const sessionId = this.sessionId
             const mqttConnectionKey = this.mqttConnectionKey
-            const authStore = useAccountAuthStore()
 
             if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
-            const { entityId, entityType } = this._getEntityTopicPaths()
+            const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
 
-            const topic = `ff/v1/expert/${authStore.user.id}/${sessionId}/${entityType}/${entityId}/support/chat/request`
+            const topic = mqttTopicHelper.topicBuilder({
+                entityType,
+                entityId,
+                agentChannel: 'support',
+                topicType: 'chat',
+                topicAction: 'request'
+            })
 
             console.log('publishing to topic: ', topic)
 
@@ -349,9 +357,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                     // TODO add error message
                 },
                 onConnect: () => {
+                    const mqttTopicHelper = useMqttExpertTopicHelper()
+
                     mqttService.subscribe(
                         this.mqttConnectionKey,
-                        this._topicBuilder({
+                        mqttTopicHelper.topicBuilder({
                             entityType: '+',
                             entityId: '+',
                             agentChannel: 'support',
@@ -360,17 +370,19 @@ export const useProductExpertStore = defineStore('product-expert', {
                         }),
                         { qos: 2 }
                     )
-                    mqttService.subscribe(
-                        this.mqttConnectionKey,
-                        this._topicBuilder({
-                            entityType: '+',
-                            entityId: '+',
-                            agentChannel: 'support',
-                            topicType: 'inflight',
-                            topicAction: 'request'
-                        }),
-                        { qos: 2 }
-                    )
+
+                    // todo investigate why subscribing to the inflight topic fails
+                    // mqttService.subscribe(
+                    //     this.mqttConnectionKey,
+                    //     mqttTopicHelper.topicBuilder({
+                    //         entityType: '+',
+                    //         entityId: '+',
+                    //         agentChannel: 'support',
+                    //         topicType: 'inflight',
+                    //         topicAction: 'request'
+                    //     }),
+                    //     { qos: 2 }
+                    // )
 
                     // whenever the sessionId changes, we need to unsubscribe from previous topics and subscribe to the
                     // new ones based off of the new sessionId
@@ -386,7 +398,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
                             mqttService.subscribe(
                                 this.mqttConnectionKey,
-                                this._topicBuilder({
+                                mqttTopicHelper.topicBuilder({
                                     entityType: '+',
                                     entityId: '+',
                                     agentChannel: 'support',
@@ -395,17 +407,18 @@ export const useProductExpertStore = defineStore('product-expert', {
                                 }),
                                 { qos: 2 }
                             )
-                            mqttService.subscribe(
-                                this.mqttConnectionKey,
-                                this._topicBuilder({
-                                    entityType: '+',
-                                    entityId: '+',
-                                    agentChannel: 'support',
-                                    topicType: 'inflight',
-                                    topicAction: 'request'
-                                }),
-                                { qos: 2 }
-                            )
+                            // todo investigate why subscribing to the inflight topic fails
+                            // mqttService.subscribe(
+                            //     this.mqttConnectionKey,
+                            //     mqttTopicHelper.topicBuilder({
+                            //         entityType: '+',
+                            //         entityId: '+',
+                            //         agentChannel: 'support',
+                            //         topicType: 'inflight',
+                            //         topicAction: 'request'
+                            //     }),
+                            //     { qos: 2 }
+                            // )
                         }
                     )
                 },
@@ -639,64 +652,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
                 // Else: ignore messages that don't match either format
             })
-        },
-
-        _getEntityTopicPaths ({ application, instance, device, team } = {}) {
-            const contextStore = useContextStore()
-
-            switch (true) {
-            case application || !!contextStore.application:
-                return {
-                    entityType: 'a',
-                    entityId: application?.id ?? contextStore.application?.id
-                }
-            case instance || !!contextStore.instance:
-                return {
-                    entityType: 'p',
-                    entityId: device?.id ?? contextStore.instance.id
-                }
-            case device || !!contextStore.device:
-                return {
-                    entityType: 'd',
-                    entityId: device?.id ?? contextStore.device?.id
-                }
-            default:
-                return {
-                    entityType: 't',
-                    entityId: team?.id ?? contextStore.team?.id
-                }
-            }
-        },
-
-        _topicBuilder ({
-            entityType,
-            entityId,
-            agentChannel,
-            topicType,
-            topicAction
-        }
-        = {
-            entityType: null,
-            entityId: null,
-            agentChannel: 'support' | 'insights',
-            topicType: 'chat' | 'inflight',
-            topicAction: 'response' | 'request'
-        }) {
-            if (!entityType) throw new Error('Topic "entityType" is mandatory')
-            if (!entityId) throw new Error('Topic "entityId" is mandatory')
-            if (!['support', 'insights'].includes(agentChannel)) {
-                throw new Error(`"agentChannel" must be either "support" or "insights", "${agentChannel}" given`)
-            }
-            if (!['chat', 'inflight'].includes(topicType)) {
-                throw new Error(`"topicType" must be either "chat" or "inflight", "${topicType}" given`)
-            }
-            if (!['response', 'request'].includes(topicAction)) {
-                throw new Error(`"topicAction" must be either "response" or "request", "${topicAction}" given`)
-            }
-
-            const authStore = useAccountAuthStore()
-
-            return `ff/v1/expert/${authStore.user.id}/${this._agentStore.sessionId}/${entityType}/${entityId}/${agentChannel}/${topicType}/${topicAction}`
         }
     },
     persist: {
