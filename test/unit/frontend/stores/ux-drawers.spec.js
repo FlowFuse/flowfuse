@@ -411,4 +411,272 @@ describe('ux-drawers store', () => {
             expect(store.hiddenLeftDrawer).toBe(true)
         })
     })
+
+    // -------------------------------------------------------------------------
+    // Editor Immersive Drawer — initial state
+    // -------------------------------------------------------------------------
+
+    describe('editorImmersiveDrawer initial state', () => {
+        it('initializes with correct defaults', () => {
+            const store = useUxDrawersStore()
+            expect(store.editorImmersiveDrawer).toMatchObject({
+                active: false,
+                open: true,
+                side: 'left',
+                width: 550,
+                pinned: true,
+                fullscreen: false
+            })
+            expect(store.editorImmersiveDrawer.viewStack).toEqual([])
+        })
+    })
+
+    // -------------------------------------------------------------------------
+    // Editor Immersive Drawer — basic actions
+    // -------------------------------------------------------------------------
+
+    describe('editorImmersiveDrawer actions', () => {
+        it('toggleEditorImmersiveDrawer flips open state', () => {
+            const store = useUxDrawersStore()
+            expect(store.editorImmersiveDrawer.open).toBe(true)
+            store.toggleEditorImmersiveDrawer()
+            expect(store.editorImmersiveDrawer.open).toBe(false)
+            store.toggleEditorImmersiveDrawer()
+            expect(store.editorImmersiveDrawer.open).toBe(true)
+        })
+
+        it('openEditorImmersiveDrawer sets open to true', () => {
+            const store = useUxDrawersStore()
+            store.openEditorImmersiveDrawer()
+            expect(store.editorImmersiveDrawer.open).toBe(true)
+        })
+
+        it('closeEditorImmersiveDrawer sets open to false', () => {
+            const store = useUxDrawersStore()
+            store.editorImmersiveDrawer.open = true
+            store.closeEditorImmersiveDrawer()
+            expect(store.editorImmersiveDrawer.open).toBe(false)
+        })
+
+        it('setEditorImmersiveDrawerSide changes side', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveDrawerSide('right')
+            expect(store.editorImmersiveDrawer.side).toBe('right')
+        })
+
+        it('toggleEditorImmersiveDrawerPin flips pinned state', () => {
+            const store = useUxDrawersStore()
+            expect(store.editorImmersiveDrawer.pinned).toBe(true)
+            store.toggleEditorImmersiveDrawerPin()
+            expect(store.editorImmersiveDrawer.pinned).toBe(false)
+        })
+
+        it('toggleEditorImmersiveFullscreen flips fullscreen state', () => {
+            const store = useUxDrawersStore()
+            store.toggleEditorImmersiveFullscreen()
+            expect(store.editorImmersiveDrawer.fullscreen).toBe(true)
+        })
+
+        it('setEditorImmersiveDrawerWidth updates width', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveDrawerWidth(700)
+            expect(store.editorImmersiveDrawer.width).toBe(700)
+        })
+
+        it('setEditorImmersiveActive sets active flag', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveActive(true)
+            expect(store.editorImmersiveDrawer.active).toBe(true)
+            store.setEditorImmersiveActive(false)
+            expect(store.editorImmersiveDrawer.active).toBe(false)
+        })
+    })
+
+    // -------------------------------------------------------------------------
+    // Editor Immersive Drawer — view stack
+    // -------------------------------------------------------------------------
+
+    describe('editorImmersiveDrawer view stack', () => {
+        it('pushEditorImmersiveView adds to the stack with defaults', () => {
+            const store = useUxDrawersStore()
+            store.pushEditorImmersiveView({ component: FakeComponent })
+            expect(store.editorImmersiveDrawer.viewStack).toHaveLength(1)
+            expect(store.editorImmersiveDrawer.viewStack[0]).toMatchObject({
+                component: FakeComponent,
+                props: {},
+                events: {},
+                title: '',
+                showHeader: true
+            })
+        })
+
+        it('pushEditorImmersiveView preserves all passed options', () => {
+            const store = useUxDrawersStore()
+            const events = { close: vi.fn() }
+            store.pushEditorImmersiveView({
+                component: FakeComponent,
+                props: { id: 1 },
+                events,
+                title: 'Details',
+                showHeader: false
+            })
+            const entry = store.editorImmersiveDrawer.viewStack[0]
+            expect(entry.props).toEqual({ id: 1 })
+            expect(entry.events).toStrictEqual(events)
+            expect(entry.title).toBe('Details')
+            expect(entry.showHeader).toBe(false)
+        })
+
+        it('popEditorImmersiveView removes the last entry', () => {
+            const store = useUxDrawersStore()
+            store.pushEditorImmersiveView({ component: FakeComponent, title: 'First' })
+            store.pushEditorImmersiveView({ component: AnotherComponent, title: 'Second' })
+            expect(store.editorImmersiveDrawer.viewStack).toHaveLength(2)
+
+            store.popEditorImmersiveView()
+            expect(store.editorImmersiveDrawer.viewStack).toHaveLength(1)
+            expect(store.editorImmersiveDrawer.viewStack[0].title).toBe('First')
+        })
+
+        it('clearEditorImmersiveViewStack empties the stack', () => {
+            const store = useUxDrawersStore()
+            store.pushEditorImmersiveView({ component: FakeComponent })
+            store.pushEditorImmersiveView({ component: AnotherComponent })
+            store.clearEditorImmersiveViewStack()
+            expect(store.editorImmersiveDrawer.viewStack).toEqual([])
+        })
+    })
+
+    // -------------------------------------------------------------------------
+    // Immersive intercept — openRightDrawer
+    // -------------------------------------------------------------------------
+
+    describe('openRightDrawer immersive intercept', () => {
+        it('pushes to view stack instead of opening RightDrawer when active', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveActive(true)
+            store.editorImmersiveDrawer.open = true
+
+            store.openRightDrawer({ component: FakeComponent, on: { close: vi.fn() } })
+
+            expect(store.rightDrawer.state).toBe(false)
+            expect(store.editorImmersiveDrawer.viewStack).toHaveLength(1)
+            expect(store.editorImmersiveDrawer.viewStack[0].component.name).toBe('FakeComponent')
+        })
+
+        it('opens the immersive drawer if it is closed', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveActive(true)
+            store.editorImmersiveDrawer.open = false
+
+            store.openRightDrawer({ component: FakeComponent })
+
+            expect(store.editorImmersiveDrawer.open).toBe(true)
+            expect(store.editorImmersiveDrawer.viewStack).toHaveLength(1)
+        })
+
+        it('uses header.title for the view stack title', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveActive(true)
+            store.editorImmersiveDrawer.open = true
+
+            store.openRightDrawer({
+                component: FakeComponent,
+                header: { title: 'Snapshot' }
+            })
+
+            expect(store.editorImmersiveDrawer.viewStack[0].title).toBe('Snapshot')
+        })
+
+        it('falls back to component.name when no header title', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveActive(true)
+            store.editorImmersiveDrawer.open = true
+
+            store.openRightDrawer({ component: FakeComponent })
+
+            expect(store.editorImmersiveDrawer.viewStack[0].title).toBe('FakeComponent')
+        })
+
+        it('sets showHeader to true by default', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveActive(true)
+            store.editorImmersiveDrawer.open = true
+
+            store.openRightDrawer({ component: FakeComponent })
+
+            expect(store.editorImmersiveDrawer.viewStack[0].showHeader).toBe(true)
+        })
+
+        it('sets showHeader to false when component opts out with immersiveHeader: false', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveActive(true)
+            store.editorImmersiveDrawer.open = true
+
+            const SelfManagedComponent = { name: 'SelfManaged', immersiveHeader: false }
+            store.openRightDrawer({ component: SelfManagedComponent })
+
+            expect(store.editorImmersiveDrawer.viewStack[0].showHeader).toBe(false)
+        })
+
+        it('maps on to events in the view stack entry', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveActive(true)
+            store.editorImmersiveDrawer.open = true
+
+            const handler = vi.fn()
+            store.openRightDrawer({ component: FakeComponent, on: { deleted: handler } })
+
+            expect(store.editorImmersiveDrawer.viewStack[0].events).toEqual({ deleted: handler })
+        })
+
+        it('does not intercept when immersive drawer is not active', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveActive(false)
+
+            store.openRightDrawer({ component: FakeComponent })
+
+            expect(store.rightDrawer.state).toBe(true)
+            expect(store.editorImmersiveDrawer.viewStack).toHaveLength(0)
+        })
+    })
+
+    // -------------------------------------------------------------------------
+    // Immersive intercept — closeRightDrawer
+    // -------------------------------------------------------------------------
+
+    describe('closeRightDrawer immersive intercept', () => {
+        it('pops the view stack instead of closing RightDrawer when active', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveActive(true)
+            store.pushEditorImmersiveView({ component: FakeComponent, title: 'First' })
+            store.pushEditorImmersiveView({ component: AnotherComponent, title: 'Second' })
+
+            store.closeRightDrawer()
+
+            expect(store.editorImmersiveDrawer.viewStack).toHaveLength(1)
+            expect(store.editorImmersiveDrawer.viewStack[0].title).toBe('First')
+        })
+
+        it('falls through to normal close when stack is empty', () => {
+            vi.useFakeTimers()
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveActive(true)
+            store.openRightDrawer({ component: FakeComponent })
+            // Stack has one entry from the intercept — clear it to simulate empty stack
+            store.clearEditorImmersiveViewStack()
+
+            // Now open via normal path (deactivate immersive, open, reactivate)
+            store.setEditorImmersiveActive(false)
+            store.openRightDrawer({ component: FakeComponent })
+            store.setEditorImmersiveActive(true)
+
+            store.closeRightDrawer()
+
+            // Should have closed the RightDrawer since stack was empty
+            expect(store.rightDrawer.state).toBe(false)
+            expect(store.rightDrawer.closing).toBe(true)
+            vi.advanceTimersByTime(300)
+        })
+    })
 })
