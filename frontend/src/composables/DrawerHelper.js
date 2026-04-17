@@ -1,10 +1,10 @@
 import { nextTick, reactive, ref } from 'vue'
 
-import { getServiceFactory } from '../services/service.factory.js'
+import { getServicesOrchestrator } from '../services/service.orchestrator.ts'
 
 export function useDrawerHelper () {
-    const serviceFactory = getServiceFactory()
-    const $services = serviceFactory.$serviceInstances
+    const servicesOrchestrator = getServicesOrchestrator()
+    const $services = servicesOrchestrator.$serviceInstances
 
     const drawer = reactive({ open: false })
 
@@ -39,7 +39,7 @@ export function useDrawerHelper () {
         if (iframe) {
             const targetOrigin = instance.url || window.location.origin
 
-            $services.messaging.sendMessage({
+            $services.postMessage.sendMessage({
                 message: {
                     type: 'drawer-state',
                     payload: { open: drawer.open }

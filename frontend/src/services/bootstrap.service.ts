@@ -1,46 +1,51 @@
 import { nextTick } from 'vue'
 
+import { AppService, BaseService, CreateServiceOptions } from './service.contract'
+
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+
+export interface BootstrapServiceI extends AppService {
+    init(): Promise<void>
+    destroy(): Promise<void>
+    setupReadyPromise(): void
+    waitForAppMount(): Promise<void>
+    waitForRouterReady(): Promise<void>
+    checkUser(): Promise<unknown>
+    mountApp(): Promise<void>
+    markAsReady(): void
+    whenReady(): Promise<void>
+}
 
 /**
  * Bootstrap Service - Handles application lifecycle and readiness detection
  * @class
  */
-class BootstrapService {
-    /**
-     * @type {import('vue').App} - Vue app instance
-     */
-    $app
+class BootstrapService extends BaseService implements BootstrapServiceI {
+    protected isReady: boolean = false
+    protected readyPromise: Promise<never> | null = null
+    protected readyResolve: ((value?: void | PromiseLike<void>) => void) | null = null
 
-    /**
-     * @type {import('vue-router').Router} - Vue router instance
-     */
-    $router
-
-    /**
-     * @type {Object} - Map of all services for dependency injection
-     */
-    $services
-
-    /**
-     * @param {{app: import('vue').App, router: import('vue-router').Router, services?: Object}} options - Constructor options
-     */
-    constructor ({
-        app,
-        router,
-        services = {}
-    }) {
-        this.$app = app
-        this.$router = router
-        this.$services = services
+    constructor ({ app, router, services }: CreateServiceOptions) {
+        super({
+            name: 'bootstrap',
+            app,
+            router,
+            services
+        })
 
         this.isReady = false
         this.readyPromise = null
         this.readyResolve = null
 
         this.setupReadyPromise()
+    }
+
+    async destroy () {
+        this.isReady = false
+        this.readyPromise = null
+        this.readyResolve = null
     }
 
     setupReadyPromise () {
@@ -71,7 +76,7 @@ class BootstrapService {
             return Promise.resolve()
         }
 
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             nextTick(() => {
                 resolve()
             })
@@ -101,11 +106,7 @@ class BootstrapService {
         }
     }
 
-    /**
-     * Wait for the application to be ready
-     * @returns {Promise} Promise that resolves when app is ready
-     */
-    whenReady () {
+    whenReady (): Promise<void> {
         if (this.isReady) {
             return Promise.resolve()
         }
@@ -116,15 +117,7 @@ class BootstrapService {
 
 let BootstrapServiceInstance = null
 
-/**
- * @param {{app: import('vue').App, router: import('vue-router').Router, services?: Object}} options - Constructor options
- * @returns {BootstrapService}
- */
-export function createBootstrapService ({
-    app,
-    router,
-    services = {}
-} = {}) {
+export function createBootstrapService ({ app, router, services } : CreateServiceOptions) {
     if (!BootstrapServiceInstance) {
         BootstrapServiceInstance = new BootstrapService({
             app,

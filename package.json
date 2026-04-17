@@ -129,6 +129,7 @@
         "@babel/core": "^7.22.15",
         "@babel/preset-env": "^7.22.15",
         "@pinia/testing": "1.0.3",
+        "@types/mqtt": "^0.0.34",
         "@typescript-eslint/eslint-plugin": "^8.58.0",
         "@typescript-eslint/parser": "^8.58.0",
         "@vitejs/plugin-vue": "^5.0.2",
