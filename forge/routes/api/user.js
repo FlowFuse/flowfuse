@@ -385,4 +385,38 @@ module.exports = async function (app) {
             reply.code(400).send(resp)
         }
     })
+
+    /**
+     * Initialize expert chat
+     */
+    app.post('/expert-creds', {
+        // preHandler: app.needsPermission('xxx'), // all users can start an expert chat, but we might want to add a permission later
+        schema: {
+            summary: 'Initialize expert chat',
+            tags: ['User'],
+            body: {
+                type: 'object',
+                properties: {
+                    sessionId: { type: 'string', minLength: 8 }
+                },
+                required: ['sessionId']
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        url: { type: 'string' },
+                        username: { type: 'string' },
+                        password: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const clientCreds = await app.db.controllers.BrokerClient.createClientForExpertClient(request.session.User, request.body.sessionId)
+        reply.send(clientCreds)
+    })
 }

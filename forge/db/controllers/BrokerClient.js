@@ -10,7 +10,7 @@ module.exports = {
             attributes: ['username', 'password']
         })
         if (compareHash(password || '', user ? user.password : '')) {
-            if (username.startsWith('frontend:')) {
+            if (username.startsWith('frontend:') || username.startsWith('expert-client:')) {
                 await user.destroy()
             }
             return true
@@ -132,6 +132,75 @@ module.exports = {
                 password,
                 ownerId: '' + device.id,
                 ownerType: 'frontend'
+            })
+            return {
+                url: app.config.broker.public_url || app.config.broker.url || null,
+                username,
+                password
+            }
+        }
+        return null
+    },
+
+    createClientForExpertAgent: async function (app) {
+        if (app.comms) {
+            const username = 'expert-agent:api:v1'
+            const password = generateToken(32, 'ffbea') // ff broker expert agent
+            const [client, created] = await app.db.models.BrokerClient.findOrCreate({
+                where: {
+                    username
+                },
+                defaults: {
+                    password,
+                    ownerId: '',
+                    ownerType: 'platform'
+                }
+            })
+            // if it was created, the password is already set. If not, we need to update it with a new one.
+            if (!created) {
+                client.password = password
+                await client.save()
+            }
+            await app.settings.set('platform:expert-agent:creds', true)
+            return {
+                username,
+                password
+            }
+        }
+        return null
+    },
+
+    removeClientForExpertAgent: async function (app) {
+        if (app.comms) {
+            await app.db.models.BrokerClient.destroy({
+                where: {
+                    username: 'expert-agent:api:v1'
+                }
+            })
+            await app.settings.set('platform:expert-agent:creds', false)
+        }
+        return null
+    },
+
+    createClientForExpertClient: async function (app, user, sessionId) {
+        if (app.comms) {
+            const existingClient = await app.db.models.BrokerClient.findOne({
+                where: {
+                    ownerId: '' + user.id,
+                    ownerType: 'expert'
+                }
+            })
+            if (existingClient) {
+                await existingClient.destroy()
+            }
+
+            const username = `expert-client:${user.hashid}:${sessionId}`
+            const password = generateToken(32, 'ffbec') // ff broker expert client
+            await app.db.models.BrokerClient.create({
+                username,
+                password,
+                ownerId: '' + user.id,
+                ownerType: 'expert-user'
             })
             return {
                 url: app.config.broker.public_url || app.config.broker.url || null,
