@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import SemVer from 'semver'
 
-import messagingService from '@/services/post-message.service'
+import getServicesOrchestrator from '@/services/service.orchestrator'
 import { useContextStore } from '@/stores/context.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 
@@ -495,8 +495,9 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             })
         },
         sendMessage (payload) {
-            const service = messagingService()
-            return service.sendMessage({
+            const orchestrator = getServicesOrchestrator()
+
+            orchestrator.$serviceInstances.postMessage.sendMessage({
                 message: {
                     ...payload,
                     ...this.scope
