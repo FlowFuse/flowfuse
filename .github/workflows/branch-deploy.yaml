@@ -580,76 +580,86 @@ jobs:
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
 
     steps:
-    - name: Map users  
-      id: map-actor-to-slack
-      uses: icalia-actions/map-github-actor@e568d1dd6023e406a1db36db4e1e0b92d9dd7824 # v0.0.2
-      with:
-        actor-map: ${{ vars.SLACK_GITHUB_USERS_MAP }}
-        default-mapping: C067BD0377F
+      - name: Find Slack user by GitHub username
+        id: resolve
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
+          SLACK_GITHUB_FIELD_ID: "Xf0A2BPU8U77"
+          GITHUB_ACTOR: ${{ github.actor }}
+        with:
+          script: |
+            const token = process.env.SLACK_BOT_TOKEN;
+            const fieldId = process.env.SLACK_GITHUB_FIELD_ID;
+            const targetGithubUsername = process.env.GITHUB_ACTOR.toLowerCase();
 
-    - name: Post to a Slack channel
-      id: slack
-      uses: slackapi/slack-github-action@af78098f536edbc4de71162a307590698245be95 # v3.0.1
-      with:
-        method: 'chat.postMessage'
-        token: ${{ secrets.SLACK_GHBOT_TOKEN }}
-        payload: |
-          {
-            "channel": "C067BD0377F",
-            "blocks": [
-              {
-                "type": "header",
-                "text": {
-                  "type": "plain_text",
-                  "text": "Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
-                  "emoji": true
-                }
-              },
-              {
-                "type": "section",
-                "fields": [
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Status:*\n${{ needs.deploy.result == 'success' && ':white_check_mark: Success' || ':x: Failure '}}"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": ${{ toJson(env.PR_TEXT) }}
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
-                  }
-                ]
-              },
-              {
-                "type": "section",
-                "fields": [
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Author:*\n<@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Commit SHA:*\n<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Deployed to:*\n<https://${{ env.PR_NUMBER }}.flowfuse.dev|https://${{ env.PR_NUMBER }}.flowfuse.dev>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Logs:*\n<https://${{ env.GRAFANA_URL }}/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22editorMode%22:%22code%22,%22expr%22:%22%7Bnamespace%3D%5C%22pr-${{ env.PR_NUMBER }}%5C%22%7D%20%7C%3D%20%60%60%20%7C%20json%22,%22queryType%22:%22range%22%7D%5D,%22range%22:%7B%22from%22:%22now-30m%22,%22to%22:%22now%22%7D%7D|View>"
-                  }
-                ]
+            // Collect all non-bot user IDs
+            const userIds = [];
+            let cursor;
+            do {
+              const params = new URLSearchParams({ limit: "200" });
+              if (cursor) params.set("cursor", cursor);
+              const res = await fetch(`https://slack.com/api/users.list?${params}`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              const data = await res.json();
+              if (!data.ok) return core.setFailed(`Slack users.list error: ${data.error}`);
+              for (const member of data.members) {
+                if (!member.deleted && !member.is_bot) userIds.push(member.id);
               }
-            ]
-          }
-      env:
-        PR_TEXT: |
-          *Pull Request:*
-          <https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>
-        GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
+              cursor = data.response_metadata?.next_cursor;
+            } while (cursor);
+
+            // Find user by fetching each profile until we match the GitHub username field
+            for (const userId of userIds) {
+              const res = await fetch(`https://slack.com/api/users.profile.get?user=${userId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              const data = await res.json();
+              if (!data.ok) continue;
+              const ghField = data.profile?.fields?.[fieldId]?.value;
+              if (ghField && ghField.toLowerCase() === targetGithubUsername) {
+                core.info(`Matched Slack user ${userId} for GitHub user ${targetGithubUsername}`);
+                core.setOutput("slack_user_id", userId);
+                return;
+              }
+            }
+
+            core.warning(`No Slack user found with GitHub username: ${targetGithubUsername}`);
+
+      - name: Send Slack notification
+        id: slack
+        if: steps.resolve.outputs.slack_user_id != ''
+        uses: slackapi/slack-github-action@af78098f536edbc4de71162a307590698245be95 # v3.0.1
+        with:
+          method: 'chat.postMessage'
+          token: ${{ secrets.SLACK_GHBOT_TOKEN }}
+          payload: |
+            channel: ${{ steps.resolve.outputs.slack_user_id }}
+            blocks:
+              - type: header
+                text:
+                  type: plain_text
+                  text: "Pull Request ${{ env.PR_NUMBER }} pre-staging deployment"
+                  emoji: true
+              - type: section
+                fields:
+                  - type: mrkdwn
+                    text: "*Status:*\n${{ needs.deploy.result == 'success' && ':white_check_mark: Success' || ':x: Failure '}}"
+                  - type: mrkdwn
+                    text: "*Pull Request:*\n<https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>"
+                  - type: mrkdwn
+                    text: "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
+              - type: section
+                fields:
+                  - type: mrkdwn
+                    text: "*Author:*\n<@${{ steps.resolve.outputs.slack_user_id }}>"
+                  - type: mrkdwn
+                    text: "*Commit SHA:*\n<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
+                  - type: mrkdwn
+                    text: "*Deployed to:*\n<https://${{ env.PR_NUMBER }}.flowfuse.dev|https://${{ env.PR_NUMBER }}.flowfuse.dev>"
+                  - type: mrkdwn
+                    text: "*Logs:*\n<https://${{ secrets.STAGING_GRAFANA_URL }}/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22editorMode%22:%22code%22,%22expr%22:%22%7Bnamespace%3D%5C%22pr-${{ env.PR_NUMBER }}%5C%22%7D%20%7C%3D%20%60%60%20%7C%20json%22,%22queryType%22:%22range%22%7D%5D,%22range%22:%7B%22from%22:%22now-30m%22,%22to%22:%22now%22%7D%7D|View>"
 
 
   destroy:
