@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { v4 as uuidv4 } from 'uuid'
-import { markRaw } from 'vue'
+import { markRaw, watch } from 'vue'
 
 import expertApi from '../api/expert.js'
 import userApi from '../api/user.js'
@@ -239,8 +239,12 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
             const { entityId, entityType } = this._getEntityTopicPaths()
 
+            const topic = `ff/v1/expert/${authStore.user.id}/${sessionId}/${entityType}/${entityId}/support/chat/request`
+
+            console.log('publishing to topic: ', topic)
+
             return mqttService.publishMessage(mqttConnectionKey, {
-                topic: `ff/v1/expert/${authStore.user.id}/${sessionId}/${entityType}/${entityId}/support/chat/request`,
+                topic,
                 qos: 2,
                 payload: {
                     query,
@@ -261,6 +265,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
             const authStore = useAccountAuthStore()
             const assistantStore = useProductAssistantStore()
+
+            // todo remove, dev only
+            window.qwe = mqttService
 
             await mqttService.createClient(this.mqttConnectionKey, {
                 getCredentials: () => userApi.initiateExpertChat({ sessionId: this.sessionId }),
@@ -342,9 +349,65 @@ export const useProductExpertStore = defineStore('product-expert', {
                     // TODO add error message
                 },
                 onConnect: () => {
-                    const chatResponseTopic = `ff/v1/expert/${authStore.user.id}/${this._agentStore.sessionId}/+/+/support/chat/response`
-                    mqttService.subscribe(this.mqttConnectionKey, chatResponseTopic, { qos: 2 })
-                    // mqttService.subscribe(this.mqttConnectionKey, toolRequestTopic, { qos: 2 })
+                    mqttService.subscribe(
+                        this.mqttConnectionKey,
+                        this._topicBuilder({
+                            entityType: '+',
+                            entityId: '+',
+                            agentChannel: 'support',
+                            topicType: 'chat',
+                            topicAction: 'response'
+                        }),
+                        { qos: 2 }
+                    )
+                    mqttService.subscribe(
+                        this.mqttConnectionKey,
+                        this._topicBuilder({
+                            entityType: '+',
+                            entityId: '+',
+                            agentChannel: 'support',
+                            topicType: 'inflight',
+                            topicAction: 'request'
+                        }),
+                        { qos: 2 }
+                    )
+
+                    // whenever the sessionId changes, we need to unsubscribe from previous topics and subscribe to the
+                    // new ones based off of the new sessionId
+                    watch(
+                        () => this._agentStore.sessionId,
+                        () => {
+                            if (!mqttService.hasClient(this.mqttConnectionKey)) return
+
+                            const managedClient = mqttService.getManagedClient(this.mqttConnectionKey)
+                            managedClient.subscriptions.forEach(subscription => {
+                                mqttService.unsubscribe(this.mqttConnectionKey, subscription.topic)
+                            })
+
+                            mqttService.subscribe(
+                                this.mqttConnectionKey,
+                                this._topicBuilder({
+                                    entityType: '+',
+                                    entityId: '+',
+                                    agentChannel: 'support',
+                                    topicType: 'chat',
+                                    topicAction: 'response'
+                                }),
+                                { qos: 2 }
+                            )
+                            mqttService.subscribe(
+                                this.mqttConnectionKey,
+                                this._topicBuilder({
+                                    entityType: '+',
+                                    entityId: '+',
+                                    agentChannel: 'support',
+                                    topicType: 'inflight',
+                                    topicAction: 'request'
+                                }),
+                                { qos: 2 }
+                            )
+                        }
+                    )
                 },
                 onOffline: () => {
                     // TODO add error message
@@ -578,31 +641,62 @@ export const useProductExpertStore = defineStore('product-expert', {
             })
         },
 
-        _getEntityTopicPaths () {
+        _getEntityTopicPaths ({ application, instance, device, team } = {}) {
             const contextStore = useContextStore()
 
             switch (true) {
-            case !!contextStore.application:
+            case application || !!contextStore.application:
                 return {
                     entityType: 'a',
-                    entityId: contextStore.team?.id
+                    entityId: application?.id ?? contextStore.application?.id
                 }
-            case !!contextStore.instance:
+            case instance || !!contextStore.instance:
                 return {
                     entityType: 'p',
-                    entityId: contextStore.instance.id
+                    entityId: device?.id ?? contextStore.instance.id
                 }
-            case !!contextStore.device:
+            case device || !!contextStore.device:
                 return {
                     entityType: 'd',
-                    entityId: contextStore.device?.id
+                    entityId: device?.id ?? contextStore.device?.id
                 }
             default:
                 return {
                     entityType: 't',
-                    entityId: contextStore.team?.id
+                    entityId: team?.id ?? contextStore.team?.id
                 }
             }
+        },
+
+        _topicBuilder ({
+            entityType,
+            entityId,
+            agentChannel,
+            topicType,
+            topicAction
+        }
+        = {
+            entityType: null,
+            entityId: null,
+            agentChannel: 'support' | 'insights',
+            topicType: 'chat' | 'inflight',
+            topicAction: 'response' | 'request'
+        }) {
+            if (!entityType) throw new Error('Topic "entityType" is mandatory')
+            if (!entityId) throw new Error('Topic "entityId" is mandatory')
+            if (!['support', 'insights'].includes(agentChannel)) {
+                throw new Error(`"agentChannel" must be either "support" or "insights", "${agentChannel}" given`)
+            }
+            if (!['chat', 'inflight'].includes(topicType)) {
+                throw new Error(`"topicType" must be either "chat" or "inflight", "${topicType}" given`)
+            }
+            if (!['response', 'request'].includes(topicAction)) {
+                throw new Error(`"topicAction" must be either "response" or "request", "${topicAction}" given`)
+            }
+
+            const authStore = useAccountAuthStore()
+
+            return `ff/v1/expert/${authStore.user.id}/${this._agentStore.sessionId}/${entityType}/${entityId}/${agentChannel}/${topicType}/${topicAction}`
         }
     },
     persist: {
