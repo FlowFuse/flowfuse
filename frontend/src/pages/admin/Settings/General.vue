@@ -158,6 +158,59 @@
             </template>
         </ff-dialog>
 
+        <FormRow v-model="expertAgentEnabled" type="checkbox">
+            Allow Expert agent to connect to the platform
+            <template #description>
+                <p>
+                    This can be used to allow the Expert agent to connect to the platform
+                    without providing full access to the admin API.
+                </p>
+                <p>
+                    The credentials are generated when this option is enabled. Once
+                    enabled, the credentials cannot be retrieved.
+                </p>
+                <p>
+                    To regenerate the credentials, disable, then re-enable this option.
+                </p>
+            </template>
+        </FormRow>
+        <ff-dialog ref="enableExpertAgentCreds" header="Allow Expert agent to connect to the platform">
+            <template #default>
+                <ff-loading v-if="expertAgentCredsGenerating" message="Generating credentials..." />
+                <template v-else>
+                    <p>The following credentials can be used by the Expert agent to connect to the platform.</p>
+                    <div class="space-y-2">
+                        <div>
+                            <p class="text-sm font-medium">Username:</p>
+                            <code class="block my-2">{{ expertAgentCreds.username }}</code>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium">Password:</p>
+                            <code class="block my-2">{{ expertAgentCreds.password }}</code>
+                        </div>
+                    </div>
+                    <p>
+                        This is the only time this token will be shared. Make sure you save it
+                        before closing this dialog.
+                    </p>
+                </template>
+            </template>
+            <template #actions>
+                <ff-button v-if="!expertAgentCredsGenerating" @click="$refs['enableExpertAgentCreds'].close()">Close</ff-button>
+                <span v-else>&nbsp;</span>
+            </template>
+        </ff-dialog>
+        <ff-dialog ref="disableExpertAgentCreds" header="Disable token-based access to Expert agent">
+            <template #default>
+                <p>This will delete the active token used by the Expert agent to connect to the platform.</p>
+                <p>Are you sure?</p>
+            </template>
+            <template #actions>
+                <ff-button @click="cancelDisableExpertAgentCreds">Cancel</ff-button>
+                <ff-button kind="danger" @click="disableExpertAgentCreds">Disable</ff-button>
+            </template>
+        </ff-dialog>
+
         <FormRow v-if="!isLicensed" v-model="input['telemetry:enabled']" type="checkbox">
             Enable collection of anonymous statistics
             <template #description>
@@ -241,6 +294,7 @@ const validSettings = [
     'branding:account:signUpTopBanner',
     'branding:account:signUpLeftBanner',
     'platform:stats:token',
+    'platform:expert-agent:creds',
     'platform:sso:google',
     'platform:sso:google:auto-create',
     'platform:sso:google:clientId',
@@ -260,6 +314,8 @@ export default {
             },
             platformStatsTokenEnabled: false,
             platformStatsToken: null,
+            expertAgentEnabled: false,
+            expertAgentCreds: null,
             errors: {
                 requiresEmail: null,
                 termsAndConditions: null,
@@ -268,7 +324,8 @@ export default {
             teamTypes: [],
             instanceTypes: [],
             teamTypesOptions: [],
-            platformStatsTokenGenerating: false
+            platformStatsTokenGenerating: false,
+            expertAgentCredsGenerating: false
         }
     },
     computed: {
@@ -367,6 +424,18 @@ export default {
             } else {
                 this.showDisableStatsToken()
             }
+        },
+        expertAgentEnabled: function (newValue) {
+            if (this.expertAgentCreds === null) {
+                // This is the initial setting of the value - ignore it
+                this.expertAgentCreds = ''
+                return
+            }
+            if (newValue) {
+                this.showGenerateExpertAgentCreds()
+            } else {
+                this.showDisableExpertAgentCreds()
+            }
         }
     },
     async created () {
@@ -392,6 +461,10 @@ export default {
         this.platformStatsTokenEnabled = this.input['platform:stats:token']
         if (!this.platformStatsTokenEnabled) {
             this.platformStatsToken = ''
+        }
+        this.expertAgentEnabled = this.input['platform:expert-agent:creds']
+        if (!this.expertAgentEnabled) {
+            this.expertAgentCreds = ''
         }
     },
     methods: {
@@ -522,6 +595,41 @@ export default {
                         this.$router.push('/')
                     }
                     console.warn('Error disabling stats token', err)
+                })
+        },
+
+        showGenerateExpertAgentCreds () {
+            this.expertAgentCredsGenerating = true
+            this.$refs.enableExpertAgentCreds.show()
+            adminApi.generateExpertAgentCreds().then(result => {
+                this.expertAgentCreds = {
+                    username: result?.username,
+                    password: result?.password
+                }
+                this.expertAgentCredsGenerating = false
+            }).catch(err => {
+                console.warn('Error loading Expert agent creds', err)
+            })
+        },
+        showDisableExpertAgentCreds () {
+            this.$refs.disableExpertAgentCreds.show()
+        },
+        cancelDisableExpertAgentCreds () {
+            this.$refs.disableExpertAgentCreds.close()
+            this.expertAgentCreds = null
+            this.expertAgentEnabled = true
+        },
+        disableExpertAgentCreds () {
+            this.$refs.disableExpertAgentCreds.close()
+            this.expertAgentCreds = ''
+            this.expertAgentEnabled = false
+            adminApi.deleteExpertAgentCreds()
+                .then(result => {})
+                .catch(err => {
+                    if (err.response?.status === 403) {
+                        this.$router.push('/')
+                    }
+                    console.warn('Error disabling Expert agent token', err)
                 })
         }
     }
