@@ -27,7 +27,7 @@ interface DestructuredTopic {
     isInflightRequest: boolean
     entityType: string
     entityId: string
-    automation: string | null
+    tool: string | null
 }
 
 interface TopicBuilderOptions {
@@ -87,7 +87,18 @@ export function useMqttExpertTopicHelper () {
 
         const sessionId = expertStore.sessionId
 
-        return `ff/v1/expert/${authStore.user.id}/${sessionId}/${entityType}/${entityId}/${agentChannel}/${topicType}/${topicAction}`
+        return [
+            'ff',
+            'v1',
+            'expert',
+            authStore.user.id,
+            sessionId,
+            entityType,
+            entityId,
+            agentChannel,
+            topicType,
+            topicAction
+        ].join('/')
     }
 
     function destructureTopic (topic: string): DestructuredTopic {
@@ -103,7 +114,7 @@ export function useMqttExpertTopicHelper () {
             isInflightRequest: inflightRequest,
             entityType: split[5],
             entityId: split[6],
-            automation: inflightRequest ? split.at(-2) ?? null : null
+            tool: inflightRequest ? split.at(-2) ?? null : null
         }
     }
 
