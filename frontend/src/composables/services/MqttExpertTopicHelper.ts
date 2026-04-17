@@ -27,6 +27,9 @@ interface ParsedTopic {
     isInflightRequest: boolean
     entityType: string
     entityId: string
+    agentChannel: 'support' | 'insights' | string
+    topicType: string | 'chat' | 'inflight' | null
+    topicAction: string | 'request' | 'response' | null
     tool: string | null
 }
 
@@ -102,18 +105,24 @@ export function useMqttExpertTopicHelper () {
     }
 
     function parseTopic (topic: string): ParsedTopic {
+        // topic examples
+        // ff/v1/expert/<userId>/<sessionId>/<entityType>/<entityId>/<agentChannel>/<topicType>/<topicAction>
+        // ff/v1/expert/<userId>/<sessionId>/<entityType>/<entityId>/<agentChannel>/<topicType>/<tool>/<topicAction>
+
         if (!topic || topic.length === 0) throw new Error(`Invalid topic received: "${topic}"`)
 
         const split = topic.split('/')
 
         const inflightRequest = topic.includes('/inflight/') && topic.endsWith('/request')
-
         return {
             topic,
             isReply: topic.endsWith('/response'),
             isInflightRequest: inflightRequest,
             entityType: split[5],
             entityId: split[6],
+            agentChannel: split[7],
+            topicType: split[8],
+            topicAction: split.at(-1),
             tool: inflightRequest ? split.at(-2) ?? null : null
         }
     }
