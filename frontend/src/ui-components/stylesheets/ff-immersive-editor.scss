@@ -6,6 +6,13 @@
   display: flex;
   flex: 1;
 
+  .ff-layout--immersive--content {
+    flex: 1;
+    position: relative;
+    min-width: 0;
+    height: 100%;
+  }
+
   .editor-wrapper {
     height: 100%;
     width: 100%;
@@ -35,7 +42,11 @@
     container-name: drawer;
     z-index: 1;
 
-    .header, main {
+    > .drawer-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s;
@@ -46,7 +57,7 @@
       overflow-x: hidden;
     }
 
-    .header {
+    > .drawer-content > .header {
       padding: 0;
       display: flex;
       line-height: 1.5;
@@ -104,28 +115,6 @@
         color: $ff-grey-500;
         flex-shrink: 0;
         gap: 5px;
-
-        .close-drawer-button {
-          align-self: stretch;
-          background: none;
-          border: none;
-          padding: 0 15px;
-          color: inherit;
-          font: inherit;
-          display: flex;
-          align-items: center;
-          cursor: pointer;
-          transition: all 0.2s ease;
-
-          &:hover {
-            background: $ff-grey-100;
-            color: $ff-grey-700;
-          }
-
-          &:active {
-            background: $ff-grey-200;
-          }
-        }
       }
     }
 
@@ -133,7 +122,7 @@
       transform: translateX(0);
       box-shadow: 5px 0 8px rgba(0, 0, 0, 0.10);
 
-      .header, main {
+      > .drawer-content {
         opacity: 1;
         pointer-events: auto;
       }
@@ -146,10 +135,10 @@
 
   &.resizing {
     cursor: ew-resize;
-    user-select: none;
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
+    user-select: none;
 
     .tabs-wrapper {
       transition: none;

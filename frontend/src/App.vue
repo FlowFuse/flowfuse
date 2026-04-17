@@ -37,6 +37,11 @@
                     <router-view />
                 </ff-layout-plain>
             </template>
+            <template v-else-if="pageLayout === 'immersive'">
+                <ff-layout-immersive>
+                    <router-view />
+                </ff-layout-immersive>
+            </template>
             <EducationModal />
         </template>
         <!-- Password Reset Required -->
@@ -70,6 +75,7 @@ import LicenseBanner from './components/banners/LicenseBanner.vue'
 import EducationModal from './components/dialogs/EducationModal.vue'
 import FFLayoutBox from './layouts/Box.vue'
 import FFLayoutDocs from './layouts/Docs.vue'
+import FFLayoutImmersiveEditor from './layouts/ImmersiveEditor.vue'
 import FFLayoutPlain from './layouts/Plain.vue'
 import FFLayoutPlatform from './layouts/Platform.vue'
 import Login from './pages/Login.vue'
@@ -98,7 +104,8 @@ export default {
         'ff-layout-platform': FFLayoutPlatform,
         'ff-layout-box': FFLayoutBox,
         'ff-layout-docs': FFLayoutDocs,
-        'ff-layout-plain': FFLayoutPlain
+        'ff-layout-plain': FFLayoutPlain,
+        'ff-layout-immersive': FFLayoutImmersiveEditor
     },
     computed: {
         ...mapState(useUxDrawersStore, ['hiddenLeftDrawer']),
@@ -134,7 +141,7 @@ export default {
         },
         pageLayout () {
             const layout = this.$route.meta?.layout
-            return ['platform', 'modal', 'plain', 'docs'].includes(layout) ? layout : 'platform'
+            return ['platform', 'modal', 'plain', 'docs', 'immersive'].includes(layout) ? layout : 'platform'
         }
     },
     watch: {

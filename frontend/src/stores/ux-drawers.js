@@ -15,6 +15,15 @@ import { useUxStore } from './ux.js'
 
 export const useUxDrawersStore = defineStore('ux-drawers', {
     state: () => ({
+        editorImmersiveDrawer: {
+            active: false,
+            open: true,
+            side: 'left',
+            width: 550,
+            pinned: true,
+            fullscreen: false,
+            viewStack: []
+        },
         leftDrawer: {
             state: false,
             component: null
@@ -57,6 +66,22 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
             bind = {},
             overlay = false
         }) {
+            // In immersive editor context, push onto the editor drawer view stack
+            if (this.editorImmersiveDrawer.active) {
+                if (!this.editorImmersiveDrawer.open) {
+                    this.editorImmersiveDrawer.open = true
+                }
+                const showHeader = component.immersiveHeader !== false
+                this.pushEditorImmersiveView({
+                    component: markRaw(component),
+                    props,
+                    events: on,
+                    title: header?.title || component.name || '',
+                    showHeader
+                })
+                return
+            }
+
             // Don't allow opening while drawer is currently closing
             if (this.rightDrawer.closing) return
 
@@ -93,6 +118,12 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
         },
 
         closeRightDrawer () {
+            // In immersive editor context, pop the editor drawer view stack
+            if (this.editorImmersiveDrawer.active && this.editorImmersiveDrawer.viewStack.length > 0) {
+                this.popEditorImmersiveView()
+                return
+            }
+
             if (this.rightDrawer.component?.name === 'ExpertDrawer') {
                 // save the ExpertDrawer pinned/open state (expertState is persistent)
                 this.rightDrawer.expertState.open = false
@@ -195,6 +226,51 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
             }
         },
 
+        // Editor Immersive Drawer actions
+        toggleEditorImmersiveDrawer () {
+            this.editorImmersiveDrawer.open = !this.editorImmersiveDrawer.open
+        },
+
+        openEditorImmersiveDrawer () {
+            this.editorImmersiveDrawer.open = true
+        },
+
+        closeEditorImmersiveDrawer () {
+            this.editorImmersiveDrawer.open = false
+        },
+
+        setEditorImmersiveDrawerSide (side) {
+            this.editorImmersiveDrawer.side = side
+        },
+
+        toggleEditorImmersiveDrawerPin () {
+            this.editorImmersiveDrawer.pinned = !this.editorImmersiveDrawer.pinned
+        },
+
+        toggleEditorImmersiveFullscreen () {
+            this.editorImmersiveDrawer.fullscreen = !this.editorImmersiveDrawer.fullscreen
+        },
+
+        setEditorImmersiveDrawerWidth (width) {
+            this.editorImmersiveDrawer.width = width
+        },
+
+        setEditorImmersiveActive (active) {
+            this.editorImmersiveDrawer.active = active
+        },
+
+        pushEditorImmersiveView ({ component, props = {}, events = {}, title = '', showHeader = true }) {
+            this.editorImmersiveDrawer.viewStack.push({ component, props, events, title, showHeader })
+        },
+
+        popEditorImmersiveView () {
+            this.editorImmersiveDrawer.viewStack.pop()
+        },
+
+        clearEditorImmersiveViewStack () {
+            this.editorImmersiveDrawer.viewStack = []
+        },
+
         openLeftDrawer () {
             this.leftDrawer.state = true
         },
@@ -212,7 +288,14 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
         }
     },
     persist: {
-        pick: ['rightDrawer.expertState'],
+        pick: [
+            'rightDrawer.expertState',
+            'editorImmersiveDrawer.open',
+            'editorImmersiveDrawer.side',
+            'editorImmersiveDrawer.width',
+            'editorImmersiveDrawer.pinned',
+            'editorImmersiveDrawer.fullscreen'
+        ],
         storage: localStorage
     }
 })

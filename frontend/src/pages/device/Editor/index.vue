@@ -1,127 +1,74 @@
 <template>
-    <div ref="resizeTarget" class="ff--immersive-editor-wrapper remote-instance" :class="{resizing: isEditorResizing}">
-        <EditorWrapper
-            :disable-events="isEditorResizing"
-            :device="device"
-        />
-
-        <DrawerTrigger :is-hidden="drawer.open" @toggle="toggleDrawer" />
-
-        <section
-            class="tabs-wrapper drawer"
-            :class="{'open': drawer.open, resizing: isEditorResizing}"
-            :style="{ width: editorWidthStyle }"
-            data-el="tabs-drawer"
-            @mouseenter="handleDrawerMouseEnter"
-            @mouseleave="handleDrawerMouseLeave"
+    <div class="ff--immersive-editor-wrapper remote-instance" :class="{resizing: isEditorResizing}">
+        <EditorDrawer
+            :navigation="navigation"
+            :home-route="homeRoute"
+            :is-expert-route="isExpertRoute"
+            :entity="device"
+            @resizing="v => isEditorResizing = v"
         >
-            <resize-bar
-                @mousedown="startEditorResize"
+            <template #actions>
+                <DropdownMenu
+                    v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length"
+                    :options="actionsDropdownOptions"
+                    :button-style="{padding: '6px 9px'}"
+                    data-el="device-actions-dropdown"
+                    buttonClass="ff-btn ff-btn--primary device-actions-dropdown"
+                >
+                    <CogIcon class="ff-btn--icon ff-btn--icon-left mr-0" />
+                </DropdownMenu>
+            </template>
+
+            <router-view
+                :device="device"
+                :instance="device?.instance"
+            />
+        </EditorDrawer>
+
+        <div class="ff-layout--immersive--content">
+            <EditorWrapper
+                :disable-events="isEditorResizing"
+                :device="device"
             />
 
-            <div class="header">
-                <div class="logo">
-                    <router-link
-                        v-if="device"
-                        title="Back to remote instance overview"
-                        :to="{ name: 'device-overview', params: {id: device.id} }"
-                    >
-                        <HomeIcon class="ff-btn--icon" style="width: 18px; height: 18px;" />
-                    </router-link>
-                </div>
-
-                <ff-tabs :tabs="navigation" class="tabs" />
-
-                <div class="side-actions">
-                    <DropdownMenu
-                        v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length"
-                        :options="actionsDropdownOptions"
-                        :button-style="{padding: '6px 9px'}"
-                        data-el="device-actions-dropdown"
-                        buttonClass="ff-btn ff-btn--primary device-actions-dropdown"
-                    >
-                        <CogIcon class="ff-btn--icon ff-btn--icon-left mr-0" />
-                    </DropdownMenu>
-
-                    <button
-                        title="Close drawer"
-                        type="button"
-                        class="close-drawer-button"
-                        aria-label="Close drawer"
-                        @click="toggleDrawer"
-                    >
-                        <XIcon class="ff-btn--icon" />
-                    </button>
-                </div>
-            </div>
-
-            <ff-page :no-padding="isExpertRoute">
-                <router-view
-                    :device="device"
-                    :instance="device?.instance"
-                />
-            </ff-page>
-        </section>
+            <DrawerTrigger
+                :is-hidden="editorImmersiveDrawer.open"
+                :side="editorImmersiveDrawer.side"
+                @toggle="toggleEditorImmersiveDrawer"
+            />
+        </div>
     </div>
 </template>
 
 <script>
-
-import { CogIcon, HomeIcon, XIcon } from '@heroicons/vue/solid/index.js'
-
+import { CogIcon } from '@heroicons/vue/solid/index.js'
 import { mapActions, mapState } from 'pinia'
 
 import DropdownMenu from '../../../components/DropdownMenu.vue'
-import ResizeBar from '../../../components/ResizeBar.vue'
 import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
 import DrawerTrigger from '../../../components/immersive-editor/DrawerTrigger.vue'
+import EditorDrawer from '../../../components/immersive-editor/EditorDrawer.vue'
 import EditorWrapper from '../../../components/immersive-editor/RemoteInstanceEditorWrapper.vue'
 import { useDeviceHelper } from '../../../composables/DeviceHelper.js'
-import { useDrawerHelper } from '../../../composables/DrawerHelper.js'
 import usePermissions from '../../../composables/Permissions.js'
-import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 import Alerts from '../../../services/alerts.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
-
-const DRAWER_DEFAULT_WIDTH = 550 // Default drawer width in pixels
-const DRAWER_MAX_VIEWPORT_MARGIN = 200 // Space to preserve when drawer is at max width
-const DRAWER_MAX_WIDTH_RATIO = 0.9 // Maximum drawer width as percentage of viewport (desktop)
-const DRAWER_MIN_WIDTH = 310 // Minimum drawer width in pixels
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'DeviceEditor',
     components: {
         CogIcon,
         DropdownMenu,
-        XIcon,
-        HomeIcon,
         DrawerTrigger,
-        ResizeBar,
+        EditorDrawer,
         EditorWrapper
     },
     setup () {
         const { hasPermission } = usePermissions()
-        const {
-            drawer,
-            toggleDrawer,
-            notifyDrawerState,
-            handleDrawerMouseEnter,
-            handleDrawerMouseLeave,
-            runInitialTease,
-            bindDrawer,
-            cleanup: cleanupDrawer
-        } = useDrawerHelper()
-
-        const {
-            startResize: startEditorResize,
-            widthStyle: editorWidthStyle,
-            bindResizer: bindDrawerResizer,
-            isResizing: isEditorResizing,
-            setEditorWidth: setDeviceEditorWidth
-        } = useResizingHelper()
 
         const {
             device,
@@ -140,19 +87,6 @@ export default {
 
         return {
             device,
-            drawer,
-            setDeviceEditorWidth,
-            editorWidthStyle,
-            isEditorResizing,
-            startEditorResize,
-            bindDrawerResizer,
-            toggleDrawer,
-            notifyDrawerState,
-            handleDrawerMouseEnter,
-            handleDrawerMouseLeave,
-            runInitialTease,
-            bindDrawer,
-            cleanupDrawer,
             hasPermission,
             restartDevice,
             bindDevice,
@@ -167,8 +101,14 @@ export default {
             getDeviceEditorProxy
         }
     },
+    data () {
+        return {
+            isEditorResizing: false
+        }
+    },
     computed: {
         ...mapState(useAccountSettingsStore, ['features', 'featuresCheck']),
+        ...mapState(useUxDrawersStore, ['editorImmersiveDrawer']),
         isExpertRoute () {
             return this.$route.name === 'device-editor-expert'
         },
@@ -236,6 +176,10 @@ export default {
                 }
             ]
         },
+        homeRoute () {
+            if (!this.device) return null
+            return { name: 'device-overview', params: { id: this.device.id } }
+        },
         permissionContext () {
             if (this.device?.ownerType === 'application' || this.device?.ownerType === 'instance') {
                 return { application: this.device.application }
@@ -269,7 +213,6 @@ export default {
 
             return result.filter(res => !res.hidden)
         }
-
     },
     watch: {
         '$route.name': 'handlePolling',
@@ -290,40 +233,17 @@ export default {
     },
     mounted () {
         this.loadDevice()
-            .then(() => {
-                this.bindDrawer({
-                    containerEl: this.$el,
-                    getInstance: () => this.device,
-                    setEditorWidth: this.setDeviceEditorWidth,
-                    defaultWidth: DRAWER_DEFAULT_WIDTH
-                })
-            })
-            .then(() => {
-                this.bindDrawerResizer({
-                    component: this.$refs.resizeTarget,
-                    initialWidth: DRAWER_DEFAULT_WIDTH,
-                    minWidth: DRAWER_MIN_WIDTH,
-                    maxViewportMarginX: DRAWER_MAX_VIEWPORT_MARGIN,
-                    maxWidthRatio: DRAWER_MAX_WIDTH_RATIO
-                })
-            })
-            .then(() => {
-                this.runInitialTease()
-            })
-            .catch(err => err)
     },
     unmounted () {
         this.stopPolling()
     },
     methods: {
         ...mapActions(useContextStore, { setContextDevice: 'setDevice' }),
+        ...mapActions(useUxDrawersStore, ['toggleEditorImmersiveDrawer']),
         loadDevice: async function () {
             let tries = 0
             let device = await this.fetchDevice(this.$route.params.id, false)
 
-            // When running multiple replicas of the forge app, the affinity token may be missing if the request is routed to a
-            // backend endpoint that didn't initiate the tunnel. If we receive a 502 from the device editor proxy,
-            // we retry the editor API call until the correct affinity token is acquired (200/302).
             while (tries <= 5) {
                 try {
                     await this.getDeviceEditorProxy(device)
@@ -331,14 +251,10 @@ export default {
                 } catch (e) {
                     if (e?.response?.status === 502) {
                         tries += 1
-
-                        // 1s interval timeout between tries
                         await new Promise(resolve => setTimeout(resolve, 1000))
-
                         device = await this.fetchDevice(this.$route.params.id, false)
                         continue
                     }
-
                     break
                 }
             }
