@@ -6,6 +6,7 @@ ARG KUBERNETES_DRIVER_TAG=nightly
 
 WORKDIR /build
 COPY package.json /build
+COPY package-lock.json /build
 COPY config/ /build/config/
 COPY frontend/ /build/frontend/
 COPY forge/ /build/forge/
