@@ -15,7 +15,8 @@ export const useProductExpertSupportAgentStore = defineStore('product-expert-sup
         sessionWarningShown: false,
         sessionExpiredShown: false,
         sessionCheckTimer: null,
-        mqttConnectionKey: `expert/${SUPPORT_AGENT}`
+        mqttConnectionKey: `expert/${SUPPORT_AGENT}`,
+        inFlightRequests: new Map()
     }),
     actions: {
         reset () {

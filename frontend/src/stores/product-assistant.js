@@ -3,6 +3,7 @@ import SemVer from 'semver'
 
 import messagingService from '@/services/post-message.service'
 import { useContextStore } from '@/stores/context.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 
 const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep
 
@@ -266,6 +267,15 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             if (!this.allowedInboundOrigins.includes(payload.origin)) {
                 console.warn('Received message from unknown origin. Ignoring.')
                 return
+            }
+
+            // todo define how we receive the transaction id back
+            if (payload.data.transactionId) {
+                const expertStore = useProductExpertStore()
+                await expertStore.handleAgentReply({
+                    transactionId: payload.data.transactionId,
+                    response: payload
+                })
             }
 
             switch (true) {

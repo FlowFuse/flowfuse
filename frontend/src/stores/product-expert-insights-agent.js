@@ -19,7 +19,8 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
         sessionCheckTimer: null,
         capabilityServers: [],
         selectedCapabilities: [],
-        mqttConnectionKey: `expert/${INSIGHTS_AGENT}`
+        mqttConnectionKey: `expert/${INSIGHTS_AGENT}`,
+        inFlightRequests: new Map()
     }),
     getters: {
         capabilities: (state) => state.capabilityServers.map(c => ({

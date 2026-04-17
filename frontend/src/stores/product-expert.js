@@ -17,7 +17,6 @@ import { useUxDrawersStore } from './ux-drawers.js'
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
 
 import getServicesOrchestrator from '@/services/service.orchestrator'
-import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 // TODO currently hardcodded
 const IS_MQTT_ENABLED = true
@@ -33,6 +32,11 @@ export const useProductExpertStore = defineStore('product-expert', {
             return this.agentMode === SUPPORT_AGENT
                 ? useProductExpertSupportAgentStore()
                 : useProductExpertInsightsAgentStore()
+        },
+        _inFlightRequests () {
+            return this.agentMode === SUPPORT_AGENT
+                ? useProductExpertSupportAgentStore().inFlightRequests
+                : useProductExpertInsightsAgentStore().inFlightRequests
         },
         abortController () { return this._agentStore.abortController },
         messages () { return this._agentStore.messages },
@@ -102,40 +106,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                     })
                 })
         },
-
-        openAssistantDrawer (options = {}) {
-            const featuresCheck = useAccountSettingsStore().featuresCheck
-            if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
-
-            useProductExpertInsightsAgentStore().getCapabilities()
-            // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
-            return import('../components/drawers/expert/ExpertDrawer.vue')
-                .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({
-                    component: markRaw(ExpertDrawer),
-                    fixed: options?.openPinned === true,
-                    closeOnClickOutside: options?.openPinned !== true
-                }))
-        },
-
-        wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
-            if (this.shouldWakeUpAssistant) {
-                const featuresCheck = useAccountSettingsStore().featuresCheck
-                if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
-
-                this.clearWakeUp()
-
-                if (shouldHydrateMessages) {
-                    this.hydrateMessages(this._agentStore.context)
-                }
-
-                this.loadingVariant = 'transfer'
-
-                return this.openAssistantDrawer({ openPinned: useUxDrawersStore().rightDrawer.expertState.pinned })
-                    .then(() => this.hydrateClient())
-                    .then(() => { this.loadingVariant = this.agentMode })
-            }
-        },
-
         async handleQuery ({ query }) {
             const agentStore = this._agentStore
 
@@ -169,40 +139,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 agentStore.abortController = null
             }
         },
-
-        async handleMessageResponse (response) {
-            if (response.answer && Array.isArray(response.answer)) {
-                this.addAiMessage(response)
-            }
-        },
-
-        async startOver () {
-            const agentStore = this._agentStore
-            agentStore.sessionId = uuidv4()
-            agentStore.messages = []
-
-            // Reset session timing
-            this.resetSessionTimer()
-            this.startSessionTimer()
-
-            // Clear resource selection
-            const insightsStore = useProductExpertInsightsAgentStore()
-            insightsStore.setSelectedCapabilities([])
-            await insightsStore.getCapabilities()
-
-            // Add welcome message for current mode
-            this.addWelcomeMessageIfNeeded()
-        },
-
-        setAbortController (controller) {
-            this._agentStore.abortController = controller ? markRaw(controller) : null
-        },
-
-        reset () {
-            this._agentStore.reset()
-            this.$reset()
-        },
-
         sendQuery ({ query }) {
             if (IS_MQTT_ENABLED && this.isSupportAgent) {
                 return this.handleMqttQuery({ query })
@@ -210,7 +146,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 return this.sendHttpQuery({ query })
             }
         },
-
         async sendHttpQuery ({ query }) {
             const agentStore = this._agentStore
             const payload = {
@@ -229,7 +164,6 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             return expertApi.chat(payload)
         },
-
         async handleMqttQuery ({ query }) {
             const servicesOrchestrator = getServicesOrchestrator()
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
@@ -237,6 +171,9 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             const transactionId = uuidv4()
             const mqttConnectionKey = this.mqttConnectionKey
+
+            // add the query as an inFlight request
+            this._inFlightRequests.set(transactionId, { query })
 
             if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
             const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
@@ -248,8 +185,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 topicType: 'chat',
                 topicAction: 'request'
             })
-
-            console.log('publishing to topic: ', topic)
 
             return mqttService.publishMessage(mqttConnectionKey, {
                 topic,
@@ -267,12 +202,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             })
         },
-
         async establishMqttComms () {
             const servicesOrchestrator = getServicesOrchestrator()
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
-            const authStore = useAccountAuthStore()
-            const assistantStore = useProductAssistantStore()
+            const topicHelper = useMqttExpertTopicHelper()
 
             // todo remove, dev only
             window.qwe = mqttService
@@ -280,77 +213,22 @@ export const useProductExpertStore = defineStore('product-expert', {
             await mqttService.createClient(this.mqttConnectionKey, {
                 getCredentials: () => userApi.initiateExpertChat({ sessionId: this.sessionId }),
                 onMessage: async (topic, message, packet) => {
-                    const isChatReply = topic.endsWith('/support/chat/response')
-                    const isToolRequest = topic.includes('/support/tool/') && topic.endsWith('/request')
-                    if (isChatReply) {
+                    const parsedTopic = topicHelper.destructureTopic(topic)
+                    const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
+
+                    if (parsedTopic.isReply) {
+                        // remove inFlight request because it is now resolved
+                        this._inFlightRequests.delete(transactionId)
+
+                        // handle the response
                         await this.handleMessageResponse(JSON.parse(message.toString()))
-                    } else if (isToolRequest) {
-                        const msg = JSON.parse(message.toString())
-
-                        const userId = authStore.user.id
-                        const sessionId = this.sessionId
-                        const split = topic.split('/')
-                        const thingType = split[5] // d (device) or p (instance)
-                        const thingId = split[6] // the id of the device or instance
-                        const tool = split.at(-2) // the name of the tool
-                        const responseTopic = `ff/v1/expert/${userId}/${sessionId}/${thingType}/${thingId}/support/tool/${tool}/response`
-                        const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
-
-                        const pushToToolCalls = (kind, message, params) => {
-                            // push result to last message's toolCalls
-                            const messages = this._agentStore.messages
-                            const latestMessage = messages.at(-1)
-                            // Initialize toolCalls array if it doesn't exist
-                            if (!latestMessage.toolCalls2) {
-                                latestMessage.toolCalls2 = []
-                            }
-                            // Push the postMessagePayload into it
-                            latestMessage.toolCalls2.push({
-                                kind,
-                                message,
-                                params
-                            })
-                        }
-
-                        if (tool === 'expert:status-message') {
-                            // this is just a status from the agent, we can ignore it for now, but we might want to display it in the UI later
-                            console.log('Received status message from agent:', msg)
-                            pushToToolCalls('status', msg.payload.status)
-                            // just ack the msg
-                            console.log('publishing response to', responseTopic)
-                            await mqttService.publishMessage(this.mqttConnectionKey, {
-                                qos: 2,
-                                topic: responseTopic,
-                                payload: JSON.stringify({
-                                    ack: true
-                                }),
-                                correlationData: new TextEncoder().encode(transactionId),
-                                userProperties: { sessionId }
-                            })
-                        } else if (tool.startsWith('automation:')) {
-                            // thi is an automation request, we want to execute it and return the result to the agent
-                            const postMessagePayload = {
-                                action: tool.replace('automation:', 'automation/'),
-                                params: msg.payload?.params || {}
-                            }
-
-                            // push result to last message's toolCalls
-                            pushToToolCalls('automation', `Calling action '${postMessagePayload.action}'`, postMessagePayload.params)
-
-                            // const res = await dispatch('product/assistant/invokeAction', postMessagePayload, { root: true })
-                            const res = assistantStore.invokeAction(postMessagePayload)
-
-                            await mqttService.publishMessage(this.mqttConnectionKey, {
-                                qos: 2,
-                                topic: responseTopic,
-                                payload: JSON.stringify({
-                                    ack: true,
-                                    ...res
-                                }),
-                                correlationData: new TextEncoder().encode(transactionId),
-                                userProperties: { sessionId }
-                            })
-                        }
+                    } else if (parsedTopic.isInflightRequest) {
+                        await this.handleInFlightRequest({
+                            topic,
+                            message,
+                            packet,
+                            transactionId
+                        })
                     }
                 },
                 onClose: () => {
@@ -430,7 +308,140 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             })
         },
+        async handleInFlightRequest ({ topic, message, packet, transactionId }) {
+            const servicesOrchestrator = getServicesOrchestrator()
+            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
 
+            const assistantStore = useProductAssistantStore()
+
+            const topicHelper = useMqttExpertTopicHelper()
+            const parsedTopic = topicHelper.destructureTopic(topic)
+
+            const msg = JSON.parse(message.toString())
+            const sessionId = this.sessionId
+
+            if (parsedTopic.tool === 'expert:status-message') {
+                const responseTopic = topicHelper.topicBuilder({
+                    entityType: parsedTopic.entityType,
+                    entityId: parsedTopic.entityId,
+                    agentChannel: 'support',
+                    topicType: 'inflight',
+                    topicAction: 'response'
+                })
+
+                // this is just a status from the agent, we can ignore it for now, but we might want to display it in the UI later
+                // just ack the msg
+                // todo do we need it?
+                await mqttService.publishMessage(this.mqttConnectionKey, {
+                    qos: 2,
+                    topic: responseTopic,
+                    payload: JSON.stringify({
+                        ack: true
+                    }),
+                    correlationData: new TextEncoder().encode(transactionId),
+                    userProperties: { sessionId }
+                })
+            } else if (parsedTopic.tool.startsWith('automation:')) {
+                // thi is an automation request, we want to execute it and return the result to the agent
+                const postMessagePayload = {
+                    action: parsedTopic.tool.replace('automation:', 'automation/'),
+                    params: msg.payload?.params || {},
+                    userProperties: { sessionId },
+                    transactionId
+                }
+
+                // adding the inFlightRequest to the queue because the message is passed along to the nr-assistant
+                this._inFlightRequests.set(transactionId, { topic, message, packet, postMessagePayload })
+
+                await assistantStore.invokeAction(postMessagePayload)
+            }
+        },
+        async handleAgentReply ({ transactionId, response }) {
+            if (!this._inFlightRequests.has(transactionId)) return false
+
+            const servicesOrchestrator = getServicesOrchestrator()
+            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const topicHelper = useMqttExpertTopicHelper()
+
+            const originalTopic = topicHelper.destructureTopic()
+            const replyTopic = topicHelper.topicBuilder({
+                entityType: originalTopic.entityType,
+                entityId: originalTopic.entityId,
+                agentChannel: 'support',
+                topicType: 'inflight',
+                topicAction: 'response'
+            })
+
+            await mqttService.publishMessage(this.mqttConnectionKey, {
+                qos: 2,
+                topic: replyTopic,
+                payload: JSON.stringify(response),
+                correlationData: new TextEncoder().encode(transactionId),
+                userProperties: { sessionId: this.sessionId }
+            })
+
+            this._inFlightRequests.delete(transactionId)
+        },
+        async handleMessageResponse (response) {
+            if (response.answer && Array.isArray(response.answer)) {
+                this.addAiMessage(response)
+            }
+        },
+        async startOver () {
+            const agentStore = this._agentStore
+            agentStore.sessionId = uuidv4()
+            agentStore.messages = []
+
+            // Reset session timing
+            this.resetSessionTimer()
+            this.startSessionTimer()
+
+            // Clear resource selection
+            const insightsStore = useProductExpertInsightsAgentStore()
+            insightsStore.setSelectedCapabilities([])
+            await insightsStore.getCapabilities()
+
+            // Add welcome message for current mode
+            this.addWelcomeMessageIfNeeded()
+        },
+        openAssistantDrawer (options = {}) {
+            const featuresCheck = useAccountSettingsStore().featuresCheck
+            if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+
+            useProductExpertInsightsAgentStore().getCapabilities()
+            // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
+            return import('../components/drawers/expert/ExpertDrawer.vue')
+                .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({
+                    component: markRaw(ExpertDrawer),
+                    fixed: options?.openPinned === true,
+                    closeOnClickOutside: options?.openPinned !== true
+                }))
+        },
+        wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
+            if (this.shouldWakeUpAssistant) {
+                const featuresCheck = useAccountSettingsStore().featuresCheck
+                if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+
+                this.clearWakeUp()
+
+                if (shouldHydrateMessages) {
+                    this.hydrateMessages(this._agentStore.context)
+                }
+
+                this.loadingVariant = 'transfer'
+
+                return this.openAssistantDrawer({ openPinned: useUxDrawersStore().rightDrawer.expertState.pinned })
+                    .then(() => this.hydrateClient())
+                    .then(() => { this.loadingVariant = this.agentMode })
+            }
+        },
+        setAbortController (controller) {
+            this._agentStore.abortController = controller ? markRaw(controller) : null
+        },
+        reset () {
+            this._agentStore.reset()
+            this.$reset()
+        },
         addWelcomeMessageIfNeeded () {
             const currentMode = this.agentMode
             const hasMessages = this._agentStore.messages.length > 0
@@ -461,7 +472,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 this.addPredefinedAiMessage(message)
             }
         },
-
         // Session timing actions
         startSessionTimer () {
             const agentStore = this._agentStore
@@ -503,7 +513,6 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             agentStore.setSessionCheckTimer(timer)
         },
-
         resetSessionTimer () {
             const agentStore = this._agentStore
             if (agentStore.sessionCheckTimer) {
@@ -514,7 +523,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.sessionWarningShown = false
             agentStore.sessionExpiredShown = false
         },
-
         /**
          *
          * @param {'support-agent' | 'insights-agent'} mode
@@ -524,7 +532,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             this.agentMode = mode
             this.loadingVariant = mode
         },
-
         /**
          * Adds a system message to the application's message store.
          *
@@ -542,7 +549,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 _uuid: uuidv4()
             })
         },
-
         addPredefinedAiMessage (message) {
             this._agentStore.messages.push({
                 _type: 'ai',
@@ -552,7 +558,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 _uuid: uuidv4()
             })
         },
-
         addAiMessage (message) {
             const answer = message.answer
                 ? message.answer.map(a => ({ ...a, _uuid: uuidv4(), _streamed: false }))
@@ -566,7 +571,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 _uuid: uuidv4()
             })
         },
-
         addUserMessage (message) {
             this._agentStore.messages.push({
                 _type: 'human',
@@ -575,7 +579,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 _uuid: uuidv4()
             })
         },
-
         updateMessageStreamedState (uuid) {
             let message = useProductExpertSupportAgentStore().messages.find(m => m._uuid === uuid)
             if (!message) {
@@ -585,7 +588,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 message._streamed = true
             }
         },
-
         updateAnswerStreamedState ({ messageUuid, answerUuid }) {
             let message = useProductExpertSupportAgentStore().messages.find(m => m._uuid === messageUuid)
             if (!message) {
@@ -598,7 +600,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
         },
-
         hydrateMessages (messages) {
             if (!messages) return
             messages.forEach((message) => {

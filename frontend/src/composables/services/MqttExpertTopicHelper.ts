@@ -67,6 +67,7 @@ export function useMqttExpertTopicHelper () {
         }
     }
 
+    // todo rename to buildTopic
     function topicBuilder (options?: TopicBuilderOptions): string {
         const { entityType, entityId, agentChannel, topicType, topicAction } = options ?? {}
 
@@ -101,6 +102,7 @@ export function useMqttExpertTopicHelper () {
         ].join('/')
     }
 
+    // todo rename to parseTopic
     function destructureTopic (topic: string): DestructuredTopic {
         if (!topic || topic.length === 0) throw new Error(`Invalid topic received: "${topic}"`)
 
