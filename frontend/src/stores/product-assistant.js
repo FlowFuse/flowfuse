@@ -3,6 +3,7 @@ import SemVer from 'semver'
 
 import getServicesOrchestrator from '@/services/service.orchestrator'
 import { useContextStore } from '@/stores/context.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 
 const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep
 
@@ -160,8 +161,16 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         editorState: { ...buildInitialEditorState() }
     }),
     getters: {
-        immersiveInstance: () => useContextStore().instance,
-        immersiveDevice: () => useContextStore().device,
+        immersiveInstance: () => {
+            const contextStore = useContextStore()
+
+            return contextStore.instance && contextStore.isImmersive
+        },
+        immersiveDevice: () => {
+            const contextStore = useContextStore()
+
+            return contextStore.device && contextStore.isImmersive
+        },
         hasUserSelection: (state) => state.selectedNodes.length > 0,
         hasContextSelection: (state) => state.selectedContext.length > 0,
         hasDebugLogsSelected () {
@@ -258,6 +267,15 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             if (!this.allowedInboundOrigins.includes(payload.origin)) {
                 console.warn('Received message from unknown origin. Ignoring.')
                 return
+            }
+
+            // todo define how we receive the transaction id back
+            if (payload.data.transactionId) {
+                const expertStore = useProductExpertStore()
+                await expertStore.handleAgentReply({
+                    transactionId: payload.data.transactionId,
+                    response: payload
+                })
             }
 
             switch (true) {
@@ -440,11 +458,13 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         resetContextSelection () {
             this.selectedContext = this.availableContextOptions
         },
-        async invokeAction ({ action, params }) {
+        async invokeAction ({ action, params, userProperties, transactionId }) {
             return this.sendMessage({
                 type: 'invoke-action',
                 action,
-                params
+                params,
+                userProperties,
+                transactionId
             })
         },
         async sendFlowsToImport (flowsJson) {
@@ -478,6 +498,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         },
         sendMessage (payload) {
             const orchestrator = getServicesOrchestrator()
+            const contextStore = useContextStore()
 
             orchestrator.$serviceInstances.postMessage.sendMessage({
                 message: {
@@ -485,7 +506,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                     ...this.scope
                 },
                 target: window.frames['immersive-editor-iframe'],
-                targetOrigin: this.immersiveInstance?.url
+                targetOrigin: (contextStore.instance || contextStore.device)?.url
             })
         }
     }

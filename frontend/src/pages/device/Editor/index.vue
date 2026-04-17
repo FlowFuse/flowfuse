@@ -277,7 +277,6 @@ export default {
             deep: true,
             handler (device) {
                 if (device && this.isEditorAvailable) {
-                    this.setContextDevice(device)
                     this.bindDevice(device, true)
                     this.handlePolling()
                 } else {
@@ -310,13 +309,17 @@ export default {
             .then(() => {
                 this.runInitialTease()
             })
+            .then(() => this.setIsImmersive(true))
             .catch(err => err)
+    },
+    beforeUnmount () {
+        this.setIsImmersive(false)
     },
     unmounted () {
         this.stopPolling()
     },
     methods: {
-        ...mapActions(useContextStore, { setContextDevice: 'setDevice' }),
+        ...mapActions(useContextStore, ['setIsImmersive']),
         loadDevice: async function () {
             let tries = 0
             let device = await this.fetchDevice(this.$route.params.id, false)
