@@ -30,7 +30,7 @@ interface ParsedTopic {
     agentChannel: 'support' | 'insights' | string
     topicType: string | 'chat' | 'inflight' | null
     topicAction: string | 'request' | 'response' | null
-    tool: string | null
+    inflightType: string | null
 }
 
 interface BuildTopicOptions {
@@ -38,7 +38,8 @@ interface BuildTopicOptions {
     entityId?: string | null
     agentChannel?: AgentChannel
     topicType?: TopicType
-    topicAction?: TopicAction
+    topicAction?: TopicAction,
+    inflightType?: string | null
 }
 
 export function useMqttExpertTopicHelper () {
@@ -71,7 +72,7 @@ export function useMqttExpertTopicHelper () {
     }
 
     function buildTopic (options?: BuildTopicOptions): string {
-        const { entityType, entityId, agentChannel, topicType, topicAction } = options ?? {}
+        const { entityType, entityId, agentChannel, topicType, topicAction, inflightType } = options ?? {}
 
         if (!entityType) throw new Error('Topic "entityType" is mandatory')
         if (!entityId) throw new Error('Topic "entityId" is mandatory')
@@ -100,8 +101,10 @@ export function useMqttExpertTopicHelper () {
             entityId,
             agentChannel,
             topicType,
+            inflightType,
             topicAction
-        ].join('/')
+        ]
+            .filter(str => str).join('/')
     }
 
     function parseTopic (topic: string): ParsedTopic {
@@ -123,7 +126,7 @@ export function useMqttExpertTopicHelper () {
             agentChannel: split[7],
             topicType: split[8],
             topicAction: split.at(-1),
-            tool: inflightRequest ? split.at(-2) ?? null : null
+            inflightType: inflightRequest ? split.at(-2) ?? null : null
         }
     }
 

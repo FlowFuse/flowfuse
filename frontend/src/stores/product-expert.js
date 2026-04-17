@@ -249,32 +249,45 @@ export const useProductExpertStore = defineStore('product-expert', {
                         { qos: 2 }
                     )
 
-                    // todo investigate why subscribing to the inflight topic fails
-                    // mqttService.subscribe(
-                    //     this.mqttConnectionKey,
-                    //     mqttTopicHelper.buildTopic({
-                    //         entityType: '+',
-                    //         entityId: '+',
-                    //         agentChannel: 'support',
-                    //         topicType: 'inflight',
-                    //         topicAction: 'request'
-                    //     }),
-                    //     { qos: 2 }
-                    // )
+                    mqttService.subscribe(
+                        this.mqttConnectionKey,
+                        mqttTopicHelper.buildTopic({
+                            entityType: '+',
+                            entityId: '+',
+                            agentChannel: 'support',
+                            topicType: 'inflight',
+                            topicAction: 'request',
+                            inflightType: '+'
+                        }),
+                        { qos: 2 }
+                    )
 
                     // whenever the sessionId changes, we need to unsubscribe from previous topics and subscribe to the
                     // new ones based off of the new sessionId
                     watch(
                         () => this._agentStore.sessionId,
-                        () => {
+                        async () => {
                             if (!mqttService.hasClient(this.mqttConnectionKey)) return
 
-                            const managedClient = mqttService.getManagedClient(this.mqttConnectionKey)
-                            managedClient.subscriptions.forEach(subscription => {
-                                mqttService.unsubscribe(this.mqttConnectionKey, subscription.topic)
-                            })
+                            const timerHelper = useTimerHelper()
+                            await mqttService.destroyClient(this.mqttConnectionKey)
 
-                            mqttService.subscribe(
+                            // todo extract all hooks into atomic methods and prevent this recursion from happening
+                            //  good enough for demo purposes
+                            await this.establishMqttComms()
+                            // todo also, getting required creds fails from time to time because we're creating the client
+                            //  before the backend successfully remove the old one
+
+                            const managedClient = mqttService.getManagedClient(this.mqttConnectionKey)
+
+                            await timerHelper.waitWhile(
+                                () => ['connected'].includes(managedClient.status),
+                                { intervalMs: 200, cutoffTries: 50 }
+                            )
+
+                            await new Promise(resolve => setTimeout(resolve, 5000))
+
+                            await mqttService.subscribe(
                                 this.mqttConnectionKey,
                                 mqttTopicHelper.buildTopic({
                                     entityType: '+',
@@ -285,18 +298,18 @@ export const useProductExpertStore = defineStore('product-expert', {
                                 }),
                                 { qos: 2 }
                             )
-                            // todo investigate why subscribing to the inflight topic fails
-                            // mqttService.subscribe(
-                            //     this.mqttConnectionKey,
-                            //     mqttTopicHelper.buildTopic({
-                            //         entityType: '+',
-                            //         entityId: '+',
-                            //         agentChannel: 'support',
-                            //         topicType: 'inflight',
-                            //         topicAction: 'request'
-                            //     }),
-                            //     { qos: 2 }
-                            // )
+                            await mqttService.subscribe(
+                                this.mqttConnectionKey,
+                                mqttTopicHelper.buildTopic({
+                                    entityType: '+',
+                                    entityId: '+',
+                                    agentChannel: 'support',
+                                    topicType: 'inflight',
+                                    topicAction: 'request',
+                                    inflightType: '+'
+                                }),
+                                { qos: 2 }
+                            )
                         }
                     )
                 },
@@ -320,13 +333,14 @@ export const useProductExpertStore = defineStore('product-expert', {
             const msg = JSON.parse(message.toString())
             const sessionId = this.sessionId
 
-            if (parsedTopic.tool === 'expert:status-message') {
+            if (parsedTopic.inflightType === 'expert:status-message') {
                 const responseTopic = topicHelper.buildTopic({
                     entityType: parsedTopic.entityType,
                     entityId: parsedTopic.entityId,
                     agentChannel: 'support',
                     topicType: 'inflight',
-                    topicAction: 'response'
+                    topicAction: 'response',
+                    inflightType: parsedTopic.inflightType
                 })
 
                 // this is just a status from the agent, we can ignore it for now, but we might want to display it in the UI later
@@ -341,10 +355,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                     correlationData: new TextEncoder().encode(transactionId),
                     userProperties: { sessionId }
                 })
-            } else if (parsedTopic.tool.startsWith('automation:')) {
+            } else if (parsedTopic.inflightType.startsWith('automation:')) {
                 // thi is an automation request, we want to execute it and return the result to the agent
                 const postMessagePayload = {
-                    action: parsedTopic.tool.replace('automation:', 'automation/'),
+                    action: parsedTopic.inflightType.replace('automation:', 'automation/'),
                     params: msg.payload?.params || {},
                     userProperties: { sessionId },
                     transactionId
@@ -363,19 +377,23 @@ export const useProductExpertStore = defineStore('product-expert', {
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
             const topicHelper = useMqttExpertTopicHelper()
 
-            const originalTopic = topicHelper.parseTopic()
+            const originalInFlightRequest = this._inFlightRequests.get(transactionId)
+            const originalTopic = topicHelper.parseTopic(originalInFlightRequest.topic)
             const replyTopic = topicHelper.buildTopic({
                 entityType: originalTopic.entityType,
                 entityId: originalTopic.entityId,
                 agentChannel: 'support',
                 topicType: 'inflight',
-                topicAction: 'response'
+                topicAction: 'response',
+                inflightType: originalTopic.inflightType
             })
+
+            const payload = JSON.stringify(response.data)
 
             await mqttService.publishMessage(this.mqttConnectionKey, {
                 qos: 2,
                 topic: replyTopic,
-                payload: JSON.stringify(response),
+                payload,
                 correlationData: new TextEncoder().encode(transactionId),
                 userProperties: { sessionId: this.sessionId }
             })

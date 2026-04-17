@@ -458,11 +458,13 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         resetContextSelection () {
             this.selectedContext = this.availableContextOptions
         },
-        async invokeAction ({ action, params }) {
+        async invokeAction ({ action, params, userProperties, transactionId }) {
             return this.sendMessage({
                 type: 'invoke-action',
                 action,
-                params
+                params,
+                userProperties,
+                transactionId
             })
         },
         async sendFlowsToImport (flowsJson) {
