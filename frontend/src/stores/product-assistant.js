@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import SemVer from 'semver'
 
-import messagingService from '@/services/post-message.service'
+import getServicesOrchestrator from '@/services/service.orchestrator'
 import { useContextStore } from '@/stores/context.js'
 
 const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep
@@ -477,8 +477,9 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             })
         },
         sendMessage (payload) {
-            const service = messagingService()
-            return service.sendMessage({
+            const orchestrator = getServicesOrchestrator()
+
+            orchestrator.$serviceInstances.postMessage.sendMessage({
                 message: {
                     ...payload,
                     ...this.scope
