@@ -503,7 +503,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                     reject(error)
                 }
                 pending.timeout = setTimeout(() => {
-                    pending.reject(new Error('Command timed out'))
+                    pending.reject(new Error('Node-RED command timed out'))
                 }, timeout)
             })
             const correlationId = `${sessionId}:${chatTransactionId}:${transactionId}`

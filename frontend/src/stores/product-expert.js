@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { v4 as uuidv4 } from 'uuid'
-import { markRaw, watch } from 'vue'
+import { UnwrapRef, markRaw, watch } from 'vue'
 
 import expertApi from '../api/expert.js'
 import userApi from '../api/user.js'
@@ -25,7 +25,8 @@ export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
         agentMode: SUPPORT_AGENT, // support-agent or insights-agent
         loadingVariant: SUPPORT_AGENT,
-        shouldWakeUpAssistant: false
+        shouldWakeUpAssistant: false,
+        inFlightUpdates: []
     }),
     getters: {
         _agentStore () {
@@ -33,6 +34,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                 ? useProductExpertSupportAgentStore()
                 : useProductExpertInsightsAgentStore()
         },
+        /**
+         * @return {UnwrapRef<Map<unknown, unknown> | Map<any, any>>|UnwrapRef<Map<unknown, unknown> | Map<any, any>>}
+         * @private
+         */
         _inFlightRequests () {
             return this.agentMode === SUPPORT_AGENT
                 ? useProductExpertSupportAgentStore().inFlightRequests
@@ -42,7 +47,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         messages () { return this._agentStore.messages },
         hasMessages () { return this._agentStore.messages.length > 0 },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
-        isWaitingForResponse () { return !!this._agentStore.abortController },
+        isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 },
         isSupportAgent: (state) => state.agentMode === SUPPORT_AGENT,
         isInsightsAgent: (state) => state.agentMode === INSIGHTS_AGENT,
         hasSelectedCapabilities () {
@@ -226,6 +231,8 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             const payload = JSON.parse(message.toString())
 
+            this._addInFlightUpdate(payload.toolname)
+
             const responseTopic = topicHelper.buildTopic({
                 entityType: parsedTopic.entityType,
                 entityId: parsedTopic.entityId,
@@ -260,14 +267,18 @@ export const useProductExpertStore = defineStore('product-expert', {
                     transactionId // the incoming MQTT transaction (not the original chat transaction - we store that in userProperties)
                 }
 
-                const result = await assistantStore.invokeActionAwaitResponse(postMessagePayload)
-                await mqttService.publishMessage(this.mqttConnectionKey, {
-                    qos: 2,
-                    topic: responseTopic,
-                    payload: JSON.stringify(result),
-                    correlationData: new TextEncoder().encode(transactionId),
-                    userProperties: { sessionId, transactionId: chatTransactionId } // pass through for integrity
-                })
+                try {
+                    const result = await assistantStore.invokeActionAwaitResponse(postMessagePayload)
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                        qos: 2,
+                        topic: responseTopic,
+                        payload: JSON.stringify(result),
+                        correlationData: new TextEncoder().encode(transactionId),
+                        userProperties: { sessionId, transactionId: chatTransactionId } // pass through for integrity
+                    })
+                } catch (e) {
+                    this._onMqttError(e)
+                }
             }
         },
         async handleMessageResponse (response) {
@@ -653,7 +664,18 @@ export const useProductExpertStore = defineStore('product-expert', {
             // TODO add error message
         },
         _onMqttError (e) {
-            // TODO add error message
+            this._inFlightRequests.clear()
+            this._clearInFlightUpdates()
+            this.addPredefinedAiMessage(`Something went wrong.. ${e.message}`)
+            // TODO, by this point we might even ignore any other inflight requests which might be in the pipeline, but
+            //  that has to be done from somewhere else.. maybe we should ignore all inflight requests if their original
+            //  correlationId doesn't match the initial correlationId sent out on the query
+        },
+        _addInFlightUpdate (status) {
+            this.inFlightUpdates.push(status)
+        },
+        _clearInFlightUpdates () {
+            this.inFlightUpdates = []
         }
     },
     persist: {
