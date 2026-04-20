@@ -3,7 +3,6 @@ import SemVer from 'semver'
 
 import getServicesOrchestrator from '@/services/service.orchestrator'
 import { useContextStore } from '@/stores/context.js'
-import { useProductExpertStore } from '@/stores/product-expert.js'
 
 const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep
 
@@ -270,13 +269,17 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                 return
             }
 
-            // todo define how we receive the transaction id back
-            if (payload.data.transactionId) {
-                const expertStore = useProductExpertStore()
-                await expertStore.handleAgentReply({
-                    transactionId: payload.data.transactionId,
-                    response: payload
-                })
+            const payloadData = payload.data || {}
+            if (payloadData.correlationId && payloadData.type === 'invoke-action') {
+                const { correlationId } = payloadData
+                const inflight = this.pendingRequests.get(correlationId)
+                if (inflight) {
+                    console.debug('Received response for in-flight request:', { correlationId, originalRequest: inflight.postMessagePayload, response: payloadData })
+                    inflight.resolve(payloadData)
+                    this.pendingRequests.delete(correlationId)
+                } else {
+                    console.warn('Received response with correlationId that does not match any in-flight requests. Ignoring.', { correlationId, response: payloadData })
+                }
             }
 
             switch (true) {
@@ -459,14 +462,59 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         resetContextSelection () {
             this.selectedContext = this.availableContextOptions
         },
-        async invokeAction ({ action, params, userProperties, transactionId }) {
+        async invokeAction ({ action, params }) {
             return this.sendMessage({
                 type: 'invoke-action',
                 action,
-                params,
-                userProperties,
-                transactionId
+                params
             })
+        },
+        async invokeActionAwaitResponse ({ action, params, sessionId, transactionId, chatTransactionId }, timeout = 1000) {
+            // create a promise that will resolve when we receive a response with the matching sessionId and transactionId, or reject after a timeout
+            const pending = {
+                resolve: null,
+                reject: null,
+                resolved: false,
+                rejected: false,
+                timeout: null,
+                timestamp: Date.now(),
+                type: 'invoke-action',
+                action,
+                params,
+                sessionId,
+                transactionId,
+                chatTransactionId
+            }
+            const promise = new Promise((resolve, reject) => {
+                pending.resolve = (payload) => {
+                    clearTimeout(pending.timeout)
+                    this.pendingRequests.delete(pending.transactionId)
+                    if (pending.resolved) return
+                    if (pending.rejected) return
+                    pending.resolved = true
+                    resolve(payload)
+                }
+                pending.reject = (error) => {
+                    clearTimeout(pending.timeout)
+                    this.pendingRequests.delete(pending.transactionId)
+                    if (pending.resolved) return
+                    if (pending.rejected) return
+                    pending.rejected = true
+                    reject(error)
+                }
+                pending.timeout = setTimeout(() => {
+                    pending.reject(new Error('Command timed out'))
+                }, timeout)
+            })
+            const correlationId = `${sessionId}:${chatTransactionId}:${transactionId}`
+            this.pendingRequests.set(correlationId, pending)
+            this.sendMessage({
+                type: 'invoke-action',
+                action,
+                params,
+                correlationId // post Message Correlation Id
+            })
+            return promise
         },
         async sendFlowsToImport (flowsJson) {
             return this.sendMessage({
