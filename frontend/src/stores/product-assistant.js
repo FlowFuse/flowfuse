@@ -158,7 +158,8 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         // debugLog getter which gates the feature flag. Use this.debugLogEntries
         // internally; external consumers should read this.debugLog (the getter).
         debugLogEntries: [],
-        editorState: { ...buildInitialEditorState() }
+        editorState: { ...buildInitialEditorState() },
+        pendingRequests: new Map() // key is transactionId, value is { resolve, reject, timeout, timestamp, type, action, params }
     }),
     getters: {
         immersiveInstance: () => {
