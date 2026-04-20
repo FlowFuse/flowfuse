@@ -205,124 +205,14 @@ export const useProductExpertStore = defineStore('product-expert', {
         async establishMqttComms () {
             const servicesOrchestrator = getServicesOrchestrator()
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
-            const topicHelper = useMqttExpertTopicHelper()
-
-            // todo remove, dev only
-            window.qwe = mqttService
 
             await mqttService.createClient(this.mqttConnectionKey, {
                 getCredentials: () => userApi.initiateExpertChat({ sessionId: this.sessionId }),
-                onMessage: async (topic, message, packet) => {
-                    const parsedTopic = topicHelper.parseTopic(topic)
-                    const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
-                    const sessionId = packet.properties?.userProperties?.sessionId // chat session
-                    const chatTransactionId = packet.properties?.userProperties?.transactionId // passed through for integrity
-
-                    if (parsedTopic.isReply) {
-                        // remove inFlight request because it is now resolved
-                        this._inFlightRequests.delete(transactionId)
-
-                        // handle the response
-                        await this.handleMessageResponse(JSON.parse(message.toString()))
-                    } else if (parsedTopic.isInflightRequest) {
-                        await this.handleInFlightRequest({
-                            topic,
-                            message,
-                            packet,
-                            transactionId,
-                            sessionId,
-                            chatTransactionId
-                        })
-                    }
-                },
-                onClose: () => {
-                    // TODO add error message
-                },
-                onConnect: () => {
-                    const mqttTopicHelper = useMqttExpertTopicHelper()
-
-                    mqttService.subscribe(
-                        this.mqttConnectionKey,
-                        mqttTopicHelper.buildTopic({
-                            entityType: '+',
-                            entityId: '+',
-                            agentChannel: 'support',
-                            topicType: 'chat',
-                            topicAction: 'response'
-                        }),
-                        { qos: 2 }
-                    )
-
-                    mqttService.subscribe(
-                        this.mqttConnectionKey,
-                        mqttTopicHelper.buildTopic({
-                            entityType: '+',
-                            entityId: '+',
-                            agentChannel: 'support',
-                            topicType: 'inflight',
-                            topicAction: 'request',
-                            inflightType: '+'
-                        }),
-                        { qos: 2 }
-                    )
-
-                    // whenever the sessionId changes, we need to unsubscribe from previous topics and subscribe to the
-                    // new ones based off of the new sessionId
-                    watch(
-                        () => this._agentStore.sessionId,
-                        async () => {
-                            if (!mqttService.hasClient(this.mqttConnectionKey)) return
-
-                            const timerHelper = useTimerHelper()
-                            await mqttService.destroyClient(this.mqttConnectionKey)
-
-                            // todo extract all hooks into atomic methods and prevent this recursion from happening
-                            //  good enough for demo purposes
-                            await this.establishMqttComms()
-                            // todo also, getting required creds fails from time to time because we're creating the client
-                            //  before the backend successfully remove the old one
-
-                            const managedClient = mqttService.getManagedClient(this.mqttConnectionKey)
-
-                            await timerHelper.waitWhile(
-                                () => ['connected'].includes(managedClient.status),
-                                { intervalMs: 200, cutoffTries: 50 }
-                            )
-
-                            await new Promise(resolve => setTimeout(resolve, 5000))
-
-                            await mqttService.subscribe(
-                                this.mqttConnectionKey,
-                                mqttTopicHelper.buildTopic({
-                                    entityType: '+',
-                                    entityId: '+',
-                                    agentChannel: 'support',
-                                    topicType: 'chat',
-                                    topicAction: 'response'
-                                }),
-                                { qos: 2 }
-                            )
-                            await mqttService.subscribe(
-                                this.mqttConnectionKey,
-                                mqttTopicHelper.buildTopic({
-                                    entityType: '+',
-                                    entityId: '+',
-                                    agentChannel: 'support',
-                                    topicType: 'inflight',
-                                    topicAction: 'request',
-                                    inflightType: '+'
-                                }),
-                                { qos: 2 }
-                            )
-                        }
-                    )
-                },
-                onOffline: () => {
-                    // TODO add error message
-                },
-                onError: (e) => {
-                    // TODO add error message
-                }
+                onMessage: this._onMqttMessage,
+                onClose: this._onMqttClose,
+                onConnect: this._onMqttConnect,
+                onOffline: this._onMqttOffline,
+                onError: this._onMqttError
             })
         },
         async handleInFlightRequest ({ topic, message, packet, transactionId, sessionId, chatTransactionId }) {
@@ -601,7 +491,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         hydrateMessages (messages) {
             if (!messages) return
             messages.forEach((message) => {
-                // todo break this into manageable chunks, do we actually still need it?
+                // TODO break this into manageable chunks, do we actually still need it?
                 if (message.answer && Array.isArray(message.answer)) {
                     // Extract MCP items (tools, resources, resource templates, prompts) from the answer array
                     const mcpItems = message.answer.filter(item =>
@@ -651,6 +541,119 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
                 // Else: ignore messages that don't match either format
             })
+        },
+        async _onMqttMessage  (topic, message, packet) {
+            const topicHelper = useMqttExpertTopicHelper()
+            const parsedTopic = topicHelper.parseTopic(topic)
+            const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
+            const sessionId = packet.properties?.userProperties?.sessionId // chat session
+            const chatTransactionId = packet.properties?.userProperties?.transactionId // passed through for integrity
+
+            if (parsedTopic.isReply) {
+                // remove inFlight request because it is now resolved
+                this._inFlightRequests.delete(transactionId)
+
+                // handle the response
+                await this.handleMessageResponse(JSON.parse(message.toString()))
+            } else if (parsedTopic.isInflightRequest) {
+                await this.handleInFlightRequest({
+                    topic,
+                    message,
+                    packet,
+                    transactionId,
+                    sessionId,
+                    chatTransactionId
+                })
+            }
+        },
+        _onMqttClose  () {
+            // TODO add error message
+        },
+        _onMqttConnect () {
+            const servicesOrchestrator = getServicesOrchestrator()
+            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+
+            const mqttTopicHelper = useMqttExpertTopicHelper()
+
+            mqttService.subscribe(
+                this.mqttConnectionKey,
+                mqttTopicHelper.buildTopic({
+                    entityType: '+',
+                    entityId: '+',
+                    agentChannel: 'support',
+                    topicType: 'chat',
+                    topicAction: 'response'
+                }),
+                { qos: 2 }
+            )
+
+            mqttService.subscribe(
+                this.mqttConnectionKey,
+                mqttTopicHelper.buildTopic({
+                    entityType: '+',
+                    entityId: '+',
+                    agentChannel: 'support',
+                    topicType: 'inflight',
+                    topicAction: 'request',
+                    inflightType: '+'
+                }),
+                { qos: 2 }
+            )
+
+            // whenever the sessionId changes, we need to unsubscribe from previous topics and subscribe to the
+            // new ones based off of the new sessionId
+            watch(
+                () => this._agentStore.sessionId,
+                async () => {
+                    if (!mqttService.hasClient(this.mqttConnectionKey)) return
+
+                    const timerHelper = useTimerHelper()
+                    await mqttService.destroyClient(this.mqttConnectionKey)
+
+                    // TODO getting required creds fails from time to time because we're creating the client
+                    //  before the backend successfully remove the old one
+                    await this.establishMqttComms()
+
+                    const managedClient = mqttService.getManagedClient(this.mqttConnectionKey)
+
+                    await timerHelper.waitWhile(
+                        () => ['connected'].includes(managedClient.status),
+                        { intervalMs: 200, cutoffTries: 50 }
+                    )
+
+                    await new Promise(resolve => setTimeout(resolve, 5000))
+
+                    await mqttService.subscribe(
+                        this.mqttConnectionKey,
+                        mqttTopicHelper.buildTopic({
+                            entityType: '+',
+                            entityId: '+',
+                            agentChannel: 'support',
+                            topicType: 'chat',
+                            topicAction: 'response'
+                        }),
+                        { qos: 2 }
+                    )
+                    await mqttService.subscribe(
+                        this.mqttConnectionKey,
+                        mqttTopicHelper.buildTopic({
+                            entityType: '+',
+                            entityId: '+',
+                            agentChannel: 'support',
+                            topicType: 'inflight',
+                            topicAction: 'request',
+                            inflightType: '+'
+                        }),
+                        { qos: 2 }
+                    )
+                }
+            )
+        },
+        _onMqttOffline () {
+            // TODO add error message
+        },
+        _onMqttError (e) {
+            // TODO add error message
         }
     },
     persist: {
