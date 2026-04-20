@@ -18,7 +18,7 @@
 
         <div class="drawer-content">
             <!-- Stacked view header (back button + title) -->
-            <div v-if="hasStackedView && currentStackView.showHeader" class="header header--stacked">
+            <div v-if="hasStackedView && currentStackView.title" class="header header--stacked">
                 <button
                     class="drawer-header-btn"
                     title="Back"
@@ -73,7 +73,7 @@
             </div>
 
             <!-- Stacked view content (with header = wrap in ff-page) -->
-            <ff-page v-if="hasStackedView && currentStackView.showHeader" :no-padding="true">
+            <ff-page v-if="hasStackedView && currentStackView.title" :no-padding="true">
                 <component
                     :is="currentStackView.component"
                     v-bind="currentStackView.props"

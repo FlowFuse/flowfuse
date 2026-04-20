@@ -505,8 +505,7 @@ describe('ux-drawers store', () => {
                 component: FakeComponent,
                 props: {},
                 events: {},
-                title: '',
-                showHeader: true
+                title: ''
             })
         })
 
@@ -517,14 +516,12 @@ describe('ux-drawers store', () => {
                 component: FakeComponent,
                 props: { id: 1 },
                 events,
-                title: 'Details',
-                showHeader: false
+                title: 'Details'
             })
             const entry = store.editorImmersiveDrawer.viewStack[0]
             expect(entry.props).toEqual({ id: 1 })
             expect(entry.events).toStrictEqual(events)
             expect(entry.title).toBe('Details')
-            expect(entry.showHeader).toBe(false)
         })
 
         it('popEditorImmersiveView removes the last entry', () => {
@@ -588,35 +585,14 @@ describe('ux-drawers store', () => {
             expect(store.editorImmersiveDrawer.viewStack[0].title).toBe('Snapshot')
         })
 
-        it('falls back to component.name when no header title', () => {
+        it('sets empty title when no header provided — stacked header will not render', () => {
             const store = useUxDrawersStore()
             store.setEditorImmersiveActive(true)
             store.editorImmersiveDrawer.open = true
 
             store.openRightDrawer({ component: FakeComponent })
 
-            expect(store.editorImmersiveDrawer.viewStack[0].title).toBe('FakeComponent')
-        })
-
-        it('sets showHeader to true by default', () => {
-            const store = useUxDrawersStore()
-            store.setEditorImmersiveActive(true)
-            store.editorImmersiveDrawer.open = true
-
-            store.openRightDrawer({ component: FakeComponent })
-
-            expect(store.editorImmersiveDrawer.viewStack[0].showHeader).toBe(true)
-        })
-
-        it('sets showHeader to false when component opts out with immersiveHeader: false', () => {
-            const store = useUxDrawersStore()
-            store.setEditorImmersiveActive(true)
-            store.editorImmersiveDrawer.open = true
-
-            const SelfManagedComponent = { name: 'SelfManaged', immersiveHeader: false }
-            store.openRightDrawer({ component: SelfManagedComponent })
-
-            expect(store.editorImmersiveDrawer.viewStack[0].showHeader).toBe(false)
+            expect(store.editorImmersiveDrawer.viewStack[0].title).toBe('')
         })
 
         it('maps on to events in the view stack entry', () => {

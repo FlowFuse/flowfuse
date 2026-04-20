@@ -71,13 +71,11 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
                 if (!this.editorImmersiveDrawer.open) {
                     this.editorImmersiveDrawer.open = true
                 }
-                const showHeader = component.immersiveHeader !== false
                 this.pushEditorImmersiveView({
                     component: markRaw(component),
                     props,
                     events: on,
-                    title: header?.title || component.name || '',
-                    showHeader
+                    title: header?.title || ''
                 })
                 return
             }
@@ -259,8 +257,8 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
             this.editorImmersiveDrawer.active = active
         },
 
-        pushEditorImmersiveView ({ component, props = {}, events = {}, title = '', showHeader = true }) {
-            this.editorImmersiveDrawer.viewStack.push({ component, props, events, title, showHeader })
+        pushEditorImmersiveView ({ component, props = {}, events = {}, title = '' }) {
+            this.editorImmersiveDrawer.viewStack.push({ component, props, events, title })
         },
 
         popEditorImmersiveView () {

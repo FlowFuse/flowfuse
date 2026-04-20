@@ -90,8 +90,6 @@ import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'NotificationsDrawer',
-    // NOLEY NOTE: Not sure if I like this - think of a better pattern
-    immersiveHeader: false,
     components: {
         XIcon
     },
