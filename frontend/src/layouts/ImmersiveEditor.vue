@@ -10,13 +10,29 @@
             :kind="dialog.kind"
             :disable-primary="dialog.disablePrimary"
             :confirm-label="dialog.confirmLabel"
+            :cancel-label="dialog.cancelLabel"
+            :canBeCanceled="dialog.canBeCanceled"
+            :notices="dialog.notices"
+            :box-class="dialog.boxClass"
             @cancel="clearDialog(true)"
             @confirm="dialog.onConfirm"
         >
-            <p v-if="dialog.text">{{ dialog.text }}</p>
-            <component :is="dialog.is.component" v-bind="dialog.is.payload" v-else-if="dialog.is" />
+            <template v-if="dialog.textLines">
+                <div class="space-y-2">
+                    <p v-for="(text, $index) in dialog.textLines" :key="$index">{{ text }}</p>
+                </div>
+            </template>
+            <component :is="dialog.is.component" v-bind="dialog.is.payload" v-else-if="dialog.is" v-on="dialog.is.on" />
+            <p v-else-if="dialog.text">{{ dialog.text }}</p>
             <!-- eslint-disable-next-line vue/no-v-html -->
-            <div class="space-y-2" v-html="dialog.html" />
+            <div v-else class="space-y-2" v-html="dialog.html" />
+            <div v-if="dialog.notices?.length" class="notices flex flex-col gap-3 mt-5">
+                <hr class="mb-5">
+                <template v-for="notice in dialog.notices" :key="notice">
+                    <component :is="notice" v-if="typeof notice === 'object'" />
+                    <notice-banner v-else :text="notice" />
+                </template>
+            </div>
         </ff-dialog>
         <TransitionGroup class="ff-notifications" name="notifications-list" tag="div">
             <ff-notification-toast
@@ -32,6 +48,7 @@
 import { mapActions, mapState } from 'pinia'
 
 import PageHeader from '../components/PageHeader.vue'
+import NoticeBanner from '../components/notices/NoticeBanner.vue'
 import AlertsMixin from '../mixins/Alerts.js'
 import dialogService from '../services/dialog.js'
 
@@ -41,7 +58,8 @@ import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 export default {
     name: 'FfLayoutImmersiveEditor',
     components: {
-        PageHeader
+        PageHeader,
+        NoticeBanner
     },
     mixins: [AlertsMixin],
     computed: {
