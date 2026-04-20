@@ -469,7 +469,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                 params
             })
         },
-        async invokeActionAwaitResponse ({ action, params, sessionId, transactionId, chatTransactionId }, timeout = 1000) {
+        async invokeActionAwaitResponse ({ action, params, sessionId, transactionId, chatTransactionId }, timeout = 5000) {
             // create a promise that will resolve when we receive a response with the matching sessionId and transactionId, or reject after a timeout
             const pending = {
                 resolve: null,
