@@ -3,33 +3,35 @@
         <TemplateSettingsSecurity v-model="editable" :editTemplate="false" :instance="project" :team="team" />
         <div v-if="!!settings.features.httpBearerTokens && editable.settings.httpNodeAuth_type === 'flowforge-user'">
             <FormHeading>HTTP Node Bearer Tokens</FormHeading>
-            <div v-if="hasTeamLevelTokenPermission && projectLauncherCompatible">
-                <ff-data-table
-                    data-el="tokens-table"
-                    :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
-                    :show-load-more="false"
-                >
-                    <template #actions>
-                        <ff-button data-action="new-token" @click="newToken()">
-                            <template #icon-left>
-                                <PlusSmIcon />
-                            </template>
-                            Add Token
-                        </ff-button>
-                    </template>
-                    <template #context-menu="{row}">
-                        <ff-kebab-item data-action="edit-token" label="Edit" @click="editToken(row)" />
-                        <ff-kebab-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
-                    </template>
-                    <template v-if="tokens.length === 0" #table>
-                        <div class="ff-no-data ff-no-data-large">
-                            You don't have any tokens yet
-                        </div>
-                    </template>
-                </ff-data-table>
-            </div>
-            <div v-else>
-                Upgrade your Node-RED Version to enable this feature
+            <div v-if="hasTeamLevelTokenPermission">
+                <div v-if="projectLauncherCompatible">
+                    <ff-data-table
+                        data-el="tokens-table"
+                        :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
+                        :show-load-more="false"
+                    >
+                        <template #actions>
+                            <ff-button data-action="new-token" @click="newToken()">
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Add Token
+                            </ff-button>
+                        </template>
+                        <template #context-menu="{row}">
+                            <ff-kebab-item data-action="edit-token" label="Edit" @click="editToken(row)" />
+                            <ff-kebab-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
+                        </template>
+                        <template v-if="tokens.length === 0" #table>
+                            <div class="ff-no-data ff-no-data-large">
+                                You don't have any tokens yet
+                            </div>
+                        </template>
+                    </ff-data-table>
+                </div>
+                <div v-else>
+                    Upgrade your Node-RED Version to enable this feature
+                </div>
             </div>
         </div>
     </form>
