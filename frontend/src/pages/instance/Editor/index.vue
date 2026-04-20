@@ -36,7 +36,6 @@
 
             <DrawerTrigger
                 :is-hidden="editorImmersiveDrawer.open"
-                :side="editorImmersiveDrawer.side"
                 @toggle="toggleEditorImmersiveDrawer"
             />
         </div>
