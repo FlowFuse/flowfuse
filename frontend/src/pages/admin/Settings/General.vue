@@ -205,7 +205,7 @@
         <template v-if="ssoEnabled">
             <FormHeading>Single SSO Provider Only</FormHeading>
             <FormRow v-model="input['platform:sso:only']" type="checkbox" data-el="single-sso">
-                Force all login for none admin users via a single SSO provider
+                Force all login for non-admin users via a single SSO provider
                 <template #description>
 
                 </template>
