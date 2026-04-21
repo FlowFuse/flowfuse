@@ -419,7 +419,6 @@ export default {
         }
         const ssoProviders = (await ssoApi.getProviders()).providers
         const filtered = ssoProviders.filter(sso => (sso.active && sso.type === 'saml') )
-        console.log('filtered', filtered)
         this.ssoProvidersOptions = filtered.map(sso => {
             return {
                 order: sso.order,
@@ -427,7 +426,6 @@ export default {
                 label: sso.name
             }
         })
-        console.log(this.ssoProvidersOptions)
     },
     methods: {
         ...mapActions(useAccountSettingsStore, ['refreshSettings']),
