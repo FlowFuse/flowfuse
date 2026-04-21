@@ -22,6 +22,7 @@ import AiMessage from './messages/AiMessage.vue'
 import HumanMessage from './messages/HumanMessage.vue'
 import SystemMessage from './messages/SystemMessage.vue'
 
+import { downloadData } from '@/composables/Download.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 
 export default {
@@ -46,11 +47,19 @@ export default {
     },
     mounted () {
         this.mountResizeObserver()
+        window.addEventListener('keydown', this.onKeyDown)
     },
     beforeUnmount () {
         this.unmountResizeObserver()
+        window.removeEventListener('keydown', this.onKeyDown)
     },
     methods: {
+        onKeyDown (e) {
+            if (e.ctrlKey && e.altKey && e.key === 'd') {
+                e.preventDefault()
+                downloadData(this.messages, 'expert-messages.json')
+            }
+        },
         mountResizeObserver () {
             const el = this.$refs.messagesWrapper
             if (!el) return
