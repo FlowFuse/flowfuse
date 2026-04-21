@@ -187,7 +187,8 @@ module.exports = {
             const existingClient = await app.db.models.BrokerClient.findOne({
                 where: {
                     ownerId: '' + user.id,
-                    ownerType: 'expert'
+                    ownerType: 'expert-user',
+                    username: `expert-client:${user.hashid}:${sessionId}`
                 }
             })
             if (existingClient) {
