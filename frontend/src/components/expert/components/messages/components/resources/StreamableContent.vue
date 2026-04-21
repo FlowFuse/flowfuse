@@ -223,6 +223,12 @@ export default {
         }
     }
 
+    :deep(code) {
+        padding: 0;
+        border: none;
+        border-radius: 0;
+    }
+
     :deep(table) {
         border-collapse: collapse; /* removes double borders */
 
@@ -233,15 +239,6 @@ export default {
 
         td, th {
             padding: 5px 10px;
-
-        }
-
-        td {
-            code {
-                padding: 0;
-                border: none;
-                border-radius: 0;
-            }
         }
     }
 }
