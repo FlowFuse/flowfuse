@@ -205,13 +205,13 @@
         <template v-if="ssoEnabled">
             <FormHeading>Single SSO Provider Only</FormHeading>
             <FormRow v-model="input['platform:sso:only']" type="checkbox" data-el="single-sso">
-                Force all login for non-admin users via a single SSO provider
+                Force all login for non-admin users via a single SAML SSO provider
                 <template #description>
-
+                    Login screen will redirect to SAML SSO provider without waiting for username
                 </template>
             </FormRow>
             <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:provider']" :options="ssoProvidersOptions" data-el="single-sso-provider">
-                Which SSO provider to use for all logins
+                Which active SAML SSO provider to use for all logins
             </FormRow>
             <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:logoutURL']" type="text" data-el="single-sso-url">
                 URL to redirect to on logout
@@ -267,7 +267,7 @@ const validSettings = [
     'platform:sso:direct',
     'platform:sso:only',
     'platform:sso:only:provider',
-    'platform:sso:only:logoutURL',
+    'platform:sso:only:logoutURL'
 ]
 
 export default {
@@ -418,13 +418,16 @@ export default {
             this.platformStatsToken = ''
         }
         const ssoProviders = (await ssoApi.getProviders()).providers
-        this.ssoProvidersOptions = ssoProviders.map(sso => {
+        const filtered = ssoProviders.filter(sso => (sso.active && sso.type === 'saml') )
+        console.log('filtered', filtered)
+        this.ssoProvidersOptions = filtered.map(sso => {
             return {
                 order: sso.order,
                 value: sso.id,
                 label: sso.name
             }
         })
+        console.log(this.ssoProvidersOptions)
     },
     methods: {
         ...mapActions(useAccountSettingsStore, ['refreshSettings']),
