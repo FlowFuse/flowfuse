@@ -245,7 +245,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             const payload = JSON.parse(message.toString())
 
-            this._addInFlightUpdate(payload.toolname)
+            this._addInFlightUpdate(payload.toolname || payload.status)
 
             const responseTopic = topicHelper.buildTopic({
                 entityType: parsedTopic.entityType,
