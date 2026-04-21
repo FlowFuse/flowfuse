@@ -1,116 +1,37 @@
-import Mqtt, { type IClientSubscribeOptions, type IPublishPacket, type MqttClient, type MqttClientEventCallbacks } from 'mqtt'
+import Mqtt, {
+    type IPublishPacket,
+    type MqttClient,
+    type MqttClientEventCallbacks
+} from 'mqtt'
 
-import { type AppService, BaseService, CreateServiceOptions } from './service.contract'
+import { BaseService } from './service.contract'
 
-type Maybe<T> = T | null | undefined
+import { Maybe } from '@/types/common/types'
+import type {
+    BinaryPayload,
+    ManagedMqttClient,
+    MqttConnectionOptions,
+    MqttConnectionWaiter,
+    MqttCredentialProvider,
+    MqttCredentials,
+    MqttPublishRequest,
+    MqttReconnectOptions,
+    MqttReconnectPolicy,
+    MqttServiceI,
+    MqttSubscribeOptions,
+    MqttWaitForConnectionOptions,
+    SerializeMode
+} from '@/types/services/mqtt.types'
+import type { CreateServiceOptions } from '@/types/services/service.types'
+
 type MqttModule = typeof Mqtt
-type ManagedClientStatus = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'failed'
-type SerializeMode = 'auto' | 'raw' | 'json' | 'string'
-type BinaryPayload = Buffer | Uint8Array | ArrayBuffer
 type NormalizedBinaryPayload = Buffer
 type PublishPayload = string | NormalizedBinaryPayload
 type TerminalConnectionError = Error & { code?: string }
-type MqttSubscribeOptions = Partial<IClientSubscribeOptions>
 
-export interface MqttCredentials {
-    url: string
-    username: string
-    password: string
-    clientId?: string
-}
-
-export type MqttCredentialProvider = () => Promise<MqttCredentials>
-
-export interface MqttReconnectOptions {
-    enabled?: boolean
-    initialDelay?: number
-    maxDelay?: number
-    factor?: number
-}
-
-export interface MqttReconnectPolicy {
-    enabled: boolean
-    initialDelay: number
-    maxDelay: number
-    factor: number
-}
-
-export interface MqttConnectionHandlers {
-    onConnect?: (client: MqttClient) => void
-    onClose?: (client: MqttClient) => void
-    onOffline?: (client: MqttClient) => void
-    onError?: (error: Error, client: MqttClient | null) => void
-    onMessage?: (topic: string, message: Buffer, packet: IPublishPacket, client: MqttClient) => void
-}
-
-export interface MqttPublishRequest {
-    topic: string
-    payload: unknown
-    qos?: 0 | 1 | 2
-    retain?: boolean
-    onError?: ((error: Error) => void) | null
-    correlationData?: string | BinaryPayload | null
-    userProperties?: Record<string, string | string[]> | null
-    serialize?: SerializeMode
-    waitForConnection?: boolean
-    connectionTimeout?: number
-}
-
-export interface MqttWaitForConnectionOptions {
-    timeout?: number
-}
-
-export interface MqttNormalizedPublishProperties {
+interface MqttNormalizedPublishProperties {
     correlationData?: NormalizedBinaryPayload
     userProperties?: Record<string, string | string[]>
-}
-
-export interface ManagedMqttSubscription {
-    topic: string
-    options: MqttSubscribeOptions
-}
-
-export interface MqttConnectionWaiter {
-    resolve: () => void
-    reject: (error: Error) => void
-    timer: ReturnType<typeof setTimeout> | null
-}
-
-export interface MqttConnectionOptions extends MqttConnectionHandlers {
-    reconnectPeriod?: number
-    getCredentials: MqttCredentialProvider
-    reconnect?: MqttReconnectOptions
-}
-
-export interface ManagedMqttClient {
-    key: string
-    client: MqttClient | null
-    listeners: Set<() => void>
-    destroyed: boolean
-    intentionalDisconnect: boolean
-    status: ManagedClientStatus
-    getCredentials: MqttCredentialProvider
-    reconnectPolicy: MqttReconnectPolicy
-    reconnectAttempt: number
-    reconnectTimer: ReturnType<typeof setTimeout> | null
-    subscriptions: Map<string, ManagedMqttSubscription>
-    handlers: MqttConnectionHandlers
-    connectionWaiters: Set<MqttConnectionWaiter>
-    terminalFailure: boolean
-    lastError: Error | null
-}
-
-export interface MqttServiceI extends AppService {
-    createClient(key: string, options?: Partial<MqttConnectionOptions>): Promise<MqttClient>
-    destroyClient(key: string): Promise<void>
-    getManagedClient(key: string): ManagedMqttClient | null
-    hasClient(key: string): boolean
-    publishMessage(key: string, options: MqttPublishRequest): Promise<void>
-    subscribe(key: string, topic: string | string[], options?: MqttSubscribeOptions): Promise<void>
-    unsubscribe(key: string, topic: string | string[]): Promise<void>
-    endConnection(key: string): Promise<void>
-    waitForConnection(key: string, options?: MqttWaitForConnectionOptions): Promise<void>
-    reset(): Promise<void>
 }
 
 class MqttService extends BaseService implements MqttServiceI {
@@ -547,11 +468,15 @@ class MqttService extends BaseService implements MqttServiceI {
     }
 
     bindManagedListeners (managed: ManagedMqttClient, client: MqttClient) {
-        const register = (eventName: keyof MqttClientEventCallbacks, handler: (...args: any[]) => void) => {
-            const wrapped = (...args: any[]) => {
+        const register = <K extends keyof MqttClientEventCallbacks>(
+            eventName: K,
+            handler: MqttClientEventCallbacks[K]
+        ) => {
+            const wrapped = ((...args: Parameters<MqttClientEventCallbacks[K]>) => {
                 if (managed.destroyed || this.$destroyed || managed.client !== client) return
-                handler(...args)
-            }
+                ;(handler as (...a: unknown[]) => void)(...args)
+            }) as MqttClientEventCallbacks[K]
+
             client.on(eventName, wrapped)
             managed.listeners.add(() => client.off(eventName, wrapped))
         }
