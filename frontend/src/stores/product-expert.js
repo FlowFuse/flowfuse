@@ -296,13 +296,12 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
         },
         async handleMessageResponse (response) {
-            // console.log('handling message response before validation: ', { response })
-
             // ignore aborted messages through mqtt
             if (Object.prototype.hasOwnProperty.call(response, 'aborted') && response.aborted === true) return
 
             if (response.answer && Array.isArray(response.answer)) {
                 this.addAiMessage(response)
+                this._clearInFlightUpdates()
             }
         },
         async startOver () {
