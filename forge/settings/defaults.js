@@ -81,5 +81,6 @@ module.exports = {
     // 'ff-npm-registry.catalogue.ffNodes'
 
     'platform:sso:only': false,
-    'platform:sso:only:provider': null
+    'platform:sso:only:provider': null,
+    'platform:sso:only:logoutURL': '/'
 }

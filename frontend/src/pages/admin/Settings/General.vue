@@ -210,7 +210,14 @@
 
                 </template>
             </FormRow>
-            <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:provider']" :options="ssoProvidersOptions">
+            <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:provider']" :options="ssoProvidersOptions" data-el="single-sso-provider">
+                Which SSO provider to use for all logins
+            </FormRow>
+            <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:logoutURL']" type="text" data-el="single-sso-url">
+                URL to redirect to on logout
+                <template #description>
+                    Prevents redirect loops automatically logging user back in from SSO provider
+                </template>
             </FormRow>
         </template>
 
@@ -260,6 +267,7 @@ const validSettings = [
     'platform:sso:direct',
     'platform:sso:only',
     'platform:sso:only:provider',
+    'platform:sso:only:logoutURL',
 ]
 
 export default {

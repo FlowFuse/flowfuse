@@ -201,10 +201,9 @@ export default {
         await this.$nextTick()
         this.focusUsername()
         if (this.settings['platform:sso:only'] &&
-            this.settings['platform:sso:only:provider']) {
-            // need check for admin url here
-            // TODO reneable this
-            // await this.directSSO(this.settings['platform:sso:only:provider'])
+            this.settings['platform:sso:only:provider'] &&
+            !/^\/admin\//.test(this.redirectUrlAfterLogin)) {
+            await this.directSSO(this.settings['platform:sso:only:provider'])
         }
     },
     methods: {

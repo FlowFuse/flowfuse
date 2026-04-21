@@ -107,6 +107,9 @@ module.exports = async function (app) {
             }
             if (app.config.features.enabled('sso')) {
                 response['platform:sso:direct'] = app.settings.get('platform:sso:direct')
+                response['platform:sso:only'] = app.settings.get('platform:sso:only')
+                response['platform:sso:only:provider'] = app.settings.get('platform:sso:only:provider')
+                response['platform:sso:only:logoutURL'] = app.settings.get('platform:sso:only:logoutURL')
             }
             reply.send(response)
         } else {
