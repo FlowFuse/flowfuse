@@ -724,7 +724,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 })
 
                 // publishing an abort message to stop the agent
-                return mqttService.publishMessage(this.mqttConnectionKey, {
+                mqttService.publishMessage(this.mqttConnectionKey, {
                     topic,
                     qos: 2,
                     payload: {
