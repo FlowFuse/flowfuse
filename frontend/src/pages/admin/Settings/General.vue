@@ -418,7 +418,7 @@ export default {
             this.platformStatsToken = ''
         }
         const ssoProviders = (await ssoApi.getProviders()).providers
-        const filtered = ssoProviders.filter(sso => (sso.active && sso.type === 'saml') )
+        const filtered = ssoProviders.filter(sso => (sso.active && sso.type === 'saml'))
         this.ssoProvidersOptions = filtered.map(sso => {
             return {
                 order: sso.order,
