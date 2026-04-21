@@ -176,14 +176,16 @@ export default {
             }
         },
         looksLikeJson (v) {
-            if (typeof v === 'string' && v.length > 2) {
-                const c = v[0]
-                return c === '{' || c === '['
+            if (typeof v === 'string' && v.length >= 2) {
+                const trimmed = v.trim()
+                const first = trimmed[0]
+                const last = trimmed[trimmed.length - 1]
+                return (first === '{' && last === '}') || (first === '[' && last === ']')
             }
             return false
         },
         tryPrettify (v) {
-            if (typeof v === 'string' && v.length > 2 && (v[0] === '{' || v[0] === '[')) {
+            if (this.looksLikeJson(v)) {
                 try { return JSON.stringify(JSON.parse(v), null, 2) } catch (_) { /* not valid JSON */ }
             }
             return null
