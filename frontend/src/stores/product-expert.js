@@ -62,7 +62,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             return !!assistantStore.immersiveInstance && !!assistantStore.supportedActions['core:manage-palette']
         },
         mqttConnectionKey () { return this._agentStore.mqttConnectionKey },
-        sessionId () { return this._agentStore.sessionId }
+        sessionId () { return this._agentStore.sessionId },
+        shouldUseMqtt () { return IS_MQTT_ENABLED && this.isSupportAgent }
     },
     actions: {
         setContext ({ data, sessionId }) {
@@ -145,8 +146,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
         },
         sendQuery ({ query }) {
-            if (IS_MQTT_ENABLED && this.isSupportAgent) {
-                return this.handleMqttQuery({ query })
+            if (this.shouldUseMqtt) {
+                return this.sendMqttQuery({ query })
             } else {
                 return this.sendHttpQuery({ query })
             }
@@ -169,7 +170,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             return expertApi.chat(payload)
         },
-        async handleMqttQuery ({ query }) {
+        async sendMqttQuery ({ query } = {}) {
             const servicesOrchestrator = getServicesOrchestrator()
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
             const mqttTopicHelper = useMqttExpertTopicHelper()
@@ -177,10 +178,11 @@ export const useProductExpertStore = defineStore('product-expert', {
             const transactionId = uuidv4()
             const mqttConnectionKey = this.mqttConnectionKey
 
-            // add the query as an inFlight request
-            this._inFlightRequests.set(transactionId, { query })
-
             if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
+
+            // add the query as an inFlight request
+            this._inFlightRequests.set(transactionId, { query, transactionId })
+
             const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
 
             const topic = mqttTopicHelper.buildTopic({
@@ -220,7 +222,19 @@ export const useProductExpertStore = defineStore('product-expert', {
                 onError: this._onMqttError
             })
         },
-        async handleInFlightRequest ({ topic, message, packet, transactionId, sessionId, chatTransactionId }) {
+        async handleInFlightRequest ({ topic, message, packet, transactionId, sessionId, chatTransactionId } = {}) {
+            // console.log('handleInFlightRequest', {
+            //     topic,
+            //     message,
+            //     packet,
+            //     transactionId,
+            //     sessionId,
+            //     chatTransactionId
+            // })
+
+            const inFlightRequest = this._inFlightRequests.values().next().value
+            if (sessionId !== this.sessionId || inFlightRequest?.transactionId !== chatTransactionId) return
+
             const servicesOrchestrator = getServicesOrchestrator()
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
 
@@ -282,6 +296,11 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
         },
         async handleMessageResponse (response) {
+            // console.log('handling message response before validation: ', { response })
+
+            // ignore aborted messages through mqtt
+            if (Object.prototype.hasOwnProperty.call(response, 'aborted') && response.aborted === true) return
+
             if (response.answer && Array.isArray(response.answer)) {
                 this.addAiMessage(response)
             }
@@ -449,8 +468,13 @@ export const useProductExpertStore = defineStore('product-expert', {
             })
         },
         addPredefinedAiMessage (message) {
+            // this may not be the best approach
+            // if the last entry in messages is also auto generated, skip, most probably we'll be adding a duplication
+            if (this._agentStore.messages.length && this._agentStore.messages.at(-1).generated) return
+
             this._agentStore.messages.push({
                 _type: 'ai',
+                generated: true,
                 answer: [{ content: message, _streamed: false, _uuid: uuidv4() }],
                 _timestamp: Date.now(),
                 _streamed: false,
@@ -554,6 +578,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             })
         },
         async _onMqttMessage  (topic, message, packet) {
+            // ignore any messages if inFlightRequests has been cleared (it means that the chat was stopped mid-flight)
+            if (this._inFlightRequests.size === 0) return
+
             const topicHelper = useMqttExpertTopicHelper()
             const parsedTopic = topicHelper.parseTopic(topic)
             const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
@@ -578,7 +605,10 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
         },
         _onMqttClose  () {
-            // TODO add error message
+            this.addPredefinedAiMessage(
+                'Something went wrong and our connection was interrupted. ' +
+                'You can continue this conversation by sending a new message, or simply start over with a new session.'
+            )
         },
         _onMqttConnect () {
             const servicesOrchestrator = getServicesOrchestrator()
@@ -661,21 +691,56 @@ export const useProductExpertStore = defineStore('product-expert', {
             )
         },
         _onMqttOffline () {
-            // TODO add error message
+            console.log('#################### mqtt offline')
+            // TODO add error message, handle reconnect, notify user
         },
         _onMqttError (e) {
-            this._inFlightRequests.clear()
+            // stopping inFlight chat requests to ignore any in flight messages
+            this.stopInflightChat()
             this._clearInFlightUpdates()
             this.addPredefinedAiMessage(`Something went wrong.. ${e.message}`)
-            // TODO, by this point we might even ignore any other inflight requests which might be in the pipeline, but
-            //  that has to be done from somewhere else.. maybe we should ignore all inflight requests if their original
-            //  correlationId doesn't match the initial correlationId sent out on the query
         },
         _addInFlightUpdate (status) {
             this.inFlightUpdates.push(status)
         },
         _clearInFlightUpdates () {
             this.inFlightUpdates = []
+        },
+        stopInflightChat () {
+            if (this.shouldUseMqtt) {
+                const servicesOrchestrator = getServicesOrchestrator()
+                const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+                const mqttTopicHelper = useMqttExpertTopicHelper()
+                const inFlightRequest = this._inFlightRequests.values().next().value
+
+                const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
+
+                const topic = mqttTopicHelper.buildTopic({
+                    entityType,
+                    entityId,
+                    agentChannel: 'support',
+                    topicType: 'chat',
+                    topicAction: 'request'
+                })
+
+                // publishing an abort message to stop the agent
+                return mqttService.publishMessage(this.mqttConnectionKey, {
+                    topic,
+                    qos: 2,
+                    payload: {
+                        abort: true,
+                        context: {
+                            ...useContextStore().expert,
+                            agent: this.agentMode
+                        }
+                    },
+                    correlationData: inFlightRequest.transactionId,
+                    userProperties: {
+                        sessionId: this.sessionId
+                    }
+                })
+            }
+            this._inFlightRequests.clear()
         }
     },
     persist: {
