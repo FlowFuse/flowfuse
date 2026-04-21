@@ -1,23 +1,8 @@
 import type { App } from 'vue'
 import type { Router } from 'vue-router'
 
-import { ServiceInstances } from '@/services/service.registry'
 import { Maybe } from '@/types/common/types'
-
-/**
- * Minimal lifecycle contract for app services.
- * Intended to become a TypeScript interface during migration.
- */
-export interface AppService {
-    init?: () => (void | Promise<void>)
-    destroy?: () => (void | Promise<void>)
-}
-
-export interface CreateServiceOptions {
-    app: App
-    router: Router
-    services?: ServiceInstances
-}
+import type { CreateServiceOptions, ServiceInstances } from '@/types/services/service.types'
 
 /**
  * Lightweight base class for shared lifecycle surface.

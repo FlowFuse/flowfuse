@@ -1,8 +1,10 @@
-import { AppService, BaseService, CreateServiceOptions } from './service.contract'
+import { BaseService } from './service.contract'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { Maybe } from '@/types/common/types'
+import type { PostMessageServiceI } from '@/types/services/post-message.types'
+import type { CreateServiceOptions } from '@/types/services/service.types'
 
 const DATA_SOURCE_FLOWFUSE_WEBSITE = 'flowfuse-website'
 const DATA_SOURCE_ASSISTANT = 'nr-assistant'
@@ -45,23 +47,6 @@ type PostMessagePayload = PostMessageBase & (
         payload: unknown
     }
 )
-
-export interface PostMessageServiceI extends AppService {
-    init(): void
-    setupMessageHandlers(): void
-    destroy(): Promise<void>
-    handleFlowFuseExpertMessage(event: MessageEvent<PostMessagePayload>): Promise<void>
-    handleAssistantMessage(event: MessageEvent<PostMessagePayload>): Promise<void>
-    sendReadyMessage(): void
-    setExpertContext(payload: { data: object, sessionId: string }): void
-    sendMessage(args: {
-        message: object
-        target?: Window
-        targetOrigin?: string
-    }): void
-    getWindowOrigin(targetWindow: Window): string | null
-    isWindowOriginAllowed(origin: string): boolean
-}
 
 const sourceActions = {
     [DATA_SOURCE_FLOWFUSE_WEBSITE]: ACTIONS_FLOWFUSE_EXPERT

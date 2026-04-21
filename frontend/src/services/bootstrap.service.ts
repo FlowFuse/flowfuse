@@ -1,23 +1,13 @@
 import { nextTick } from 'vue'
 
-import { AppService, BaseService, CreateServiceOptions } from './service.contract'
+import { BaseService } from './service.contract'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { Maybe } from '@/types/common/types'
-
-export interface BootstrapServiceI extends AppService {
-    init(): Promise<void>
-    destroy(): Promise<void>
-    setupReadyPromise(): void
-    waitForAppMount(): Promise<void>
-    waitForRouterReady(): Promise<void>
-    checkUser(): Promise<void>
-    mountApp(): Promise<void>
-    markAsReady(): void
-    whenReady(): Promise<void>
-}
+import type { BootstrapServiceI } from '@/types/services/bootstrap.types'
+import type { CreateServiceOptions } from '@/types/services/service.types'
 
 /**
  * Bootstrap Service - Handles application lifecycle and readiness detection

@@ -1,9 +1,10 @@
 import type { App } from 'vue'
 import type { Router } from 'vue-router'
 
-import SERVICE_REGISTRY, { ServiceInstances } from './service.registry'
+import SERVICE_REGISTRY from './service.registry'
 
 import { Maybe } from '@/types/common/types'
+import type { ServiceInstances } from '@/types/services/service.types'
 
 /**
  * Service Factory - Manages service creation with dependency injection

@@ -1,12 +1,6 @@
-import { BootstrapServiceI, createBootstrapService } from './bootstrap.service'
-import { MqttServiceI, createMqttService } from './mqtt.service'
-import { PostMessageServiceI, createMessagingService } from './post-message.service'
-
-export type ServiceInstances = {
-    bootstrap: BootstrapServiceI | null
-    postMessage: PostMessageServiceI | null
-    mqtt: MqttServiceI | null
-}
+import { createBootstrapService } from './bootstrap.service'
+import { createMqttService } from './mqtt.service'
+import { createMessagingService } from './post-message.service'
 
 export default [
     { key: 'bootstrap' as const, create: createBootstrapService, requiredLifecycle: ['init', 'destroy'] as const },
