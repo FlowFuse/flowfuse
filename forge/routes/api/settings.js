@@ -163,6 +163,10 @@ module.exports = async function (app) {
                 })
                 publicSettings['platform:sso:direct:list'] = SSOList
             }
+            if (app.config.features.enabled('sso') && app.settings.get('platform:sso:only')) {
+                publicSettings['platform:sso:only'] = true
+                publicSettings['platform:sso:only:provider'] = app.settings.get('platform:sso:only:provider')
+            }
 
             reply.send(publicSettings)
         }

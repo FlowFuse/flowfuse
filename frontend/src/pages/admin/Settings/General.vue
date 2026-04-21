@@ -202,6 +202,18 @@
             </FormRow>
         </template>
 
+        <template v-if="ssoEnabled">
+            <FormHeading>Single SSO Provider Only</FormHeading>
+            <FormRow v-model="input['platform:sso:only']" type="checkbox" data-el="single-sso">
+                Force all login for none admin users via a single SSO provider
+                <template #description>
+
+                </template>
+            </FormRow>
+            <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:provider']" :options="ssoProvidersOptions">
+            </FormRow>
+        </template>
+
         <div class="pt-8">
             <ff-button :disabled="!saveEnabled" data-action="save-settings" @click="saveChanges">Save settings</ff-button>
         </div>
@@ -214,6 +226,7 @@ import { mapActions, mapState } from 'pinia'
 import adminApi from '../../../api/admin.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import settingsApi from '../../../api/settings.js'
+import ssoApi from '../../../api/sso.js'
 import teamTypesApi from '../../../api/teamTypes.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
@@ -244,7 +257,9 @@ const validSettings = [
     'platform:sso:google',
     'platform:sso:google:auto-create',
     'platform:sso:google:clientId',
-    'platform:sso:direct'
+    'platform:sso:direct',
+    'platform:sso:only',
+    'platform:sso:only:provider',
 ]
 
 export default {
@@ -268,7 +283,8 @@ export default {
             teamTypes: [],
             instanceTypes: [],
             teamTypesOptions: [],
-            platformStatsTokenGenerating: false
+            platformStatsTokenGenerating: false,
+            ssoProvidersOptions: []
         }
     },
     computed: {
@@ -393,6 +409,14 @@ export default {
         if (!this.platformStatsTokenEnabled) {
             this.platformStatsToken = ''
         }
+        const ssoProviders = (await ssoApi.getProviders()).providers
+        this.ssoProvidersOptions = ssoProviders.map(sso => {
+            return {
+                order: sso.order,
+                value: sso.id,
+                label: sso.name
+            }
+        })
     },
     methods: {
         ...mapActions(useAccountSettingsStore, ['refreshSettings']),
