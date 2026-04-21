@@ -9,7 +9,7 @@
                 {{ formattedDuration }} ms
             </span>
         </div>
-        <div class="ff-expert-tool-call--body">
+        <div class="ff-expert-tool-call--body" :class="{ 'is-expanded': expanded }">
             <div
                 v-for="tool in toolCalls"
                 :key="tool.id"
@@ -214,11 +214,19 @@ export default {
 }
 
 .ff-expert-tool-call--body {
+    --item-height: 3rem;
     border-top: 1px solid $ff-grey-200;
     padding: 0.75rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    max-height: calc(var(--item-height) * 5 + 1rem);
+    overflow-y: auto;
+    transition: max-height 0.2s ease;
+
+    &.is-expanded {
+        max-height: calc(var(--item-height) * 15 + 1rem);
+    }
 }
 
 .ff-expert-tool-call--item {
