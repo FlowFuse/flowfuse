@@ -1,14 +1,21 @@
-import Mqtt, { type IClientSubscribeOptions, type IPublishPacket, type MqttClient, type MqttClientEventCallbacks } from 'mqtt'
+import Mqtt, {
+    type IClientSubscribeOptions,
+    type IPublishPacket,
+    type MqttClient,
+    type MqttClientEventCallbacks
+} from 'mqtt'
 
 import { type AppService, BaseService, CreateServiceOptions } from './service.contract'
 
-type Maybe<T> = T | null | undefined
+import { Maybe } from '@/types/common/types'
+
 type MqttModule = typeof Mqtt
 type ManagedClientStatus = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'failed'
 type SerializeMode = 'auto' | 'raw' | 'json' | 'string'
 type BinaryPayload = Buffer | Uint8Array | ArrayBuffer
 type NormalizedBinaryPayload = Buffer
 type PublishPayload = string | NormalizedBinaryPayload
+type MqttPayload = string | BinaryPayload | Record<string, unknown> | unknown[]
 type TerminalConnectionError = Error & { code?: string }
 type MqttSubscribeOptions = Partial<IClientSubscribeOptions>
 
@@ -45,7 +52,7 @@ export interface MqttConnectionHandlers {
 
 export interface MqttPublishRequest {
     topic: string
-    payload: unknown
+    payload: MqttPayload
     qos?: 0 | 1 | 2
     retain?: boolean
     onError?: ((error: Error) => void) | null
@@ -547,11 +554,15 @@ class MqttService extends BaseService implements MqttServiceI {
     }
 
     bindManagedListeners (managed: ManagedMqttClient, client: MqttClient) {
-        const register = (eventName: keyof MqttClientEventCallbacks, handler: (...args: any[]) => void) => {
-            const wrapped = (...args: any[]) => {
+        const register = <K extends keyof MqttClientEventCallbacks>(
+            eventName: K,
+            handler: MqttClientEventCallbacks[K]
+        ) => {
+            const wrapped = ((...args: Parameters<MqttClientEventCallbacks[K]>) => {
                 if (managed.destroyed || this.$destroyed || managed.client !== client) return
-                handler(...args)
-            }
+                ;(handler as (...a: unknown[]) => void)(...args)
+            }) as MqttClientEventCallbacks[K]
+
             client.on(eventName, wrapped)
             managed.listeners.add(() => client.off(eventName, wrapped))
         }

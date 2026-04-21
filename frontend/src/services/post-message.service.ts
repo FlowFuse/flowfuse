@@ -2,6 +2,7 @@ import { AppService, BaseService, CreateServiceOptions } from './service.contrac
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
+import { Maybe } from '@/types/common/types'
 
 const DATA_SOURCE_FLOWFUSE_WEBSITE = 'flowfuse-website'
 const DATA_SOURCE_ASSISTANT = 'nr-assistant'
@@ -49,12 +50,12 @@ export interface PostMessageServiceI extends AppService {
     init(): void
     setupMessageHandlers(): void
     destroy(): Promise<void>
-    handleFlowFuseExpertMessage(event: MessageEvent<any>): Promise<void>
-    handleAssistantMessage(event: MessageEvent<any>): Promise<void>
+    handleFlowFuseExpertMessage(event: MessageEvent<PostMessagePayload>): Promise<void>
+    handleAssistantMessage(event: MessageEvent<PostMessagePayload>): Promise<void>
     sendReadyMessage(): void
-    setExpertContext(payload: unknown): void
+    setExpertContext(payload: { data: object, sessionId: string }): void
     sendMessage(args: {
-        message: unknown
+        message: object
         target?: Window
         targetOrigin?: string
     }): void
@@ -68,14 +69,14 @@ const sourceActions = {
 
 const allowedOrigins = ['https://flowfuse.com', 'https://app.flowfuse.com', 'https://forge.flowfuse.dev', 'http://localhost:8080', 'http://localhost:3000']
 
-type SendMessagePayload = { message: object, target?: WindowProxy, targetOrigin?: string };
+type SendMessagePayload = { message: object, target?: WindowProxy, targetOrigin?: string }
 
 /**
  * Messaging Service - Handles postMessage communication
  * @class
  */
 class PostMessageService extends BaseService implements PostMessageServiceI {
-    protected $onMessage: { (event: any): Promise<void>; (this: Window, ev: MessageEvent<any>): any; (this: Window, ev: MessageEvent<any>): any }
+    protected $onMessage: ((event: MessageEvent<PostMessagePayload>) => Promise<void>) | null = null
 
     constructor ({ app, router, services }: CreateServiceOptions) {
         super({ name: 'postMessage', app, router, services })
@@ -129,17 +130,18 @@ class PostMessageService extends BaseService implements PostMessageServiceI {
         }
     }
 
-    async handleFlowFuseExpertMessage (event) {
-        switch (event.data.action) {
+    async handleFlowFuseExpertMessage (event: MessageEvent<PostMessagePayload>) {
+        const data = event.data as PostMessageBase & { action: string, payload?: { data: object, sessionId: string } }
+        switch (data.action) {
         case sourceActions[DATA_SOURCE_FLOWFUSE_WEBSITE].SET_CONTEXT:
-            this.setExpertContext(event.data.payload)
+            this.setExpertContext(data.payload)
             break
         default:
-            console.warn('Unknown message received:', event.data.action)
+            console.warn('Unknown message received:', data.action)
         }
     }
 
-    async handleAssistantMessage (event) {
+    async handleAssistantMessage (event: MessageEvent<PostMessagePayload>) {
         await useProductAssistantStore().handleMessage(event)
     }
 
@@ -244,7 +246,7 @@ class PostMessageService extends BaseService implements PostMessageServiceI {
     }
 }
 
-let MessagingServiceInstance = null
+let MessagingServiceInstance: Maybe<PostMessageService> = null
 
 /**
  * Get or create the MessagingService singleton instance

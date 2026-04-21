@@ -3,6 +3,8 @@ import type { Router } from 'vue-router'
 
 import SERVICE_REGISTRY, { ServiceInstances } from './service.registry'
 
+import { Maybe } from '@/types/common/types'
+
 /**
  * Service Factory - Manages service creation with dependency injection
  */
@@ -12,9 +14,9 @@ class ServiceOrchestrator {
     /**
      * @type {import('vue').App} - Vue app instance
      */
-    $app: App = null
+    $app: Maybe<App> = null
 
-    $router: Router = null
+    $router: Maybe<Router> = null
 
     $cleanupRegistered = false
 
@@ -39,7 +41,7 @@ class ServiceOrchestrator {
         const router = this.$router
 
         for (const serviceDefinition of SERVICE_REGISTRY) {
-            this.$serviceInstances[serviceDefinition.key] = serviceDefinition.create({
+            ;(this.$serviceInstances as Record<string, unknown>)[serviceDefinition.key] = serviceDefinition.create({
                 app,
                 router,
                 services: this.$serviceInstances
@@ -54,7 +56,7 @@ class ServiceOrchestrator {
     }
 
     async dispose () {
-        for (const service of Object.keys(this.$serviceInstances)) {
+        for (const service of Object.keys(this.$serviceInstances) as Array<keyof ServiceInstances>) {
             try {
                 await this.$serviceInstances[service]?.destroy?.()
             } catch {
@@ -89,7 +91,7 @@ class ServiceOrchestrator {
 }
 
 // Create a singleton factory instance
-let orchestratorInstance = null
+let orchestratorInstance: Maybe<ServiceOrchestrator> = null
 
 /**
  * Get or create the ServicesOrchestrator singleton instance

@@ -5,6 +5,7 @@ import { AppService, BaseService, CreateServiceOptions } from './service.contrac
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { Maybe } from '@/types/common/types'
 
 export interface BootstrapServiceI extends AppService {
     init(): Promise<void>
@@ -12,7 +13,7 @@ export interface BootstrapServiceI extends AppService {
     setupReadyPromise(): void
     waitForAppMount(): Promise<void>
     waitForRouterReady(): Promise<void>
-    checkUser(): Promise<unknown>
+    checkUser(): Promise<void>
     mountApp(): Promise<void>
     markAsReady(): void
     whenReady(): Promise<void>
@@ -24,7 +25,7 @@ export interface BootstrapServiceI extends AppService {
  */
 class BootstrapService extends BaseService implements BootstrapServiceI {
     protected isReady: boolean = false
-    protected readyPromise: Promise<never> | null = null
+    protected readyPromise: Promise<void> | null = null
     protected readyResolve: ((value?: void | PromiseLike<void>) => void) | null = null
 
     constructor ({ app, router, services }: CreateServiceOptions) {
@@ -115,7 +116,7 @@ class BootstrapService extends BaseService implements BootstrapServiceI {
     }
 }
 
-let BootstrapServiceInstance = null
+let BootstrapServiceInstance: Maybe<BootstrapService> = null
 
 export function createBootstrapService ({ app, router, services } : CreateServiceOptions) {
     if (!BootstrapServiceInstance) {

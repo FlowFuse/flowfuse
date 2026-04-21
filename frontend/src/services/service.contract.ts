@@ -2,6 +2,7 @@ import type { App } from 'vue'
 import type { Router } from 'vue-router'
 
 import { ServiceInstances } from '@/services/service.registry'
+import { Maybe } from '@/types/common/types'
 
 /**
  * Minimal lifecycle contract for app services.
@@ -24,18 +25,18 @@ export interface CreateServiceOptions {
 export abstract class BaseService {
     protected $name: string
 
-    protected $app: App = null
+    protected $app: Maybe<App> = null
 
-    protected $router: Router = null
+    protected $router: Maybe<Router> = null
 
-    protected $services: ServiceInstances = null
+    protected $services: Maybe<ServiceInstances> = null
 
     protected constructor ({
         name,
         app,
         router,
         services
-    }) {
+    }: { name: string } & CreateServiceOptions) {
         this.$name = name
         this.$app = app
         this.$router = router
