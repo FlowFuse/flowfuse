@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { v4 as uuidv4 } from 'uuid'
-import { markRaw, watch } from 'vue'
+import { markRaw } from 'vue'
 
 import expertApi from '../api/expert.js'
 import userApi from '../api/user.js'
@@ -308,6 +308,13 @@ export const useProductExpertStore = defineStore('product-expert', {
             const agentStore = this._agentStore
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
+
+            if (this.shouldUseMqtt) {
+                const servicesOrchestrator = getServicesOrchestrator()
+                const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+
+                await mqttService.destroyClient(this.mqttConnectionKey)
+            }
 
             // Reset session timing
             this.resetSessionTimer()
@@ -638,55 +645,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                     inflightType: '+'
                 }),
                 { qos: 2 }
-            )
-
-            // whenever the sessionId changes, we need to unsubscribe from previous topics and subscribe to the
-            // new ones based off of the new sessionId
-            watch(
-                () => this._agentStore.sessionId,
-                async () => {
-                    if (!mqttService.hasClient(this.mqttConnectionKey)) return
-
-                    const timerHelper = useTimerHelper()
-                    await mqttService.destroyClient(this.mqttConnectionKey)
-
-                    // TODO getting required creds fails from time to time because we're creating the client
-                    //  before the backend successfully remove the old one
-                    await this.establishMqttComms()
-
-                    const managedClient = mqttService.getManagedClient(this.mqttConnectionKey)
-
-                    await timerHelper.waitWhile(
-                        () => ['connected'].includes(managedClient.status),
-                        { intervalMs: 200, cutoffTries: 50 }
-                    )
-
-                    await new Promise(resolve => setTimeout(resolve, 5000))
-
-                    await mqttService.subscribe(
-                        this.mqttConnectionKey,
-                        mqttTopicHelper.buildTopic({
-                            entityType: '+',
-                            entityId: '+',
-                            agentChannel: 'support',
-                            topicType: 'chat',
-                            topicAction: 'response'
-                        }),
-                        { qos: 2 }
-                    )
-                    await mqttService.subscribe(
-                        this.mqttConnectionKey,
-                        mqttTopicHelper.buildTopic({
-                            entityType: '+',
-                            entityId: '+',
-                            agentChannel: 'support',
-                            topicType: 'inflight',
-                            topicAction: 'request',
-                            inflightType: '+'
-                        }),
-                        { qos: 2 }
-                    )
-                }
             )
         },
         _onMqttOffline () {
