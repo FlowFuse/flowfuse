@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { v4 as uuidv4 } from 'uuid'
-import { UnwrapRef, markRaw, watch } from 'vue'
+import { markRaw, watch } from 'vue'
 
 import expertApi from '../api/expert.js'
 import userApi from '../api/user.js'
@@ -35,7 +35,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 : useProductExpertInsightsAgentStore()
         },
         /**
-         * @return {UnwrapRef<Map<unknown, unknown> | Map<any, any>>|UnwrapRef<Map<unknown, unknown> | Map<any, any>>}
+         * @return {import('vue').UnwrapRef<Map<unknown, unknown> | Map<any, any>> | import('vue').UnwrapRef<Map<unknown, unknown> | Map<any, any>>}
          * @private
          */
         _inFlightRequests () {
