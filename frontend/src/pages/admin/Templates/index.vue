@@ -42,8 +42,6 @@
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 
-import { mapState } from 'vuex'
-
 import templatesApi from '../../../api/templates.js'
 
 import UserCell from '../../../components/tables/cells/UserCell.vue'
@@ -82,7 +80,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings'])
     },
     async created () {
         await this.loadItems()

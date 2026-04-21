@@ -43,7 +43,6 @@
 
 <script>
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import billingApi from '../../../../api/billing.js'
 import devicesApi from '../../../../api/devices.js'
@@ -57,6 +56,7 @@ import alerts from '../../../../services/alerts.js'
 
 import InstanceChargesTable from '../../../instance/components/InstanceChargesTable.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -121,7 +121,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         deviceIsBillable () {
             let freeAllocation = getTeamProperty(this.team, 'devices.free') || 0
             let deviceCount = this.teamDeviceCount

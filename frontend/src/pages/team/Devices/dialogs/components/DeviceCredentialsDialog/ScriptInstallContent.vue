@@ -13,9 +13,11 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import TerminalCommandSection from './TerminalCommandSection.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 const OS_CONFIG = {
     windows: {
@@ -47,7 +49,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         title () {
             return OS_CONFIG[this.os]?.title ?? ''
         },

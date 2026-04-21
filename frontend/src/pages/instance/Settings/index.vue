@@ -39,13 +39,13 @@
 
 <script>
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import instanceActionsMixin from '../../../mixins/InstanceActions.js'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -84,7 +84,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapVuexState('account', ['features', 'settings']),
+        ...mapState(useAccountSettingsStore, ['features', 'settings']),
         navigation () {
             const canEditProject = this.hasPermission('project:edit', { application: this.instance.application })
 

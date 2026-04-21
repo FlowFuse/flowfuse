@@ -20,15 +20,12 @@ import router from './routes.js'
 import Alerts from './services/alerts.js'
 import { setupSentry } from './services/error-tracking.js'
 import { getServiceFactory } from './services/service.factory.js'
-import store from './store/index.js'
 import { skipResetPlugin } from './stores/plugins/skip-reset.plugin.js'
 
 import './index.css'
 import 'highlight.js/styles/github.css'
 
 import ForgeUIComponents from './ui-components/index.js'
-
-store.commit('initializeStore')
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
@@ -37,7 +34,6 @@ pinia.use(skipResetPlugin)
 const app = createApp(App)
     .use(ForgeUIComponents)
     .use(pinia)
-    .use(store)
     .use(router)
     .use(VueShepherdPlugin)
 
@@ -47,7 +43,7 @@ const serviceFactory = getServiceFactory()
 setupSentry(app, router)
 
 // Boot all services before mounting
-serviceFactory.bootAllServices(app, store, router)
+serviceFactory.bootAllServices(app, router)
     .then((services) => services.bootstrap.init())
     .catch((error) => {
         console.error('Bootstrap initialization failed:', error)

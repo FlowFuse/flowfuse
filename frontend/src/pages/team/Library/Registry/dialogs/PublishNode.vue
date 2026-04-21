@@ -66,13 +66,13 @@
 
 <script>
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import TeamAPI from '../../../../../api/team.js'
 import CodeSnippet from '../../../../../components/CodeSnippet.vue'
 import CopySnippet from '../../../../../components/CopySnippet.vue'
 import Alerts from '../../../../instance/Settings/Alerts.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -101,7 +101,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapVuexState('account', ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         registryHost () {
             return this.settings ? this.settings['team:npm:registry'] : ''
         },

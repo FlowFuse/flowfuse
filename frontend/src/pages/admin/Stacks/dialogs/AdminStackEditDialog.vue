@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import instanceTypesApi from '../../../../api/instanceTypes.js'
 import stacksApi from '../../../../api/stacks.js'
@@ -50,6 +50,8 @@ import stacksApi from '../../../../api/stacks.js'
 import FormRow from '../../../../components/FormRow.vue'
 
 import Alerts from '../../../../services/alerts.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'AdminStackCreateDialog',
@@ -131,7 +133,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         dialogTitle () {
             if (this.stack) {
                 return 'Update stack'

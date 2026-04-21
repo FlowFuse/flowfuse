@@ -69,8 +69,7 @@
 
 import { CogIcon, HomeIcon, XIcon } from '@heroicons/vue/solid/index.js'
 
-import { mapActions } from 'pinia'
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import DropdownMenu from '../../../components/DropdownMenu.vue'
 import ResizeBar from '../../../components/ResizeBar.vue'
@@ -83,6 +82,7 @@ import usePermissions from '../../../composables/Permissions.js'
 import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 import Alerts from '../../../services/alerts.js'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
@@ -168,8 +168,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['features', 'featuresCheck']),
         isExpertRoute () {
             return this.$route.name === 'device-editor-expert'
         },

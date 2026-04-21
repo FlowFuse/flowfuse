@@ -13,7 +13,6 @@
 
 <script>
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import usePermissions from '../../../composables/Permissions.js'
@@ -21,6 +20,7 @@ import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import InstanceForm from '../components/InstanceForm.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -49,7 +49,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapVuexState('account', ['features'])
+        ...mapState(useAccountSettingsStore, ['features'])
     },
     mounted () {
         this.checkAccess()

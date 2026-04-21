@@ -71,8 +71,7 @@
 <script>
 import { HomeIcon, XIcon } from '@heroicons/vue/solid'
 
-import { mapActions } from 'pinia'
-import { mapGetters } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import InstanceStatusPolling from '../../../components/InstanceStatusPolling.vue'
 import ResizeBar from '../../../components/ResizeBar.vue'
@@ -85,12 +84,12 @@ import usePermissions from '../../../composables/Permissions.js'
 import { useResizingHelper } from '../../../composables/ResizingHelper.js'
 
 import FfPage from '../../../layouts/Page.vue'
-import featuresMixin from '../../../mixins/Features.js'
 import instanceMixin from '../../../mixins/Instance.js'
 import { Roles } from '../../../utils/roles.js'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from '../components/DashboardLink.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 // Drawer size constraints
@@ -113,7 +112,7 @@ export default {
         FfPage,
         ResizeBar
     },
-    mixins: [instanceMixin, featuresMixin],
+    mixins: [instanceMixin],
     setup () {
         const { hasAMinimumTeamRoleOf, isVisitingAdmin } = usePermissions()
         const {
@@ -154,11 +153,11 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         navigation () {
             if (!this.instance.id) return []
             let versionHistoryRoute
-            if (!this.isTimelineFeatureEnabled) {
+            if (!this.featuresCheck.isTimelineFeatureEnabled) {
                 versionHistoryRoute = {
                     name: 'instance-editor-snapshots',
                     params: { id: this.instance.id }

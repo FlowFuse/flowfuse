@@ -50,8 +50,6 @@
 import { PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 
-import { mapState } from 'vuex'
-
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 
@@ -85,7 +83,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
         activeInstanceTypes () {
             const types = this.instanceTypes.filter(pt => pt.active)
             return types

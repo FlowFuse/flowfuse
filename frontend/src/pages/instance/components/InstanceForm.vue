@@ -237,7 +237,6 @@
 <script>
 import { CheckCircleIcon, FolderIcon, RefreshIcon } from '@heroicons/vue/outline'
 import { mapActions, mapState } from 'pinia'
-import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import billingApi from '../../../api/billing.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
@@ -261,6 +260,7 @@ import ExportInstanceComponents from './ExportImportComponents.vue'
 import InstanceChargesTable from './InstanceChargesTable.vue'
 import InstanceCreditBanner from './InstanceCreditBanner.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 
 export default {
@@ -388,8 +388,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountStore, ['blueprints', 'defaultBlueprint']),
-        ...mapVuexState('account', ['settings']),
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['settings', 'featuresCheck']),
         creatingApplication () {
             return (this.applicationSelection && !this.applications.length) || (this.creatingNew && this.applicationFieldsVisible)
         },

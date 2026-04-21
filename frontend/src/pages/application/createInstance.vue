@@ -37,7 +37,6 @@
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid/index.js'
 import { mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import instanceApi from '../../api/instances.js'
 
@@ -45,6 +44,7 @@ import applicationMixin from '../../mixins/Application.js'
 import Alerts from '../../services/alerts.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -77,7 +77,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         isLoading () {
             return this.loading || !this.team
         }
