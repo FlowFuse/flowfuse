@@ -2,8 +2,11 @@
     <div class="ff-expert-tool-call--item">
         <div class="ff-expert-tool-call--title">{{ tool.title || tool.name }}</div>
         <div class="ff-expert-tool-call--name">
-            <span class="ff-expert-tool-call--badge" :title="formatKindFull(tool.kind)">{{ formatKindBadge(tool.kind) }}</span>
-            {{ tool.name }}
+            <div>
+                <span class="ff-expert-tool-call--badge" :title="formatKindFull(tool.kind)">{{ formatKindBadge(tool.kind) }}</span>
+                {{ tool.name }}
+            </div>
+            <span class="ff-expert-tool-call--section-duration">{{ tool.durationMs || 0 }} ms</span>
         </div>
         <div v-if="expanded" class="ff-expert-tool-call--details">
             <!-- Input section (collapsible, expanded by default) -->
@@ -34,7 +37,6 @@
                         :class="{ 'rotated': outputExpanded }"
                     />
                     <span class="ff-expert-tool-call--section-label">Output</span>
-                    <span class="ff-expert-tool-call--section-duration">{{ tool.durationMs || 0 }} ms</span>
                 </div>
                 <div v-if="outputExpanded" class="ff-expert-tool-call--code">
                     <!-- eslint-disable-next-line vue/no-v-html -->
@@ -134,6 +136,7 @@ export default {
 .ff-expert-tool-call--name {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 0.375rem;
     font-size: 0.75rem;
     color: $ff-grey-500;
