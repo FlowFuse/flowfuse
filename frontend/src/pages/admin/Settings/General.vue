@@ -210,7 +210,7 @@
                     Login screen will redirect to SAML SSO provider without waiting for username
                 </template>
             </FormRow>
-            <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:provider']" :options="ssoProvidersOptions" data-el="single-sso-provider">
+            <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:provider']" :error="errors.ssoOnlyProvider" :options="ssoProvidersOptions" data-el="single-sso-provider">
                 Which active SAML SSO provider to use for all logins
             </FormRow>
             <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:logoutURL']" type="text" data-el="single-sso-url">
@@ -286,7 +286,8 @@ export default {
             errors: {
                 requiresEmail: null,
                 termsAndConditions: null,
-                offboardingUrl: null
+                offboardingUrl: null,
+                ssoOnlyProvider: null
             },
             teamTypes: [],
             instanceTypes: [],
@@ -452,6 +453,12 @@ export default {
                 }
             }
             this.errors.offboardingUrl = ''
+
+            if (this.input['platform:sso:only'] && this.input['platform:sso:only:provider'] === null) {
+                this.errors.ssoOnlyProvider = 'You must pick a SAML SSO Provider'
+                return false
+            }
+            this.errors.ssoOnlyProvider = ''
 
             return true
         },
