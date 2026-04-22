@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { markRaw } from 'vue'
 
 import expertApi from '../api/expert.js'
+import userApi from '../api/user.js'
 import useTimerHelper from '../composables/TimerHelper.js'
 
 import { useAccountSettingsStore } from './account-settings.js'
@@ -13,11 +14,19 @@ import { useProductExpertInsightsAgentStore } from './product-expert-insights-ag
 import { useProductExpertSupportAgentStore } from './product-expert-support-agent.js'
 import { useUxDrawersStore } from './ux-drawers.js'
 
+import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
+
+import getServicesOrchestrator from '@/services/service.orchestrator'
+
+// TODO currently hardcodded
+const IS_MQTT_ENABLED = true
+
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
         agentMode: SUPPORT_AGENT, // support-agent or insights-agent
         loadingVariant: SUPPORT_AGENT,
-        shouldWakeUpAssistant: false
+        shouldWakeUpAssistant: false,
+        inFlightUpdates: []
     }),
     getters: {
         _agentStore () {
@@ -25,11 +34,20 @@ export const useProductExpertStore = defineStore('product-expert', {
                 ? useProductExpertSupportAgentStore()
                 : useProductExpertInsightsAgentStore()
         },
+        /**
+         * @return {import('vue').UnwrapRef<Map<unknown, unknown> | Map<any, any>> | import('vue').UnwrapRef<Map<unknown, unknown> | Map<any, any>>}
+         * @private
+         */
+        _inFlightRequests () {
+            return this.agentMode === SUPPORT_AGENT
+                ? useProductExpertSupportAgentStore().inFlightRequests
+                : useProductExpertInsightsAgentStore().inFlightRequests
+        },
         abortController () { return this._agentStore.abortController },
         messages () { return this._agentStore.messages },
         hasMessages () { return this._agentStore.messages.length > 0 },
         isSessionExpired () { return this._agentStore.sessionExpiredShown },
-        isWaitingForResponse () { return !!this._agentStore.abortController },
+        isWaitingForResponse () { return !!this._agentStore.abortController || this._inFlightRequests.size > 0 },
         isSupportAgent: (state) => state.agentMode === SUPPORT_AGENT,
         isInsightsAgent: (state) => state.agentMode === INSIGHTS_AGENT,
         hasSelectedCapabilities () {
@@ -37,12 +55,15 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         canImportFlows () {
             const assistantStore = useProductAssistantStore()
-            return !!assistantStore.immersiveInstance && !!assistantStore.supportedActions['custom:import-flow']
+            return !!assistantStore.isImmersiveInstance && !!assistantStore.supportedActions['custom:import-flow']
         },
         canManagePalette () {
             const assistantStore = useProductAssistantStore()
-            return !!assistantStore.immersiveInstance && !!assistantStore.supportedActions['core:manage-palette']
-        }
+            return !!assistantStore.isImmersiveInstance && !!assistantStore.supportedActions['core:manage-palette']
+        },
+        mqttConnectionKey () { return this._agentStore.mqttConnectionKey },
+        sessionId () { return this._agentStore.sessionId },
+        shouldUseMqtt () { return IS_MQTT_ENABLED && this.isSupportAgent }
     },
     actions: {
         setContext ({ data, sessionId }) {
@@ -91,40 +112,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                     })
                 })
         },
-
-        openAssistantDrawer (options = {}) {
-            const featuresCheck = useAccountSettingsStore().featuresCheck
-            if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
-
-            useProductExpertInsightsAgentStore().getCapabilities()
-            // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
-            return import('../components/drawers/expert/ExpertDrawer.vue')
-                .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({
-                    component: markRaw(ExpertDrawer),
-                    fixed: options?.openPinned === true,
-                    closeOnClickOutside: options?.openPinned !== true
-                }))
-        },
-
-        wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
-            if (this.shouldWakeUpAssistant) {
-                const featuresCheck = useAccountSettingsStore().featuresCheck
-                if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
-
-                this.clearWakeUp()
-
-                if (shouldHydrateMessages) {
-                    this.hydrateMessages(this._agentStore.context)
-                }
-
-                this.loadingVariant = 'transfer'
-
-                return this.openAssistantDrawer({ openPinned: useUxDrawersStore().rightDrawer.expertState.pinned })
-                    .then(() => this.hydrateClient())
-                    .then(() => { this.loadingVariant = this.agentMode })
-            }
-        },
-
         async handleQuery ({ query }) {
             const agentStore = this._agentStore
 
@@ -158,41 +145,14 @@ export const useProductExpertStore = defineStore('product-expert', {
                 agentStore.abortController = null
             }
         },
-
-        async handleMessageResponse (response) {
-            if (response.answer && Array.isArray(response.answer)) {
-                this.addAiMessage(response)
+        sendQuery ({ query }) {
+            if (this.shouldUseMqtt) {
+                return this.sendMqttQuery({ query })
+            } else {
+                return this.sendHttpQuery({ query })
             }
         },
-
-        async startOver () {
-            const agentStore = this._agentStore
-            agentStore.sessionId = uuidv4()
-            agentStore.messages = []
-
-            // Reset session timing
-            this.resetSessionTimer()
-            this.startSessionTimer()
-
-            // Clear resource selection
-            const insightsStore = useProductExpertInsightsAgentStore()
-            insightsStore.setSelectedCapabilities([])
-            await insightsStore.getCapabilities()
-
-            // Add welcome message for current mode
-            this.addWelcomeMessageIfNeeded()
-        },
-
-        setAbortController (controller) {
-            this._agentStore.abortController = controller ? markRaw(controller) : null
-        },
-
-        reset () {
-            this._agentStore.reset()
-            this.$reset()
-        },
-
-        sendQuery ({ query }) {
+        async sendHttpQuery ({ query }) {
             const agentStore = this._agentStore
             const payload = {
                 query,
@@ -210,7 +170,202 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             return expertApi.chat(payload)
         },
+        async sendMqttQuery ({ query } = {}) {
+            const servicesOrchestrator = getServicesOrchestrator()
+            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const mqttTopicHelper = useMqttExpertTopicHelper()
 
+            const transactionId = uuidv4()
+            const mqttConnectionKey = this.mqttConnectionKey
+
+            if (!mqttService.hasClient(mqttConnectionKey)) await this.establishMqttComms()
+
+            // add the query as an inFlight request
+            this._inFlightRequests.set(transactionId, { query, transactionId })
+
+            const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
+
+            const topic = mqttTopicHelper.buildTopic({
+                entityType,
+                entityId,
+                agentChannel: 'support',
+                topicType: 'chat',
+                topicAction: 'request'
+            })
+
+            return mqttService.publishMessage(mqttConnectionKey, {
+                topic,
+                qos: 2,
+                payload: {
+                    query,
+                    context: {
+                        ...useContextStore().expert,
+                        agent: this.agentMode
+                    }
+                },
+                correlationData: transactionId,
+                userProperties: {
+                    sessionId: this.sessionId
+                }
+            })
+        },
+        async establishMqttComms () {
+            const servicesOrchestrator = getServicesOrchestrator()
+            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+
+            await mqttService.createClient(this.mqttConnectionKey, {
+                getCredentials: () => userApi.initiateExpertChat({ sessionId: this.sessionId }),
+                onMessage: this._onMqttMessage,
+                onClose: this._onMqttClose,
+                onConnect: this._onMqttConnect,
+                onOffline: this._onMqttOffline,
+                onError: this._onMqttError
+            })
+        },
+        async handleInFlightRequest ({ topic, message, packet, transactionId, sessionId, chatTransactionId } = {}) {
+            // console.log('handleInFlightRequest', {
+            //     topic,
+            //     message,
+            //     packet,
+            //     transactionId,
+            //     sessionId,
+            //     chatTransactionId
+            // })
+
+            const inFlightRequest = this._inFlightRequests.values().next().value
+            if (sessionId !== this.sessionId || inFlightRequest?.transactionId !== chatTransactionId) return
+
+            const servicesOrchestrator = getServicesOrchestrator()
+            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+
+            const assistantStore = useProductAssistantStore()
+
+            const topicHelper = useMqttExpertTopicHelper()
+            const parsedTopic = topicHelper.parseTopic(topic)
+
+            const payload = JSON.parse(message.toString())
+
+            this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
+
+            const responseTopic = topicHelper.buildTopic({
+                entityType: parsedTopic.entityType,
+                entityId: parsedTopic.entityId,
+                agentChannel: 'support',
+                topicType: 'inflight',
+                topicAction: 'response',
+                inflightType: parsedTopic.inflightType,
+                sessionId: sessionId || this.sessionId // TODO: consider validating the incoming request session in userProps matches
+            })
+
+            if (parsedTopic.inflightType === 'expert:status-message') {
+                // this is just a status from the agent, we can ignore it for now, but we might want to display it in the UI later
+                // just ack the msg
+                // TODO: We should be updating the message in the chat interface with _busy doing xyz_ status updates instead of the made up text like "Reading Rag", "Calling MCP" etc.
+                await mqttService.publishMessage(this.mqttConnectionKey, {
+                    qos: 2,
+                    topic: responseTopic,
+                    payload: JSON.stringify({
+                        ack: true
+                    }),
+                    correlationData: new TextEncoder().encode(transactionId),
+                    userProperties: { sessionId, transactionId: chatTransactionId } // pass through for integrity, not actually needed for correlation in this case since it's just an ack
+                })
+            } else if (parsedTopic.inflightType.startsWith('automation:')) {
+                // thi is an automation request, we want to execute it and return the result to the agent
+                const actionName = parsedTopic.inflightType.replace('automation:', '')
+                const postMessagePayload = {
+                    action: `automation/${actionName}`,
+                    params: payload.params || {},
+                    sessionId, // the chat session
+                    chatTransactionId, // the chat transaction, passed through for integrity
+                    transactionId // the incoming MQTT transaction (not the original chat transaction - we store that in userProperties)
+                }
+
+                try {
+                    const result = await assistantStore.invokeActionAwaitResponse(postMessagePayload)
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                        qos: 2,
+                        topic: responseTopic,
+                        payload: JSON.stringify(result),
+                        correlationData: new TextEncoder().encode(transactionId),
+                        userProperties: { sessionId, transactionId: chatTransactionId } // pass through for integrity
+                    })
+                } catch (e) {
+                    this._onMqttError(e)
+                }
+            }
+        },
+        async handleMessageResponse (response) {
+            // ignore aborted messages through mqtt
+            if (Object.prototype.hasOwnProperty.call(response, 'aborted') && response.aborted === true) return
+
+            if (response.answer && Array.isArray(response.answer)) {
+                this.addAiMessage(response)
+                this._clearInFlightUpdates()
+            }
+        },
+        async startOver () {
+            const agentStore = this._agentStore
+            agentStore.sessionId = uuidv4()
+            agentStore.messages = []
+
+            if (this.shouldUseMqtt) {
+                const servicesOrchestrator = getServicesOrchestrator()
+                const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+
+                await mqttService.destroyClient(this.mqttConnectionKey)
+            }
+
+            // Reset session timing
+            this.resetSessionTimer()
+            this.startSessionTimer()
+
+            // Clear resource selection
+            const insightsStore = useProductExpertInsightsAgentStore()
+            insightsStore.setSelectedCapabilities([])
+            await insightsStore.getCapabilities()
+
+            // Add welcome message for current mode
+            this.addWelcomeMessageIfNeeded()
+        },
+        openAssistantDrawer (options = {}) {
+            const featuresCheck = useAccountSettingsStore().featuresCheck
+            if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+
+            useProductExpertInsightsAgentStore().getCapabilities()
+            // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
+            return import('../components/drawers/expert/ExpertDrawer.vue')
+                .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({
+                    component: markRaw(ExpertDrawer),
+                    fixed: options?.openPinned === true,
+                    closeOnClickOutside: options?.openPinned !== true
+                }))
+        },
+        wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
+            if (this.shouldWakeUpAssistant) {
+                const featuresCheck = useAccountSettingsStore().featuresCheck
+                if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+
+                this.clearWakeUp()
+
+                if (shouldHydrateMessages) {
+                    this.hydrateMessages(this._agentStore.context)
+                }
+
+                this.loadingVariant = 'transfer'
+
+                return this.openAssistantDrawer({ openPinned: useUxDrawersStore().rightDrawer.expertState.pinned })
+                    .then(() => this.hydrateClient())
+                    .then(() => { this.loadingVariant = this.agentMode })
+            }
+        },
+        setAbortController (controller) {
+            this._agentStore.abortController = controller ? markRaw(controller) : null
+        },
+        reset () {
+            this._agentStore.reset()
+            this.$reset()
+        },
         addWelcomeMessageIfNeeded () {
             const currentMode = this.agentMode
             const hasMessages = this._agentStore.messages.length > 0
@@ -241,7 +396,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 this.addPredefinedAiMessage(message)
             }
         },
-
         // Session timing actions
         startSessionTimer () {
             const agentStore = this._agentStore
@@ -283,7 +437,6 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             agentStore.setSessionCheckTimer(timer)
         },
-
         resetSessionTimer () {
             const agentStore = this._agentStore
             if (agentStore.sessionCheckTimer) {
@@ -294,7 +447,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.sessionWarningShown = false
             agentStore.sessionExpiredShown = false
         },
-
         /**
          *
          * @param {'support-agent' | 'insights-agent'} mode
@@ -304,7 +456,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             this.agentMode = mode
             this.loadingVariant = mode
         },
-
         /**
          * Adds a system message to the application's message store.
          *
@@ -322,17 +473,20 @@ export const useProductExpertStore = defineStore('product-expert', {
                 _uuid: uuidv4()
             })
         },
-
         addPredefinedAiMessage (message) {
+            // this may not be the best approach
+            // if the last entry in messages is also auto generated, skip, most probably we'll be adding a duplication
+            if (this._agentStore.messages.length && this._agentStore.messages.at(-1).generated) return
+
             this._agentStore.messages.push({
                 _type: 'ai',
+                generated: true,
                 answer: [{ content: message, _streamed: false, _uuid: uuidv4() }],
                 _timestamp: Date.now(),
                 _streamed: false,
                 _uuid: uuidv4()
             })
         },
-
         addAiMessage (message) {
             const answer = message.answer
                 ? message.answer.map(a => ({ ...a, _uuid: uuidv4(), _streamed: false }))
@@ -346,7 +500,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 _uuid: uuidv4()
             })
         },
-
         addUserMessage (message) {
             this._agentStore.messages.push({
                 _type: 'human',
@@ -355,7 +508,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 _uuid: uuidv4()
             })
         },
-
         updateMessageStreamedState (uuid) {
             let message = useProductExpertSupportAgentStore().messages.find(m => m._uuid === uuid)
             if (!message) {
@@ -365,7 +517,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                 message._streamed = true
             }
         },
-
         updateAnswerStreamedState ({ messageUuid, answerUuid }) {
             let message = useProductExpertSupportAgentStore().messages.find(m => m._uuid === messageUuid)
             if (!message) {
@@ -378,11 +529,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
         },
-
         hydrateMessages (messages) {
             if (!messages) return
             messages.forEach((message) => {
-                // todo break this into manageable chunks, do we actually still need it?
+                // TODO break this into manageable chunks, do we actually still need it?
                 if (message.answer && Array.isArray(message.answer)) {
                     // Extract MCP items (tools, resources, resource templates, prompts) from the answer array
                     const mcpItems = message.answer.filter(item =>
@@ -432,6 +582,122 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
                 // Else: ignore messages that don't match either format
             })
+        },
+        async _onMqttMessage  (topic, message, packet) {
+            // ignore any messages if inFlightRequests has been cleared (it means that the chat was stopped mid-flight)
+            if (this._inFlightRequests.size === 0) return
+
+            const topicHelper = useMqttExpertTopicHelper()
+            const parsedTopic = topicHelper.parseTopic(topic)
+            const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
+            const sessionId = packet.properties?.userProperties?.sessionId // chat session
+            const chatTransactionId = packet.properties?.userProperties?.transactionId // passed through for integrity
+
+            if (parsedTopic.isReply) {
+                // remove inFlight request because it is now resolved
+                this._inFlightRequests.delete(transactionId)
+
+                // handle the response
+                await this.handleMessageResponse(JSON.parse(message.toString()))
+            } else if (parsedTopic.isInflightRequest) {
+                await this.handleInFlightRequest({
+                    topic,
+                    message,
+                    packet,
+                    transactionId,
+                    sessionId,
+                    chatTransactionId
+                })
+            }
+        },
+        _onMqttClose  () {
+            this.addPredefinedAiMessage(
+                'Something went wrong and our connection was interrupted. ' +
+                'You can continue this conversation by sending a new message, or simply start over with a new session.'
+            )
+        },
+        _onMqttConnect () {
+            const servicesOrchestrator = getServicesOrchestrator()
+            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+
+            const mqttTopicHelper = useMqttExpertTopicHelper()
+
+            mqttService.subscribe(
+                this.mqttConnectionKey,
+                mqttTopicHelper.buildTopic({
+                    entityType: '+',
+                    entityId: '+',
+                    agentChannel: 'support',
+                    topicType: 'chat',
+                    topicAction: 'response'
+                }),
+                { qos: 2 }
+            )
+
+            mqttService.subscribe(
+                this.mqttConnectionKey,
+                mqttTopicHelper.buildTopic({
+                    entityType: '+',
+                    entityId: '+',
+                    agentChannel: 'support',
+                    topicType: 'inflight',
+                    topicAction: 'request',
+                    inflightType: '+'
+                }),
+                { qos: 2 }
+            )
+        },
+        _onMqttOffline () {
+            console.warn('#################### mqtt offline')
+            // TODO add error message, handle reconnect, notify user
+        },
+        _onMqttError (e) {
+            // stopping inFlight chat requests to ignore any in flight messages
+            this.stopInflightChat()
+            this._clearInFlightUpdates()
+            this.addPredefinedAiMessage(`Something went wrong.. ${e.message}`)
+        },
+        _addInFlightUpdate (status) {
+            this.inFlightUpdates.push(status)
+        },
+        _clearInFlightUpdates () {
+            this.inFlightUpdates = []
+        },
+        stopInflightChat () {
+            if (this.shouldUseMqtt) {
+                const servicesOrchestrator = getServicesOrchestrator()
+                const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+                const mqttTopicHelper = useMqttExpertTopicHelper()
+                const inFlightRequest = this._inFlightRequests.values().next().value
+
+                const { entityId, entityType } = mqttTopicHelper.getEntityTopicPaths()
+
+                const topic = mqttTopicHelper.buildTopic({
+                    entityType,
+                    entityId,
+                    agentChannel: 'support',
+                    topicType: 'chat',
+                    topicAction: 'request'
+                })
+
+                // publishing an abort message to stop the agent
+                mqttService.publishMessage(this.mqttConnectionKey, {
+                    topic,
+                    qos: 2,
+                    payload: {
+                        abort: true,
+                        context: {
+                            ...useContextStore().expert,
+                            agent: this.agentMode
+                        }
+                    },
+                    correlationData: inFlightRequest.transactionId,
+                    userProperties: {
+                        sessionId: this.sessionId
+                    }
+                })
+            }
+            this._inFlightRequests.clear()
         }
     },
     persist: {

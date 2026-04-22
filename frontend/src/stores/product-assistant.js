@@ -157,11 +157,20 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         // debugLog getter which gates the feature flag. Use this.debugLogEntries
         // internally; external consumers should read this.debugLog (the getter).
         debugLogEntries: [],
-        editorState: { ...buildInitialEditorState() }
+        editorState: { ...buildInitialEditorState() },
+        pendingRequests: new Map() // key is transactionId, value is { resolve, reject, timeout, timestamp, type, action, params }
     }),
     getters: {
-        immersiveInstance: () => useContextStore().instance,
-        immersiveDevice: () => useContextStore().device,
+        isImmersiveInstance: () => {
+            const contextStore = useContextStore()
+
+            return contextStore.instance && contextStore.isImmersive
+        },
+        isImmersiveDevice: () => {
+            const contextStore = useContextStore()
+
+            return contextStore.device && contextStore.isImmersive
+        },
         hasUserSelection: (state) => state.selectedNodes.length > 0,
         hasContextSelection: (state) => state.selectedContext.length > 0,
         hasDebugLogsSelected () {
@@ -258,6 +267,19 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             if (!this.allowedInboundOrigins.includes(payload.origin)) {
                 console.warn('Received message from unknown origin. Ignoring.')
                 return
+            }
+
+            const payloadData = payload.data || {}
+            if (payloadData.correlationId && payloadData.type === 'invoke-action') {
+                const { correlationId } = payloadData
+                const inflight = this.pendingRequests.get(correlationId)
+                if (inflight) {
+                    console.debug('Received response for in-flight request:', { correlationId, originalRequest: inflight.postMessagePayload, response: payloadData })
+                    inflight.resolve(payloadData)
+                    this.pendingRequests.delete(correlationId)
+                } else {
+                    console.warn('Received response with correlationId that does not match any in-flight requests. Ignoring.', { correlationId, response: payloadData })
+                }
             }
 
             switch (true) {
@@ -447,6 +469,53 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                 params
             })
         },
+        async invokeActionAwaitResponse ({ action, params, sessionId, transactionId, chatTransactionId }, timeout = 5000) {
+            // create a promise that will resolve when we receive a response with the matching sessionId and transactionId, or reject after a timeout
+            const pending = {
+                resolve: null,
+                reject: null,
+                resolved: false,
+                rejected: false,
+                timeout: null,
+                timestamp: Date.now(),
+                type: 'invoke-action',
+                action,
+                params,
+                sessionId,
+                transactionId,
+                chatTransactionId
+            }
+            const promise = new Promise((resolve, reject) => {
+                pending.resolve = (payload) => {
+                    clearTimeout(pending.timeout)
+                    this.pendingRequests.delete(pending.transactionId)
+                    if (pending.resolved) return
+                    if (pending.rejected) return
+                    pending.resolved = true
+                    resolve(payload)
+                }
+                pending.reject = (error) => {
+                    clearTimeout(pending.timeout)
+                    this.pendingRequests.delete(pending.transactionId)
+                    if (pending.resolved) return
+                    if (pending.rejected) return
+                    pending.rejected = true
+                    reject(error)
+                }
+                pending.timeout = setTimeout(() => {
+                    pending.reject(new Error('Node-RED command timed out'))
+                }, timeout)
+            })
+            const correlationId = `${sessionId}:${chatTransactionId}:${transactionId}`
+            this.pendingRequests.set(correlationId, pending)
+            this.sendMessage({
+                type: 'invoke-action',
+                action,
+                params,
+                correlationId // post Message Correlation Id
+            })
+            return promise
+        },
         async sendFlowsToImport (flowsJson) {
             return this.sendMessage({
                 type: 'invoke-action',
@@ -478,6 +547,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         },
         sendMessage (payload) {
             const orchestrator = getServicesOrchestrator()
+            const contextStore = useContextStore()
 
             orchestrator.$serviceInstances.postMessage.sendMessage({
                 message: {
@@ -485,7 +555,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                     ...this.scope
                 },
                 target: window.frames['immersive-editor-iframe'],
-                targetOrigin: this.immersiveInstance?.url
+                targetOrigin: (contextStore.instance || contextStore.device)?.url
             })
         }
     }

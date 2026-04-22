@@ -113,8 +113,8 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, [
-            'immersiveInstance',
-            'immersiveDevice'
+            'isImmersiveInstance',
+            'isImmersiveDevice'
         ]),
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useProductExpertStore, [
@@ -145,7 +145,7 @@ export default {
                 : 'Tell us what you need help with'
         },
         isImmersive () {
-            return this.immersiveDevice || this.immersiveInstance
+            return this.isImmersiveDevice || this.isImmersiveInstance
         }
     },
     mounted () {

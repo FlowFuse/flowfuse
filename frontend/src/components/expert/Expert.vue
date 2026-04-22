@@ -148,7 +148,8 @@ export default {
             'setAgentMode',
             'setAbortController',
             'resetSessionTimer',
-            'addWelcomeMessageIfNeeded'
+            'addWelcomeMessageIfNeeded',
+            'stopInflightChat'
         ]),
         ...mapActions(useProductExpertInsightsAgentStore, ['getCapabilities']),
         ...mapActions(useProductAssistantStore, ['reset']),
@@ -157,6 +158,7 @@ export default {
                 this.abortController.abort()
                 this.setAbortController(null)
             }
+            this.stopInflightChat()
         },
         handleScroll () {
             // Debounce scroll detection
