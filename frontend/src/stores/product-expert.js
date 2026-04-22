@@ -648,7 +648,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             )
         },
         _onMqttOffline () {
-            console.log('#################### mqtt offline')
+            console.warn('#################### mqtt offline')
             // TODO add error message, handle reconnect, notify user
         },
         _onMqttError (e) {
