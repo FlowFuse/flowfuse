@@ -10135,7 +10135,7 @@ export interface components {
             runningCount?: number;
             isDeploying?: boolean;
             hasTargetSnapshot?: boolean;
-            targetSnapshotId?: string;
+            targetSnapshotId?: string | null;
         } & components["schemas"]["DeviceGroupSummary"];
         /** DeviceGroup */
         DeviceGroup: ({
@@ -10143,17 +10143,17 @@ export interface components {
             updatedAt?: string;
             application?: components["schemas"]["ApplicationSummary"];
             devices?: components["schemas"]["Device"][];
-            targetSnapshot?: components["schemas"]["SnapshotSummary"];
+            targetSnapshot?: components["schemas"]["SnapshotSummary"] | null;
         } & {
             [key: string]: unknown;
         }) & components["schemas"]["DeviceGroupSummary"];
         /** Invitation */
         Invitation: {
             id?: string;
-            role?: number;
+            role?: number | null;
             createdAt?: string;
             expiresAt?: string;
-            sentAt?: string;
+            sentAt?: string | null;
             team?: components["schemas"]["TeamSummary"];
             invitor?: components["schemas"]["UserSummary"];
             invitee?: components["schemas"]["UserSummary"] & {
@@ -10382,7 +10382,7 @@ export interface components {
             id?: string;
             name?: string;
             active?: boolean;
-            description?: string;
+            description?: string | null;
             order?: number;
             properties?: {
                 [key: string]: unknown;
@@ -10437,7 +10437,7 @@ export interface components {
         /** TeamType */
         TeamType: {
             order?: number;
-            description?: string;
+            description?: string | null;
             teamCount?: number;
             properties?: {
                 users?: {
@@ -10585,7 +10585,7 @@ export interface components {
             name?: string;
             description?: string;
             category?: string;
-            icon?: string;
+            icon?: string | null;
             order?: number;
             default?: boolean;
             createdAt?: string;
@@ -10611,7 +10611,7 @@ export interface components {
                 name?: string;
                 description?: string;
                 category?: string;
-                icon?: string;
+                icon?: string | null;
                 flows?: {
                     [key: string]: unknown;
                 };
@@ -10656,9 +10656,9 @@ export interface components {
             name?: string;
             type?: string;
             nullable?: boolean;
-            default?: string;
+            default?: string | null;
             generated?: boolean;
-            maxLength?: number;
+            maxLength?: number | null;
         }[];
     };
     responses: never;

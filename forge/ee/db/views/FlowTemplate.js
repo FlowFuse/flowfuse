@@ -8,7 +8,7 @@ module.exports = function (app) {
             name: { type: 'string' },
             description: { type: 'string' },
             category: { type: 'string' },
-            icon: { type: 'string' },
+            icon: { type: 'string', nullable: true },
             order: { type: 'number' },
             default: { type: 'boolean' },
             createdAt: { type: 'string' },
@@ -80,7 +80,7 @@ module.exports = function (app) {
                         name: { type: 'string' },
                         description: { type: 'string' },
                         category: { type: 'string' },
-                        icon: { type: 'string' },
+                        icon: { type: 'string', nullable: true },
                         flows: { type: 'object', additionalProperties: true },
                         modules: { type: 'object', additionalProperties: true }
                     }

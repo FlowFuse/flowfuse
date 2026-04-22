@@ -29,9 +29,9 @@ module.exports = function (app) {
                 name: { type: 'string' },
                 type: { type: 'string' },
                 nullable: { type: 'boolean' },
-                default: { type: 'string' },
+                default: { type: 'string', nullable: true },
                 generated: { type: 'boolean' },
-                maxLength: { type: 'number' }
+                maxLength: { type: 'number', nullable: true }
             }
         }
     })
