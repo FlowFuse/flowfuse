@@ -161,12 +161,12 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         pendingRequests: new Map() // key is transactionId, value is { resolve, reject, timeout, timestamp, type, action, params }
     }),
     getters: {
-        immersiveInstance: () => {
+        isImmersiveInstance: () => {
             const contextStore = useContextStore()
 
             return contextStore.instance && contextStore.isImmersive
         },
-        immersiveDevice: () => {
+        isImmersiveDevice: () => {
             const contextStore = useContextStore()
 
             return contextStore.device && contextStore.isImmersive

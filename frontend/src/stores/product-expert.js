@@ -55,11 +55,11 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         canImportFlows () {
             const assistantStore = useProductAssistantStore()
-            return !!assistantStore.immersiveInstance && !!assistantStore.supportedActions['custom:import-flow']
+            return !!assistantStore.isImmersiveInstance && !!assistantStore.supportedActions['custom:import-flow']
         },
         canManagePalette () {
             const assistantStore = useProductAssistantStore()
-            return !!assistantStore.immersiveInstance && !!assistantStore.supportedActions['core:manage-palette']
+            return !!assistantStore.isImmersiveInstance && !!assistantStore.supportedActions['core:manage-palette']
         },
         mqttConnectionKey () { return this._agentStore.mqttConnectionKey },
         sessionId () { return this._agentStore.sessionId },
