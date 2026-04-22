@@ -13,7 +13,7 @@ module.exports = function (app) {
             default: { type: 'boolean' },
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
-            externalUrl: { type: 'string' }
+            externalUrl: { type: 'string', nullable: true }
         }
     })
     function flowBlueprintSummary (blueprint) {

@@ -4152,7 +4152,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            targetSnapshot?: string;
+                            targetSnapshot?: string | null;
                         };
                     };
                 };
@@ -9921,7 +9921,7 @@ export interface components {
             application?: string | null;
             instance?: string | null;
             expiresAt?: string | null;
-            targetSnapshot?: string;
+            targetSnapshot?: string | null;
         };
         /** ProvisioningToken */
         ProvisioningToken: {
@@ -10008,7 +10008,7 @@ export interface components {
         AuditLogEntry: {
             id?: string;
             createdAt?: string;
-            username?: string;
+            username?: string | null;
             event?: string;
             scope?: {
                 [key: string]: unknown;
@@ -10062,7 +10062,7 @@ export interface components {
         /** Device */
         Device: {
             id?: string;
-            ownerType?: string;
+            ownerType?: string | null;
             name?: string;
             type?: string;
             createdAt?: string;
@@ -10073,7 +10073,7 @@ export interface components {
             targetSnapshot?: components["schemas"]["SnapshotSummary"] | null;
             status?: string;
             isDeploying?: boolean;
-            agentVersion?: string;
+            agentVersion?: string | null;
             mode?: string;
             links?: components["schemas"]["LinksMeta"];
             team?: components["schemas"]["TeamSummary"];
@@ -10089,7 +10089,7 @@ export interface components {
         /** DeviceSummary */
         DeviceSummary: {
             id?: string;
-            ownerType?: string;
+            ownerType?: string | null;
             name?: string;
             type?: string;
             lastSeenAt?: string | null;
@@ -10590,7 +10590,7 @@ export interface components {
             default?: boolean;
             createdAt?: string;
             updatedAt?: string;
-            externalUrl?: string;
+            externalUrl?: string | null;
         };
         /** FlowBlueprint */
         FlowBlueprint: {
