@@ -92,7 +92,7 @@ module.exports = {
                             { model: M.Application, attributes: ['hashid', 'id', 'name', 'description', 'links', 'TeamId'] },
                             {
                                 model: M.Device,
-                                attributes: ['hashid', 'id', 'name', 'type', 'TeamId', 'ApplicationId', 'ProjectId', 'ownerType'],
+                                attributes: ['hashid', 'id', 'name', 'type', 'links', 'lastSeenAt', 'state', 'mode', 'TeamId', 'ApplicationId', 'ProjectId', 'ownerType'],
                                 where: {
                                     ApplicationId: literal('"Devices"."ApplicationId" = "Application"."id"')
                                 },

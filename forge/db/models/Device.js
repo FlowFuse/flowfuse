@@ -433,7 +433,7 @@ module.exports = {
                             { model: M.Application, attributes: ['hashid', 'id', 'name', 'description', 'links'] },
                             {
                                 model: M.Project,
-                                attributes: ['id', 'name', 'links'],
+                                attributes: ['id', 'hashid', 'name', 'links', 'createdAt', 'updatedAt'],
                                 include: {
                                     model: M.Application,
                                     attributes: ['id', 'name', 'links']
@@ -553,7 +553,7 @@ module.exports = {
                     const filteringOnInstanceApplication = !!where.ApplicationId && includeInstanceApplication
                     const projectInclude = {
                         model: M.Project,
-                        attributes: ['id', 'name', 'links'],
+                        attributes: ['id', 'hashid', 'name', 'links', 'createdAt', 'updatedAt'],
                         required: filteringOnInstanceApplication
                     }
 
@@ -684,7 +684,7 @@ module.exports = {
                             },
                             {
                                 model: M.Project,
-                                attributes: ['id', 'name', 'links']
+                                attributes: ['id', 'hashid', 'name', 'links', 'createdAt', 'updatedAt']
                             },
                             {
                                 model: M.ProjectSnapshot,

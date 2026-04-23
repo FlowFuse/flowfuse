@@ -234,7 +234,7 @@ module.exports = {
                         include: [
                             {
                                 association: 'Instances',
-                                attributes: ['hashid', 'id', 'name', 'url', 'updatedAt']
+                                attributes: ['hashid', 'id', 'name', 'url', 'links', 'createdAt', 'updatedAt']
                             },
                             {
                                 association: 'Devices',
@@ -280,7 +280,7 @@ module.exports = {
                         include: [
                             {
                                 association: 'Instances',
-                                attributes: ['hashid', 'id', 'name', 'url', 'updatedAt'],
+                                attributes: ['hashid', 'id', 'name', 'url', 'links', 'createdAt', 'updatedAt'],
                                 include: [
                                     {
                                         model: M.ProjectSettings,
