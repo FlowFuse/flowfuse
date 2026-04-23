@@ -1,5 +1,10 @@
+import { BaseService } from './service.contract'
+
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
+import { Maybe } from '@/types/common/types'
+import type { PostMessageServiceI } from '@/types/services/post-message.types'
+import type { CreateServiceOptions } from '@/types/services/service.types'
 
 const DATA_SOURCE_FLOWFUSE_WEBSITE = 'flowfuse-website'
 const DATA_SOURCE_ASSISTANT = 'nr-assistant'
@@ -18,43 +23,50 @@ const ACTIONS_FLOWFUSE_EXPERT = {
     SET_CONTEXT: 'set-context'
 }
 
+type FlowFuseWebsiteSource = typeof DATA_SOURCE_FLOWFUSE_WEBSITE | typeof DATA_SOURCE_ASSISTANT
+type FlowFuseExpertScope = typeof dataSourceScopes[typeof DATA_SOURCE_FLOWFUSE_WEBSITE]['FLOWFUSE_EXPERT']
+type SetContextAction = typeof ACTIONS_FLOWFUSE_EXPERT.SET_CONTEXT
+type DataTargetAssistant = typeof DATA_TARGET_ASSISTANT
+
+type PostMessageBase = {
+    source: FlowFuseWebsiteSource
+    scope: FlowFuseExpertScope
+    target: DataTargetAssistant
+}
+type PostMessagePayload = PostMessageBase & (
+    {
+        type: 'onLoad'
+        status: 'ready'
+        timestamp: number
+    } | {
+        type: 'flowfuse-expert-response'
+        action: 'confirm'
+        timestamp: number
+    } | {
+        action: SetContextAction
+        payload: unknown
+    }
+)
+
 const sourceActions = {
     [DATA_SOURCE_FLOWFUSE_WEBSITE]: ACTIONS_FLOWFUSE_EXPERT
 }
 
 const allowedOrigins = ['https://flowfuse.com', 'https://app.flowfuse.com', 'https://forge.flowfuse.dev', 'http://localhost:8080', 'http://localhost:3000']
 
+type SendMessagePayload = { message: object, target?: WindowProxy, targetOrigin?: string }
+
 /**
  * Messaging Service - Handles postMessage communication
  * @class
  */
-class MessagingService {
-    /**
-     * @type {import('vue').App} - Vue app instance
-     */
-    $app
+class PostMessageService extends BaseService implements PostMessageServiceI {
+    protected $onMessage: ((event: MessageEvent<PostMessagePayload>) => Promise<void>) | null = null
 
-    /**
-     * @type {import('vue-router').Router} - Vue router instance
-     */
-    $router
+    constructor ({ app, router, services }: CreateServiceOptions) {
+        super({ name: 'postMessage', app, router, services })
 
-    /**
-     * @type {Object} - Map of all services for dependency injection
-     */
-    $services
-
-    /**
-     * @param {{app: import('vue').App, router: import('vue-router').Router, services?: Object}} options - Constructor options
-     */
-    constructor ({
-        app,
-        router,
-        services = {}
-    }) {
-        this.$app = app
-        this.$router = router
-        this.$services = services
+        this.$onMessage = null
 
         this.init()
     }
@@ -73,15 +85,15 @@ class MessagingService {
     }
 
     setupMessageHandlers () {
-        window.addEventListener('message', async (event) => {
+        this.$onMessage = async (event: MessageEvent<PostMessagePayload>) => {
             const isSourceWebsite = event.data.source === DATA_SOURCE_FLOWFUSE_WEBSITE
             const isWebsiteExpertScope = event.data.scope === dataSourceScopes[DATA_SOURCE_FLOWFUSE_WEBSITE].FLOWFUSE_EXPERT
             const shouldHandleWebsiteExpertMessages = isSourceWebsite && isWebsiteExpertScope
 
-            const isAssistantTargettingFlowFuseExpert = event.data.target === DATA_TARGET_ASSISTANT
+            const isAssistantTargetingFlowFuseExpert = event.data.target === DATA_TARGET_ASSISTANT
             const isSourceAssistant = event.data.source === DATA_SOURCE_ASSISTANT
-            const isAssistantScope = isAssistantTargettingFlowFuseExpert && event.data.scope === dataSourceScopes[DATA_SOURCE_ASSISTANT].FLOWFUSE_EXPERT
-            const shouldHandleAssistantMessages = isAssistantTargettingFlowFuseExpert && isSourceAssistant && isAssistantScope
+            const isAssistantScope = isAssistantTargetingFlowFuseExpert && event.data.scope === dataSourceScopes[DATA_SOURCE_ASSISTANT].FLOWFUSE_EXPERT
+            const shouldHandleAssistantMessages = isAssistantTargetingFlowFuseExpert && isSourceAssistant && isAssistantScope
 
             switch (true) {
             case shouldHandleWebsiteExpertMessages:
@@ -91,20 +103,30 @@ class MessagingService {
             default:
                 // do nothing
             }
-        })
+        }
+
+        window.addEventListener('message', this.$onMessage)
     }
 
-    async handleFlowFuseExpertMessage (event) {
-        switch (event.data.action) {
-        case sourceActions[DATA_SOURCE_FLOWFUSE_WEBSITE].SET_CONTEXT:
-            await this.setExpertContext(event.data.payload)
-            break
-        default:
-            console.warn('Unknown message received:', event.data.action)
+    async destroy () {
+        if (this.$onMessage) {
+            window.removeEventListener('message', this.$onMessage)
+            this.$onMessage = null
         }
     }
 
-    async handleAssistantMessage (event) {
+    async handleFlowFuseExpertMessage (event: MessageEvent<PostMessagePayload>) {
+        const data = event.data as PostMessageBase & { action: string, payload?: { data: object, sessionId: string } }
+        switch (data.action) {
+        case sourceActions[DATA_SOURCE_FLOWFUSE_WEBSITE].SET_CONTEXT:
+            this.setExpertContext(data.payload)
+            break
+        default:
+            console.warn('Unknown message received:', data.action)
+        }
+    }
+
+    async handleAssistantMessage (event: MessageEvent<PostMessagePayload>) {
         await useProductAssistantStore().handleMessage(event)
     }
 
@@ -118,7 +140,7 @@ class MessagingService {
         this.sendMessage({ message })
     }
 
-    setExpertContext (payload) {
+    setExpertContext (payload: {data: object, sessionId: string}) {
         useProductExpertStore().setContext(payload)
 
         const message = {
@@ -130,11 +152,7 @@ class MessagingService {
         this.sendMessage({ message })
     }
 
-    sendMessage ({
-        message,
-        target,
-        targetOrigin
-    }) {
+    sendMessage ({ message, target, targetOrigin }: SendMessagePayload) {
         // If we have a target, we aim at that target
         if (target) {
             target.postMessage(message, targetOrigin)
@@ -179,15 +197,15 @@ class MessagingService {
      * @param {Window} targetWindow - The window to get origin from
      * @returns {string|null} - The origin or null if inaccessible
      */
-    getWindowOrigin (targetWindow) {
+    getWindowOrigin (targetWindow: WindowProxy): string | null {
         try {
             return targetWindow.location.origin
-        } catch (error) {
+        } catch {
             // Cross-origin - try to get from document.referrer or other sources
             if (targetWindow === window.parent && document.referrer) {
                 try {
                     return new URL(document.referrer).origin
-                } catch (e) {
+                } catch {
                     return null
                 }
             }
@@ -195,7 +213,7 @@ class MessagingService {
             if (targetWindow === window.opener && document.referrer) {
                 try {
                     return new URL(document.referrer).origin
-                } catch (e) {
+                } catch {
                     return null
                 }
             }
@@ -208,25 +226,21 @@ class MessagingService {
      * @param {string} origin - The origin to check
      * @returns {boolean} - True if the origin is allowed
      */
-    isWindowOriginAllowed (origin) {
+    isWindowOriginAllowed (origin: string): boolean {
         return allowedOrigins.includes(origin)
     }
 }
 
-let MessagingServiceInstance = null
+let MessagingServiceInstance: Maybe<PostMessageService> = null
 
 /**
  * Get or create the MessagingService singleton instance
- * @param {{app: import('vue').App, router: import('vue-router').Router, services?: Object}} options - Constructor options
- * @returns {MessagingService}
+ * @param CreateServiceOptions options - Constructor options
+ * @returns {PostMessageService}
  */
-export function createMessagingService ({
-    app,
-    router,
-    services = {}
-} = {}) {
+export function createMessagingService ({ app, router, services } : CreateServiceOptions): PostMessageService {
     if (!MessagingServiceInstance) {
-        MessagingServiceInstance = new MessagingService({
+        MessagingServiceInstance = new PostMessageService({
             app,
             router,
             services
@@ -237,6 +251,6 @@ export function createMessagingService ({
 }
 
 /**
- * @returns {MessagingService}
+ * @returns {PostMessageService}
  */
 export default createMessagingService
