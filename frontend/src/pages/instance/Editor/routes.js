@@ -15,7 +15,7 @@ export default [
         component: InstanceEditor,
         meta: {
             title: 'Instance - Editor',
-            layout: 'plain'
+            layout: 'immersive'
         },
         redirect: to => {
             const name = useAccountSettingsStore().featuresCheck.isExpertAssistantFeatureEnabled
@@ -27,7 +27,8 @@ export default [
             ...children.filter(child => !['settings', 'version-history'].includes(child.path)).map(child => {
                 return {
                     ...child,
-                    name: child.name.replace('instance-', 'instance-editor-')
+                    name: child.name.replace('instance-', 'instance-editor-'),
+                    meta: { ...child.meta, layout: 'immersive' }
                 }
             }),
             {
@@ -35,7 +36,8 @@ export default [
                 name: 'instance-editor-settings',
                 component: InstanceSettings,
                 meta: {
-                    title: 'Instance - Settings'
+                    title: 'Instance - Settings',
+                    layout: 'immersive'
                 },
                 redirect: to => {
                     return { name: 'instance-editor-settings-general', params: { id: to.params.id } }
@@ -44,7 +46,8 @@ export default [
                     ...InstanceSettingsRoutes.map(child => {
                         return {
                             ...child,
-                            name: child.name.replace('instance-settings', 'instance-editor-settings')
+                            name: child.name.replace('instance-settings', 'instance-editor-settings'),
+                            meta: { ...child.meta, layout: 'immersive' }
                         }
                     })
                 ]
@@ -54,7 +57,8 @@ export default [
                 name: 'instance-editor-version-history',
                 component: VersionHistory,
                 meta: {
-                    title: 'Instance - Version History'
+                    title: 'Instance - Version History',
+                    layout: 'immersive'
                 },
                 redirect: to => {
                     return { name: 'instance-editor-version-history-timeline', params: { id: to.params.id } }
@@ -63,7 +67,8 @@ export default [
                     ...VersionHistoryRoutes.map(child => {
                         return {
                             ...child,
-                            name: child.name.replace('instance-', 'instance-editor-')
+                            name: child.name.replace('instance-', 'instance-editor-'),
+                            meta: { ...child.meta, layout: 'immersive' }
                         }
                     })
                 ]
@@ -73,7 +78,8 @@ export default [
                 name: 'instance-editor-expert',
                 component: () => import('../../../components/expert/Expert.vue'),
                 meta: {
-                    title: 'Hosted Instance - Expert'
+                    title: 'Hosted Instance - Expert',
+                    layout: 'immersive'
                 }
             }
         ]
