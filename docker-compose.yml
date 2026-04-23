@@ -1,0 +1,50 @@
+name: flowfuse
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ff
+      POSTGRES_PASSWORD: super-secret
+      POSTGRES_DB: flowfuse
+    volumes:
+      - ./.docker/postgres/data:/var/.data/postgres
+    ports:
+      - "5432:5432"
+
+  nginx:
+    network_mode: host
+    image: nginx:latest
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  emqx:
+    image: emqx/emqx:5.8
+    container_name: emqx
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "8083:8083"
+      - "18083:18083"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./.docker/emqx/cluster.hocon:/opt/emqx/data/configs/cluster.hocon
+      - ./.docker/emqx/api-keys:/mounted/config/api-keys
+      - ./.docker/emqx/acl.conf:/opt/emqx/data/authz/acl.conf
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8020:8025"
+      - "1020:1025"
+    environment:
+      MP_MAX_MESSAGES: "5000"
+      MP_SMTP_AUTH_ACCEPT_ANY: "1"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "1"
