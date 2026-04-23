@@ -436,7 +436,7 @@ module.exports = {
                                 attributes: ['id', 'hashid', 'name', 'links', 'createdAt', 'updatedAt'],
                                 include: {
                                     model: M.Application,
-                                    attributes: ['id', 'name', 'links']
+                                    attributes: ['id', 'hashid', 'name', 'description', 'links']
                                 }
                             },
                             { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },

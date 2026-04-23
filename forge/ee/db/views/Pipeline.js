@@ -5,7 +5,17 @@ module.exports = function (app) {
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
-            stages: { $ref: 'PipelineStageList' }
+            stages: { $ref: 'PipelineStageList' },
+            // Only populated by team-level pipeline lists.
+            application: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string' },
+                    name: { type: 'string' }
+                },
+                required: ['id', 'name'],
+                additionalProperties: false
+            }
         },
         required: ['id', 'name', 'stages'],
         additionalProperties: false

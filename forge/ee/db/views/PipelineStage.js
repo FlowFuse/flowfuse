@@ -50,7 +50,8 @@ module.exports = function (app) {
             id: result.hashid,
             name: result.name,
             action: result.action,
-            deployToDevices: result.deployToDevices
+            // Column is nullable — coerce to bool so the schema-declared type holds.
+            deployToDevices: !!result.deployToDevices
         }
 
         if (stage.Instances?.length > 0) {

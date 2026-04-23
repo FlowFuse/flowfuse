@@ -81,7 +81,7 @@ module.exports = function (app) {
         const tokenSummary = {
             id: token.hashid,
             name: token.name,
-            expiresAt: token.expiresAt
+            expiresAt: token.expiresAt ?? null
         }
         return tokenSummary
     }
@@ -122,7 +122,7 @@ module.exports = function (app) {
         const tokenSummary = {
             id: token.hashid,
             name: token.name,
-            expiresAt: token.expiresAt
+            expiresAt: token.expiresAt ?? null
         }
         return tokenSummary
     }

@@ -1534,7 +1534,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Team"];
+                        "application/json": components["schemas"]["Team"] | components["schemas"]["TeamSummary"];
                     };
                 };
                 /** @description Default Response */
@@ -1653,7 +1653,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Team"];
+                        "application/json": components["schemas"]["Team"] | components["schemas"]["TeamSummary"];
                     };
                 };
                 /** @description Default Response */
@@ -8750,7 +8750,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["MQTTBroker"];
+                        "application/json": components["schemas"]["MQTTBroker"] | {
+                            state: string;
+                        };
                     };
                 };
                 /** @description Default Response */
@@ -10576,6 +10578,10 @@ export interface components {
             id: string;
             name: string;
             stages: components["schemas"]["PipelineStageList"];
+            application?: {
+                id: string;
+                name: string;
+            };
         };
         /** PipelineList */
         PipelineList: components["schemas"]["Pipeline"][];

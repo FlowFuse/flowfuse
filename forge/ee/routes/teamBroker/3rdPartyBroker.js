@@ -323,8 +323,17 @@ module.exports = async function (app) {
                 }
             },
             response: {
+                // team-broker with no agent returns a {state:'suspended'} stub.
                 200: {
-                    $ref: 'MQTTBroker'
+                    anyOf: [
+                        { $ref: 'MQTTBroker' },
+                        {
+                            type: 'object',
+                            properties: { state: { type: 'string' } },
+                            required: ['state'],
+                            additionalProperties: false
+                        }
+                    ]
                 },
                 '4xx': {
                     $ref: 'APIError'

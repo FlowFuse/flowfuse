@@ -238,7 +238,7 @@ module.exports = {
                             },
                             {
                                 association: 'Devices',
-                                attributes: ['hashid', 'id', 'name', 'type', 'links', 'ownerType']
+                                attributes: ['hashid', 'id', 'name', 'type', 'links', 'ownerType', 'lastSeenAt', 'state', 'mode']
                             },
                             {
                                 association: 'DeviceGroups',

@@ -35,8 +35,8 @@ module.exports = function (app) {
             nrVersion: { type: 'string' },
             localLoginEnabled: { type: 'boolean' }
         },
-        required: ['id', 'lastSeenAt', 'lastSeenMs', 'status', 'mode', 'isDeploying'],
-        additionalProperties: false
+        // POST /devices/ extends this via allOf with credentials + meta.
+        required: ['id', 'lastSeenAt', 'lastSeenMs', 'status', 'mode', 'isDeploying']
     })
 
     function device (device, { statusOnly = false } = {}) {
