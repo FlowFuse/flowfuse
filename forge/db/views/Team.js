@@ -9,7 +9,9 @@ module.exports = function (app) {
             avatar: { type: 'string' },
             suspended: { type: 'boolean' },
             links: { $ref: 'LinksMeta' }
-        }
+        },
+        // Composed via `allOf` elsewhere — keep open.
+        required: ['id', 'name', 'slug', 'avatar', 'suspended', 'links']
     })
     function teamSummary (team) {
         if (Object.hasOwn(team, 'get')) {
@@ -29,6 +31,7 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'Team',
         type: 'object',
+        // additionalProperties omitted — interacts poorly with allOf.
         allOf: [{ $ref: 'TeamSummary' }],
         properties: {
             type: { $ref: 'TeamType' },
@@ -44,7 +47,7 @@ module.exports = function (app) {
             billing: { type: 'object', additionalProperties: true },
             billingURL: { type: 'string' }
         },
-        additionalProperties: true
+        required: ['type', 'properties', 'instanceCount', 'memberCount', 'deviceCount', 'brokerCount', 'teamBrokerClientsCount', 'createdAt', 'updatedAt']
     })
     function team (team) {
         if (team) {
@@ -57,7 +60,7 @@ module.exports = function (app) {
                 slug: result.slug,
                 avatar: result.avatar,
                 suspended: result.suspended,
-                // Counts are aggregates; postgres returns them as strings, sqlite as numbers — coerce.
+                // parseInt: postgres returns aggregate counts as strings.
                 instanceCount: parseInt(result.projectCount) || 0,
                 memberCount: parseInt(result.memberCount) || 0,
                 deviceCount: parseInt(result.deviceCount) || 0,
@@ -88,9 +91,18 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'UserTeamList',
         type: 'array',
+        // Each item is a TeamSummary plus the user's role on that team and a few counts. Intentionally narrower than the full Team schema.
         items: {
-            allOf: [{ $ref: 'Team' }],
-            properties: { role: { type: 'number' } }
+            type: 'object',
+            allOf: [{ $ref: 'TeamSummary' }],
+            properties: {
+                type: { $ref: 'TeamTypeSummary' },
+                role: { type: 'number' },
+                instanceCount: { type: 'number' },
+                memberCount: { type: 'number' },
+                deviceCount: { type: 'number' }
+            },
+            required: ['type', 'role', 'instanceCount', 'memberCount', 'deviceCount']
         }
     })
 

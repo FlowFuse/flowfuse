@@ -372,7 +372,7 @@ module.exports = async function (app) {
             await app.auditLog.Project.project.imported(request.session.User.id, null, request.project, sourceProject)
 
             // Early return, status is loaded async
-            reply.code(200).send({})
+            reply.code(200).send(await app.db.views.Project.project(targetProject, { includeSettings: false }))
 
             exportProjectToExistingProject(sourceProject, targetProject, options) // runs async
 
@@ -528,7 +528,7 @@ module.exports = async function (app) {
             if (changesToProjectDefinition) {
                 // Early return and complete the rest async
                 await app.db.controllers.Project.setInflightState(request.project, 'starting') // TODO: better inflight state needed
-                reply.code(200).send({})
+                reply.code(200).send(await app.db.views.Project.project(request.project, { includeSettings: false }))
                 repliedEarly = true
 
                 const suspendOptions = {

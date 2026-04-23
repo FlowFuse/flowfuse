@@ -50,7 +50,7 @@ module.exports = {
                             model: M.DeviceGroup,
                             attributes: ['hashid', 'id', 'ApplicationId', 'settings']
                         },
-                        { model: M.Application, attributes: ['hashid', 'id', 'name', 'links'] }
+                        { model: M.Application, attributes: ['hashid', 'id', 'name', 'description', 'links'] }
                     ]
                     const where = {
                         DeviceGroupId: deviceGroup.id,
@@ -89,7 +89,7 @@ module.exports = {
                     return self.findOne({
                         where: { id },
                         include: [
-                            { model: M.Application, attributes: ['hashid', 'id', 'name', 'TeamId'] },
+                            { model: M.Application, attributes: ['hashid', 'id', 'name', 'description', 'links', 'TeamId'] },
                             {
                                 model: M.Device,
                                 attributes: ['hashid', 'id', 'name', 'type', 'TeamId', 'ApplicationId', 'ProjectId', 'ownerType'],
@@ -148,7 +148,7 @@ module.exports = {
                                     ? [{
                                         model: M.Application,
                                         as: 'Application',
-                                        attributes: ['hashid', 'id', 'name']
+                                        attributes: ['hashid', 'id', 'name', 'description', 'links']
                                     }]
                                     : [])
                             ],

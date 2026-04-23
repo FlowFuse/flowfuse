@@ -5,8 +5,10 @@ module.exports = function (app) {
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
-            stages: { ref: 'PipelineStageList' }
-        }
+            stages: { $ref: 'PipelineStageList' }
+        },
+        required: ['id', 'name', 'stages'],
+        additionalProperties: false
     })
     async function pipeline (pipeline) {
         if (pipeline) {
@@ -49,7 +51,7 @@ module.exports = function (app) {
         $id: 'PipelineList',
         type: 'array',
         items: {
-            ref: 'Pipeline'
+            $ref: 'Pipeline'
         }
     })
     async function pipelineList (pipelines) {

@@ -6,12 +6,14 @@ module.exports = {
         app.addSchema({
             $id: 'SnapshotSummary',
             type: 'object',
+            // Composed via `allOf` elsewhere — keep open.
             properties: {
                 id: { type: 'string' },
                 name: { type: 'string' },
                 description: { type: 'string' },
                 createdAt: { type: 'string' }
-            }
+            },
+            required: ['id', 'name', 'description']
         })
         app.addSchema({
             $id: 'Snapshot',
@@ -27,11 +29,13 @@ module.exports = {
                 projectId: { type: 'string' },
                 device: { $ref: 'DeviceSummary' },
                 project: { $ref: 'InstanceSummary' }
-            }
+            },
+            required: ['createdAt', 'updatedAt', 'ownerType']
         })
         app.addSchema({
             $id: 'SnapshotAndSettings',
             type: 'object',
+            // Composed via `allOf` elsewhere — keep open.
             properties: {
                 id: { type: 'string' },
                 name: { type: 'string' },
@@ -49,7 +53,8 @@ module.exports = {
                         modules: { type: 'object', additionalProperties: true }
                     }
                 }
-            }
+            },
+            required: ['id', 'name', 'description', 'createdAt', 'updatedAt', 'ownerType', 'settings']
         })
         app.addSchema({
             $id: 'FullSnapshot',
@@ -62,7 +67,8 @@ module.exports = {
                         flows: { type: 'array', items: { type: 'object', additionalProperties: true } }
                     }
                 }
-            }
+            },
+            required: ['flows']
         })
         app.addSchema({
             $id: 'ExportedSnapshot',
@@ -76,7 +82,8 @@ module.exports = {
                         credentials: { type: 'object', additionalProperties: true }
                     }
                 }
-            }
+            },
+            required: ['flows']
         })
     },
 
@@ -116,7 +123,7 @@ module.exports = {
                 filtered.user = app.db.views.User.userSummary(snapshot.User)
             }
             if (filtered.deviceId) {
-                filtered.device = app.db.views.Device.device(snapshot.Device)
+                filtered.device = app.db.views.Device.deviceSummary(snapshot.Device)
             }
             if (filtered.projectId) {
                 filtered.project = app.db.views.Project.projectSummary(snapshot.Project)

@@ -2,6 +2,7 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'DeviceGroupSummary',
         type: 'object',
+        // Composed via `allOf` elsewhere — keep open.
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
@@ -15,7 +16,8 @@ module.exports = function (app) {
                 nullable: true,
                 allOf: [{ $ref: 'ApplicationSummary' }]
             }
-        }
+        },
+        required: ['id', 'name', 'description', 'deviceCount']
     })
     function deviceGroupSummary (group, options = {}) {
         const { includeApplication = false } = options
@@ -51,7 +53,8 @@ module.exports = function (app) {
             isDeploying: { type: 'boolean' },
             hasTargetSnapshot: { type: 'boolean' },
             targetSnapshotId: { type: 'string', nullable: true }
-        }
+        },
+        required: ['targetMatchCount', 'activeMatchCount', 'developerModeCount', 'runningCount', 'isDeploying', 'hasTargetSnapshot', 'targetSnapshotId']
     })
     function deviceGroupPipelineSummary (group) {
         let item = group
@@ -95,13 +98,11 @@ module.exports = function (app) {
         properties: {
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
-            application: { $ref: 'ApplicationSummary' },
+            // Don't re-declare application/targetSnapshot — already nullable via the allOf summary.
             devices: { type: 'array', items: { $ref: 'Device' } },
-            targetSnapshot: {
-                nullable: true,
-                allOf: [{ $ref: 'SnapshotSummary' }]
-            }
+            settings: { type: 'object', additionalProperties: true }
         },
+        required: ['devices', 'settings'],
         additionalProperties: true
     })
     function deviceGroup (group) {

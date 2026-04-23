@@ -127,7 +127,9 @@ module.exports = fp(async function (app, opts) {
         type: 'object',
         properties: {
             status: { type: 'string' }
-        }
+        },
+        required: ['status'],
+        additionalProperties: false
     })
     app.addSchema({
         $id: 'APIError',
@@ -137,7 +139,10 @@ module.exports = fp(async function (app, opts) {
             error: { type: 'string' },
             message: { type: 'string' },
             errors: { type: 'array', items: { type: 'object', additionalProperties: true } }
-        }
+        },
+        required: ['code', 'error'],
+        // Handlers attach context-specific extras.
+        additionalProperties: true
     })
     app.addSchema({
         $id: 'PaginationParams',
@@ -160,8 +165,10 @@ module.exports = fp(async function (app, opts) {
     app.addSchema({
         $id: 'LinksMeta',
         type: 'object',
+        // Models extend links with their own keys.
         properties: {
             self: { type: 'string' }
-        }
+        },
+        additionalProperties: true
     })
 }, { name: 'app.routes.api-docs' })

@@ -10,7 +10,9 @@ module.exports = function (app) {
             updatedAt: { type: 'string' },
             links: { $ref: 'LinksMeta' },
             team: { $ref: 'TeamSummary' }
-        }
+        },
+        required: ['id', 'name', 'description', 'createdAt', 'updatedAt', 'links'],
+        additionalProperties: false
     })
     function application (application) {
         if (application) {
@@ -37,6 +39,7 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'ApplicationSummary',
         type: 'object',
+        // Composed via `allOf` elsewhere — keep open.
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
@@ -46,6 +49,7 @@ module.exports = function (app) {
             snapshotCount: { type: 'number' },
             pipelineCount: { type: 'number' }
         },
+        required: ['id', 'name', 'description', 'links'],
         additionalProperties: true
     })
     function applicationSummary (application, { detailed = false } = {}) {
@@ -63,7 +67,7 @@ module.exports = function (app) {
         }
 
         if (detailed) {
-            // Counts are aggregates; postgres returns them as strings, sqlite as numbers — coerce.
+            // parseInt: postgres returns aggregate counts as strings.
             summary.deviceCount = parseInt(application.get('deviceCount')) || 0
             summary.instanceCount = parseInt(application.get('instanceCount')) || 0
             summary.deviceGroupCount = parseInt(application.get('deviceGroupCount')) || 0
@@ -141,6 +145,7 @@ module.exports = function (app) {
                 instances: { $ref: 'InstanceStatusList' },
                 devices: { $ref: 'DeviceStatusList' }
             },
+            required: ['instances', 'devices'],
             additionalProperties: true
         }
     })
@@ -162,7 +167,8 @@ module.exports = function (app) {
             name: { type: 'string' },
             children: { type: 'array', items: { $ref: 'dependant' } } // dependant is defined in BOM.js
         },
-        additionalProperties: true
+        required: ['id', 'name', 'children'],
+        additionalProperties: false
     })
 
     return {

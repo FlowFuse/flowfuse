@@ -2,7 +2,6 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'Invitation',
         type: 'object',
-        allOf: [{ $ref: 'UserSummary' }],
         properties: {
             id: { type: 'string' },
             role: { type: 'number', nullable: true },
@@ -12,17 +11,23 @@ module.exports = function (app) {
             team: { $ref: 'TeamSummary' },
             invitor: { $ref: 'UserSummary' },
             invitee: {
-                allOf: [
+                // UserSummary for internal invites, { external, email } for external.
+                anyOf: [
                     { $ref: 'UserSummary' },
                     {
+                        type: 'object',
                         properties: {
                             external: { type: 'boolean' },
                             email: { type: 'string' }
-                        }
+                        },
+                        required: ['external', 'email'],
+                        additionalProperties: false
                     }
                 ]
             }
-        }
+        },
+        required: ['id', 'role', 'createdAt', 'expiresAt', 'sentAt', 'team', 'invitor', 'invitee'],
+        additionalProperties: false
     })
 
     app.addSchema({

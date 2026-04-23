@@ -9915,58 +9915,58 @@ export interface components {
     schemas: {
         /** ProvisioningTokenSummary */
         ProvisioningTokenSummary: {
-            id?: string;
-            name?: string;
-            team?: string | null;
+            id: string;
+            name: string;
+            team: string | null;
             application?: string | null;
             instance?: string | null;
-            expiresAt?: string | null;
+            expiresAt: string | null;
             targetSnapshot?: string | null;
         };
         /** ProvisioningToken */
         ProvisioningToken: {
-            token?: string;
+            token: string;
         } & components["schemas"]["ProvisioningTokenSummary"];
         /** PersonalAccessTokenSummary */
         PersonalAccessTokenSummary: {
-            id?: string;
-            name?: string;
-            expiresAt?: string | null;
+            id: string;
+            name: string;
+            expiresAt: string | null;
         };
         /** PersonalAccessToken */
         PersonalAccessToken: {
-            token?: string;
+            token: string;
         } & components["schemas"]["PersonalAccessTokenSummary"];
         /** PersonalAccessTokenSummaryList */
         PersonalAccessTokenSummaryList: components["schemas"]["PersonalAccessTokenSummary"][];
         /** InstanceHTTPTokenSummary */
         InstanceHTTPTokenSummary: {
-            id?: string;
-            name?: string;
-            expiresAt?: string | null;
+            id: string;
+            name: string;
+            expiresAt: string | null;
         };
         /** InstanceHTTPToken */
         InstanceHTTPToken: {
-            token?: string;
+            token: string;
         } & components["schemas"]["InstanceHTTPTokenSummary"];
         /** InstanceHTTPTokenSummaryList */
         InstanceHTTPTokenSummaryList: components["schemas"]["InstanceHTTPTokenSummary"][];
         /** Application */
         Application: {
-            id?: string;
-            name?: string;
-            description?: string;
-            createdAt?: string;
-            updatedAt?: string;
-            links?: components["schemas"]["LinksMeta"];
+            id: string;
+            name: string;
+            description: string;
+            createdAt: string;
+            updatedAt: string;
+            links: components["schemas"]["LinksMeta"];
             team?: components["schemas"]["TeamSummary"];
         };
         /** ApplicationSummary */
         ApplicationSummary: {
-            id?: string;
-            name?: string;
-            description?: string;
-            links?: components["schemas"]["LinksMeta"];
+            id: string;
+            name: string;
+            description: string;
+            links: components["schemas"]["LinksMeta"];
             deviceGroupCount?: number;
             snapshotCount?: number;
             pipelineCount?: number;
@@ -9991,29 +9991,27 @@ export interface components {
         /** ApplicationAssociationsStatusList */
         ApplicationAssociationsStatusList: (({
             id?: string;
-            instances?: components["schemas"]["InstanceStatusList"];
-            devices?: components["schemas"]["DeviceStatusList"];
+            instances: components["schemas"]["InstanceStatusList"];
+            devices: components["schemas"]["DeviceStatusList"];
         } & {
             [key: string]: unknown;
         }) & components["schemas"]["ApplicationSummary"])[];
         /** ApplicationBom */
         ApplicationBom: {
-            id?: string;
-            name?: string;
-            children?: components["schemas"]["dependant"][];
-        } & {
-            [key: string]: unknown;
+            id: string;
+            name: string;
+            children: components["schemas"]["dependant"][];
         };
         /** AuditLogEntry */
         AuditLogEntry: {
-            id?: string;
-            createdAt?: string;
-            username?: string | null;
-            event?: string;
-            scope?: {
+            id: string;
+            createdAt: string;
+            username: string | null;
+            event: string;
+            scope: {
                 [key: string]: unknown;
             };
-            trigger?: {
+            trigger: {
                 [key: string]: unknown;
             };
             body?: {
@@ -10029,11 +10027,21 @@ export interface components {
         };
         /** TimelineEntry */
         TimelineEntry: {
-            id?: string;
-            createdAt?: string;
-            user?: components["schemas"]["User"];
-            event?: string;
-            data?: {
+            id: string;
+            createdAt: string;
+            user: {
+                id: string;
+                username: string;
+                name: string;
+                avatar: string;
+                admin?: boolean;
+                createdAt?: string;
+                suspended?: boolean;
+            } & {
+                [key: string]: unknown;
+            };
+            event: string;
+            data: {
                 [key: string]: unknown;
             };
         };
@@ -10041,40 +10049,40 @@ export interface components {
         TimelineList: components["schemas"]["TimelineEntry"][];
         /** dependency */
         dependency: {
-            name?: string;
-            version?: {
+            name: string;
+            version: {
                 wanted?: string;
-                current?: string | null;
+                current: string | null;
             };
         };
         /** dependant */
         dependant: {
-            id?: string;
-            name?: string;
+            id: string;
+            name: string;
             /** @enum {string} */
-            type?: "instance" | "device";
+            type: "instance" | "device";
             /** @enum {string|null} */
             ownerType?: "instance" | "application" | null;
             ownerId?: string | null;
-            dependencies?: components["schemas"]["dependency"][];
-            state?: string | null;
+            dependencies: components["schemas"]["dependency"][];
+            state: string | null;
         };
         /** Device */
         Device: {
-            id?: string;
+            id: string;
             ownerType?: string | null;
             name?: string;
             type?: string;
             createdAt?: string;
             updatedAt?: string;
-            lastSeenAt?: string | null;
-            lastSeenMs?: number | null;
+            lastSeenAt: string | null;
+            lastSeenMs: number | null;
             activeSnapshot?: components["schemas"]["SnapshotSummary"] | null;
             targetSnapshot?: components["schemas"]["SnapshotSummary"] | null;
-            status?: string;
-            isDeploying?: boolean;
+            status: string;
+            isDeploying: boolean;
             agentVersion?: string | null;
-            mode?: string;
+            mode: string;
             links?: components["schemas"]["LinksMeta"];
             team?: components["schemas"]["TeamSummary"];
             instance?: components["schemas"]["InstanceSummary"];
@@ -10088,17 +10096,17 @@ export interface components {
         };
         /** DeviceSummary */
         DeviceSummary: {
-            id?: string;
-            ownerType?: string | null;
-            name?: string;
-            type?: string;
-            lastSeenAt?: string | null;
-            lastSeenMs?: number | null;
-            status?: string;
-            mode?: string;
-            isDeploying?: boolean;
-            links?: components["schemas"]["LinksMeta"];
-            application?: components["schemas"]["Application"];
+            id: string;
+            ownerType: string | null;
+            name: string;
+            type: string;
+            lastSeenAt: string | null;
+            lastSeenMs: number | null;
+            status: string;
+            mode: string;
+            isDeploying: boolean;
+            links: components["schemas"]["LinksMeta"];
+            application?: components["schemas"]["ApplicationSummary"];
             mostRecentAuditLogCreatedAt?: string;
             mostRecentAuditLogEvent?: string;
         };
@@ -10106,12 +10114,12 @@ export interface components {
         DeviceSummaryList: components["schemas"]["DeviceSummary"][];
         /** DeviceStatus */
         DeviceStatus: {
-            id?: string;
-            lastSeenAt?: string | null;
-            lastSeenMs?: number | null;
-            status?: string;
-            mode?: string;
-            isDeploying?: boolean;
+            id: string;
+            lastSeenAt: string | null;
+            lastSeenMs: number | null;
+            status: string;
+            mode: string;
+            isDeploying: boolean;
             editor?: {
                 [key: string]: unknown;
             };
@@ -10120,56 +10128,57 @@ export interface components {
         DeviceStatusList: components["schemas"]["DeviceStatus"][];
         /** DeviceGroupSummary */
         DeviceGroupSummary: {
-            id?: string;
-            name?: string;
-            description?: string;
-            deviceCount?: number;
+            id: string;
+            name: string;
+            description: string;
+            deviceCount: number;
             targetSnapshot?: components["schemas"]["SnapshotSummary"] | null;
             application?: components["schemas"]["ApplicationSummary"] | null;
         };
         /** DeviceGroupPipelineSummary */
         DeviceGroupPipelineSummary: {
-            targetMatchCount?: number;
-            activeMatchCount?: number;
-            developerModeCount?: number;
-            runningCount?: number;
-            isDeploying?: boolean;
-            hasTargetSnapshot?: boolean;
-            targetSnapshotId?: string | null;
+            targetMatchCount: number;
+            activeMatchCount: number;
+            developerModeCount: number;
+            runningCount: number;
+            isDeploying: boolean;
+            hasTargetSnapshot: boolean;
+            targetSnapshotId: string | null;
         } & components["schemas"]["DeviceGroupSummary"];
         /** DeviceGroup */
         DeviceGroup: ({
             createdAt?: string;
             updatedAt?: string;
-            application?: components["schemas"]["ApplicationSummary"];
-            devices?: components["schemas"]["Device"][];
-            targetSnapshot?: components["schemas"]["SnapshotSummary"] | null;
+            devices: components["schemas"]["Device"][];
+            settings: {
+                [key: string]: unknown;
+            };
         } & {
             [key: string]: unknown;
         }) & components["schemas"]["DeviceGroupSummary"];
         /** Invitation */
         Invitation: {
-            id?: string;
-            role?: number | null;
-            createdAt?: string;
-            expiresAt?: string;
-            sentAt?: string | null;
-            team?: components["schemas"]["TeamSummary"];
-            invitor?: components["schemas"]["UserSummary"];
-            invitee?: components["schemas"]["UserSummary"] & {
-                external?: boolean;
-                email?: string;
+            id: string;
+            role: number | null;
+            createdAt: string;
+            expiresAt: string;
+            sentAt: string | null;
+            team: components["schemas"]["TeamSummary"];
+            invitor: components["schemas"]["UserSummary"];
+            invitee: components["schemas"]["UserSummary"] | {
+                external: boolean;
+                email: string;
             };
-        } & components["schemas"]["UserSummary"];
+        };
         /** InvitationList */
         InvitationList: components["schemas"]["Invitation"][];
         /** Notification */
         Notification: {
-            id?: string;
-            type?: string;
-            createdAt?: string;
-            read?: boolean;
-            data?: {
+            id: string;
+            type: string;
+            createdAt: string;
+            read: boolean;
+            data: {
                 [key: string]: unknown;
             };
         };
@@ -10177,13 +10186,13 @@ export interface components {
         NotificationList: components["schemas"]["Notification"][];
         /** Instance */
         Instance: {
-            id?: string;
-            name?: string;
+            id: string;
+            name: string;
             safeName?: string;
             url?: string;
-            createdAt?: string;
-            updatedAt?: string;
-            links?: components["schemas"]["LinksMeta"];
+            createdAt: string;
+            updatedAt: string;
+            links: components["schemas"]["LinksMeta"];
             hostname?: string;
             application?: components["schemas"]["ApplicationSummary"];
             team?: components["schemas"]["TeamSummary"];
@@ -10209,15 +10218,16 @@ export interface components {
             meta?: {
                 [key: string]: unknown;
             };
+            flowLastUpdatedAt?: string;
         };
         /** InstanceSummary */
         InstanceSummary: {
-            id?: string;
-            name?: string;
+            id: string;
+            name: string;
             url?: string;
-            createdAt?: string;
-            updatedAt?: string;
-            links?: components["schemas"]["LinksMeta"];
+            createdAt: string;
+            updatedAt: string;
+            links: components["schemas"]["LinksMeta"];
             settings?: {
                 [key: string]: unknown;
             };
@@ -10232,17 +10242,20 @@ export interface components {
         };
         /** DashboardInstanceSummary */
         DashboardInstanceSummary: {
-            id?: string;
-            name?: string;
+            id: string;
+            name: string;
             url?: string;
-            createdAt?: string;
-            updatedAt?: string;
-            links?: components["schemas"]["LinksMeta"];
-            application?: components["schemas"]["ApplicationSummary"];
+            createdAt: string;
+            updatedAt: string;
+            links: components["schemas"]["LinksMeta"];
+            application: components["schemas"]["ApplicationSummary"];
             flowLastUpdatedAt?: string;
-            status?: string;
-            settings?: {
-                dashboard2UI?: string;
+            status: string;
+            settings: {
+                [key: string]: unknown;
+            };
+            meta?: {
+                [key: string]: unknown;
             };
         };
         /** InstanceSummaryList */
@@ -10266,36 +10279,36 @@ export interface components {
         })[];
         /** SnapshotSummary */
         SnapshotSummary: {
-            id?: string;
-            name?: string;
-            description?: string;
+            id: string;
+            name: string;
+            description: string;
             createdAt?: string;
         };
         /** Snapshot */
         Snapshot: {
-            createdAt?: string;
-            updatedAt?: string;
+            createdAt: string;
+            updatedAt: string;
             user?: components["schemas"]["UserSummary"];
             modules?: {
                 [key: string]: unknown;
             };
-            ownerType?: string;
+            ownerType: string;
             deviceId?: string;
             projectId?: string;
             device?: components["schemas"]["DeviceSummary"];
             project?: components["schemas"]["InstanceSummary"];
-        } & components["schemas"]["SnapshotSummary"];
+        } & WithRequired<components["schemas"]["SnapshotSummary"], "createdAt">;
         /** SnapshotAndSettings */
         SnapshotAndSettings: {
-            id?: string;
-            name?: string;
-            description?: string;
-            createdAt?: string;
-            updatedAt?: string;
+            id: string;
+            name: string;
+            description: string;
+            createdAt: string;
+            updatedAt: string;
             user?: components["schemas"]["UserSummary"];
             exportedBy?: components["schemas"]["UserSummary"];
-            ownerType?: string;
-            settings?: {
+            ownerType: string;
+            settings: {
                 settings?: {
                     [key: string]: unknown;
                 };
@@ -10309,7 +10322,7 @@ export interface components {
         };
         /** FullSnapshot */
         FullSnapshot: {
-            flows?: {
+            flows: {
                 flows?: {
                     [key: string]: unknown;
                 }[];
@@ -10317,7 +10330,7 @@ export interface components {
         } & components["schemas"]["SnapshotAndSettings"];
         /** ExportedSnapshot */
         ExportedSnapshot: {
-            flows?: {
+            flows: {
                 flows?: {
                     [key: string]: unknown;
                 }[];
@@ -10328,118 +10341,120 @@ export interface components {
         } & components["schemas"]["SnapshotAndSettings"];
         /** Stack */
         Stack: {
-            id?: string;
-            name?: string;
+            id: string;
+            name: string;
             label?: string;
-            active?: boolean;
+            active: boolean;
             projectType?: string;
-            properties?: {
+            properties: {
                 [key: string]: unknown;
             };
             replacedBy?: string;
-            createdAt?: string;
+            createdAt: string;
             instanceCount?: number;
-            links?: components["schemas"]["LinksMeta"];
+            links: components["schemas"]["LinksMeta"];
         };
         /** StackSummary */
         StackSummary: {
-            id?: string;
-            name?: string;
+            id: string;
+            name: string;
             label?: string;
-            properties?: {
+            properties: {
                 [key: string]: unknown;
             };
             replacedBy?: string;
-            links?: components["schemas"]["LinksMeta"];
+            links: components["schemas"]["LinksMeta"];
         };
         /** Template */
         Template: {
-            settings?: {
+            settings: {
                 [key: string]: unknown;
             };
-            policy?: {
+            policy: {
                 [key: string]: unknown;
             };
         } & components["schemas"]["TemplateSummary"];
         /** TemplateSummary */
         TemplateSummary: {
-            id?: string;
-            name?: string;
-            description?: string;
-            active?: boolean;
-            instanceCount?: number;
-            createdAt?: string;
-            links?: components["schemas"]["LinksMeta"];
+            id: string;
+            name: string;
+            description: string;
+            active: boolean;
+            instanceCount: number;
+            createdAt: string;
+            links: components["schemas"]["LinksMeta"];
             owner?: components["schemas"]["UserSummary"];
         };
         /** InstanceTypeSummary */
         InstanceTypeSummary: {
-            id?: string;
-            name?: string;
+            id: string;
+            name: string;
         };
         /** InstanceType */
         InstanceType: {
-            id?: string;
-            name?: string;
-            active?: boolean;
-            description?: string | null;
-            order?: number;
-            properties?: {
+            id: string;
+            name: string;
+            active: boolean;
+            description: string | null;
+            order: number;
+            properties: {
                 [key: string]: unknown;
             };
-            createdAt?: string;
-            defaultStack?: string | null;
+            createdAt: string;
+            defaultStack: string | null;
             instanceCount?: number;
             stackCount?: number;
         };
         /** TeamSummary */
         TeamSummary: {
-            id?: string;
-            name?: string;
-            slug?: string;
-            avatar?: string;
-            suspended?: boolean;
-            links?: components["schemas"]["LinksMeta"];
+            id: string;
+            name: string;
+            slug: string;
+            avatar: string;
+            suspended: boolean;
+            links: components["schemas"]["LinksMeta"];
         };
         /** Team */
-        Team: ({
-            type?: components["schemas"]["TeamType"];
-            properties?: {
+        Team: {
+            type: components["schemas"]["TeamType"];
+            properties: {
                 [key: string]: unknown;
             };
-            instanceCount?: number;
+            instanceCount: number;
             instanceCountByType?: {
                 [key: string]: unknown;
             };
-            memberCount?: number;
-            deviceCount?: number;
-            brokerCount?: number;
-            teamBrokerClientsCount?: number;
-            createdAt?: string;
-            updatedAt?: string;
+            memberCount: number;
+            deviceCount: number;
+            brokerCount: number;
+            teamBrokerClientsCount: number;
+            createdAt: string;
+            updatedAt: string;
             billing?: {
                 [key: string]: unknown;
             };
             billingURL?: string;
-        } & {
-            [key: string]: unknown;
-        }) & components["schemas"]["TeamSummary"];
+        } & components["schemas"]["TeamSummary"];
         /** UserTeamList */
         UserTeamList: ({
-            role?: number;
-        } & components["schemas"]["Team"])[];
+            type: components["schemas"]["TeamTypeSummary"];
+            role: number;
+            instanceCount: number;
+            memberCount: number;
+            deviceCount: number;
+        } & components["schemas"]["TeamSummary"])[];
         /** TeamTypeSummary */
         TeamTypeSummary: {
-            id?: string;
-            name?: string;
-            active?: boolean;
+            id: string;
+            name: string;
+            active: boolean;
         };
         /** TeamType */
         TeamType: {
-            order?: number;
-            description?: string | null;
+            order: number;
+            description: string | null;
             teamCount?: number;
-            properties?: {
+            properties: {
                 users?: {
                     [key: string]: unknown;
                 };
@@ -10467,7 +10482,7 @@ export interface components {
         /** User */
         User: {
             email?: string;
-            email_verified?: boolean;
+            email_verified: boolean;
             defaultTeam?: string;
             sso_enabled?: boolean;
             mfa_enabled?: boolean;
@@ -10479,13 +10494,13 @@ export interface components {
         } & components["schemas"]["UserSummary"];
         /** UserSummary */
         UserSummary: {
-            id?: string;
-            username?: string;
-            name?: string;
-            avatar?: string;
-            admin?: boolean;
-            createdAt?: string;
-            suspended?: boolean;
+            id: string;
+            username: string;
+            name: string;
+            avatar: string;
+            admin: boolean;
+            createdAt: string;
+            suspended: boolean;
         };
         /** TeamMemberPermissions */
         TeamMemberPermissions: {
@@ -10495,39 +10510,49 @@ export interface components {
         };
         /** TeamMemberList */
         TeamMemberList: ({
-            role?: number;
-            permissions?: components["schemas"]["TeamMemberPermissions"];
+            role: number;
+            permissions: components["schemas"]["TeamMemberPermissions"];
             ssoManaged?: boolean;
         } & components["schemas"]["UserSummary"])[];
         /** UserList */
         UserList: components["schemas"]["User"][];
         /** MQTTBroker */
         MQTTBroker: {
-            id?: string;
-            name?: string;
-            host?: string;
-            port?: number;
-            protocol?: string;
-            protocolVersion?: number;
-            ssl?: boolean;
-            verifySSL?: boolean;
-            clientId?: string;
-            topicPrefix?: string[];
-        } & {
-            [key: string]: unknown;
+            id: string;
+            name: string;
+            host: string;
+            port: number;
+            protocol: string;
+            protocolVersion: number;
+            ssl: boolean;
+            verifySSL: boolean;
+            clientId: string;
+            state: string;
+            topicPrefix: string[];
+            status?: {
+                [key: string]: unknown;
+            };
+            credentials?: {
+                [key: string]: unknown;
+            };
+            settings?: {
+                [key: string]: unknown;
+            };
         };
         /** APIStatus */
         APIStatus: {
-            status?: string;
+            status: string;
         };
         /** APIError */
         APIError: {
-            code?: string;
-            error?: string;
+            code: string;
+            error: string;
             message?: string;
             errors?: {
                 [key: string]: unknown;
             }[];
+        } & {
+            [key: string]: unknown;
         };
         /** PaginationParams */
         PaginationParams: {
@@ -10543,106 +10568,109 @@ export interface components {
         /** LinksMeta */
         LinksMeta: {
             self?: string;
+        } & {
+            [key: string]: unknown;
         };
         /** Pipeline */
         Pipeline: {
-            id?: string;
-            name?: string;
-            stages?: unknown;
+            id: string;
+            name: string;
+            stages: components["schemas"]["PipelineStageList"];
         };
         /** PipelineList */
-        PipelineList: unknown[];
+        PipelineList: components["schemas"]["Pipeline"][];
         /** PipelineStage */
         PipelineStage: {
-            id?: string;
-            name?: string;
+            id: string;
+            name: string;
+            deployToDevices: boolean;
             instances?: components["schemas"]["InstanceSummaryList"];
             devices?: components["schemas"]["DeviceSummary"][];
             deviceGroups?: components["schemas"]["DeviceGroupPipelineSummary"][];
             gitRepo?: {
-                gitTokenId?: string;
-                url?: string;
-                branch?: string;
-                pullBranch?: string;
-                pushPath?: string;
-                pullPath?: string;
-                lastPushAt?: string;
-                lastPullAt?: string;
-                status?: string;
-                statusMessage?: string;
-                credentialSecret?: boolean;
+                gitTokenId: string;
+                url: string;
+                branch: string;
+                pullBranch: string;
+                pushPath: string;
+                pullPath: string;
+                lastPushAt: string;
+                lastPullAt: string;
+                status: string;
+                statusMessage: string;
+                credentialSecret: boolean;
             };
             /** @enum {string} */
-            action?: "create_snapshot" | "use_active_snapshot" | "use_latest_snapshot" | "prompt" | "none";
+            action: "create_snapshot" | "use_active_snapshot" | "use_latest_snapshot" | "prompt" | "none";
             NextStageId?: string;
         };
         /** PipelineStageList */
-        PipelineStageList: unknown[];
+        PipelineStageList: components["schemas"]["PipelineStage"][];
         /** FlowBlueprintSummary */
         FlowBlueprintSummary: {
-            id?: string;
-            active?: boolean;
-            name?: string;
-            description?: string;
-            category?: string;
-            icon?: string | null;
-            order?: number;
-            default?: boolean;
-            createdAt?: string;
-            updatedAt?: string;
-            externalUrl?: string | null;
+            id: string;
+            active: boolean;
+            name: string;
+            description: string;
+            category: string;
+            icon: string | null;
+            order: number;
+            default: boolean;
+            createdAt: string;
+            updatedAt: string;
+            externalUrl: string | null;
         };
         /** FlowBlueprint */
         FlowBlueprint: {
-            flows?: {
+            flows: {
                 [key: string]: unknown;
             };
-            modules?: {
+            modules: {
                 [key: string]: unknown;
             };
-            teamTypeScope?: string[] | null;
+            teamTypeScope: string[] | null;
         } & components["schemas"]["FlowBlueprintSummary"];
         /** FlowBlueprintSummaryList */
         FlowBlueprintSummaryList: components["schemas"]["FlowBlueprintSummary"][];
         /** FlowBlueprintExport */
         FlowBlueprintExport: {
-            blueprints?: {
+            blueprints: {
                 id?: string;
-                name?: string;
-                description?: string;
-                category?: string;
-                icon?: string | null;
-                flows?: {
+                name: string;
+                description: string;
+                category: string;
+                icon: string | null;
+                flows: {
                     [key: string]: unknown;
                 };
-                modules?: {
+                modules: {
                     [key: string]: unknown;
                 };
             }[];
-            count?: number;
+            count: number;
         };
         /** MCPRegistrationSummary */
         MCPRegistrationSummary: {
-            id?: string;
-            name?: string;
-            protocol?: string;
+            id: string;
+            name: string;
+            protocol: string;
             /** @enum {string} */
-            targetType?: "instance" | "device";
-            targetId?: string;
-            nodeId?: string;
-            endpointRoute?: string;
-            teamId?: string;
-            title?: string;
-            version?: string;
-            description?: string;
+            targetType: "instance" | "device";
+            targetId: string;
+            nodeId: string;
+            endpointRoute: string;
+            teamId: string;
+            title: string;
+            version: string;
+            description: string;
         };
         /** MCPRegistrationSummaryList */
-        MCPRegistrationSummaryList: unknown[];
+        MCPRegistrationSummaryList: components["schemas"]["MCPRegistrationSummary"][];
         /** DatabaseCredentials */
         DatabaseCredentials: {
-            id?: string;
-            name?: string;
-            credentials?: {
+            id: string;
+            name: string;
+            credentials: {
                 host: string;
                 port: number;
                 ssl: boolean;
@@ -10653,12 +10681,12 @@ export interface components {
         };
         /** DatabaseTable */
         DatabaseTable: {
-            name?: string;
-            type?: string;
-            nullable?: boolean;
-            default?: string | null;
-            generated?: boolean;
-            maxLength?: number | null;
+            name: string;
+            type: string;
+            nullable: boolean;
+            default: string | null;
+            generated: boolean;
+            maxLength: number | null;
         }[];
     };
     responses: never;
@@ -10747,4 +10775,7 @@ export type McpRegistrationSummaryList = components['schemas']['MCPRegistrationS
 export type DatabaseCredentials = components['schemas']['DatabaseCredentials'];
 export type DatabaseTable = components['schemas']['DatabaseTable'];
 export type $defs = Record<string, never>;
+type WithRequired<T, K extends keyof T> = T & {
+    [P in K]-?: T[P];
+};
 export type operations = Record<string, never>;

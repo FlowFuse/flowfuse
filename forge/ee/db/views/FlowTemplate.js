@@ -2,6 +2,7 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'FlowBlueprintSummary',
         type: 'object',
+        // Composed via `allOf` elsewhere — keep open.
         properties: {
             id: { type: 'string' },
             active: { type: 'boolean' },
@@ -14,7 +15,8 @@ module.exports = function (app) {
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
             externalUrl: { type: 'string', nullable: true }
-        }
+        },
+        required: ['id', 'active', 'name', 'description', 'category', 'icon', 'order', 'default', 'createdAt', 'updatedAt', 'externalUrl']
     })
     function flowBlueprintSummary (blueprint) {
         return {
@@ -45,7 +47,8 @@ module.exports = function (app) {
                     type: 'string'
                 }
             }
-        }
+        },
+        required: ['flows', 'modules', 'teamTypeScope']
     })
     function flowBlueprint (blueprint) {
         const result = flowBlueprintSummary(blueprint)
@@ -83,11 +86,15 @@ module.exports = function (app) {
                         icon: { type: 'string', nullable: true },
                         flows: { type: 'object', additionalProperties: true },
                         modules: { type: 'object', additionalProperties: true }
-                    }
+                    },
+                    required: ['name', 'description', 'category', 'icon', 'flows', 'modules'],
+                    additionalProperties: false
                 }
             },
             count: { type: 'integer' }
-        }
+        },
+        required: ['blueprints', 'count'],
+        additionalProperties: false
     })
 
     function flowBlueprintExport (blueprint, includeId = false) {
