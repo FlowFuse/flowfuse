@@ -2,7 +2,7 @@ forge:
   domain: flowfuse.dev
   https: true
   localPostgresql: true
-  localValkey: false
+  localValkey: true
   projectIngressClassName: traefik
   broker:
     enabled: true
@@ -10,7 +10,7 @@ forge:
       uiOnly: true
   cloudProvider: aws
   cache:
-    type: memory
+    type: valkey
   email:
     ses:
       region: eu-west-1
