@@ -59,3 +59,5 @@ ingress:
 valkey:
   persistence:
     enabled: true
+  config:
+    save: "60 5 30 25"
