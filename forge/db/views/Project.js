@@ -4,6 +4,7 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'Instance',
         type: 'object',
+        // Keep open — view emits different field sets per feature flag (ha, protectedInstance, customHostnames, etc).
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
@@ -45,8 +46,10 @@ module.exports = function (app) {
             meta: {
                 type: 'object',
                 additionalProperties: true
-            }
-        }
+            },
+            flowLastUpdatedAt: { type: 'string' }
+        },
+        required: ['id', 'name', 'createdAt', 'updatedAt', 'links']
     })
     async function project (project, { includeSettings = true, includeMeta = false } = {}) {
         const proj = project.toJSON()
@@ -115,7 +118,7 @@ module.exports = function (app) {
             result.customHostname = settingsCustomHostnameRow?.value || undefined
         }
         // Ensure resource email alert settings have a value that reflects in the UI what will be used at runtime
-        if (app.config.features.enabled('emailAlerts')) {
+        if (includeSettings && app.config.features.enabled('emailAlerts')) {
             if (typeof result.settings.emailAlerts !== 'object') {
                 result.settings.emailAlerts = {}
             }
@@ -210,7 +213,8 @@ module.exports = function (app) {
             },
             mostRecentAuditLogCreatedAt: { type: 'string' },
             mostRecentAuditLogEvent: { type: 'string' }
-        }
+        },
+        required: ['id', 'name', 'createdAt', 'updatedAt', 'links']
     })
     function projectSummary (project) {
         const result = {
@@ -265,11 +269,15 @@ module.exports = function (app) {
             status: { type: 'string' },
             settings: {
                 type: 'object',
-                properties: {
-                    dashboard2UI: { type: 'string' }
-                }
+                additionalProperties: true
+            },
+            meta: {
+                type: 'object',
+                additionalProperties: true
             }
-        }
+        },
+        required: ['id', 'name', 'createdAt', 'updatedAt', 'links', 'application', 'status', 'settings'],
+        additionalProperties: false
     })
     function dashboardInstanceSummary (project) {
         const settings = project.settings || {}

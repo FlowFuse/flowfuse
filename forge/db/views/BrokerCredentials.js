@@ -12,9 +12,15 @@ module.exports = function (app) {
             ssl: { type: 'boolean' },
             verifySSL: { type: 'boolean' },
             clientId: { type: 'string' },
-            topicPrefix: { type: 'array', items: { type: 'string' } }
+            state: { type: 'string' },
+            topicPrefix: { type: 'array', items: { type: 'string' } },
+            // status / credentials / settings are added by /:brokerId and /credentials handlers, not by the list/create view.
+            status: { type: 'object', additionalProperties: true },
+            credentials: { type: 'object', additionalProperties: true },
+            settings: { type: 'object', additionalProperties: true }
         },
-        additionalProperties: true
+        required: ['id', 'name', 'host', 'port', 'protocol', 'protocolVersion', 'ssl', 'verifySSL', 'clientId', 'state', 'topicPrefix'],
+        additionalProperties: false
     })
     return {
         clean: function (cred) {
