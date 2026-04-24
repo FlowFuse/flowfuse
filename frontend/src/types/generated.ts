@@ -10665,8 +10665,8 @@ export interface components {
             id: string;
             active?: boolean;
             name: string;
-            description?: string | null;
-            category?: string | null;
+            description?: string;
+            category?: string;
             icon?: string | null;
             order?: number;
             default?: boolean;
