@@ -202,6 +202,25 @@
             </FormRow>
         </template>
 
+        <template v-if="ssoEnabled">
+            <FormHeading>Single SSO Provider Only</FormHeading>
+            <FormRow v-model="input['platform:sso:only']" type="checkbox" data-el="single-sso">
+                Force all login for non-admin users via a single SAML SSO provider
+                <template #description>
+                    Login screen will redirect to SAML SSO provider without waiting for username
+                </template>
+            </FormRow>
+            <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:provider']" :error="errors.ssoOnlyProvider" :options="ssoProvidersOptions" data-el="single-sso-provider">
+                Which active SAML SSO provider to use for all logins
+            </FormRow>
+            <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:logoutURL']" type="text" data-el="single-sso-url">
+                URL to redirect to on logout
+                <template #description>
+                    Prevents redirect loops automatically logging user back in from SSO provider
+                </template>
+            </FormRow>
+        </template>
+
         <div class="pt-8">
             <ff-button :disabled="!saveEnabled" data-action="save-settings" @click="saveChanges">Save settings</ff-button>
         </div>
@@ -214,6 +233,7 @@ import { mapActions, mapState } from 'pinia'
 import adminApi from '../../../api/admin.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import settingsApi from '../../../api/settings.js'
+import ssoApi from '../../../api/sso.js'
 import teamTypesApi from '../../../api/teamTypes.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
@@ -244,7 +264,10 @@ const validSettings = [
     'platform:sso:google',
     'platform:sso:google:auto-create',
     'platform:sso:google:clientId',
-    'platform:sso:direct'
+    'platform:sso:direct',
+    'platform:sso:only',
+    'platform:sso:only:provider',
+    'platform:sso:only:logoutURL'
 ]
 
 export default {
@@ -263,12 +286,14 @@ export default {
             errors: {
                 requiresEmail: null,
                 termsAndConditions: null,
-                offboardingUrl: null
+                offboardingUrl: null,
+                ssoOnlyProvider: null
             },
             teamTypes: [],
             instanceTypes: [],
             teamTypesOptions: [],
-            platformStatsTokenGenerating: false
+            platformStatsTokenGenerating: false,
+            ssoProvidersOptions: []
         }
     },
     computed: {
@@ -393,6 +418,15 @@ export default {
         if (!this.platformStatsTokenEnabled) {
             this.platformStatsToken = ''
         }
+        const ssoProviders = (await ssoApi.getProviders()).providers
+        const filtered = ssoProviders.filter(sso => (sso.active && sso.type === 'saml'))
+        this.ssoProvidersOptions = filtered.map(sso => {
+            return {
+                order: sso.order,
+                value: sso.id,
+                label: sso.name
+            }
+        })
     },
     methods: {
         ...mapActions(useAccountSettingsStore, ['refreshSettings']),
@@ -419,6 +453,12 @@ export default {
                 }
             }
             this.errors.offboardingUrl = ''
+
+            if (this.input['platform:sso:only'] && this.input['platform:sso:only:provider'] === null) {
+                this.errors.ssoOnlyProvider = 'You must pick a SAML SSO Provider'
+                return false
+            }
+            this.errors.ssoOnlyProvider = ''
 
             return true
         },

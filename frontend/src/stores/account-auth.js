@@ -154,10 +154,17 @@ export const useAccountAuthStore = defineStore('account-auth', {
                 }
 
                 if (router.currentRoute.value.meta.requiresLogin !== false) {
-                    if (router.currentRoute.value.path !== '/') {
+                    const currentPath = router.currentRoute.value.fullPath === '/'
+                        ? window.location.pathname + window.location.search + window.location.hash
+                        : router.currentRoute.value.fullPath
+                    if (currentPath !== '/') {
                         // Only remember the url if it isn't the default / path
-                        this.setRedirectUrl(router.currentRoute.value.fullPath)
+                        this.setRedirectUrl(currentPath)
                     }
+                    // if (router.currentRoute.value.path !== '/') {
+                    //     // Only remember the url if it isn't the default / path
+                    //     this.setRedirectUrl(router.currentRoute.value.fullPath)
+                    // }
                     router.push({ name: 'Home' })
                 }
             }
@@ -181,6 +188,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
             }
         },
         async logout () {
+            const logoutURL = useAccountSettingsStore().settings['platform:sso:only:logoutURL'] || '/'
             return userApi.logout()
                 .then(() => {
                     useAccountAuthStore().$reset()
@@ -205,7 +213,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     if (window._hsq) {
                         window._hsq.push(['revokeCookieConsent'])
                     }
-                    window.location = '/'
+                    window.location = logoutURL
                 })
         }
     },
