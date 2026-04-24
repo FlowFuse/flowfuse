@@ -63,11 +63,12 @@ module.exports = function (app) {
         }
 
         if (detailed) {
-            summary.deviceCount = application.get('deviceCount')
-            summary.instanceCount = application.get('instanceCount')
-            summary.deviceGroupCount = application.get('deviceGroupCount')
-            summary.snapshotCount = application.get('snapshotCount')
-            summary.pipelineCount = application.get('pipelineCount')
+            // Counts are aggregates; postgres returns them as strings, sqlite as numbers — coerce.
+            summary.deviceCount = parseInt(application.get('deviceCount')) || 0
+            summary.instanceCount = parseInt(application.get('instanceCount')) || 0
+            summary.deviceGroupCount = parseInt(application.get('deviceGroupCount')) || 0
+            summary.snapshotCount = parseInt(application.get('snapshotCount')) || 0
+            summary.pipelineCount = parseInt(application.get('pipelineCount')) || 0
         }
 
         return summary
@@ -109,7 +110,7 @@ module.exports = function (app) {
                 if (includeApplicationSummary) {
                     summary.instancesSummary = {
                         instances: app.db.views.Project.instancesSummaryList(application.Instances),
-                        count: application.get('instanceCount')
+                        count: parseInt(application.get('instanceCount')) || 0
                     }
                 } else {
                     summary.instances = app.db.views.Project.instancesSummaryList(application.Instances)
@@ -119,7 +120,7 @@ module.exports = function (app) {
                 if (includeApplicationSummary) {
                     summary.devicesSummary = {
                         devices: application.Devices.map(app.db.views.Device.deviceSummary),
-                        count: application.get('deviceCount')
+                        count: parseInt(application.get('deviceCount')) || 0
                     }
                 } else {
                     summary.devices = application.Devices.map(app.db.views.Device.deviceSummary)
