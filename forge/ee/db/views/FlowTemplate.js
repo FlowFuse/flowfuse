@@ -7,6 +7,7 @@ module.exports = function (app) {
             id: { type: 'string' },
             active: { type: 'boolean' },
             name: { type: 'string' },
+            // Coerced to '' when null — frontend uses these in string ops (marked.parse, toLowerCase).
             description: { type: 'string' },
             category: { type: 'string' },
             icon: { type: 'string', nullable: true },
@@ -16,7 +17,7 @@ module.exports = function (app) {
             updatedAt: { type: 'string' },
             externalUrl: { type: 'string', nullable: true }
         },
-        required: ['id', 'active', 'name', 'description', 'category', 'icon', 'order', 'default', 'createdAt', 'updatedAt', 'externalUrl']
+        required: ['id', 'name', 'createdAt', 'updatedAt']
     })
     function flowBlueprintSummary (blueprint) {
         return {
@@ -24,7 +25,7 @@ module.exports = function (app) {
             active: blueprint.active,
             name: blueprint.name,
             description: blueprint.description ?? '',
-            category: blueprint.category,
+            category: blueprint.category ?? '',
             icon: blueprint.icon ?? null,
             order: blueprint.order,
             default: blueprint.default,

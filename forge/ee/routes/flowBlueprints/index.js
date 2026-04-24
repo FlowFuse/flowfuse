@@ -349,16 +349,7 @@ module.exports = async function (app) {
                         type: 'array',
                         items: {
                             type: 'object',
-                            properties: {
-                                id: { type: 'string' },
-                                name: { type: 'string' },
-                                description: { type: 'string' },
-                                category: { type: 'string' },
-                                icon: { type: 'string', nullable: true },
-                                flows: { type: 'object', additionalProperties: true },
-                                modules: { type: 'object', additionalProperties: true }
-                            },
-                            required: ['name', 'category', 'flows', 'modules']
+                            additionalProperties: true
                         }
                     },
                     count: { type: 'integer' }

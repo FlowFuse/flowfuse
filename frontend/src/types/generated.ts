@@ -7693,17 +7693,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         blueprints: {
-                            id?: string;
-                            name: string;
-                            description?: string;
-                            category: string;
-                            icon?: string | null;
-                            flows: {
-                                [key: string]: unknown;
-                            };
-                            modules: {
-                                [key: string]: unknown;
-                            };
+                            [key: string]: unknown;
                         }[];
                         count?: number;
                     };
@@ -10673,16 +10663,16 @@ export interface components {
         /** FlowBlueprintSummary */
         FlowBlueprintSummary: {
             id: string;
-            active: boolean;
+            active?: boolean;
             name: string;
-            description: string;
-            category: string;
-            icon: string | null;
-            order: number;
-            default: boolean;
+            description?: string | null;
+            category?: string | null;
+            icon?: string | null;
+            order?: number;
+            default?: boolean;
             createdAt: string;
             updatedAt: string;
-            externalUrl: string | null;
+            externalUrl?: string | null;
         };
         /** FlowBlueprint */
         FlowBlueprint: {
