@@ -253,7 +253,7 @@ module.exports = async function (app) {
                 // Enabled, but not connected
                 reply.code(502)
                     .header('content-type', 'text/html')
-                    .send('<html><head><meta http-equiv="refresh", content="3"></head>' +
+                    .send('<html><head><meta http-equiv="refresh" content="3"></head>' +
                         '<body><p>The connection to the editor is currently unavailable, will try again in 3 seconds</p></body>' +
                         '</html>') // Bad Gateway (tunnel exists but it has lost connection or is in an intermediate state)
                 return
