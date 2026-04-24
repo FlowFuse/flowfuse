@@ -10338,7 +10338,12 @@ export interface components {
         Snapshot: {
             createdAt: string;
             updatedAt: string;
-            user?: components["schemas"]["UserSummary"];
+            user?: {
+                id: string;
+                username: string;
+                name: string;
+                avatar: string;
+            };
             modules?: {
                 [key: string]: unknown;
             };
@@ -10355,8 +10360,18 @@ export interface components {
             description: string;
             createdAt: string;
             updatedAt: string;
-            user?: components["schemas"]["UserSummary"];
-            exportedBy?: components["schemas"]["UserSummary"];
+            user?: {
+                id: string;
+                username: string;
+                name: string;
+                avatar: string;
+            };
+            exportedBy?: {
+                id: string;
+                username: string;
+                name: string;
+                avatar: string;
+            };
             ownerType: string;
             settings: {
                 settings?: {

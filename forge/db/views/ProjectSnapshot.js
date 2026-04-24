@@ -22,7 +22,17 @@ module.exports = {
             properties: {
                 createdAt: { type: 'string' },
                 updatedAt: { type: 'string' },
-                user: { $ref: 'UserSummary' },
+                // Narrow user shape — don't expose admin/suspended on every snapshot list.
+                user: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        username: { type: 'string' },
+                        name: { type: 'string' },
+                        avatar: { type: 'string' }
+                    },
+                    required: ['id', 'username', 'name', 'avatar']
+                },
                 modules: { type: 'object', additionalProperties: true },
                 ownerType: { type: 'string' },
                 deviceId: { type: 'string' },
@@ -32,6 +42,17 @@ module.exports = {
             },
             required: ['createdAt', 'updatedAt', 'ownerType']
         })
+        // Narrow user shape — don't expose admin/suspended on snapshot export payloads.
+        const narrowUser = {
+            type: 'object',
+            properties: {
+                id: { type: 'string' },
+                username: { type: 'string' },
+                name: { type: 'string' },
+                avatar: { type: 'string' }
+            },
+            required: ['id', 'username', 'name', 'avatar']
+        }
         app.addSchema({
             $id: 'SnapshotAndSettings',
             type: 'object',
@@ -42,8 +63,8 @@ module.exports = {
                 description: { type: 'string' },
                 createdAt: { type: 'string' },
                 updatedAt: { type: 'string' },
-                user: { $ref: 'UserSummary' },
-                exportedBy: { $ref: 'UserSummary' },
+                user: narrowUser,
+                exportedBy: narrowUser,
                 ownerType: { type: 'string' },
                 settings: {
                     type: 'object',

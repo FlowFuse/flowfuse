@@ -93,7 +93,7 @@ module.exports = {
                         attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt', 'ProjectId', 'DeviceId', 'ownerType'],
                         include: {
                             model: M.User,
-                            attributes: ['hashid', 'id', 'username', 'name', 'avatar', 'admin', 'createdAt', 'suspended']
+                            attributes: ['hashid', 'id', 'username', 'name', 'avatar']
                         }
                     })
                     return {
@@ -119,7 +119,7 @@ module.exports = {
                         attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt', 'ProjectId', 'DeviceId', 'ownerType'],
                         include: {
                             model: M.User,
-                            attributes: ['hashid', 'id', 'username', 'name', 'avatar', 'admin', 'createdAt', 'suspended']
+                            attributes: ['hashid', 'id', 'username', 'name', 'avatar']
                         }
                     })
                     return {
@@ -158,7 +158,7 @@ module.exports = {
                         attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt', 'ProjectId', 'DeviceId', 'ownerType', 'settings'],
                         include: [{
                             model: M.User,
-                            attributes: ['hashid', 'id', 'username', 'name', 'avatar', 'admin', 'createdAt', 'suspended']
+                            attributes: ['hashid', 'id', 'username', 'name', 'avatar']
                         },
                         {
                             model: M.Project,

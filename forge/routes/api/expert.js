@@ -229,6 +229,8 @@ module.exports = async function (app) {
                 required: ['context']
             },
             response: {
+                // Kept open: fast-json-stringify strips undeclared fields, but Ajv
+                // response-validation runs before that — locking would reject stripped fields.
                 200: {
                     type: 'object',
                     properties: {
