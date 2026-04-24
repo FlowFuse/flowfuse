@@ -127,7 +127,19 @@ module.exports = async function (app) {
             tags: ['Flow Blueprints'],
             body: {
                 type: 'object',
-                allOf: [{ $ref: 'FlowBlueprint' }],
+                properties: {
+                    active: { type: 'boolean' },
+                    name: { type: 'string' },
+                    description: { type: 'string' },
+                    category: { type: 'string' },
+                    icon: { type: 'string', nullable: true },
+                    order: { type: 'number' },
+                    default: { type: 'boolean' },
+                    externalUrl: { type: 'string', nullable: true },
+                    flows: { type: 'object', additionalProperties: true },
+                    modules: { type: 'object', additionalProperties: true },
+                    teamTypeScope: { type: ['array', 'null'], items: { type: 'string' } }
+                },
                 required: ['name']
             },
             response: {
@@ -182,7 +194,20 @@ module.exports = async function (app) {
                 }
             },
             body: {
-                $ref: 'FlowBlueprint'
+                type: 'object',
+                properties: {
+                    active: { type: 'boolean' },
+                    name: { type: 'string' },
+                    description: { type: 'string' },
+                    category: { type: 'string' },
+                    icon: { type: 'string', nullable: true },
+                    order: { type: 'number' },
+                    default: { type: 'boolean' },
+                    externalUrl: { type: 'string', nullable: true },
+                    flows: { type: 'object', additionalProperties: true },
+                    modules: { type: 'object', additionalProperties: true },
+                    teamTypeScope: { type: ['array', 'null'], items: { type: 'string' } }
+                }
             },
             response: {
                 200: {
@@ -319,7 +344,26 @@ module.exports = async function (app) {
             tags: ['Flow Blueprints'],
             body: {
                 type: 'object',
-                allOf: [{ $ref: 'FlowBlueprintExport' }]
+                properties: {
+                    blueprints: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                id: { type: 'string' },
+                                name: { type: 'string' },
+                                description: { type: 'string' },
+                                category: { type: 'string' },
+                                icon: { type: 'string', nullable: true },
+                                flows: { type: 'object', additionalProperties: true },
+                                modules: { type: 'object', additionalProperties: true }
+                            },
+                            required: ['name', 'category', 'flows', 'modules']
+                        }
+                    },
+                    count: { type: 'integer' }
+                },
+                required: ['blueprints']
             },
             response: {
                 201: {

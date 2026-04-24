@@ -23,14 +23,14 @@ module.exports = function (app) {
             id: blueprint.hashid,
             active: blueprint.active,
             name: blueprint.name,
-            description: blueprint.description,
+            description: blueprint.description ?? '',
             category: blueprint.category,
-            icon: blueprint.icon,
+            icon: blueprint.icon ?? null,
             order: blueprint.order,
             default: blueprint.default,
             createdAt: blueprint.createdAt,
             updatedAt: blueprint.updatedAt,
-            externalUrl: blueprint.externalUrl
+            externalUrl: blueprint.externalUrl ?? null
         }
     }
 

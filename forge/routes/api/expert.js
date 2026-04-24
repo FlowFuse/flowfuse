@@ -254,12 +254,10 @@ module.exports = async function (app) {
                                     version: { type: 'string' },
                                     description: { type: 'string' }
                                 },
-                                required: ['instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol'],
-                                additionalProperties: false
+                                required: ['instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol']
                             }
                         }
-                    },
-                    additionalProperties: false
+                    }
                 },
                 '4xx': {
                     $ref: 'APIError'

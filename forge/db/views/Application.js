@@ -5,7 +5,7 @@ module.exports = function (app) {
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
-            description: { type: 'string' },
+            description: { type: 'string', nullable: true },
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
             links: { $ref: 'LinksMeta' },
@@ -20,7 +20,7 @@ module.exports = function (app) {
             const filtered = {
                 id: raw.hashid,
                 name: raw.name,
-                description: raw.description,
+                description: raw.description ?? null,
                 createdAt: raw.createdAt,
                 updatedAt: raw.updatedAt,
                 links: raw.links
@@ -43,7 +43,7 @@ module.exports = function (app) {
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
-            description: { type: 'string' },
+            description: { type: 'string', nullable: true },
             links: { $ref: 'LinksMeta' },
             deviceGroupCount: { type: 'number' },
             snapshotCount: { type: 'number' },
@@ -62,7 +62,7 @@ module.exports = function (app) {
         const summary = {
             id: application.hashid,
             name: application.name,
-            description: application.description,
+            description: application.description ?? null,
             links: application.links
         }
 
@@ -139,14 +139,13 @@ module.exports = function (app) {
         type: 'array',
         items: {
             type: 'object',
-            allOf: [{ $ref: 'ApplicationSummary' }],
             properties: {
                 id: { type: 'string' },
                 instances: { $ref: 'InstanceStatusList' },
                 devices: { $ref: 'DeviceStatusList' }
             },
-            required: ['instances', 'devices'],
-            additionalProperties: true
+            required: ['id', 'instances', 'devices'],
+            additionalProperties: false
         }
     })
     async function applicationAssociationsStatusList (applicationsArray) {

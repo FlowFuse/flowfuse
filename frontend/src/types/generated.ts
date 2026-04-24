@@ -7448,7 +7448,23 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["FlowBlueprint"];
+                    "application/json": {
+                        active?: boolean;
+                        name: string;
+                        description?: string;
+                        category?: string;
+                        icon?: string | null;
+                        order?: number;
+                        default?: boolean;
+                        externalUrl?: string | null;
+                        flows?: {
+                            [key: string]: unknown;
+                        };
+                        modules?: {
+                            [key: string]: unknown;
+                        };
+                        teamTypeScope?: string[] | null;
+                    };
                 };
             };
             responses: {
@@ -7529,7 +7545,23 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": components["schemas"]["FlowBlueprint"];
+                    "application/json": {
+                        active?: boolean;
+                        name?: string;
+                        description?: string;
+                        category?: string;
+                        icon?: string | null;
+                        order?: number;
+                        default?: boolean;
+                        externalUrl?: string | null;
+                        flows?: {
+                            [key: string]: unknown;
+                        };
+                        modules?: {
+                            [key: string]: unknown;
+                        };
+                        teamTypeScope?: string[] | null;
+                    };
                 };
             };
             responses: {
@@ -7657,9 +7689,24 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
-                    "application/json": components["schemas"]["FlowBlueprintExport"];
+                    "application/json": {
+                        blueprints: {
+                            id?: string;
+                            name: string;
+                            description?: string;
+                            category: string;
+                            icon?: string | null;
+                            flows: {
+                                [key: string]: unknown;
+                            };
+                            modules: {
+                                [key: string]: unknown;
+                            };
+                        }[];
+                        count?: number;
+                    };
                 };
             };
             responses: {
@@ -8628,7 +8675,20 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": components["schemas"]["MQTTBroker"];
+                    "application/json": {
+                        name?: string;
+                        host?: string;
+                        port?: number;
+                        protocol?: string;
+                        protocolVersion?: number;
+                        ssl?: boolean;
+                        verifySSL?: boolean;
+                        clientId?: string;
+                        topicPrefix?: string[];
+                        credentials?: {
+                            [key: string]: unknown;
+                        };
+                    };
                 };
             };
             responses: {
@@ -9957,7 +10017,7 @@ export interface components {
         Application: {
             id: string;
             name: string;
-            description: string;
+            description: string | null;
             createdAt: string;
             updatedAt: string;
             links: components["schemas"]["LinksMeta"];
@@ -9967,7 +10027,7 @@ export interface components {
         ApplicationSummary: {
             id: string;
             name: string;
-            description: string;
+            description: string | null;
             links: components["schemas"]["LinksMeta"];
             deviceGroupCount?: number;
             snapshotCount?: number;
@@ -9991,13 +10051,11 @@ export interface components {
             [key: string]: unknown;
         }) & components["schemas"]["ApplicationSummary"])[];
         /** ApplicationAssociationsStatusList */
-        ApplicationAssociationsStatusList: (({
-            id?: string;
+        ApplicationAssociationsStatusList: {
+            id: string;
             instances: components["schemas"]["InstanceStatusList"];
             devices: components["schemas"]["DeviceStatusList"];
-        } & {
-            [key: string]: unknown;
-        }) & components["schemas"]["ApplicationSummary"])[];
+        }[];
         /** ApplicationBom */
         ApplicationBom: {
             id: string;
@@ -10547,8 +10605,8 @@ export interface components {
         };
         /** APIError */
         APIError: {
-            code: string;
-            error: string;
+            code?: string;
+            error?: string;
             message?: string;
             errors?: {
                 [key: string]: unknown;
@@ -10686,14 +10744,16 @@ export interface components {
             };
         };
         /** DatabaseTable */
-        DatabaseTable: {
+        DatabaseTable: ({
             name: string;
             type: string;
-            nullable: boolean;
-            default: string | null;
-            generated: boolean;
-            maxLength: number | null;
-        }[];
+            nullable?: boolean;
+            default?: string | null;
+            generated?: boolean;
+            maxLength?: number | null;
+        } & {
+            [key: string]: unknown;
+        })[];
     };
     responses: never;
     parameters: never;

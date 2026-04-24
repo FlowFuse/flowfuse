@@ -77,7 +77,7 @@ module.exports = function (app) {
             name: teamType.name,
             active: teamType.active,
             order: teamType.order,
-            description: teamType.description,
+            description: teamType.description ?? null,
             properties
         }
         if (includeAdminOnlyProps && teamType.get) {

@@ -36,8 +36,8 @@ module.exports = function (app) {
                 generated: { type: 'boolean' },
                 maxLength: { type: 'number', nullable: true }
             },
-            required: ['name', 'type', 'nullable', 'default', 'generated', 'maxLength'],
-            additionalProperties: false
+            required: ['name', 'type'],
+            additionalProperties: true
         }
     })
 

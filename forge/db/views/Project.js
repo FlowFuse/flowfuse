@@ -118,7 +118,7 @@ module.exports = function (app) {
             result.customHostname = settingsCustomHostnameRow?.value || undefined
         }
         // Ensure resource email alert settings have a value that reflects in the UI what will be used at runtime
-        if (app.config.features.enabled('emailAlerts')) {
+        if (includeSettings && app.config.features.enabled('emailAlerts')) {
             if (typeof result.settings.emailAlerts !== 'object') {
                 result.settings.emailAlerts = {}
             }

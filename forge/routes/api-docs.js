@@ -140,7 +140,7 @@ module.exports = fp(async function (app, opts) {
             message: { type: 'string' },
             errors: { type: 'array', items: { type: 'object', additionalProperties: true } }
         },
-        required: ['code', 'error'],
+        // Error-response shape is historically loose — handlers send varying subsets.
         // Handlers attach context-specific extras.
         additionalProperties: true
     })
