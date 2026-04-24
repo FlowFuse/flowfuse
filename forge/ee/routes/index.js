@@ -41,7 +41,7 @@ module.exports = async function (app) {
         }
         await app.register(require('./mcp'), { prefix: '/api/v1/teams/:teamId/mcp', logLevel: app.config.logging.http })
         await app.register(require('./autoUpdateStacks'), { prefix: '/api/v1/projects/:projectId/autoUpdateStack', logLevel: app.config.logging.http })
-        await app.register(require('./expert'), { prefix: '/expert', logLevel: app.config.logging.http })
+        await app.register(require('./expert'), { prefix: '/api/v1/expert', logLevel: app.config.logging.http })
 
         // Important: keep SSO last to avoid its error handling polluting other routes.
         await app.register(require('./sso'), { logLevel: app.config.logging.http })
