@@ -11,7 +11,6 @@ const config = require('./config') // eslint-disable-line n/no-unpublished-requi
 const containers = require('./containers')
 const db = require('./db')
 const ee = require('./ee')
-const expert = require('./expert')
 const housekeeper = require('./housekeeper')
 const { generatePassword } = require('./lib/userTeam')
 const license = require('./licensing')
@@ -254,8 +253,6 @@ module.exports = async (options = {}) => {
         await server.register(auditLog)
         // Housekeeper
         await server.register(housekeeper)
-        // Expert
-        await server.register(expert)
 
         // HTTP Server configuration
         if (!server.settings.get('cookieSecret')) {
