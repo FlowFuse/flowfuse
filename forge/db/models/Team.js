@@ -254,7 +254,7 @@ module.exports = {
                         include: {
                             model: M.Team,
                             attributes: ['hashid', 'links', 'id', 'name', 'avatar', 'slug', 'suspended'],
-                            include: { model: M.TeamType, attributes: ['hashid', 'id', 'name'] }
+                            include: { model: M.TeamType, attributes: ['hashid', 'id', 'name', 'active'] }
                         },
                         attributes: {
                             include: [
@@ -314,7 +314,7 @@ module.exports = {
                             })
                         }
                     }
-                    const include = [{ model: M.TeamType, attributes: ['hashid', 'id', 'name'] }]
+                    const include = [{ model: M.TeamType, attributes: ['hashid', 'id', 'name', 'active', 'order', 'description', 'properties'] }]
                     if (app.billing) {
                         // Include subscription info
                         include.push({ model: app.db.models.Subscription })

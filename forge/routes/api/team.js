@@ -136,8 +136,9 @@ module.exports = async function (app) {
                 }
             },
             response: {
+                // Dashboard roles get TeamSummary; everyone else gets Team.
                 200: {
-                    $ref: 'Team'
+                    anyOf: [{ $ref: 'Team' }, { $ref: 'TeamSummary' }]
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -166,7 +167,7 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    $ref: 'Team'
+                    anyOf: [{ $ref: 'Team' }, { $ref: 'TeamSummary' }]
                 },
                 '4xx': {
                     $ref: 'APIError'

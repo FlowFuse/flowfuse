@@ -107,7 +107,19 @@ module.exports = async function (app) {
                 }
             },
             body: {
-                $ref: 'MQTTBroker'
+                type: 'object',
+                properties: {
+                    name: { type: 'string' },
+                    host: { type: 'string' },
+                    port: { type: 'number' },
+                    protocol: { type: 'string' },
+                    protocolVersion: { type: 'number' },
+                    ssl: { type: 'boolean' },
+                    verifySSL: { type: 'boolean' },
+                    clientId: { type: 'string' },
+                    topicPrefix: { type: 'array', items: { type: 'string' } },
+                    credentials: { type: 'object', additionalProperties: true }
+                }
             },
             response: {
                 201: {
@@ -229,6 +241,7 @@ module.exports = async function (app) {
                     ssl: brokerURL.protocol === 'mqtts:' || brokerURL.protocol === 'wss:',
                     verifySSL: true,
                     clientId: `${request.params.teamId}-agent@${request.params.teamId}`,
+                    state: 'running',
                     credentials: {
                         username: `agent:${request.params.teamId}@${request.params.teamId}`,
                         password: agent.auth
@@ -323,8 +336,17 @@ module.exports = async function (app) {
                 }
             },
             response: {
+                // team-broker with no agent returns a {state:'suspended'} stub.
                 200: {
-                    $ref: 'MQTTBroker'
+                    anyOf: [
+                        { $ref: 'MQTTBroker' },
+                        {
+                            type: 'object',
+                            properties: { state: { type: 'string' } },
+                            required: ['state'],
+                            additionalProperties: false
+                        }
+                    ]
                 },
                 '4xx': {
                     $ref: 'APIError'

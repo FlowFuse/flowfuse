@@ -90,10 +90,10 @@ module.exports = {
                         where,
                         order: [['id', 'DESC']],
                         limit,
-                        attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt'],
+                        attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt', 'ProjectId', 'DeviceId', 'ownerType'],
                         include: {
                             model: M.User,
-                            attributes: ['hashid', 'id', 'username', 'avatar']
+                            attributes: ['hashid', 'id', 'username', 'name', 'avatar']
                         }
                     })
                     return {
@@ -116,10 +116,10 @@ module.exports = {
                         where,
                         order: [['id', 'DESC']],
                         limit,
-                        attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt'],
+                        attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt', 'ProjectId', 'DeviceId', 'ownerType'],
                         include: {
                             model: M.User,
-                            attributes: ['hashid', 'id', 'username', 'avatar']
+                            attributes: ['hashid', 'id', 'username', 'name', 'avatar']
                         }
                     })
                     return {
@@ -158,7 +158,7 @@ module.exports = {
                         attributes: ['hashid', 'id', 'name', 'description', 'createdAt', 'updatedAt', 'ProjectId', 'DeviceId', 'ownerType', 'settings'],
                         include: [{
                             model: M.User,
-                            attributes: ['hashid', 'id', 'username', 'avatar']
+                            attributes: ['hashid', 'id', 'username', 'name', 'avatar']
                         },
                         {
                             model: M.Project,
@@ -166,7 +166,8 @@ module.exports = {
                         },
                         {
                             model: M.Device,
-                            attributes: ['hashid', 'id', 'name', 'type', 'createdAt', 'updatedAt']
+                            // DeviceSummary requires: id, ownerType, name, type, lastSeenAt, lastSeenMs (computed), status, mode, isDeploying (computed), links
+                            attributes: ['hashid', 'id', 'name', 'type', 'ownerType', 'lastSeenAt', 'state', 'mode', 'links', 'createdAt', 'updatedAt']
                         }]
                     })
                     return {

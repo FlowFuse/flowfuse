@@ -6,7 +6,9 @@ module.exports = function (app) {
             id: { type: 'string' },
             name: { type: 'string' },
             active: { type: 'boolean' }
-        }
+        },
+        // Composed via `allOf` elsewhere — keep open.
+        required: ['id', 'name', 'active']
     })
     function teamTypeSummary (teamType) {
         return {
@@ -19,6 +21,7 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'TeamType',
         type: 'object',
+        // additionalProperties omitted — interacts poorly with allOf.
         allOf: [{ $ref: 'TeamTypeSummary' }],
         properties: {
             order: { type: 'number' },
@@ -36,7 +39,8 @@ module.exports = function (app) {
                 },
                 additionalProperties: true
             }
-        }
+        },
+        required: ['order', 'description', 'properties']
     })
 
     function removeAdminOnlyProps (obj) {
@@ -73,7 +77,7 @@ module.exports = function (app) {
             name: teamType.name,
             active: teamType.active,
             order: teamType.order,
-            description: teamType.description,
+            description: teamType.description ?? null,
             properties
         }
         if (includeAdminOnlyProps && teamType.get) {

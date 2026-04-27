@@ -433,7 +433,7 @@ module.exports = {
                     return this.findAll({
                         include: {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended'],
+                            attributes: ['hashid', 'id', 'name', 'slug', 'avatar', 'links', 'TeamTypeId', 'suspended'],
                             include: [
                                 {
                                     model: M.TeamMember,
@@ -452,11 +452,11 @@ module.exports = {
                         : [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended', 'properties']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'avatar', 'links', 'TeamTypeId', 'suspended', 'properties']
                             },
                             {
                                 model: M.Application,
-                                attributes: ['hashid', 'id', 'name', 'links']
+                                attributes: ['hashid', 'id', 'name', 'description', 'links']
                             },
                             {
                                 model: M.ProjectType,
@@ -511,7 +511,7 @@ module.exports = {
                         {
                             model: M.Application,
                             where: { id: applicationId },
-                            attributes: ['hashid', 'id', 'name', 'links']
+                            attributes: ['hashid', 'id', 'name', 'description', 'links']
                         },
                         {
                             model: M.ProjectType,
@@ -569,13 +569,13 @@ module.exports = {
                         {
                             model: M.Team,
                             where: { id: teamId },
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                            attributes: ['hashid', 'id', 'name', 'slug', 'avatar', 'links', 'TeamTypeId', 'suspended']
                         }
                     ]
                     if (includeAssociations) {
                         include.push({
                             model: M.Application,
-                            attributes: ['hashid', 'id', 'name', 'links']
+                            attributes: ['hashid', 'id', 'name', 'description', 'links']
                         },
                         {
                             model: M.ProjectType,
@@ -674,7 +674,7 @@ module.exports = {
                             },
                             {
                                 model: M.Application,
-                                attributes: ['hashid', 'id', 'name', 'links']
+                                attributes: ['hashid', 'id', 'name', 'description', 'links']
                             },
                             {
                                 model: M.ProjectSettings,

@@ -5,12 +5,14 @@ module.exports = function (app) {
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
-            description: { type: 'string' },
+            description: { type: 'string', nullable: true },
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
             links: { $ref: 'LinksMeta' },
             team: { $ref: 'TeamSummary' }
-        }
+        },
+        required: ['id', 'name', 'description', 'createdAt', 'updatedAt', 'links'],
+        additionalProperties: false
     })
     function application (application) {
         if (application) {
@@ -18,7 +20,7 @@ module.exports = function (app) {
             const filtered = {
                 id: raw.hashid,
                 name: raw.name,
-                description: raw.description,
+                description: raw.description ?? null,
                 createdAt: raw.createdAt,
                 updatedAt: raw.updatedAt,
                 links: raw.links
@@ -37,15 +39,17 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'ApplicationSummary',
         type: 'object',
+        // Composed via `allOf` elsewhere — keep open.
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
-            description: { type: 'string' },
+            description: { type: 'string', nullable: true },
             links: { $ref: 'LinksMeta' },
             deviceGroupCount: { type: 'number' },
             snapshotCount: { type: 'number' },
             pipelineCount: { type: 'number' }
         },
+        required: ['id', 'name', 'description', 'links'],
         additionalProperties: true
     })
     function applicationSummary (application, { detailed = false } = {}) {
@@ -58,12 +62,12 @@ module.exports = function (app) {
         const summary = {
             id: application.hashid,
             name: application.name,
-            description: application.description,
+            description: application.description ?? null,
             links: application.links
         }
 
         if (detailed) {
-            // Counts are aggregates; postgres returns them as strings, sqlite as numbers — coerce.
+            // parseInt: postgres returns aggregate counts as strings.
             summary.deviceCount = parseInt(application.get('deviceCount')) || 0
             summary.instanceCount = parseInt(application.get('instanceCount')) || 0
             summary.deviceGroupCount = parseInt(application.get('deviceGroupCount')) || 0
@@ -135,13 +139,13 @@ module.exports = function (app) {
         type: 'array',
         items: {
             type: 'object',
-            allOf: [{ $ref: 'ApplicationSummary' }],
             properties: {
                 id: { type: 'string' },
                 instances: { $ref: 'InstanceStatusList' },
                 devices: { $ref: 'DeviceStatusList' }
             },
-            additionalProperties: true
+            required: ['id', 'instances', 'devices'],
+            additionalProperties: false
         }
     })
     async function applicationAssociationsStatusList (applicationsArray) {
@@ -162,7 +166,8 @@ module.exports = function (app) {
             name: { type: 'string' },
             children: { type: 'array', items: { $ref: 'dependant' } } // dependant is defined in BOM.js
         },
-        additionalProperties: true
+        required: ['id', 'name', 'children'],
+        additionalProperties: false
     })
 
     return {

@@ -17,7 +17,9 @@ module.exports = function (app) {
             scope: { type: 'object', additionalProperties: true },
             trigger: { type: 'object', additionalProperties: true },
             body: { type: 'object', additionalProperties: true }
-        }
+        },
+        required: ['id', 'createdAt', 'username', 'event', 'scope', 'trigger'],
+        additionalProperties: false
     })
     app.addSchema({
         $id: 'AuditLogEntryList',
@@ -77,10 +79,26 @@ module.exports = function (app) {
         properties: {
             id: { type: 'string' },
             createdAt: { type: 'string' },
-            user: { $ref: 'User' },
+            // Synthetic/trigger users lack some UserSummary fields — inline a narrower shape.
+            user: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string' },
+                    username: { type: 'string' },
+                    name: { type: 'string' },
+                    avatar: { type: 'string' },
+                    admin: { type: 'boolean' },
+                    createdAt: { type: 'string' },
+                    suspended: { type: 'boolean' }
+                },
+                required: ['id', 'username', 'name', 'avatar'],
+                additionalProperties: true
+            },
             event: { type: 'string' },
             data: { type: 'object', additionalProperties: true }
-        }
+        },
+        required: ['id', 'createdAt', 'user', 'event', 'data'],
+        additionalProperties: false
     })
 
     app.addSchema({
