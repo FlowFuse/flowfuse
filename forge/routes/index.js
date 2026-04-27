@@ -24,6 +24,7 @@ module.exports = fp(async function (app, opts) {
 
     // Response Validation: dev only — surfaces schema/view drift as 500s.
     if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line n/no-unpublished-require -- dev-only, gated above
         const Ajv = require('ajv')
         const ajv = new Ajv({
             coerceTypes: false,
@@ -70,6 +71,7 @@ module.exports = fp(async function (app, opts) {
                 }
             }
         })
+        // eslint-disable-next-line n/no-unpublished-require -- dev-only, gated above
         await app.register(require('@fastify/response-validation'), { ajv })
     }
 

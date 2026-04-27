@@ -766,6 +766,7 @@ module.exports = {
                             await app.containers.stop(instance)
                         } catch (err) {
                             // do we need to log a failure?
+                            app.log.info(`Problem suspending instance ${instance.id} while suspending team ${this.name} - ${err.toString()}`)
                         }
                         await delay(1000)
                     }
