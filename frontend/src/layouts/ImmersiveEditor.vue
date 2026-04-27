@@ -5,7 +5,7 @@
             <slot />
         </div>
         <ff-dialog
-            ref="dialog" data-el="platform-dialog"
+            ref="dialogEl" data-el="platform-dialog"
             :header="dialog.header"
             :kind="dialog.kind"
             :disable-primary="dialog.disablePrimary"
@@ -14,7 +14,7 @@
             :canBeCanceled="dialog.canBeCanceled"
             :notices="dialog.notices"
             :box-class="dialog.boxClass"
-            @cancel="clearDialog(true)"
+            @cancel="dialogStore.clearDialog(true)"
             @confirm="dialog.onConfirm"
         >
             <template v-if="dialog.textLines">
@@ -38,44 +38,47 @@
             <ff-notification-toast
                 v-for="(a, $index) in alertsReversed" :key="a.timestamp"
                 :type="a.type" :message="a.message" data-el="notification-alert"
-                :countdown="a.countdown || 3000" @close="clear($index)"
+                :countdown="a.countdown || 3000" @close="clearAlert($index)"
             />
         </TransitionGroup>
     </div>
 </template>
 
-<script>
-import { mapActions, mapState } from 'pinia'
+<script setup>
+import { storeToRefs } from 'pinia'
+import { computed, onMounted, ref } from 'vue'
 
 import PageHeader from '../components/PageHeader.vue'
 import NoticeBanner from '../components/notices/NoticeBanner.vue'
-import AlertsMixin from '../mixins/Alerts.js'
+import alertsService from '../services/alerts.js'
 import dialogService from '../services/dialog.js'
 
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
-export default {
-    name: 'FfLayoutImmersiveEditor',
-    components: {
-        PageHeader,
-        NoticeBanner
-    },
-    mixins: [AlertsMixin],
-    computed: {
-        ...mapState(useUxDialogStore, ['dialog']),
-        ...mapState(useUxDrawersStore, ['editorImmersiveDrawer'])
-    },
-    mounted () {
-        dialogService.bind(this.$refs.dialog, this.showDialogHandler)
-    },
-    methods: {
-        ...mapActions(useUxDialogStore, ['clearDialog', 'showDialogHandlers']),
-        showDialogHandler (msg, onConfirm, onCancel) {
-            return this.showDialogHandlers({ payload: msg, onConfirm, onCancel })
-        }
-    }
+defineOptions({ name: 'FfLayoutImmersiveEditor' })
+
+const dialogStore = useUxDialogStore()
+const drawersStore = useUxDrawersStore()
+const { dialog } = storeToRefs(dialogStore)
+const { editorImmersiveDrawer } = storeToRefs(drawersStore)
+
+const dialogEl = ref(null)
+
+const alerts = ref([])
+const alertsReversed = computed(() => [...alerts.value].reverse())
+function clearAlert (i) {
+    alerts.value.splice(alerts.value.length - 1 - i, 1)
 }
+
+onMounted(() => {
+    alertsService.subscribe((message, type, countdown) => {
+        alerts.value.push({ message, type, countdown, timestamp: Date.now() })
+    })
+    dialogService.bind(dialogEl.value, (msg, onConfirm, onCancel) => {
+        return dialogStore.showDialogHandlers({ payload: msg, onConfirm, onCancel })
+    })
+})
 </script>
 
 <style lang="scss">

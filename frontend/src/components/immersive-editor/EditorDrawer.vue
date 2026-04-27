@@ -23,7 +23,7 @@
                     class="drawer-header-btn"
                     title="Back"
                     type="button"
-                    @click="popEditorImmersiveView"
+                    @click="drawersStore.popEditorImmersiveView"
                 >
                     <ArrowLeftIcon class="ff-btn--icon" />
                 </button>
@@ -34,7 +34,7 @@
                         type="button"
                         class="drawer-header-btn"
                         aria-label="Close drawer"
-                        @click="toggleEditorImmersiveDrawer"
+                        @click="drawersStore.toggleEditorImmersiveDrawer"
                     >
                         <XIcon class="ff-btn--icon" />
                     </button>
@@ -45,15 +45,15 @@
             <div v-if="!hasStackedView" class="header">
                 <div class="logo">
                     <router-link
-                        v-if="homeRoute"
+                        v-if="props.homeRoute"
                         title="Back to overview"
-                        :to="homeRoute"
+                        :to="props.homeRoute"
                     >
                         <HomeIcon class="ff-btn--icon" style="width: 18px; height: 18px;" />
                     </router-link>
                 </div>
 
-                <ff-tabs v-if="navigation.length" :tabs="navigation" class="tabs" />
+                <ff-tabs v-if="props.navigation.length" :tabs="props.navigation" class="tabs" />
 
                 <div class="side-actions">
                     <slot name="actions" />
@@ -65,7 +65,7 @@
                         type="button"
                         class="drawer-header-btn"
                         aria-label="Close drawer"
-                        @click="toggleEditorImmersiveDrawer"
+                        @click="drawersStore.toggleEditorImmersiveDrawer"
                     >
                         <XIcon class="ff-btn--icon" />
                     </button>
@@ -90,18 +90,19 @@
             />
 
             <!-- Default tab content -->
-            <ff-page v-else :no-padding="isExpertRoute">
+            <ff-page v-else :no-padding="props.isExpertRoute">
                 <slot />
             </ff-page>
         </div>
     </section>
 </template>
 
-<script>
+<script setup>
 import { ArrowLeftIcon } from '@heroicons/vue/outline'
 import { HomeIcon, XIcon } from '@heroicons/vue/solid'
-import { mapActions, mapState } from 'pinia'
-import { ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 import { getServiceFactory } from '../../services/service.factory.js'
 import ResizeBar from '../ResizeBar.vue'
@@ -114,148 +115,133 @@ const DRAWER_MIN_WIDTH = 310
 const DRAWER_MAX_VIEWPORT_MARGIN = 200
 const DRAWER_MAX_WIDTH_RATIO = 0.9
 
-export default {
-    name: 'EditorDrawer',
-    components: {
-        ArrowLeftIcon,
-        HomeIcon,
-        XIcon,
-        ResizeBar,
-        EditorDrawerSettings
+const props = defineProps({
+    navigation: {
+        type: Array,
+        default: () => []
     },
-    props: {
-        navigation: {
-            type: Array,
-            default: () => []
-        },
-        homeRoute: {
-            type: Object,
-            default: null
-        },
-        isExpertRoute: {
-            type: Boolean,
-            default: false
-        },
-        entity: {
-            type: Object,
-            default: null
-        }
+    homeRoute: {
+        type: Object,
+        default: null
     },
-    emits: ['resizing'],
-    setup () {
-        const resizing = ref(false)
-        const startX = ref(0)
-        const startWidth = ref(0)
-        const windowWidth = ref(window.innerWidth)
-
-        return {
-            resizing,
-            startX,
-            startWidth,
-            windowWidth
-        }
+    isExpertRoute: {
+        type: Boolean,
+        default: false
     },
-    computed: {
-        ...mapState(useUxDrawersStore, ['editorImmersiveDrawer']),
-        isEditorResizing () {
-            return this.resizing
-        },
-        drawerStyle () {
-            if (!this.editorImmersiveDrawer.open) return {}
-            const width = Math.min(
-                this.editorImmersiveDrawer.width,
-                this.windowWidth * DRAWER_MAX_WIDTH_RATIO,
-                this.windowWidth - DRAWER_MAX_VIEWPORT_MARGIN
-            )
-            return { width: `${width}px`, order: this.editorImmersiveDrawer.side === 'right' ? 1 : -1 }
-        },
-        hasStackedView () {
-            return this.editorImmersiveDrawer.viewStack.length > 0
-        },
-        currentStackView () {
-            const stack = this.editorImmersiveDrawer.viewStack
-            return stack[stack.length - 1] || null
-        }
-    },
-    watch: {
-        'editorImmersiveDrawer.open' () {
-            this.$nextTick(() => this.notifyDrawerState())
-        },
-        '$route.name' () {
-            this.clearEditorImmersiveViewStack()
-        }
-    },
-    mounted () {
-        this.setEditorImmersiveActive(true)
-        this._onWindowResize = () => { this.windowWidth = window.innerWidth }
-        window.addEventListener('resize', this._onWindowResize)
-        this.$nextTick(() => this.notifyDrawerState())
-    },
-    unmounted () {
-        this.setEditorImmersiveActive(false)
-        this.clearEditorImmersiveViewStack()
-        window.removeEventListener('resize', this._onWindowResize)
-        document.removeEventListener('mousemove', this.handleResize)
-        document.removeEventListener('mouseup', this.stopResize)
-    },
-    methods: {
-        ...mapActions(useUxDrawersStore, [
-            'toggleEditorImmersiveDrawer',
-            'setEditorImmersiveDrawerWidth',
-            'setEditorImmersiveActive',
-            'clearEditorImmersiveViewStack',
-            'popEditorImmersiveView'
-        ]),
-        startEditorResize (e) {
-            this.resizing = true
-            this.$emit('resizing', true)
-            this.startX = e.clientX
-            this.startWidth = this.editorImmersiveDrawer.width
-
-            document.addEventListener('mousemove', this.handleResize)
-            document.addEventListener('mouseup', this.stopResize)
-        },
-        handleResize (e) {
-            if (!this.resizing) return
-
-            const isLeftSide = this.editorImmersiveDrawer.side === 'left'
-            const delta = isLeftSide
-                ? e.clientX - this.startX
-                : this.startX - e.clientX
-
-            const newWidth = Math.min(
-                Math.max(DRAWER_MIN_WIDTH, this.startWidth + delta),
-                window.innerWidth * DRAWER_MAX_WIDTH_RATIO,
-                window.innerWidth - DRAWER_MAX_VIEWPORT_MARGIN
-            )
-
-            this.setEditorImmersiveDrawerWidth(newWidth)
-        },
-        stopResize () {
-            this.resizing = false
-            this.$emit('resizing', false)
-            document.removeEventListener('mousemove', this.handleResize)
-            document.removeEventListener('mouseup', this.stopResize)
-        },
-        notifyDrawerState () {
-            if (!this.entity) return
-
-            const iframe = window.frames['immersive-editor-iframe']
-            if (!iframe) return
-
-            const targetOrigin = this.entity.url || window.location.origin
-            const serviceFactory = getServiceFactory()
-            serviceFactory.$serviceInstances.messaging.sendMessage({
-                message: {
-                    type: 'drawer-state',
-                    payload: { open: this.editorImmersiveDrawer.open }
-                },
-                target: iframe,
-                targetOrigin
-            })
-        }
+    entity: {
+        type: Object,
+        default: null
     }
+})
+
+const emit = defineEmits(['resizing'])
+
+const drawersStore = useUxDrawersStore()
+const { editorImmersiveDrawer } = storeToRefs(drawersStore)
+const route = useRoute()
+
+const resizing = ref(false)
+const startX = ref(0)
+const startWidth = ref(0)
+const windowWidth = ref(window.innerWidth)
+
+const isEditorResizing = computed(() => resizing.value)
+
+const drawerStyle = computed(() => {
+    if (!editorImmersiveDrawer.value.open) return {}
+    const width = Math.min(
+        editorImmersiveDrawer.value.width,
+        windowWidth.value * DRAWER_MAX_WIDTH_RATIO,
+        windowWidth.value - DRAWER_MAX_VIEWPORT_MARGIN
+    )
+    return { width: `${width}px`, order: editorImmersiveDrawer.value.side === 'right' ? 1 : -1 }
+})
+
+const hasStackedView = computed(() => editorImmersiveDrawer.value.viewStack.length > 0)
+const currentStackView = computed(() => {
+    const stack = editorImmersiveDrawer.value.viewStack
+    return stack[stack.length - 1] || null
+})
+
+function notifyDrawerState () {
+    if (!props.entity) return
+
+    const iframe = window.frames['immersive-editor-iframe']
+    if (!iframe) return
+
+    const targetOrigin = props.entity.url || window.location.origin
+    const serviceFactory = getServiceFactory()
+    serviceFactory.$serviceInstances.messaging.sendMessage({
+        message: {
+            type: 'drawer-state',
+            payload: { open: editorImmersiveDrawer.value.open }
+        },
+        target: iframe,
+        targetOrigin
+    })
 }
+
+function handleResize (e) {
+    if (!resizing.value) return
+
+    const isLeftSide = editorImmersiveDrawer.value.side === 'left'
+    const delta = isLeftSide
+        ? e.clientX - startX.value
+        : startX.value - e.clientX
+
+    const newWidth = Math.min(
+        Math.max(DRAWER_MIN_WIDTH, startWidth.value + delta),
+        window.innerWidth * DRAWER_MAX_WIDTH_RATIO,
+        window.innerWidth - DRAWER_MAX_VIEWPORT_MARGIN
+    )
+
+    drawersStore.setEditorImmersiveDrawerWidth(newWidth)
+}
+
+function stopResize () {
+    resizing.value = false
+    emit('resizing', false)
+    document.removeEventListener('mousemove', handleResize)
+    document.removeEventListener('mouseup', stopResize)
+}
+
+function startEditorResize (e) {
+    resizing.value = true
+    emit('resizing', true)
+    startX.value = e.clientX
+    startWidth.value = editorImmersiveDrawer.value.width
+
+    document.addEventListener('mousemove', handleResize)
+    document.addEventListener('mouseup', stopResize)
+}
+
+function onWindowResize () {
+    windowWidth.value = window.innerWidth
+}
+
+watch(() => editorImmersiveDrawer.value.open, () => {
+    nextTick(notifyDrawerState)
+})
+
+watch(() => route.name, () => {
+    drawersStore.clearEditorImmersiveViewStack()
+})
+
+onMounted(() => {
+    drawersStore.setEditorImmersiveActive(true)
+    window.addEventListener('resize', onWindowResize)
+    nextTick(notifyDrawerState)
+})
+
+onUnmounted(() => {
+    drawersStore.setEditorImmersiveActive(false)
+    drawersStore.clearEditorImmersiveViewStack()
+    window.removeEventListener('resize', onWindowResize)
+    document.removeEventListener('mousemove', handleResize)
+    document.removeEventListener('mouseup', stopResize)
+})
+
+defineExpose({ notifyDrawerState })
 </script>
 
 <style lang="scss">

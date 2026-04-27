@@ -8,52 +8,39 @@
     </DropdownMenu>
 </template>
 
-<script>
+<script setup>
 import { ArrowsExpandIcon, EyeIcon, LockClosedIcon, LockOpenIcon, SwitchHorizontalIcon } from '@heroicons/vue/outline'
-import { mapActions, mapState } from 'pinia'
+import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
 
 import DropdownMenu from '../DropdownMenu.vue'
 
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
-export default {
-    name: 'EditorDrawerSettings',
-    components: {
-        EyeIcon,
-        DropdownMenu
-    },
-    computed: {
-        ...mapState(useUxDrawersStore, ['editorImmersiveDrawer']),
-        settingsOptions () {
-            const isLeft = this.editorImmersiveDrawer.side === 'left'
-            const isPinned = this.editorImmersiveDrawer.pinned
-            const isFullscreen = this.editorImmersiveDrawer.fullscreen
+const drawers = useUxDrawersStore()
+const { editorImmersiveDrawer } = storeToRefs(drawers)
 
-            return [
-                {
-                    name: isLeft ? 'Move to Right' : 'Move to Left',
-                    icon: SwitchHorizontalIcon,
-                    action: () => this.setEditorImmersiveDrawerSide(isLeft ? 'right' : 'left')
-                },
-                {
-                    name: isPinned ? 'Unpin' : 'Pin',
-                    icon: isPinned ? LockOpenIcon : LockClosedIcon,
-                    action: () => this.toggleEditorImmersiveDrawerPin()
-                },
-                {
-                    name: isFullscreen ? 'Exit Fullscreen' : 'Fullscreen',
-                    icon: ArrowsExpandIcon,
-                    action: () => this.toggleEditorImmersiveFullscreen()
-                }
-            ]
+const settingsOptions = computed(() => {
+    const isLeft = editorImmersiveDrawer.value.side === 'left'
+    const isPinned = editorImmersiveDrawer.value.pinned
+    const isFullscreen = editorImmersiveDrawer.value.fullscreen
+
+    return [
+        {
+            name: isLeft ? 'Move to Right' : 'Move to Left',
+            icon: SwitchHorizontalIcon,
+            action: () => drawers.setEditorImmersiveDrawerSide(isLeft ? 'right' : 'left')
+        },
+        {
+            name: isPinned ? 'Unpin' : 'Pin',
+            icon: isPinned ? LockOpenIcon : LockClosedIcon,
+            action: () => drawers.toggleEditorImmersiveDrawerPin()
+        },
+        {
+            name: isFullscreen ? 'Exit Fullscreen' : 'Fullscreen',
+            icon: ArrowsExpandIcon,
+            action: () => drawers.toggleEditorImmersiveFullscreen()
         }
-    },
-    methods: {
-        ...mapActions(useUxDrawersStore, [
-            'setEditorImmersiveDrawerSide',
-            'toggleEditorImmersiveDrawerPin',
-            'toggleEditorImmersiveFullscreen'
-        ])
-    }
-}
+    ]
+})
 </script>
