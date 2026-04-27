@@ -1,7 +1,9 @@
 const { createClient } = require('@redis/client')
 
+/** @type {Record<string, Cache>} */
 const caches = {}
 
+/** @type {import('@redis/client').RedisClientType} */
 let client
 
 async function initCache (options, app) {
@@ -37,21 +39,38 @@ async function initCache (options, app) {
     }
 }
 
-function getCache (name, options) {
+function createCache (name, options = {}) {
+    const { ttl } = options
+    if (caches[name]) {
+        return caches[name]
+    }
+    caches[name] = new Cache(name, { client, ttl })
+    return caches[name]
+}
+
+function getCache (name) {
     if (!caches[name]) {
-        caches[name] = new Cache(name, { client, ...options })
+        // create with options if it doesn't exist
+        const options = arguments.length > 1 ? arguments[1] : {}
+        return createCache(name, options)
     }
     return caches[name]
 }
 
 async function closeCache () {
-    client.close()
+    try {
+        if (client?.isOpen) { await client.close() }
+    } catch (err) {
+        // already closed / never connected — nothing to do
+    }
 }
 
 class Cache {
-    constructor (name, options) {
+    constructor (name, { client, ttl }) {
         this.name = name
-        this.client = options.client
+        /** @type {import('@redis/client').RedisClientType} */
+        this.client = client
+        this.ttl = ttl // milliseconds
     }
 
     async get (key) {
@@ -65,6 +84,9 @@ class Cache {
 
     async set (key, value) {
         await this.client.hSet(this.name, key, JSON.stringify(value))
+        if (this.ttl > 0) {
+            await this.client.hPExpire(this.name, key, this.ttl)
+        }
         return value
     }
 
@@ -89,6 +111,7 @@ class Cache {
 
 module.exports = {
     initCache,
+    createCache,
     getCache,
     closeCache
 }
