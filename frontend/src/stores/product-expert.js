@@ -222,27 +222,18 @@ export const useProductExpertStore = defineStore('product-expert', {
                 onError: this._onMqttError
             })
         },
-        async handleInFlightRequest ({ topic, message, packet, transactionId, sessionId, chatTransactionId } = {}) {
-            // console.log('handleInFlightRequest', {
-            //     topic,
-            //     message,
-            //     packet,
-            //     transactionId,
-            //     sessionId,
-            //     chatTransactionId
-            // })
-
+        async handleInFlightRequest ({ topic, message, transactionId, sessionId, chatTransactionId } = {}) {
             const inFlightRequest = this._inFlightRequests.values().next().value
+
+            // dismiss inFlight requests that don't match the existing sessionId or the inFlight message transactionId
             if (sessionId !== this.sessionId || inFlightRequest?.transactionId !== chatTransactionId) return
 
             const servicesOrchestrator = getServicesOrchestrator()
-            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
-
             const assistantStore = useProductAssistantStore()
-
             const topicHelper = useMqttExpertTopicHelper()
-            const parsedTopic = topicHelper.parseTopic(topic)
 
+            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const parsedTopic = topicHelper.parseTopic(topic)
             const payload = JSON.parse(message.toString())
 
             this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
@@ -254,13 +245,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                 topicType: 'inflight',
                 topicAction: 'response',
                 inflightType: parsedTopic.inflightType,
-                sessionId: sessionId || this.sessionId // TODO: consider validating the incoming request session in userProps matches
+                sessionId: sessionId || this.sessionId
             })
 
-            if (parsedTopic.inflightType === 'expert:status-message') {
-                // this is just a status from the agent, we can ignore it for now, but we might want to display it in the UI later
-                // just ack the msg
-                // TODO: We should be updating the message in the chat interface with _busy doing xyz_ status updates instead of the made up text like "Reading Rag", "Calling MCP" etc.
+            switch (true) {
+            case parsedTopic.inflightType === 'expert:status-message':
                 await mqttService.publishMessage(this.mqttConnectionKey, {
                     qos: 2,
                     topic: responseTopic,
@@ -268,31 +257,32 @@ export const useProductExpertStore = defineStore('product-expert', {
                         ack: true
                     }),
                     correlationData: new TextEncoder().encode(transactionId),
-                    userProperties: { sessionId, transactionId: chatTransactionId } // pass through for integrity, not actually needed for correlation in this case since it's just an ack
+                    userProperties: { sessionId, transactionId: chatTransactionId }
                 })
-            } else if (parsedTopic.inflightType.startsWith('automation:')) {
-                // thi is an automation request, we want to execute it and return the result to the agent
-                const actionName = parsedTopic.inflightType.replace('automation:', '')
-                const postMessagePayload = {
-                    action: `automation/${actionName}`,
-                    params: payload.params || {},
-                    sessionId, // the chat session
-                    chatTransactionId, // the chat transaction, passed through for integrity
-                    transactionId // the incoming MQTT transaction (not the original chat transaction - we store that in userProperties)
-                }
-
+                break
+            case parsedTopic.inflightType.startsWith('automation:'):
                 try {
-                    const result = await assistantStore.invokeActionAwaitResponse(postMessagePayload)
+                    const result = await assistantStore.invokeActionAwaitResponse({
+                        action: `automation/${parsedTopic.inflightType.replace('automation:', '')}`,
+                        params: payload.params || {},
+                        sessionId,
+                        chatTransactionId,
+                        transactionId
+                    })
+
                     await mqttService.publishMessage(this.mqttConnectionKey, {
                         qos: 2,
                         topic: responseTopic,
                         payload: JSON.stringify(result),
                         correlationData: new TextEncoder().encode(transactionId),
-                        userProperties: { sessionId, transactionId: chatTransactionId } // pass through for integrity
+                        userProperties: { sessionId, transactionId: chatTransactionId }
                     })
                 } catch (e) {
                     this._onMqttError(e)
                 }
+                break
+            default:
+                // do nothing
             }
         },
         async handleMessageResponse (response) {
@@ -593,13 +583,14 @@ export const useProductExpertStore = defineStore('product-expert', {
             const sessionId = packet.properties?.userProperties?.sessionId // chat session
             const chatTransactionId = packet.properties?.userProperties?.transactionId // passed through for integrity
 
-            if (parsedTopic.isReply) {
+            switch (true) {
+            case parsedTopic.isReply:
                 // remove inFlight request because it is now resolved
                 this._inFlightRequests.delete(transactionId)
-
                 // handle the response
                 await this.handleMessageResponse(JSON.parse(message.toString()))
-            } else if (parsedTopic.isInflightRequest) {
+                break
+            case parsedTopic.isInflightRequest:
                 await this.handleInFlightRequest({
                     topic,
                     message,
@@ -608,6 +599,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                     sessionId,
                     chatTransactionId
                 })
+                break
+            default:
+                // do nothing
             }
         },
         _onMqttClose  () {
