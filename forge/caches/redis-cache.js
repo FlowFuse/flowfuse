@@ -59,7 +59,9 @@ function getCache (name) {
 
 async function closeCache () {
     try {
-        if (client?.isOpen) { await client.close() }
+        if (client?.isOpen) {
+            await client.close()
+        }
     } catch (err) {
         // already closed / never connected — nothing to do
     }

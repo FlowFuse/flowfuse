@@ -21,7 +21,9 @@ async function closeCache () {
 }
 
 function createCache (name, options = {}) {
-    if (caches[name]) return caches[name]
+    if (caches[name]) {
+        return caches[name]
+    }
     // lru-cache expects at least one of 'max', 'ttl', or 'maxSize' is required, to prevent unsafe unbounded storage.
     if (!options.ttl && !options.max && !options.maxSize) {
         options.max = 1000 // default to 1000 items if no limit is set. Will evict least recently used items when the limit is reached.
