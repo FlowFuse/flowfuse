@@ -289,7 +289,7 @@ export default {
             return this.device?.ownerType === 'application'
         },
         isUnassigned () {
-            return this.device?.ownerType === ''
+            return !this.device?.ownerType
         }
     },
     watch: {

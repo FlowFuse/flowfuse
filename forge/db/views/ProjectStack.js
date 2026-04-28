@@ -22,7 +22,7 @@ module.exports = function (app) {
             const filtered = {
                 id: result.hashid,
                 name: result.name,
-                label: result.label,
+                label: result.label || undefined,
                 active: result.active,
                 projectType: app.db.models.ProjectType.encodeHashid(result.ProjectTypeId) || undefined,
                 properties: result.properties || {},
@@ -58,7 +58,7 @@ module.exports = function (app) {
         return {
             id: stack.hashid,
             name: stack.name,
-            label: stack.label,
+            label: stack.label || undefined,
             properties: stack.properties || {},
             replacedBy: app.db.models.ProjectStack.encodeHashid(stack.replacedBy) || undefined,
             links: stack.links
