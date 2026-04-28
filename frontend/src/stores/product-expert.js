@@ -521,56 +521,20 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         hydrateMessages (messages) {
             if (!messages) return
+            const isAiMessage = (message) => message.answer && Array.isArray(message.answer)
+            const isUserMessage = (message) => Object.prototype.hasOwnProperty.call(message, 'query') && message.query
+
             messages.forEach((message) => {
-                // TODO break this into manageable chunks, do we actually still need it?
-                if (message.answer && Array.isArray(message.answer)) {
-                    // Extract MCP items (tools, resources, resource templates, prompts) from the answer array
-                    const mcpItems = message.answer.filter(item =>
-                        item.kind === 'mcp_tool' ||
-                        item.kind === 'mcp_resource' ||
-                        item.kind === 'mcp_resource_template' ||
-                        item.kind === 'mcp_prompt'
-                    )
-
-                    // Handle MCP calls if present - includes tools, resources, and prompts
-                    if (mcpItems.length > 0) {
-                        const toolCalls = mcpItems.map(item => ({
-                            id: item.toolId,
-                            name: item.toolName,
-                            title: item.toolTitle || item.toolName,
-                            kind: item.kind,
-                            args: item.input,
-                            output: item.output,
-                            durationMs: item.durationMs
-                        }))
-
-                        // Calculate total duration in seconds
-                        const totalDurationMs = mcpItems.reduce((sum, item) => sum + (item.durationMs || 0), 0)
-                        const totalDurationSec = (totalDurationMs / 1000).toFixed(2)
-
-                        this._agentStore.messages.push({
-                            _type: 'ai',
-                            kind: 'tool_calls',
-                            toolCalls,
-                            duration: totalDurationSec,
-                            content: `${toolCalls.length} tool call(s)`,
-                            _timestamp: Date.now(),
-                            _streamed: true,
-                            _uuid: uuidv4()
-                        })
-                    }
-
+                switch (true) {
+                case isAiMessage(message):
                     this.addAiMessage(message, false)
-                } else if (message.query) {
-                    // Transform user message
-                    this._agentStore.messages.push({
-                        _type: 'human',
-                        content: message.query,
-                        _timestamp: Date.now(),
-                        _uuid: uuidv4()
-                    })
+                    break
+                case isUserMessage(message):
+                    this.addUserMessage(message.query)
+                    break
+                default:
+                    // do nothing, unrecognized message
                 }
-                // Else: ignore messages that don't match either format
             })
         },
         async _onMqttMessage  (topic, message, packet) {
