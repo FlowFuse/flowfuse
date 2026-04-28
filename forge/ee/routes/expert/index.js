@@ -9,7 +9,7 @@
 const { default: axios } = require('axios')
 const { v4: uuidv4 } = require('uuid')
 
-const { filterAccessibleMCPServerFeatures } = require('../../services/expert.js')
+const { filterAccessibleMCPServerFeatures } = require('../../../services/expert.js')
 
 /**
  * @param {import('../../forge.js').ForgeApplication} app

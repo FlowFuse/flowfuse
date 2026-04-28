@@ -69,7 +69,7 @@ module.exports = async function (app) {
                 200: {
                     type: 'object',
                     properties: {
-                        targetSnapshot: { type: 'string' }
+                        targetSnapshot: { type: 'string', nullable: true }
                     }
                 },
                 '4xx': {
