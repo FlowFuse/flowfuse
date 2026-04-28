@@ -22,7 +22,7 @@ describe('Redis Cache', function () {
             hDel: sinon.stub().resolves(),
             hKeys: sinon.stub(),
             hGetAll: sinon.stub(),
-            hPExpire: sinon.stub().resolves()
+            hpExpire: sinon.stub().resolves()
         }
         createClientStub = sinon.stub(redisClient, 'createClient').returns(fakeClient)
         delete require.cache[require.resolve(REDIS_CACHE_PATH)]
