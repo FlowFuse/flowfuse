@@ -3,11 +3,11 @@ const { default: axios } = require('axios')
 const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 
-const { sha256 } = require('../../../../../forge/db/utils.js')
-const { Roles } = require('../../../../../forge/lib/roles.js')
+const { sha256 } = require('../../../../../../forge/db/utils.js')
+const { Roles } = require('../../../../../../forge/lib/roles.js')
 // eslint-disable-next-line no-unused-vars
-const TestModelFactory = require('../../../../lib/TestModelFactory')
-const setup = require('../setup')
+const TestModelFactory = require('../../../../../lib/TestModelFactory.js')
+const setup = require('../../../routes/setup.js')
 
 describe('Expert API', function () {
     async function setupApp (config = {}) {

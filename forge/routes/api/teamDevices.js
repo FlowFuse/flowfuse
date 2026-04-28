@@ -579,6 +579,8 @@ module.exports = async function (app) {
                     { info: infoBuilder.join(', ') })
 
                 // we're not sending the updated devices back, the FE will fetch the updated list of devices separately
+                // but run them through the view so the shape matches the declared schema.
+                devicesCollection.devices = devicesCollection.devices.map(d => app.db.views.Device.device(d))
                 reply.send(devicesCollection)
             } else {
                 throw new ControllerError('invalid_input', 'No valid fields to update', 400)

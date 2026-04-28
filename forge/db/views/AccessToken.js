@@ -9,7 +9,7 @@ module.exports = function (app) {
             application: { type: 'string', nullable: true },
             instance: { type: 'string', nullable: true },
             expiresAt: { type: 'string', nullable: true },
-            targetSnapshot: { type: 'string' }
+            targetSnapshot: { type: 'string', nullable: true }
         }
     })
     app.addSchema({
