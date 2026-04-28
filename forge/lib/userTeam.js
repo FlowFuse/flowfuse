@@ -1,4 +1,5 @@
 const crypto = require('crypto')
+
 /**
  * Completes user registration
  *   - creates user team (if `user:team:auto-create` is enabled
