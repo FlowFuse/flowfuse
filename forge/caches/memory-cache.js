@@ -26,7 +26,7 @@ function createCache (name, options = {}) {
     }
     // lru-cache expects at least one of 'max', 'ttl', or 'maxSize' is required, to prevent unsafe unbounded storage.
     if (!options.ttl && !options.max && !options.maxSize) {
-        options.max = 1000 // default to 1000 items if no limit is set. Will evict least recently used items when the limit is reached.
+        options.max = 10000 // default to 10000 items if no limit is set. Will evict least recently used items when the limit is reached.
     }
     caches[name] = new Cache(name, options)
     return caches[name]
