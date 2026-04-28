@@ -12,7 +12,7 @@ module.exports = function (app) {
         properties: {
             id: { type: 'string' },
             createdAt: { type: 'string' },
-            username: { type: 'string' },
+            username: { type: 'string', nullable: true },
             event: { type: 'string' },
             scope: { type: 'object', additionalProperties: true },
             trigger: { type: 'object', additionalProperties: true },

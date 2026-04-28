@@ -204,7 +204,7 @@ module.exports = async function (app) {
             await app.auditLog.Team.application.pipeline.updated(request.session.User, null, team, request.application, pipeline, updates)
         }
 
-        reply.send(pipeline)
+        reply.send(await app.db.views.Pipeline.pipeline(pipeline))
     })
 
     /**
