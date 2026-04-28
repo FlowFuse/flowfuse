@@ -171,7 +171,7 @@ export default {
             return this.device?.ownerType === 'application'
         },
         isUnassigned () {
-            return this.device?.ownerType === ''
+            return !this.device?.ownerType
         },
         canCreateSnapshot () {
             if (!this.developerMode || this.busy) {

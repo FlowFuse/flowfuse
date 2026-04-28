@@ -3,33 +3,35 @@
         <TemplateSettingsSecurity v-model="editable" :editTemplate="false" :instance="project" :team="team" />
         <div v-if="!!settings.features.httpBearerTokens && editable.settings.httpNodeAuth_type === 'flowforge-user'">
             <FormHeading>HTTP Node Bearer Tokens</FormHeading>
-            <div v-if="projectLauncherCompatible">
-                <ff-data-table
-                    data-el="tokens-table"
-                    :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
-                    :show-load-more="false"
-                >
-                    <template #actions>
-                        <ff-button data-action="new-token" @click="newToken()">
-                            <template #icon-left>
-                                <PlusSmIcon />
-                            </template>
-                            Add Token
-                        </ff-button>
-                    </template>
-                    <template #context-menu="{row}">
-                        <ff-kebab-item data-action="edit-token" label="Edit" @click="editToken(row)" />
-                        <ff-kebab-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
-                    </template>
-                    <template v-if="tokens.length === 0" #table>
-                        <div class="ff-no-data ff-no-data-large">
-                            You don't have any tokens yet
-                        </div>
-                    </template>
-                </ff-data-table>
-            </div>
-            <div v-else>
-                Upgrade your Node-RED Version to enable this feature
+            <div v-if="hasTeamLevelTokenPermission">
+                <div v-if="projectLauncherCompatible">
+                    <ff-data-table
+                        data-el="tokens-table"
+                        :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
+                        :show-load-more="false"
+                    >
+                        <template #actions>
+                            <ff-button data-action="new-token" @click="newToken()">
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Add Token
+                            </ff-button>
+                        </template>
+                        <template #context-menu="{row}">
+                            <ff-kebab-item data-action="edit-token" label="Edit" @click="editToken(row)" />
+                            <ff-kebab-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
+                        </template>
+                        <template v-if="tokens.length === 0" #table>
+                            <div class="ff-no-data ff-no-data-large">
+                                You don't have any tokens yet
+                            </div>
+                        </template>
+                    </ff-data-table>
+                </div>
+                <div v-else>
+                    Upgrade your Node-RED Version to enable this feature
+                </div>
             </div>
         </div>
     </form>
@@ -122,6 +124,11 @@ export default {
     computed: {
         ...mapState(useAccountSettingsStore, ['featuresCheck', 'settings']),
         ...mapState(useContextStore, ['team']),
+        hasTeamLevelTokenPermission () {
+            // The server checks project:edit at the team level (not application level),
+            // so we must match that here to avoid silent 403s
+            return this.hasPermission('project:edit')
+        },
         projectLauncherCompatible () {
             const launcherVersion = this.project?.meta?.versions?.launcher
             if (!launcherVersion) {
@@ -172,7 +179,7 @@ export default {
         },
         'editable.settings.httpNodeAuth_type': {
             handler (v) {
-                if (v === 'flowforge-user' && this.hasPermission('project:edit', { application: this.project.application })) {
+                if (v === 'flowforge-user' && this.hasTeamLevelTokenPermission) {
                     this.getTokens()
                 }
             }
@@ -181,7 +188,7 @@ export default {
     mounted () {
         if (!this.checkAccess()) return
         this.getSettings()
-        if (this.featuresCheck.isHTTPBearerTokensFeatureEnabled) {
+        if (this.featuresCheck.isHTTPBearerTokensFeatureEnabled && this.hasTeamLevelTokenPermission) {
             this.getTokens()
         }
     },
@@ -263,13 +270,8 @@ export default {
             }
         },
         async getTokens () {
-            try {
-                const response = await InstanceApi.getHTTPTokens(this.project.id)
-                this.tokens = response.tokens
-            } catch (_) {
-                // 403 can occur when the user is an application-level owner but only a team-level
-                // viewer/member — the server checks team membership for this endpoint
-            }
+            const response = await InstanceApi.getHTTPTokens(this.project.id)
+            this.tokens = response.tokens
         },
         newToken () {
             this.$refs.tokenDialog.showCreate()
