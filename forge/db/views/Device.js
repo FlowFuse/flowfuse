@@ -4,7 +4,7 @@ module.exports = function (app) {
         type: 'object',
         properties: {
             id: { type: 'string' },
-            ownerType: { type: 'string' },
+            ownerType: { nullable: true, type: 'string' },
             name: { type: 'string' },
             type: { type: 'string' },
             createdAt: { type: 'string' },
@@ -21,7 +21,7 @@ module.exports = function (app) {
             },
             status: { type: 'string' },
             isDeploying: { type: 'boolean' },
-            agentVersion: { type: 'string' },
+            agentVersion: { nullable: true, type: 'string' },
             mode: { type: 'string' },
             links: { $ref: 'LinksMeta' },
             team: { $ref: 'TeamSummary' },
@@ -98,7 +98,7 @@ module.exports = function (app) {
         type: 'object',
         properties: {
             id: { type: 'string' },
-            ownerType: { type: 'string' },
+            ownerType: { nullable: true, type: 'string' },
             name: { type: 'string' },
             type: { type: 'string' },
             lastSeenAt: { nullable: true, type: 'string' },

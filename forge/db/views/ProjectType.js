@@ -23,7 +23,7 @@ module.exports = function (app) {
             id: { type: 'string' },
             name: { type: 'string' },
             active: { type: 'boolean' },
-            description: { type: 'string' },
+            description: { type: 'string', nullable: true },
             order: { type: 'number' },
             properties: { type: 'object', additionalProperties: true },
             createdAt: { type: 'string' },
