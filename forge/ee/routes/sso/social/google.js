@@ -1,9 +1,16 @@
 const fp = require('fastify-plugin')
 const { OAuth2Client } = require('google-auth-library')
 
+const USED_GOOGLE_JWT = 'platform-google-sso-tokens'
+
 const { generateUsernameFromEmail, generatePassword, completeSSOSignIn, completeUserSignup } = require('../../../../lib/userTeam')
 
 module.exports = fp(async function (app, opts) {
+    app.caches.createCache(USED_GOOGLE_JWT, {
+        ttl: (1000 * 60 * 50) // 1hr
+    })
+    const googleJWTCache = app.caches.getCache(USED_GOOGLE_JWT)
+
     app.post('/ee/sso/login/callback/google', {
         config: { allowAnonymous: true }
     }, async (request, reply) => {
@@ -21,6 +28,10 @@ module.exports = fp(async function (app, opts) {
             reply.code(500).send({ code: 'invalid_request', error: 'Google SSO not configured' })
             return
         }
+        if (await googleJWTCache.get(request.query.code)) {
+            reply.code(403).send({ code: 'not_allowed', error: 'Code already used' })
+            return
+        }
         // request.user is the JWT provided by the Google SSO plugin
         // We need to decode and verify it.
         const googleOAuth2Client = new OAuth2Client(clientId)
@@ -36,6 +47,7 @@ module.exports = fp(async function (app, opts) {
                 url: 'https://www.googleapis.com/oauth2/v3/userinfo'
             })
             const googleUserInfo = userinfo.data
+            await googleJWTCache.set(request.query.code, {})
             if (googleUserInfo.hd) {
                 // This is a Google Workspace account - check if there is an SSO provider configured for this domain
                 const providerId = await app.sso.getProviderForEmail(googleUserInfo.email)
