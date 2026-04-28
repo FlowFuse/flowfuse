@@ -59,6 +59,7 @@ describe('FlowFuse platform admin users', () => {
         cy.intercept('GET', '/api/*/projects/*').as('getInstance')
         cy.intercept('GET', '/api/*/applications/*').as('getApplication')
         cy.intercept('GET', '/api/*/applications/*/instances').as('getApplicationInstances')
+        cy.intercept('GET', '/api/*/teams/*/applications*').as('getTeamApplications')
 
         cy.visit('/admin/overview')
 
@@ -69,6 +70,7 @@ describe('FlowFuse platform admin users', () => {
         cy.get('[data-el="teams-table"]').contains('BTeam').click()
 
         cy.get('[data-nav="team-applications"]').click()
+        cy.wait('@getTeamApplications')
 
         cy.get('[data-el="banner-team-as-admin"]').should('exist')
 

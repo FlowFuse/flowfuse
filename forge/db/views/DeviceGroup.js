@@ -28,7 +28,7 @@ module.exports = function (app) {
             id: group.hashid,
             name: group.name,
             description: group.description,
-            deviceCount: group.deviceCount || 0,
+            deviceCount: parseInt(group.deviceCount) || 0,
             targetSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(group.targetSnapshot)
         }
 
@@ -50,7 +50,7 @@ module.exports = function (app) {
             runningCount: { type: 'number' },
             isDeploying: { type: 'boolean' },
             hasTargetSnapshot: { type: 'boolean' },
-            targetSnapshotId: { type: 'string' }
+            targetSnapshotId: { type: 'string', nullable: true }
         }
     })
     function deviceGroupPipelineSummary (group) {
@@ -97,7 +97,10 @@ module.exports = function (app) {
             updatedAt: { type: 'string' },
             application: { $ref: 'ApplicationSummary' },
             devices: { type: 'array', items: { $ref: 'Device' } },
-            targetSnapshot: { $ref: 'SnapshotSummary' }
+            targetSnapshot: {
+                nullable: true,
+                allOf: [{ $ref: 'SnapshotSummary' }]
+            }
         },
         additionalProperties: true
     })
@@ -121,7 +124,7 @@ module.exports = function (app) {
                 name: item.name,
                 description: item.description,
                 application: item.Application ? app.db.views.Application.applicationSummary(item.Application) : null,
-                deviceCount: item.deviceCount || 0,
+                deviceCount: parseInt(item.deviceCount) || 0,
                 devices: item.Devices ? item.Devices.map(app.db.views.Device.device) : [],
                 settings: item.settings,
                 targetSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(item.targetSnapshot)
