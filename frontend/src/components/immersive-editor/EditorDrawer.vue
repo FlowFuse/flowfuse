@@ -2,7 +2,7 @@
     <section
         class="tabs-wrapper drawer"
         :class="{
-            open: editorImmersiveDrawer.open,
+            open: editorImmersiveDrawer.state,
             pinned: editorImmersiveDrawer.pinned,
             resizing: isEditorResizing,
             'side-left': editorImmersiveDrawer.side === 'left',
@@ -45,9 +45,9 @@
             <div v-if="!hasStackedView" class="header">
                 <div class="logo">
                     <router-link
-                        v-if="props.homeRoute"
+                        v-if="homeRoute"
                         title="Back to overview"
-                        :to="props.homeRoute"
+                        :to="homeRoute"
                     >
                         <HomeIcon class="ff-btn--icon" style="width: 18px; height: 18px;" />
                     </router-link>
@@ -109,6 +109,7 @@ import ResizeBar from '../ResizeBar.vue'
 
 import EditorDrawerSettings from './EditorDrawerSettings.vue'
 
+import { useContextStore } from '@/stores/context.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 const DRAWER_MIN_WIDTH = 310
@@ -119,10 +120,6 @@ const props = defineProps({
     navigation: {
         type: Array,
         default: () => []
-    },
-    homeRoute: {
-        type: Object,
-        default: null
     },
     isExpertRoute: {
         type: Boolean,
@@ -137,7 +134,9 @@ const props = defineProps({
 const emit = defineEmits(['resizing'])
 
 const drawersStore = useUxDrawersStore()
+const contextStore = useContextStore()
 const { editorImmersiveDrawer } = storeToRefs(drawersStore)
+const { editorEntityType } = storeToRefs(contextStore)
 const route = useRoute()
 
 const resizing = ref(false)
@@ -148,7 +147,7 @@ const windowWidth = ref(window.innerWidth)
 const isEditorResizing = computed(() => resizing.value)
 
 const drawerStyle = computed(() => {
-    if (!editorImmersiveDrawer.value.open) return {}
+    if (!editorImmersiveDrawer.value.state) return {}
     const width = Math.min(
         editorImmersiveDrawer.value.width,
         windowWidth.value * DRAWER_MAX_WIDTH_RATIO,
@@ -163,6 +162,14 @@ const currentStackView = computed(() => {
     return stack[stack.length - 1] || null
 })
 
+const homeRoute = computed(() => {
+    if (!props.entity?.id) return null
+    return {
+        name: editorEntityType.value === 'device' ? 'device-overview' : 'instance-overview',
+        params: { id: props.entity.id }
+    }
+})
+
 function notifyDrawerState () {
     if (!props.entity) return
 
@@ -174,7 +181,7 @@ function notifyDrawerState () {
     serviceFactory.$serviceInstances.messaging.sendMessage({
         message: {
             type: 'drawer-state',
-            payload: { open: editorImmersiveDrawer.value.open }
+            payload: { open: editorImmersiveDrawer.value.state }
         },
         target: iframe,
         targetOrigin
@@ -219,7 +226,7 @@ function onWindowResize () {
     windowWidth.value = window.innerWidth
 }
 
-watch(() => editorImmersiveDrawer.value.open, () => {
+watch(() => editorImmersiveDrawer.value.state, () => {
     nextTick(notifyDrawerState)
 })
 

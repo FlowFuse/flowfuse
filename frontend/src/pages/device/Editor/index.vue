@@ -2,7 +2,6 @@
     <div class="ff--immersive-editor-wrapper remote-instance" :class="{resizing: isEditorResizing}">
         <EditorDrawer
             :navigation="navigation"
-            :home-route="homeRoute"
             :is-expert-route="isExpertRoute"
             :entity="device"
             @resizing="v => isEditorResizing = v"
@@ -32,7 +31,7 @@
             />
 
             <DrawerTrigger
-                :is-hidden="editorImmersiveDrawer.open"
+                :is-hidden="editorImmersiveDrawer.state"
                 @toggle="toggleEditorImmersiveDrawer"
             />
         </div>
@@ -174,10 +173,6 @@ export default {
                     hidden: !(this.isDevModeAvailable && this.device.mode === 'developer')
                 }
             ]
-        },
-        homeRoute () {
-            if (!this.device) return null
-            return { name: 'device-overview', params: { id: this.device.id } }
         },
         permissionContext () {
             if (this.device?.ownerType === 'application' || this.device?.ownerType === 'instance') {

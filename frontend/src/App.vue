@@ -32,11 +32,6 @@
                     <router-view />
                 </ff-layout-docs>
             </template>
-            <template v-else-if="pageLayout === 'plain'">
-                <ff-layout-plain>
-                    <router-view />
-                </ff-layout-plain>
-            </template>
             <template v-else-if="pageLayout === 'immersive'">
                 <ff-layout-immersive>
                     <router-view />
@@ -76,7 +71,6 @@ import EducationModal from './components/dialogs/EducationModal.vue'
 import FFLayoutBox from './layouts/Box.vue'
 import FFLayoutDocs from './layouts/Docs.vue'
 import FFLayoutImmersiveEditor from './layouts/ImmersiveEditor.vue'
-import FFLayoutPlain from './layouts/Plain.vue'
 import FFLayoutPlatform from './layouts/Platform.vue'
 import Login from './pages/Login.vue'
 import PasswordExpired from './pages/PasswordExpired.vue'
@@ -104,7 +98,6 @@ export default {
         'ff-layout-platform': FFLayoutPlatform,
         'ff-layout-box': FFLayoutBox,
         'ff-layout-docs': FFLayoutDocs,
-        'ff-layout-plain': FFLayoutPlain,
         'ff-layout-immersive': FFLayoutImmersiveEditor
     },
     computed: {
@@ -141,7 +134,7 @@ export default {
         },
         pageLayout () {
             const layout = this.$route.meta?.layout
-            return ['platform', 'modal', 'plain', 'docs', 'immersive'].includes(layout) ? layout : 'platform'
+            return ['platform', 'modal', 'docs', 'immersive'].includes(layout) ? layout : 'platform'
         }
     },
     watch: {

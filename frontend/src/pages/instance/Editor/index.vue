@@ -3,7 +3,6 @@
         <EditorDrawer
             ref="editorDrawer"
             :navigation="navigation"
-            :home-route="homeRoute"
             :is-expert-route="isExpertRoute"
             :entity="instance"
             @resizing="v => isEditorResizing = v"
@@ -35,7 +34,7 @@
             />
 
             <DrawerTrigger
-                :is-hidden="editorImmersiveDrawer.open"
+                :is-hidden="editorImmersiveDrawer.state"
                 @toggle="toggleEditorImmersiveDrawer"
             />
         </div>
@@ -162,9 +161,6 @@ export default {
         },
         isExpertRoute () {
             return this.$route.name === 'instance-editor-expert'
-        },
-        homeRoute () {
-            return { name: 'instance-overview', params: { id: this.instance.id } }
         }
     },
     watch: {

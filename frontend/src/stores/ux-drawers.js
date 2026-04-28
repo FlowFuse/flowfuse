@@ -17,7 +17,7 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
     state: () => ({
         editorImmersiveDrawer: {
             active: false,
-            open: true,
+            state: true,
             side: 'left',
             width: 550,
             pinned: true,
@@ -68,8 +68,8 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
         }) {
             // In immersive editor context, push onto the editor drawer view stack
             if (this.editorImmersiveDrawer.active) {
-                if (!this.editorImmersiveDrawer.open) {
-                    this.editorImmersiveDrawer.open = true
+                if (!this.editorImmersiveDrawer.state) {
+                    this.editorImmersiveDrawer.state = true
                 }
                 this.pushEditorImmersiveView({
                     component: markRaw(component),
@@ -226,15 +226,15 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
 
         // Editor Immersive Drawer actions
         toggleEditorImmersiveDrawer () {
-            this.editorImmersiveDrawer.open = !this.editorImmersiveDrawer.open
+            this.editorImmersiveDrawer.state = !this.editorImmersiveDrawer.state
         },
 
         openEditorImmersiveDrawer () {
-            this.editorImmersiveDrawer.open = true
+            this.editorImmersiveDrawer.state = true
         },
 
         closeEditorImmersiveDrawer () {
-            this.editorImmersiveDrawer.open = false
+            this.editorImmersiveDrawer.state = false
         },
 
         setEditorImmersiveDrawerSide (side) {
@@ -288,7 +288,7 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
     persist: {
         pick: [
             'rightDrawer.expertState',
-            'editorImmersiveDrawer.open',
+            'editorImmersiveDrawer.state',
             'editorImmersiveDrawer.side',
             'editorImmersiveDrawer.width',
             'editorImmersiveDrawer.pinned',

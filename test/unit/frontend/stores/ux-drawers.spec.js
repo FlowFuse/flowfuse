@@ -421,7 +421,7 @@ describe('ux-drawers store', () => {
             const store = useUxDrawersStore()
             expect(store.editorImmersiveDrawer).toMatchObject({
                 active: false,
-                open: true,
+                state: true,
                 side: 'left',
                 width: 550,
                 pinned: true,
@@ -438,24 +438,24 @@ describe('ux-drawers store', () => {
     describe('editorImmersiveDrawer actions', () => {
         it('toggleEditorImmersiveDrawer flips open state', () => {
             const store = useUxDrawersStore()
-            expect(store.editorImmersiveDrawer.open).toBe(true)
+            expect(store.editorImmersiveDrawer.state).toBe(true)
             store.toggleEditorImmersiveDrawer()
-            expect(store.editorImmersiveDrawer.open).toBe(false)
+            expect(store.editorImmersiveDrawer.state).toBe(false)
             store.toggleEditorImmersiveDrawer()
-            expect(store.editorImmersiveDrawer.open).toBe(true)
+            expect(store.editorImmersiveDrawer.state).toBe(true)
         })
 
         it('openEditorImmersiveDrawer sets open to true', () => {
             const store = useUxDrawersStore()
             store.openEditorImmersiveDrawer()
-            expect(store.editorImmersiveDrawer.open).toBe(true)
+            expect(store.editorImmersiveDrawer.state).toBe(true)
         })
 
         it('closeEditorImmersiveDrawer sets open to false', () => {
             const store = useUxDrawersStore()
-            store.editorImmersiveDrawer.open = true
+            store.editorImmersiveDrawer.state = true
             store.closeEditorImmersiveDrawer()
-            expect(store.editorImmersiveDrawer.open).toBe(false)
+            expect(store.editorImmersiveDrawer.state).toBe(false)
         })
 
         it('setEditorImmersiveDrawerSide changes side', () => {
@@ -552,7 +552,7 @@ describe('ux-drawers store', () => {
         it('pushes to view stack instead of opening RightDrawer when active', () => {
             const store = useUxDrawersStore()
             store.setEditorImmersiveActive(true)
-            store.editorImmersiveDrawer.open = true
+            store.editorImmersiveDrawer.state = true
 
             store.openRightDrawer({ component: FakeComponent, on: { close: vi.fn() } })
 
@@ -564,18 +564,18 @@ describe('ux-drawers store', () => {
         it('opens the immersive drawer if it is closed', () => {
             const store = useUxDrawersStore()
             store.setEditorImmersiveActive(true)
-            store.editorImmersiveDrawer.open = false
+            store.editorImmersiveDrawer.state = false
 
             store.openRightDrawer({ component: FakeComponent })
 
-            expect(store.editorImmersiveDrawer.open).toBe(true)
+            expect(store.editorImmersiveDrawer.state).toBe(true)
             expect(store.editorImmersiveDrawer.viewStack).toHaveLength(1)
         })
 
         it('uses header.title for the view stack title', () => {
             const store = useUxDrawersStore()
             store.setEditorImmersiveActive(true)
-            store.editorImmersiveDrawer.open = true
+            store.editorImmersiveDrawer.state = true
 
             store.openRightDrawer({
                 component: FakeComponent,
@@ -588,7 +588,7 @@ describe('ux-drawers store', () => {
         it('sets empty title when no header provided — stacked header will not render', () => {
             const store = useUxDrawersStore()
             store.setEditorImmersiveActive(true)
-            store.editorImmersiveDrawer.open = true
+            store.editorImmersiveDrawer.state = true
 
             store.openRightDrawer({ component: FakeComponent })
 
@@ -598,7 +598,7 @@ describe('ux-drawers store', () => {
         it('maps on to events in the view stack entry', () => {
             const store = useUxDrawersStore()
             store.setEditorImmersiveActive(true)
-            store.editorImmersiveDrawer.open = true
+            store.editorImmersiveDrawer.state = true
 
             const handler = vi.fn()
             store.openRightDrawer({ component: FakeComponent, on: { deleted: handler } })
