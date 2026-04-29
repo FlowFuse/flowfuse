@@ -278,6 +278,7 @@ export default {
             handler (device) {
                 if (device && this.isEditorAvailable) {
                     this.bindDevice(device, true)
+                    this.setContextualDevice(device)
                     this.handlePolling()
                 } else {
                     this.$router.push({ name: 'device-overview' })
@@ -319,7 +320,10 @@ export default {
         this.stopPolling()
     },
     methods: {
-        ...mapActions(useContextStore, ['setIsImmersive']),
+        ...mapActions(useContextStore, {
+            setIsImmersive: 'setIsImmersive',
+            setContextualDevice: 'setDevice'
+        }),
         loadDevice: async function () {
             let tries = 0
             let device = await this.fetchDevice(this.$route.params.id, false)
