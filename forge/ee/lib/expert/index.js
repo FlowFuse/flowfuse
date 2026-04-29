@@ -1,6 +1,7 @@
 const fp = require('fastify-plugin')
-const { LRUCache } = require('lru-cache')
 // decorate the app with the expert helpers and cache utilities
+
+const TOKEN_CACHE_NAME = 'ExpertMCPAccessTokenCache'
 
 module.exports = fp(async function (app, _opts) {
     // Get the assistant service configuration
@@ -11,29 +12,40 @@ module.exports = fp(async function (app, _opts) {
 
     const TOKEN_TTL = app.config.expert?.tokenCache?.ttl || 5 * 60 * 1000 // Default 5 minutes
     const TOKEN_REMAINING_LIMIT = 15000 // token life edge window (avoid using tokens about to expire)
-    const mcpAccessTokenCache = new LRUCache({
-        name: 'ExpertMCPAccessTokenCache', // for testing purposes
+
+    app.caches.createCache(TOKEN_CACHE_NAME, {
         max: app.config.expert?.tokenCache?.max || 1000,
         ttl: TOKEN_TTL,
         updateAgeOnGet: false // do not update the age on get, we want it to expire after the original ttl
     })
 
-    function clearMcpAccessTokenCache (cacheKey) {
+    function tokenCache () {
+        return app.caches.getCache(TOKEN_CACHE_NAME)
+    }
+
+    async function clearMcpAccessTokenCache (cacheKey) {
+        const cache = tokenCache()
         if (cacheKey) {
-            mcpAccessTokenCache.delete(cacheKey)
+            await cache.del(cacheKey)
         } else {
-            mcpAccessTokenCache.clear()
+            for (const key of await cache.keys()) {
+                await cache.del(key)
+            }
         }
     }
 
-    async function getOrCreateMcpAccessToken (instance, instanceType, instanceId, teamHttpSecurityFeatureEnabled) {
-        let mcpAccessToken
-        if (mcpAccessTokenCache.has(instanceId)) {
-            const remainingTTL = mcpAccessTokenCache.getRemainingTTL(instanceId)
-            if (remainingTTL > TOKEN_REMAINING_LIMIT) { // only use cached token if it has more than 5 second remaining
-                mcpAccessToken = mcpAccessTokenCache.get(instanceId)
-            }
+    // The cache abstraction has no getRemainingTTL, so we store expiresAt
+    // alongside the token and check it ourselves to honour the edge window.
+    async function readCachedMcpAccessToken (instanceId) {
+        const entry = await tokenCache().get(instanceId)
+        if (entry && entry.expiresAt - Date.now() > TOKEN_REMAINING_LIMIT) {
+            return entry.value
         }
+        return null
+    }
+
+    async function getOrCreateMcpAccessToken (instance, instanceType, instanceId, teamHttpSecurityFeatureEnabled) {
+        let mcpAccessToken = await readCachedMcpAccessToken(instanceId)
 
         if (!mcpAccessToken) {
             const instanceSettings = await instance.getSetting('settings')
@@ -64,19 +76,16 @@ module.exports = fp(async function (app, _opts) {
                     token: null
                 }
             }
-            mcpAccessTokenCache.set(instanceId, mcpAccessToken)
+            await tokenCache().set(instanceId, {
+                value: mcpAccessToken,
+                expiresAt: Date.now() + TOKEN_TTL
+            })
         }
         return mcpAccessToken
     }
 
-    function getCachedMcpAccessToken (instanceId) {
-        if (mcpAccessTokenCache.has(instanceId)) {
-            const remainingTTL = mcpAccessTokenCache.getRemainingTTL(instanceId)
-            if (remainingTTL > 15000) { // only use cached token if it is not about to expire
-                return mcpAccessTokenCache.get(instanceId)
-            }
-        }
-        return null
+    async function getCachedMcpAccessToken (instanceId) {
+        return readCachedMcpAccessToken(instanceId)
     }
 
     app.decorate('expert', {
