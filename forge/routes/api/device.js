@@ -762,7 +762,8 @@ module.exports = async function (app) {
             if (request.body.security?.httpNodeAuth) {
                 // If type = basic and pass not present, merge in existing value
                 if (request.body.security.httpNodeAuth.type === 'basic') {
-                    if (!request.body.security.httpNodeAuth.pass) {
+                    if (typeof request.body.security.httpNodeAuth.pass !== 'string' || !request.body.security.httpNodeAuth.pass) {
+                        // No new password provided (or non-string round-tripped from existing settings) — preserve current value
                         request.body.security.httpNodeAuth.pass = currentSettings.security?.httpNodeAuth?.pass
                     } else {
                         // Store the hashed password
@@ -776,7 +777,8 @@ module.exports = async function (app) {
             if (request.body.security?.localAuth) {
                 // If enabled and pass not present, merge in existing value
                 if (request.body.security.localAuth.enabled === true) {
-                    if (!request.body.security.localAuth.pass) {
+                    if (typeof request.body.security.localAuth.pass !== 'string' || !request.body.security.localAuth.pass) {
+                        // No new password provided (or non-string round-tripped from existing settings) — preserve current value
                         request.body.security.localAuth.pass = currentSettings.security?.localAuth?.pass
                     } else {
                         // Store the hashed password
