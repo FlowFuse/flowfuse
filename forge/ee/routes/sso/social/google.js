@@ -7,7 +7,7 @@ const { generateUsernameFromEmail, generatePassword, completeSSOSignIn, complete
 
 module.exports = fp(async function (app, opts) {
     app.caches.createCache(USED_GOOGLE_JWT, {
-        ttl: (1000 * 60 * 50) // 1hr
+        ttl: (1000 * 60 * 60) // 1hr
     })
     const googleJWTCache = app.caches.getCache(USED_GOOGLE_JWT)
 
