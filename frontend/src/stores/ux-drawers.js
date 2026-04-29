@@ -18,7 +18,7 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
         editorImmersiveDrawer: {
             active: false,
             state: true,
-            side: 'left',
+            side: 'right',
             width: 550,
             pinned: true,
             fullscreen: false,
