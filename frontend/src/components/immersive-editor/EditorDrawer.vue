@@ -17,7 +17,7 @@
         />
 
         <div class="drawer-content">
-            <!-- Stacked view header (back button + title) -->
+            <!-- Stacked view header (back button + title + optional actions) -->
             <div v-if="hasStackedView && currentStackView.title" class="header header--stacked">
                 <button
                     class="drawer-header-btn"
@@ -29,6 +29,21 @@
                 </button>
                 <span class="editor-drawer-stack-title">{{ currentStackView.title }}</span>
                 <div class="side-actions">
+                    <ff-button
+                        v-for="(action, $key) in stackedActions"
+                        :key="action.label + $key"
+                        :kind="action.kind ?? 'secondary'"
+                        :disabled="typeof action.disabled === 'function' ? action.disabled() : action.disabled"
+                        :has-left-icon="!!action.iconLeft"
+                        v-bind="action.bind"
+                        :title="typeof action.tooltip === 'function' ? action.tooltip() : action.tooltip"
+                        @click="action.handler"
+                    >
+                        <template v-if="!!action.iconLeft" #icon-left>
+                            <component :is="action.iconLeft" />
+                        </template>
+                        {{ action.label }}
+                    </ff-button>
                     <button
                         title="Close drawer"
                         type="button"
@@ -160,6 +175,14 @@ const hasStackedView = computed(() => editorImmersiveDrawer.value.viewStack.leng
 const currentStackView = computed(() => {
     const stack = editorImmersiveDrawer.value.viewStack
     return stack[stack.length - 1] || null
+})
+const stackedActions = computed(() => {
+    const view = currentStackView.value
+    if (!view?.actions) return []
+    return view.actions.filter(action => {
+        if (typeof action.hidden === 'function') return !action.hidden()
+        return !action.hidden
+    })
 })
 
 const homeRoute = computed(() => {
@@ -298,7 +321,7 @@ defineExpose({ notifyDrawerState })
         }
     }
 
-    // Stacked view header
+    .header,
     .header--stacked {
         min-height: 46px;
     }

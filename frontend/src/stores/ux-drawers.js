@@ -174,6 +174,14 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
          * @param {DrawerAction[]} [header.actions] - An array of actions to set for the right drawer header.
          */
         setRightDrawerHeader (header) {
+            // In immersive editor context, route into the top of the view stack so
+            // the EditorDrawer's stacked header renders title + actions in place.
+            if (this.editorImmersiveDrawer.active && this.editorImmersiveDrawer.viewStack.length > 0) {
+                const top = this.editorImmersiveDrawer.viewStack[this.editorImmersiveDrawer.viewStack.length - 1]
+                if (header.title !== undefined) top.title = header.title
+                if (header.actions !== undefined) top.actions = header.actions
+                return
+            }
             if (header.title) {
                 this.setRightDrawerTitle(header.title)
             }
@@ -257,8 +265,8 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
             this.editorImmersiveDrawer.active = active
         },
 
-        pushEditorImmersiveView ({ component, props = {}, events = {}, title = '' }) {
-            this.editorImmersiveDrawer.viewStack.push({ component, props, events, title })
+        pushEditorImmersiveView ({ component, props = {}, events = {}, title = '', actions = [] }) {
+            this.editorImmersiveDrawer.viewStack.push({ component, props, events, title, actions })
         },
 
         popEditorImmersiveView () {

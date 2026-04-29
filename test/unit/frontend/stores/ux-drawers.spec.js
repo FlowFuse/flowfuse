@@ -290,6 +290,26 @@ describe('ux-drawers store', () => {
             expect(store.rightDrawer.header.actions).toStrictEqual(actions)
             expect(store.rightDrawer.header.title).toBeUndefined()
         })
+
+        it('routes to the top of the immersive view stack when active', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveActive(true)
+            store.pushEditorImmersiveView({ component: FakeComponent, title: 'Initial' })
+            const actions = [{ label: 'Restore', handler: vi.fn() }]
+            store.setRightDrawerHeader({ title: 'Snapshot', actions })
+
+            const top = store.editorImmersiveDrawer.viewStack[0]
+            expect(top.title).toBe('Snapshot')
+            expect(top.actions).toStrictEqual(actions)
+            expect(store.rightDrawer.header).toBeNull()
+        })
+
+        it('falls through to rightDrawer when immersive is active but stack is empty', () => {
+            const store = useUxDrawersStore()
+            store.setEditorImmersiveActive(true)
+            store.setRightDrawerHeader({ title: 'Plain' })
+            expect(store.rightDrawer.header.title).toBe('Plain')
+        })
     })
 
     // -------------------------------------------------------------------------
@@ -505,7 +525,8 @@ describe('ux-drawers store', () => {
                 component: FakeComponent,
                 props: {},
                 events: {},
-                title: ''
+                title: '',
+                actions: []
             })
         })
 
