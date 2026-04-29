@@ -15,6 +15,13 @@ const latestProjectState = 'project-latestProjectState'
 const inflightDeploys = 'project-inflightDeploys'
 
 module.exports = {
+
+    init (app) {
+        app.caches.createCache(inflightProjectState)
+        app.caches.createCache(latestProjectState)
+        app.caches.createCache(inflightDeploys)
+    },
+
     /**
      * Get the in-flight state of a project
      * @param {*} app

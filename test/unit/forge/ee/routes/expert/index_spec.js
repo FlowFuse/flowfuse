@@ -93,7 +93,7 @@ describe('Expert API', function () {
 
         afterEach(async function () {
             // clear the expert MCP access token cache
-            app.expert.mcp.clearTokenCache()
+            await app.expert.mcp.clearTokenCache()
             // delete all extra users, applications, instances created during tests
             await app.db.models.Project.destroy({ where: { name: ['alice2-instance', 'bob2-instance', 'chris2-instance'] } })
             await app.db.models.Application.destroy({ where: { name: ['application-alice', 'application-bob', 'application-chris'] } })
@@ -631,7 +631,7 @@ describe('Expert API', function () {
                 dbToken.expiresAt.getTime().should.be.approximately(fiveMinsFromNow, 2000) // check expiry (with grace period)
 
                 // get the cached token and check it matches DB token
-                const cachedToken = app.expert.mcp.getCachedToken(instance.id)
+                const cachedToken = await app.expert.mcp.getCachedToken(instance.id)
                 should.exist(cachedToken)
                 cachedToken.should.have.property('token').and.be.a.String()
                 cachedToken.should.have.property('scheme', 'Bearer')
@@ -663,7 +663,7 @@ describe('Expert API', function () {
                     return this.wrappedMethod.apply(this, arguments)
                 })
                 await app.expert.mcp.getOrCreateToken(instance, 'instance', instance.id, true) // creates and caches a token
-                const cachedToken1 = app.expert.mcp.getCachedToken(instance.id)
+                const cachedToken1 = await app.expert.mcp.getCachedToken(instance.id)
                 should.exist(cachedToken1)
 
                 // change the instance setting httpNodeAuth via API to invalidate the cached token
@@ -680,7 +680,7 @@ describe('Expert API', function () {
                 response2.statusCode.should.equal(200)
 
                 // now cached token should be cleared
-                const cachedToken2 = app.expert.mcp.getCachedToken(instance.id)
+                const cachedToken2 = await app.expert.mcp.getCachedToken(instance.id)
                 should.not.exist(cachedToken2)
             })
         })
@@ -1341,7 +1341,7 @@ describe('Expert API', function () {
                 dbToken.expiresAt.getTime().should.be.approximately(fiveMinsFromNow, 2000) // check expiry (with grace period)
 
                 // get the cached token and check it matches DB token
-                const cachedToken = app.expert.mcp.getCachedToken(instance.id)
+                const cachedToken = await app.expert.mcp.getCachedToken(instance.id)
                 should.exist(cachedToken)
                 cachedToken.should.have.property('token').and.be.a.String()
                 cachedToken.should.have.property('scheme', 'Bearer')
@@ -1413,7 +1413,7 @@ describe('Expert API', function () {
                     return this.wrappedMethod.apply(this, arguments)
                 })
                 await app.expert.mcp.getOrCreateToken(instance, 'instance', instance.id, true) // creates and caches a token
-                const cachedToken1 = app.expert.mcp.getCachedToken(instance.id)
+                const cachedToken1 = await app.expert.mcp.getCachedToken(instance.id)
                 should.exist(cachedToken1)
 
                 // change the instance setting httpNodeAuth via API to invalidate the cached token
@@ -1430,7 +1430,7 @@ describe('Expert API', function () {
                 response2.statusCode.should.equal(200)
 
                 // now cached token should be cleared
-                const cachedToken2 = app.expert.mcp.getCachedToken(instance.id)
+                const cachedToken2 = await app.expert.mcp.getCachedToken(instance.id)
                 should.not.exist(cachedToken2)
             })
 
