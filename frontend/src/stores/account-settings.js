@@ -5,10 +5,15 @@ import { getTeamProperty } from '@/composables/TeamProperties.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 
+export const POSTHOG_FLAGS = {
+    EXPERT_COMMS_BETA_ENABLED: 'EXPERT_COMMS_BETA_ENABLED'
+}
+
 export const useAccountSettingsStore = defineStore('account-settings', {
     state: () => ({
         settings: null,
-        features: {}
+        features: {},
+        posthogFlags: {}
     }),
     getters: {
         isBillingEnabled: state => !!state.features.billing,
@@ -163,7 +168,8 @@ export const useAccountSettingsStore = defineStore('account-settings', {
                 isRBACApplicationFeatureEnabled: preCheck.isApplicationsRBACFeatureEnabledForPlatform && preCheck.isApplicationsRBACFeatureEnabledForTeam,
                 isExpertAssistantFeatureEnabled: preCheck.isExpertAssistantFeatureEnabledForPlatform
             }
-        }
+        },
+        isExpertCommsBetaEnabled: state => !!state.posthogFlags[POSTHOG_FLAGS.EXPERT_COMMS_BETA_ENABLED]
     },
     actions: {
         setSettings (settings) {
@@ -173,6 +179,15 @@ export const useAccountSettingsStore = defineStore('account-settings', {
         async refreshSettings () {
             const settings = await settingsApi.getSettings()
             this.setSettings(settings)
+        },
+        loadPosthogFlags () {
+            try {
+                window.posthog?.onFeatureFlags((_flags, values) => {
+                    this.posthogFlags = values || {}
+                })
+            } catch (err) {
+                console.error('Error loading PostHog feature flags', err)
+            }
         }
     },
     persist: {
