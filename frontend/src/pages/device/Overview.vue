@@ -88,7 +88,7 @@
                                 <ff-button
                                     kind="tertiary"
                                     v-if="canBeAssignedToGroups && hasPermission('application:device-group:update', {application: device.application})"
-                                    :to="{name: 'device-settings', query: { highlight: 'device-group-section' }}"
+                                    :to="{name: isImmersiveEditor ? 'device-editor-settings' : 'device-settings', query: { highlight: 'device-group-section' }}"
                                 >
                                     <template #icon>
                                         <PencilAltIcon class="ff-icon ff-icon-sm" />
@@ -176,6 +176,7 @@
 import { CheckCircleIcon, CogIcon, ExclamationIcon, PencilAltIcon, TemplateIcon, TrendingUpIcon, WifiIcon } from '@heroicons/vue/outline'
 
 // api
+import { mapState } from 'pinia'
 import semver from 'semver'
 
 // components
@@ -189,6 +190,8 @@ import usePermissions from '../../composables/Permissions.js'
 
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceOverview',
@@ -222,6 +225,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useContextStore, ['isImmersiveEditor']),
         targetSnapshotDeployed: function () {
             return this.device.activeSnapshot?.id === this.device.targetSnapshot?.id
         },
