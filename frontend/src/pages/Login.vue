@@ -200,6 +200,11 @@ export default {
     async mounted () {
         await this.$nextTick()
         this.focusUsername()
+        if (this.settings['platform:sso:only'] &&
+            this.settings['platform:sso:only:provider'] &&
+            !/^\/admin\//.test(this.redirectUrlAfterLogin)) {
+            await this.directSSO(this.settings['platform:sso:only:provider'])
+        }
     },
     methods: {
         login () {
