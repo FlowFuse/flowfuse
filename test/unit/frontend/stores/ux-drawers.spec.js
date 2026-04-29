@@ -442,7 +442,7 @@ describe('ux-drawers store', () => {
             expect(store.editorImmersiveDrawer).toMatchObject({
                 active: false,
                 state: true,
-                side: 'left',
+                side: 'right',
                 width: 550,
                 pinned: true,
                 fullscreen: false
