@@ -21,6 +21,59 @@ module.exports = fp(async function (app, opts) {
     })
 
     await app.register(require('./api-docs'))
+
+    // Response Validation: dev only — surfaces schema/view drift as 500s.
+    if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line n/no-unpublished-require -- dev-only, gated above
+        const Ajv = require('ajv')
+        const ajv = new Ajv({
+            coerceTypes: false,
+            useDefaults: true,
+            removeAdditional: true,
+            allErrors: true,
+            strict: false
+        })
+        // Convert OpenAPI `nullable: true` to JSON Schema — Ajv doesn't understand the keyword.
+        const stripNullable = (value) => {
+            if (Array.isArray(value)) return value.map(stripNullable)
+            if (value && typeof value === 'object') {
+                const { nullable, ...rest } = value
+                const converted = {}
+                for (const [k, v] of Object.entries(rest)) {
+                    converted[k] = stripNullable(v)
+                }
+                if (nullable === true) {
+                    return { anyOf: [converted, { type: 'null' }] }
+                }
+                return converted
+            }
+            return value
+        }
+        // preSerialization hands us Date/Sequelize instances; validate the wire shape.
+        const originalCompile = ajv.compile.bind(ajv)
+        ajv.compile = (schema, _meta) => {
+            const validate = originalCompile(stripNullable(schema), _meta)
+            const wrapped = (data) => {
+                const wireShape = JSON.parse(JSON.stringify(data))
+                const result = validate(wireShape)
+                wrapped.errors = validate.errors
+                return result
+            }
+            return wrapped
+        }
+        // Populate ajv before @fastify/response-validation compiles — hooks fire in registration order.
+        app.addHook('onRoute', function syncSchemasToAjv () {
+            const schemas = this.getSchemas()
+            for (const id of Object.keys(schemas)) {
+                if (!ajv.getSchema(id)) {
+                    ajv.addSchema(stripNullable(schemas[id]), id)
+                }
+            }
+        })
+        // eslint-disable-next-line n/no-unpublished-require -- dev-only, gated above
+        await app.register(require('@fastify/response-validation'), { ajv })
+    }
+
     await app.register(require('@fastify/websocket'))
     await app.register(require('./auth'), { logLevel: app.config.logging.http })
     await app.register(require('./api'), { prefix: '/api/v1', logLevel: app.config.logging.http })
