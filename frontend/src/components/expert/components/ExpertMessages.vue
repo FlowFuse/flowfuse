@@ -55,11 +55,7 @@ export default {
     },
     methods: {
         onKeyDown (e) {
-            const platform = navigator.userAgentData?.platform || navigator.platform || ''
-            const isMac = /mac/i.test(platform)
-            const primaryModifier = isMac ? e.metaKey : e.ctrlKey
-
-            if (primaryModifier && e.altKey && e.key.toLowerCase() === 'd') {
+            if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'd') {
                 e.preventDefault()
                 downloadData(this.messages, 'expert-messages.json')
             }
