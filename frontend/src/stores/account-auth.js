@@ -188,7 +188,10 @@ export const useAccountAuthStore = defineStore('account-auth', {
             }
         },
         async logout () {
-            const logoutURL = useAccountSettingsStore().settings['platform:sso:only:logoutURL'] || '/'
+            let logoutURL = '/'
+            if (useAccountSettingsStore().settings['platform:sso:only']) {
+                logoutURL = useAccountSettingsStore().settings['platform:sso:only:logoutURL'] || '/'
+            }
             return userApi.logout()
                 .then(() => {
                     useAccountAuthStore().$reset()
