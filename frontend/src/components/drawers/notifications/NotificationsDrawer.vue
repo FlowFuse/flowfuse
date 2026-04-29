@@ -125,11 +125,8 @@ export default {
         this.selections = []
     },
     methods: {
-        ...mapActions(useUxDrawersStore, ['closeRightDrawer']),
+        ...mapActions(useUxDrawersStore, ['closeDrawer']),
         ...mapActions(useAccountStore, ['setNotifications']),
-        closeDrawer () {
-            this.closeRightDrawer()
-        },
         getNotificationsComponent (notification) {
             let comp = this.componentCache[notification.type]
             if (comp) {

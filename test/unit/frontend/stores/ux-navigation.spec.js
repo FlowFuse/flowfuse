@@ -71,10 +71,11 @@ describe('ux-navigation store', () => {
         vi.clearAllMocks()
     })
 
-    it('initializes with team context', () => {
+    it('initializes with team context and mobile nav closed', () => {
         const store = useUxNavigationStore()
         expect(store.mainNav.context).toBe('team')
         expect(store.mainNav.backToButton).toBeNull()
+        expect(store.mainNav.mobileOpen).toBe(false)
     })
 
     it('setMainNavContext updates the active context', () => {
@@ -94,11 +95,49 @@ describe('ux-navigation store', () => {
         const store = useUxNavigationStore()
         store.setMainNavContext('admin')
         store.setMainNavBackButton({ label: 'Back' })
+        store.openMainNav()
 
         store.$reset()
 
         expect(store.mainNav.context).toBe('team')
         expect(store.mainNav.backToButton).toBeNull()
+        expect(store.mainNav.mobileOpen).toBe(false)
+    })
+
+    // -------------------------------------------------------------------------
+    // Mobile MainNav slide-in state — drives the #left-drawer.active class
+    // for mobile viewports (< 1024px). On desktop MainNav is always visible.
+    // -------------------------------------------------------------------------
+
+    describe('mainNav.mobileOpen', () => {
+        it('openMainNav sets mobileOpen=true', () => {
+            const store = useUxNavigationStore()
+            store.openMainNav()
+            expect(store.mainNav.mobileOpen).toBe(true)
+        })
+
+        it('closeMainNav sets mobileOpen=false', () => {
+            const store = useUxNavigationStore()
+            store.openMainNav()
+            store.closeMainNav()
+            expect(store.mainNav.mobileOpen).toBe(false)
+        })
+
+        it('toggleMainNav flips mobileOpen', () => {
+            const store = useUxNavigationStore()
+            expect(store.mainNav.mobileOpen).toBe(false)
+            store.toggleMainNav()
+            expect(store.mainNav.mobileOpen).toBe(true)
+            store.toggleMainNav()
+            expect(store.mainNav.mobileOpen).toBe(false)
+        })
+
+        it('mobileOpen is independent of context — switching context preserves it', () => {
+            const store = useUxNavigationStore()
+            store.openMainNav()
+            store.setMainNavContext('admin')
+            expect(store.mainNav.mobileOpen).toBe(true)
+        })
     })
 
     describe('mainNavContext getter', () => {
@@ -128,6 +167,25 @@ describe('ux-navigation store', () => {
             const allTags = store.mainNavContext.flatMap(g => g.entries.map(e => e.tag))
             expect(allTags).toContain('account-settings')
             expect(allTags).toContain('account-security')
+        })
+
+        it('mainNavHidden is true when there is no nav context (e.g. team is null)', () => {
+            const store = useUxNavigationStore()
+            // default mock returns team: null → mainNavContext is []
+            expect(store.mainNavContext).toEqual([])
+            expect(store.mainNavHidden).toBe(true)
+        })
+
+        it('mainNavHidden is true for the none context', () => {
+            const store = useUxNavigationStore()
+            store.setMainNavContext('none')
+            expect(store.mainNavHidden).toBe(true)
+        })
+
+        it('mainNavHidden is false when nav context has entries', () => {
+            const store = useUxNavigationStore()
+            store.setMainNavContext('admin')
+            expect(store.mainNavHidden).toBe(false)
         })
 
         it('returns team entries when bridge provides a team', async () => {

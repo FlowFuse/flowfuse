@@ -1,10 +1,10 @@
 <template>
     <div class="ff-header" data-sentry-unmask>
         <!-- Mobile: Toggle(Team & Team Admin Options) -->
-        <i v-if="!hiddenLeftDrawer" class="ff-header--mobile-toggle">
+        <i v-if="!mainNavHidden" class="ff-header--mobile-toggle">
             <transition name="mobile-menu-fade" mode="out-in">
-                <MenuIcon v-if="!leftDrawer.state" class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
-                <XIcon v-else class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
+                <MenuIcon v-if="!mainNav.mobileOpen" class="ff-avatar cursor-pointer" @click="toggleMainNav" />
+                <XIcon v-else class="ff-avatar cursor-pointer" @click="toggleMainNav" />
             </transition>
         </i>
         <!-- FlowFuse Logo -->
@@ -122,7 +122,7 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
-import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
 export default {
@@ -132,7 +132,7 @@ export default {
         Roles () {
             return Roles
         },
-        ...mapState(useUxDrawersStore, ['leftDrawer', 'hiddenLeftDrawer']),
+        ...mapState(useUxNavigationStore, ['mainNav', 'mainNavHidden']),
         ...mapState(useAccountAuthStore, ['user']),
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountStore, ['teams', 'notifications', 'hasAvailableTeams', 'defaultUserTeam']),
@@ -218,7 +218,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useUxDrawersStore, ['toggleLeftDrawer']),
+        ...mapActions(useUxNavigationStore, ['toggleMainNav']),
         ...mapActions(useUxToursStore, ['openModal', 'resetTours', 'presentTour']),
         openEducationModal () {
             this.openModal('education')

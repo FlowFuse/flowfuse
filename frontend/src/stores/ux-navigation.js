@@ -21,7 +21,8 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
     state: () => ({
         mainNav: {
             context: 'team',
-            backToButton: null
+            backToButton: null,
+            mobileOpen: false
         }
     }),
     getters: {
@@ -453,10 +454,16 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                 })
                 .filter(category => Object.prototype.hasOwnProperty.call(category, 'hidden') ? !category.hidden : true) // filter hidden categories
                 .filter(category => category.entries.length > 0) // filter categories without entries
+        },
+        mainNavHidden () {
+            return this.mainNavContext.length === 0
         }
     },
     actions: {
         setMainNavContext (context) { this.mainNav.context = context },
-        setMainNavBackButton (button) { this.mainNav.backToButton = button }
+        setMainNavBackButton (button) { this.mainNav.backToButton = button },
+        openMainNav () { this.mainNav.mobileOpen = true },
+        closeMainNav () { this.mainNav.mobileOpen = false },
+        toggleMainNav () { this.mainNav.mobileOpen = !this.mainNav.mobileOpen }
     }
 })

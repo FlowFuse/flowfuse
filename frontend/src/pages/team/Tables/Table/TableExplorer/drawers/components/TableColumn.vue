@@ -15,7 +15,7 @@
                 placeholder="Select Type"
             >
                 <template #option="{ option }">
-                    <div :title="option.title" class="ff-option-content" data-click-exclude="right-drawer">
+                    <div :title="option.title" class="ff-option-content" data-click-exclude="platform-drawer">
                         <p class="clipped-overflow flex-nowrap flex justify-between items-center">
                             <span class="clipped-overflow">
                                 {{ option.label }}

@@ -71,9 +71,9 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useUxDrawersStore, ['closeRightDrawer']),
+        ...mapActions(useUxDrawersStore, ['closeDrawer']),
         go (to) {
-            this.closeRightDrawer()
+            this.closeDrawer()
             this.markAsRead()
 
             if (to?.url) {

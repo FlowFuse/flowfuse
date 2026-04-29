@@ -34,7 +34,6 @@ import { mapActions, mapState } from 'pinia'
 import NavItem from '../../NavItem.vue'
 
 import { useContextStore } from '@/stores/context.js'
-import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 
 export default {
@@ -126,10 +125,9 @@ export default {
         team: 'setBackButton'
     },
     methods: {
-        ...mapActions(useUxDrawersStore, ['closeLeftDrawer']),
-        ...mapActions(useUxNavigationStore, ['setMainNavContext', 'setMainNavBackButton']),
+        ...mapActions(useUxNavigationStore, ['setMainNavContext', 'setMainNavBackButton', 'closeMainNav']),
         onMenuItemClick () {
-            this.closeLeftDrawer()
+            this.closeMainNav()
         },
         setBackButton () {
             if (this.team) {

@@ -3,7 +3,7 @@
         <button
             class="expert-button flex items-center gap-1.5 justify-center rounded-md px-[9px] py-[6px] font-bold text-[0.85rem] leading-[20px] text-gray-800 whitespace-nowrap transition-colors"
             data-el="expert-button"
-            data-click-exclude="right-drawer"
+            data-click-exclude="platform-drawer"
             @click="onClick"
         >
             <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 -ml-1 mr-0.5 flex-shrink-0">
@@ -22,15 +22,15 @@ export default {
     name: 'ExpertButton',
     components: {},
     computed: {
-        ...mapState(useUxDrawersStore, ['rightDrawer']),
+        ...mapState(useUxDrawersStore, ['drawer']),
         isExpertDrawerOpen () {
-            return (this.rightDrawer.state || this.rightDrawer.fixed)
+            return this.drawer.state
         }
     },
     methods: {
         ...mapActions(useProductExpertStore, ['openAssistantDrawer']),
         onClick () {
-            this.openAssistantDrawer({ openPinned: this.rightDrawer.expertState.pinned })
+            this.openAssistantDrawer({ openPinned: this.drawer.expertState.pinned })
         }
     }
 }

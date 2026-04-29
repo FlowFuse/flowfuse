@@ -18,28 +18,31 @@ import DropdownMenu from '../DropdownMenu.vue'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 const drawers = useUxDrawersStore()
-const { editorImmersiveDrawer } = storeToRefs(drawers)
+const { drawer } = storeToRefs(drawers)
 
 const settingsOptions = computed(() => {
-    const isLeft = editorImmersiveDrawer.value.side === 'left'
-    const isPinned = editorImmersiveDrawer.value.pinned
-    const isFullscreen = editorImmersiveDrawer.value.fullscreen
+    const isLeft = drawer.value.side === 'left'
+    const isPinned = drawer.value.pinned
+    const isFullscreen = drawer.value.expertState.fullscreen
 
     return [
         {
             name: isLeft ? 'Move to Right' : 'Move to Left',
             icon: SwitchHorizontalIcon,
-            action: () => drawers.setEditorImmersiveDrawerSide(isLeft ? 'right' : 'left')
+            action: () => {
+                const newSide = isLeft ? 'right' : 'left'
+                drawers.setDrawerSide(newSide)
+            }
         },
         {
             name: isPinned ? 'Unpin' : 'Pin',
             icon: isPinned ? LockOpenIcon : LockClosedIcon,
-            action: () => drawers.toggleEditorImmersiveDrawerPin()
+            action: () => drawers.toggleDrawerPin()
         },
         {
             name: isFullscreen ? 'Exit Fullscreen' : 'Fullscreen',
             icon: ArrowsExpandIcon,
-            action: () => drawers.toggleEditorImmersiveFullscreen()
+            action: () => drawers.toggleFullscreen()
         }
     ]
 })

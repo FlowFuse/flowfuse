@@ -288,7 +288,7 @@ export default defineComponent({
             })
     },
     methods: {
-        ...mapActions(useUxDrawersStore, ['setRightDrawerHeader']),
+        ...mapActions(useUxDrawersStore, ['setDrawerHeader']),
         deployDeviceSnapshot () {
             const snapshot = this.snapshot
             const currentTargetSnapshot = this.instance.targetSnapshot?.id
@@ -400,7 +400,7 @@ export default defineComponent({
                     }
                 ]
             }
-            this.setRightDrawerHeader(headerConfig)
+            this.setDrawerHeader({ header: headerConfig })
         },
         loadFlows () {
             return snapshotsApi.getFullSnapshot(this.snapshot.id)

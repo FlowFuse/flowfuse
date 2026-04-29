@@ -70,7 +70,7 @@
                                     :data-option="option[labelKey]"
                                     :title="optionTitleKey ? option[optionTitleKey] : null"
                                 >
-                                    <div class="ff-option-content" :class="{selected, active}" data-click-exclude="right-drawer">
+                                    <div class="ff-option-content" :class="{selected, active}" data-click-exclude="platform-drawer">
                                         <component :is="option.icon" v-if="option.icon" class="ff-icon ff-icon-sm" />
                                         {{ option[labelKey] }}
                                     </div>

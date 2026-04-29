@@ -212,7 +212,7 @@ export default {
         this.fetchData()
     },
     methods: {
-        ...mapActions(useUxDrawersStore, ['openRightDrawer', 'closeRightDrawer']),
+        ...mapActions(useUxDrawersStore, ['openDrawer', 'closeDrawer']),
         fetchData: async function (withoutAnimation = false) {
             if (this.instance.id) {
                 if (!withoutAnimation) this.loading = true
@@ -241,7 +241,7 @@ export default {
             return deviceCounts
         },
         onRowSelected (snapshot) {
-            this.openRightDrawer({
+            this.openDrawer({
                 component: markRaw(SnapshotDetailsDrawer),
                 header: { title: 'Snapshot' },
                 props: { snapshot, snapshotList: this.snapshotList, instance: this.instance },
@@ -249,11 +249,10 @@ export default {
                     updatedSnapshot: () => this.fetchData(true),
                     restoredSnapshot: () => this.fetchData(true),
                     deletedSnapshot: () => {
-                        this.closeRightDrawer()
+                        this.closeDrawer()
                         this.fetchData(true)
                     }
-                },
-                overlay: true
+                }
             })
         }
     }

@@ -4,7 +4,7 @@
             ref="container"
             class="ff-dialog-container"
             :class="'ff-dialog-container--' + (open ? 'open' : 'closed')"
-            data-click-exclude="right-drawer"
+            data-click-exclude="platform-drawer"
             v-bind="$attrs"
         >
             <div class="ff-dialog-box" :class="boxClass">

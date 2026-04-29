@@ -39,7 +39,7 @@ export default {
     position: fixed;
     top: 70px;
 
-    .ff-layout--immersive--fullscreen & {
+    .ff-layout--platform--fullscreen & {
         top: 10px;
     }
     left: 0;

@@ -305,7 +305,7 @@ export default {
         this.fetchData()
     },
     methods: {
-        ...mapActions(useUxDrawersStore, ['openRightDrawer', 'closeRightDrawer']),
+        ...mapActions(useUxDrawersStore, ['openDrawer', 'closeDrawer']),
         fetchData: async function () {
             if (!this.features.deviceEditor || this.isOwnedByAnInstance || this.isUnassigned) {
                 return
@@ -360,7 +360,7 @@ export default {
             this.fetchData()
         },
         onRowSelected (snapshot) {
-            this.openRightDrawer({
+            this.openDrawer({
                 component: markRaw(SnapshotDetailsDrawer),
                 header: { title: 'Snapshot' },
                 props: {
@@ -377,11 +377,10 @@ export default {
                     updatedSnapshot: () => this.fetchData(),
                     restoredSnapshot: () => this.onRestoredSnapshot(),
                     deletedSnapshot: () => {
-                        this.closeRightDrawer()
+                        this.closeDrawer()
                         this.fetchData()
                     }
                 },
-                overlay: true,
                 wider: true
             })
         }

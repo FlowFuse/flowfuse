@@ -65,7 +65,6 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useProductTablesStore, { tablesState: 'tables', tableSelection: 'tableSelection' }),
         filteredTables () {
             return this.tables.filter(t => (t.name ?? '').toLowerCase().includes(this.filterTerm.toLowerCase()))
@@ -80,21 +79,19 @@ export default defineComponent({
         }
     },
     methods: {
-        ...mapActions(useUxDrawersStore, ['openRightDrawer', 'closeRightDrawer']),
+        ...mapActions(useUxDrawersStore, ['openDrawer']),
         ...mapActions(useProductTablesStore, ['updateTableSelection']),
 
         onCreateTable () {
-            this.openRightDrawer({
+            this.openDrawer({
                 component: markRaw(CreateTable),
-                wider: true,
-                overlay: true
+                wider: true
             })
         },
         showSchema (table) {
-            this.openRightDrawer({
+            this.openDrawer({
                 component: markRaw(TableSchema),
-                props: { table },
-                overlay: true
+                props: { table }
             })
         }
     }

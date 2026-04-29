@@ -7,292 +7,210 @@
  * @property {Component} iconLeft - A heroicon to display on the left side of the button.
  */
 
+/**
+ * @typedef {Object} DrawerStackEntry
+ * @property {Component} component - Vue component rendered for this entry
+ * @property {Object} props
+ * @property {Object} on - event listeners (handler map)
+ * @property {Object} bind
+ * @property {{title?: string, actions?: DrawerAction[]}|null} header
+ * @property {boolean} closeOnClickOutside
+ * @property {boolean} fixed - pinned mode for this entry
+ * @property {boolean} wider
+ */
+
 import { defineStore } from 'pinia'
 import { markRaw } from 'vue'
 
-import { useUxNavigationStore } from './ux-navigation.js'
+import { useContextStore } from './context.js'
 import { useUxStore } from './ux.js'
+
+const DRAWER_TRANSITION_MS = 300
 
 export const useUxDrawersStore = defineStore('ux-drawers', {
     state: () => ({
-        editorImmersiveDrawer: {
-            active: false,
-            state: true,
-            side: 'left',
-            width: 550,
-            pinned: true,
-            fullscreen: false,
-            viewStack: []
-        },
-        leftDrawer: {
+        drawer: {
             state: false,
-            component: null
-        },
-        rightDrawer: {
-            state: false,
-            expertState: {
-                pinned: true,
-                open: true
-            },
-            component: null,
-            header: null,
-            wider: false,
-            fixed: false,
-            closeOnClickOutside: true,
+            stack: [],
+            side: 'right',
+            width: 400,
             pinned: false,
             closing: false,
-            props: {},
-            on: {},
-            bind: {}
+            // Persisted user preferences for the immersive editor's drawer.
+            // `editorSide` lives here (not at the top level) so all drawer
+            // user-prefs are in one place. `pinned`/`open` drive ExpertDrawer
+            // auto-restore on non-editor pages and the editor drawer's
+            // open/closed preference inside the immersive editor.
+            expertState: {
+                pinned: true,
+                open: true,
+                fullscreen: false,
+                editorSide: 'right'
+            }
         }
     }),
 
-    getters: {
-        hiddenLeftDrawer (state) {
-            const navStore = useUxNavigationStore()
-            return state.leftDrawer.component?.name === 'MainNav' && navStore.mainNavContext.length === 0
-        }
-    },
-
     actions: {
-        openRightDrawer ({
-            component,
-            header = null,
-            wider = false,
-            fixed = false,
-            closeOnClickOutside = true,
-            props = {},
-            on = {},
-            bind = {},
-            overlay = false
-        }) {
-            // In immersive editor context, push onto the editor drawer view stack
-            if (this.editorImmersiveDrawer.active) {
-                if (!this.editorImmersiveDrawer.state) {
-                    this.editorImmersiveDrawer.state = true
-                }
-                this.pushEditorImmersiveView({
+        /**
+         * Open the drawer.
+         * - With options: pushes a view onto the stack and shows the drawer.
+         * - Without options: just shows the drawer (used by the immersive
+         *   editor on mount, where the drawer's content is slot-driven by
+         *   EditorPanel rather than a stack push).
+         */
+        openDrawer (options = null) {
+            const drawer = this.drawer
+            if (drawer.closing) return
+
+            if (options) {
+                const {
+                    component,
+                    props = {},
+                    on = {},
+                    bind = {},
+                    header = null,
+                    closeOnClickOutside = true,
+                    fixed = false,
+                    wider = false
+                } = options
+
+                drawer.stack.push({
                     component: markRaw(component),
                     props,
-                    events: on,
-                    title: header?.title || ''
+                    on,
+                    bind,
+                    header,
+                    closeOnClickOutside,
+                    fixed,
+                    wider
                 })
-                return
-            }
 
-            // Don't allow opening while drawer is currently closing
-            if (this.rightDrawer.closing) return
-
-            if (this.rightDrawer.state && component.name === this.rightDrawer.component?.name) return
-
-            const openDrawer = () => {
+                if (fixed) drawer.pinned = true
                 if (component.name === 'ExpertDrawer') {
-                    // save the ExpertDrawer pinned/open state (expertState is persistent)
-                    this.rightDrawer.expertState.pinned = fixed
-                    this.rightDrawer.expertState.open = true
-                }
-                this.rightDrawer.state = true
-                this.rightDrawer.wider = wider
-                this.rightDrawer.fixed = fixed
-                this.rightDrawer.closeOnClickOutside = closeOnClickOutside
-                this.rightDrawer.component = markRaw(component)
-                this.rightDrawer.header = header
-                this.rightDrawer.props = props
-                this.rightDrawer.on = on
-                this.rightDrawer.bind = bind
-
-                // Only show overlay if requested and drawer is not pinned
-                if (overlay && !this.rightDrawer.pinned) {
-                    useUxStore().openOverlay()
+                    drawer.expertState.pinned = fixed
+                    drawer.expertState.open = true
                 }
             }
 
-            if (this.rightDrawer.state) {
-                this._closeRightDrawerImmediate()
-                setTimeout(openDrawer, 300)
-            } else {
-                openDrawer()
-            }
+            drawer.state = true
         },
 
-        closeRightDrawer () {
-            // In immersive editor context, pop the editor drawer view stack
-            if (this.editorImmersiveDrawer.active && this.editorImmersiveDrawer.viewStack.length > 0) {
-                this.popEditorImmersiveView()
+        /**
+         * Close the drawer.
+         * - If a stack entry is on top, pops it (revealing the previous entry
+         *   or — in the editor — the slot fallback).
+         * - If the stack is already empty and the drawer is open, hides it.
+         * In immersive editor, also persists `expertState.open = false` so the
+         * close survives navigation/refresh.
+         */
+        closeDrawer () {
+            const drawer = this.drawer
+
+            if (drawer.stack.length > 0) {
+                const popped = drawer.stack.pop()
+                if (popped?.component?.name === 'ExpertDrawer') {
+                    drawer.expertState.open = false
+                    drawer.expertState.pinned = popped.fixed
+                }
                 return
             }
 
-            if (this.rightDrawer.component?.name === 'ExpertDrawer') {
-                // save the ExpertDrawer pinned/open state (expertState is persistent)
-                this.rightDrawer.expertState.open = false
-                this.rightDrawer.expertState.pinned = this.rightDrawer.fixed
+            if (!drawer.state) return
+            if (useContextStore().isImmersiveEditor) {
+                drawer.expertState.open = false
             }
-            // Set closing flag to prevent reopens during transition
-            this.rightDrawer.closing = true
-
-            // Immediately hide drawer by removing .open class
-            this._closeRightDrawerImmediate()
-
-            // Close overlay if present
-            const uxStore = useUxStore()
-            if (uxStore.overlay) {
-                uxStore.closeOverlay()
-            }
-
-            // Wait for CSS transition (300ms) before full cleanup
-            setTimeout(() => {
-                // Only do full cleanup if drawer is still closed
-                if (!this.rightDrawer.state) {
-                    this.rightDrawer.wider = false
-                    this.rightDrawer.fixed = false
-                    this.rightDrawer.component = null
-                    this.rightDrawer.header = null
-                    this.rightDrawer.pinned = false
-                    this.rightDrawer.props = {}
-                    this.rightDrawer.on = {}
-                    this.rightDrawer.bind = {}
-                }
-                // Clear closing flag
-                this.rightDrawer.closing = false
-            }, 300)
+            this._beginCloseTransition(null)
         },
+
+        /**
+         * Toggle drawer visibility. In immersive editor, also persists
+         * `expertState.open` (the user's open/closed preference) so the choice
+         * survives navigation/refresh.
+         */
+        toggleDrawer () {
+            const willOpen = !this.drawer.state
+            if (useContextStore().isImmersiveEditor) {
+                this.drawer.expertState.open = willOpen
+            }
+            if (willOpen) this.openDrawer()
+            else this.closeDrawer()
+        },
+
+        /** Empty the stack and run the close transition. */
+        clearDrawer () {
+            const drawer = this.drawer
+            const top = drawer.stack[drawer.stack.length - 1] || null
+            drawer.stack = []
+            if (drawer.state) this._beginCloseTransition(top)
+        },
+
+        /**
+         * Empty the stack without firing the close transition. Used by editor
+         * pages on enter to wipe carry-over content (e.g. ExpertDrawer left
+         * from a non-editor page) so the editor's slot content can render
+         * immediately without a slide-out flash.
+         */
+        resetDrawerStack () { this.drawer.stack = [] },
+
+        /** Update the top-of-stack entry's header in place. */
+        setDrawerHeader ({ header }) {
+            const drawer = this.drawer
+            if (drawer.stack.length === 0) return
+            const top = drawer.stack[drawer.stack.length - 1]
+            if (header && header.title !== undefined) {
+                top.header = { ...(top.header || {}), title: header.title }
+            }
+            if (header && header.actions !== undefined) {
+                top.header = { ...(top.header || {}), actions: header.actions }
+            }
+        },
+
+        setDrawerWidth ({ width }) { this.drawer.width = width },
+
+        setDrawerPinned ({ pinned }) { this.drawer.pinned = pinned },
+
+        toggleDrawerPin () { this.drawer.pinned = !this.drawer.pinned },
+
+        /**
+         * Set the drawer's rendered side. In immersive editor, also persists
+         * the user's editor side preference (`drawer.expertState.editorSide`)
+         * so it survives navigation in/out of the editor.
+         */
+        setDrawerSide (side) {
+            if (side !== 'left' && side !== 'right') return
+            this.drawer.side = side
+            if (useContextStore().isImmersiveEditor) {
+                this.drawer.expertState.editorSide = side
+            }
+        },
+
+        toggleFullscreen () { this.drawer.expertState.fullscreen = !this.drawer.expertState.fullscreen },
+
+        setFullscreen (value) { this.drawer.expertState.fullscreen = !!value },
 
         /** @private */
-        _closeRightDrawerImmediate () {
-            // Set state, fixed, and pinned to false immediately to prevent
-            // mid-transition class changes that cause width to expand
-            this.rightDrawer.state = false
-            this.rightDrawer.fixed = false
-            this.rightDrawer.pinned = false
-        },
+        _beginCloseTransition (top) {
+            const drawer = this.drawer
+            drawer.closing = true
+            drawer.state = false
 
-        /**
-         * Updates the right drawer header.
-         *
-         * @param {Object} header - The header object containing properties for the right drawer.
-         * @param {string} [header.title] - The title to set for the right drawer header.
-         * @param {DrawerAction[]} [header.actions] - An array of actions to set for the right drawer header.
-         */
-        setRightDrawerHeader (header) {
-            if (header.title) {
-                this.setRightDrawerTitle(header.title)
-            }
-            if (header.actions) {
-                this.setRightDrawerActions(header.actions)
-            }
-        },
-
-        setRightDrawerTitle (title) {
-            if (this.rightDrawer.header) {
-                this.rightDrawer.header.title = title
-            } else {
-                this.rightDrawer.header = { title }
-            }
-        },
-
-        setRightDrawerActions (actions) {
-            if (this.rightDrawer.header) {
-                this.rightDrawer.header.actions = actions
-            } else {
-                this.rightDrawer.header = { actions }
-            }
-        },
-
-        setRightDrawerWider (wider) {
-            this.rightDrawer.wider = wider
-        },
-
-        /**
-         * Toggles the fixed/pinned state of the right drawer.
-         * When fixed, the drawer becomes part of the page layout and stays open.
-         */
-        togglePinDrawer () {
-            const newFixedState = !this.rightDrawer.fixed
-            this.rightDrawer.fixed = newFixedState
-            this.rightDrawer.pinned = newFixedState
-            this.rightDrawer.closeOnClickOutside = !newFixedState
-            if (this.rightDrawer.component?.name === 'ExpertDrawer') {
-                // save the ExpertDrawer pinned/open state (expertState is persistent)
-                this.rightDrawer.expertState.open = this.rightDrawer.state
-                this.rightDrawer.expertState.pinned = newFixedState
-            }
-
-            // Always close overlay when toggling (whether fixing or unfixing)
             const uxStore = useUxStore()
-            if (uxStore.overlay) {
-                uxStore.closeOverlay()
+            if (uxStore.overlay) uxStore.closeOverlay()
+
+            if (top?.component?.name === 'ExpertDrawer') {
+                drawer.expertState.open = false
+                drawer.expertState.pinned = top.fixed
             }
-        },
 
-        // Editor Immersive Drawer actions
-        toggleEditorImmersiveDrawer () {
-            this.editorImmersiveDrawer.state = !this.editorImmersiveDrawer.state
-        },
-
-        openEditorImmersiveDrawer () {
-            this.editorImmersiveDrawer.state = true
-        },
-
-        closeEditorImmersiveDrawer () {
-            this.editorImmersiveDrawer.state = false
-        },
-
-        setEditorImmersiveDrawerSide (side) {
-            this.editorImmersiveDrawer.side = side
-        },
-
-        toggleEditorImmersiveDrawerPin () {
-            this.editorImmersiveDrawer.pinned = !this.editorImmersiveDrawer.pinned
-        },
-
-        toggleEditorImmersiveFullscreen () {
-            this.editorImmersiveDrawer.fullscreen = !this.editorImmersiveDrawer.fullscreen
-        },
-
-        setEditorImmersiveDrawerWidth (width) {
-            this.editorImmersiveDrawer.width = width
-        },
-
-        setEditorImmersiveActive (active) {
-            this.editorImmersiveDrawer.active = active
-        },
-
-        pushEditorImmersiveView ({ component, props = {}, events = {}, title = '' }) {
-            this.editorImmersiveDrawer.viewStack.push({ component, props, events, title })
-        },
-
-        popEditorImmersiveView () {
-            this.editorImmersiveDrawer.viewStack.pop()
-        },
-
-        clearEditorImmersiveViewStack () {
-            this.editorImmersiveDrawer.viewStack = []
-        },
-
-        openLeftDrawer () {
-            this.leftDrawer.state = true
-        },
-
-        closeLeftDrawer () {
-            this.leftDrawer.state = false
-        },
-
-        toggleLeftDrawer () {
-            this.leftDrawer.state = !this.leftDrawer.state
-        },
-
-        setLeftDrawer (component) {
-            this.leftDrawer.component = component ? markRaw(component) : null
+            setTimeout(() => { drawer.closing = false }, DRAWER_TRANSITION_MS)
         }
     },
+
     persist: {
         pick: [
-            'rightDrawer.expertState',
-            'editorImmersiveDrawer.state',
-            'editorImmersiveDrawer.side',
-            'editorImmersiveDrawer.width',
-            'editorImmersiveDrawer.pinned',
-            'editorImmersiveDrawer.fullscreen'
+            'drawer.expertState',
+            'drawer.width',
+            'drawer.pinned'
         ],
         storage: localStorage
     }

@@ -15,7 +15,7 @@ export default [
         component: InstanceEditor,
         meta: {
             title: 'Instance - Editor',
-            layout: 'immersive'
+            layout: 'platform'
         },
         redirect: to => {
             const name = useAccountSettingsStore().featuresCheck.isExpertAssistantFeatureEnabled
@@ -28,7 +28,7 @@ export default [
                 return {
                     ...child,
                     name: child.name.replace('instance-', 'instance-editor-'),
-                    meta: { ...child.meta, layout: 'immersive' }
+                    meta: { ...child.meta, layout: 'platform' }
                 }
             }),
             {
@@ -37,7 +37,7 @@ export default [
                 component: InstanceSettings,
                 meta: {
                     title: 'Instance - Settings',
-                    layout: 'immersive'
+                    layout: 'platform'
                 },
                 redirect: to => {
                     return { name: 'instance-editor-settings-general', params: { id: to.params.id } }
@@ -47,7 +47,7 @@ export default [
                         return {
                             ...child,
                             name: child.name.replace('instance-settings', 'instance-editor-settings'),
-                            meta: { ...child.meta, layout: 'immersive' }
+                            meta: { ...child.meta, layout: 'platform' }
                         }
                     })
                 ]
@@ -58,7 +58,7 @@ export default [
                 component: VersionHistory,
                 meta: {
                     title: 'Instance - Version History',
-                    layout: 'immersive'
+                    layout: 'platform'
                 },
                 redirect: to => {
                     return { name: 'instance-editor-version-history-timeline', params: { id: to.params.id } }
@@ -68,7 +68,7 @@ export default [
                         return {
                             ...child,
                             name: child.name.replace('instance-', 'instance-editor-'),
-                            meta: { ...child.meta, layout: 'immersive' }
+                            meta: { ...child.meta, layout: 'platform' }
                         }
                     })
                 ]
@@ -79,7 +79,7 @@ export default [
                 component: () => import('../../../components/expert/Expert.vue'),
                 meta: {
                     title: 'Hosted Instance - Expert',
-                    layout: 'immersive'
+                    layout: 'platform'
                 }
             }
         ]

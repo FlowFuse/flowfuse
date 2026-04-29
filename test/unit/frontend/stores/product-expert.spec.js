@@ -28,8 +28,7 @@ vi.mock('@/components/drawers/expert/ExpertDrawer.vue', () => ({
 
 vi.mock('@/stores/ux-drawers.js', () => ({
     useUxDrawersStore: vi.fn(() => ({
-        openRightDrawer: vi.fn(),
-        setRightDrawerWider: vi.fn()
+        openDrawer: vi.fn()
     }))
 }))
 

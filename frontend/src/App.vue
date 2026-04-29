@@ -1,5 +1,5 @@
 <template>
-    <div id="ff-app" class="flex flex-col" :class="{'hidden-left-drawer': hiddenLeftDrawer}">
+    <div id="ff-app" class="flex flex-col" :class="{'main-nav-hidden': mainNavHidden}">
         <template v-if="offline">
             <main class="ff-bg-dark flex-grow flex flex-col">
                 <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
@@ -31,11 +31,6 @@
                 <ff-layout-docs>
                     <router-view />
                 </ff-layout-docs>
-            </template>
-            <template v-else-if="pageLayout === 'immersive'">
-                <ff-layout-immersive>
-                    <router-view />
-                </ff-layout-immersive>
             </template>
             <EducationModal />
         </template>
@@ -70,7 +65,6 @@ import LicenseBanner from './components/banners/LicenseBanner.vue'
 import EducationModal from './components/dialogs/EducationModal.vue'
 import FFLayoutBox from './layouts/Box.vue'
 import FFLayoutDocs from './layouts/Docs.vue'
-import FFLayoutImmersiveEditor from './layouts/ImmersiveEditor.vue'
 import FFLayoutPlatform from './layouts/Platform.vue'
 import Login from './pages/Login.vue'
 import PasswordExpired from './pages/PasswordExpired.vue'
@@ -81,8 +75,8 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
-import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
+import { useUxNavigationStore } from '@/stores/ux-navigation.js'
 
 export default {
     name: 'App',
@@ -97,11 +91,10 @@ export default {
         Offline,
         'ff-layout-platform': FFLayoutPlatform,
         'ff-layout-box': FFLayoutBox,
-        'ff-layout-docs': FFLayoutDocs,
-        'ff-layout-immersive': FFLayoutImmersiveEditor
+        'ff-layout-docs': FFLayoutDocs
     },
     computed: {
-        ...mapState(useUxDrawersStore, ['hiddenLeftDrawer']),
+        ...mapState(useUxNavigationStore, ['mainNavHidden']),
         ...mapState(useAccountAuthStore, ['user']),
         ...mapState(useUxLoadingStore, ['appLoader', 'offline']),
         ...mapState(useAccountSettingsStore, ['settings']),
@@ -134,7 +127,7 @@ export default {
         },
         pageLayout () {
             const layout = this.$route.meta?.layout
-            return ['platform', 'modal', 'docs', 'immersive'].includes(layout) ? layout : 'platform'
+            return ['platform', 'modal', 'docs'].includes(layout) ? layout : 'platform'
         }
     },
     watch: {

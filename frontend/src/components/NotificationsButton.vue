@@ -1,6 +1,6 @@
 <template>
     <div class="notifications-button-wrapper">
-        <button class="notifications-button" data-el="notifications-button" data-click-exclude="right-drawer" @click="onClick">
+        <button class="notifications-button" data-el="notifications-button" data-click-exclude="platform-drawer" @click="onClick">
             <MailIcon />
             <ff-notification-pill v-if="hasNotifications" data-el="notification-pill" class="ml-3" :count="notificationsCount" />
         </button>
@@ -21,7 +21,6 @@ export default {
     name: 'NotificationsButton',
     components: { MailIcon },
     computed: {
-        ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useAccountStore, ['hasNotifications', 'unreadNotificationsCount']),
         notificationsCount: function () {
             // Return null if count = 0 so we don't show a 0 in the pill
@@ -32,9 +31,9 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useUxDrawersStore, ['openRightDrawer', 'closeRightDrawer']),
+        ...mapActions(useUxDrawersStore, ['openDrawer']),
         onClick () {
-            this.openRightDrawer({ component: markRaw(NotificationsDrawer) })
+            this.openDrawer({ component: markRaw(NotificationsDrawer) })
         }
     }
 }

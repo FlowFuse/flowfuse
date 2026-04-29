@@ -78,7 +78,7 @@ export default {
             'isInsightsAgent'
         ]),
         ...mapState(useUxDrawersStore, {
-            isPinned: state => state.rightDrawer.fixed
+            isPinned: state => state.drawer.pinned
         }),
         ...mapState(useAccountSettingsStore, ['features']),
         isEditorContext () {

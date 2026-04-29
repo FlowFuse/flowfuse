@@ -75,7 +75,7 @@ export default defineComponent({
         this.setHeader()
     },
     methods: {
-        ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'setRightDrawerHeader']),
+        ...mapActions(useUxDrawersStore, ['closeDrawer', 'setDrawerHeader']),
         ...mapActions(useProductTablesStore, ['createTable', 'getTables', 'addNewTableColumn', 'removeNewTableColumn']),
         validateForm () {
             const columnsHaveDuplicateNames = new Set(this.newTable.columns.map(col => col.name)).size !== this.newTable.columns.length
@@ -119,16 +119,18 @@ export default defineComponent({
                 databaseId: this.$route.params.id
             })
                 .then(() => this.getTables(this.$route.params.id))
-                .then(() => this.closeRightDrawer())
+                .then(() => this.closeDrawer())
                 .catch(e => e)
         },
         setHeader () {
-            this.setRightDrawerHeader({
-                title: 'Create New Table',
-                actions: [
-                    { handler: this.closeRightDrawer, label: 'Cancel', kind: 'secondary' },
-                    { handler: this.submit, label: 'Save', kind: 'primary', disabled: this.hasErrors }
-                ]
+            this.setDrawerHeader({
+                header: {
+                    title: 'Create New Table',
+                    actions: [
+                        { handler: this.closeDrawer, label: 'Cancel', kind: 'secondary' },
+                        { handler: this.submit, label: 'Save', kind: 'primary', disabled: this.hasErrors }
+                    ]
+                }
             })
         }
     }

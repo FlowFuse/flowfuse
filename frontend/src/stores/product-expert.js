@@ -100,9 +100,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             const contextStore = useContextStore()
             if (contextStore.isImmersiveEditor) {
                 const drawersStore = useUxDrawersStore()
-                if (!drawersStore.editorImmersiveDrawer.state) {
-                    drawersStore.openEditorImmersiveDrawer()
-                }
+                drawersStore.openDrawer()
                 const expertRouteName = contextStore.editorEntityType === 'device'
                     ? 'device-editor-expert'
                     : 'instance-editor-expert'
@@ -114,7 +112,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             useProductExpertInsightsAgentStore().getCapabilities()
             // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
             return import('../components/drawers/expert/ExpertDrawer.vue')
-                .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({
+                .then(({ default: ExpertDrawer }) => useUxDrawersStore().openDrawer({
                     component: markRaw(ExpertDrawer),
                     fixed: options?.openPinned === true,
                     closeOnClickOutside: options?.openPinned !== true
@@ -134,7 +132,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
                 this.loadingVariant = 'transfer'
 
-                return this.openAssistantDrawer({ openPinned: useUxDrawersStore().rightDrawer.expertState.pinned })
+                return this.openAssistantDrawer({ openPinned: useUxDrawersStore().drawer.expertState.pinned })
                     .then(() => this.hydrateClient())
                     .then(() => { this.loadingVariant = this.agentMode })
             }

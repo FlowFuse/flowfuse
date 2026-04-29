@@ -62,7 +62,7 @@ export default {
     },
     inject: ['togglePinWithWidth', 'shouldAllowPinning'],
     computed: {
-        ...mapState(useUxDrawersStore, ['rightDrawer']),
+        ...mapState(useUxDrawersStore, ['drawer']),
         ...mapState(useProductExpertStore, ['agentMode']),
         ...mapState(useAccountSettingsStore, ['features']),
         agentModeButtons () {
@@ -75,7 +75,7 @@ export default {
             return !!this.features.expertInsights
         },
         isPinned () {
-            return this.rightDrawer.fixed
+            return this.drawer.pinned
         },
         agentModeWrapper: {
             get () {
@@ -93,11 +93,8 @@ export default {
         }, 350)
     },
     methods: {
-        ...mapActions(useUxDrawersStore, ['closeRightDrawer']),
+        ...mapActions(useUxDrawersStore, ['closeDrawer']),
         ...mapActions(useProductExpertStore, ['setAgentMode']),
-        closeDrawer () {
-            this.closeRightDrawer()
-        },
         togglePin () {
             this.togglePinWithWidth()
         }

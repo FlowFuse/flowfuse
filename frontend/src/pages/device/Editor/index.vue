@@ -1,38 +1,41 @@
 <template>
-    <div class="ff--immersive-editor-wrapper remote-instance" :class="{resizing: isEditorResizing}">
-        <EditorDrawer
-            :navigation="navigation"
-            :is-expert-route="isExpertRoute"
-            :entity="device"
-            @resizing="v => isEditorResizing = v"
-        >
-            <template #actions>
-                <DropdownMenu
-                    v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length"
-                    :options="actionsDropdownOptions"
-                    :button-style="{padding: '6px 9px'}"
-                    data-el="device-actions-dropdown"
-                    buttonClass="ff-btn ff-btn--primary device-actions-dropdown"
-                >
-                    <CogIcon class="ff-btn--icon ff-btn--icon-left mr-0" />
-                </DropdownMenu>
-            </template>
+    <div
+        class="ff--immersive-editor-wrapper remote-instance"
+        :class="[`editor-side-${editorSide}`, {resizing: isEditorResizing}]"
+    >
+        <Drawer @resizing="v => isEditorResizing = v">
+            <EditorPanel
+                :navigation="navigation"
+                :is-expert-route="isExpertRoute"
+                :entity="device"
+            >
+                <template #actions>
+                    <DropdownMenu
+                        v-if="hasPermission('device:change-status', permissionContext) && actionsDropdownOptions.length"
+                        :options="actionsDropdownOptions"
+                        :button-style="{padding: '6px 9px'}"
+                        data-el="device-actions-dropdown"
+                        buttonClass="ff-btn ff-btn--primary device-actions-dropdown"
+                    >
+                        <CogIcon class="ff-btn--icon ff-btn--icon-left mr-0" />
+                    </DropdownMenu>
+                </template>
+                <router-view
+                    :device="device"
+                    :instance="device?.instance"
+                />
+            </EditorPanel>
+        </Drawer>
 
-            <router-view
-                :device="device"
-                :instance="device?.instance"
-            />
-        </EditorDrawer>
-
-        <div class="ff-layout--immersive--content">
+        <div class="ff--immersive-editor-content">
             <EditorWrapper
                 :disable-events="isEditorResizing"
                 :device="device"
             />
 
             <DrawerTrigger
-                :is-hidden="editorImmersiveDrawer.state"
-                @toggle="toggleEditorImmersiveDrawer"
+                :is-hidden="drawer.state"
+                @toggle="toggleDrawer"
             />
         </div>
     </div>
@@ -43,9 +46,10 @@ import { CogIcon } from '@heroicons/vue/solid/index.js'
 import { mapActions, mapState } from 'pinia'
 
 import DropdownMenu from '../../../components/DropdownMenu.vue'
+import Drawer from '../../../components/drawers/Drawer.vue'
 import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
 import DrawerTrigger from '../../../components/immersive-editor/DrawerTrigger.vue'
-import EditorDrawer from '../../../components/immersive-editor/EditorDrawer.vue'
+import EditorPanel from '../../../components/immersive-editor/EditorPanel.vue'
 import EditorWrapper from '../../../components/immersive-editor/RemoteInstanceEditorWrapper.vue'
 import { useDeviceHelper } from '../../../composables/DeviceHelper.js'
 import usePermissions from '../../../composables/Permissions.js'
@@ -61,8 +65,9 @@ export default {
     components: {
         CogIcon,
         DropdownMenu,
+        Drawer,
         DrawerTrigger,
-        EditorDrawer,
+        EditorPanel,
         EditorWrapper
     },
     setup () {
@@ -106,7 +111,8 @@ export default {
     },
     computed: {
         ...mapState(useAccountSettingsStore, ['features', 'featuresCheck']),
-        ...mapState(useUxDrawersStore, ['editorImmersiveDrawer']),
+        ...mapState(useUxDrawersStore, ['drawer']),
+        editorSide () { return this.drawer.expertState.editorSide },
         isExpertRoute () {
             return this.$route.name === 'device-editor-expert'
         },
@@ -225,15 +231,29 @@ export default {
             }
         }
     },
+    created () {
+        // Wipe any leftover stack content (e.g. ExpertDrawer pinned from a
+        // non-editor page) and snap the drawer to the user's persisted editor
+        // side preference before children mount.
+        this.resetDrawerStack()
+        this.setDrawerSide(this.editorSide)
+    },
     mounted () {
+        // Respect the user's persisted open/closed preference.
+        if (this.drawer.expertState.open) {
+            this.openDrawer()
+        }
         this.loadDevice()
     },
     unmounted () {
+        // Reset for non-editor pages: clear stack and snap drawer back to right.
+        this.clearDrawer()
+        this.setDrawerSide('right')
         this.stopPolling()
     },
     methods: {
         ...mapActions(useContextStore, { setContextDevice: 'setDevice' }),
-        ...mapActions(useUxDrawersStore, ['toggleEditorImmersiveDrawer']),
+        ...mapActions(useUxDrawersStore, ['openDrawer', 'closeDrawer', 'toggleDrawer', 'clearDrawer', 'resetDrawerStack', 'setDrawerSide']),
         loadDevice: async function () {
             let tries = 0
             let device = await this.fetchDevice(this.$route.params.id, false)

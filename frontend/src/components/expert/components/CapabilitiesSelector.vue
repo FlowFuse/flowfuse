@@ -28,7 +28,7 @@
                         <div
                             class="ff-option-content flex truncate justify-start !items-start !gap-2 !p-2"
                             :class="{ active }"
-                            data-click-exclude="right-drawer"
+                            data-click-exclude="platform-drawer"
                         >
                             <div>
                                 <ff-checkbox :modelValue="selected" @click.stop.prevent="onCheckboxClick(option)" />

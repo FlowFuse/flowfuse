@@ -8,7 +8,7 @@ const renameRoute = (child) => {
     return {
         ...child,
         name: child.name.replace('device-', 'device-editor-'),
-        meta: { ...child.meta, layout: 'immersive' },
+        meta: { ...child.meta, layout: 'platform' },
         ...(child.children ? { children: child.children.map(renameRoute) } : {})
     }
 }
@@ -20,7 +20,7 @@ export default [
         component: DeviceEditor,
         meta: {
             title: 'Device - Editor',
-            layout: 'immersive'
+            layout: 'platform'
         },
         redirect: to => {
             const name = useAccountSettingsStore().featuresCheck.isExpertAssistantFeatureEnabled
@@ -36,7 +36,7 @@ export default [
                 component: () => import('../../../components/expert/Expert.vue'),
                 meta: {
                     title: 'Remote Instance - Expert',
-                    layout: 'immersive'
+                    layout: 'platform'
                 }
             }
         ]

@@ -51,7 +51,7 @@ export default defineComponent({
         this.setHeader()
     },
     methods: {
-        ...mapActions(useUxDrawersStore, ['closeRightDrawer', 'setRightDrawerHeader']),
+        ...mapActions(useUxDrawersStore, ['closeDrawer', 'setDrawerHeader']),
         ...mapActions(useProductTablesStore, ['deleteTable', 'getTables']),
         submit () {
             Dialog.show({
@@ -65,17 +65,19 @@ export default defineComponent({
                 tableName: this.table.name
             })
                 .then(() => this.getTables(this.$route.params.id))
-                .then(() => this.closeRightDrawer())
+                .then(() => this.closeDrawer())
                 .then(() => Alerts.emit('Table deleted successfully', 'confirmation'))
                 .catch(e => e))
         },
         setHeader () {
-            this.setRightDrawerHeader({
-                title: `${this.table.name} schema`,
-                actions: [
-                    { handler: this.closeRightDrawer, label: 'Close', kind: 'secondary' },
-                    { handler: this.submit, label: 'Delete', kind: 'danger' }
-                ]
+            this.setDrawerHeader({
+                header: {
+                    title: `${this.table.name} schema`,
+                    actions: [
+                        { handler: this.closeDrawer, label: 'Close', kind: 'secondary' },
+                        { handler: this.submit, label: 'Delete', kind: 'danger' }
+                    ]
+                }
             })
         }
     }
