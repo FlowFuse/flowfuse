@@ -598,11 +598,13 @@ jobs:
             const token = process.env.SLACK_BOT_TOKEN;
             const fieldId = process.env.SLACK_GITHUB_FIELD_ID;
 
-            // Build recipient list with roles, deduped (Author wins over Reviewer)
+            // Build recipient list with roles, deduped (first-added role wins: Author > Reviewer > Pusher).
+            // Bot accounts (e.g. dependabot[bot]) are skipped — they have no Slack profile.
             const recipients = [];
             const seen = new Set();
             const add = (login, role) => {
               if (!login) return;
+              if (login.endsWith('[bot]')) return;
               const key = login.toLowerCase();
               if (seen.has(key)) return;
               seen.add(key);
@@ -615,6 +617,7 @@ jobs:
               add(process.env.PR_AUTHOR, 'Author');
               const reviewers = JSON.parse(process.env.REQUESTED_REVIEWERS || '[]');
               for (const r of reviewers) add(r.login, 'Reviewer');
+              add(process.env.GITHUB_ACTOR, 'Pusher');
             }
 
             if (recipients.length === 0) {
