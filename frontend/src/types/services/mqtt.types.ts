@@ -87,6 +87,7 @@ export interface ManagedMqttClient {
     getCredentials: MqttCredentialProvider
     reconnectPolicy: MqttReconnectPolicy
     reconnectAttempt: number
+    reconnectGeneration: number
     reconnectTimer: ReturnType<typeof setTimeout> | null
     subscriptions: Map<string, ManagedMqttSubscription>
     handlers: MqttConnectionHandlers
