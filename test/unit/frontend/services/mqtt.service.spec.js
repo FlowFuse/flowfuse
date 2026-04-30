@@ -901,7 +901,6 @@ describe('MqttService', async () => {
 
             const fromArrayBuffer = service._normalizeBinaryPayload(new ArrayBuffer(3))
             expect(fromArrayBuffer).toBeInstanceOf(Uint8Array)
-
         } finally {
             global.Buffer = originalBuffer
         }
