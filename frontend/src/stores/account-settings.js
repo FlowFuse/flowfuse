@@ -1,9 +1,63 @@
 import { defineStore } from 'pinia'
 
 import settingsApi from '@/api/settings.js'
-import { getTeamProperty } from '@/composables/TeamProperties.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
+
+const FEATURE_CONFIGS = [
+    { name: 'SharedLibrary', platformKey: 'shared-library', teamKey: 'shared-library', optOut: true },
+    { name: 'Blueprints', platformKey: 'flowBlueprints', teamKey: 'flowBlueprints', optOut: true },
+    { name: 'CustomCatalogs', platformKey: 'customCatalogs', teamKey: 'customCatalogs', optOut: true },
+    { name: 'PrivateRegistry', platformKey: 'npm', teamKey: 'npm' },
+    { name: 'StaticAssets', platformKey: 'staticAssets', teamKey: 'staticAssets' },
+    { name: 'HTTPBearerTokens', platformKey: 'httpBearerTokens', teamKey: 'teamHttpSecurity', platformSource: 'settings' },
+    { name: 'BOM', platformKey: 'bom', teamKey: 'bom' },
+    { name: 'Timeline', platformKey: 'projectHistory', teamKey: 'projectHistory' },
+    { name: 'MqttBroker', platformKey: 'teamBroker', teamKey: 'teamBroker' },
+    { name: 'GitIntegration', platformKey: 'gitIntegration', teamKey: 'gitIntegration' },
+    { name: 'InstanceResources', platformKey: 'instanceResources', teamKey: 'instanceResources' },
+    { name: 'Tables', platformKey: 'tables', teamKey: 'tables' },
+    { name: 'GeneratedSnapshotDescription', platformKey: 'generatedSnapshotDescription', teamKey: 'generatedSnapshotDescription' },
+    { name: 'ApplicationsRBAC', platformKey: 'rbacApplication', teamKey: 'rbacApplication' },
+
+    // Platform-only
+    { name: 'CertifiedNodes', platformKey: 'certifiedNodes' },
+    { name: 'FlowFuseNodes', platformKey: 'ffNodes' },
+    { name: 'ExpertAssistant', platformKey: 'expertAssistant' },
+    { name: 'InstanceAutoStackUpdate', platformKey: 'autoStackUpdate' },
+    { name: 'DevOpsPipelines', platformKey: 'devops-pipelines' },
+    { name: 'ExternalMqttBroker', platformKey: 'externalBroker' }
+]
+
+function buildFeatureChecks (state, team) {
+    const checks = {}
+
+    for (const { name, platformKey, teamKey, optOut, platformSource } of FEATURE_CONFIGS) {
+        if (platformKey) {
+            const source = platformSource === 'settings' ? state.settings?.features : state.features
+            checks[`is${name}FeatureEnabledForPlatform`] = !!source?.[platformKey]
+        }
+
+        if (teamKey) {
+            if (optOut) {
+                const flag = team?.type?.properties?.features?.[teamKey]
+                checks[`is${name}FeatureEnabledForTeam`] = (flag === undefined || !!flag) || !!team?.type?.properties?.enableAllFeatures
+            } else {
+                checks[`is${name}FeatureEnabledForTeam`] = !!team?.type?.properties?.features?.[teamKey] || !!team?.type?.properties?.enableAllFeatures
+            }
+        }
+
+        if (platformKey && teamKey) {
+            checks[`is${name}FeatureEnabled`] = checks[`is${name}FeatureEnabledForPlatform`] && checks[`is${name}FeatureEnabledForTeam`]
+        } else if (platformKey) {
+            checks[`is${name}FeatureEnabled`] = checks[`is${name}FeatureEnabledForPlatform`]
+        } else if (teamKey) {
+            checks[`is${name}FeatureEnabled`] = checks[`is${name}FeatureEnabledForTeam`]
+        }
+    }
+
+    return checks
+}
 
 export const useAccountSettingsStore = defineStore('account-settings', {
     state: () => ({
@@ -33,136 +87,21 @@ export const useAccountSettingsStore = defineStore('account-settings', {
         featuresCheck (state) {
             const contextStore = useContextStore()
             const team = contextStore.team
-            const teamMembership = contextStore.teamMembership
+            const checks = buildFeatureChecks(state, team)
 
-            const preCheck = {
-                // Instances
-                // deprecated, use the isFreeTeamType getter
-                isHostedInstancesEnabledForTeam: (() => {
-                    if (!team) {
-                        return false
-                    }
+            // Instances (deprecated, use the isFreeTeamType getter)
+            checks.isHostedInstancesEnabledForTeam = false
 
-                    // dashboard users don't receive the team.type in the response payload
-                    if (teamMembership?.role === 5 && !team?.type?.properties) {
-                        return true
-                    }
+            // External broker: platform check is its own, team check reuses MqttBroker's
+            // todo there's a disconnect in naming
+            checks.isExternalMqttBrokerFeatureEnabled =
+                checks.isExternalMqttBrokerFeatureEnabledForPlatform && checks.isMqttBrokerFeatureEnabledForTeam
 
-                    let available = false
+            // Device Groups: team-only check
+            checks.isDeviceGroupsFeatureEnabled =
+                !!team?.type?.properties?.features?.deviceGroups || !!team?.type?.properties?.enableAllFeatures
 
-                    // loop over the different instance types. Reference the team type properties to get the list
-                    // of instance types, but use getTeamProperty to check the individual types to take into account
-                    // any team level overrides
-                    for (const instanceType of Object.keys(team.type.properties?.instances) || []) {
-                        if (getTeamProperty(team, `instances.${instanceType}.active`)) {
-                            available = true
-                            break
-                        }
-                    }
-                    return available
-                })(),
-
-                // Shared Library
-                isSharedLibraryFeatureEnabledForTeam: (() => {
-                    const flag = team?.type?.properties?.features?.['shared-library']
-                    return (flag === undefined || flag) || team?.type?.properties?.enableAllFeatures
-                })(),
-                isSharedLibraryFeatureEnabledForPlatform: state.features?.['shared-library'],
-
-                // Blueprints
-                isBlueprintsFeatureEnabledForTeam: (() => {
-                    const flag = team?.type?.properties?.features?.flowBlueprints
-                    return (flag === undefined || flag) || team?.type?.properties?.enableAllFeatures
-                })(),
-                isBlueprintsFeatureEnabledForPlatform: !!state.features?.flowBlueprints,
-
-                // Custom Catalogs
-                isCustomCatalogsFeatureEnabledForPlatform: !!state.features?.customCatalogs,
-                isCustomCatalogsFeatureEnabledForTeam: (() => {
-                    const flag = team?.type?.properties?.features?.customCatalogs
-                    return (flag === undefined || flag) || team?.type?.properties?.enableAllFeatures
-                })(),
-
-                // Private NPM Registry (Custom Nodes)
-                isPrivateRegistryFeatureEnabledForPlatform: !!state.features?.npm,
-                isPrivateRegistryFeatureEnabledForTeam: !!team?.type?.properties?.features?.npm || team?.type?.properties?.enableAllFeatures,
-
-                // Certified Nodes
-                isCertifiedNodesFeatureEnabledForPlatform: !!state.features?.certifiedNodes,
-                // FlowFuse Nodes
-                isFlowFuseNodesFeatureEnabledForPlatform: !!state.features?.ffNodes,
-
-                // Static Assets
-                isStaticAssetFeatureEnabledForPlatform: !!state.features?.staticAssets,
-                isStaticAssetsFeatureEnabledForTeam: !!team?.type?.properties?.features?.staticAssets || team?.type?.properties?.enableAllFeatures,
-
-                // HTTP BearerTokens
-                isHTTPBearerTokensFeatureEnabledForPlatform: !!state.settings?.features?.httpBearerTokens,
-                isHTTPBearerTokensFeatureEnabledForTeam: !!team?.type?.properties?.features?.teamHttpSecurity || team?.type?.properties?.enableAllFeatures,
-
-                // BOM
-                isBOMFeatureEnabledForPlatform: !!state.features?.bom,
-                isBOMFeatureEnabledForTeam: !!team?.type?.properties?.features?.bom || team?.type?.properties?.enableAllFeatures,
-
-                // Timeline
-                isTimelineFeatureEnabledForPlatform: !!state.features?.projectHistory,
-                isTimelineFeatureEnabledForTeam: !!team?.type?.properties?.features?.projectHistory || team?.type?.properties?.enableAllFeatures,
-
-                // Mqtt Broker
-                isMqttBrokerFeatureEnabledForPlatform: !!state.features?.teamBroker,
-                isMqttBrokerFeatureEnabledForTeam: !!team?.type?.properties?.features?.teamBroker || team?.type?.properties?.enableAllFeatures,
-
-                isExternalMqttBrokerFeatureEnabledForPlatform: !!state.features?.externalBroker,
-
-                // DevOps Pipelines
-                devOpsPipelinesFeatureEnabledForPlatform: !!state.features?.['devops-pipelines'],
-
-                isGitIntegrationFeatureEnabledForPlatform: !!state.features?.gitIntegration,
-                isGitIntegrationFeatureEnabledForTeam: !!team?.type?.properties?.features?.gitIntegration || team?.type?.properties?.enableAllFeatures,
-
-                // Instance Resources
-                isInstanceResourcesFeatureEnabledForPlatform: !!state.features?.instanceResources,
-                isInstanceResourcesFeatureEnabledForTeam: !!team?.type?.properties?.features?.instanceResources || team?.type?.properties?.enableAllFeatures,
-
-                // Tables
-                isTablesFeatureEnabledForPlatform: !!state.features?.tables,
-                isTablesFeatureEnabledForTeam: !!team?.type?.properties?.features?.tables || team?.type?.properties?.enableAllFeatures,
-
-                // Generate Snapshot Descriptions with AI
-                isGeneratedSnapshotDescriptionFeatureEnabledForPlatform: !!state.features?.generatedSnapshotDescription,
-                isGeneratedSnapshotDescriptionFeatureEnabledForTeam: !!team?.type?.properties?.features?.generatedSnapshotDescription || team?.type?.properties?.enableAllFeatures,
-
-                // Applications Role Based Access Control
-                isApplicationsRBACFeatureEnabledForPlatform: !!state.features?.rbacApplication,
-                isApplicationsRBACFeatureEnabledForTeam: !!team?.type?.properties?.features?.rbacApplication || team?.type?.properties?.enableAllFeatures,
-
-                // Expert Assistant
-                isExpertAssistantFeatureEnabledForPlatform: !!state.features?.expertAssistant,
-
-                // Instance Maintenance
-                isInstanceAutoStackUpdateFeatureEnabledForPlatform: !!state.features?.autoStackUpdate
-            }
-            return {
-                ...preCheck,
-                isSharedLibraryFeatureEnabled: preCheck.isSharedLibraryFeatureEnabledForTeam && preCheck.isSharedLibraryFeatureEnabledForPlatform,
-                isBlueprintsFeatureEnabled: preCheck.isBlueprintsFeatureEnabledForTeam && preCheck.isBlueprintsFeatureEnabledForPlatform,
-                isCustomCatalogsFeatureEnabled: preCheck.isCustomCatalogsFeatureEnabledForPlatform && preCheck.isCustomCatalogsFeatureEnabledForTeam,
-                isStaticAssetFeatureEnabled: preCheck.isStaticAssetFeatureEnabledForPlatform && preCheck.isStaticAssetsFeatureEnabledForTeam,
-                isHTTPBearerTokensFeatureEnabled: preCheck.isHTTPBearerTokensFeatureEnabledForPlatform && preCheck.isHTTPBearerTokensFeatureEnabledForTeam,
-                isBOMFeatureEnabled: preCheck.isBOMFeatureEnabledForPlatform && preCheck.isBOMFeatureEnabledForTeam,
-                isTimelineFeatureEnabled: preCheck.isTimelineFeatureEnabledForPlatform && preCheck.isTimelineFeatureEnabledForTeam,
-                isMqttBrokerFeatureEnabled: preCheck.isMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
-                // external broker must be enabled for platform, and share the same team-level feature flag as the team broker
-                isExternalMqttBrokerFeatureEnabled: preCheck.isExternalMqttBrokerFeatureEnabledForPlatform && preCheck.isMqttBrokerFeatureEnabledForTeam,
-                devOpsPipelinesFeatureEnabled: preCheck.devOpsPipelinesFeatureEnabledForPlatform,
-                isDeviceGroupsFeatureEnabled: !!team?.type?.properties?.features?.deviceGroups || !!team?.type?.properties?.enableAllFeatures,
-                isGitIntegrationFeatureEnabled: preCheck.isGitIntegrationFeatureEnabledForPlatform && preCheck.isGitIntegrationFeatureEnabledForTeam,
-                isInstanceResourcesFeatureEnabled: preCheck.isInstanceResourcesFeatureEnabledForPlatform && preCheck.isInstanceResourcesFeatureEnabledForTeam,
-                isTablesFeatureEnabled: preCheck.isTablesFeatureEnabledForPlatform && preCheck.isTablesFeatureEnabledForTeam,
-                isGeneratedSnapshotDescriptionEnabled: preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForPlatform && preCheck.isGeneratedSnapshotDescriptionFeatureEnabledForTeam,
-                isRBACApplicationFeatureEnabled: preCheck.isApplicationsRBACFeatureEnabledForPlatform && preCheck.isApplicationsRBACFeatureEnabledForTeam,
-                isExpertAssistantFeatureEnabled: preCheck.isExpertAssistantFeatureEnabledForPlatform
-            }
+            return checks
         }
     },
     actions: {
