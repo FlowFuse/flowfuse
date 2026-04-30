@@ -123,9 +123,8 @@ export default {
                 this.awaitingEditorRestart = false
             }
         },
-        'instance.meta.state' (newState) {
-            const restartingStates = ['restarting', 'installing', 'starting', 'loading', 'stopping', 'stopped']
-            if (this.awaitingEditorRestart && restartingStates.includes(newState)) {
+        shouldDisplayLoadingScreen (isLoading) {
+            if (this.awaitingEditorRestart && isLoading) {
                 this.awaitingEditorRestart = false
             }
         }
