@@ -1,7 +1,10 @@
 import type {
     IClientSubscribeOptions,
+    IConnackPacket,
+    IDisconnectPacket,
     IPublishPacket,
-    MqttClient
+    MqttClient,
+    Packet
 } from 'mqtt'
 
 import type { AppService } from '@/types'
@@ -36,11 +39,17 @@ export interface MqttReconnectPolicy {
 }
 
 export interface MqttConnectionHandlers {
-    onConnect?: (client: MqttClient) => void
+    onConnect?: (packet: IConnackPacket, client: MqttClient) => void
     onClose?: (client: MqttClient) => void
+    onDisconnect?: (packet: IDisconnectPacket, client: MqttClient) => void
     onOffline?: (client: MqttClient) => void
+    onEnd?: (client: MqttClient) => void
+    onReconnect?: (client: MqttClient) => void
     onError?: (error: Error, client: MqttClient | null) => void
     onMessage?: (topic: string, message: Buffer, packet: IPublishPacket, client: MqttClient) => void
+    onPacketSend?: (packet: Packet, client: MqttClient) => void
+    onPacketReceive?: (packet: Packet, client: MqttClient) => void
+    onOutgoingEmpty?: (client: MqttClient) => void
 }
 
 export interface MqttPublishRequest {

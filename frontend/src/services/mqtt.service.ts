@@ -1,8 +1,11 @@
 import Mqtt, {
     type IClientPublishOptions,
+    type IConnackPacket,
+    type IDisconnectPacket,
     type IPublishPacket,
     type MqttClient,
-    type MqttClientEventCallbacks
+    type MqttClientEventCallbacks,
+    type Packet
 } from 'mqtt'
 
 import { BaseService } from './service.contract'
@@ -487,7 +490,7 @@ class MqttService extends BaseService implements MqttServiceI {
             managed.listeners.add(() => client.off(eventName, wrapped))
         }
 
-        register('connect', async () => {
+        register('connect', async (connack: IConnackPacket) => {
             managed.status = 'connected'
             managed.reconnectAttempt = 0
             managed.terminalFailure = false
@@ -503,7 +506,7 @@ class MqttService extends BaseService implements MqttServiceI {
                 }
             }
 
-            managed.handlers.onConnect?.(client)
+            managed.handlers.onConnect?.(connack, client)
         })
 
         register('close', () => {
@@ -512,10 +515,22 @@ class MqttService extends BaseService implements MqttServiceI {
             this.scheduleReconnect(managed)
         })
 
+        register('disconnect', (packet: IDisconnectPacket) => {
+            managed.handlers.onDisconnect?.(packet, client)
+        })
+
         register('offline', () => {
             managed.status = 'disconnected'
             managed.handlers.onOffline?.(client)
             this.scheduleReconnect(managed)
+        })
+
+        register('end', () => {
+            managed.handlers.onEnd?.(client)
+        })
+
+        register('reconnect', () => {
+            managed.handlers.onReconnect?.(client)
         })
 
         register('error', (error: Error) => {
@@ -524,6 +539,18 @@ class MqttService extends BaseService implements MqttServiceI {
 
         register('message', (topic: string, message: Buffer, packet: IPublishPacket) => {
             managed.handlers.onMessage?.(topic, message, packet, client)
+        })
+
+        register('packetsend', (packet: Packet) => {
+            managed.handlers.onPacketSend?.(packet, client)
+        })
+
+        register('packetreceive', (packet: Packet) => {
+            managed.handlers.onPacketReceive?.(packet, client)
+        })
+
+        register('outgoingEmpty', () => {
+            managed.handlers.onOutgoingEmpty?.(client)
         })
     }
 
@@ -935,5 +962,38 @@ export async function destroyMqttService (): Promise<void> {
     await MqttServiceInstance.destroy()
     MqttServiceInstance = null
 }
+
+export const FATAL_ERROR_CODES = new Set([
+    0x84, // Unsupported Protocol Version
+    0x86, // Bad User Name or Password
+    0x8A, // Banned
+    0x8C, // Bad authentication method
+    0x9A, // Retain not supported
+    0x9B, // QoS not supported
+    0x9E, // Shared Subscriptions not supported
+    0xA1, // Subscription Identifiers not supported
+    0xA2 // Wildcard Subscriptions not supported
+])
+
+export const TRANSIENT_ERROR_CODES = new Set([
+    0x88, // Server unavailable
+    0x89, // Server busy
+    0x8B, // Server shutting down
+    0x98, // Administrative action
+    0xA0 // Maximum connect time
+])
+
+export const THROTTLED_ERROR_CODES = new Set([
+    0x97, // Quota exceeded
+    0x9F // Connection rate exceeded
+])
+
+export const PROTOCOL_BUG_ERROR_CODES = new Set([
+    0x81, 0x82, // Malformed Packet, Protocol Error
+    0x8F, 0x90, // Topic Filter / Topic Name invalid
+    0x91, 0x92, // Packet Identifier issues
+    0x93, 0x94, // Receive Maximum / Topic Alias
+    0x95, 0x96, 0x99 // Packet too large, Rate too high, Payload format
+])
 
 export default createMqttService
