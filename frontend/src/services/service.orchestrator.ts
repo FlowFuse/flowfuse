@@ -7,7 +7,7 @@ import { Maybe } from '@/types/common/types'
 import type { ServiceInstances } from '@/types/services/service.types'
 
 /**
- * Service Factory - Manages service creation with dependency injection
+ * Service Orchestrator - Manages service creation with dependency injection
  */
 class ServiceOrchestrator {
     $serviceInstances: ServiceInstances = Object.fromEntries(SERVICE_REGISTRY.map(service => [service.key, null])) as ServiceInstances
