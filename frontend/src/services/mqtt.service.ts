@@ -1,4 +1,5 @@
 import Mqtt, {
+    type IClientPublishOptions,
     type IPublishPacket,
     type MqttClient,
     type MqttClientEventCallbacks
@@ -30,7 +31,7 @@ type PublishPayload = string | NormalizedBinaryPayload
 type TerminalConnectionError = Error & { code?: string }
 
 interface MqttNormalizedPublishProperties {
-    correlationData?: NormalizedBinaryPayload
+    correlationData?: string
     userProperties?: Record<string, string | string[]>
 }
 
@@ -220,17 +221,18 @@ class MqttService extends BaseService implements MqttServiceI {
             return Promise.reject(error)
         }
 
-        const publishOptions: {
-            qos: 0 | 1 | 2
-            retain?: boolean
-            properties?: MqttNormalizedPublishProperties
-        } = {
+        const publishOptions: IClientPublishOptions = {
             qos,
             retain
         }
 
         if (properties) {
-            publishOptions.properties = properties
+            publishOptions.properties = {
+                ...properties,
+                correlationData: properties.correlationData
+                    ? new TextEncoder().encode(properties.correlationData) as unknown as Buffer
+                    : undefined
+            }
         }
 
         if (waitForConnection) {
@@ -799,7 +801,7 @@ class MqttService extends BaseService implements MqttServiceI {
         correlationData,
         userProperties
     }: {
-        correlationData: Maybe<string | BinaryPayload>
+        correlationData: Maybe<string>
         userProperties: Maybe<Record<string, string | string[]>>
     }): MqttNormalizedPublishProperties | undefined {
         const normalizedCorrelationData = this._normalizeCorrelationData(correlationData)
@@ -815,23 +817,16 @@ class MqttService extends BaseService implements MqttServiceI {
         }
     }
 
-    _normalizeCorrelationData (correlationData: Maybe<string | BinaryPayload>): NormalizedBinaryPayload | undefined {
+    _normalizeCorrelationData (correlationData: Maybe<string>): string | undefined {
         if (correlationData === null || correlationData === undefined) {
             return undefined
         }
 
         if (typeof correlationData === 'string') {
-            if (typeof Buffer !== 'undefined') {
-                return Buffer.from(correlationData)
-            }
-            return new TextEncoder().encode(correlationData) as unknown as NormalizedBinaryPayload
+            return correlationData
         }
 
-        if (this._isBinaryPayload(correlationData)) {
-            return this._normalizeBinaryPayload(correlationData)
-        }
-
-        throw new TypeError('MQTT publish correlationData must be a string or binary value')
+        throw new TypeError('MQTT publish correlationData must be a string')
     }
 
     _normalizeUserProperties (userProperties: Maybe<Record<string, string | string[]>>): Record<string, string | string[]> | undefined {

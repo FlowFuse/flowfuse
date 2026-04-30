@@ -49,7 +49,7 @@ export interface MqttPublishRequest {
     qos?: 0 | 1 | 2
     retain?: boolean
     onError?: ((error: Error) => void) | null
-    correlationData?: string | BinaryPayload | null
+    correlationData?: string | null
     userProperties?: Record<string, string | string[]> | null
     serialize?: SerializeMode
     waitForConnection?: boolean
