@@ -112,6 +112,55 @@ export const useProductExpertStore = defineStore('product-expert', {
                     })
                 })
         },
+
+        openAssistantDrawer (options = {}) {
+            const featuresCheck = useAccountSettingsStore().featuresCheck
+            if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+
+            // In immersive editor context, navigate to the Expert tab instead of opening RightDrawer
+            const contextStore = useContextStore()
+            if (contextStore.isImmersiveEditor) {
+                const drawersStore = useUxDrawersStore()
+                if (!drawersStore.editorImmersiveDrawer.state) {
+                    drawersStore.openEditorImmersiveDrawer()
+                }
+                const expertRouteName = contextStore.editorEntityType === 'device'
+                    ? 'device-editor-expert'
+                    : 'instance-editor-expert'
+                // Lazy require: top-level import would form a cycle via Platform → RightDrawer → product-expert.js
+                const router = require('@/routes.js').default
+                return router.push({ name: expertRouteName, params: contextStore.route.params })
+            }
+
+            useProductExpertInsightsAgentStore().getCapabilities()
+            // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
+            return import('../components/drawers/expert/ExpertDrawer.vue')
+                .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({
+                    component: markRaw(ExpertDrawer),
+                    fixed: options?.openPinned === true,
+                    closeOnClickOutside: options?.openPinned !== true
+                }))
+        },
+
+        wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
+            if (this.shouldWakeUpAssistant) {
+                const featuresCheck = useAccountSettingsStore().featuresCheck
+                if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+
+                this.clearWakeUp()
+
+                if (shouldHydrateMessages) {
+                    this.hydrateMessages(this._agentStore.context)
+                }
+
+                this.loadingVariant = 'transfer'
+
+                return this.openAssistantDrawer({ openPinned: useUxDrawersStore().rightDrawer.expertState.pinned })
+                    .then(() => this.hydrateClient())
+                    .then(() => { this.loadingVariant = this.agentMode })
+            }
+        },
+
         async handleQuery ({ query }) {
             const agentStore = this._agentStore
 
@@ -318,37 +367,37 @@ export const useProductExpertStore = defineStore('product-expert', {
             // Add welcome message for current mode
             this.addWelcomeMessageIfNeeded()
         },
-        openAssistantDrawer (options = {}) {
-            const featuresCheck = useAccountSettingsStore().featuresCheck
-            if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
-
-            useProductExpertInsightsAgentStore().getCapabilities()
-            // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
-            return import('../components/drawers/expert/ExpertDrawer.vue')
-                .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({
-                    component: markRaw(ExpertDrawer),
-                    fixed: options?.openPinned === true,
-                    closeOnClickOutside: options?.openPinned !== true
-                }))
-        },
-        wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
-            if (this.shouldWakeUpAssistant) {
-                const featuresCheck = useAccountSettingsStore().featuresCheck
-                if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
-
-                this.clearWakeUp()
-
-                if (shouldHydrateMessages) {
-                    this.hydrateMessages(this._agentStore.context)
-                }
-
-                this.loadingVariant = 'transfer'
-
-                return this.openAssistantDrawer({ openPinned: useUxDrawersStore().rightDrawer.expertState.pinned })
-                    .then(() => this.hydrateClient())
-                    .then(() => { this.loadingVariant = this.agentMode })
-            }
-        },
+        // openAssistantDrawer (options = {}) {
+        //     const featuresCheck = useAccountSettingsStore().featuresCheck
+        //     if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+        //
+        //     useProductExpertInsightsAgentStore().getCapabilities()
+        //     // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
+        //     return import('../components/drawers/expert/ExpertDrawer.vue')
+        //         .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({
+        //             component: markRaw(ExpertDrawer),
+        //             fixed: options?.openPinned === true,
+        //             closeOnClickOutside: options?.openPinned !== true
+        //         }))
+        // },
+        // wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
+        //     if (this.shouldWakeUpAssistant) {
+        //         const featuresCheck = useAccountSettingsStore().featuresCheck
+        //         if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+        //
+        //         this.clearWakeUp()
+        //
+        //         if (shouldHydrateMessages) {
+        //             this.hydrateMessages(this._agentStore.context)
+        //         }
+        //
+        //         this.loadingVariant = 'transfer'
+        //
+        //         return this.openAssistantDrawer({ openPinned: useUxDrawersStore().rightDrawer.expertState.pinned })
+        //             .then(() => this.hydrateClient())
+        //             .then(() => { this.loadingVariant = this.agentMode })
+        //     }
+        // },
         setAbortController (controller) {
             this._agentStore.abortController = controller ? markRaw(controller) : null
         },

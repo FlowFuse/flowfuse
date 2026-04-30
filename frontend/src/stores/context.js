@@ -27,6 +27,15 @@ export const useContextStore = defineStore('context', {
         isTrialAccountExpired (state) {
             return this.isTrialAccount && state.team?.billing?.trialEnded
         },
+        editorEntityType (state) {
+            const name = state.route?.name
+            if (name?.startsWith('instance-editor')) return 'instance'
+            if (name?.startsWith('device-editor')) return 'device'
+            return null
+        },
+        isImmersiveEditor () {
+            return this.editorEntityType !== null
+        },
         expert (state) {
             const authStore = useAccountAuthStore()
             const assistantStore = useProductAssistantStore()
