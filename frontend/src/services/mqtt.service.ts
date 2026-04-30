@@ -1,4 +1,5 @@
 import Mqtt, {
+    type ErrorWithReasonCode,
     type IClientPublishOptions,
     type IConnackPacket,
     type IDisconnectPacket,
@@ -146,6 +147,7 @@ class MqttService extends BaseService implements MqttServiceI {
                 connectionWaiters: new Set(),
                 terminalFailure: false,
                 lastError: null,
+                connectHandlerPromise: null,
                 handlers: {
                     onConnect,
                     onClose,
@@ -467,7 +469,7 @@ class MqttService extends BaseService implements MqttServiceI {
             clientId: credentials.clientId,
             reconnectPeriod: 0,
             protocolVersion: 5,
-            keepalive: 2
+            keepalive: 10
         })
 
         managed.client = client
@@ -490,7 +492,7 @@ class MqttService extends BaseService implements MqttServiceI {
             managed.listeners.add(() => client.off(eventName, wrapped))
         }
 
-        register('connect', async (connack: IConnackPacket) => {
+        register('connect', (connack: IConnackPacket) => {
             managed.status = 'connected'
             managed.reconnectAttempt = 0
             managed.terminalFailure = false
@@ -498,15 +500,21 @@ class MqttService extends BaseService implements MqttServiceI {
             this.clearReconnectTimer(managed)
             this.resolveConnectionWaiters(managed)
 
-            try {
-                await this.replaySubscriptions(managed, client)
-            } catch (error) {
-                if (error instanceof Error) {
-                    managed.handlers.onError?.(error, client)
+            const handleAsync = async () => {
+                try {
+                    await this.replaySubscriptions(managed, client)
+                } catch (error) {
+                    if (error instanceof Error) {
+                        managed.handlers.onError?.(error, client)
+                    }
                 }
+
+                managed.handlers.onConnect?.(connack, client)
             }
 
-            managed.handlers.onConnect?.(connack, client)
+            managed.connectHandlerPromise = handleAsync().finally(() => {
+                managed.connectHandlerPromise = null
+            })
         })
 
         register('close', () => {
@@ -533,7 +541,7 @@ class MqttService extends BaseService implements MqttServiceI {
             managed.handlers.onReconnect?.(client)
         })
 
-        register('error', (error: Error) => {
+        register('error', (error: Error | ErrorWithReasonCode) => {
             managed.handlers.onError?.(error, client)
         })
 
@@ -590,6 +598,10 @@ class MqttService extends BaseService implements MqttServiceI {
             const managed = this.$clients.get(key)
             if (!managed || managed.destroyed || managed.intentionalDisconnect || this.$destroyed) {
                 return
+            }
+
+            if (managed.connectHandlerPromise) {
+                await managed.connectHandlerPromise.catch(() => {})
             }
 
             if (managed.client?.connected) {
@@ -809,10 +821,13 @@ class MqttService extends BaseService implements MqttServiceI {
 
         const enabled = reconnect?.enabled ?? hasDynamicCredentials ?? initialDelay > 0
 
+        const effectiveInitialDelay = enabled && initialDelay === 0 ? 1000 : initialDelay
+        const effectiveMaxDelay = Math.max(effectiveInitialDelay, maxDelay)
+
         return {
             enabled,
-            initialDelay,
-            maxDelay,
+            initialDelay: effectiveInitialDelay,
+            maxDelay: effectiveMaxDelay,
             factor
         }
     }
@@ -995,5 +1010,52 @@ export const PROTOCOL_BUG_ERROR_CODES = new Set([
     0x93, 0x94, // Receive Maximum / Topic Alias
     0x95, 0x96, 0x99 // Packet too large, Rate too high, Payload format
 ])
+
+export const ERRORS_WITHOUT_CODES = {
+    connack: {
+        slug: 'connack timeout',
+        reason: 'Broker didn\'t respond to CONNECT within connectTimeout'
+    },
+    keepalive: {
+        slug: 'keepalive timeout',
+        reason: 'Broker stopped responding to keepalive pings'
+    },
+    disconnecting: {
+        slug: 'client disconnecting',
+        reason: 'Tried to send a packet while the client is disconnecting'
+    },
+    connection: {
+        slug: 'connection closed',
+        reason: 'Outgoing packet couldn\'t be delivered because connection dropped'
+    },
+    websocket: {
+        slug: 'websocket error',
+        reason: 'WebSocket transport error'
+    },
+    cantConnect: {
+        slug: 'couldn\'t connect to server',
+        reason: 'TCP/WS connection failed entirely'
+    },
+    unrecognizedPacket: {
+        slug: 'unrecognized packet type',
+        reason: 'Broker sent an unknown packet (protocol bug)'
+    },
+    exceedingPacket: {
+        slug: 'exceeding packets size',
+        reason: 'Incoming packet exceeded max size'
+    },
+    unregisteredTopic: {
+        slug: 'received unregistered topic alias',
+        reason: 'Broker sent a topic alias the client doesn\'t know'
+    },
+    topicAliasRange: {
+        slug: 'received topic alias is out of range',
+        reason: 'Topic alias outside negotiated range'
+    },
+    topicAliasMaximum: {
+        slug: 'topicAliasMaximum from broker is out of range',
+        reason: 'CONNACK contained invalid topic alias max'
+    }
+}
 
 export default createMqttService

@@ -274,7 +274,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                 const { correlationId } = payloadData
                 const inflight = this.pendingRequests.get(correlationId)
                 if (inflight) {
-                    console.debug('Received response for in-flight request:', { correlationId, originalRequest: inflight.postMessagePayload, response: payloadData })
+                    // console.debug('Received response for in-flight request:', { correlationId, originalRequest: inflight.postMessagePayload, response: payloadData })
                     inflight.resolve(payloadData)
                     this.pendingRequests.delete(correlationId)
                 } else {

@@ -1,4 +1,5 @@
 import type {
+    ErrorWithReasonCode,
     IClientSubscribeOptions,
     IConnackPacket,
     IDisconnectPacket,
@@ -45,7 +46,7 @@ export interface MqttConnectionHandlers {
     onOffline?: (client: MqttClient) => void
     onEnd?: (client: MqttClient) => void
     onReconnect?: (client: MqttClient) => void
-    onError?: (error: Error, client: MqttClient | null) => void
+    onError?: (error: Error | ErrorWithReasonCode, client: MqttClient | null) => void
     onMessage?: (topic: string, message: Buffer, packet: IPublishPacket, client: MqttClient) => void
     onPacketSend?: (packet: Packet, client: MqttClient) => void
     onPacketReceive?: (packet: Packet, client: MqttClient) => void
@@ -103,6 +104,7 @@ export interface ManagedMqttClient {
     connectionWaiters: Set<MqttConnectionWaiter>
     terminalFailure: boolean
     lastError: Error | null
+    connectHandlerPromise: Promise<void> | null
 }
 
 export interface MqttServiceI extends AppService {
