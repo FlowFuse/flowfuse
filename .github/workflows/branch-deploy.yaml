@@ -585,7 +585,7 @@ jobs:
       # Outputs `recipients` as JSON: [{ slack_id, github, role }, ...]. Unresolved users are skipped with a warning.
       - name: Resolve Slack users for recipients
         id: resolve
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
           SLACK_GITHUB_FIELD_ID: "Xf0A2BPU8U77"
@@ -673,7 +673,7 @@ jobs:
       # Step fails only if all sends fail; partial failures are logged as warnings.
       - name: Send Slack notifications
         if: steps.resolve.outputs.recipients != '' && steps.resolve.outputs.recipients != '[]'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
           RECIPIENTS: ${{ steps.resolve.outputs.recipients }}
