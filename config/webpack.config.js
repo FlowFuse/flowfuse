@@ -40,6 +40,17 @@ module.exports = function (env, argv) {
                     }
                 },
                 {
+                    test: /\.ts$/,
+                    exclude: /node_modules/,
+                    use: {
+                        loader: 'ts-loader',
+                        options: {
+                            appendTsSuffixTo: [/\.vue$/],
+                            transpileOnly: true
+                        }
+                    }
+                },
+                {
                     test: /\.vue$/,
                     loader: 'vue-loader'
                 },
@@ -169,6 +180,7 @@ module.exports = function (env, argv) {
             poll: 1000
         },
         resolve: {
+            extensions: ['.ts', '.js', '.vue', '.json'],
             alias: {
                 // Use vue with the runtime compiler (needed for template strings)
                 // To-do: Remove use of template strings, https://github.com/FlowFuse/flowfuse/issues/3290

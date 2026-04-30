@@ -5,7 +5,7 @@ import { markRaw } from 'vue'
 import expertApi from '../api/expert.js'
 import useTimerHelper from '../composables/TimerHelper.js'
 
-import { useAccountBridge } from './_account_bridge.js'
+import { useAccountSettingsStore } from './account-settings.js'
 import { useContextStore } from './context.js'
 import { useProductAssistantStore } from './product-assistant.js'
 import { INSIGHTS_AGENT, SUPPORT_AGENT } from './product-expert-agents.js'
@@ -46,7 +46,7 @@ export const useProductExpertStore = defineStore('product-expert', {
     },
     actions: {
         setContext ({ data, sessionId }) {
-            const { featuresCheck } = useAccountBridge()
+            const featuresCheck = useAccountSettingsStore().featuresCheck
             if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
                 return
             }
@@ -64,7 +64,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             this.shouldWakeUpAssistant = false
         },
         async hydrateClient () {
-            const { featuresCheck } = useAccountBridge()
+            const featuresCheck = useAccountSettingsStore().featuresCheck
             if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
                 return
             }
@@ -73,10 +73,10 @@ export const useProductExpertStore = defineStore('product-expert', {
             //  https://github.com/FlowFuse/flowfuse/issues/6519 as it's a hacky workaround to the expert drawer opening up
             //  before we have a team loaded
             const { waitWhile } = useTimerHelper()
-            await waitWhile(() => !useAccountBridge().team, { cutoffTries: 60 })
+            await waitWhile(() => !useContextStore().team, { cutoffTries: 60 })
 
             const agentStore = this._agentStore
-            const { team } = useAccountBridge()
+            const team = useContextStore().team
 
             return expertApi
                 .chat({
@@ -93,8 +93,23 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
 
         openAssistantDrawer (options = {}) {
-            const { featuresCheck } = useAccountBridge()
+            const featuresCheck = useAccountSettingsStore().featuresCheck
             if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+
+            // In immersive editor context, navigate to the Expert tab instead of opening RightDrawer
+            const contextStore = useContextStore()
+            if (contextStore.isImmersiveEditor) {
+                const drawersStore = useUxDrawersStore()
+                if (!drawersStore.editorImmersiveDrawer.state) {
+                    drawersStore.openEditorImmersiveDrawer()
+                }
+                const expertRouteName = contextStore.editorEntityType === 'device'
+                    ? 'device-editor-expert'
+                    : 'instance-editor-expert'
+                // Lazy require: top-level import would form a cycle via Platform → RightDrawer → product-expert.js
+                const router = require('@/routes.js').default
+                return router.push({ name: expertRouteName, params: contextStore.route.params })
+            }
 
             useProductExpertInsightsAgentStore().getCapabilities()
             // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
@@ -108,7 +123,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
         wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
             if (this.shouldWakeUpAssistant) {
-                const { featuresCheck } = useAccountBridge()
+                const featuresCheck = useAccountSettingsStore().featuresCheck
                 if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
 
                 this.clearWakeUp()

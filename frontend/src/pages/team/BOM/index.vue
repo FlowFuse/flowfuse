@@ -72,7 +72,7 @@
 
 <script>
 import { SearchIcon } from '@heroicons/vue/outline'
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
 
 import teamApi from '../../../api/team.js'
 
@@ -81,6 +81,9 @@ import FeatureUnavailable from '../../../components/banners/FeatureUnavailable.v
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import BomDependencies from '../../../components/bill-of-materials/BomDependencies.vue'
 import usePermissions from '../../../composables/Permissions.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamBOM',
@@ -105,7 +108,8 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         payload () {
             const payload = { children: [] }
             this.intermediaryPayload.forEach(app => {

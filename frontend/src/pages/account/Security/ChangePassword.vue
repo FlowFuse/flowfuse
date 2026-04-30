@@ -14,11 +14,13 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import userApi from '../../../api/user.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 let zxcvbn
 
@@ -46,7 +48,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user']),
+        ...mapState(useAccountAuthStore, ['user']),
         formValid () {
             return this.input.old_password &&
                    this.input.password &&

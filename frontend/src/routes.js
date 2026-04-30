@@ -1,7 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import { useStore } from 'vuex'
-
 import Home from './pages/Home.vue'
 import PageNotFound from './pages/PageNotFound.vue'
 
@@ -13,6 +11,8 @@ import HelpRoutes from './pages/help/routes.js'
 import InstanceEditorRoutes from './pages/instance/Editor/routes.js'
 import InstanceRoutes from './pages/instance/routes.js'
 import TeamRoutes from './pages/team/routes.js'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 const routes = [
     {
@@ -51,13 +51,13 @@ const router = createRouter({
 })
 
 function clearRedirectUrl (to, from) {
-    const store = useStore()
+    const authStore = useAccountAuthStore()
 
     if (
-        store.state?.account?.user &&
-        store.state?.account?.redirectUrlAfterLogin &&
-        store.state?.account?.redirectUrlAfterLogin.includes(from.fullPath)) {
-        store.dispatch('account/setRedirectUrl', null)
+        authStore.user &&
+        authStore.redirectUrlAfterLogin &&
+        authStore.redirectUrlAfterLogin.includes(from.fullPath)) {
+        authStore.setRedirectUrl(null)
     }
 }
 

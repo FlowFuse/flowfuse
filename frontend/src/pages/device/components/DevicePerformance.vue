@@ -1,8 +1,8 @@
 <template>
     <div id="device-performance" class="flex-1 flex flex-col overflow-auto">
         <div class="banner-wrapper">
-            <FeatureUnavailable v-if="!isInstanceResourcesFeatureEnabledForPlatform" />
-            <FeatureUnavailableToTeam v-else-if="!isInstanceResourcesFeatureEnabledForTeam" />
+            <FeatureUnavailable v-if="!featuresCheck.isInstanceResourcesFeatureEnabledForPlatform" />
+            <FeatureUnavailableToTeam v-else-if="!featuresCheck.isInstanceResourcesFeatureEnabledForTeam" />
             <FeatureUnavailable
                 v-if="!agentSatisfiesVersion"
                 message="Update your device agent to the latest version to enable this feature"
@@ -59,8 +59,8 @@
 
 <script>
 import { ChipIcon } from '@heroicons/vue/outline'
+import { mapState } from 'pinia'
 import SemVer from 'semver'
-import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -73,7 +73,9 @@ import CpuChart from '../../../components/charts/performance/CpuChart.vue'
 import MemoryChart from '../../../components/charts/performance/MemoryChart.vue'
 import InformationWell from '../../../components/wells/InformationWell.vue'
 import usePermissions from '../../../composables/Permissions.js'
-import featuresMixin from '../../../mixins/Features.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 let mqtt
 
@@ -90,7 +92,6 @@ export default {
         FeatureUnavailable,
         FeatureUnavailableToTeam
     },
-    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         device: {
@@ -115,7 +116,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
+        ...mapState(useContextStore, ['team']),
         deviceOnline () {
             const offline = ['stopped', 'offline', 'error']
             return !offline.includes(this.device.status)
@@ -124,8 +126,8 @@ export default {
             return this.device && this.device.agentVersion && SemVer.satisfies(this.device.agentVersion, '>=3.5.1', { includePrerelease: true })
         },
         featureAvailable () {
-            return this.isInstanceResourcesFeatureEnabledForPlatform &&
-                this.isInstanceResourcesFeatureEnabledForTeam &&
+            return this.featuresCheck.isInstanceResourcesFeatureEnabledForPlatform &&
+                this.featuresCheck.isInstanceResourcesFeatureEnabledForTeam &&
                 this.agentSatisfiesVersion && this.deviceOnline
         }
     },

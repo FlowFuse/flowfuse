@@ -17,7 +17,10 @@
 <script>
 import { ChevronRightIcon, ExclamationCircleIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'LicenseBanner',
@@ -26,7 +29,8 @@ export default {
         ChevronRightIcon
     },
     computed: {
-        ...mapState('account', ['settings', 'user']),
+        ...mapState(useAccountSettingsStore, ['settings']),
+        ...mapState(useAccountAuthStore, ['user']),
         license () {
             return this.settings.license || {}
         },

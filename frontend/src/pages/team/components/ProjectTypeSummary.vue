@@ -14,13 +14,15 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'ProjectTypeSummary',
     props: ['projectType'],
     computed: {
-        ...mapState('account', ['features'])
+        ...mapState(useAccountSettingsStore, ['features'])
     }
 }
 </script>

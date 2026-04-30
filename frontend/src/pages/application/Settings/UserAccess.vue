@@ -14,8 +14,9 @@
 </template>
 
 <script>
+
+import { mapState } from 'pinia'
 import { defineComponent, markRaw } from 'vue'
-import { mapGetters } from 'vuex'
 
 import teamClient from '../../../api/team.js'
 import EditApplicationPermissionsDialog from '../../../components/dialogs/EditApplicationPermissionsDialog.vue'
@@ -23,6 +24,10 @@ import UserCell from '../../../components/tables/cells/UserCell.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import RoleRow from './components/RoleRow.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default defineComponent({
     name: 'UserAccess',
@@ -45,7 +50,9 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapGetters('account', ['team', 'featuresCheck', 'isAdminUser']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
+        ...mapState(useAccountAuthStore, ['isAdminUser']),
         columns () {
             return [
                 {

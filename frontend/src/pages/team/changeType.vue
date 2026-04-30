@@ -93,7 +93,7 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import billingApi from '../../api/billing.js'
 import instanceTypesApi from '../../api/instanceTypes.js'
@@ -104,6 +104,11 @@ import { useHubspotHelper } from '../../composables/Hubspot.js'
 
 import Alerts from '../../services/alerts.js'
 import Product from '../../services/product.js'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 
 // eslint-disable-next-line vue/one-component-per-file
 export default {
@@ -138,7 +143,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'team', 'features']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useAccountAuthStore, ['user']),
         formValid () {
             const isChangingTeamType = this.input.teamTypeId !== this.team.type.id
 
@@ -335,8 +342,8 @@ export default {
             }
 
             teamApi.updateTeam(this.team.id, opts).then(async result => {
-                await this.$store.dispatch('account/refreshTeams')
-                await this.$store.dispatch('account/refreshTeam')
+                await useAccountStore().refreshTeams()
+                await useContextStore().refreshTeam()
                 // send posthog event
                 Product.capture('$ff-team-type-changed', {
                     'team-type-id': opts.type,

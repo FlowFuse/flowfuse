@@ -5,7 +5,7 @@
                 <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 flex-shrink-0">
                 <h2 class="title">Expert</h2>
             </div>
-            <div class="agent-mode">
+            <div v-if="isInsightsModeEnabled" class="agent-mode">
                 <toggle-button-group
                     v-model="agentModeWrapper"
                     :buttons="agentModeButtons"
@@ -41,12 +41,13 @@
 
 <script>
 import { LockClosedIcon, LockOpenIcon, XIcon } from '@heroicons/vue/solid'
+
 import { mapActions, mapState } from 'pinia'
 
 import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
-
 import ExpertPanel from '../../expert/Expert.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -63,11 +64,15 @@ export default {
     computed: {
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useProductExpertStore, ['agentMode']),
+        ...mapState(useAccountSettingsStore, ['features']),
         agentModeButtons () {
             return [
                 { title: 'Support', value: 'support-agent' },
                 { title: 'Insights', value: 'insights-agent' }
             ]
+        },
+        isInsightsModeEnabled () {
+            return !!this.features.expertInsights
         },
         isPinned () {
             return this.rightDrawer.fixed

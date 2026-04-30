@@ -8,9 +8,12 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+
+import { mapState } from 'pinia'
 
 import SectionSideMenu from '../../components/SectionSideMenu.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'AccountSecurity',
@@ -18,7 +21,7 @@ export default {
         SectionSideMenu
     },
     computed: {
-        ...mapState('account', ['user', 'features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         sideNavigation () {
             const navigation = [
                 { name: 'Password', path: '/account/security/password' },

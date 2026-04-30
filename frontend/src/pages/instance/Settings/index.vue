@@ -38,12 +38,15 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import instanceActionsMixin from '../../../mixins/InstanceActions.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceSettings',
@@ -80,7 +83,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features', 'settings']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['features', 'settings']),
         navigation () {
             const canEditProject = this.hasPermission('project:edit', { application: this.instance.application })
 

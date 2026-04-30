@@ -28,13 +28,12 @@
 </template>
 
 <script>
-import { mapActions } from 'pinia'
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import userApi from '../api/user.js'
 import FFLayoutBox from '../layouts/Box.vue'
-import store from '../store/index.js'
 
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 import { useUxStore } from '@/stores/ux.js'
 
@@ -52,7 +51,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user'])
+        ...mapState(useAccountAuthStore, ['user'])
     },
     methods: {
         ...mapActions(useUxStore, ['setNewlyCreatedUser']),
@@ -89,7 +88,7 @@ export default {
             tick()
         },
         logout () {
-            store.dispatch('account/logout')
+            useAccountAuthStore().logout()
         }
     }
 }

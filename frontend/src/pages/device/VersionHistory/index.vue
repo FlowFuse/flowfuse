@@ -1,6 +1,6 @@
 <template>
     <SectionTopMenu>
-        <template v-if="!isInImmersiveMode" #hero>
+        <template #hero>
             <toggle-button-group :buttons="pageToggle" data-nav="page-toggle" title="View" :visually-hide-title="true" />
         </template>
         <template v-if="!isInImmersiveMode" #pictogram>
@@ -70,6 +70,7 @@
     </router-view>
 
     <SnapshotCreateDialog
+        v-if="device"
         ref="snapshotCreateDialog"
         title="Create Device Snapshot"
         data-el="dialog-create-device-snapshot"
@@ -80,6 +81,7 @@
         @canceled="onSnapshotCancel"
     />
     <SnapshotImportDialog
+        v-if="device"
         ref="snapshotImportDialog"
         title="Upload Snapshot"
         data-el="dialog-import-snapshot"
@@ -169,7 +171,7 @@ export default {
             return this.device?.ownerType === 'application'
         },
         isUnassigned () {
-            return this.device?.ownerType === ''
+            return !this.device?.ownerType
         },
         canCreateSnapshot () {
             if (!this.developerMode || this.busy) {

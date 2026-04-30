@@ -17,11 +17,13 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import userApi from '../api/user.js'
 import FFLayoutBox from '../layouts/Box.vue'
-import store from '../store/index.js'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'TermsAndConditions',
@@ -34,10 +36,13 @@ export default {
             accept: false
         }
     },
-    computed: mapState('account', ['user', 'settings']),
+    computed: {
+        ...mapState(useAccountSettingsStore, ['settings']),
+        ...mapState(useAccountAuthStore, ['user'])
+    },
     methods: {
         logout () {
-            store.dispatch('account/logout')
+            useAccountAuthStore().logout()
         },
         async acceptAction () {
             const options = {}
@@ -45,7 +50,7 @@ export default {
                 options.tcs_accepted = this.accept
                 this.loading = true
                 await userApi.updateUser(options)
-                this.$store.dispatch('account/checkState')
+                useAccountAuthStore().checkState()
             } catch (error) {
                 console.warn(error)
             } finally {

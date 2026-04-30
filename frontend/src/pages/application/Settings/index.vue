@@ -15,11 +15,14 @@
 
 <script>
 
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
 
 import SectionSideMenu from '../../../components/SectionSideMenu.vue'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import usePermissions from '../../../composables/Permissions.js'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'ApplicationSettings',
@@ -41,7 +44,8 @@ export default {
         return { hasPermission }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'isAdminUser']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
+        ...mapState(useAccountAuthStore, ['isAdminUser']),
         sideNavigation () {
             return [
                 {

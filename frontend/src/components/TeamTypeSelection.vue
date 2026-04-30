@@ -19,11 +19,14 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+
+import { mapState } from 'pinia'
 
 import teamTypesApi from '../api/teamTypes.js'
 
 import TeamTypeTile from './TeamTypeTile.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'TeamTypeSelection',
@@ -38,8 +41,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user']),
-        ...mapGetters('account', ['isBillingEnabled'])
+        ...mapState(useAccountSettingsStore, ['isBillingEnabled'])
     },
     async created () {
         const { types } = await teamTypesApi.getTeamTypes()

@@ -3,7 +3,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
 
 import adminApi from '../../api/admin.js'
 
@@ -15,7 +14,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'user', 'team'])
     },
     async mounted () {
         try {

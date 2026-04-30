@@ -17,16 +17,19 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import FormHeading from '../../../components/FormHeading.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+
 export default {
     name: 'AdminSettingsEmail',
     components: {
         FormHeading
     },
     computed: {
-        ...mapState('account', ['settings'])
+        ...mapState(useAccountSettingsStore, ['settings'])
     }
 }
 </script>

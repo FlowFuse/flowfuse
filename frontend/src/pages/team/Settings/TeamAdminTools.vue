@@ -188,7 +188,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import { featureList, featureNames } from '../../../../../forge/lib/features.js'
 import billingApi from '../../../api/billing.js'
@@ -205,6 +205,10 @@ import { getObjectValue } from '../../admin/Template/utils.js'
 
 import ConfirmTeamManualBillingDialog from '../dialogs/ConfirmTeamManualBillingDialog.vue'
 import ExtendTeamTrialDialog from '../dialogs/ExtendTeamTrialDialog.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamAdminTools',
@@ -235,7 +239,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         billingSetUp () {
             return this.team.billing?.active
         },
@@ -333,8 +337,8 @@ export default {
         },
         async setupManualBilling (teamTypeId) {
             billingApi.setupManualBilling(this.team.id, teamTypeId).then(async () => {
-                await this.$store.dispatch('account/refreshTeams')
-                await this.$store.dispatch('account/refreshTeam')
+                await useAccountStore().refreshTeams()
+                await useContextStore().refreshTeam()
             }).catch(err => {
                 console.warn(err)
             })
@@ -346,8 +350,8 @@ export default {
                 text: 'Are you sure you want to re-enable billing for this team?'
             }, async () => {
                 billingApi.disableManualBilling(this.team.id).then(async () => {
-                    await this.$store.dispatch('account/refreshTeams')
-                    await this.$store.dispatch('account/refreshTeam')
+                    await useAccountStore().refreshTeams()
+                    await useContextStore().refreshTeam()
                 }).catch(err => {
                     console.warn(err)
                 })
@@ -359,8 +363,8 @@ export default {
         async extendTrial (endDate) {
             const newEndDate = Date.parse(`${endDate}T12:00:00.000Z`)
             billingApi.setTrialExpiry(this.team.id, newEndDate).then(async () => {
-                await this.$store.dispatch('account/refreshTeams')
-                await this.$store.dispatch('account/refreshTeam')
+                await useAccountStore().refreshTeams()
+                await useContextStore().refreshTeam()
             }).catch(err => {
                 console.warn(err)
             })
@@ -468,7 +472,7 @@ export default {
             })
 
             await teamApi.updateTeam(this.team.id, { properties })
-            await this.$store.dispatch('account/refreshTeam')
+            await useContextStore().refreshTeam()
             this.editingLimits = false
         }
     }

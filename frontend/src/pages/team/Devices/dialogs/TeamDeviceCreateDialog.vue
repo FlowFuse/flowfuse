@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import billingApi from '../../../../api/billing.js'
 import devicesApi from '../../../../api/devices.js'
@@ -55,6 +55,9 @@ import formatCurrency from '../../../../mixins/Currency.js'
 import alerts from '../../../../services/alerts.js'
 
 import InstanceChargesTable from '../../../instance/components/InstanceChargesTable.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamDeviceCreateDialog',
@@ -117,7 +120,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['features']),
         deviceIsBillable () {
             let freeAllocation = getTeamProperty(this.team, 'devices.free') || 0
             let deviceCount = this.teamDeviceCount

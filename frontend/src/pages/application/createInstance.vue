@@ -36,13 +36,16 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/solid/index.js'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import instanceApi from '../../api/instances.js'
 
 import applicationMixin from '../../mixins/Application.js'
 import Alerts from '../../services/alerts.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'ApplicationCreateInstance',
@@ -73,7 +76,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['features']),
         isLoading () {
             return this.loading || !this.team
         }
@@ -101,7 +105,7 @@ export default {
 
             try {
                 await this.createInstance(instanceFields, copyParts)
-                await this.$store.dispatch('account/refreshTeam')
+                await useContextStore().refreshTeam()
 
                 this.$emit('application-updated')
 

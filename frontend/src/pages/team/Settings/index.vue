@@ -16,10 +16,12 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import { useRouter } from 'vue-router'
-import { mapState } from 'vuex'
 
 import usePermissions from '../../../composables/Permissions.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamSettings',
@@ -39,7 +41,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team', 'teamMembership'])
+        ...mapState(useContextStore, ['team', 'teamMembership'])
     },
     watch: {
         teamMembership: 'checkAccess'

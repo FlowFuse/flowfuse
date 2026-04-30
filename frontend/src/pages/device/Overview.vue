@@ -177,7 +177,6 @@ import { CheckCircleIcon, CogIcon, ExclamationIcon, PencilAltIcon, TemplateIcon,
 
 // api
 import semver from 'semver'
-import { mapState } from 'vuex'
 
 // components
 import DeviceAPI from '../../api/devices.js'
@@ -223,7 +222,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings', 'features', 'team']),
         targetSnapshotDeployed: function () {
             return this.device.activeSnapshot?.id === this.device.targetSnapshot?.id
         },

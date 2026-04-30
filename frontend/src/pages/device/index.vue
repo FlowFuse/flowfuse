@@ -136,9 +136,8 @@
 <script>
 
 import { CogIcon } from '@heroicons/vue/solid/index.js'
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import semver from 'semver'
-import { mapState } from 'vuex'
 
 import deviceApi from '../../api/devices.js'
 import DropdownMenu from '../../components/DropdownMenu.vue'
@@ -166,6 +165,10 @@ import DeveloperModeToggle from './components/DeveloperModeToggle.vue'
 import DeviceEditorLink from './components/DeviceEditorLink.vue'
 import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 
 import { useUxStore } from '@/stores/ux.js'
 
@@ -222,7 +225,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['teamMembership', 'team', 'features', 'settings']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['features']),
         actionsButtonKind () {
             switch (true) {
             case this.neverConnected:
@@ -410,7 +414,7 @@ export default {
             }
             this.agentSupportsDeviceAccess = this.device.agentVersion && semver.gte(this.device.agentVersion, '0.8.0')
             this.agentSupportsActions = this.device.agentVersion && semver.gte(this.device.agentVersion, '2.3.0')
-            this.$store.dispatch('account/setTeam', this.device.team.slug)
+            useAccountStore().setTeam(this.device.team.slug)
         },
         deviceRefresh: async function () {
             if (this.pollTimer.running) {
@@ -575,7 +579,7 @@ export default {
                     await deviceApi.deleteDevice(this.device.id)
                     Alerts.emit('Successfully deleted the device', 'confirmation')
                     // Trigger a refresh of team info to resync following device changes
-                    await this.$store.dispatch('account/refreshTeam')
+                    await useContextStore().refreshTeam()
                     this.$router.push({ name: 'TeamDevices', params: { team_slug: this.team.slug } })
                 } catch (err) {
                     Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)

@@ -60,8 +60,8 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 
@@ -73,6 +73,9 @@ import DeploymentName from '../../application/components/cells/DeploymentName.vu
 import InstanceStatusBadge from '../../instance/components/InstanceStatusBadge.vue'
 
 import CPUUtilizationCell from './components/CPUUtilizationCell.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamPerformance',
@@ -124,7 +127,8 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         rows () {
             return this.instances.map(instance => ({
                 instanceId: instance.id,

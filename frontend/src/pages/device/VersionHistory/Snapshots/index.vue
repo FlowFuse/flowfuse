@@ -105,10 +105,9 @@
 
 <script>
 import { FilterIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import SemVer from 'semver'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../../api/application.js'
 import DropdownMenu from '../../../../components/DropdownMenu.vue'
@@ -122,6 +121,9 @@ import { isAutoSnapshot } from '../../../../utils/snapshot.js'
 import DaysSince from '../../../application/Snapshots/components/cells/DaysSince.vue'
 import SnapshotName from '../../../application/Snapshots/components/cells/SnapshotName.vue'
 import SnapshotSource from '../../../application/Snapshots/components/cells/SnapshotSource.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -202,7 +204,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'features']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['features']),
         canCreateSnapshot () {
             if (!this.developerMode || this.busy) {
                 return false
@@ -286,7 +289,7 @@ export default {
             return this.device?.ownerType === 'application'
         },
         isUnassigned () {
-            return this.device?.ownerType === ''
+            return !this.device?.ownerType
         }
     },
     watch: {
@@ -352,9 +355,14 @@ export default {
         supportsDevModeSnapshotRestore () {
             return this.device.agentVersion && SemVer.gte(this.device.agentVersion, '3.8.0')
         },
+        onRestoredSnapshot () {
+            setTimeout(() => { this.$emit('device-updated') }, 100)
+            this.fetchData()
+        },
         onRowSelected (snapshot) {
             this.openRightDrawer({
                 component: markRaw(SnapshotDetailsDrawer),
+                header: { title: 'Snapshot' },
                 props: {
                     snapshot,
                     snapshotList: this.snapshotList,
@@ -366,16 +374,11 @@ export default {
                     isDeviceDevMode: this.developerMode
                 },
                 on: {
-                    updatedSnapshot: () => this.fetchData(true),
-                    restoredSnapshot: () => {
-                        setTimeout(() => {
-                            this.$emit('device-updated')
-                        }, 100)
-                        this.fetchData(true)
-                    },
+                    updatedSnapshot: () => this.fetchData(),
+                    restoredSnapshot: () => this.onRestoredSnapshot(),
                     deletedSnapshot: () => {
                         this.closeRightDrawer()
-                        this.fetchData(true)
+                        this.fetchData()
                     }
                 },
                 overlay: true,

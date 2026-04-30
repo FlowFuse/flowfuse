@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import userApi from '../../../api/user.js'
 import FormHeading from '../../../components/FormHeading.vue'
@@ -30,6 +30,8 @@ import FormHeading from '../../../components/FormHeading.vue'
 import Dialog from '../../../services/dialog.js'
 
 import MFASetupDialog from './dialogs/MFASetupDialog.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'AccountSecurityChangePassword',
@@ -43,12 +45,12 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'features'])
+        ...mapState(useAccountAuthStore, ['user'])
     },
     methods: {
         async userUpdated () {
             const user = await userApi.getUser()
-            this.$store.dispatch('account/setUser', user)
+            useAccountAuthStore().setUser(user)
         },
         setupMFA () {
             this.$refs.mfaSetupDialog.show()

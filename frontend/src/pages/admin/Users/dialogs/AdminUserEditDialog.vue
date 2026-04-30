@@ -94,12 +94,14 @@
 <script>
 
 import { LockClosedIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import usersApi from '../../../../api/users.js'
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
 import Alerts from '../../../../services/alerts.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'AdminUserEditDialog',
@@ -145,7 +147,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         disableSave () {
             const { isChanged, isValid } = this.getChanges()
             return !isValid || !isChanged

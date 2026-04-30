@@ -26,11 +26,13 @@
 
 <script>
 import { ChevronRightIcon } from '@heroicons/vue/outline'
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
 
 import teamAPI from '../../../../api/team.js'
 import TeamLink from '../../../../components/router-links/TeamLink.vue'
 import InstanceTile from '../../Applications/components/compact/InstanceTile.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'RecentlyModifiedInstances',
@@ -49,7 +51,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         instancesLeft () {
             return this.totalInstances - this.instances.length
         }

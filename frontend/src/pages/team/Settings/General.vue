@@ -73,13 +73,18 @@
 <script>
 
 import { SparklesIcon, TemplateIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import teamApi from '../../../api/team.js'
 import teamsApi from '../../../api/teams.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import alerts from '../../../services/alerts.js'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamSettingsGeneral',
@@ -105,7 +110,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'features', 'team']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useAccountAuthStore, ['user']),
         formValid () {
             return this.input.teamName && !this.pendingSlugCheck && !this.errors.slug && !this.errors.teamName
         },
@@ -170,8 +177,8 @@ export default {
 
             teamApi.updateTeam(this.team.id, options).then(async result => {
                 this.editing = false
-                await this.$store.dispatch('account/refreshTeams')
-                await this.$store.dispatch('account/refreshTeam')
+                await useAccountStore().refreshTeams()
+                await useContextStore().refreshTeam()
                 alerts.emit('Team Settings updated.', 'confirmation')
             }).catch(err => {
                 if (err.response.data) {

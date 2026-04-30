@@ -32,10 +32,12 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import ManualInstall from './ManualInstall.vue'
 import TerminalCommandSection from './TerminalCommandSection.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 const OS_CONFIG = {
     windows: {
@@ -67,7 +69,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         installTitle () {
             return OS_CONFIG[this.os]?.installTitle ?? ''
         },
