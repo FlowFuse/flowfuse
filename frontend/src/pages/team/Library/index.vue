@@ -21,12 +21,14 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'SharedLibrary',
     computed: {
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         navigation () {
             const list = [
                 {

@@ -18,7 +18,6 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
-import { mapGetters, mapState as mapVuexState } from 'vuex'
 
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
@@ -28,6 +27,7 @@ import { Roles } from '../../utils/roles.js'
 import TeamInstances from './Instances.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
@@ -54,8 +54,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team', 'teamMembership']),
-        ...mapVuexState('account', ['features']),
-        ...mapGetters('account', ['requiresBilling']),
+        ...mapState(useAccountSettingsStore, ['requiresBilling']),
         ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
         ...mapState(useUxToursStore, ['shouldPresentTour']),
         ...mapState(useProductExpertStore, ['shouldWakeUpAssistant']),

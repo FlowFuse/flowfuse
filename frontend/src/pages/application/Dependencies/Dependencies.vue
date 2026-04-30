@@ -11,8 +11,8 @@
 
         <div class="space-y-6">
             <div class="banner-wrapper mt-5">
-                <FeatureUnavailable v-if="!isBOMFeatureEnabledForPlatform" />
-                <FeatureUnavailableToTeam v-else-if="!isBOMFeatureEnabledForTeam" />
+                <FeatureUnavailable v-if="!featuresCheck.isBOMFeatureEnabledForPlatform" />
+                <FeatureUnavailableToTeam v-else-if="!featuresCheck.isBOMFeatureEnabledForTeam" />
             </div>
 
             <ff-loading v-if="loading" message="Loading Snapshots..." />
@@ -38,7 +38,7 @@
                     <p>
                         Applications in FlowFuse are used to manage groups of Node-RED Instances and Devices.
                     </p>
-                    <p v-if="!isBOMFeatureEnabled">
+                    <p v-if="!featuresCheck.isBOMFeatureEnabled">
                         Once you assign an Instance or Device to this application, you'll be able to view a complete list of their dependencies.
                     </p>
                 </template>
@@ -49,6 +49,7 @@
 
 <script>
 import { SearchIcon } from '@heroicons/vue/outline'
+import { mapState } from 'pinia'
 
 import ApplicationsApi from '../../../api/application.js'
 import EmptyState from '../../../components/EmptyState.vue'
@@ -58,7 +59,7 @@ import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavail
 import BomDependencies from '../../../components/bill-of-materials/BomDependencies.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
-import featuresMixin from '../../../mixins/Features.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'ApplicationDependencies',
@@ -70,7 +71,6 @@ export default {
         SectionTopMenu,
         SearchIcon
     },
-    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         application: {
@@ -91,6 +91,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         hasTeamPermission () {
             return this.hasPermission('application:bom', { application: this.application })
         },
@@ -106,7 +107,7 @@ export default {
     },
     methods: {
         getDependencies () {
-            if (this.isBOMFeatureEnabled) {
+            if (this.featuresCheck.isBOMFeatureEnabled) {
                 this.loading = true
                 ApplicationsApi.getDependencies(this.application.id)
                     .then(res => {

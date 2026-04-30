@@ -24,7 +24,6 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import ExpertChatInput from './components/ExpertChatInput.vue'
 import ExpertMessages from './components/ExpertMessages.vue'
@@ -32,6 +31,7 @@ import ExpertModeSwitcher from './components/ExpertModeSwitcher.vue'
 import InfoBanner from './components/InfoBanner.vue'
 import UpdateBanner from './components/UpdateBanner.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
@@ -80,7 +80,7 @@ export default {
         ...mapState(useUxDrawersStore, {
             isPinned: state => state.rightDrawer.fixed
         }),
-        ...mapVuexState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         isEditorContext () {
             // In editor context, the route name includes 'editor'
             return this.$route?.name?.includes('editor') || false

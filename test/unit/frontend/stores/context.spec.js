@@ -3,19 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useContextStore } from '@/stores/context.js'
 
+// account-auth.js imports routes.js which loads the full Vue component tree
+// (including components that pull in @flowfuse/flow-renderer — a CJS/ESM conflict).
+// Mock it to keep the test environment clean.
+vi.mock('@/stores/account-auth.js', () => ({
+    useAccountAuthStore: vi.fn(() => ({ user: null }))
+}))
+
 // product-expert.js imports ExpertDrawer.vue which pulls in @flowfuse/flow-renderer
 // (CJS/ESM conflict). Mock it to keep the test environment clean.
 vi.mock('@/stores/product-expert.js', () => ({
     useProductExpertStore: vi.fn(() => ({ isSupportAgent: true }))
-}))
-
-vi.mock('@/stores/_account_bridge.js', () => ({
-    useAccountBridge: () => ({
-        userId: null,
-        teamId: null,
-        teamSlug: null,
-        isTrialAccount: false
-    })
 }))
 
 vi.mock('@/api/team.js', () => ({
@@ -189,6 +187,50 @@ describe('context store', () => {
                 const store = useContextStore()
                 store.team = { billing: { trial: true, trialEnded: true } }
                 expect(store.isTrialAccountExpired).toBe(true)
+            })
+        })
+
+        describe('editorEntityType', () => {
+            it('returns null when route is null', () => {
+                const store = useContextStore()
+                expect(store.editorEntityType).toBe(null)
+            })
+
+            it('returns null when route name does not match an editor route', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'team-overview', fullPath: '/team', params: {} })
+                expect(store.editorEntityType).toBe(null)
+            })
+
+            it("returns 'instance' for instance editor routes", () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'instance-editor-overview', fullPath: '/instance/123/editor', params: { id: '123' } })
+                expect(store.editorEntityType).toBe('instance')
+            })
+
+            it("returns 'device' for device editor routes", () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-editor-overview', fullPath: '/device/456/editor', params: { id: '456' } })
+                expect(store.editorEntityType).toBe('device')
+            })
+        })
+
+        describe('isImmersiveEditor', () => {
+            it('returns false when editorEntityType is null', () => {
+                const store = useContextStore()
+                expect(store.isImmersiveEditor).toBe(false)
+            })
+
+            it('returns true on instance editor routes', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'instance-editor-settings', fullPath: '/instance/1/editor/settings', params: { id: '1' } })
+                expect(store.isImmersiveEditor).toBe(true)
+            })
+
+            it('returns true on device editor routes', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-editor-expert', fullPath: '/device/2/editor/expert', params: { id: '2' } })
+                expect(store.isImmersiveEditor).toBe(true)
             })
         })
 

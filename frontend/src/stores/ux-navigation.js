@@ -13,7 +13,8 @@ import QueueIcon from '../components/icons/Queue.js'
 import { hasALowerOrEqualTeamRoleThan, hasAMinimumTeamRoleOf, hasPermission } from '../composables/Permissions.js'
 import { Roles } from '../utils/roles.js'
 
-import { useAccountBridge } from './_account_bridge.js'
+import { useAccountSettingsStore } from './account-settings.js'
+import { useContextStore } from './context.js'
 import { useUxStore } from './ux.js'
 
 export const useUxNavigationStore = defineStore('ux-navigation', {
@@ -25,16 +26,19 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
     }),
     getters: {
         mainNavContexts (state) {
-            const {
-                team,
-                features: accountFeatures,
-                teamMembership,
-                featuresCheck: features,
-                requiresBilling,
-                isTrialAccountExpired
-            } = useAccountBridge()
+            const contextStore = useContextStore()
+            const team = contextStore.team
+            const teamMembership = contextStore.teamMembership
+            const isTrialAccountExpired = contextStore.isTrialAccountExpired
 
-            const { isNewlyCreatedUser, userActions } = useUxStore()
+            const accountSettingsStore = useAccountSettingsStore()
+            const accountFeatures = accountSettingsStore.features
+            const features = accountSettingsStore.featuresCheck
+            const requiresBilling = accountSettingsStore.requiresBilling
+
+            const uxStore = useUxStore()
+            const isNewlyCreatedUser = uxStore.isNewlyCreatedUser
+            const userActions = uxStore.userActions
 
             const adminContext = [
                 {
@@ -415,7 +419,9 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
             }
         },
         mainNavContext (state) {
-            const { team, teamMembership } = useAccountBridge()
+            const contextStore = useContextStore()
+            const team = contextStore.team
+            const teamMembership = contextStore.teamMembership
 
             if (!team && !['admin', 'user'].includes(state.mainNav.context)) {
                 // todo this compensates for a brief moment after logging in where we don't have a team loaded and can't properly

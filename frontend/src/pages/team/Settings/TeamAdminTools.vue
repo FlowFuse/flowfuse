@@ -188,7 +188,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import { featureList, featureNames } from '../../../../../forge/lib/features.js'
 import billingApi from '../../../api/billing.js'
@@ -206,6 +206,7 @@ import { getObjectValue } from '../../admin/Template/utils.js'
 import ConfirmTeamManualBillingDialog from '../dialogs/ConfirmTeamManualBillingDialog.vue'
 import ExtendTeamTrialDialog from '../dialogs/ExtendTeamTrialDialog.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
@@ -238,7 +239,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         billingSetUp () {
             return this.team.billing?.active
         },

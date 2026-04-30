@@ -24,21 +24,18 @@ class ServiceFactory {
     /**
      * Create all services, create bootstrap service, and boot all services sequentially
      * @param {import('vue').App} app - Vue app instance
-     * @param {import('vuex').Store} store - Vuex store instance
      * @param {import('vue-router').Router} router - Vue router instance
      * @returns {Promise<ServiceInstances>} Promise that resolves when all services are booted
      */
-    async bootAllServices (app, store, router) {
+    async bootAllServices (app, router) {
         this.$serviceInstances.bootstrap = createBootstrapService({
             app,
-            store,
             router,
             services: this.$serviceInstances
         })
 
         this.$serviceInstances.messaging = createMessagingService({
             app,
-            store,
             router,
             services: this.$serviceInstances
         })

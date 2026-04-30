@@ -196,7 +196,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import { featureList, featureNames } from '../../../../../../forge/lib/features.js'
 import instanceTypesApi from '../../../../api/instanceTypes.js'
@@ -204,6 +204,8 @@ import teamTypesApi from '../../../../api/teamTypes.js'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 const days = ['sun', 'mon', 'tue', 'wed', 'thur', 'fri', 'sat']
 const hours = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
@@ -416,7 +418,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         formValid () {
             return (this.input.name)
         },

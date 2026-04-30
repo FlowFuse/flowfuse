@@ -33,14 +33,15 @@
 
 import { UserAddIcon } from '@heroicons/vue/outline'
 
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-
-import { mapState } from 'vuex'
 
 import usersApi from '../../../api/users.js'
 import UserCell from '../../../components/tables/cells/UserCell.vue'
 
 import AdminUserEditDialog from './dialogs/AdminUserEditDialog.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'AdminUsers',
@@ -66,7 +67,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features'])
+        ...mapState(useAccountSettingsStore, ['features'])
     },
     watch: {
         userSearch (v) {

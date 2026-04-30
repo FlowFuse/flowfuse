@@ -81,7 +81,6 @@
 import { SearchIcon, StatusOnlineIcon, XIcon } from '@heroicons/vue/outline'
 import { RefreshIcon } from '@heroicons/vue/solid'
 import { mapActions, mapState } from 'pinia'
-import { mapGetters } from 'vuex'
 
 import EmptyState from '../../../../../components/EmptyState.vue'
 
@@ -89,6 +88,7 @@ import MainTitle from '../components/MainTitle.vue'
 
 import TopicSegment from '../components/TopicSegment.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
@@ -127,7 +127,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useProductBrokersStore, ['brokerExpandedTopics']),
         brokerId () {
             return this.$route.params.brokerId

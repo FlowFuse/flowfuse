@@ -13,7 +13,7 @@
     "parserOptions": {
         "ecmaVersion": 2022
     },
-    "ignorePatterns": ["frontend/dist/", "var/", "*.svg", "*.xml", "**/*.d.ts"],
+    "ignorePatterns": ["frontend/dist/", "var/", "*.svg", "*.xml", "**/*.d.ts", "frontend/src/types/generated.ts"],
     "plugins": ["promise", "no-only-tests"],
     "settings": {
         "import/core-modules": [ "lottie-web-vue", "@heroicons/vue" ],
@@ -99,6 +99,24 @@
 
                 // Frontend runs through webpack, not Node — Node-based resolution rules
                 // do not understand webpack aliases (@/) or .vue file resolution
+                "import/no-unresolved": "off",
+                "n/no-missing-import": "off",
+                "n/no-missing-require": "off"
+            }
+        },
+
+        // TypeScript files in the frontend — must come after the Vue/frontend override so
+        // @typescript-eslint/parser wins for .ts files (later overrides take precedence)
+        {
+            "files": ["frontend/src/**/*.ts"],
+            "parser": "@typescript-eslint/parser",
+            "parserOptions": {
+                "sourceType": "module"
+            },
+            "plugins": ["@typescript-eslint"],
+            "extends": ["plugin:@typescript-eslint/recommended"],
+            "rules": {
+                "@typescript-eslint/no-explicit-any": "warn",
                 "import/no-unresolved": "off",
                 "n/no-missing-import": "off",
                 "n/no-missing-require": "off"

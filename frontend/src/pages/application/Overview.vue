@@ -113,8 +113,8 @@
 <script>
 
 import { PlusSmIcon } from '@heroicons/vue/outline'
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapGetters } from 'vuex'
 
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
@@ -128,6 +128,8 @@ import InstanceEditorLinkCell from '../instance/components/cells/InstanceEditorL
 
 import DeploymentName from './components/cells/DeploymentName.vue'
 import LastSeen from './components/cells/LastSeen.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'ProjectOverview',
@@ -165,7 +167,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         cloudColumns () {
             return [
                 { label: 'Name', class: ['w-1/2'], component: { is: markRaw(DeploymentName), map: { url: 'url' } } },

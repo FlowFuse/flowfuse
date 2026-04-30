@@ -1,7 +1,5 @@
 import { CogIcon } from '@heroicons/vue/outline'
 
-import store from '../../store/index.js'
-
 import AccessRequest from './AccessRequest.vue'
 import AccessRequestEditor from './AccessRequestEditor.vue'
 import AccountCreate from './Create.vue'
@@ -19,6 +17,8 @@ import AccountTeams from './Teams/index.vue'
 import VerifyPendingEmailChange from './VerifyPendingEmailChange.vue'
 
 import Account from './index.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default [
     {
@@ -114,7 +114,7 @@ export default [
         path: '/account/logout',
         name: 'Sign out',
         redirect: function () {
-            store.dispatch('account/logout')
+            useAccountAuthStore().logout()
             return { path: '/' }
         }
     },

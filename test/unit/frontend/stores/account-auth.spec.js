@@ -1,9 +1,21 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+// routes.js loads the full Vue component tree (including AssetDetailDialog.vue →
+// @flowfuse/flow-renderer which has a CJS/ESM conflict). Mock it to avoid the error.
+vi.mock('@/routes.js', () => ({
+    default: {
+        push: vi.fn(),
+        currentRoute: { value: { meta: {}, path: '/', fullPath: '/', query: {}, hash: '' } }
+    }
+}))
+
 vi.mock('@/api/user.js', () => ({
     default: {
-        getUser: vi.fn()
+        getUser: vi.fn(),
+        login: vi.fn(),
+        logout: vi.fn(),
+        verifyMFAToken: vi.fn()
     }
 }))
 

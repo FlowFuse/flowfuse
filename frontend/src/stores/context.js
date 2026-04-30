@@ -3,8 +3,9 @@ import { defineStore } from 'pinia'
 import teamApi from '../api/team.js'
 import product from '../services/product.js'
 
-import { useAccountBridge } from './_account_bridge.js'
+import { useAccountAuthStore } from './account-auth.js'
 import { useProductAssistantStore } from './product-assistant.js'
+import { useProductExpertStore } from './product-expert.js'
 
 export const useContextStore = defineStore('context', {
     state: () => ({
@@ -24,24 +25,33 @@ export const useContextStore = defineStore('context', {
         isTrialAccountExpired (state) {
             return this.isTrialAccount && state.team?.billing?.trialEnded
         },
+        editorEntityType (state) {
+            const name = state.route?.name
+            if (name?.startsWith('instance-editor')) return 'instance'
+            if (name?.startsWith('device-editor')) return 'device'
+            return null
+        },
+        isImmersiveEditor () {
+            return this.editorEntityType !== null
+        },
         expert (state) {
-            const account = useAccountBridge()
-            const assistant = useProductAssistantStore()
+            const authStore = useAccountAuthStore()
+            const assistantStore = useProductAssistantStore()
 
             if (!state.route) {
                 return {
-                    assistantVersion: assistant.version,
-                    assistantFeatures: assistant.assistantFeatures,
+                    assistantVersion: assistantStore.version,
+                    assistantFeatures: assistantStore.assistantFeatures,
                     palette: null,
                     debugLog: null,
-                    userId: account.userId,
+                    userId: authStore.user?.id || null,
                     teamId: state.team?.id || null,
                     teamSlug: state.team?.slug || null,
                     instanceId: null,
                     deviceId: null,
                     applicationId: null,
                     isTrialAccount: this.isTrialAccount,
-                    nodeRedVersion: assistant.nodeRedVersion,
+                    nodeRedVersion: assistantStore.nodeRedVersion,
                     pageName: null,
                     rawRoute: {},
                     selectedNodes: null,
@@ -67,26 +77,23 @@ export const useContextStore = defineStore('context', {
             const { matched, redirectedFrom, ...rawRoute } = state.route ?? {}
             let selectedNodes = null
 
-            if (scope === 'immersive' && assistant.selectedNodes.length > 0) {
-                // Lazy require to avoid circular dependency:
-                // context.js → product-expert.js → product-assistant.js → context.js
-                const { useProductExpertStore } = require('./product-expert.js')
+            if (scope === 'immersive' && assistantStore.selectedNodes.length > 0) {
                 if (useProductExpertStore().isSupportAgent) {
-                    selectedNodes = assistant.selectedNodes
+                    selectedNodes = assistantStore.selectedNodes
                 }
             }
 
             let palette = null
-            if (assistant.selectedContext?.some(e => e.value === 'palette')) {
-                palette = assistant.paletteContribOnly
+            if (assistantStore.selectedContext?.some(e => e.value === 'palette')) {
+                palette = assistantStore.paletteContribOnly
             }
 
             return {
-                assistantVersion: assistant.version,
-                assistantFeatures: assistant.assistantFeatures,
+                assistantVersion: assistantStore.version,
+                assistantFeatures: assistantStore.assistantFeatures,
                 palette,
-                debugLog: assistant.debugLog,
-                userId: account.userId,
+                debugLog: assistantStore.debugLog,
+                userId: authStore.user?.id || null,
                 teamId: state.team?.id || null,
                 teamSlug: state.team?.slug || null,
                 instanceId: instanceId ?? null,
@@ -94,7 +101,7 @@ export const useContextStore = defineStore('context', {
                 applicationId: applicationId ?? null,
                 isTrialAccount: this.isTrialAccount,
                 pageName: state.route.name,
-                nodeRedVersion: assistant.nodeRedVersion,
+                nodeRedVersion: assistantStore.nodeRedVersion,
                 rawRoute,
                 selectedNodes,
                 scope
