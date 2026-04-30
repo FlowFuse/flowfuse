@@ -18,9 +18,6 @@ import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopic
 
 import getServicesOrchestrator from '@/services/service.orchestrator'
 
-// TODO currently hardcodded
-const IS_MQTT_ENABLED = true
-
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
         agentMode: SUPPORT_AGENT, // support-agent or insights-agent
@@ -63,7 +60,10 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         mqttConnectionKey () { return this._agentStore.mqttConnectionKey },
         sessionId () { return this._agentStore.sessionId },
-        shouldUseMqtt () { return IS_MQTT_ENABLED && this.isSupportAgent }
+        shouldUseMqtt () {
+            const accountSettingsStore = useAccountSettingsStore()
+            return accountSettingsStore.featuresCheck?.isExpertCommsBetaEnabled && this.isSupportAgent
+        }
     },
     actions: {
         setContext ({ data, sessionId }) {
