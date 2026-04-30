@@ -4,6 +4,10 @@ import settingsApi from '@/api/settings.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 
+export const POSTHOG_FLAGS = {
+    EXPERT_COMMS_BETA_ENABLED: 'EXPERT_COMMS_BETA_ENABLED'
+}
+
 const FEATURE_CONFIGS = [
     { output: 'isSharedLibraryFeatureEnabled', platformKey: 'shared-library', teamKey: 'shared-library', optOut: true },
     { output: 'isBlueprintsFeatureEnabled', platformKey: 'flowBlueprints', teamKey: 'flowBlueprints', optOut: true },
@@ -65,10 +69,6 @@ function buildFeatureChecks (state, team) {
     return checks
 }
 
-export const POSTHOG_FLAGS = {
-    EXPERT_COMMS_BETA_ENABLED: 'EXPERT_COMMS_BETA_ENABLED'
-}
-
 export const useAccountSettingsStore = defineStore('account-settings', {
     state: () => ({
         settings: null,
@@ -107,9 +107,11 @@ export const useAccountSettingsStore = defineStore('account-settings', {
             checks.isExternalMqttBrokerFeatureEnabled =
                 checks.isExternalMqttBrokerFeatureEnabledForPlatform && checks.isMqttBrokerFeatureEnabledForTeam
 
+            // adding in PostHog Feature Flags
+            checks.isExpertCommsBetaEnabled = !!state.posthogFlags[POSTHOG_FLAGS.EXPERT_COMMS_BETA_ENABLED]
+
             return checks
-        },
-        isExpertCommsBetaEnabled: state => !!state.posthogFlags[POSTHOG_FLAGS.EXPERT_COMMS_BETA_ENABLED]
+        }
     },
     actions: {
         setSettings (settings) {
