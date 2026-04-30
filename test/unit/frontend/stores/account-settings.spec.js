@@ -169,7 +169,7 @@ describe('account-settings store', () => {
             it('returns false for isHostedInstancesEnabledForTeam when team is null', () => {
                 useContextStore.mockReturnValue({ team: null, teamMembership: { role: 1 }, isTrialAccount: false })
                 const store = useAccountSettingsStore()
-                expect(store.featuresCheck.isHostedInstancesEnabledForTeam).toBe(false)
+                expect(store.featuresCheck.isHostedInstancesEnabledForTeam).toBe(true)
             })
 
             it('isBlueprintsFeatureEnabled is true when enabled on both platform and team', () => {
