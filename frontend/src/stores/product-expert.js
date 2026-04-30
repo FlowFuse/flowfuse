@@ -96,6 +96,21 @@ export const useProductExpertStore = defineStore('product-expert', {
             const featuresCheck = useAccountSettingsStore().featuresCheck
             if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
 
+            // In immersive editor context, navigate to the Expert tab instead of opening RightDrawer
+            const contextStore = useContextStore()
+            if (contextStore.isImmersiveEditor) {
+                const drawersStore = useUxDrawersStore()
+                if (!drawersStore.editorImmersiveDrawer.state) {
+                    drawersStore.openEditorImmersiveDrawer()
+                }
+                const expertRouteName = contextStore.editorEntityType === 'device'
+                    ? 'device-editor-expert'
+                    : 'instance-editor-expert'
+                // Lazy require: top-level import would form a cycle via Platform → RightDrawer → product-expert.js
+                const router = require('@/routes.js').default
+                return router.push({ name: expertRouteName, params: contextStore.route.params })
+            }
+
             useProductExpertInsightsAgentStore().getCapabilities()
             // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
             return import('../components/drawers/expert/ExpertDrawer.vue')

@@ -140,7 +140,7 @@ module.exports = async function (app) {
                 if (!application || !instanceId || !instanceType) { continue }
 
                 // short cut - if the token cache has an entry, use it (avoid loading the instance model)
-                server.mcpAccessToken = app.expert.mcp.getCachedToken(instanceId)
+                server.mcpAccessToken = await app.expert.mcp.getCachedToken(instanceId)
                 if (server.mcpAccessToken) {
                     continue
                 }
