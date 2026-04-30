@@ -35,7 +35,7 @@
                         </span>
                     </FormRow>
                     <ff-popover
-                        v-if="featuresCheck.isGeneratedSnapshotDescriptionEnabled"
+                        v-if="featuresCheck.isGeneratedSnapshotDescriptionFeatureEnabled"
                         button-text="Generate with AI"
                         button-kind="tertiary"
                         :disabled="loadingDescription"
