@@ -131,6 +131,7 @@
         "@babel/preset-env": "^7.22.15",
         "@fastify/response-validation": "^3.0.3",
         "@pinia/testing": "1.0.3",
+        "@types/mqtt": "^0.0.34",
         "@typescript-eslint/eslint-plugin": "^8.58.0",
         "@typescript-eslint/parser": "^8.58.0",
         "@vitejs/plugin-vue": "^5.0.2",

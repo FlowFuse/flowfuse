@@ -130,7 +130,7 @@ export default {
             }
         },
         emitMessage (type, payload = {}) {
-            this.$services.messaging.sendMessage({
+            this.$services.postMessage.sendMessage({
                 message: {
                     type,
                     payload

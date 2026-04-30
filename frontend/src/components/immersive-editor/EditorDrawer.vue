@@ -119,7 +119,7 @@ import { storeToRefs } from 'pinia'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
-import { getServiceFactory } from '../../services/service.factory.js'
+import getServiceOrchestrator from '../../services/service.orchestrator'
 import ResizeBar from '../ResizeBar.vue'
 
 import EditorDrawerSettings from './EditorDrawerSettings.vue'
@@ -200,8 +200,8 @@ function notifyDrawerState () {
     if (!iframe) return
 
     const targetOrigin = props.entity.url || window.location.origin
-    const serviceFactory = getServiceFactory()
-    serviceFactory.$serviceInstances.messaging.sendMessage({
+    const serviceOrchestrator = getServiceOrchestrator()
+    serviceOrchestrator.$serviceInstances.postMessage.sendMessage({
         message: {
             type: 'drawer-state',
             payload: { open: editorImmersiveDrawer.value.state }
