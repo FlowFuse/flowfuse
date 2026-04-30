@@ -143,6 +143,7 @@ export default {
         },
         save: async function () {
             const settings = await deviceApi.getSettings(this.device.id)
+            delete settings.security
             settings.palette = {
                 catalogues: this.urls,
                 npmrc: this.npmrc ? this.npmrc : undefined
