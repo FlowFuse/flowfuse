@@ -33,7 +33,7 @@
             />
 
             <div class="actions">
-                <div class="left">
+                <div class="left overflow-hidden">
                     <context-selector v-if="isImmersive && !isInsightsAgent" />
                 </div>
 
@@ -64,12 +64,12 @@
 <script>
 import { mapActions, mapState } from 'pinia'
 
-import { useResizingHelper } from '../../../composables/ResizingHelper.js'
-
 import ResizeBar from '../../ResizeBar.vue'
 
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
 import ContextSelector from './context-selection/index.vue'
+
+import { useResizingHelper } from '@/composables/ResizingHelper.js'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
