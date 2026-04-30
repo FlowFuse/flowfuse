@@ -305,7 +305,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     payload: JSON.stringify({
                         ack: true
                     }),
-                    correlationData: new TextEncoder().encode(transactionId),
+                    correlationData: transactionId,
                     userProperties: { sessionId, transactionId: chatTransactionId }
                 })
                 break
@@ -323,7 +323,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         qos: 2,
                         topic: responseTopic,
                         payload: JSON.stringify(result),
-                        correlationData: new TextEncoder().encode(transactionId),
+                        correlationData: transactionId,
                         userProperties: { sessionId, transactionId: chatTransactionId }
                     })
                 } catch (e) {
