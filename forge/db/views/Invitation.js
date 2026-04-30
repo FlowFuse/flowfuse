@@ -5,10 +5,10 @@ module.exports = function (app) {
         allOf: [{ $ref: 'UserSummary' }],
         properties: {
             id: { type: 'string' },
-            role: { type: 'number' },
+            role: { type: 'number', nullable: true },
             createdAt: { type: 'string' },
             expiresAt: { type: 'string' },
-            sentAt: { type: 'string' },
+            sentAt: { type: 'string', nullable: true },
             team: { $ref: 'TeamSummary' },
             invitor: { $ref: 'UserSummary' },
             invitee: {

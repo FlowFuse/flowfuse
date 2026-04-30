@@ -1,11 +1,5 @@
 <template>
     <div id="device-snapshots" class="flex-1 flex flex-col overflow-auto">
-        <SnapshotDetailsModal
-            ref="snapshotDetailsModal"
-            @updated-snapshot="fetchData()"
-            @restored-snapshot="onRestoredSnapshot"
-            @deleted-snapshot="fetchData()"
-        />
         <div v-if="isOwnedByAnInstance || isUnassigned" class="space-y-6">
             <EmptyState :feature-unavailable="!features.deviceEditor">
                 <template #img>
@@ -119,7 +113,6 @@ import ApplicationApi from '../../../../api/application.js'
 import DropdownMenu from '../../../../components/DropdownMenu.vue'
 
 import EmptyState from '../../../../components/EmptyState.vue'
-import SnapshotDetailsModal from '../../../../components/dialogs/SnapshotDetailsModal.vue'
 import SnapshotDetailsDrawer from '../../../../components/drawers/snapshots/SnapshotDetailsDrawer.vue'
 import UserCell from '../../../../components/tables/cells/UserCell.vue'
 import usePermissions from '../../../../composables/Permissions.js'
@@ -141,7 +134,6 @@ export default {
         EmptyState,
         FilterIcon,
         PlusSmIcon,
-        SnapshotDetailsModal,
         UploadIcon
     },
     inheritAttrs: false,
@@ -297,7 +289,7 @@ export default {
             return this.device?.ownerType === 'application'
         },
         isUnassigned () {
-            return this.device?.ownerType === ''
+            return !this.device?.ownerType
         }
     },
     watch: {
@@ -368,18 +360,9 @@ export default {
             this.fetchData()
         },
         onRowSelected (snapshot) {
-            if (this.$route.name?.startsWith('device-editor-')) {
-                this.$refs.snapshotDetailsModal.show(snapshot, this.snapshotList, this.device, {
-                    canSetDeviceTarget: false,
-                    canRestore: this.canDeploy(snapshot),
-                    canRestoreReason: this.canDeployReason(snapshot),
-                    isDevice: true,
-                    isDeviceDevMode: this.developerMode
-                })
-                return
-            }
             this.openRightDrawer({
                 component: markRaw(SnapshotDetailsDrawer),
+                header: { title: 'Snapshot' },
                 props: {
                     snapshot,
                     snapshotList: this.snapshotList,
