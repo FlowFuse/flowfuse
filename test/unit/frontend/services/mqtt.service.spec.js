@@ -349,8 +349,7 @@ describe('MqttService', async () => {
             userProperties: { trace: 1 }
         })).rejects.toThrow('MQTT publish userProperties["trace"] must be a string or string[]')
 
-        const normalizedBinaryCorrelationData = service._normalizeCorrelationData(new Uint8Array([1, 2, 3]))
-        expect(normalizedBinaryCorrelationData).toBeInstanceOf(Buffer)
+        expect(() => service._normalizeCorrelationData(new Uint8Array([1, 2, 3]))).toThrow('MQTT publish correlationData must be a string')
     })
 
     test('validates URL formats and createClient input guards', async () => {
