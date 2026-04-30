@@ -96,7 +96,7 @@ export const useAccountSettingsStore = defineStore('account-settings', {
             const checks = buildFeatureChecks(state, team)
 
             // Instances (deprecated, used for the free team type)
-            checks.isHostedInstancesEnabledForTeam = false
+            checks.isHostedInstancesEnabledForTeam = true
 
             // External broker: platform check is its own, team check reuses MqttBroker's
             checks.isExternalMqttBrokerFeatureEnabled =
