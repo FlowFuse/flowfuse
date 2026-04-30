@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import InstanceApi from '../../../api/instances.js'
 
@@ -32,6 +32,8 @@ import FormRow from '../../../components/FormRow.vue'
 import FeatureUnavailableToTeam from '../../../components/banners/FeatureUnavailableToTeam.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceSettingsProtect',
@@ -63,7 +65,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership', 'features']),
+        ...mapState(useContextStore, ['team', 'teamMembership']),
         isProtected () {
             return this.instance?.protected?.enabled
         },

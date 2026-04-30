@@ -209,7 +209,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import adminApi from '../../../api/admin.js'
 import instanceTypesApi from '../../../api/instanceTypes.js'
@@ -220,6 +220,8 @@ import FormRow from '../../../components/FormRow.vue'
 import { isValidURL } from '../../../composables/strings/String.js'
 import Alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 const validSettings = [
     'user:signup',
@@ -270,7 +272,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'settings']),
+        ...mapState(useAccountSettingsStore, ['features', 'settings']),
         isLicensed () {
             return !!this.settings['platform:licensed']
         },
@@ -393,6 +395,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions(useAccountSettingsStore, ['refreshSettings']),
         validate () {
             if (this.input['user:tcs-required']) {
                 const url = this.input['user:tcs-url'] || ''
@@ -451,7 +454,7 @@ export default {
             }
             settingsApi.updateSettings(options)
                 .then(() => {
-                    this.$store.dispatch('account/refreshSettings')
+                    this.refreshSettings()
                     this.input['user:tcs-date'] = this.settings['user:tcs-date']
                     Alerts.emit('Settings changed successfully.', 'confirmation')
                 })
@@ -480,7 +483,7 @@ export default {
                 options['user:tcs-updated'] = true
                 try {
                     await settingsApi.updateSettings(options)
-                    this.$store.dispatch('account/refreshSettings')
+                    this.refreshSettings()
                     Alerts.emit('Terms and Conditions update success', 'info', 5000)
                 } catch (error) {
                     console.warn(error)

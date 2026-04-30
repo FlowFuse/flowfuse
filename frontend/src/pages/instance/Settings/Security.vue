@@ -3,33 +3,35 @@
         <TemplateSettingsSecurity v-model="editable" :editTemplate="false" :instance="project" :team="team" />
         <div v-if="!!settings.features.httpBearerTokens && editable.settings.httpNodeAuth_type === 'flowforge-user'">
             <FormHeading>HTTP Node Bearer Tokens</FormHeading>
-            <div v-if="projectLauncherCompatible">
-                <ff-data-table
-                    data-el="tokens-table"
-                    :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
-                    :show-load-more="false"
-                >
-                    <template #actions>
-                        <ff-button data-action="new-token" @click="newToken()">
-                            <template #icon-left>
-                                <PlusSmIcon />
-                            </template>
-                            Add Token
-                        </ff-button>
-                    </template>
-                    <template #context-menu="{row}">
-                        <ff-kebab-item data-action="edit-token" label="Edit" @click="editToken(row)" />
-                        <ff-kebab-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
-                    </template>
-                    <template v-if="tokens.length === 0" #table>
-                        <div class="ff-no-data ff-no-data-large">
-                            You don't have any tokens yet
-                        </div>
-                    </template>
-                </ff-data-table>
-            </div>
-            <div v-else>
-                Upgrade your Node-RED Version to enable this feature
+            <div v-if="hasTeamLevelTokenPermission">
+                <div v-if="projectLauncherCompatible">
+                    <ff-data-table
+                        data-el="tokens-table"
+                        :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
+                        :show-load-more="false"
+                    >
+                        <template #actions>
+                            <ff-button data-action="new-token" @click="newToken()">
+                                <template #icon-left>
+                                    <PlusSmIcon />
+                                </template>
+                                Add Token
+                            </ff-button>
+                        </template>
+                        <template #context-menu="{row}">
+                            <ff-kebab-item data-action="edit-token" label="Edit" @click="editToken(row)" />
+                            <ff-kebab-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
+                        </template>
+                        <template v-if="tokens.length === 0" #table>
+                            <div class="ff-no-data ff-no-data-large">
+                                You don't have any tokens yet
+                            </div>
+                        </template>
+                    </ff-data-table>
+                </div>
+                <div v-else>
+                    Upgrade your Node-RED Version to enable this feature
+                </div>
             </div>
         </div>
     </form>
@@ -39,16 +41,15 @@
 
 <script>
 import { PlusSmIcon } from '@heroicons/vue/outline'
-import SemVer from 'semver'
 
+import { mapState } from 'pinia'
+import SemVer from 'semver'
 import { markRaw } from 'vue'
 import { useRouter } from 'vue-router'
-import { mapState } from 'vuex'
 
 import InstanceApi from '../../../api/instances.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import usePermissions from '../../../composables/Permissions.js'
-import featuresMixin from '../../../mixins/Features.js'
 import Dialog from '../../../services/dialog.js'
 import TokenCreated from '../../account/Security/dialogs/TokenCreated.vue'
 import ExpiryCell from '../../account/components/ExpiryCell.vue'
@@ -65,6 +66,9 @@ import {
 
 import TokenDialog from './dialogs/TokenDialog.vue'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
+
 export default {
     name: 'InstanceSettingsSecurity',
     components: {
@@ -74,7 +78,6 @@ export default {
         TokenCreated,
         TokenDialog
     },
-    mixins: [featuresMixin],
     inheritAttrs: false,
     props: {
         project: {
@@ -119,7 +122,13 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'settings']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck', 'settings']),
+        ...mapState(useContextStore, ['team']),
+        hasTeamLevelTokenPermission () {
+            // The server checks project:edit at the team level (not application level),
+            // so we must match that here to avoid silent 403s
+            return this.hasPermission('project:edit')
+        },
         projectLauncherCompatible () {
             const launcherVersion = this.project?.meta?.versions?.launcher
             if (!launcherVersion) {
@@ -170,24 +179,26 @@ export default {
         },
         'editable.settings.httpNodeAuth_type': {
             handler (v) {
-                if (v === 'flowforge-user') {
+                if (v === 'flowforge-user' && this.hasTeamLevelTokenPermission) {
                     this.getTokens()
                 }
             }
         }
     },
     mounted () {
-        this.checkAccess()
+        if (!this.checkAccess()) return
         this.getSettings()
-        if (this.isHTTPBearerTokensFeatureEnabled()) {
+        if (this.featuresCheck.isHTTPBearerTokensFeatureEnabled && this.hasTeamLevelTokenPermission) {
             this.getTokens()
         }
     },
     methods: {
-        checkAccess: async function () {
+        checkAccess: function () {
             if (!this.hasPermission('project:edit', { application: this.project.application })) {
                 useRouter().push({ replace: true, path: 'general' })
+                return false
             }
+            return true
         },
         getSettings: function () {
             if (this.project.template) {

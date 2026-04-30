@@ -7,7 +7,7 @@
                 </div>
             </main>
         </template>
-        <template v-else-if="pending">
+        <template v-else-if="appLoader">
             <main class="ff-bg-dark flex-grow flex flex-col">
                 <div class="w-full mx-auto flex-grow flex flex-col">
                     <Loading color="white" />
@@ -32,10 +32,10 @@
                     <router-view />
                 </ff-layout-docs>
             </template>
-            <template v-else-if="pageLayout === 'plain'">
-                <ff-layout-plain>
+            <template v-else-if="pageLayout === 'immersive'">
+                <ff-layout-immersive>
                     <router-view />
-                </ff-layout-plain>
+                </ff-layout-immersive>
             </template>
             <EducationModal />
         </template>
@@ -63,7 +63,6 @@
 
 <script>
 import { mapActions, mapState } from 'pinia'
-import { mapState as mapVuexState } from 'vuex'
 
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
@@ -71,15 +70,19 @@ import LicenseBanner from './components/banners/LicenseBanner.vue'
 import EducationModal from './components/dialogs/EducationModal.vue'
 import FFLayoutBox from './layouts/Box.vue'
 import FFLayoutDocs from './layouts/Docs.vue'
-import FFLayoutPlain from './layouts/Plain.vue'
+import FFLayoutImmersiveEditor from './layouts/ImmersiveEditor.vue'
 import FFLayoutPlatform from './layouts/Platform.vue'
 import Login from './pages/Login.vue'
 import PasswordExpired from './pages/PasswordExpired.vue'
 import TermsAndConditions from './pages/TermsAndConditions.vue'
 import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'App',
@@ -95,11 +98,13 @@ export default {
         'ff-layout-platform': FFLayoutPlatform,
         'ff-layout-box': FFLayoutBox,
         'ff-layout-docs': FFLayoutDocs,
-        'ff-layout-plain': FFLayoutPlain
+        'ff-layout-immersive': FFLayoutImmersiveEditor
     },
     computed: {
         ...mapState(useUxDrawersStore, ['hiddenLeftDrawer']),
-        ...mapVuexState('account', ['pending', 'user', 'team', 'offline', 'settings']),
+        ...mapState(useAccountAuthStore, ['user']),
+        ...mapState(useUxLoadingStore, ['appLoader', 'offline']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },
@@ -129,7 +134,7 @@ export default {
         },
         pageLayout () {
             const layout = this.$route.meta?.layout
-            return ['platform', 'modal', 'plain', 'docs'].includes(layout) ? layout : 'platform'
+            return ['platform', 'modal', 'docs', 'immersive'].includes(layout) ? layout : 'platform'
         }
     },
     watch: {
@@ -141,8 +146,8 @@ export default {
         }
     },
     mounted () {
-        this.$store.dispatch('account/checkState')
-        this.$store.dispatch('product/checkFlags')
+        useAccountAuthStore().checkState()
+        useProductBrokersStore().checkFlags()
     },
     methods: {
         ...mapActions(useContextStore, ['updateRoute'])

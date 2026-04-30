@@ -1,6 +1,6 @@
 <template>
     <ff-layout-box class="ff-login">
-        <form v-if="!pending" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
+        <form v-if="!appLoader" class="px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
             <template v-if="complete">
                 <p class="text-center">Password reset successful.</p>
                 <ff-button to="/">Return Home</ff-button>
@@ -17,13 +17,15 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import userApi from '../../api/user.js'
 import FormRow from '../../components/FormRow.vue'
 
 import FFLayoutBox from '../../layouts/Box.vue'
 import alerts from '../../services/alerts.js'
+
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 let zxcvbn
 
@@ -47,7 +49,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings', 'pending']),
+        ...mapState(useUxLoadingStore, ['appLoader']),
         formValid () {
             return this.input.password &&
                    (this.input.password === this.input.confirm) &&

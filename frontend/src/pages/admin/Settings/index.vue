@@ -10,12 +10,14 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'AdminSettings',
     computed: {
-        ...mapState('account', ['features']),
+        ...mapState(useAccountSettingsStore, ['features']),
         sideNavigation () {
             return [
                 { label: 'General', to: { name: 'admin-settings-general' }, tag: 'general' },

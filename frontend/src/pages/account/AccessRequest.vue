@@ -24,7 +24,9 @@
 
 <script>
 import { ArrowSmLeftIcon, ArrowSmRightIcon, KeyIcon, TemplateIcon } from '@heroicons/vue/solid'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'AccessRequest',
@@ -35,7 +37,7 @@ export default {
         ArrowSmLeftIcon
     },
     computed: {
-        ...mapState('account', ['user', 'team'])
+        ...mapState(useAccountAuthStore, ['user'])
     },
     methods: {
         allowAccess () {

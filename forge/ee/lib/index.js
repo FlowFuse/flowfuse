@@ -34,6 +34,22 @@ module.exports = fp(async function (app, opts) {
         app.config.features.register('ffNodes', true, true)
         app.config.features.register('rbacApplication', true, true)
         require('./autoUpdateStacks').init(app)
+
+        // Expert
+        await app.register(require('./expert'))
+
+        // Set the Generate Snapshot Description Feature Flag
+        app.config.features.register('generatedSnapshotDescription', true, true)
+
+        // Set the assistant inline completions Feature Flag
+        app.config.features.register('assistantInlineCompletions', true, true)
+
+        // Set the expert assistant Feature Flag
+        app.config.features.register('expertAssistant', app.config?.expert?.enabled ?? false, true)
+
+        // temporary until FF Expert Insights can be enabled on Self Hosted EE instance
+        const isInsightsEnabled = app.config?.expert?.enabled && app.config?.expert?.insights?.enabled
+        app.config.features.register('expertInsights', isInsightsEnabled ?? false, false)
     }
 
     // Set the Team Library Feature Flag
@@ -53,13 +69,4 @@ module.exports = fp(async function (app, opts) {
 
     // Set the Editor Limits Feature Flag
     app.config.features.register('editorLimits', true, true)
-
-    // Set the Editor Limits Feature Flag
-    app.config.features.register('generatedSnapshotDescription', true, true)
-
-    // Set the assistant inline completions Feature Flag
-    app.config.features.register('assistantInlineCompletions', true, true)
-
-    // Set the expert assistant Feature Flag
-    app.config.features.register('expertAssistant', app.config?.expert?.enabled ?? false, true)
 }, { name: 'app.ee.lib' })

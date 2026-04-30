@@ -25,8 +25,8 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
 import semver from 'semver'
-import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 import usePermissions from '../../../composables/Permissions.js'
@@ -34,6 +34,8 @@ import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 
 import TemplateSettingsSecurity from '../../admin/Template/sections/Security.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceSettingsSecurity',
@@ -89,7 +91,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         securityOptionsSupported () {
             if (!this.device.agentVersion) {
                 // Device has not called home yet - so we don't know what agent

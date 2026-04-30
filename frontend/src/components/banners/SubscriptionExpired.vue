@@ -28,9 +28,11 @@
 
 <script>
 import { ChevronRightIcon, ExclamationCircleIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import usePermissions from '../../composables/Permissions.js'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'SubscriptionExpired',
@@ -44,7 +46,7 @@ export default {
         return { hasPermission }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         billingPath () {
             return '/team/' + this.team.slug + '/billing'
         },

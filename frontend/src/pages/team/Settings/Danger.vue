@@ -51,7 +51,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import teamApi from '../../../api/team.js'
 import teamTypesApi from '../../../api/teamTypes.js'
@@ -64,6 +64,10 @@ import ConfirmTeamDeleteDialog from '../dialogs/ConfirmTeamDeleteDialog.vue'
 import ConfirmTeamSuspendDialog from '../dialogs/ConfirmTeamSuspendDialog.vue'
 
 import TeamAdminTools from './TeamAdminTools.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamSettingsDanger',
@@ -79,7 +83,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'features', 'team']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useAccountAuthStore, ['user']),
         isAdmin: function () {
             return this.user.admin
         }
@@ -99,7 +105,7 @@ export default {
         deleteTeam () {
             teamApi.deleteTeam(this.team.id).then(() => {
                 alerts.emit('Team successfully deleted', 'confirmation')
-                this.$store.dispatch('account/checkState', '/')
+                useAccountAuthStore().checkState('/')
             }).catch(err => {
                 alerts.emit('Problem deleting team', 'warning')
                 console.warn(err)
@@ -111,7 +117,7 @@ export default {
         suspendTeam () {
             teamApi.updateTeam(this.team.id, { suspended: true }).then(() => {
                 alerts.emit('Team successfully suspended', 'confirmation')
-                this.$store.dispatch('account/refreshTeam')
+                useContextStore().refreshTeam()
             }).catch(err => {
                 alerts.emit('Problem suspending team', 'warning')
                 console.warn(err)
@@ -120,7 +126,7 @@ export default {
         unsuspendTeam () {
             teamApi.updateTeam(this.team.id, { suspended: false }).then(() => {
                 alerts.emit('Team successfully reactivated', 'confirmation')
-                this.$store.dispatch('account/refreshTeam')
+                useContextStore().refreshTeam()
             }).catch(err => {
                 alerts.emit('Problem suspending team', 'warning')
                 console.warn(err)

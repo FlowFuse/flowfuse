@@ -103,13 +103,15 @@
 <script>
 import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
 
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
 
 import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import ApplicationListItem from './components/Application.vue'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'TeamApplications',
@@ -136,7 +138,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters('account', ['featuresCheck', 'team', 'isFreeTeamType']),
+        ...mapState(useContextStore, ['team']),
         applicationsList () {
             return Array.from(this.applications.values())
         },

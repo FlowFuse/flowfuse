@@ -61,8 +61,6 @@
 import { DesktopComputerIcon, PlusSmIcon } from '@heroicons/vue/outline'
 import { markRaw } from 'vue'
 
-import { mapState } from 'vuex'
-
 import instanceTypesApi from '../../../api/instanceTypes.js'
 import stacksApi from '../../../api/stacks.js'
 
@@ -130,7 +128,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings']),
         stacksArray () {
             return Array.from(this.allStacks.values())
         },

@@ -59,9 +59,13 @@
 </template>
 
 <script>
+import { mapActions } from 'pinia'
+
 import adminApi from '../../../api/admin.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'AdminSettingsLicense',
@@ -105,6 +109,7 @@ export default {
         this.license = await adminApi.getLicenseDetails()
     },
     methods: {
+        ...mapActions(useAccountSettingsStore, ['refreshSettings']),
         editLicense () {
             this.input.license = ''
             this.editing.license = true
@@ -136,7 +141,7 @@ export default {
                     license: this.input.license,
                     action: 'apply'
                 })
-                this.$store.dispatch('account/refreshSettings')
+                this.refreshSettings()
                 this.cancelEditLicense()
                 this.loading.updating = false
             } catch (err) {

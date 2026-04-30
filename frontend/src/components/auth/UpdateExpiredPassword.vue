@@ -40,15 +40,18 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import userApi from '../../api/user.js'
-import store from '../../store/index.js'
 import FormRow from '../FormRow.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'UpdateExpiredPassword',
-    computed: mapState('account', ['loginError']),
+    computed: {
+        ...mapState(useAccountAuthStore, ['loginError'])
+    },
     data () {
         return {
             input: {
@@ -85,7 +88,7 @@ export default {
                 return false
             }
             userApi.changePassword(this.input.old_password, this.input.password).then(() => {
-                this.$store.dispatch('account/checkState')
+                useAccountAuthStore().checkState()
                 this.$router.go()
             }).catch(e => {
                 this.errors.password_change = 'Password change failed'
@@ -102,7 +105,7 @@ export default {
             this.$refs['row-confirm'].focus()
         },
         logout () {
-            store.dispatch('account/logout')
+            useAccountAuthStore().logout()
         }
     },
     mounted () {

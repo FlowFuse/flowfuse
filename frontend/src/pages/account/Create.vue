@@ -64,13 +64,17 @@
 </template>
 
 <script>
+
+import { mapState } from 'pinia'
 import { useRoute } from 'vue-router'
-import { mapState } from 'vuex'
 
 import userApi from '../../api/user.js'
 
 import SpinnerIcon from '../../components/icons/Spinner.js'
 import FFLayoutBox from '../../layouts/Box.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 let zxcvbn
 
@@ -120,7 +124,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['settings', 'pending']),
+        ...mapState(useAccountSettingsStore, ['settings']),
         splash () {
             return this.settings['branding:account:signUpLeftBanner']
         },
@@ -253,7 +257,7 @@ export default {
                     window.gtag('event', 'conversion', this.settings.adwords.events.conversion)
                 }
                 if (!result.sso_enabled) {
-                    this.$store.dispatch('account/setUser', result)
+                    useAccountAuthStore().setUser(result)
                     this.$router.push('/')
                 }
             }).catch(err => {

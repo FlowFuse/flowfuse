@@ -96,7 +96,6 @@
 
 <script>
 import { h } from 'vue'
-import { mapState } from 'vuex'
 
 import ApplicationApi from '../../../api/application.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
@@ -168,7 +167,6 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership']),
         selectedAvailableDevices () {
             return this.localAvailableDevices.filter((device) => device.selected)
         },

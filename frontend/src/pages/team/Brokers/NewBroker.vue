@@ -4,15 +4,19 @@
 
 <script>
 
-import { mapGetters } from 'vuex'
+import { mapActions, mapState } from 'pinia'
 
 import BrokerForm from './components/BrokerForm.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+
+import { useProductBrokersStore } from '@/stores/product-brokers.js'
 
 export default {
     name: 'NewBroker',
     components: { BrokerForm },
     computed: {
-        ...mapGetters('account', ['featuresCheck'])
+        ...mapState(useAccountSettingsStore, ['featuresCheck'])
     },
     mounted () {
         if (!this.featuresCheck.isExternalMqttBrokerFeatureEnabled) {
@@ -20,8 +24,9 @@ export default {
         }
     },
     methods: {
+        ...mapActions(useProductBrokersStore, ['createBroker']),
         onSubmit (payload) {
-            return this.$store.dispatch('product/createBroker', payload)
+            return this.createBroker(payload)
                 .then(res => this.$router.push({
                     name: 'team-brokers-hierarchy',
                     params: { brokerId: res.id }

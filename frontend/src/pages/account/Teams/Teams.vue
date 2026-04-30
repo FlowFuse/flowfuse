@@ -9,8 +9,8 @@
 
 <script>
 
+import { mapState } from 'pinia'
 import { markRaw } from 'vue'
-import { mapState } from 'vuex'
 
 import teamApi from '../../../api/team.js'
 
@@ -18,6 +18,10 @@ import TeamCell from '../../../components/tables/cells/TeamCell.vue'
 import alerts from '../../../services/alerts.js'
 import Dialog from '../../../services/dialog.js'
 import CreateTeamButton from '../components/CreateTeamButton.vue'
+
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useAccountStore } from '@/stores/account.js'
 
 export default {
     name: 'AccountTeams',
@@ -35,7 +39,9 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['user', 'teams', 'settings']),
+        ...mapState(useAccountStore, ['teams']),
+        ...mapState(useAccountSettingsStore, ['settings']),
+        ...mapState(useAccountAuthStore, ['user']),
         teamCount () {
             return this.teams ? this.teams.length : 0
         }
@@ -64,9 +70,9 @@ export default {
                 try {
                     await teamApi.removeTeamMember(row.id, this.user.id)
                     alerts.emit(`${this.user.username} successfully removed from ${row.name}`, 'confirmation')
-                    await this.$store.dispatch('account/refreshTeams')
+                    await useAccountStore().refreshTeams()
                     if (!this.teamCount) {
-                        await this.$store.dispatch('account/setTeam', null)
+                        await useAccountStore().setTeam(null)
                     }
                 } catch (err) {
                     alerts.emit(`Failed to remove ${this.user.username} from ${row.name}: ${err.response.data.error}`, 'warning')

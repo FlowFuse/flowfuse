@@ -126,7 +126,7 @@
 
 <script>
 import { CheckCircleIcon, RefreshIcon } from '@heroicons/vue/outline'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import billingApi from '../../../../api/billing.js'
 import instanceTypesApi from '../../../../api/instanceTypes.js'
@@ -145,6 +145,9 @@ import { debounce } from '../../../../utils/eventHandling.js'
 import NameGenerator from '../../../../utils/name-generator/index.js'
 import Loading from '../../../Loading.vue'
 import FeatureUnavailableToTeam from '../../../banners/FeatureUnavailableToTeam.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'InstanceStep',
@@ -208,7 +211,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['features', 'team']),
+        ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useContextStore, ['team']),
         activeInstanceTypeCount () {
             return this.decoratedInstanceTypes.filter(instance => !instance.disabled).length
         },

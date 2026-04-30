@@ -41,7 +41,9 @@
 
 <script>
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'ResultSection',
@@ -74,7 +76,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         resultCount () {
             return this.results.length
         },

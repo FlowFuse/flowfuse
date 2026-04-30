@@ -5,7 +5,7 @@
                 <BeakerIcon />
             </template>
             <template #content>
-                <InfoCardRow property="Editor Access:">
+                <InfoCardRow v-if="!isImmersiveEditor" property="Editor Access:">
                     <template #value>
                         <div class="flex gap-9 items-center">
                             <div class="font-medium forge-badge" :class="'forge-status-' + (editorEnabled ? (editorTunnelConnected ? 'running' : 'error') : 'stopped')">
@@ -84,7 +84,7 @@
                             <ff-button
                                 :disabled="createSnapshotDisabled"
                                 kind="secondary"
-                                class="w-28 whitespace-nowrap"
+                                class="whitespace-nowrap"
                                 size="small"
                                 data-action="create-snapshot-dialog"
                                 @click="showCreateSnapshotDialog"
@@ -103,8 +103,8 @@
 
 <script>
 import { BeakerIcon } from '@heroicons/vue/outline'
+import { mapState } from 'pinia'
 import semver from 'semver'
-import { mapState } from 'vuex'
 
 import deviceApi from '../../../api/devices.js'
 
@@ -113,6 +113,9 @@ import InfoCard from '../../../components/InfoCard.vue'
 import InfoCardRow from '../../../components/InfoCardRow.vue'
 import alerts from '../../../services/alerts.js'
 import SnapshotCreateDialog from '../dialogs/SnapshotCreateDialog.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceDeveloperMode',
@@ -146,7 +149,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team', 'teamMembership', 'features']),
+        ...mapState(useContextStore, ['team']),
+        ...mapState(useAccountSettingsStore, ['features']),
         developerMode: function () {
             return this.device?.mode === 'developer'
         },
@@ -176,6 +180,9 @@ export default {
         },
         deviceIsApplicationOwned () {
             return this.device.ownerType === 'application'
+        },
+        isImmersiveEditor () {
+            return this.$route.name === 'device-editor-developer-mode'
         }
     },
     watch: {

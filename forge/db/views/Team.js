@@ -57,11 +57,12 @@ module.exports = function (app) {
                 slug: result.slug,
                 avatar: result.avatar,
                 suspended: result.suspended,
-                instanceCount: result.projectCount,
-                memberCount: result.memberCount,
-                deviceCount: result.deviceCount,
-                brokerCount: result.brokerCount,
-                teamBrokerClientsCount: result.teamBrokerClientsCount,
+                // Counts are aggregates; postgres returns them as strings, sqlite as numbers — coerce.
+                instanceCount: parseInt(result.projectCount) || 0,
+                memberCount: parseInt(result.memberCount) || 0,
+                deviceCount: parseInt(result.deviceCount) || 0,
+                brokerCount: parseInt(result.brokerCount) || 0,
+                teamBrokerClientsCount: parseInt(result.teamBrokerClientsCount) || 0,
                 createdAt: result.createdAt,
                 updatedAt: result.updatedAt,
                 links: result.links
@@ -104,8 +105,9 @@ module.exports = function (app) {
                 avatar: d.Team.avatar,
                 suspended: d.Team.suspended,
                 role: d.role,
-                instanceCount: d.projectCount,
-                memberCount: d.memberCount,
+                instanceCount: parseInt(d.projectCount) || 0,
+                deviceCount: parseInt(d.deviceCount) || 0,
+                memberCount: parseInt(d.memberCount) || 0,
                 links: d.Team.links
             }
             return filtered

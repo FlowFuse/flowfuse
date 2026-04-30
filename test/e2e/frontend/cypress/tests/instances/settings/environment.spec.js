@@ -25,7 +25,7 @@ describe('FlowFuse - Instance - Settings Environment', () => {
     it('can add, remove mark as hidden instance environment variables', () => {
         cy.get('[data-el="env-vars-table"]').should('exist')
         cy.get('[data-el="env-vars-table"]').should('be.visible')
-        cy.get('[data-el="env-vars-table"] tbody tr').should('have.length', 2)
+        cy.get('[data-el="env-vars-table"] tbody tr').should('have.length', 3)
 
         cy.get('[data-el="save-settings-button"]').should('be.disabled')
 
@@ -33,14 +33,14 @@ describe('FlowFuse - Instance - Settings Environment', () => {
 
         cy.get('[data-el="save-settings-button"]').should('not.be.disabled')
 
-        cy.get('[data-el="env-vars-table"] tbody tr').should('have.length', 3)
+        cy.get('[data-el="env-vars-table"] tbody tr').should('have.length', 4)
 
         // can remove an unsaved variable
         cy.get('[data-el="env-vars-table"] [data-row="row-NEW"]').within(() => {
             cy.get('[data-el="remove"]').click()
         })
 
-        cy.get('[data-el="env-vars-table"] tbody tr').should('have.length', 2)
+        cy.get('[data-el="env-vars-table"] tbody tr').should('have.length', 3)
 
         // can add a visible environment variable
         cy.get('[data-el="add-variable"]').click()

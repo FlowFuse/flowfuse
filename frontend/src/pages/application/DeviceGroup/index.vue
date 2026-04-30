@@ -61,7 +61,7 @@
 <script>
 import { CheckCircleIcon, CogIcon, ExclamationIcon } from '@heroicons/vue/outline'
 
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
 
 import ApplicationApi from '../../../api/application.js'
 
@@ -69,6 +69,9 @@ import SubscriptionExpiredBanner from '../../../components/banners/SubscriptionE
 import TeamTrialBanner from '../../../components/banners/TeamTrial.vue'
 import DeviceSolidIcon from '../../../components/icons/DeviceSolid.js'
 import usePermissions from '../../../composables/Permissions.js'
+
+import { useAccountStore } from '@/stores/account.js'
+import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceGroup',
@@ -92,7 +95,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('account', ['team']),
+        ...mapState(useContextStore, ['team']),
         navigation () {
             const routes = [
                 {
@@ -170,7 +173,7 @@ export default {
                 } while (cursor)
                 this.applicationDevices = devices.flat()
 
-                this.$store.dispatch('account/setTeam', this.application.team.slug)
+                useAccountStore().setTeam(this.application.team.slug)
             } catch (err) {
                 this.$router.push({
                     name: 'page-not-found',
