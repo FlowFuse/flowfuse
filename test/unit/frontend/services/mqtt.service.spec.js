@@ -317,7 +317,7 @@ describe('MqttService', async () => {
         })
 
         const validOptions = client.publish.mock.calls[0][2]
-        expect(validOptions.properties.correlationData).toBeInstanceOf(Buffer)
+        expect(new TextDecoder().decode(validOptions.properties.correlationData)).toBe('request-123')
         expect(validOptions.properties.userProperties).toEqual({
             source: 'ui',
             tags: ['alpha', 'beta']
@@ -335,7 +335,7 @@ describe('MqttService', async () => {
             topic: 'bad/properties',
             payload: 'ok',
             correlationData: 123
-        })).rejects.toThrow('MQTT publish correlationData must be a string or binary value')
+        })).rejects.toThrow('MQTT publish correlationData must be a string')
 
         await expect(service.publishMessage('properties-key', {
             topic: 'bad/properties',
@@ -887,7 +887,7 @@ describe('MqttService', async () => {
 
         expect(() => service._normalizePublishPayload(Symbol('s'))).toThrow('Unsupported MQTT payload type for auto serialization')
         expect(() => service._normalizePublishPayload('x', 'unknown')).toThrow('Invalid MQTT payload serialization mode: "unknown"')
-        expect(() => service._normalizeCorrelationData(123)).toThrow('MQTT publish correlationData must be a string or binary value')
+        expect(() => service._normalizeCorrelationData(123)).toThrow('MQTT publish correlationData must be a string')
         expect(service._normalizeUserProperties({})).toBeUndefined()
         expect(() => service._normalizeUserProperties({ '': 'x' })).toThrow('MQTT publish userProperties keys must be non-empty strings')
         expect(service._normalizePublishProperties({ correlationData: null, userProperties: null })).toBeUndefined()
@@ -902,8 +902,6 @@ describe('MqttService', async () => {
             const fromArrayBuffer = service._normalizeBinaryPayload(new ArrayBuffer(3))
             expect(fromArrayBuffer).toBeInstanceOf(Uint8Array)
 
-            const correlationFallback = service._normalizeCorrelationData('abc')
-            expect(correlationFallback.constructor.name).toBe('Uint8Array')
         } finally {
             global.Buffer = originalBuffer
         }
