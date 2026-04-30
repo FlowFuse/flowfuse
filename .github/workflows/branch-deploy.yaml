@@ -580,6 +580,9 @@ jobs:
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
 
     steps:
+      # Builds the recipient list (PR author + requested reviewers, or github.actor on workflow_dispatch)
+      # and resolves each GitHub username to a Slack user ID by scanning workspace profiles and picking the value of custom profile field (GitHub).
+      # Outputs `recipients` as JSON: [{ slack_id, github, role }, ...]. Unresolved users are skipped with a warning.
       - name: Resolve Slack users for recipients
         id: resolve
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
@@ -662,6 +665,9 @@ jobs:
             core.info(`Resolved ${output.length}/${recipients.length} recipients`);
             core.setOutput('recipients', JSON.stringify(output));
 
+      # Sends one DM per resolved recipient via Slack chat.postMessage.
+      # Same message content for everyone, with a *Role:* field indicating Author / Reviewer / Trigger.
+      # Step fails only if all sends fail; partial failures are logged as warnings.
       - name: Send Slack notifications
         if: steps.resolve.outputs.recipients != '' && steps.resolve.outputs.recipients != '[]'
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
