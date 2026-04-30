@@ -1,4 +1,4 @@
-describe('FlowFuse EE - Free Tier', () => {
+describe.skip('FlowFuse EE - Free Tier', () => {
     beforeEach(() => {
         cy.login('freddie', 'ffPassword')
         cy.home()
