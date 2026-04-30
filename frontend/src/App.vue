@@ -148,6 +148,7 @@ export default {
     mounted () {
         useAccountAuthStore().checkState()
         useProductBrokersStore().checkFlags()
+        useAccountSettingsStore().loadPosthogFlags()
     },
     methods: {
         ...mapActions(useContextStore, ['updateRoute'])
