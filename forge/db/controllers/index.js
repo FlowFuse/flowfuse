@@ -37,6 +37,9 @@ const modelTypes = [
 async function init (app) {
     modelTypes.forEach(type => {
         const m = require(`./${type}`)
+        if (typeof m.init === 'function') {
+            m.init(app)
+        }
         module.exports[type] = {}
         for (const key in m) {
             module.exports[type][key] = m[key].bind(m, app)

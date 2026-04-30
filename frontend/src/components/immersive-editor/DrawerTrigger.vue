@@ -37,7 +37,11 @@ export default {
     align-items: center;
     gap: 1px;
     position: fixed;
-    top: 10px;
+    top: 70px;
+
+    .ff-layout--immersive--fullscreen & {
+        top: 10px;
+    }
     left: 0;
     z-index: 100;
     padding: 8px 2px 8px 8px;
