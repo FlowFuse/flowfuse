@@ -7,6 +7,36 @@
             :pendingStateChange="instance.pendingStateChange"
         />
 
+        <EmptyState v-else-if="isEditorDisabled" data-el="editor-disabled-empty-state">
+            <template #img>
+                <LockClosedIcon class="w-20 h-20 text-gray-400 mx-auto" />
+            </template>
+            <template #header>Editor Disabled</template>
+            <template #message>
+                <p>Access to the editor has been disabled in Settings &gt; Editor.</p>
+                <p>Re-enable it to resume editing flows for this instance.</p>
+            </template>
+            <template #actions>
+                <ff-button
+                    kind="primary"
+                    data-action="go-to-editor-settings"
+                    @click="goToEditorSettings"
+                >
+                    Go to Editor Settings
+                </ff-button>
+            </template>
+        </EmptyState>
+
+        <EmptyState v-else-if="awaitingEditorRestart" data-el="editor-restart-required-empty-state">
+            <template #img>
+                <RefreshIcon class="w-20 h-20 text-gray-400 mx-auto" />
+            </template>
+            <template #header>Restart Required</template>
+            <template #message>
+                <p>The editor has been re-enabled, but the instance must be restarted for the change to take effect.</p>
+            </template>
+        </EmptyState>
+
         <iframe
             v-else
             ref="iframe"
@@ -23,11 +53,15 @@
 </template>
 
 <script>
+import { LockClosedIcon, RefreshIcon } from '@heroicons/vue/outline'
 import { mapActions } from 'pinia'
+
+import EmptyState from '../EmptyState.vue'
 
 import LoadingScreenWrapper from './LoadingScreenWrapper.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 const States = {
     STOPPED: 'stopped',
@@ -41,7 +75,7 @@ const States = {
 }
 export default {
     name: 'HostedInstanceEditorWrapper',
-    components: { LoadingScreenWrapper },
+    components: { EmptyState, LoadingScreenWrapper, LockClosedIcon, RefreshIcon },
     inject: ['$services'],
     props: {
         instance: {
@@ -56,7 +90,8 @@ export default {
     emits: ['iframe-loaded', 'toggle-drawer', 'request-drawer-state'],
     data () {
         return {
-            posthogKeepAliveInterval: null
+            posthogKeepAliveInterval: null,
+            awaitingEditorRestart: false
         }
     },
     computed: {
@@ -73,6 +108,25 @@ export default {
             ]
 
             return this.isInstanceTransitioningStates || unsafeStates.includes(this.instance.meta?.state)
+        },
+        isEditorDisabled () {
+            return !!this.instance.settings?.disableEditor
+        }
+    },
+    watch: {
+        isEditorDisabled (newVal, oldVal) {
+            // Running Node-RED keeps the old (disabled) config until restart,
+            // so suppress the iframe to avoid leaking "Cannot GET /".
+            if (oldVal === true && newVal === false) {
+                this.awaitingEditorRestart = true
+            } else if (newVal === true) {
+                this.awaitingEditorRestart = false
+            }
+        },
+        shouldDisplayLoadingScreen (isLoading) {
+            if (this.awaitingEditorRestart && isLoading) {
+                this.awaitingEditorRestart = false
+            }
         }
     },
     mounted () {
@@ -102,6 +156,14 @@ export default {
         ...mapActions(useProductAssistantStore, {
             resetAssistant: 'reset'
         }),
+        ...mapActions(useUxDrawersStore, ['openEditorImmersiveDrawer']),
+        goToEditorSettings () {
+            this.openEditorImmersiveDrawer()
+            this.$router.push({
+                name: 'instance-editor-settings-editor',
+                params: { id: this.instance.id }
+            })
+        },
         // todo this event listener should be moved in the messaging.service.js
         eventListener (event) {
             if (event.origin === this.instance.url) {
