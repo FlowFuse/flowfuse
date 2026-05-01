@@ -222,9 +222,10 @@ module.exports = async function (app) {
                     id: 'team-broker',
                     name: 'TeamBroker',
                     host: brokerURL.hostname,
-                    port: brokerURL.port,
+                    // URL.port is a string; schema declares number. Coerce.
+                    port: parseInt(brokerURL.port, 10),
                     protocol: brokerURL.protocol,
-                    protocolVersion: '4',
+                    protocolVersion: 4,
                     ssl: brokerURL.protocol === 'mqtts:' || brokerURL.protocol === 'wss:',
                     verifySSL: true,
                     clientId: `${request.params.teamId}-agent@${request.params.teamId}`,

@@ -264,7 +264,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 tag: 'team-pipelines',
                                 icon: PipelinesIcon,
                                 disabled: requiresBilling,
-                                featureUnavailable: !features.devOpsPipelinesFeatureEnabled,
+                                featureUnavailable: !features.isDevOpsPipelinesFeatureEnabled,
                                 hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership)
                             },
                             {

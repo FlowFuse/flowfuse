@@ -22,7 +22,7 @@ describe('Redis Cache', function () {
             hDel: sinon.stub().resolves(),
             hKeys: sinon.stub(),
             hGetAll: sinon.stub(),
-            hPExpire: sinon.stub().resolves()
+            hpExpire: sinon.stub().resolves()
         }
         createClientStub = sinon.stub(redisClient, 'createClient').returns(fakeClient)
         delete require.cache[require.resolve(REDIS_CACHE_PATH)]
@@ -191,16 +191,16 @@ describe('Redis Cache', function () {
                 fakeClient.hSet.secondCall.args[2].should.equal(JSON.stringify(42))
             })
 
-            it('does not call hPExpire when no ttl is set on the cache', async function () {
+            it('does not call hpExpire when no ttl is set on the cache', async function () {
                 await cache.set('k', 'v')
-                fakeClient.hPExpire.called.should.be.false()
+                fakeClient.hpExpire.called.should.be.false()
             })
 
-            it('calls hPExpire with the cache ttl when one is configured', async function () {
+            it('calls hpExpire with the cache ttl when one is configured', async function () {
                 const ttlCache = redisCache.createCache('ttlcache', { ttl: 5000 })
                 await ttlCache.set('k', 'v')
-                fakeClient.hPExpire.calledOnce.should.be.true()
-                const args = fakeClient.hPExpire.firstCall.args
+                fakeClient.hpExpire.calledOnce.should.be.true()
+                const args = fakeClient.hpExpire.firstCall.args
                 args[0].should.equal('ttlcache')
                 // tolerate either (key, ms, fields) or (key, fields, ms) call shapes
                 JSON.stringify(args).should.containEql('5000')

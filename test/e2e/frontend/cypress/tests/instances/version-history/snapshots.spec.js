@@ -556,7 +556,8 @@ describe('FlowFuse - Instance Snapshots', () => {
         const fixtureFilename = fixture.split('/').pop()
         let fixtureHasCredentials = true
         cy.fixture(fixture, 'utf8', { timeout: 5000 }).as('snapshot-' + summary).then((snapshot) => {
-            if (!snapshot.flows.credentials || Object.hasOwnProperty.call(snapshot.flows.credentials, '$') === false) {
+            const jsSnapshot = JSON.parse(snapshot)
+            if (!jsSnapshot.flows.credentials || Object.hasOwnProperty.call(jsSnapshot.flows.credentials, '$') === false) {
                 fixtureHasCredentials = false
             }
         })

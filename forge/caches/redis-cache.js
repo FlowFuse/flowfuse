@@ -87,7 +87,7 @@ class Cache {
     async set (key, value) {
         await this.client.hSet(this.name, key, JSON.stringify(value))
         if (this.ttl > 0) {
-            await this.client.hPExpire(this.name, key, this.ttl)
+            await this.client.hpExpire(this.name, key, this.ttl)
         }
         return value
     }

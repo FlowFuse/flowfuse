@@ -24,8 +24,8 @@ describe('Memory Cache', function () {
         const cache = app.caches.getCache('autoDefault')
         cache.should.have.property('set').which.is.a.Function()
         cache.should.have.property('get').which.is.a.Function()
-        // no bound supplied → memory driver defaults max to 1000
-        cache.lru.max.should.equal(1000)
+        // no bound supplied → memory driver defaults max to 10000
+        cache.lru.max.should.equal(10000)
         // subsequent getCache returns the same instance
         app.caches.getCache('autoDefault').should.equal(cache)
     })

@@ -27,8 +27,8 @@
             </ff-page-header>
         </template>
         <EmptyState
-            v-if="!featuresCheck.devOpsPipelinesFeatureEnabled"
-            :featureUnavailable="!featuresCheck.devOpsPipelinesFeatureEnabled"
+            v-if="!featuresCheck.isDevOpsPipelinesFeatureEnabled"
+            :featureUnavailable="!featuresCheck.isDevOpsPipelinesFeatureEnabled"
         >
             <template #img>
                 <img src="../../../images/empty-states/application-pipelines.png" alt="logo">
@@ -143,7 +143,7 @@ export default {
             })
         }
 
-        if (this.featuresCheck.devOpsPipelinesFeatureEnabled) {
+        if (this.featuresCheck.isDevOpsPipelinesFeatureEnabled) {
             this.getPipelines()
         }
     },

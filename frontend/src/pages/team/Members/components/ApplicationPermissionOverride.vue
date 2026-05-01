@@ -1,5 +1,5 @@
 <template>
-    <div v-if="featuresCheck.isRBACApplicationFeatureEnabled">
+    <div v-if="featuresCheck.isApplicationsRBACFeatureEnabled">
         <span v-if="alteredPermissions === 0" class="opacity-50">No Overrides</span>
         <span v-else>{{ alteredPermissions }} x {{ pluralize('Override', 1) }}</span>
     </div>
