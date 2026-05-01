@@ -1,4 +1,5 @@
 const should = require('should') // eslint-disable-line
+const { Roles } = require('../../../../forge/lib/roles')
 const setup = require('../routes/setup')
 const TestModelFactory = require('../../../lib/TestModelFactory') // eslint-disable-line
 
@@ -6,7 +7,15 @@ describe('Broker Auth v2 API', async function () {
     let app
     /** @type {TestModelFactory} */
     let factory = null
-    const TestObjects = {}
+    const TestObjects = {
+        tokens: {},
+        ApplicationA: null,
+        ProjectA: null,
+        ProjectACredentials: null,
+        DeviceA: null,
+        ATeam: null,
+        alice: null
+    }
 
     async function setupCE () {
         app = await setup()
@@ -947,6 +956,364 @@ describe('Broker Auth v2 API', async function () {
                     })
                 })
             })
+        })
+
+        describe('Expert Acls', async function () {
+            before(async function () {
+                await setupEE()
+                TestObjects.DeviceA = await factory.createDevice({ name: 'my expert device', type: 'test device' }, TestObjects.ATeam, null, null)
+                TestObjects.bob = await factory.createUser({ admin: false, username: 'bob', name: 'Bob Solo', email: 'bob@example.com', password: 'bbPassword' })
+                await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+                await login('bob', 'bbPassword')
+            })
+
+            after(async function () {
+                await app.close()
+            })
+
+            describe('Expert Client', async function () {
+                // basic tests - cannot sub or pub to any topics outside of 'ff/v1/expert/#' e.g. cannot sub or pub to project/device topics
+                it('denies subscription to project topics', async function () {
+                    await denyRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/res/#`
+                    })
+                })
+                it('denies publish to project topics', async function () {
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/in/foo`
+                    })
+                })
+                it('denies subscription to device topics', async function () {
+                    await denyRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.id}/res/#`
+                    })
+                })
+                it('denies publish to device topics', async function () {
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.id}/in/foo`
+                    })
+                })
+                it('denies publish/subscribe to platform topics', async function () {
+                    await denyRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: 'ff/v1/platform/sync'
+                    })
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: 'ff/v1/platform/sync'
+                    })
+                })
+
+                // should be able to sub to ../support/chat/response and ../support/inflight/command/request topics
+                // should not be able to pub to ../support/chat/response or ../support/inflight/command/request topics (they are done by the expert-agent, not the expert-client)
+                it('allows subscription to chat response topics (instance)', async function () {
+                    await allowRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/chat/response`
+                    })
+                })
+                it('allows subscription to chat response topics (device)', async function () {
+                    await allowRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/d/${TestObjects.DeviceA.hashid}/support/chat/response`
+                    })
+                })
+                it('denies publish to chat response topics (instance)', async function () {
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/chat/response`
+                    })
+                })
+                it('denies publish to chat response topics (device)', async function () {
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/d/${TestObjects.DeviceA.hashid}/support/chat/response`
+                    })
+                })
+                // should not allow client 1 to sub to or pub to another client's topics
+                it('denies subscription to another client\'s chat response topics', async function () {
+                    await denyRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.bob.hashid}/session123/p/${TestObjects.ProjectA.id}/support/chat/response`
+                    })
+                })
+                it('denies publish to another client\'s chat response topics', async function () {
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.bob.hashid}/session123/p/${TestObjects.ProjectA.id}/support/chat/response`
+                    })
+                })
+                // check bad topics are denied to subscribe to and publish to
+                it('denies subscription with mismatching session id', async function () {
+                    await denyRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/BAD-SESSION/p/${TestObjects.ProjectA.id}/support/chat/response`
+                    })
+                })
+                it('denies subscription with invalid entity type', async function () {
+                    await denyRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/X/${TestObjects.ProjectA.id}/support/chat/response`
+                    })
+                })
+                it('denies subscription with invalid entity id', async function () {
+                    await denyRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/BAD-ENTITY-ID/support/chat/response`
+                    })
+                })
+                // should be able to pub to ../support/chat/request and ../support/inflight/command/response topics
+                // should not be able to sub to ../support/chat/request or ../support/inflight/command/response topics (they are done by the expert-agent)
+                it('allows publish to chat request topics (instance)', async function () {
+                    await allowWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/chat/request`
+                    })
+                })
+                it('allows publish to chat request topics (device)', async function () {
+                    await allowWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/d/${TestObjects.DeviceA.hashid}/support/chat/request`
+                    })
+                })
+                it('denies subscription to chat request topics (instance)', async function () {
+                    await denyRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/chat/request`
+                    })
+                })
+                it('denies subscription to chat request topics (device)', async function () {
+                    await denyRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/d/${TestObjects.DeviceA.hashid}/support/chat/request`
+                    })
+                })
+
+                it('denies publish with invalid entity id', async function () {
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/BAD-ENTITY-ID/support/chat/request`
+                    })
+                })
+
+                // inflight
+                // should be able to sub to ../support/inflight/command/request and pub to ../support/inflight/command/response topics
+                // should not be able to sub to ../support/inflight/command/response or pub to ../support/inflight/command/request topics (they are done by the expert-agent, not the expert-client)
+                it('allows subscription to inflight request topics (instance)', async function () {
+                    await allowRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/inflight/command/request`
+                    })
+                })
+                it('allows subscription to inflight request topics (device)', async function () {
+                    await allowRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/d/${TestObjects.DeviceA.hashid}/support/inflight/command/request`
+                    })
+                })
+                it('denies publish to inflight request topics (instance)', async function () {
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/inflight/command/request`
+                    })
+                })
+                it('denies publish to inflight request topics (device)', async function () {
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/d/${TestObjects.DeviceA.hashid}/support/inflight/command/request`
+                    })
+                })
+                // should not allow client 1 to sub to or pub to another client's topics
+                it('denies subscription to another client\'s chat response topics', async function () {
+                    await denyRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.bob.hashid}/session123/p/${TestObjects.ProjectA.id}/support/inflight/command/request`
+                    })
+                })
+                it('denies publish to another client\'s chat response topics', async function () {
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.bob.hashid}/session123/p/${TestObjects.ProjectA.id}/support/inflight/command/response`
+                    })
+                })
+
+                it('denies subscription to inflight request with mismatching session id', async function () {
+                    await denyRead({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/BAD-SESSION/p/${TestObjects.ProjectA.id}/support/inflight/command/request`
+                    })
+                })
+                it('allows publish to inflight response topics (instance)', async function () {
+                    await allowWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/inflight/command/response`
+                    })
+                })
+                it('allows publish to inflight response topics (device)', async function () {
+                    await allowWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/d/${TestObjects.DeviceA.hashid}/support/inflight/command/response`
+                    })
+                })
+                it('denies publish to inflight response with mismatching session id', async function () {
+                    await denyWrite({
+                        username: `expert-client:${TestObjects.alice.hashid}:session123`,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/BAD-SESSION/p/${TestObjects.ProjectA.id}/support/inflight/command/response`
+                    })
+                })
+            })
+
+            describe('Expert Agent', async function () {
+                // basic tests - cannot sub or pub to any topics outside of 'ff/v1/expert/#' e.g. cannot sub or pub to project/device topics
+                it('denies subscription to project topics', async function () {
+                    await denyRead({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/res/#`
+                    })
+                })
+                it('denies publish to project topics', async function () {
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/in/foo`
+                    })
+                })
+                it('denies subscription to device topics', async function () {
+                    await denyRead({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.id}/res/#`
+                    })
+                })
+                it('denies publish to device topics', async function () {
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/${TestObjects.ATeam.hashid}/d/${TestObjects.DeviceA.id}/in/foo`
+                    })
+                })
+                it('denies publish/subscribe to platform topics', async function () {
+                    await denyRead({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/platform/sync'
+                    })
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/platform/sync'
+                    })
+                })
+
+                // should be able to sub to ../support/chat/request and ../support/inflight/command/response topics
+                // should not be able to pub to ../support/chat/request or ../support/inflight/command/response topics (they are done by the expert-agent, not the expert-client)
+                it('allows subscription to chat request topics', async function () {
+                    await allowRead({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/+/+/+/+/support/chat/request'
+                    })
+                })
+                it('denies subscription to wildcard request topics', async function () {
+                    await denyRead({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/+/+/+/+/#'
+                    })
+                })
+                it('denies publish to chat request topics (instance)', async function () {
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/chat/request`
+                    })
+                })
+                it('denies publish to chat request topics (device)', async function () {
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/d/${TestObjects.DeviceA.hashid}/support/chat/request`
+                    })
+                })
+
+                // should be able to pub to ../support/chat/response and ../support/inflight/command/request topics
+                // should not be able to sub to ../support/chat/response or ../support/inflight/command/request topics (they are done by the expert-agent)
+                it('allows publish to chat response topics (instance)', async function () {
+                    await allowWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/chat/response`
+                    })
+                })
+                it('allows publish to chat response topics (device)', async function () {
+                    await allowWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/d/${TestObjects.DeviceA.hashid}/support/chat/response`
+                    })
+                })
+                it('denies subscription to chat response topics', async function () {
+                    await denyRead({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/+/+/+/+/support/chat/response'
+                    })
+                })
+
+                it('denies publish with invalid entity type', async function () {
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/X/${TestObjects.ProjectA.id}/support/chat/response`
+                    })
+                })
+                it('denies publish with invalid entity id', async function () {
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/BAD-ENTITY-ID/support/chat/response`
+                    })
+                })
+
+                // inflight
+                // should be able to sub to ../support/inflight/command/response and pub to ../support/inflight/command/request topics
+                // should not be able to sub to ../support/inflight/command/request or pub to ../support/inflight/command/response topics (they are done by the expert-agent, not the expert-client)
+                it('allows subscription to inflight response topics', async function () {
+                    await allowRead({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/+/+/+/+/support/inflight/+/response'
+                    })
+                })
+                it('denies publish to inflight response topics (instance)', async function () {
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/inflight/command/response`
+                    })
+                })
+                it('denies publish to inflight response topics (device)', async function () {
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/d/${TestObjects.DeviceA.hashid}/support/inflight/command/response`
+                    })
+                })
+
+                it('allows publish to inflight request topics (instance)', async function () {
+                    await allowWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/inflight/command/request`
+                    })
+                })
+                it('allows publish to inflight request topics (device)', async function () {
+                    await allowWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/d/${TestObjects.DeviceA.hashid}/support/inflight/command/request`
+                    })
+                })
+                it('denies publish to inflight request with bad entity type', async function () {
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/X/${TestObjects.ProjectA.id}/support/inflight/command/request`
+                    })
+                })
+                it('denies publish to inflight request with bad entity id', async function () {
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/BAD-ENTITY-ID/support/inflight/command/request`
+                    })
+                })
+            })
+
+            // TODO: tests for Application RBACs (ensure project/device in an application with reduced permissions are suitably restricted in the ACLs)
         })
     })
 })

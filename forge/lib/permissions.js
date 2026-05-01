@@ -123,6 +123,7 @@ const Permissions = {
     'platform:debug': { description: 'View platform debug information', role: Roles.Admin },
     'platform:stats': { description: 'View platform stats information', role: Roles.Admin },
     'platform:stats:token': { description: 'Create/Delete platform stats token', role: Roles.Admin },
+    'platform:expert-agent:creds': { description: 'Create/Delete expert agent credentials', role: Roles.Admin },
     'platform:audit-log': { description: 'View platform audit log', role: Roles.Admin },
 
     /**
