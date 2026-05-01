@@ -116,7 +116,7 @@ module.exports = function (app) {
             }
         },
         checkExpertTopic: async function (topicParts, usernameParts, acl) {
-            // topicParts = [ _ , <userid>, <sessionid>, <entityType>, <entityId> [, <inflightType>] ]
+            // topicParts = [ fullTopic , <userid>, <sessionid>, <entityType>, <entityId> [, <inflightType>] ]
             // usernameParts = [ 'expert-client' | 'expert-agent', <userid> [, <sessionid>] ]
             // acl = { channel: 'inflight'|'chat', isPub: true/false, isSub: true/false, isClient: true/false, isAgent: true/false, allowWildcard: { user: true/false, session: true/false, entity: true/false } }
 
