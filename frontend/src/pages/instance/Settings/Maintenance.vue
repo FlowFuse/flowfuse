@@ -150,6 +150,14 @@ export default {
         }
     },
     watch: {
+        'project.id': {
+            immediate: true,
+            handler (id) {
+                if (id) {
+                    this.getUpdateSchedule()
+                }
+            }
+        },
         saveButton: {
             immediate: true,
             handler (state) {
@@ -186,9 +194,6 @@ export default {
             }
         }
     },
-    async mounted () {
-        await this.getUpdateSchedule()
-    },
     methods: {
         format (date) {
             if (!date) return ''
@@ -224,24 +229,8 @@ export default {
         getUpdateSchedule () {
             return instanceApi.getUpdateSchedule(this.project.id)
                 .then(response => {
-                    this.scheduledUpgrade.initialValue = {
-                        days: response.map(entry => entry.day),
-                        hour: response[0].hour, // use the first entry hour, they should all be the same
-                        restart: response[0].restart // use the first entry restart, they should all be the same
-                    }
-                    this.scheduledUpgrade.initialValue.enabled = true
-
-                    this.scheduledUpgrade.selectedWeekdays = response.map(entry => entry.day)
-                    this.scheduledUpgrade.startHour = {
-                        hours: response[0].hour, // use the first entry hour, they should all be the same
-                        minutes: 0,
-                        seconds: 0
-                    }
-                    this.scheduledUpgrade.enabled = true
-                    this.scheduledUpgrade.restart = response[0].restart // use the first entry restart, they should all be the same
-                }).catch(error => {
-                    if (error.response.status === 404) {
-                        // Apply any defaults from the team type
+                    if (response.length === 0) {
+                        // No schedule configured — apply any defaults from the team type
                         if (this.team.type.properties.autoStackUpdate?.days?.length > 0 && this.team.type.properties.autoStackUpdate?.hours?.length > 0) {
                             this.scheduledUpgrade.initialValue = {
                                 enabled: false,
@@ -268,7 +257,21 @@ export default {
                         }
                         return
                     }
-                    throw error
+                    this.scheduledUpgrade.initialValue = {
+                        days: response.map(entry => entry.day),
+                        hour: response[0].hour, // use the first entry hour, they should all be the same
+                        restart: response[0].restart // use the first entry restart, they should all be the same
+                    }
+                    this.scheduledUpgrade.initialValue.enabled = true
+
+                    this.scheduledUpgrade.selectedWeekdays = response.map(entry => entry.day)
+                    this.scheduledUpgrade.startHour = {
+                        hours: response[0].hour, // use the first entry hour, they should all be the same
+                        minutes: 0,
+                        seconds: 0
+                    }
+                    this.scheduledUpgrade.enabled = true
+                    this.scheduledUpgrade.restart = response[0].restart // use the first entry restart, they should all be the same
                 })
         },
         evaluateChanges () {
@@ -322,11 +325,10 @@ export default {
             } else {
                 return instanceApi.removeUpdateSchedule(this.project.id)
                     .then(() => {
-                        this.scheduledUpgrade.initialValue = null
-                        this.scheduledUpgrade.selectedWeekdays = null
+                        this.scheduledUpgrade.initialValue = { enabled: false, days: [], restart: false }
+                        this.scheduledUpgrade.selectedWeekdays = []
                         this.scheduledUpgrade.startHour = null
                         this.scheduledUpgrade.restart = false
-                        this.scheduledUpgrade.initialValue.enabled = false
                         Alerts.emit('Schedule removed', 'confirmation')
                     }).catch(error => {
                         Alerts.emit('Failed to remove schedule', 'warning')
