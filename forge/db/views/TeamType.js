@@ -22,7 +22,7 @@ module.exports = function (app) {
         allOf: [{ $ref: 'TeamTypeSummary' }],
         properties: {
             order: { type: 'number' },
-            description: { type: 'string' },
+            description: { type: 'string', nullable: true },
             teamCount: { type: 'number' },
             properties: {
                 type: 'object',
@@ -80,7 +80,7 @@ module.exports = function (app) {
             // For some API calls, the teamType passed here is a raw Object, not
             // a sequelize wrapped object. So we have to guard access to
             // the 'get' function
-            result.teamCount = teamType.get('teamCount')
+            result.teamCount = parseInt(teamType.get('teamCount')) || 0
         }
         return result
     }
