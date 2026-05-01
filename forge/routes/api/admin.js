@@ -400,6 +400,47 @@ module.exports = async function (app) {
         reply.send({ status: 'okay' })
     })
 
+    app.post('/expert-agent-creds', {
+        preHandler: app.needsPermission('platform:expert-agent:creds'),
+        schema: {
+            summary: 'Regenerate expert agent credentials - admin-only',
+            tags: ['Platform'],
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        username: { type: 'string' },
+                        password: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const result = await app.db.controllers.BrokerClient.createClientForExpertAgent()
+        reply.send(result)
+    })
+    app.delete('/expert-agent-creds', {
+        preHandler: app.needsPermission('platform:expert-agent:creds'),
+        schema: {
+            summary: 'Remove expert agent credentials - admin-only',
+            tags: ['Platform'],
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        await app.db.controllers.BrokerClient.removeClientForExpertAgent()
+        reply.send({ status: 'okay' })
+    })
+
     app.post('/announcements', {
         preHandler: app.needsPermission('user:announcements:manage'),
         schema: {
