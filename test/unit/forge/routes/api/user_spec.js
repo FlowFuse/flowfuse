@@ -1181,4 +1181,60 @@ describe('User API', async function () {
             response.statusCode.should.equal(404)
         })
     })
+
+    describe('User Expert Creds', async function () {
+        beforeEach(async function () {
+            await setupUsers()
+        })
+        it('user can request expert credentials', async function () {
+            // /api/v1/user/expert-creds
+            await login('elvis', 'eePassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/expert-creds',
+                cookies: { sid: TestObjects.tokens.elvis },
+                body: {
+                    sessionId: 'abcd1234'
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.only.have.keys('url', 'username', 'password')
+            json.should.have.property('url', ':test:')
+            json.should.have.property('username', `expert-client:${TestObjects.elvis.hashid}:abcd1234`)
+            json.should.have.property('password').and.match(/^ffbec_/)
+        })
+        it('user cannot request expert credentials without sessionId', async function () {
+            await login('elvis', 'eePassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/expert-creds',
+                cookies: { sid: TestObjects.tokens.elvis },
+                body: {}
+            })
+            response.statusCode.should.equal(400)
+        })
+        it('user cannot request expert credentials with invalid sessionId', async function () {
+            await login('elvis', 'eePassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/expert-creds',
+                cookies: { sid: TestObjects.tokens.elvis },
+                body: {
+                    sessionId: '1' // too short
+                }
+            })
+            response.statusCode.should.equal(400)
+        })
+        it('user cannot request expert credentials if not logged in', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/expert-creds',
+                body: {
+                    sessionId: 'abcd1234'
+                }
+            })
+            response.statusCode.should.equal(401)
+        })
+    })
 })
