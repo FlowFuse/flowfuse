@@ -1,5 +1,18 @@
 <template>
     <ff-loading v-if="loading.deleting" message="Deleting Device..." />
+    <template v-if="!loading.deleting && device?.lastSeenAt">
+        <FormHeading class="text-red-700">Regenerate Configuration</FormHeading>
+        <div class="flex flex-col lg:flex-row max-w-2xl space-y-4 mb-8" data-el="device-regenerate-config">
+            <div class="flex-grow">
+                <div class="max-w-sm pt-2">
+                    Regenerate the agent configuration for this Remote Instance.
+                </div>
+            </div>
+            <div class="min-w-fit flex-shrink-0">
+                <ff-button kind="danger" @click="showRegenerateDialog()">Regenerate Configuration</ff-button>
+            </div>
+        </div>
+    </template>
     <FormHeading v-if="!loading.deleting" class="text-red-700">Delete Remote Instance</FormHeading>
     <div v-if="!loading.deleting" class="flex flex-col lg:flex-row max-w-2xl space-y-4" data-el="device-danger">
         <div class="flex-grow">
@@ -12,6 +25,7 @@
             <ConfirmDeviceDeleteDialog @delete-device="deleteDevice()" ref="confirmDeviceDeleteDialog" />
         </div>
     </div>
+    <DeviceCredentialsDialog ref="deviceCredentialsDialog" />
 </template>
 <script>
 import { mapState } from 'pinia'
@@ -19,6 +33,7 @@ import { mapState } from 'pinia'
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
 import usePermissions from '../../../composables/Permissions.js'
+import DeviceCredentialsDialog from '../../team/Devices/dialogs/DeviceCredentialsDialog.vue'
 
 import ConfirmDeviceDeleteDialog from './dialogs/ConfirmDeviceDeleteDialog.vue'
 
@@ -31,6 +46,7 @@ export default {
     inheritAttrs: false,
     components: {
         ConfirmDeviceDeleteDialog,
+        DeviceCredentialsDialog,
         FormHeading
     },
     computed: {
@@ -59,6 +75,9 @@ export default {
         },
         showConfirmDeleteDialog () {
             this.$refs.confirmDeviceDeleteDialog.show(this.device)
+        },
+        showRegenerateDialog () {
+            this.$refs.deviceCredentialsDialog.show(this.device)
         },
         deleteDevice () {
             this.loading.deleting = true
