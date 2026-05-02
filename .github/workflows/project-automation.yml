@@ -4,7 +4,8 @@ on:
     types:
       - opened
 jobs:
-  add_to_product_board:
-    uses: flowfuse/.github/.github/workflows/project-automation.yml@main
+  add_issue_to_relevant_boards:
+    uses: flowfuse/github-actions-workflows/.github/workflows/project-automation.yaml@project-automation/v1
     secrets:
-      token: ${{ secrets.PROJECT_ACCESS_TOKEN }}
+      app-client-id: ${{ secrets.GH_BOT_APP_ID }}
+      app-private-key: ${{ secrets.GH_BOT_APP_KEY }}
