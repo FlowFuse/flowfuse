@@ -1,8 +1,12 @@
 import Mqtt, {
+    type ErrorWithReasonCode,
     type IClientPublishOptions,
+    type IConnackPacket,
+    type IDisconnectPacket,
     type IPublishPacket,
     type MqttClient,
-    type MqttClientEventCallbacks
+    type MqttClientEventCallbacks,
+    type Packet
 } from 'mqtt'
 
 import { BaseService } from './service.contract'
@@ -137,11 +141,13 @@ class MqttService extends BaseService implements MqttServiceI {
                     hasDynamicCredentials: true
                 }),
                 reconnectAttempt: 0,
+                reconnectGeneration: 0,
                 reconnectTimer: null,
                 subscriptions: new Map(),
                 connectionWaiters: new Set(),
                 terminalFailure: false,
                 lastError: null,
+                connectHandlerPromise: null,
                 handlers: {
                     onConnect,
                     onClose,
@@ -430,6 +436,7 @@ class MqttService extends BaseService implements MqttServiceI {
             throw new Error(`${managed.destroyed ? 'Client' : 'MqttService'} has been destroyed`)
         }
 
+        managed.reconnectGeneration += 1
         managed.status = isReconnect ? 'reconnecting' : 'connecting'
         managed.lastError = null
 
@@ -448,6 +455,7 @@ class MqttService extends BaseService implements MqttServiceI {
             } catch {
                 // ignore stale client close failures before replacement
             }
+            this._killStaleClient(previousClient)
         }
 
         const mqttModule = this.$mqtt
@@ -460,7 +468,8 @@ class MqttService extends BaseService implements MqttServiceI {
             password: credentials.password,
             clientId: credentials.clientId,
             reconnectPeriod: 0,
-            protocolVersion: 5
+            protocolVersion: 5,
+            keepalive: 10
         })
 
         managed.client = client
@@ -483,7 +492,7 @@ class MqttService extends BaseService implements MqttServiceI {
             managed.listeners.add(() => client.off(eventName, wrapped))
         }
 
-        register('connect', async () => {
+        register('connect', (connack: IConnackPacket) => {
             managed.status = 'connected'
             managed.reconnectAttempt = 0
             managed.terminalFailure = false
@@ -491,15 +500,21 @@ class MqttService extends BaseService implements MqttServiceI {
             this.clearReconnectTimer(managed)
             this.resolveConnectionWaiters(managed)
 
-            try {
-                await this.replaySubscriptions(managed, client)
-            } catch (error) {
-                if (error instanceof Error) {
-                    managed.handlers.onError?.(error, client)
+            const handleAsync = async () => {
+                try {
+                    await this.replaySubscriptions(managed, client)
+                } catch (error) {
+                    if (error instanceof Error) {
+                        managed.handlers.onError?.(error, client)
+                    }
                 }
+
+                managed.handlers.onConnect?.(connack, client)
             }
 
-            managed.handlers.onConnect?.(client)
+            managed.connectHandlerPromise = handleAsync().finally(() => {
+                managed.connectHandlerPromise = null
+            })
         })
 
         register('close', () => {
@@ -508,18 +523,42 @@ class MqttService extends BaseService implements MqttServiceI {
             this.scheduleReconnect(managed)
         })
 
+        register('disconnect', (packet: IDisconnectPacket) => {
+            managed.handlers.onDisconnect?.(packet, client)
+        })
+
         register('offline', () => {
             managed.status = 'disconnected'
             managed.handlers.onOffline?.(client)
             this.scheduleReconnect(managed)
         })
 
-        register('error', (error: Error) => {
+        register('end', () => {
+            managed.handlers.onEnd?.(client)
+        })
+
+        register('reconnect', () => {
+            managed.handlers.onReconnect?.(client)
+        })
+
+        register('error', (error: Error | ErrorWithReasonCode) => {
             managed.handlers.onError?.(error, client)
         })
 
         register('message', (topic: string, message: Buffer, packet: IPublishPacket) => {
             managed.handlers.onMessage?.(topic, message, packet, client)
+        })
+
+        register('packetsend', (packet: Packet) => {
+            managed.handlers.onPacketSend?.(packet, client)
+        })
+
+        register('packetreceive', (packet: Packet) => {
+            managed.handlers.onPacketReceive?.(packet, client)
+        })
+
+        register('outgoingEmpty', () => {
+            managed.handlers.onOutgoingEmpty?.(client)
         })
     }
 
@@ -530,7 +569,9 @@ class MqttService extends BaseService implements MqttServiceI {
             managed.intentionalDisconnect ||
             managed.terminalFailure ||
             !managed.reconnectPolicy.enabled ||
-            managed.reconnectTimer
+            managed.reconnectTimer ||
+            managed.status === 'connected' ||
+            managed.status === 'connecting'
         ) {
             return
         }
@@ -541,10 +582,13 @@ class MqttService extends BaseService implements MqttServiceI {
             managed.reconnectPolicy.initialDelay * Math.pow(managed.reconnectPolicy.factor, attempt)
         )
 
+        const generation = managed.reconnectGeneration
+
         managed.reconnectAttempt += 1
         managed.status = 'reconnecting'
         managed.reconnectTimer = setTimeout(() => {
             managed.reconnectTimer = null
+            if (managed.reconnectGeneration !== generation) return
             this.reconnectClient(managed.key)
         }, delay)
     }
@@ -553,6 +597,14 @@ class MqttService extends BaseService implements MqttServiceI {
         await this.runClientOperation(key, async () => {
             const managed = this.$clients.get(key)
             if (!managed || managed.destroyed || managed.intentionalDisconnect || this.$destroyed) {
+                return
+            }
+
+            if (managed.connectHandlerPromise) {
+                await managed.connectHandlerPromise.catch(() => {})
+            }
+
+            if (managed.client?.connected) {
                 return
             }
 
@@ -611,7 +663,7 @@ class MqttService extends BaseService implements MqttServiceI {
         }))
     }
 
-    _buildCredentialsProvider (key: string, getCredentials: MqttCredentialProvider): MqttCredentialProvider {
+    private _buildCredentialsProvider (key: string, getCredentials: MqttCredentialProvider): MqttCredentialProvider {
         return async () => {
             let credentials: MqttCredentials
             try {
@@ -651,23 +703,23 @@ class MqttService extends BaseService implements MqttServiceI {
         }
     }
 
-    _createTerminalConnectionError (message: string): TerminalConnectionError {
+    private _createTerminalConnectionError (message: string): TerminalConnectionError {
         const error: TerminalConnectionError = new Error(message)
         error.code = 'MQTT_TERMINAL_CONNECTION_ERROR'
         return error
     }
 
-    _asTerminalConnectionError (error: unknown, fallbackMessage: string): TerminalConnectionError {
+    private _asTerminalConnectionError (error: unknown, fallbackMessage: string): TerminalConnectionError {
         const normalized: TerminalConnectionError = error instanceof Error ? error : new Error(fallbackMessage)
         normalized.code = 'MQTT_TERMINAL_CONNECTION_ERROR'
         return normalized
     }
 
-    _isTerminalConnectionError (error: unknown): error is TerminalConnectionError {
+    private _isTerminalConnectionError (error: unknown): error is TerminalConnectionError {
         return error instanceof Error && (error as TerminalConnectionError).code === 'MQTT_TERMINAL_CONNECTION_ERROR'
     }
 
-    async _destroyClientUnlocked (key: string): Promise<void> {
+    private async _destroyClientUnlocked (key: string): Promise<void> {
         const managed = this.$clients.get(key)
         if (!managed) return
 
@@ -688,17 +740,32 @@ class MqttService extends BaseService implements MqttServiceI {
         managed.listeners.clear()
 
         if (managed.client) {
+            const client = managed.client
+            managed.client = null
             try {
-                await this.endMqttClient(managed.client, true)
+                await this.endMqttClient(client, true)
             } catch {
                 // ignore close failures during cleanup
             }
+            this._killStaleClient(client)
         }
 
         this.$clients.delete(key)
     }
 
-    _isIgnorableClientCloseError (error: unknown): boolean {
+    private _killStaleClient (client: MqttClient) {
+        try {
+            client.removeAllListeners()
+            const stream = (client as unknown as { stream?: { destroyed?: boolean, destroy?: () => void } }).stream
+            if (stream && !stream.destroyed && typeof stream.destroy === 'function') {
+                stream.destroy()
+            }
+        } catch {
+            // best-effort cleanup of zombie client
+        }
+    }
+
+    private _isIgnorableClientCloseError (error: unknown): boolean {
         return (
             error instanceof Error &&
             typeof error.message === 'string' &&
@@ -706,13 +773,13 @@ class MqttService extends BaseService implements MqttServiceI {
         )
     }
 
-    _isPlainObject (value: unknown): value is Record<string, unknown> {
+    private _isPlainObject (value: unknown): value is Record<string, unknown> {
         if (value === null || typeof value !== 'object') return false
         const prototype = Object.getPrototypeOf(value)
         return prototype === Object.prototype || prototype === null
     }
 
-    _isValidUrl (url: unknown): url is string {
+    private _isValidUrl (url: unknown): url is string {
         if (typeof url !== 'string' || !url.trim()) return false
 
         try {
@@ -723,7 +790,7 @@ class MqttService extends BaseService implements MqttServiceI {
         }
     }
 
-    _isBinaryPayload (payload: unknown): payload is BinaryPayload {
+    private _isBinaryPayload (payload: unknown): payload is BinaryPayload {
         return (
             (typeof Buffer !== 'undefined' && Buffer.isBuffer(payload)) ||
             payload instanceof Uint8Array ||
@@ -731,7 +798,7 @@ class MqttService extends BaseService implements MqttServiceI {
         )
     }
 
-    _normalizeReconnectPolicy ({
+    private _normalizeReconnectPolicy ({
         reconnect,
         reconnectPeriod = 0,
         hasDynamicCredentials = false
@@ -754,15 +821,18 @@ class MqttService extends BaseService implements MqttServiceI {
 
         const enabled = reconnect?.enabled ?? hasDynamicCredentials ?? initialDelay > 0
 
+        const effectiveInitialDelay = enabled && initialDelay === 0 ? 1000 : initialDelay
+        const effectiveMaxDelay = Math.max(effectiveInitialDelay, maxDelay)
+
         return {
             enabled,
-            initialDelay,
-            maxDelay,
+            initialDelay: effectiveInitialDelay,
+            maxDelay: effectiveMaxDelay,
             factor
         }
     }
 
-    _normalizePublishPayload (payload: unknown, serialize: SerializeMode = 'auto'): PublishPayload {
+    private _normalizePublishPayload (payload: unknown, serialize: SerializeMode = 'auto'): PublishPayload {
         if (!['auto', 'raw', 'json', 'string'].includes(serialize)) {
             throw new TypeError(`Invalid MQTT payload serialization mode: "${serialize}"`)
         }
@@ -797,7 +867,7 @@ class MqttService extends BaseService implements MqttServiceI {
         throw new TypeError('Unsupported MQTT payload type for auto serialization')
     }
 
-    _normalizePublishProperties ({
+    private _normalizePublishProperties ({
         correlationData,
         userProperties
     }: {
@@ -817,7 +887,7 @@ class MqttService extends BaseService implements MqttServiceI {
         }
     }
 
-    _normalizeCorrelationData (correlationData: Maybe<string>): string | undefined {
+    private _normalizeCorrelationData (correlationData: Maybe<string>): string | undefined {
         if (correlationData === null || correlationData === undefined) {
             return undefined
         }
@@ -829,7 +899,7 @@ class MqttService extends BaseService implements MqttServiceI {
         throw new TypeError('MQTT publish correlationData must be a string')
     }
 
-    _normalizeUserProperties (userProperties: Maybe<Record<string, string | string[]>>): Record<string, string | string[]> | undefined {
+    private _normalizeUserProperties (userProperties: Maybe<Record<string, string | string[]>>): Record<string, string | string[]> | undefined {
         if (userProperties === null || userProperties === undefined) {
             return undefined
         }
@@ -860,7 +930,7 @@ class MqttService extends BaseService implements MqttServiceI {
         return Object.keys(normalized).length ? normalized : undefined
     }
 
-    _normalizeBinaryPayload (payload: BinaryPayload): NormalizedBinaryPayload {
+    private _normalizeBinaryPayload (payload: BinaryPayload): NormalizedBinaryPayload {
         if (typeof Buffer !== 'undefined' && Buffer.isBuffer(payload)) {
             return payload
         }
@@ -878,7 +948,7 @@ class MqttService extends BaseService implements MqttServiceI {
         return new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength) as unknown as NormalizedBinaryPayload
     }
 
-    _stringifyPayload (payload: unknown, mode: 'auto' | 'json'): string {
+    private _stringifyPayload (payload: unknown, mode: 'auto' | 'json'): string {
         try {
             return JSON.stringify(payload)
         } catch (error) {
@@ -906,6 +976,86 @@ export async function destroyMqttService (): Promise<void> {
     if (!MqttServiceInstance) return
     await MqttServiceInstance.destroy()
     MqttServiceInstance = null
+}
+
+export const FATAL_ERROR_CODES = new Set([
+    0x84, // Unsupported Protocol Version
+    0x86, // Bad User Name or Password
+    0x8A, // Banned
+    0x8C, // Bad authentication method
+    0x9A, // Retain not supported
+    0x9B, // QoS not supported
+    0x9E, // Shared Subscriptions not supported
+    0xA1, // Subscription Identifiers not supported
+    0xA2 // Wildcard Subscriptions not supported
+])
+
+export const TRANSIENT_ERROR_CODES = new Set([
+    0x88, // Server unavailable
+    0x89, // Server busy
+    0x8B, // Server shutting down
+    0x98, // Administrative action
+    0xA0 // Maximum connect time
+])
+
+export const THROTTLED_ERROR_CODES = new Set([
+    0x97, // Quota exceeded
+    0x9F // Connection rate exceeded
+])
+
+export const PROTOCOL_BUG_ERROR_CODES = new Set([
+    0x81, 0x82, // Malformed Packet, Protocol Error
+    0x8F, 0x90, // Topic Filter / Topic Name invalid
+    0x91, 0x92, // Packet Identifier issues
+    0x93, 0x94, // Receive Maximum / Topic Alias
+    0x95, 0x96, 0x99 // Packet too large, Rate too high, Payload format
+])
+
+export const ERRORS_WITHOUT_CODES = {
+    connack: {
+        slug: 'connack timeout',
+        reason: 'Broker didn\'t respond to CONNECT within connectTimeout'
+    },
+    keepalive: {
+        slug: 'keepalive timeout',
+        reason: 'Broker stopped responding to keepalive pings'
+    },
+    disconnecting: {
+        slug: 'client disconnecting',
+        reason: 'Tried to send a packet while the client is disconnecting'
+    },
+    connection: {
+        slug: 'connection closed',
+        reason: 'Outgoing packet couldn\'t be delivered because connection dropped'
+    },
+    websocket: {
+        slug: 'websocket error',
+        reason: 'WebSocket transport error'
+    },
+    cantConnect: {
+        slug: 'couldn\'t connect to server',
+        reason: 'TCP/WS connection failed entirely'
+    },
+    unrecognizedPacket: {
+        slug: 'unrecognized packet type',
+        reason: 'Broker sent an unknown packet (protocol bug)'
+    },
+    exceedingPacket: {
+        slug: 'exceeding packets size',
+        reason: 'Incoming packet exceeded max size'
+    },
+    unregisteredTopic: {
+        slug: 'received unregistered topic alias',
+        reason: 'Broker sent a topic alias the client doesn\'t know'
+    },
+    topicAliasRange: {
+        slug: 'received topic alias is out of range',
+        reason: 'Topic alias outside negotiated range'
+    },
+    topicAliasMaximum: {
+        slug: 'topicAliasMaximum from broker is out of range',
+        reason: 'CONNACK contained invalid topic alias max'
+    }
 }
 
 export default createMqttService

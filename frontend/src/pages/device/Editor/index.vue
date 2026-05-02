@@ -214,8 +214,8 @@ export default {
             deep: true,
             handler (device) {
                 if (device && this.isEditorAvailable) {
-                    this.setContextDevice(device)
                     this.bindDevice(device, true)
+                    this.setContextualDevice(device)
                     this.handlePolling()
                 } else {
                     this.$router.push({ name: 'device-overview' })
@@ -228,11 +228,17 @@ export default {
     mounted () {
         this.loadDevice()
     },
+    beforeUnmount () {
+        this.setIsImmersive(false)
+    },
     unmounted () {
         this.stopPolling()
     },
     methods: {
-        ...mapActions(useContextStore, { setContextDevice: 'setDevice' }),
+        ...mapActions(useContextStore, {
+            setIsImmersive: 'setIsImmersive',
+            setContextualDevice: 'setDevice'
+        }),
         ...mapActions(useUxDrawersStore, ['toggleEditorImmersiveDrawer']),
         loadDevice: async function () {
             let tries = 0
