@@ -1,7 +1,7 @@
 <template>
     <div class="ff-instance-assets flex-1 flex flex-col overflow-auto">
         <div class="banner-wrapper">
-            <FeatureUnavailable v-if="!featuresCheck.isStaticAssetFeatureEnabledForPlatform" />
+            <FeatureUnavailable v-if="!featuresCheck.isStaticAssetsFeatureEnabledForPlatform" />
             <FeatureUnavailableToTeam v-else-if="!featuresCheck.isStaticAssetsFeatureEnabledForTeam" />
             <FeatureUnavailable
                 v-else-if="!launcherSatisfiesVersion"
@@ -100,7 +100,7 @@ export default {
             return SemVer.satisfies(nrLauncherVersion, '>=2.8.0')
         },
         isFeatureEnabled () {
-            return this.featuresCheck.isStaticAssetFeatureEnabledForPlatform &&
+            return this.featuresCheck.isStaticAssetsFeatureEnabledForPlatform &&
                 this.featuresCheck.isStaticAssetsFeatureEnabledForTeam &&
                 this.launcherSatisfiesVersion &&
                 this.isInstanceRunning

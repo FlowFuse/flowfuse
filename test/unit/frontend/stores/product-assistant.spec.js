@@ -4,9 +4,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
-vi.mock('@/services/messaging.service.js', () => ({
+vi.mock('@/services/post-message.service.js', () => ({
+    createMessagingService: () => ({
+        sendMessage: vi.fn().mockResolvedValue(undefined)
+    }),
     default: () => ({
         sendMessage: vi.fn().mockResolvedValue(undefined)
+    })
+}))
+
+vi.mock('@/services/service.orchestrator.js', () => ({
+    default: () => ({
+        $serviceInstances: {
+            postMessage: {
+                sendMessage: vi.fn().mockResolvedValue(undefined)
+            }
+        }
     })
 }))
 

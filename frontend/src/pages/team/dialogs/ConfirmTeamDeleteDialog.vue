@@ -81,7 +81,7 @@ export default {
                     description: 'Feel assured knowing that FlowFuse has your back, with built-in security for all of your Hosted and Remote Instances'
                 },
                 pipelines: {
-                    enabled: this.featuresCheck.devOpsPipelinesFeatureEnabled,
+                    enabled: this.featuresCheck.isDevOpsPipelinesFeatureEnabled,
                     label: 'DevOps Pipelines',
                     description: 'Easily manage deployments between development and production Instances, with one-click deployments to thousands of Node-RED Instances.'
                 },
