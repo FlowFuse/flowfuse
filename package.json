@@ -109,7 +109,7 @@
         "pinia-plugin-persistedstate": "4.7.1",
         "pino": "^8.15.1",
         "pino-pretty": "^10.0.0",
-        "posthog-node": "^4.2.0",
+        "posthog-node": "^5.33.2",
         "qrcode": "^1.5.3",
         "random-words": "~2.0.0",
         "semver": "~7.6.0",
