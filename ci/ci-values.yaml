@@ -42,6 +42,13 @@ forge:
           port: 5432
           database: postgres
           ssl: false
+  telemetry:
+    enabled: true
+    frontend:
+      posthog:
+        apiurl: https://eu.posthog.com
+        apikey: ${{ secrets.POSTHOG_API_TOKEN }}
+        capture_pageview: false
 
 postgresql:
   persistence:
