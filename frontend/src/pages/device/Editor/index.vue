@@ -32,6 +32,7 @@
 
             <DrawerTrigger
                 :is-hidden="editorImmersiveDrawer.state"
+                :is-nr5-plus="isDeviceOnNR5Plus"
                 @toggle="toggleEditorImmersiveDrawer"
             />
         </div>
@@ -50,6 +51,7 @@ import EditorWrapper from '../../../components/immersive-editor/RemoteInstanceEd
 import { useDeviceHelper } from '../../../composables/DeviceHelper.js'
 import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
+import { isInstanceOnNR5Plus } from '../../../utils/instanceVersion'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
@@ -109,6 +111,9 @@ export default {
         ...mapState(useUxDrawersStore, ['editorImmersiveDrawer']),
         isExpertRoute () {
             return this.$route.name === 'device-editor-expert'
+        },
+        isDeviceOnNR5Plus () {
+            return isInstanceOnNR5Plus(this.device)
         },
         isDevModeAvailable: function () {
             return !!this.features.deviceEditor

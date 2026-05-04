@@ -35,6 +35,7 @@
 
             <DrawerTrigger
                 :is-hidden="editorImmersiveDrawer.state"
+                :is-nr5-plus="isInstanceOnNR5Plus"
                 @toggle="toggleEditorImmersiveDrawer"
             />
         </div>
@@ -60,6 +61,7 @@ import InstanceActionsButton from '../../../components/instance/ActionButton.vue
 import usePermissions from '../../../composables/Permissions.js'
 import instanceMixin from '../../../mixins/Instance.js'
 
+import { isInstanceOnNR5Plus } from '../../../utils/instanceVersion'
 import { Roles } from '../../../utils/roles.js'
 import ConfirmInstanceDeleteDialog from '../Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 import DashboardLink from '../components/DashboardLink.vue'
@@ -161,6 +163,9 @@ export default {
         },
         isExpertRoute () {
             return this.$route.name === 'instance-editor-expert'
+        },
+        isInstanceOnNR5Plus () {
+            return isInstanceOnNR5Plus(this.instance)
         }
     },
     watch: {
