@@ -47,7 +47,6 @@ forge:
     frontend:
       posthog:
         apiurl: https://eu.posthog.com
-        apikey: ${{ secrets.POSTHOG_API_TOKEN }}
         capture_pageview: false
 
 postgresql:
