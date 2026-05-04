@@ -9,7 +9,7 @@
 const { default: axios } = require('axios')
 const { v4: uuidv4 } = require('uuid')
 
-const { filterAccessibleMCPServerFeatures } = require('../../services/expert.js')
+const { filterAccessibleMCPServerFeatures } = require('../../../services/expert.js')
 
 /**
  * @param {import('../../forge.js').ForgeApplication} app
@@ -140,7 +140,7 @@ module.exports = async function (app) {
                 if (!application || !instanceId || !instanceType) { continue }
 
                 // short cut - if the token cache has an entry, use it (avoid loading the instance model)
-                server.mcpAccessToken = app.expert.mcp.getCachedToken(instanceId)
+                server.mcpAccessToken = await app.expert.mcp.getCachedToken(instanceId)
                 if (server.mcpAccessToken) {
                     continue
                 }
