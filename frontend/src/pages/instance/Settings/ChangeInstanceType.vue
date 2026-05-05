@@ -48,7 +48,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useContextStore, ['team']),
+        ...mapState(useContextStore, ['team', 'isImmersiveEditor']),
         ...mapState(useAccountSettingsStore, ['features'])
     },
     mounted () {
@@ -71,7 +71,8 @@ export default {
                 this.$emit('instance-updated')
                 Alerts.emit('Instance successfully updated.', 'confirmation')
                 this.$router.push({
-                    name: 'Instance'
+                    name: this.isImmersiveEditor ? 'instance-editor-overview' : 'Instance',
+                    params: { id: this.instance.id }
                 })
             }).catch(err => {
                 console.warn(err)
