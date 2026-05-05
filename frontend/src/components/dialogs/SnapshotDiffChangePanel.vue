@@ -6,10 +6,12 @@
             <div class="flex-1 flex flex-wrap items-center gap-1.5">
                 <template v-for="(seg, i) in compactSegments" :key="i">
                     <span v-if="seg.type === 'arrow'" class="text-gray-400">→</span>
-                    <span v-else-if="seg.type === 'sep'" class="text-gray-300">|</span>
+                    <span v-else-if="seg.type === 'sep'" class="text-gray-300 mx-0.5">|</span>
+                    <span v-else-if="seg.type === 'nodesep'" class="text-gray-400 font-mono -mx-0.5">,</span>
                     <span
                         v-else
-                        class="px-1.5 py-0.5 rounded font-mono"
+                        class="px-1.5 py-0.5 rounded font-mono text-xs"
+                        :title="seg.text"
                         :class="{
                             'bg-red-50 text-red-700 line-through': seg.kind === 'removed',
                             'bg-green-50 text-green-700': seg.kind === 'added',
@@ -65,6 +67,7 @@
             </div>
             <div v-show="!collapsed" class="font-mono">
                 <div class="diff-scroll-container" :class="{ 'diff-wrap': wrapped }">
+                    <div class="diff-content">
                     <template v-for="(line, i) in lines" :key="i">
                         <!-- Collapsed unchanged section -->
                         <div
@@ -88,6 +91,7 @@
                             <span class="px-2" :class="wrapped ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'">{{ linePrefix(line) }}{{ line.text }}</span>
                         </div>
                     </template>
+                    </div>
                 </div>
             </div>
         </template>
@@ -107,10 +111,11 @@ export default {
         label: { type: String, default: null },
         value1: { type: [String, Number, Boolean, Array, Object], default: undefined },
         value2: { type: [String, Number, Boolean, Array, Object], default: undefined },
-        compact: { type: Boolean, default: false }
+        compact: { type: Boolean, default: false },
+        initiallyExpanded: { type: Boolean, default: true }
     },
     data () {
-        return { lines: [], collapsed: true, wrapped: false, prettified: false }
+        return { lines: [], collapsed: !this.initiallyExpanded, wrapped: false, prettified: false }
     },
     computed: {
         changeSummary () {
@@ -130,21 +135,36 @@ export default {
         compactSegments () {
             const segments = []
 
-            // Wires: array-of-arrays → show per output port
+            // Wires: array-of-arrays → show per output port, one badge per node
             if (Array.isArray(this.value1) || Array.isArray(this.value2)) {
                 const w1 = Array.isArray(this.value1) ? this.value1 : []
                 const w2 = Array.isArray(this.value2) ? this.value2 : []
                 const len = Math.max(w1.length, w2.length)
                 for (let i = 0; i < len; i++) {
                     if (i > 0) segments.push({ type: 'sep' })
-                    const s1 = w1[i] ? this.formatWirePort(w1[i]) : null
-                    const s2 = w2[i] ? this.formatWirePort(w2[i]) : null
+                    const nodes1 = Array.isArray(w1[i]) ? w1[i] : (w1[i] ? [w1[i]] : [])
+                    const nodes2 = Array.isArray(w2[i]) ? w2[i] : (w2[i] ? [w2[i]] : [])
+                    const s1 = nodes1.join(',')
+                    const s2 = nodes2.join(',')
                     if (s1 === s2) {
-                        if (s1) segments.push({ type: 'value', kind: 'unchanged', text: s1 })
+                        if (nodes1.length === 0) {
+                            segments.push({ type: 'value', kind: 'unchanged', text: '(none)' })
+                        } else {
+                            nodes1.forEach((node, idx) => {
+                                if (idx > 0) segments.push({ type: 'nodesep' })
+                                segments.push({ type: 'value', kind: 'unchanged', text: node })
+                            })
+                        }
                     } else {
-                        if (s1) segments.push({ type: 'value', kind: 'removed', text: s1 })
-                        if (s1 && s2) segments.push({ type: 'arrow' })
-                        if (s2) segments.push({ type: 'value', kind: 'added', text: s2 })
+                        nodes1.forEach((node, idx) => {
+                            if (idx > 0) segments.push({ type: 'nodesep' })
+                            segments.push({ type: 'value', kind: 'removed', text: node })
+                        })
+                        if (nodes1.length && nodes2.length) segments.push({ type: 'arrow' })
+                        nodes2.forEach((node, idx) => {
+                            if (idx > 0) segments.push({ type: 'nodesep' })
+                            segments.push({ type: 'value', kind: 'added', text: node })
+                        })
                     }
                 }
                 if (!segments.length) segments.push({ type: 'value', kind: 'unchanged', text: '(empty)' })
@@ -166,7 +186,10 @@ export default {
     },
     watch: {
         value1: { immediate: true, handler: 'rebuildLines' },
-        value2: 'rebuildLines'
+        value2: 'rebuildLines',
+        initiallyExpanded (val) {
+            if (!this.compact) this.collapsed = !val
+        }
     },
     methods: {
         rebuildLines () {
@@ -315,8 +338,11 @@ export default {
     overflow-x: auto;
     padding-bottom: 0.5rem;
 }
-.diff-scroll-container:not(.diff-wrap) > div {
+.diff-scroll-container:not(.diff-wrap) .diff-content {
     width: max-content;
+    min-width: 100%;
+}
+.diff-scroll-container:not(.diff-wrap) .diff-content > div {
     min-width: 100%;
 }
 </style>
