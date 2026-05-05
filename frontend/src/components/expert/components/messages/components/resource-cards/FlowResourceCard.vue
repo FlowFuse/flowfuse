@@ -20,7 +20,7 @@
                         <streamable-content v-model="flowTitle" :should-stream="shouldStream" />
                     </div>
                     <div class="flex items-start gap-2 shrink-0 -mt-1">
-                        <button class="text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 flex items-center transition-colors duration-200 rounded px-2 py-1" @click="flowsExpanded = !flowsExpanded">
+                        <button class="text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 flex items-center transition-colors duration-200 rounded-sm px-2 py-1" @click="flowsExpanded = !flowsExpanded">
                             <span>Preview</span>
                             <chevron-down-icon v-if="flowsExpanded" class="h-4 w-4" />
                             <chevron-up-icon v-if="!flowsExpanded" class="h-4 w-4" />

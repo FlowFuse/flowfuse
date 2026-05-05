@@ -5,7 +5,7 @@
                 <div class="ff-instance-info">
                     <FormHeading><TemplateIcon />Info</FormHeading>
 
-                    <table class="table-fixed w-full border border-separate rounded">
+                    <table class="table-fixed w-full border border-separate rounded-sm">
                         <tbody>
                             <tr class="border-b">
                                 <td class="w-48 font-medium">Direct URL</td>

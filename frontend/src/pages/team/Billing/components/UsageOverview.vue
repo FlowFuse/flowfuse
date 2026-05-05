@@ -2,7 +2,7 @@
     <section class="flex gap-5 flex-col md:flex-row mb-5 md:mb-0">
         <div class="ff-instance-info">
             <FormHeading>Instances</FormHeading>
-            <table class="table-fixed w-full border border-separate rounded">
+            <table class="table-fixed w-full border border-separate rounded-sm">
                 <tbody>
                     <tr>
                         <td class="align-top pt-3"><FormHeading><ProjectsIcon />Hosted Instances</FormHeading></td>
@@ -37,7 +37,7 @@
 
         <div class="ff-instance-info w-full md:w-auto">
             <FormHeading>Team</FormHeading>
-            <table class="table-fixed w-full border border-separate rounded">
+            <table class="table-fixed w-full border border-separate rounded-sm">
                 <tbody>
                     <tr class="border-b">
                         <td class="font-medium flex items-center gap-2"><UsersIcon class="ff-icon ff-icon-md" /> Users</td>

@@ -12,8 +12,8 @@
 
     /* .forge-block {
         @apply bg-white;
-        @apply shadow;
-        @apply rounded;
+        @apply shadow-sm;
+        @apply rounded-sm;
         @apply mx-2;
         @apply sm:mx-4;
         @apply py-6;
@@ -336,7 +336,7 @@
     .uneditable {
         @apply text-sm;
         @apply appearance-none;
-        @apply rounded;
+        @apply rounded-sm;
         @apply relative;
         @apply font-normal;
         @apply px-2;

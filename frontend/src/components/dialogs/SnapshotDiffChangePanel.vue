@@ -9,7 +9,7 @@
                     <span v-else-if="seg.type === 'sep'" class="text-gray-300">|</span>
                     <span
                         v-else
-                        class="px-1.5 py-0.5 rounded font-mono"
+                        class="px-1.5 py-0.5 rounded-sm font-mono"
                         :class="{
                             'bg-red-50 text-red-700 line-through': seg.kind === 'removed',
                             'bg-green-50 text-green-700': seg.kind === 'added',
@@ -42,20 +42,20 @@
                         <!-- Wrap toggle (shown when any line exceeds 50 chars) -->
                         <button
                             v-if="hasLongLines"
-                            class="text-gray-400 hover:text-gray-600 px-1 py-0.5 rounded hover:bg-gray-200"
+                            class="text-gray-400 hover:text-gray-600 px-1 py-0.5 rounded-sm hover:bg-gray-200"
                             title="Toggle word wrap"
                             @click.stop="wrapped = !wrapped"
                         >Wrap</button>
                         <!-- Prettify button (shown when value looks like JSON) -->
                         <button
                             v-if="canPrettify && !prettified"
-                            class="text-gray-400 hover:text-gray-600 px-1 py-0.5 rounded hover:bg-gray-200"
+                            class="text-gray-400 hover:text-gray-600 px-1 py-0.5 rounded-sm hover:bg-gray-200"
                             title="Pretty-print JSON and re-diff"
                             @click.stop="prettify"
                         >Prettify</button>
                         <button
                             v-if="prettified"
-                            class="text-blue-500 hover:text-blue-700 px-1 py-0.5 rounded hover:bg-blue-50"
+                            class="text-blue-500 hover:text-blue-700 px-1 py-0.5 rounded-sm hover:bg-blue-50"
                             title="Show raw values"
                             @click.stop="unprettify"
                         >Raw</button>
