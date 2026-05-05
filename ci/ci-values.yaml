@@ -44,10 +44,9 @@ forge:
           ssl: false
   telemetry:
     enabled: true
-    frontend:
-      posthog:
-        apiurl: https://eu.posthog.com
-        capture_pageview: false
+    posthog:
+      apiurl: https://eu.posthog.com
+      capture_pageview: false
 
 postgresql:
   persistence:
