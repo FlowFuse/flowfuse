@@ -123,6 +123,17 @@ async function completeSSOSignIn (app, user, expiry, idle) {
     const sessionInfo = await app.createSessionCookie(user.email, expiry, idle)
     const result = { cookie: null }
     if (sessionInfo) {
+        if (!user.sso_enabled && !user.email_verified) {
+            // first SSO login and email not verified, so reset password
+            try {
+                await app.db.controllers.User.resetPassword(user, generatePassword())
+                app.log.info(`Set random password for ${user.username} on first SSO login`)
+                await app.auditLog.User.user.updatedPassword(userInfo, null)
+            } catch (err) {
+                app.log.info(`Failed to change ${user.username}'s password on first SSO login ${err.toString()}`)
+                await app.auditLog.User.user.updatedPassword(userInfo, err)
+            }
+        }
         user.sso_enabled = true
         user.email_verified = true
         if (user.mfa_enabled) {

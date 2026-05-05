@@ -182,7 +182,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useContextStore, ['team']),
+        ...mapState(useContextStore, ['team', 'isImmersiveEditor']),
         ...mapState(useAccountSettingsStore, ['features']),
         isLoading () {
             return this.loading.deleting || this.loading.suspend || this.loading.changingStack || this.loading.duplicating || this.loading.settingType
@@ -200,7 +200,7 @@ export default {
         },
         showProjectChangeTypePage () {
             this.$router.push({
-                name: 'instance-settings-change-type'
+                name: this.isImmersiveEditor ? 'instance-editor-settings-change-type' : 'instance-settings-change-type'
             })
         },
         showChangeStackDialog () {
