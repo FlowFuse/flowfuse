@@ -2,6 +2,14 @@
 @config "../../config/tailwind.config.js";
 
 @layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+
     /* .forge-block {
         @apply bg-white;
         @apply shadow;
@@ -39,7 +47,7 @@
         @apply inline-flex;
         @apply items-center;
         @apply text-sm;
-        @apply focus:outline-none;
+        @apply focus:outline-hidden;
         @apply focus:ring-2;
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
@@ -64,7 +72,7 @@
         @apply inline-flex;
         @apply items-center;
         @apply text-sm;
-        @apply focus:outline-none;
+        @apply focus:outline-hidden;
         @apply focus:ring-2;
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
@@ -88,7 +96,7 @@
         @apply inline-flex;
         @apply items-center;
         @apply text-sm;
-        @apply focus:outline-none;
+        @apply focus:outline-hidden;
         @apply focus:ring-2;
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
@@ -112,7 +120,7 @@
         @apply inline-flex;
         @apply items-center;
         @apply text-sm;
-        @apply focus:outline-none;
+        @apply focus:outline-hidden;
         @apply focus:ring-2;
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
@@ -136,7 +144,7 @@
         @apply inline-flex;
         @apply items-center;
         @apply text-sm;
-        @apply focus:outline-none;
+        @apply focus:outline-hidden;
         @apply focus:ring-2;
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
@@ -161,7 +169,7 @@
         @apply inline-flex;
         @apply items-center;
         @apply text-sm;
-        @apply focus:outline-none;
+        @apply focus:outline-hidden;
         @apply focus:ring-2;
         @apply focus:ring-offset-2;
         @apply focus:ring-offset-gray-600;
@@ -335,7 +343,7 @@
         @apply py-1;
         @apply border;
         @apply border-gray-300;
-        @apply placeholder-gray-500;
+        @apply placeholder:text-gray-500;
         @apply text-gray-600;
     }
     input[type="radio"],
@@ -353,7 +361,7 @@
     input[type="checkbox"]:focus,
     select:focus,
     textarea:focus {
-        @apply outline-none;
+        @apply outline-hidden;
         @apply ring-0;
         @apply border-indigo-500;
     }

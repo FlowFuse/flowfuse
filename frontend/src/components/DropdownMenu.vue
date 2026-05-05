@@ -20,7 +20,7 @@
                 <MenuItems
                     v-if="open"
                     ref="menu-items"
-                    class="z-1000 fixed bg-white rounded overflow-hidden shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none"
+                    class="z-1000 fixed bg-white rounded overflow-hidden shadow-lg ring-1 ring-black/10 focus:outline-hidden"
                     :style="teleportedStyle"
                 >
                     <div class="apx-1 apy-1">
