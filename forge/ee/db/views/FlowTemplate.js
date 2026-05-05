@@ -51,6 +51,24 @@ module.exports = function (app) {
         },
         required: ['flows', 'modules', 'teamTypeScope']
     })
+    // Writable subset for POST/PUT bodies — `id`, `createdAt`, `updatedAt` are server-set.
+    app.addSchema({
+        $id: 'FlowBlueprintInput',
+        type: 'object',
+        properties: {
+            active: { type: 'boolean' },
+            name: { type: 'string' },
+            description: { type: 'string' },
+            category: { type: 'string' },
+            icon: { type: 'string', nullable: true },
+            order: { type: 'number' },
+            default: { type: 'boolean' },
+            externalUrl: { type: 'string', nullable: true },
+            flows: { type: 'object', additionalProperties: true },
+            modules: { type: 'object', additionalProperties: true },
+            teamTypeScope: { type: ['array', 'null'], items: { type: 'string' } }
+        }
+    })
     function flowBlueprint (blueprint) {
         const result = flowBlueprintSummary(blueprint)
         if (Array.isArray(blueprint.teamTypeScope)) {

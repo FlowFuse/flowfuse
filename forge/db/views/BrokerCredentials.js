@@ -22,6 +22,23 @@ module.exports = function (app) {
         required: ['id', 'name', 'host', 'port', 'protocol', 'protocolVersion', 'ssl', 'verifySSL', 'clientId', 'state', 'topicPrefix'],
         additionalProperties: false
     })
+    // Writable subset for POST/PUT bodies — `id` and `state` are server-set.
+    app.addSchema({
+        $id: 'MQTTBrokerInput',
+        type: 'object',
+        properties: {
+            name: { type: 'string' },
+            host: { type: 'string' },
+            port: { type: 'number' },
+            protocol: { type: 'string' },
+            protocolVersion: { type: 'number' },
+            ssl: { type: 'boolean' },
+            verifySSL: { type: 'boolean' },
+            clientId: { type: 'string' },
+            topicPrefix: { type: 'array', items: { type: 'string' } },
+            credentials: { type: 'object', additionalProperties: true }
+        }
+    })
     return {
         clean: function (cred) {
             const result = cred.toJSON()

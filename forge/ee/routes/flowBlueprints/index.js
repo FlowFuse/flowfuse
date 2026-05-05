@@ -126,20 +126,7 @@ module.exports = async function (app) {
             summary: 'Create a flow blueprint - admin-only',
             tags: ['Flow Blueprints'],
             body: {
-                type: 'object',
-                properties: {
-                    active: { type: 'boolean' },
-                    name: { type: 'string' },
-                    description: { type: 'string' },
-                    category: { type: 'string' },
-                    icon: { type: 'string', nullable: true },
-                    order: { type: 'number' },
-                    default: { type: 'boolean' },
-                    externalUrl: { type: 'string', nullable: true },
-                    flows: { type: 'object', additionalProperties: true },
-                    modules: { type: 'object', additionalProperties: true },
-                    teamTypeScope: { type: ['array', 'null'], items: { type: 'string' } }
-                },
+                allOf: [{ $ref: 'FlowBlueprintInput' }],
                 required: ['name']
             },
             response: {
@@ -194,20 +181,7 @@ module.exports = async function (app) {
                 }
             },
             body: {
-                type: 'object',
-                properties: {
-                    active: { type: 'boolean' },
-                    name: { type: 'string' },
-                    description: { type: 'string' },
-                    category: { type: 'string' },
-                    icon: { type: 'string', nullable: true },
-                    order: { type: 'number' },
-                    default: { type: 'boolean' },
-                    externalUrl: { type: 'string', nullable: true },
-                    flows: { type: 'object', additionalProperties: true },
-                    modules: { type: 'object', additionalProperties: true },
-                    teamTypeScope: { type: ['array', 'null'], items: { type: 'string' } }
-                }
+                $ref: 'FlowBlueprintInput'
             },
             response: {
                 200: {

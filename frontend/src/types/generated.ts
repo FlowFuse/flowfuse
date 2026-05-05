@@ -7580,23 +7580,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": {
-                        active?: boolean;
-                        name: string;
-                        description?: string;
-                        category?: string;
-                        icon?: string | null;
-                        order?: number;
-                        default?: boolean;
-                        externalUrl?: string | null;
-                        flows?: {
-                            [key: string]: unknown;
-                        };
-                        modules?: {
-                            [key: string]: unknown;
-                        };
-                        teamTypeScope?: string[] | null;
-                    };
+                    "application/json": WithRequired<components["schemas"]["FlowBlueprintInput"], "name">;
                 };
             };
             responses: {
@@ -7677,23 +7661,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
-                        active?: boolean;
-                        name?: string;
-                        description?: string;
-                        category?: string;
-                        icon?: string | null;
-                        order?: number;
-                        default?: boolean;
-                        externalUrl?: string | null;
-                        flows?: {
-                            [key: string]: unknown;
-                        };
-                        modules?: {
-                            [key: string]: unknown;
-                        };
-                        teamTypeScope?: string[] | null;
-                    };
+                    "application/json": components["schemas"]["FlowBlueprintInput"];
                 };
             };
             responses: {
@@ -8797,20 +8765,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
-                        name?: string;
-                        host?: string;
-                        port?: number;
-                        protocol?: string;
-                        protocolVersion?: number;
-                        ssl?: boolean;
-                        verifySSL?: boolean;
-                        clientId?: string;
-                        topicPrefix?: string[];
-                        credentials?: {
-                            [key: string]: unknown;
-                        };
-                    };
+                    "application/json": components["schemas"]["MQTTBrokerInput"];
                 };
             };
             responses: {
@@ -8970,17 +8925,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
-                        name?: string;
-                        host?: string;
-                        port?: number;
-                        protocol?: string;
-                        protocolVersion?: number;
-                        ssl?: boolean;
-                        verifySSL?: boolean;
-                        clientId?: string;
-                        credentials?: Record<string, never>;
-                    };
+                    "application/json": components["schemas"]["MQTTBrokerInput"];
                 };
             };
             responses: {
@@ -10736,6 +10681,21 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** MQTTBrokerInput */
+        MQTTBrokerInput: {
+            name?: string;
+            host?: string;
+            port?: number;
+            protocol?: string;
+            protocolVersion?: number;
+            ssl?: boolean;
+            verifySSL?: boolean;
+            clientId?: string;
+            topicPrefix?: string[];
+            credentials?: {
+                [key: string]: unknown;
+            };
+        };
         /** APIStatus */
         APIStatus: {
             status: string;
@@ -10831,6 +10791,24 @@ export interface components {
             };
             teamTypeScope: string[] | null;
         } & components["schemas"]["FlowBlueprintSummary"];
+        /** FlowBlueprintInput */
+        FlowBlueprintInput: {
+            active?: boolean;
+            name?: string;
+            description?: string;
+            category?: string;
+            icon?: string | null;
+            order?: number;
+            default?: boolean;
+            externalUrl?: string | null;
+            flows?: {
+                [key: string]: unknown;
+            };
+            modules?: {
+                [key: string]: unknown;
+            };
+            teamTypeScope?: string[] | null;
+        };
         /** FlowBlueprintSummaryList */
         FlowBlueprintSummaryList: components["schemas"]["FlowBlueprintSummary"][];
         /** FlowBlueprintExport */
@@ -10960,6 +10938,7 @@ export type TeamMemberPermissions = components['schemas']['TeamMemberPermissions
 export type TeamMemberList = components['schemas']['TeamMemberList'];
 export type UserList = components['schemas']['UserList'];
 export type MqttBroker = components['schemas']['MQTTBroker'];
+export type MqttBrokerInput = components['schemas']['MQTTBrokerInput'];
 export type ApiStatus = components['schemas']['APIStatus'];
 export type ApiError = components['schemas']['APIError'];
 export type PaginationParams = components['schemas']['PaginationParams'];
@@ -10971,6 +10950,7 @@ export type PipelineStage = components['schemas']['PipelineStage'];
 export type PipelineStageList = components['schemas']['PipelineStageList'];
 export type FlowBlueprintSummary = components['schemas']['FlowBlueprintSummary'];
 export type FlowBlueprint = components['schemas']['FlowBlueprint'];
+export type FlowBlueprintInput = components['schemas']['FlowBlueprintInput'];
 export type FlowBlueprintSummaryList = components['schemas']['FlowBlueprintSummaryList'];
 export type FlowBlueprintExport = components['schemas']['FlowBlueprintExport'];
 export type McpRegistrationSummary = components['schemas']['MCPRegistrationSummary'];
