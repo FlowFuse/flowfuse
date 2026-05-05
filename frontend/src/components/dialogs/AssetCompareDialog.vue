@@ -15,32 +15,20 @@
                     option-title-key="description"
                     class="flex-grow"
                 />
-                <div v-if="hasCompared" class="relative shrink-0">
-                    <button
-                        class="text-xs px-2 py-1 rounded border font-medium border-gray-300 text-gray-600 hover:bg-gray-50"
-                        title="View options"
-                        @click="showOptionsMenu = !showOptionsMenu"
-                    >…</button>
-                    <div v-if="showOptionsMenu" class="fixed inset-0 z-40" @click="showOptionsMenu = false" />
-                    <div v-if="showOptionsMenu" class="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded shadow-lg z-50 py-1 w-52">
-                        <button
-                            class="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 flex items-center gap-2"
-                            title="Hide changes to node positions (x, y)"
-                            @click="hidePositionChanges = !hidePositionChanges; showOptionsMenu = false"
-                        >
-                            <span class="w-3.5 shrink-0 text-blue-600 font-bold">{{ hidePositionChanges ? '✓' : '' }}</span>
-                            Simple view
-                        </button>
-                        <button
-                            class="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 flex items-center gap-2"
-                            title="Expand all property panels when switching between changes"
-                            @click="expandedByDefault = !expandedByDefault; showOptionsMenu = false"
-                        >
-                            <span class="w-3.5 shrink-0 text-blue-600 font-bold">{{ expandedByDefault ? '✓' : '' }}</span>
-                            Expand all
-                        </button>
-                    </div>
-                </div>
+                <ff-kebab-menu v-if="hasCompared">
+                    <ff-kebab-item
+                        :icon="hidePositionChanges ? CheckIcon : null"
+                        label="Simple view"
+                        title="Hide changes to node positions (x, y)"
+                        @click="hidePositionChanges = !hidePositionChanges"
+                    />
+                    <ff-kebab-item
+                        :icon="expandedByDefault ? CheckIcon : null"
+                        label="Expand all"
+                        title="Expand all property panels when switching between changes"
+                        @click="expandedByDefault = !expandedByDefault"
+                    />
+                </ff-kebab-menu>
             </div>
 
             <!-- Loading state -->
@@ -125,9 +113,12 @@
 
 <script>
 import FlowRenderer from '@flowfuse/flow-renderer'
+import { CheckIcon } from '@heroicons/vue/outline'
+import { mapWritableState } from 'pinia'
 
 import SnapshotsApi from '../../api/snapshots.js'
 import Alerts from '../../services/alerts.js'
+import { useUxSnapshotDiffStore } from '../../stores/ux-snapshot-diff.js'
 
 import SnapshotDiffChangePanel from './SnapshotDiffChangePanel.vue'
 
@@ -175,8 +166,8 @@ export default {
         }
     },
     data () {
-        const prefs = (() => { try { return JSON.parse(localStorage.getItem('ff-snapshot-diff-prefs')) || {} } catch { return {} } })()
         return {
+            CheckIcon,
             payload: [],
             compareSnapshot: null,
             compareSnapshotList: [],
@@ -189,13 +180,11 @@ export default {
             sidebarWidth: 380,
             resizing: false,
             resizeStartX: 0,
-            resizeStartWidth: 0,
-            hidePositionChanges: prefs.hidePositionChanges ?? false,
-            expandedByDefault: prefs.expandedByDefault ?? true,
-            showOptionsMenu: false
+            resizeStartWidth: 0
         }
     },
     computed: {
+        ...mapWritableState(useUxSnapshotDiffStore, ['hidePositionChanges', 'expandedByDefault']),
         flow () {
             return this.payload?.flows?.flows || []
         },
@@ -279,10 +268,6 @@ export default {
                 this.currentGroupIndex = Math.max(0, this.groupedChanges.length - 1)
             }
             this.highlightCurrent()
-            this.persistPrefs()
-        },
-        expandedByDefault () {
-            this.persistPrefs()
         }
     },
     mounted () {
@@ -294,14 +279,6 @@ export default {
         document.removeEventListener('mouseup', this.stopResize)
     },
     methods: {
-        persistPrefs () {
-            try {
-                localStorage.setItem('ff-snapshot-diff-prefs', JSON.stringify({
-                    hidePositionChanges: this.hidePositionChanges,
-                    expandedByDefault: this.expandedByDefault
-                }))
-            } catch {}
-        },
         confirm () {
             this.cleanup()
             this.$refs.dialog.close()

@@ -296,11 +296,6 @@ export default {
             if (typeof v === 'object') return JSON.stringify(v)
             return String(v)
         },
-        formatWirePort (port) {
-            if (!Array.isArray(port)) return String(port)
-            if (port.length === 0) return '(none)'
-            return port.join(', ')
-        },
         stringify (v) {
             if (v === undefined || v === null) return ''
             if (typeof v === 'object') return JSON.stringify(v, null, 2)
