@@ -15,7 +15,7 @@
                     option-title-key="description"
                     class="flex-grow"
                 />
-                <ff-kebab-menu v-if="hasCompared">
+                <ff-kebab-menu v-if="hasCompared" :menu-items-attrs="{ 'data-click-exclude': 'right-drawer' }">
                     <ff-kebab-item
                         :icon="hidePositionChanges ? CheckIcon : null"
                         label="Simple view"
