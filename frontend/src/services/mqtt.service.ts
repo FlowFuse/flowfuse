@@ -469,7 +469,7 @@ class MqttService extends BaseService implements MqttServiceI {
             clientId: credentials.clientId,
             reconnectPeriod: 0,
             protocolVersion: 5,
-            keepalive: 10
+            keepalive: 45
         })
 
         managed.client = client
