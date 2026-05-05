@@ -20,6 +20,7 @@
                     as="ul"
                     class="ff-kebab-options"
                     data-el="kebab-options"
+                    data-click-exclude="right-drawer"
                     :style="{
                         position: 'fixed',
                         top: position.top + 'px',
