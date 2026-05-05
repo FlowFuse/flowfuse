@@ -153,7 +153,7 @@ export default {
         'project.id': {
             immediate: true,
             handler (id) {
-                if (id) {
+                if (id && this.featuresCheck.isInstanceAutoStackUpdateFeatureEnabledForPlatform) {
                     this.getUpdateSchedule()
                 }
             }

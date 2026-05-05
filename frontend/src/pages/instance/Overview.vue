@@ -244,7 +244,9 @@ export default {
             handler: function (instance) {
                 if (instance?.id) {
                     this.loadLogs()
-                    this.getUpdateSchedule(instance.id)
+                    if (this.features?.autoStackUpdate) {
+                        this.getUpdateSchedule(instance.id)
+                    }
                 }
             },
             immediate: true
