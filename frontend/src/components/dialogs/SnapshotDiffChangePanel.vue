@@ -28,7 +28,7 @@
                 @click="collapsed = !collapsed"
             >
                 <svg
-                    class="w-2.5 h-2.5 text-gray-400 transition-transform duration-150 flex-shrink-0"
+                    class="w-2.5 h-2.5 text-gray-400 transition-transform duration-150 shrink-0"
                     :class="{ 'rotate-90': !collapsed }"
                     viewBox="0 0 20 20" fill="currentColor"
                     aria-hidden="true"

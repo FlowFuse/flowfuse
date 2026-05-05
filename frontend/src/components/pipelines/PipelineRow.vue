@@ -36,7 +36,7 @@
                 <Transition name="fade">
                     <ChevronRightIcon
                         v-if="$index <= pipeline.stages.length - 2 || ($index == pipeline.stages.length - 1 && addStageAvailable)"
-                        class="ff-icon mt-4 flex-shrink-0"
+                        class="ff-icon mt-4 shrink-0"
                         :class="{
                             'animate-deploying': nextStageDeploying($index),
                             'ff-disabled': !nextStageAvailable(stage, $index)

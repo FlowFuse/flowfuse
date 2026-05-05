@@ -26,7 +26,7 @@
                 </template>
             </ff-page-header>
         </template>
-        <div data-el="blueprints" class="flex flex-wrap gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-w-screen-xl">
+        <div data-el="blueprints" class="flex flex-wrap gap-4 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-w-(--breakpoint-xl)">
             <BlueprintTile
                 v-for="(flowBlueprint, index) in activeFlowBlueprints"
                 :key="index"

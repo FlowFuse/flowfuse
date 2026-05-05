@@ -213,7 +213,7 @@ export default {
             loading: false,
             instancesMap: new Map(),
             columns: [
-                { label: 'Name', class: ['flex-grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName), map: { url: 'url' }, extraProps: { copyable: true } } },
+                { label: 'Name', class: ['grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName), map: { url: 'url' }, extraProps: { copyable: true } } },
                 {
                     label: 'Status',
                     class: ['w-44'],
@@ -233,7 +233,7 @@ export default {
                 },
                 {
                     label: 'Application',
-                    class: ['flex-grow-[0.25]'],
+                    class: ['grow-[0.25]'],
                     key: 'application.name',
                     sortable: true,
                     component: {

@@ -7,7 +7,7 @@
                     <tr>
                         <td class="align-top pt-3"><FormHeading><ProjectsIcon />Hosted Instances</FormHeading></td>
                         <td>
-                            <table class="border-none w-full hosted-instances-usage !p-0">
+                            <table class="border-none w-full hosted-instances-usage p-0!">
                                 <tbody>
                                     <tr v-for="instance in usedInstancesByType" :key="instance.type.id">
                                         <td class="font-medium">{{ instance.type.name }}</td>

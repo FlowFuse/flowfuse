@@ -8,7 +8,7 @@
             <span class="truncate flex-1 pr-4" :title="assistantState.title">
                 {{ assistantState.title }}
             </span>
-            <span class="update-banner-badge ml-4 flex-shrink-0">{{ assistantState.chip }}</span>
+            <span class="update-banner-badge ml-4 shrink-0">{{ assistantState.chip }}</span>
         </div>
         <div class="update-banner-text update-banner-body" tabindex="0">
             <p class="mb-2">{{ assistantState.body }}</p>

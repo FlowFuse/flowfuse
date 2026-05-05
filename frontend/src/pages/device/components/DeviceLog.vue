@@ -12,7 +12,7 @@
                     <span>{{ item.date }}</span>
                     <span>{{ "  " }}</span>
                     <span>{{ `[${item.level || ''}]`.padEnd(10, ' ') }}</span>
-                    <span class="flex-grow break-all whitespace-pre-wrap">{{ item.msg.replace(/^[\n]*/, '') }}</span>
+                    <span class="grow break-all whitespace-pre-wrap">{{ item.msg.replace(/^[\n]*/, '') }}</span>
                     <br v-if="itemIdx !== logEntries.length - 1">
                 </span>
             </template>
