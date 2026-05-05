@@ -220,12 +220,6 @@ export default defineComponent({
             required: false,
             default: false
         },
-        headerMode: {
-            type: String,
-            required: false,
-            default: 'drawer',
-            validator: (value) => ['drawer', 'modal'].includes(value)
-        },
         snapshot: {
             type: Object,
             required: true
@@ -235,7 +229,7 @@ export default defineComponent({
             required: true
         }
     },
-    emits: ['restored-snapshot', 'updated-snapshot', 'deleted-snapshot', 'header-changed'],
+    emits: ['restored-snapshot', 'updated-snapshot', 'deleted-snapshot'],
     setup () {
         const { hasPermission } = usePermissions()
 
@@ -406,11 +400,7 @@ export default defineComponent({
                     }
                 ]
             }
-            if (this.headerMode === 'modal') {
-                this.$emit('header-changed', headerConfig)
-            } else {
-                this.setRightDrawerHeader(headerConfig)
-            }
+            this.setRightDrawerHeader(headerConfig)
         },
         loadFlows () {
             return snapshotsApi.getFullSnapshot(this.snapshot.id)

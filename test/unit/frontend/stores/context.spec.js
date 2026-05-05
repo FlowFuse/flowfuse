@@ -190,6 +190,50 @@ describe('context store', () => {
             })
         })
 
+        describe('editorEntityType', () => {
+            it('returns null when route is null', () => {
+                const store = useContextStore()
+                expect(store.editorEntityType).toBe(null)
+            })
+
+            it('returns null when route name does not match an editor route', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'team-overview', fullPath: '/team', params: {} })
+                expect(store.editorEntityType).toBe(null)
+            })
+
+            it("returns 'instance' for instance editor routes", () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'instance-editor-overview', fullPath: '/instance/123/editor', params: { id: '123' } })
+                expect(store.editorEntityType).toBe('instance')
+            })
+
+            it("returns 'device' for device editor routes", () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-editor-overview', fullPath: '/device/456/editor', params: { id: '456' } })
+                expect(store.editorEntityType).toBe('device')
+            })
+        })
+
+        describe('isImmersiveEditor', () => {
+            it('returns false when editorEntityType is null', () => {
+                const store = useContextStore()
+                expect(store.isImmersiveEditor).toBe(false)
+            })
+
+            it('returns true on instance editor routes', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'instance-editor-settings', fullPath: '/instance/1/editor/settings', params: { id: '1' } })
+                expect(store.isImmersiveEditor).toBe(true)
+            })
+
+            it('returns true on device editor routes', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-editor-expert', fullPath: '/device/2/editor/expert', params: { id: '2' } })
+                expect(store.isImmersiveEditor).toBe(true)
+            })
+        })
+
         describe('expert getter', () => {
             it('returns safe defaults if route is null', () => {
                 const store = useContextStore()

@@ -94,6 +94,7 @@ module.exports = async function (app) {
                     }
                 })
                 response['platform:stats:token'] = app.settings.get('platform:stats:token')
+                response['platform:expert-agent:creds'] = app.settings.get('platform:expert-agent:creds')
                 if (app.config.features.enabled('certifiedNodes') || app.config.features.enabled('ffNodes')) {
                     response['platform:ff-npm-registry:enabled'] = !!app.settings.get('platform:ff-npm-registry:token')
                 }

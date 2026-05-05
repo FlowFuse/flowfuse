@@ -63,7 +63,7 @@ import UserCell from '../../../components/tables/cells/UserCell.vue'
 import UserRoleCell from '../../../components/tables/cells/UserRoleCell.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import { getTeamProperty } from '../../../composables/TeamProperties.js'
-import alerts from '../../../mixins/Alerts.js'
+import alerts from '../../../services/alerts.js'
 import { Roles } from '../../../utils/roles.js'
 import ChangeTeamRoleDialog from '../dialogs/ChangeTeamRoleDialog.vue'
 import ConfirmTeamUserRemoveDialog from '../dialogs/ConfirmTeamUserRemoveDialog.vue'
@@ -155,7 +155,7 @@ export default {
             ]
         },
         collapsibleRow () {
-            if (!this.featuresCheck.isRBACApplicationFeatureEnabled || (!this.isAdminUser && !this.hasPermission('application:access-control'))) {
+            if (!this.featuresCheck.isApplicationsRBACFeatureEnabled || (!this.isAdminUser && !this.hasPermission('application:access-control'))) {
                 return null
             }
 

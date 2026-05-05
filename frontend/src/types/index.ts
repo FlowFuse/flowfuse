@@ -13,6 +13,8 @@
 // Run `npm run generate:types` to produce this file.
 export * from './generated.js'
 
+export * from './services/index.js'
+
 // ---------------------------------------------------------------------------
 // Roles
 // ---------------------------------------------------------------------------

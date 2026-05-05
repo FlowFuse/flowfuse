@@ -64,6 +64,9 @@ module.exports = {
     // Has a stats monitoring token been created?
     'platform:stats:token': false,
 
+    // Has an Expert agent creds been created?
+    'platform:expert-agent:creds': false,
+
     // Team Broker topic cache
     'team:broker:topics': null,
 
