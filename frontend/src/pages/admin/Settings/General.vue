@@ -350,7 +350,7 @@ export default {
             instanceTypes: [],
             teamTypesOptions: [],
             platformStatsTokenGenerating: false,
-            ssoProvidersOptions: []
+            ssoProvidersOptions: [],
             expertAgentCredsGenerating: false
         }
     },
