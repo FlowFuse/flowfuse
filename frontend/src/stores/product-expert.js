@@ -262,7 +262,8 @@ export const useProductExpertStore = defineStore('product-expert', {
                     },
                     correlationData: transactionId,
                     userProperties: {
-                        sessionId: this.sessionId
+                        sessionId: this.sessionId,
+                        origin: window.origin || window.location.origin
                     }
                 })
 
@@ -321,7 +322,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                         ack: true
                     }),
                     correlationData: transactionId,
-                    userProperties: { sessionId, transactionId: chatTransactionId }
+                    userProperties: {
+                        sessionId,
+                        transactionId: chatTransactionId,
+                        origin: window.origin || window.location.origin
+                    }
                 })
                 break
             case parsedTopic.inflightType.startsWith('automation:'):
@@ -339,7 +344,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                         topic: responseTopic,
                         payload: JSON.stringify(result),
                         correlationData: transactionId,
-                        userProperties: { sessionId, transactionId: chatTransactionId }
+                        userProperties: {
+                            sessionId,
+                            transactionId: chatTransactionId,
+                            origin: window.origin || window.location.origin
+                        }
                     })
                 } catch (e) {
                     this._onMqttError(e)
