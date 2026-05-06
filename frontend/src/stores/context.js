@@ -10,10 +10,12 @@ import { useProductExpertStore } from './product-expert.js'
 export const useContextStore = defineStore('context', {
     state: () => ({
         route: null,
+        application: null,
         instance: null,
         device: null,
         team: null,
-        teamMembership: null
+        teamMembership: null,
+        isImmersive: false
     }),
     getters: {
         isFreeTeamType (state) {
@@ -112,6 +114,8 @@ export const useContextStore = defineStore('context', {
         updateRoute (route) { this.route = route },
         setInstance (instance) { this.instance = instance },
         setDevice (device) { this.device = device },
+        setApplication (application) { this.application = application },
+        setIsImmersive (isImmersive) { this.isImmersive = isImmersive },
         clearInstance () { this.instance = null },
         setTeam (team) {
             this.team = team
