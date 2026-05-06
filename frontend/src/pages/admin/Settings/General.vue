@@ -257,17 +257,19 @@
         </template>
 
         <template v-if="ssoEnabled">
-            <FormHeading>Single SSO Provider Only</FormHeading>
+            <FormHeading>Automatic SSO Redirect</FormHeading>
             <FormRow v-model="input['platform:sso:only']" type="checkbox" data-el="single-sso">
-                Force all login for non-admin users via a single SAML SSO provider
+                Automatically redirect all logins to a single SAML SSO provider
                 <template #description>
-                    Login screen will redirect to SAML SSO provider without waiting for username
+                    Users will be automatically redirected to the SAML SSO provider without waiting for confirmation on the login page.
+                    <br>
+                    Admin users can still access the login page by going to /admin/
                 </template>
             </FormRow>
-            <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:provider']" :error="errors.ssoOnlyProvider" :options="ssoProvidersOptions" data-el="single-sso-provider">
+            <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:provider']" :error="errors.ssoOnlyProvider" :options="ssoProvidersOptions" containerClass="max-w-sm ml-9" data-el="single-sso-provider">
                 Which active SAML SSO provider to use for all logins
             </FormRow>
-            <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:logoutURL']" type="text" data-el="single-sso-url">
+            <FormRow v-if="input['platform:sso:only']" v-model="input['platform:sso:only:logoutURL']" containerClass="max-w-sm ml-9" type="text" data-el="single-sso-url">
                 URL to redirect to on logout
                 <template #description>
                     Prevents redirect loops automatically logging user back in from SSO provider
