@@ -306,7 +306,10 @@ async function addBridge (app, { cfg, client } = {}) {
         ...connector,
         server: cfg.expertBrokerServerAddress,
         username: cfg.licenceId,
-        password: cfg.licenceJwt
+        password: cfg.licenceJwt,
+        ssl: {
+          enable: true
+      }
     }
 
     // Provision in dependency order: connector → actions/sources → rules.
