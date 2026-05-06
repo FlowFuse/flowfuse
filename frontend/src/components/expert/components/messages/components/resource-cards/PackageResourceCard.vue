@@ -226,5 +226,11 @@ export default {
     text-overflow: ellipsis;
     white-space: nowrap;
     margin: 0;
+
+    :deep(.streamable-content) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 </style>
