@@ -15,17 +15,20 @@
                     option-title-key="description"
                     class="flex-grow"
                 />
-                <button
-                    v-if="hasCompared"
-                    v-ff-tooltip:left="'Simple view hides changes to node positions'"
-                    class="text-xs px-2 py-1 rounded border font-medium shrink-0"
-                    :class="hidePositionChanges
-                        ? 'bg-blue-50 border-blue-300 text-blue-700'
-                        : 'border-gray-300 text-gray-600 hover:bg-gray-50'"
-                    @click="hidePositionChanges = !hidePositionChanges"
-                >
-                    Simple view
-                </button>
+                <ff-kebab-menu v-if="hasCompared" :menu-items-attrs="{ 'data-click-exclude': 'right-drawer' }">
+                    <ff-kebab-item
+                        :icon="hidePositionChanges ? CheckIcon : null"
+                        label="Simple view"
+                        title="Hide changes to node positions (x, y)"
+                        @click="hidePositionChanges = !hidePositionChanges"
+                    />
+                    <ff-kebab-item
+                        :icon="expandedByDefault ? CheckIcon : null"
+                        label="Expand all"
+                        title="Expand all property panels when switching between changes"
+                        @click="expandedByDefault = !expandedByDefault"
+                    />
+                </ff-kebab-menu>
             </div>
 
             <!-- Loading state -->
@@ -95,6 +98,7 @@
                         :value1="change.value1"
                         :value2="change.value2"
                         :compact="isCompactProp(change.prop)"
+                        :initially-expanded="expandedByDefault"
                     />
                 </div>
             </div>
@@ -109,6 +113,7 @@
 
 <script>
 import FlowRenderer from '@flowfuse/flow-renderer'
+import { CheckIcon } from '@heroicons/vue/outline'
 
 import SnapshotsApi from '../../api/snapshots.js'
 import Alerts from '../../services/alerts.js'
@@ -160,6 +165,7 @@ export default {
     },
     data () {
         return {
+            CheckIcon,
             payload: [],
             compareSnapshot: null,
             compareSnapshotList: [],
@@ -173,7 +179,8 @@ export default {
             resizing: false,
             resizeStartX: 0,
             resizeStartWidth: 0,
-            hidePositionChanges: false
+            hidePositionChanges: false,
+            expandedByDefault: true
         }
     },
     computed: {

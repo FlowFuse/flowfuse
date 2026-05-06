@@ -152,6 +152,11 @@ export default {
                     tag: 'instance-logs'
                 },
                 {
+                    label: 'Performance',
+                    to: { name: 'instance-editor-performance', params: { id: this.instance.id } },
+                    tag: 'instance-performance'
+                },
+                {
                     label: 'Settings',
                     to: { name: 'instance-editor-settings', params: { id: this.instance.id } },
                     tag: 'instance-settings'
@@ -173,11 +178,15 @@ export default {
             this.setInstance(instance)
         }
     },
+    mounted () {
+        this.setIsImmersive(true)
+    },
     unmounted () {
         this.clearInstance()
+        this.setIsImmersive(false)
     },
     methods: {
-        ...mapActions(useContextStore, ['setInstance', 'clearInstance']),
+        ...mapActions(useContextStore, ['setIsImmersive', 'setInstance', 'clearInstance']),
         ...mapActions(useUxDrawersStore, ['toggleEditorImmersiveDrawer']),
         notifyDrawerState () {
             this.$refs.editorDrawer?.notifyDrawerState()

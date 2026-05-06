@@ -21,6 +21,8 @@
             <router-view
                 :device="device"
                 :instance="device?.instance"
+                @device-updated="refreshDevice"
+                @assign-device="openAssignmentDialog"
             />
         </EditorDrawer>
 
@@ -36,6 +38,25 @@
                 @toggle="toggleEditorImmersiveDrawer"
             />
         </div>
+
+        <AssignDeviceDialog
+            v-if="notAssigned"
+            ref="assignment-dialog"
+            data-el="assignment-dialog"
+            @assign-option-selected="assignOptionSelected"
+        />
+        <DeviceAssignInstanceDialog
+            v-if="notAssigned"
+            ref="deviceAssignInstanceDialog"
+            data-el="assignment-dialog-instance"
+            @assign-device="assignDeviceToInstance"
+        />
+        <DeviceAssignApplicationDialog
+            v-if="notAssigned"
+            ref="deviceAssignApplicationDialog"
+            data-el="assignment-dialog-application"
+            @assign-device="assignDeviceToApplication"
+        />
     </div>
 </template>
 
@@ -43,6 +64,7 @@
 import { CogIcon } from '@heroicons/vue/solid/index.js'
 import { mapActions, mapState } from 'pinia'
 
+import deviceApi from '../../../api/devices.js'
 import DropdownMenu from '../../../components/DropdownMenu.vue'
 import ExpertTabIcon from '../../../components/icons/ff-minimal-grey.js'
 import DrawerTrigger from '../../../components/immersive-editor/DrawerTrigger.vue'
@@ -53,6 +75,11 @@ import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
 import { isInstanceOnNR5Plus } from '../../../utils/instanceVersion'
 
+import DeviceAssignApplicationDialog from '../../team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
+import DeviceAssignInstanceDialog from '../../team/Devices/dialogs/DeviceAssignInstanceDialog.vue'
+
+import AssignDeviceDialog from '../components/AssignDeviceDialog.vue'
+
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
@@ -61,7 +88,10 @@ import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 export default {
     name: 'DeviceEditor',
     components: {
+        AssignDeviceDialog,
         CogIcon,
+        DeviceAssignApplicationDialog,
+        DeviceAssignInstanceDialog,
         DropdownMenu,
         DrawerTrigger,
         EditorDrawer,
@@ -185,6 +215,12 @@ export default {
             }
             return {}
         },
+        notAssigned () {
+            const device = this.device
+            const hasApplication = device?.ownerType === 'application' && device.application
+            const hasInstance = device?.ownerType === 'instance' && device.instance
+            return !hasApplication && !hasInstance
+        },
         actionsDropdownOptions () {
             if (!this.device) return []
 
@@ -219,8 +255,8 @@ export default {
             deep: true,
             handler (device) {
                 if (device && this.isEditorAvailable) {
-                    this.setContextDevice(device)
                     this.bindDevice(device, true)
+                    this.setContextualDevice(device)
                     this.handlePolling()
                 } else {
                     this.$router.push({ name: 'device-overview' })
@@ -233,11 +269,17 @@ export default {
     mounted () {
         this.loadDevice()
     },
+    beforeUnmount () {
+        this.setIsImmersive(false)
+    },
     unmounted () {
         this.stopPolling()
     },
     methods: {
-        ...mapActions(useContextStore, { setContextDevice: 'setDevice' }),
+        ...mapActions(useContextStore, {
+            setIsImmersive: 'setIsImmersive',
+            setContextualDevice: 'setDevice'
+        }),
         ...mapActions(useUxDrawersStore, ['toggleEditorImmersiveDrawer']),
         loadDevice: async function () {
             let tries = 0
@@ -267,6 +309,27 @@ export default {
         },
         showConfirmDeleteDialog () {
             this.showDeleteDeviceDialog()
+        },
+        async refreshDevice () {
+            await this.fetchDevice()
+        },
+        openAssignmentDialog () {
+            this.$refs['assignment-dialog'].show()
+        },
+        assignOptionSelected (option) {
+            if (option === 'instance') {
+                this.$refs.deviceAssignInstanceDialog.show(this.device)
+            } else if (option === 'application') {
+                this.$refs.deviceAssignApplicationDialog.show(this.device)
+            }
+        },
+        async assignDeviceToInstance (device, instanceId) {
+            this.device = await deviceApi.updateDevice(device.id, { instance: instanceId })
+            Alerts.emit('Device successfully assigned to instance.', 'confirmation')
+        },
+        async assignDeviceToApplication (device, applicationId) {
+            this.device = await deviceApi.updateDevice(device.id, { application: applicationId, instance: null })
+            Alerts.emit('Device successfully assigned to application.', 'confirmation')
         },
         handlePolling () {
             const pollingRoutes = [
