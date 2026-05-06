@@ -517,7 +517,6 @@ jobs:
             --set forge.tables.driver.options.database.user=$(op read op://ci/prestaging_flowfuse/local_postgres_admin_username) \
             --set forge.tables.driver.options.database.password=$(op read op://ci/prestaging_flowfuse/local_postgres_admin_password) \
             --set forge.tables.driver.options.database.host=flowfuse-pr-${{ env.PR_NUMBER }}-postgresql.pr-${{ env.PR_NUMBER }}.svc.cluster.local \
-            --set forge.telemetry.posthog.apikey=$(op read op://ci/staging_flowfuse/posthog_api_key) \
             flowfuse-pr-${{ env.PR_NUMBER }} ./helm-repo/helm/flowfuse
 
       - name: Initial setup
