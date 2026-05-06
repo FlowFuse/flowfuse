@@ -32,7 +32,6 @@ module.exports = {
         'forge-minimal-status-safe',
         'forge-minimal-status-warning',
         'forge-minimal-status-starting',
-        'forge-minimal-status-info',
         'forge-minimal-status-pushing',
         'forge-minimal-status-pulling',
         'forge-minimal-status-loading',

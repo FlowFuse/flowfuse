@@ -224,8 +224,8 @@ export default {
       -45deg,
       #363848,
       #363848 10px,
-      rgba(31, 41, 55, var(--tw-bg-opacity)) 10px,
-      rgba(31, 41, 55, var(--tw-bg-opacity)) 20px
+      rgba(31, 41, 55, 1) 10px,
+      rgba(31, 41, 55, 1) 20px
   );
 }
 </style>

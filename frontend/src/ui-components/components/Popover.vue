@@ -12,7 +12,7 @@
             </span>
             <span>{{ buttonText }}</span>
             <span class="ml-2">
-                <ChevronDownIcon class="ff-icon transition-ease" :class="{ 'rotate-180 transform': open }" />
+                <ChevronDownIcon class="ff-icon transition-ease" :class="{ 'rotate-180': open }" />
             </span>
         </PopoverButton>
         <teleport to="body">
