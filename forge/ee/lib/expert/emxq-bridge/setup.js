@@ -34,6 +34,7 @@ function getConfig (app) {
         licenceId: app.license.get('id'), // used as the central-broker connector creds and topic prefix
         licenceJwt: app.license.raw(),
         expertBrokerServerAddress: app.config.expert?.centralBroker?.server,
+        ssl: app.config.expert?.centralBroker?.ssl ?? true,
         appBrokerServiceUrl: app.config.broker?.teamBroker?.api?.url,
         appBrokerApiKey: app.config.broker?.teamBroker?.api?.key,
         appBrokerSecretKey: app.config.broker?.teamBroker?.api?.secret
@@ -306,10 +307,13 @@ async function addBridge (app, { cfg, client } = {}) {
         ...connector,
         server: cfg.expertBrokerServerAddress,
         username: cfg.licenceId,
-        password: cfg.licenceJwt,
-        ssl: {
+        password: cfg.licenceJwt
+    }
+
+    if (cfg.ssl) {
+        connectorPayload.ssl = {
           enable: true
-      }
+        }
     }
 
     // Provision in dependency order: connector → actions/sources → rules.
