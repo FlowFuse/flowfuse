@@ -300,10 +300,11 @@ module.exports = async (options = {}) => {
 
             if (runtimeConfig.broker?.public_url) {
                 const mqttBrokerHost = new URL(runtimeConfig.broker?.public_url).host
+                const mqttBrokerSources = [`wss://${mqttBrokerHost}`, `https://${mqttBrokerHost}`]
                 if (contentSecurityPolicy.directives['connect-src'] && Array.isArray(contentSecurityPolicy.directives['connect-src'])) {
-                    contentSecurityPolicy.directives['connect-src'].push(mqttBrokerHost)
+                    contentSecurityPolicy.directives['connect-src'].push(...mqttBrokerSources)
                 } else {
-                    contentSecurityPolicy.directives['connect-src'] = [mqttBrokerHost]
+                    contentSecurityPolicy.directives['connect-src'] = mqttBrokerSources
                 }
             }
 
