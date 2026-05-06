@@ -15,17 +15,20 @@
                     option-title-key="description"
                     class="grow"
                 />
-                <button
-                    v-if="hasCompared"
-                    v-ff-tooltip:left="'Simple view hides changes to node positions'"
-                    class="text-xs px-2 py-1 rounded-sm border font-medium shrink-0"
-                    :class="hidePositionChanges
-                        ? 'bg-blue-50 border-blue-300 text-blue-700'
-                        : 'border-gray-300 text-gray-600 hover:bg-gray-50'"
-                    @click="hidePositionChanges = !hidePositionChanges"
-                >
-                    Simple view
-                </button>
+                <ff-kebab-menu v-if="hasCompared" :menu-items-attrs="{ 'data-click-exclude': 'right-drawer' }">
+                    <ff-kebab-item
+                        :icon="hidePositionChanges ? CheckIcon : null"
+                        label="Simple view"
+                        title="Hide changes to node positions (x, y)"
+                        @click="hidePositionChanges = !hidePositionChanges"
+                    />
+                    <ff-kebab-item
+                        :icon="expandedByDefault ? CheckIcon : null"
+                        label="Expand all"
+                        title="Expand all property panels when switching between changes"
+                        @click="expandedByDefault = !expandedByDefault"
+                    />
+                </ff-kebab-menu>
             </div>
 
             <!-- Loading state -->
@@ -36,11 +39,11 @@
             <!-- Navigation bar — shown after comparison -->
             <div v-if="hasCompared && !loading" class="flex items-center gap-2 px-3 py-1.5 border-b border-gray-200 bg-white shrink-0">
                 <div v-if="currentGroup" class="flex-1 flex items-center gap-2 min-w-0">
-                    <span class="text-xs font-semibold px-1.5 py-0.5 rounded-sm capitalize shrink-0" :class="diffTypeBadgeClass(currentGroup.diffType)">{{ currentGroup.diffType }}</span>
+                    <span class="text-xs font-semibold px-1.5 py-0.5 rounded-xs capitalize shrink-0" :class="diffTypeBadgeClass(currentGroup.diffType)">{{ currentGroup.diffType }}</span>
                     <span class="font-semibold text-sm text-gray-800 truncate">{{ currentGroup.name }}</span>
-                    <span class="text-xs font-semibold text-gray-700 bg-gray-200 px-1.5 py-0.5 rounded-sm shrink-0">{{ currentGroup.type }}</span>
-                    <span v-if="currentGroupCategoryLabel" class="text-xs font-semibold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-sm shrink-0">{{ currentGroupCategoryLabel }}</span>
-                    <span v-if="currentGroupTabMove" class="text-xs text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-sm shrink-0">
+                    <span class="text-xs font-semibold text-gray-700 bg-gray-200 px-1.5 py-0.5 rounded-xs shrink-0">{{ currentGroup.type }}</span>
+                    <span v-if="currentGroupCategoryLabel" class="text-xs font-semibold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-xs shrink-0">{{ currentGroupCategoryLabel }}</span>
+                    <span v-if="currentGroupTabMove" class="text-xs text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-xs shrink-0">
                         {{ currentGroupTabMove.from }} → {{ currentGroupTabMove.to }}
                     </span>
                 </div>
@@ -48,7 +51,7 @@
                 <!-- Prev / counter / Next grouped so the two buttons are adjacent -->
                 <div class="flex items-center gap-1 shrink-0">
                     <button
-                        class="px-2 py-0.5 text-sm rounded-sm border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                        class="px-2 py-0.5 text-sm rounded-xs border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
                         :disabled="currentGroupIndex === 0"
                         title="Previous change (←)"
                         @click="navigate(-1)"
@@ -57,7 +60,7 @@
                     </button>
                     <span class="text-xs text-gray-400 px-1">{{ groupedChanges.length ? `${currentGroupIndex + 1} / ${groupedChanges.length}` : '0' }}</span>
                     <button
-                        class="px-2 py-0.5 text-sm rounded-sm border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                        class="px-2 py-0.5 text-sm rounded-xs border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
                         :disabled="currentGroupIndex >= groupedChanges.length - 1"
                         title="Next change (→)"
                         @click="navigate(1)"
@@ -95,6 +98,7 @@
                         :value1="change.value1"
                         :value2="change.value2"
                         :compact="isCompactProp(change.prop)"
+                        :initially-expanded="expandedByDefault"
                     />
                 </div>
             </div>
@@ -109,6 +113,7 @@
 
 <script>
 import FlowRenderer from '@flowfuse/flow-renderer'
+import { CheckIcon } from '@heroicons/vue/outline'
 
 import SnapshotsApi from '../../api/snapshots.js'
 import Alerts from '../../services/alerts.js'
@@ -160,6 +165,7 @@ export default {
     },
     data () {
         return {
+            CheckIcon,
             payload: [],
             compareSnapshot: null,
             compareSnapshotList: [],
@@ -173,7 +179,8 @@ export default {
             resizing: false,
             resizeStartX: 0,
             resizeStartWidth: 0,
-            hidePositionChanges: false
+            hidePositionChanges: false,
+            expandedByDefault: true
         }
     },
     computed: {

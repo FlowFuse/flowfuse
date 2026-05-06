@@ -16,7 +16,7 @@ module.exports = function (app) {
                 name: result.name,
                 description: result.description,
                 active: result.active,
-                instanceCount: result.projectCount,
+                instanceCount: parseInt(result.projectCount) || 0,
                 settings: result.settings || {},
                 policy: result.policy || {},
                 createdAt: result.createdAt,
@@ -56,7 +56,7 @@ module.exports = function (app) {
                 name: result.name,
                 description: result.description,
                 active: result.active,
-                instanceCount: result.projectCount,
+                instanceCount: parseInt(result.projectCount) || 0,
                 createdAt: result.createdAt,
                 links: result.links
             }
