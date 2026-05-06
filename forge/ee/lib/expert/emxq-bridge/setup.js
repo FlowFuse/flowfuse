@@ -312,7 +312,7 @@ async function addBridge (app, { cfg, client } = {}) {
 
     if (cfg.ssl) {
         connectorPayload.ssl = {
-          enable: true
+            enable: true
         }
     }
 
