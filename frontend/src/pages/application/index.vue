@@ -31,13 +31,9 @@
 </template>
 
 <script>
-// import { ChipIcon, ClockIcon, CogIcon, TerminalIcon, ViewListIcon } from '@heroicons/vue/solid'
-
 import { mapState } from 'pinia'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
-// import PipelinesIcon from '../../components/icons/Pipelines.js'
-// import ProjectsIcon from '../../components/icons/Projects.js'
 import usePermissions from '../../composables/Permissions.js'
 
 import applicationMixin from '../../mixins/Application.js'

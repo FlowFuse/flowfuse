@@ -157,7 +157,7 @@
                 <ff-button kind="danger" @click="disableStatsToken">Disable</ff-button>
             </template>
         </ff-dialog>
-        <template v-if="featuresCheck?.isExpertCommsBetaEnabled">
+        <template v-if="featuresCheck?.isPostHogFeatureFlagsEnabled">
             <FormRow v-model="expertAgentEnabled" type="checkbox">
                 Allow Expert agent to connect to the platform
                 <template #description>
@@ -503,7 +503,7 @@ export default {
 
         // The Expert Agent Credentials option in the admin UI is only ever supposed to be shown on
         // FFC platforms. If the feature flag is retired, we will need to gate this some other way.
-        if (this.featuresCheck?.isExpertCommsBetaEnabled) {
+        if (this.featuresCheck?.isPostHogFeatureFlagsEnabled) {
             this.expertAgentEnabled = this.input['platform:expert-agent:creds']
             if (!this.expertAgentEnabled) {
                 this.expertAgentCreds = ''

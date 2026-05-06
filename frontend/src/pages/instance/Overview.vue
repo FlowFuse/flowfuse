@@ -242,9 +242,11 @@ export default {
     watch: {
         instance: {
             handler: function (instance) {
-                if (instance) {
+                if (instance?.id) {
                     this.loadLogs()
-                    this.getUpdateSchedule(instance.id)
+                    if (this.features?.autoStackUpdate) {
+                        this.getUpdateSchedule(instance.id)
+                    }
                 }
             },
             immediate: true
@@ -273,12 +275,11 @@ export default {
         },
         getUpdateSchedule: async function (instanceId) {
             try {
-                await InstanceApi.getUpdateSchedule(instanceId)
-                this.autoStackUpgrade = true
-                return
+                const list = await InstanceApi.getUpdateSchedule(instanceId)
+                this.autoStackUpgrade = list.length > 0
             } catch (error) {
+                this.autoStackUpgrade = false
             }
-            this.autoStackUpgrade = false
         }
     }
 }
