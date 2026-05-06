@@ -114,11 +114,9 @@
 <script>
 import FlowRenderer from '@flowfuse/flow-renderer'
 import { CheckIcon } from '@heroicons/vue/outline'
-import { mapWritableState } from 'pinia'
 
 import SnapshotsApi from '../../api/snapshots.js'
 import Alerts from '../../services/alerts.js'
-import { useUxSnapshotDiffStore } from '../../stores/ux-snapshot-diff.js'
 
 import SnapshotDiffChangePanel from './SnapshotDiffChangePanel.vue'
 
@@ -180,11 +178,12 @@ export default {
             sidebarWidth: 380,
             resizing: false,
             resizeStartX: 0,
-            resizeStartWidth: 0
+            resizeStartWidth: 0,
+            hidePositionChanges: false,
+            expandedByDefault: true
         }
     },
     computed: {
-        ...mapWritableState(useUxSnapshotDiffStore, ['hidePositionChanges', 'expandedByDefault']),
         flow () {
             return this.payload?.flows?.flows || []
         },

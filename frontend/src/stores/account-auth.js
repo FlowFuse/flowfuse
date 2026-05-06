@@ -18,7 +18,6 @@ import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
 import { useUxNavigationStore } from '@/stores/ux-navigation.js'
-import { useUxSnapshotDiffStore } from '@/stores/ux-snapshot-diff.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 import { useUxStore } from '@/stores/ux.js'
 
@@ -190,7 +189,6 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     useAccountSettingsStore().$reset()
                     useUxDialogStore().$reset()
                     useUxToursStore().$reset()
-                    useUxSnapshotDiffStore().$reset()
                     useUxNavigationStore().$reset()
                     useUxDrawersStore().$reset()
                     useUxStore().$reset()
