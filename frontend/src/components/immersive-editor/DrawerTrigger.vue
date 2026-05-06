@@ -49,6 +49,11 @@ export default {
 
     &.nr5-plus {
         top: 63px;
+        padding: 8px;
+
+        .ff-btn--icon {
+            display: none;
+        }
 
         .ff-layout--immersive--fullscreen & {
             top: 4px;
