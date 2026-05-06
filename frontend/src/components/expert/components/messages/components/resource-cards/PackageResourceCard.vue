@@ -13,7 +13,7 @@
         >
         <div class="package-info">
             <div class="package-text">
-                <div class="package-name">
+                <div class="package-name" :title="packageName">
                     <streamable-content v-model="streamablePackageName" :should-stream="shouldStream" />
                 </div>
                 <div class="package-url">
@@ -211,6 +211,12 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    :deep(.streamable-content) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 .package-url {
