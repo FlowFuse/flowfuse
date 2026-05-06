@@ -1021,7 +1021,8 @@ export const useProductExpertStore = defineStore('product-expert', {
                         },
                         correlationData: inFlightRequest.transactionId,
                         userProperties: {
-                            sessionId: this.sessionId
+                            sessionId: this.sessionId,
+                            origin: window.origin || window.location.origin
                         }
                     })
                 }
