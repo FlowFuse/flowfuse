@@ -136,9 +136,14 @@ export default {
             return `ff/v1/${this.device.team.id}/d/${this.device.id}/resources`
         }
     },
-    mounted () {
-        if (this.featureAvailable) {
-            this.connectMQTT()
+    watch: {
+        device: {
+            immediate: true,
+            handler (device) {
+                if (this.featureAvailable && device && device.id) {
+                    this.connectMQTT()
+                }
+            }
         }
     },
     unmounted () {

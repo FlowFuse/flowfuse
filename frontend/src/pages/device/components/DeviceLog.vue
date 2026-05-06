@@ -60,8 +60,15 @@ export default {
             return `ff/v1/${this.device.team.id}/d/${this.device.id}/logs`
         }
     },
-    mounted () {
-        this.connectMQTT()
+    watch: {
+        device: {
+            immediate: true,
+            handler (device) {
+                if (device && device.id) {
+                    this.connectMQTT()
+                }
+            }
+        }
     },
     unmounted () {
         this.disconnectMQTT()
@@ -72,7 +79,7 @@ export default {
         },
         async connectMQTT () {
             const mqttService = this.getMqttService()
-            window.qwe = mqttService
+
             await mqttService.createClient(this.mqttConnectionKey, {
                 getCredentials: () => deviceApi.getDeviceLogCreds(this.device.id),
                 onConnect: async (_connack, client) => {
