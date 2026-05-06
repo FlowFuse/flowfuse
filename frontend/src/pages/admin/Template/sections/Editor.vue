@@ -206,6 +206,7 @@ import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
 import FeatureUnavailableToTeam from '../../../../components/banners/FeatureUnavailableToTeam.vue'
 import timezonesData from '../../../../data/timezones.json'
+import { isInstanceOnNR5Plus } from '../../../../utils/instanceVersion'
 import ChangeIndicator from '../components/ChangeIndicator.vue'
 import LockSetting from '../components/LockSetting.vue'
 
@@ -242,11 +243,7 @@ export default {
     emits: ['update:modelValue'],
     data () {
         return {
-            timezones: timezonesData.timezones,
-            defaultThemes: [
-                { label: 'FlowFuse Light', value: 'forge-light' },
-                { label: 'FlowFuse Dark', value: 'forge-dark' }
-            ] // FUTURE: Get from theme plugins
+            timezones: timezonesData.timezones
         }
     },
     computed: {
@@ -290,6 +287,20 @@ export default {
                 return true
             }
             return SemVer.satisfies(SemVer.coerce(launcherVersion), '>=2.12.0')
+        },
+        instanceOnNR5Plus () {
+            return isInstanceOnNR5Plus(this.instance)
+        },
+        defaultThemes () {
+            // NR5+ runtime gate collapses Light/Dark to `forge`; show one option.
+            // Admin Template stays version-agnostic since it targets any NR version.
+            if (!this.editTemplate && this.instanceOnNR5Plus) {
+                return [{ label: 'FlowFuse', value: 'forge' }]
+            }
+            return [
+                { label: 'FlowFuse Light', value: 'forge-light' },
+                { label: 'FlowFuse Dark', value: 'forge-dark' }
+            ]
         },
         themeOptions () {
             if (this.modelValue?.settings?.theme && !this.defaultThemes.map(th => th.value).includes(this.modelValue.settings.theme)) {
