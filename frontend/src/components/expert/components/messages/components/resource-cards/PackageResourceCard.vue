@@ -12,15 +12,17 @@
             @error="handleImageError"
         >
         <div class="package-info">
-            <div class="package-name">
-                <streamable-content v-model="streamablePackageName" :should-stream="shouldStream" />
-            </div>
-            <div class="package-url">
-                <streamable-content
-                    v-if="!shouldStream || streamablePackageName.streamed"
-                    v-model="streamablePackageUrl"
-                    :should-stream="shouldStream"
-                />
+            <div class="package-text">
+                <div class="package-name">
+                    <streamable-content v-model="streamablePackageName" :should-stream="shouldStream" />
+                </div>
+                <div class="package-url">
+                    <streamable-content
+                        v-if="!shouldStream || streamablePackageName.streamed"
+                        v-model="streamablePackageUrl"
+                        :should-stream="shouldStream"
+                    />
+                </div>
             </div>
             <div class="package-actions">
                 <template v-if="canManagePalette && !isCorePackage">
@@ -155,7 +157,6 @@ export default {
 
 <style scoped lang="scss">
 .package-card {
-    position: relative;
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
@@ -186,17 +187,23 @@ export default {
     flex: 1;
     min-width: 0;
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    align-items: center;
+    gap: 0.5rem;
 }
+
+.package-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
 .package-actions {
-    position: absolute;
-    top: 8px;
-    right: 8px;
+    flex-shrink: 0;
 }
 
 .package-name {
-    padding-right: 3rem;
     font-size: 0.875rem;
     font-weight: 500;
     font-family: monospace;
