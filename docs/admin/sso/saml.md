@@ -208,8 +208,6 @@ When this option is enabled:
 
 This is intended for organisations running a single identity provider across the entire platform, where per-domain SSO configuration is not sufficient to cover all users.
 
-> **Warning:** Verify that your SSO provider is fully working before enabling this option. If the provider becomes unavailable, no users will be able to log in through the normal login flow. It is strongly recommended to retain an emergency access path, such as a break-glass admin account or direct database access, before turning this on.
-
 ## Providers
 
 The following is a non-exhaustive list of the providers that are known to work
