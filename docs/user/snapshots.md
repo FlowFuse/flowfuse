@@ -250,40 +250,32 @@ _Screenshot to an example flow preview for a Snapshot in FlowFuse_
 
 ### Comparing Snapshots
 
-From any Snapshots tab, you can compare two snapshots by selecting the Snapshot's action, 
-then selecting "Compare Snapshots". This will open a new dialog with the option to choose 
-a second snapshot to compare with.
+From any Snapshots tab, you can compare two snapshots by selecting the Snapshot's action, then selecting "Compare Snapshots". This will open a dialog where you choose a second snapshot to compare with.
 
-In the top left, a sidebar lists every changed, added, and deleted node, showing what action 
-occurred for each. The flow canvas highlights the selected node and scrolls to it 
-automatically, giving you a visual indication of where the change is in your flow. The right 
-side shows the property and code changes for the affected node. You can step through them 
-one at a time using the **Prev / Next** buttons. For each change you can see:
+The comparison view has three panels:
 
-- **Property diffs** - Each changed property is shown inline with the old and new value side by side, with red `-` for removed and green `+` for added
+- **Left sidebar** — lists every node that differs between the two snapshots. Each entry shows a node-type badge (config node, tab, or regular node) and one of three statuses:
+  - **Added** — the node exists in the newer snapshot but not the older one
+  - **Deleted** — the node existed in the older snapshot but has been removed
+  - **Changed** — the node exists in both snapshots but one or more properties differ
+- **Flow canvas** — highlights the selected node and scrolls to it automatically, giving a visual indication of where the change is in your flow
+- **Right panel** — shows the property and code changes for the selected node. Use the **Prev / Next** buttons to step through changes one at a time
+
+Selecting an entry in the sidebar highlights the corresponding node on the canvas. The highlight clears automatically when you select a different entry.
+
+There are two types of diff shown in the right panel:
+
+- **Property diffs** — each changed property is shown with the old and new value side by side, with red `-` for removed and green `+` for added
 
 ![Screenshot showing property-level diff with old and new values displayed side by side](images/snapshots/snapshot-diff-prop-change.png)
 _Screenshot showing property-level diff with old and new values displayed side by side_
 
-- **Code diffs** - For multiline properties — for example in function and template nodes — code changes appear as a line-level diff with red `-` for removed lines and green `+` for added, the same format you'd expect from a git diff
+- **Code diffs** — for multiline properties such as function and template nodes, changes appear as a line-level diff with red `-` for removed lines and green `+` for added, in the same format as a git diff. Use the **Prettify** and **Wrap** toggles to make large or nested values easier to read
 
 ![Screenshot showing a code diff for a function node with red and green line-level changes](images/snapshots/snapshot-diff-code-change.png)
 _Screenshot showing a code diff for a function node with red and green line-level changes_
-From any Snapshots tab, you can compare two snapshots by selecting **Compare Snapshots** from the snapshot's action menu. A dialog opens where you select a second snapshot to compare against.
-
-<!-- TODO: screenshot of the updated comparison viewer showing the diff panel with node-type badges and JSON controls -->
-
-#### Reading the Diff Panel
-
-The diff panel lists every node that changed between the two snapshots. Each entry shows a node-type badge so you can quickly tell whether the change is in a config node, a tab, or a regular node.
-
-Select an entry to highlight the corresponding node in the flow preview. The highlight clears automatically when you select a different entry.
-
-For changed properties, the panel shows the before and after values side by side. You can use the **Prettify** and **Wrap** toggles on any JSON section to make large or nested values easier to read.
-
-#### What the Diff Excludes
 
 Not every difference between two snapshots is meaningful. The comparison viewer automatically filters out:
 
-- **Position-only changes**: nodes that moved on the canvas but had no property changes are hidden by default, keeping the list focused on functional differences
-- **Computed layout properties**: internal values like group node width and height (`w`, `h`) are excluded because they are recalculated automatically and do not reflect intentional edits
+- **Position-only changes** — nodes that moved on the canvas but had no property changes are hidden, keeping the list focused on functional differences
+- **Computed layout properties** — internal values like group node width and height (`w`, `h`) are excluded because they are recalculated automatically and do not reflect intentional edits
