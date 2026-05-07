@@ -64,6 +64,9 @@ module.exports = {
     // Has a stats monitoring token been created?
     'platform:stats:token': false,
 
+    // Has an Expert agent creds been created?
+    'platform:expert-agent:creds': false,
+
     // Team Broker topic cache
     'team:broker:topics': null,
 
@@ -74,9 +77,13 @@ module.exports = {
     'platform:sso:direct': false, // Direct SSO Login
 
     // FlowFuse npm registry
-    'platform:ff-npm-registry:token': null
+    'platform:ff-npm-registry:token': null,
     // The following properties can be overriden in the config yml file to point to a local registry for testing
     // 'ff-npm-registry.url'
     // 'ff-npm-registry.catalogue.certifiedNodes'
     // 'ff-npm-registry.catalogue.ffNodes'
+
+    'platform:sso:only': false,
+    'platform:sso:only:provider': null,
+    'platform:sso:only:logoutURL': '/'
 }

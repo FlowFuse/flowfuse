@@ -15,6 +15,20 @@
                     option-title-key="description"
                     class="flex-grow"
                 />
+                <ff-kebab-menu v-if="hasCompared" :menu-items-attrs="{ 'data-click-exclude': 'right-drawer' }">
+                    <ff-kebab-item
+                        :icon="hidePositionChanges ? CheckIcon : null"
+                        label="Simple view"
+                        title="Hide changes to node positions (x, y)"
+                        @click="hidePositionChanges = !hidePositionChanges"
+                    />
+                    <ff-kebab-item
+                        :icon="expandedByDefault ? CheckIcon : null"
+                        label="Expand all"
+                        title="Expand all property panels when switching between changes"
+                        @click="expandedByDefault = !expandedByDefault"
+                    />
+                </ff-kebab-menu>
             </div>
 
             <!-- Loading state -->
@@ -25,9 +39,10 @@
             <!-- Navigation bar — shown after comparison -->
             <div v-if="hasCompared && !loading" class="flex items-center gap-2 px-3 py-1.5 border-b border-gray-200 bg-white shrink-0">
                 <div v-if="currentGroup" class="flex-1 flex items-center gap-2 min-w-0">
-                    <span class="text-xs font-semibold px-1.5 py-0.5 rounded shrink-0" :class="diffTypeBadgeClass(currentGroup.diffType)">{{ currentGroup.diffType }}</span>
+                    <span class="text-xs font-semibold px-1.5 py-0.5 rounded capitalize shrink-0" :class="diffTypeBadgeClass(currentGroup.diffType)">{{ currentGroup.diffType }}</span>
                     <span class="font-semibold text-sm text-gray-800 truncate">{{ currentGroup.name }}</span>
-                    <span class="text-xs text-gray-400 shrink-0">{{ currentGroup.type }}</span>
+                    <span class="text-xs font-semibold text-gray-700 bg-gray-200 px-1.5 py-0.5 rounded shrink-0">{{ currentGroup.type }}</span>
+                    <span v-if="currentGroupCategoryLabel" class="text-xs font-semibold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded shrink-0">{{ currentGroupCategoryLabel }}</span>
                     <span v-if="currentGroupTabMove" class="text-xs text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded shrink-0">
                         {{ currentGroupTabMove.from }} → {{ currentGroupTabMove.to }}
                     </span>
@@ -83,6 +98,7 @@
                         :value1="change.value1"
                         :value2="change.value2"
                         :compact="isCompactProp(change.prop)"
+                        :initially-expanded="expandedByDefault"
                     />
                 </div>
             </div>
@@ -97,13 +113,24 @@
 
 <script>
 import FlowRenderer from '@flowfuse/flow-renderer'
+import { CheckIcon } from '@heroicons/vue/outline'
 
 import SnapshotsApi from '../../api/snapshots.js'
 import Alerts from '../../services/alerts.js'
 
 import SnapshotDiffChangePanel from './SnapshotDiffChangePanel.vue'
 
-const COMPACT_PROPS = new Set(['position', 'z', 'name', 'label', 'type', 'wires', 'disabled'])
+// Props shown in compact (single-line) mode in the diff sidebar
+const COMPACT_PROPS = new Set(['position', 'z', 'g', 'name', 'label', 'type', 'wires', 'disabled'])
+// Props to skip entirely in computeDiff — computed by Node-RED at render time, not user data
+const IGNORED_PROPS = new Set(['id', 'w', 'h'])
+// Props that represent node position — can be toggled off by the user
+const POSITION_PROPS = new Set(['x', 'y'])
+// Props shown in the nav header — skip when expanding all props for added/deleted nodes
+const HEADER_PROPS = new Set(['id', 'type', 'z', 'name', 'label'])
+// Node categories that have no visual presence on the SVG canvas
+const CONFIG_CATEGORIES = new Set(['global-config', 'flow-config'])
+
 const SIDEBAR_MIN_WIDTH = 200
 const SIDEBAR_MAX_WIDTH = 800
 
@@ -138,6 +165,7 @@ export default {
     },
     data () {
         return {
+            CheckIcon,
             payload: [],
             compareSnapshot: null,
             compareSnapshotList: [],
@@ -150,7 +178,9 @@ export default {
             sidebarWidth: 380,
             resizing: false,
             resizeStartX: 0,
-            resizeStartWidth: 0
+            resizeStartWidth: 0,
+            hidePositionChanges: false,
+            expandedByDefault: true
         }
     },
     computed: {
@@ -163,6 +193,7 @@ export default {
         groupedChanges () {
             const groups = new Map()
             for (const change of this.changes) {
+                if (this.hidePositionChanges && change.prop && POSITION_PROPS.has(change.prop)) continue
                 const key = change.item
                 if (!groups.has(key)) {
                     const node = this.nodeMap[key] || {}
@@ -173,6 +204,7 @@ export default {
                         name: node.name || node.label || node.type || key,
                         type: node.type || '',
                         diffType: change.diffType,
+                        category: this.nodeCategory(node),
                         propChanges: []
                     })
                 }
@@ -181,13 +213,21 @@ export default {
                     const node = this.nodeMap[key] || {}
                     const isAdded = change.diffType === 'added'
                     for (const [prop, val] of Object.entries(node)) {
-                        // Skip id (internal) and props already represented in the nav header:
-                        // type (shown as badge), name/label (shown as node display name), z (tab)
-                        if (prop === 'id' || prop === 'type' || prop === 'z' || prop === 'name' || prop === 'label') continue
+                        if (HEADER_PROPS.has(prop)) continue
+                        if (IGNORED_PROPS.has(prop)) continue
+                        if (this.hidePositionChanges && POSITION_PROPS.has(prop)) continue
                         group.propChanges.push({ prop, value1: isAdded ? undefined : val, value2: isAdded ? val : undefined })
                     }
                 } else if (change.diffType === 'changed') {
                     group.propChanges.push({ prop: change.prop, value1: change.value1, value2: change.value2 })
+                }
+            }
+            // When hiding position changes, drop nodes that only had position diffs
+            if (this.hidePositionChanges) {
+                for (const [key, group] of groups) {
+                    if (group.diffType === 'changed' && group.propChanges.length === 0) {
+                        groups.delete(key)
+                    }
                 }
             }
             return [...groups.values()]
@@ -197,6 +237,12 @@ export default {
         },
         currentGroupChanges () {
             return this.transformChanges(this.currentGroup?.propChanges || [])
+        },
+        currentGroupCategoryLabel () {
+            const cat = this.currentGroup?.category
+            if (cat === 'global-config') return 'Global Config'
+            if (cat === 'flow-config') return 'Flow Config'
+            return null
         },
         currentGroupTabMove () {
             // Returns { from, to } if a changed node moved between tabs, null otherwise.
@@ -214,6 +260,13 @@ export default {
     watch: {
         compareSnapshot (val) {
             if (val) this.renderComparison()
+        },
+        hidePositionChanges () {
+            // Clamp index — the list may have shrunk
+            if (this.currentGroupIndex >= this.groupedChanges.length) {
+                this.currentGroupIndex = Math.max(0, this.groupedChanges.length - 1)
+            }
+            this.highlightCurrent()
         }
     },
     mounted () {
@@ -257,9 +310,12 @@ export default {
                 // Explicit scope prevents the renderer from using Tailwind utility
                 // classes (e.g. flex-1) as CSS selectors, which would leak
                 // svg sizing rules to the rest of the page.
-                scope: 'ff-flow-compare-view'
+                scope: 'ff-flow-compare-view',
+                persistentHighlight: true,
+                allChanges: true
             })
             this.rendererChanges = result?.changes || []
+            this.clearRendererHighlight = result?.clearHighlight || (() => {})
             this.changes = this.computeDiff(compareFlow, this.flow)
             this.currentGroupIndex = 0
             this.hasCompared = true
@@ -281,16 +337,13 @@ export default {
         highlightCurrent () {
             const group = this.currentGroup
             if (!group) return
+            this.clearRendererHighlight()
+            if (CONFIG_CATEGORIES.has(group.category)) return
             // Always pass layerNo explicitly from our own diffType so the renderer
             // shows the correct layer regardless of its internal change classification.
-            // The renderer's fallback (no layerNo) infers from rc.diffType, which can
-            // be unreliable for tab entries ('tab' diffType → defaults to layer 0 → 10%).
             const layerNo = group.diffType === 'added' ? 1 : group.diffType === 'deleted' ? 0 : -1
             // Jump the slider directly to the target and dispatch one input event so
-            // the renderer updates layer opacities immediately. This bypasses the
-            // renderer's slow JS stepping loop (1 unit / 10 ms → up to 900 ms).
-            // The visual smoothness comes from a CSS transition on the SVG layers
-            // defined in the <style> block below.
+            // the renderer updates layer opacities immediately.
             if (layerNo !== -1) {
                 const slider = this.$refs.compareViewer?.querySelector('.flow-compare-slider')
                 const target = layerNo === 1 ? 90 : 10
@@ -300,18 +353,14 @@ export default {
                 }
             }
             if (group.type === 'tab') {
-                // The renderer's highlight() for a tab entry looks up the item as an
-                // SVG node, which fails (tabs are DOM elements, not SVG nodes). Instead,
-                // find any node that lives on this tab and highlight that — the renderer
-                // will click the tab and navigate there as a side effect.
                 const proxy = this.rendererChanges.find(rc => rc.tab === group.nodeId && rc.highlight)
                 if (proxy) proxy.highlight(layerNo)
-                return
-            }
-            // Highlight all renderer changes for this node — handles nodes that
-            // appear in multiple tabs (e.g. moved from one tab to another)
-            for (const rc of this.rendererChanges) {
-                if (rc.item === group.nodeId && rc.highlight) rc.highlight(layerNo)
+            } else {
+                for (const rc of this.rendererChanges) {
+                    if (rc.item === group.nodeId && rc.highlight) {
+                        rc.highlight(layerNo)
+                    }
+                }
             }
         },
         diffTypeBadgeClass (diffType) {
@@ -355,12 +404,16 @@ export default {
                 if (c.prop === 'x') { xChange = c; continue }
                 if (c.prop === 'y') { yChange = c; continue }
                 if (c.prop === 'z') {
-                    result.push({ prop: 'z', label: 'tab', value1: this.resolveTabName(c.value1), value2: this.resolveTabName(c.value2) })
+                    result.push({ prop: 'z', label: 'Tab', value1: this.resolveTabName(c.value1), value2: this.resolveTabName(c.value2) })
+                    continue
+                }
+                if (c.prop === 'g') {
+                    result.push({ prop: 'g', label: 'Group', value1: this.resolveNodeName(c.value1), value2: this.resolveNodeName(c.value2) })
                     continue
                 }
                 if (c.prop === 'disabled') {
                     // Show as "enabled" / "disabled" rather than raw true/false
-                    result.push({ prop: 'disabled', label: 'status', value1: this.resolveDisabled(c.value1), value2: this.resolveDisabled(c.value2) })
+                    result.push({ prop: 'disabled', label: 'Status', value1: this.resolveDisabled(c.value1), value2: this.resolveDisabled(c.value2) })
                     continue
                 }
                 if (c.prop === 'wires') {
@@ -399,9 +452,25 @@ export default {
             const tab = this.nodeMap[tabId]
             return tab ? (tab.label || tabId) : tabId
         },
+        resolveNodeName (nodeId) {
+            if (!nodeId) return nodeId
+            const node = this.nodeMap[nodeId]
+            return node ? (node.name || node.label || nodeId) : nodeId
+        },
         resolveDisabled (val) {
             if (val === undefined || val === null) return undefined
             return val ? 'disabled' : 'enabled'
+        },
+        nodeCategory (node) {
+            if (!node || !node.type) return 'node'
+            if (node.type === 'tab') return 'tab'
+            if (node.type === 'group') return 'group'
+            if (node.type === 'subflow') return 'subflow'
+            // Config nodes have no canvas position — works for all node packages
+            if (node.x === undefined && node.y === undefined) {
+                return node.z ? 'flow-config' : 'global-config'
+            }
+            return 'node'
         },
         computeDiff (flow1, flow2) {
             const map1 = {}
@@ -422,7 +491,7 @@ export default {
                 const n1 = map1[id]
                 const n2 = map2[id]
                 for (const prop of new Set([...Object.keys(n1), ...Object.keys(n2)])) {
-                    if (prop === 'id') continue
+                    if (IGNORED_PROPS.has(prop)) continue
                     const v1 = n1[prop]
                     const v2 = n2[prop]
                     if (JSON.stringify(v1) !== JSON.stringify(v2)) {

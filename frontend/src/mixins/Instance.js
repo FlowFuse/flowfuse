@@ -1,4 +1,4 @@
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
 import InstanceApi from '../api/instances.js'
 import SnapshotApi from '../api/projectSnapshots.js'
@@ -34,9 +34,13 @@ export default {
         }
     },
     watch: {
-        instance: 'instanceChanged'
+        instance (instance) {
+            this.instanceChanged()
+            this.setContextualInstance(instance)
+        }
     },
     methods: {
+        ...mapActions(useContextStore, { setContextualInstance: 'setInstance' }),
         showConfirmDeleteDialog () {
             this.$refs.confirmInstanceDeleteDialog.show(this.instance)
         },
@@ -106,5 +110,8 @@ export default {
                 await this.loadInstance()
             }
         )
+    },
+    beforeUnmount () {
+        this.setContextualInstance(null)
     }
 }

@@ -49,6 +49,11 @@ export const setupSentry = (app, router) => {
         replaysSessionSampleRate: window.sentryConfig.production ? 0.01 : 0.1,
         replaysOnErrorSampleRate: 0.1,
 
+        // PostHog rrweb noise on cross-origin iframe teardown — see #7052
+        ignoreErrors: [
+            /bufferBelongsToIframe/
+        ],
+
         // Skip localhost reporting
         beforeSend: (event) => {
             if (['localhost', '127.0.0.1'].includes(window.location.hostname)) {

@@ -63,6 +63,7 @@ function groupUpdate (type, id, properties) {
 function setTeam (team) {
     if (team) {
         const props = {
+            'team-id': team.id,
             'team-name': team.name,
             'created-at': team.createdAt,
             'count-instances': team.instanceCount,

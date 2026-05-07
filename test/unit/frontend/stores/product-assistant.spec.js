@@ -4,9 +4,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 
-vi.mock('@/services/messaging.service.js', () => ({
+vi.mock('@/services/post-message.service.js', () => ({
+    createMessagingService: () => ({
+        sendMessage: vi.fn().mockResolvedValue(undefined)
+    }),
     default: () => ({
         sendMessage: vi.fn().mockResolvedValue(undefined)
+    })
+}))
+
+vi.mock('@/services/service.orchestrator.js', () => ({
+    default: () => ({
+        $serviceInstances: {
+            postMessage: {
+                sendMessage: vi.fn().mockResolvedValue(undefined)
+            }
+        }
     })
 }))
 
@@ -73,33 +86,47 @@ describe('product-assistant store', () => {
     })
 
     describe('getters', () => {
-        describe('immersiveInstance', () => {
-            it('returns null when context store has no instance', () => {
+        describe('isImmersiveInstance', () => {
+            it('returns falsy when context store has no instance', () => {
                 const store = useProductAssistantStore()
-                expect(store.immersiveInstance).toBeNull()
+                expect(store.isImmersiveInstance).toBeFalsy()
             })
 
-            it('returns the instance from the context store', () => {
+            it('returns falsy when instance is set but isImmersive is false', () => {
                 const contextStore = useContextStore()
                 const store = useProductAssistantStore()
-                const mockInstance = { id: 'inst-1', url: 'http://localhost:1880' }
-                contextStore.setInstance(mockInstance)
-                expect(store.immersiveInstance).toEqual(mockInstance)
+                contextStore.setInstance({ id: 'inst-1', url: 'http://localhost:1880' })
+                expect(store.isImmersiveInstance).toBeFalsy()
+            })
+
+            it('returns true when instance is set and isImmersive is true', () => {
+                const contextStore = useContextStore()
+                const store = useProductAssistantStore()
+                contextStore.setInstance({ id: 'inst-1', url: 'http://localhost:1880' })
+                contextStore.setIsImmersive(true)
+                expect(store.isImmersiveInstance).toBe(true)
             })
         })
 
-        describe('immersiveDevice', () => {
-            it('returns null when context store has no device', () => {
+        describe('isImmersiveDevice', () => {
+            it('returns falsy when context store has no device', () => {
                 const store = useProductAssistantStore()
-                expect(store.immersiveDevice).toBeNull()
+                expect(store.isImmersiveDevice).toBeFalsy()
             })
 
-            it('returns the device from the context store', () => {
+            it('returns falsy when device is set but isImmersive is false', () => {
                 const contextStore = useContextStore()
                 const store = useProductAssistantStore()
-                const mockDevice = { id: 'dev-1', editor: { url: 'http://device.local' } }
-                contextStore.setDevice(mockDevice)
-                expect(store.immersiveDevice).toEqual(mockDevice)
+                contextStore.setDevice({ id: 'dev-1', editor: { url: 'http://device.local' } })
+                expect(store.isImmersiveDevice).toBeFalsy()
+            })
+
+            it('returns true when device is set and isImmersive is true', () => {
+                const contextStore = useContextStore()
+                const store = useProductAssistantStore()
+                contextStore.setDevice({ id: 'dev-1', editor: { url: 'http://device.local' } })
+                contextStore.setIsImmersive(true)
+                expect(store.isImmersiveDevice).toBe(true)
             })
         })
 

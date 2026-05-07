@@ -94,6 +94,7 @@ module.exports = async function (app) {
                     }
                 })
                 response['platform:stats:token'] = app.settings.get('platform:stats:token')
+                response['platform:expert-agent:creds'] = app.settings.get('platform:expert-agent:creds')
                 if (app.config.features.enabled('certifiedNodes') || app.config.features.enabled('ffNodes')) {
                     response['platform:ff-npm-registry:enabled'] = !!app.settings.get('platform:ff-npm-registry:token')
                 }
@@ -107,6 +108,9 @@ module.exports = async function (app) {
             }
             if (app.config.features.enabled('sso')) {
                 response['platform:sso:direct'] = app.settings.get('platform:sso:direct')
+                response['platform:sso:only'] = app.settings.get('platform:sso:only')
+                response['platform:sso:only:provider'] = app.settings.get('platform:sso:only:provider')
+                response['platform:sso:only:logoutURL'] = app.settings.get('platform:sso:only:logoutURL')
             }
             reply.send(response)
         } else {
@@ -162,6 +166,10 @@ module.exports = async function (app) {
                     }
                 })
                 publicSettings['platform:sso:direct:list'] = SSOList
+            }
+            if (app.config.features.enabled('sso') && app.settings.get('platform:sso:only')) {
+                publicSettings['platform:sso:only'] = true
+                publicSettings['platform:sso:only:provider'] = app.settings.get('platform:sso:only:provider')
             }
 
             reply.send(publicSettings)
