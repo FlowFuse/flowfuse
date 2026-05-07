@@ -74,10 +74,11 @@ import MemoryChart from '../../../components/charts/performance/MemoryChart.vue'
 import InformationWell from '../../../components/wells/InformationWell.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
+import getServicesOrchestrator from '@/services/service.orchestrator'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
-let mqtt
+const HEARTBEAT_INTERVAL = 10000
 
 export default {
     name: 'DevicePerformanceView',
@@ -110,9 +111,7 @@ export default {
         return {
             loading: true,
             resources: [],
-            keepAliveInterval: null,
-            connection: null,
-            client: null
+            keepAliveInterval: null
         }
     },
     computed: {
@@ -129,58 +128,72 @@ export default {
             return this.featuresCheck.isInstanceResourcesFeatureEnabledForPlatform &&
                 this.featuresCheck.isInstanceResourcesFeatureEnabledForTeam &&
                 this.agentSatisfiesVersion && this.deviceOnline
+        },
+        mqttConnectionKey () {
+            return `device-resources-${this.device.id}`
+        },
+        resourcesTopic () {
+            return `ff/v1/${this.device.team.id}/d/${this.device.id}/resources`
         }
     },
-    async mounted () {
-        // need to subscribe to resources stream
-        const { default: mqttImp } = await import('mqtt')
-        mqtt = mqttImp
-        if (this.featureAvailable) {
-            this.connectMQTT()
+    watch: {
+        device: {
+            immediate: true,
+            handler (device) {
+                if (this.featureAvailable && device && device.id) {
+                    this.connectMQTT()
+                }
+            }
         }
     },
     unmounted () {
-        // need to unsubscribe here
-        setTimeout(() => this.disconnectMQTT())
-        clearInterval(this.keepAliveInterval)
+        this.disconnectMQTT()
     },
     methods: {
-        connectMQTT: async function () {
-            const creds = await deviceApi.getDeviceResourcesCreds(this.device.id)
-            this.client = mqtt.connect(creds.url, {
-                username: creds.username,
-                password: creds.password,
-                reconnectPeriod: 0
-            })
-
-            this.client.on('connect', () => {
-                const topic = `ff/v1/${this.device.team.id}/d/${this.device.id}/resources`
-                this.client.subscribe(topic)
-                this.loading = false
-                this.client.publish(`${topic}/heartbeat`, 'alive')
-                this.keepAliveInterval = setInterval(() => {
-                    this.client.publish(`${topic}/heartbeat`, 'alive')
-                }, 10000)
-            })
-
-            this.client.on('message', (topic, message) => {
-                const resourceData = JSON.parse(message.toString())
-                if (Array.isArray(resourceData)) {
-                    this.resources = resourceData
-                } else {
-                    this.resources.push(resourceData)
-                }
-            })
-
-            this.keepAliveInterval = setInterval(() => {
-                if (this.client && this.client.connected) {
-                    this.client.publish(`ff/v1/${this.device.team.id}/d/${this.device.id}/resources/heartbeat`, 'alive')
-                }
-            }, 30000)
+        getMqttService () {
+            return getServicesOrchestrator().$serviceInstances.mqtt
         },
-        disconnectMQTT: function () {
-            if (this.client) {
-                this.client.end()
+        async connectMQTT () {
+            const mqttService = this.getMqttService()
+
+            await mqttService.createClient(this.mqttConnectionKey, {
+                getCredentials: () => deviceApi.getDeviceResourcesCreds(this.device.id),
+                onConnect: async () => {
+                    await mqttService.subscribe(this.mqttConnectionKey, this.resourcesTopic)
+                    this.loading = false
+
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                        topic: `${this.resourcesTopic}/heartbeat`,
+                        payload: 'alive',
+                        qos: 0,
+                        serialize: 'raw'
+                    })
+
+                    clearInterval(this.keepAliveInterval)
+                    this.keepAliveInterval = setInterval(() => {
+                        mqttService.publishMessage(this.mqttConnectionKey, {
+                            topic: `${this.resourcesTopic}/heartbeat`,
+                            payload: 'alive',
+                            qos: 0,
+                            serialize: 'raw'
+                        }).catch(() => {})
+                    }, HEARTBEAT_INTERVAL)
+                },
+                onMessage: (topic, message) => {
+                    const resourceData = JSON.parse(message.toString())
+                    if (Array.isArray(resourceData)) {
+                        this.resources = resourceData
+                    } else {
+                        this.resources.push(resourceData)
+                    }
+                }
+            })
+        },
+        async disconnectMQTT () {
+            clearInterval(this.keepAliveInterval)
+            const mqttService = this.getMqttService()
+            if (mqttService.hasClient(this.mqttConnectionKey)) {
+                await mqttService.destroyClient(this.mqttConnectionKey)
             }
         }
     }

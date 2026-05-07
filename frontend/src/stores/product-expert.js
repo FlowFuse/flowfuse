@@ -138,7 +138,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                 return router.push({ name: expertRouteName, params: contextStore.route.params })
             }
 
-            useProductExpertInsightsAgentStore().getCapabilities()
+            if (this.agentMode === INSIGHTS_AGENT) {
+                useProductExpertInsightsAgentStore().getCapabilities()
+            }
             // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
             return import('../components/drawers/expert/ExpertDrawer.vue')
                 .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({
