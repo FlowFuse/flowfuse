@@ -205,6 +205,7 @@ _SSO settings page showing the option to force all non-admin users to log in via
 When this option is enabled:
 - All users are redirected to the configured SSO provider at login, regardless of their email domain
 - The email and password login form is no longer presented as a fallback option
+- Admin users can bypass SSO by accessing `/admin` routes
 
 This is intended for organisations running a single identity provider across the entire platform, where per-domain SSO configuration is not sufficient to cover all users.
 
