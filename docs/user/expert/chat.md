@@ -12,6 +12,10 @@ To open the chat, first open your Node-RED instance using the **Open Editor** bu
 
 While in Immersive Mode you also have access to all [instance settings](/docs/user/instance-settings/) from a drawer that sits beside the canvas. You can manage environment variables, snapshots, the palette, and other settings without leaving the editor. Use the eye icon at the top of the drawer to move it left or right, pin or unpin it, or toggle fullscreen mode.
 
+> **Note:** As of v2.29, the FlowFuse Expert panel opens automatically when you enter the immersive editor. If you close the panel, that preference is saved — Expert will remain closed on your next visit so it doesn't get in your way. You can reopen the Expert panel at any time by clicking the FlowFuse drawer button in the top-left of the editor.
+
+!["Chat interface of FlowFuse Expert alongside the Node-RED editor"](../images/assistant/flowfuse-expert-drawer.png){data-zoomable}
+
 ## Chat Modes
 
 The chat interface operates in two distinct modes. You can switch between them using the **Mode Selector** at the top of the Expert panel.
