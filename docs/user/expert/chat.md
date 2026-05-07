@@ -10,7 +10,7 @@ The FlowFuse Expert chat interface is where you actively engage the AI: asking q
 
 To open the chat, first open your Node-RED instance using the **Open Editor** button. This launches Immersive Mode, where the Expert panel is available alongside your canvas.
 
-While in Immersive Mode you also have access to all [instance settings](/docs/user/instance-settings/) from a drawer that sits beside the canvas. You can manage environment variables, snapshots, the palette, and other settings without leaving the editor.
+While in Immersive Mode you also have access to all [instance settings](/docs/user/instance-settings/) from a drawer that sits beside the canvas. You can manage environment variables, snapshots, the palette, and other settings without leaving the editor. Use the eye icon at the top of the drawer to move it left or right, pin or unpin it, or toggle fullscreen mode.
 
 ## Chat Modes
 
@@ -53,8 +53,7 @@ Expert can act on your requests directly by adding tabs, placing and wiring node
 
 To use it, describe what you want to build in the chat input, the same way you would ask a question. Expert will start working immediately, and you can follow along via real-time status updates in the chat panel as each step completes. When it finishes, the result is live on your canvas. You can continue refining it through chat by asking Expert to adjust a configuration, add a node, or change a topic path, or you can edit the canvas directly as normal.
 
-<!-- TODO: screenshot or short gif showing Expert building a flow on the canvas, e.g. an OEE dashboard or Modbus 
- -->
+![FlowFuse Expert building and configuring a flow directly on the Node-RED canvas](../images/assistant/flowfuse-expert-building-flow.gif){data-zoomable}
 
 Some prompts that work well:
 
