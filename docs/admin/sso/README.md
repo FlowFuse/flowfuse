@@ -18,7 +18,7 @@ registers when they first sign in.
 Otherwise, a user will have to first register on the platform, providing a temporary
 password in order to create an account. They will then be able to log in via their SSO provider.
 
-By default, admin users can still log in with their original FlowFuse username and password, which ensures they are not locked out if there is a problem with the SSO configuration. This fallback can be removed by enabling the [Force All Users to Use SSO](saml.md#forcing-all-users-to-use-sso) option, which redirects every user through SSO with no password fallback.
+By default, admin users can still log in with their original FlowFuse username and password, which ensures they are not locked out if there is a problem with the SSO configuration.
 
 ## SAML SSO
 
