@@ -27,7 +27,9 @@
 <script>
 import deviceApi from '../../../api/devices.js'
 
-let mqtt
+import getServicesOrchestrator from '@/services/service.orchestrator'
+
+const HEARTBEAT_INTERVAL = 10000
 
 export default {
     name: 'DeviceLogView',
@@ -43,103 +45,103 @@ export default {
         return {
             loading: true,
             logEntries: [],
-            prevCursor: null,
-            nextCursor: null,
-            keepAliveInterval: null,
-            connection: null,
-            client: null
+            keepAliveInterval: null
         }
     },
     computed: {
         deviceOnline () {
             const offline = ['stopped', 'offline', 'error']
             return !offline.includes(this.device.status)
+        },
+        mqttConnectionKey () {
+            return `device-logs-${this.device.id}`
+        },
+        logTopic () {
+            return `ff/v1/${this.device.team.id}/d/${this.device.id}/logs`
         }
     },
-    async mounted () {
-    // need to subscribe to log stream
-        const { default: mqttImp } = await import('mqtt')
-        mqtt = mqttImp
-        this.connectMQTT()
+    watch: {
+        device: {
+            immediate: true,
+            handler (device) {
+                if (device && device.id) {
+                    this.connectMQTT()
+                }
+            }
+        }
     },
     unmounted () {
-        // need to unsubscribe here
-        // const topic = `ff/v1/${this.device.team.id}/d/${this.device.id}/logs`
-        // this.client.publish(`${topic}/heartbeat`, 'leaving')
-        setTimeout(() => this.disconnectMQTT())
-        clearInterval(this.keepAliveInterval)
+        this.disconnectMQTT()
     },
     methods: {
-        connectMQTT: async function () {
-            const creds = await deviceApi.getDeviceLogCreds(this.device.id)
-            this.client = mqtt.connect(creds.url, {
-                username: creds.username,
-                password: creds.password,
-                reconnectPeriod: 0
-            })
+        getMqttService () {
+            return getServicesOrchestrator().$serviceInstances.mqtt
+        },
+        async connectMQTT () {
+            const mqttService = this.getMqttService()
 
-            this.client.on('connect', () => {
-                const topic = `ff/v1/${this.device.team.id}/d/${this.device.id}/logs`
-                this.client.subscribe(topic)
-                this.loading = false
-                this.client.publish(`${topic}/heartbeat`, 'alive')
-                this.keepAliveInterval = setInterval(() => {
-                    this.client.publish(`${topic}/heartbeat`, 'alive')
-                }, 10000)
-                this.$emit('connected')
-            })
+            await mqttService.createClient(this.mqttConnectionKey, {
+                getCredentials: () => deviceApi.getDeviceLogCreds(this.device.id),
+                onConnect: async (_connack, client) => {
+                    await mqttService.subscribe(this.mqttConnectionKey, this.logTopic)
+                    this.loading = false
 
-            this.client.on('close', () => {
-                // if no broker to connect to, we see this event
-                this.loading = false
-                this.$emit('disconnected')
-            })
-
-            this.client.on('offline', () => {
-                this.client = null
-                this.connectMQTT()
-                this.$emit('disconnected')
-            })
-
-            this.client.on('error', () => {
-                // where to report error?
-                this.$emit('disconnected')
-            })
-
-            this.client.on('message', (topic, message) => {
-                const m = JSON.parse(message)
-                if (!Array.isArray(m)) {
-                    if (!isNaN(m.ts)) {
-                        m.ts = `${m.ts}`
-                    }
-                    const d = new Date(parseInt(m.ts.substring(0, m.ts.length - 4)))
-                    m.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
-                    if (typeof m.msg !== 'string') {
-                        m.msg = JSON.stringify(m.msg)
-                    }
-                    this.logEntries.push(m)
-                } else {
-                    m.forEach((row) => {
-                        if (!isNaN(row.ts)) {
-                            row.ts = `${row.ts}`
-                        }
-                        const d = new Date(
-                            parseInt(row.ts.substring(0, row.ts.length - 4))
-                        )
-                        row.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
-                        if (typeof row.msg !== 'string') {
-                            row.msg = JSON.stringify(row.msg)
-                        }
-                        this.logEntries.push(row)
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                        topic: `${this.logTopic}/heartbeat`,
+                        payload: 'alive',
+                        qos: 0,
+                        serialize: 'raw'
                     })
+
+                    clearInterval(this.keepAliveInterval)
+                    this.keepAliveInterval = setInterval(() => {
+                        mqttService.publishMessage(this.mqttConnectionKey, {
+                            topic: `${this.logTopic}/heartbeat`,
+                            payload: 'alive',
+                            qos: 0,
+                            serialize: 'raw'
+                        }).catch(() => {})
+                    }, HEARTBEAT_INTERVAL)
+
+                    this.$emit('connected')
+                },
+                onClose: () => {
+                    this.loading = false
+                    this.$emit('disconnected')
+                },
+                onOffline: () => {
+                    this.$emit('disconnected')
+                },
+                onError: () => {
+                    this.$emit('disconnected')
+                },
+                onMessage: (topic, message) => {
+                    const m = JSON.parse(message)
+                    if (!Array.isArray(m)) {
+                        this.processLogEntry(m)
+                    } else {
+                        m.forEach((row) => this.processLogEntry(row))
+                    }
                 }
             })
         },
-        disconnectMQTT: async function () {
-            if (this.client?.connected) {
-                this.client.end()
+        processLogEntry (entry) {
+            if (!isNaN(entry.ts)) {
+                entry.ts = `${entry.ts}`
             }
-            this.client = null
+            const d = new Date(parseInt(entry.ts.substring(0, entry.ts.length - 4)))
+            entry.date = `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
+            if (typeof entry.msg !== 'string') {
+                entry.msg = JSON.stringify(entry.msg)
+            }
+            this.logEntries.push(entry)
+        },
+        async disconnectMQTT () {
+            clearInterval(this.keepAliveInterval)
+            const mqttService = this.getMqttService()
+            if (mqttService.hasClient(this.mqttConnectionKey)) {
+                await mqttService.destroyClient(this.mqttConnectionKey)
+            }
         }
     }
 }
