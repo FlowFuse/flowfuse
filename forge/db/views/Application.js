@@ -67,7 +67,7 @@ module.exports = function (app) {
         }
 
         if (detailed) {
-            // parseInt: postgres returns aggregate counts as strings.
+            // parseInt: postgres returns aggregate counts as strings, sqlite returns numbers
             summary.deviceCount = parseInt(application.get('deviceCount')) || 0
             summary.instanceCount = parseInt(application.get('instanceCount')) || 0
             summary.deviceGroupCount = parseInt(application.get('deviceGroupCount')) || 0
