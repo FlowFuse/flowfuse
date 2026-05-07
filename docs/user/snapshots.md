@@ -275,7 +275,4 @@ _Screenshot showing property-level diff with old and new values displayed side b
 ![Screenshot showing a code diff for a function node with red and green line-level changes](images/snapshots/snapshot-diff-code-change.png)
 _Screenshot showing a code diff for a function node with red and green line-level changes_
 
-Not every difference between two snapshots is meaningful. The comparison viewer automatically filters out:
-
-- **Position-only changes** — nodes that moved on the canvas but had no property changes are hidden, keeping the list focused on functional differences
-- **Computed layout properties** — internal values like group node width and height (`w`, `h`) are excluded because they are recalculated automatically and do not reflect intentional edits
+Not every difference between two snapshots is meaningful. Computed layout properties such as group node `w` and `h` values are automatically excluded because they are recalculated by Node-RED and do not reflect intentional edits. Position-only changes (nodes that moved on the canvas but had no property edits) can be hidden when you want to focus on substantive changes.
