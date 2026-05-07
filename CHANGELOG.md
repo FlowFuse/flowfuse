@@ -1,3 +1,94 @@
+#### 2.30.0: Release
+
+ - bump flow-renderer to 0.5.1 (#7186)
+ - ci: Send notification about pre-staging per user (#6986)
+ - Bump aws-actions/amazon-ecr-login from 2.1.3 to 2.1.4 (#7148)
+ - Bump slackapi/slack-github-action from 3.0.1 to 3.0.2 (#7147)
+ - Bump actions/setup-node from 6.3.0 to 6.4.0 (#7108)
+ - Bump cypress-io/github-action from 7.1.8 to 7.1.9 (#7117)
+ - Bump aws-actions/configure-aws-credentials from 6.0.0 to 6.1.0 (#7116)
+ - Bump actions/create-github-app-token from 3.0.0 to 3.1.1 (#7115)
+ - Bump actions/upload-artifact from 7.0.0 to 7.0.1 (#7114)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml (#7113)
+ - Bump aws-actions/amazon-ecr-login from 2.1.2 to 2.1.3 (#7112)
+ - Bump docker/build-push-action from 7.0.0 to 7.1.0 (#7111)
+ - Bump actions/cache from 5.0.4 to 5.0.5 (#7106)
+ - Bump docker/login-action from 4.0.0 to 4.1.0 (#7105)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/sast_scan.yaml (#7107)
+ - Bump flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml (#7109)
+ - Bump actions/github-script from 8.0.0 to 9.0.0 (#7068)
+ - Bump aws-actions/amazon-ecr-login from 2.0.2 to 2.1.2 (#7069)
+ - Bump codecov/codecov-action from 5.5.2 to 6.0.0 (#6999)
+ - Bump 1password/install-cli-action from 2.0.2 to 3.0.0 (#6996)
+ - Replace `message-bubble` content with `streamable-content` component in `HumanMessage` (#7225) @cstns
+ - Convert device logs and performance to use MqttService (#7210) @cstns
+ - Add conditional check for `agentMode` before calling insights agent method (#7222) @cstns
+ - Bump cypress-io/github-action from 7.1.9 to 7.3.0 (#7146) @app/dependabot
+ - Bump hono from 4.12.14 to 4.12.18 (#7224) @app/dependabot
+ - Use stop reason in audit log detail (#7078) @Steve-Mcl
+ - Bump ip-address and express-rate-limit (#7220) @app/dependabot
+ - fix: add ellipsis and tooltip for truncated expert package names and resource titles (#7213) @andypalmi
+ - Allow Forcing all users to always use SSO (#7119) @hardillb
+ - [7100] Update FF theme to align with Node-RED 5.0.0 (#7185) @n-lark
+ - Add origin property to userProperties of expert publishes (#7215) @Steve-Mcl
+ - Add `origin` property to user properties in product-expert (#7211) @cstns
+ - fix: convert expert packages from grid to list layout (#7209) @andypalmi
+ - Allow wss:// connections to MQTT broker in CSP connect-src (#7205) @cstns
+ - [7207] Immersive Editor — mobile header fix (#7208) @n-lark
+ - Improve snapshot comparison viewer UX (#7202) @andypalmi
+ - Switch support agent to mqtt (#7090) @cstns
+ - Fix flakey admin.spec test (#7200) @n-lark
+ - Simplify tooltip directive by replacing custom tooltip logic with native `title` attribute (#7198) @cstns
+ - [7151 + 7156] Follow Ups: Console errors when navigating hosted instances in immersive mode (open-source, no license) + Performance tab missing from hosted instance immersive mode (#7174) @n-lark
+ - Bump posthog-node from 4.2.0 to 5.33.2 (#7190) @app/dependabot
+ - Bump axios from 1.15.0 to 1.16.0 (#7196) @app/dependabot
+ - [7052] Silence rrweb Posthog errors in Sentry (#7192) @n-lark
+ - [7153 + 7166] Follow Ups: 500 error when setting npm configuration file or Node Catalogues entry on remote instance + Cannot set environment variables from settings page in immersive mode (#7173) @n-lark
+ - [7165 + 7164 + 7163 + 7162] Wire device-updated / assign-device events into the immersive remote-instance editor (#7172) @n-lark
+ - [7158 + 7152] Follow Ups: Remote Instance "Add to group" button breaks out of immersive mode + "Change instance type" breaks out of immersive mode (#7171) @n-lark
+ - [7157] Follow Up: Cannot regenerate remote instance credentials from overview/settings page (#7183) @n-lark
+ - Bump sinon from 21.0.1 to 21.1.2 (#7188) @app/dependabot
+ - Add FE API functions to generate and delete expert agent credentials (#7009) @Steve-Mcl
+ - Prevent Google Social Login token reuse (#7150) @hardillb
+ - Force password reset for existing unverified accounts on first SSO login (#7149) @hardillb
+ - Expert pubsub backend (#7008) @Steve-Mcl
+ - ci: Use new project-automation workflow (#7179) @ppawlowski
+ - Fix snapshot diff viewer highlights and diff panel (#7081) @andypalmi
+ - [7168] Create EXPERT_COMMS_BETA_ENABLED feature flag for frontend (#7169) @n-lark
+ - Expert/mqtt FrontEnd scaffolding (#7004) @cstns
+ - Refactor/account settings feature checks (#7176) @cstns
+ - Bump cypress from 13.17.0 to 15.14.2 (#6787) @app/dependabot
+ - Ensure only Device Palette settings sent when changed (#7175) @hardillb
+ - [6267] Allow users to interact with the Instance drawer/FlowFuse expert in the immersive experience without it overlapping one another (#7098) @n-lark
+ - Support TTL in application caches (#7136) @Steve-Mcl
+ - Move expert to ee (#7132) @hardillb
+ - [7124] Add response-validation & surface response schema drift in dev (#7125) @n-lark
+ - Add logging when instance failed to suspend when team suspended (#7110) @hardillb
+ - Bump fast-xml-parser and @aws-sdk/xml-builder (#7134) @app/dependabot
+ - Bump postcss from 8.5.8 to 8.5.12 (#7133) @app/dependabot
+ - Bump @xmldom/xmldom from 0.8.12 to 0.8.13 (#7128) @app/dependabot
+ - Bump uuid from 9.0.1 to 14.0.0 (#7127) @app/dependabot
+ - Force Device Editor to reload if it fails first time (#7129) @hardillb
+ - [7120] Fix flaky admin.spec.js test (#7121) @n-lark
+ - [7082] Align client-side permission check for HTTP Bearer Tokens with server-side team-level check (#7097) @n-lark
+ - Unpin @fastify/static and @fastify/swagger-ui (#7103) @hardillb
+ - [7065] Typescript: Phase 2 — Domain Types (#7067) @n-lark
+ - Pin @fastify/static and @fastify/swagger-ui (#7095) @hardillb
+ - Bump protobufjs from 7.5.4 to 7.5.5 (#7093) @app/dependabot
+ - Replace npm install with npm ci in Dockerfile (#7094) @hardillb
+ - Bump dompurify from 3.3.2 to 3.4.0 (#7088) @app/dependabot
+ - Bump follow-redirects from 1.15.11 to 1.16.0 (#7072) @app/dependabot
+ - Bump hono from 4.12.12 to 4.12.14 (#7087) @app/dependabot
+ - Bump fastify from 5.8.4 to 5.8.5 (#7086) @app/dependabot
+ - [6944] Pinia Task 15 - teardown (#6987) @n-lark
+ - [6943] Pinia Task 14 - account-settings (#6979) @n-lark
+ - [7018] Typescript: Phase 1 — Tooling (#7019) @n-lark
+ - [7051] PostHog / rrweb Sentry Errors (#7053) @n-lark
+ - [7054] Sentry quota exhausted (#7055) @n-lark
+ - docs: clarify FlowFuse Expert availability for self-hosted instances (#7042) @sumitshinde-84
+ - Bump axios from 1.13.5 to 1.15.0 (#7066) @app/dependabot
+ - Bump nodemailer from 8.0.4 to 8.0.5 (#7056) @app/dependabot
+
 #### 2.29.1: Release
 
  - docs: update snapshot comparison section with property and code diff details (#7045) @sumitshinde-84
