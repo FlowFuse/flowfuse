@@ -269,3 +269,21 @@ _Screenshot showing property-level diff with old and new values displayed side b
 
 ![Screenshot showing a code diff for a function node with red and green line-level changes](images/snapshots/snapshot-diff-code-change.png)
 _Screenshot showing a code diff for a function node with red and green line-level changes_
+From any Snapshots tab, you can compare two snapshots by selecting **Compare Snapshots** from the snapshot's action menu. A dialog opens where you select a second snapshot to compare against.
+
+<!-- TODO: screenshot of the updated comparison viewer showing the diff panel with node-type badges and JSON controls -->
+
+#### Reading the Diff Panel
+
+The diff panel lists every node that changed between the two snapshots. Each entry shows a node-type badge so you can quickly tell whether the change is in a config node, a tab, or a regular node.
+
+Select an entry to highlight the corresponding node in the flow preview. The highlight clears automatically when you select a different entry.
+
+For changed properties, the panel shows the before and after values side by side. You can use the **Prettify** and **Wrap** toggles on any JSON section to make large or nested values easier to read.
+
+#### What the Diff Excludes
+
+Not every difference between two snapshots is meaningful. The comparison viewer automatically filters out:
+
+- **Position-only changes**: nodes that moved on the canvas but had no property changes are hidden by default, keeping the list focused on functional differences
+- **Computed layout properties**: internal values like group node width and height (`w`, `h`) are excluded because they are recalculated automatically and do not reflect intentional edits

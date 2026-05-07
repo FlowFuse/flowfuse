@@ -195,6 +195,18 @@ For Self Hosted users there is an option in the Admin Settings to enable buttons
 
 These buttons will redirect to the SSO provider rather than requiring users to enter and email address in the username field to select the correct provider.
 
+## Forcing All Users to Use SSO
+
+For self-hosted installations that need to ensure no user can bypass SSO, there is an option in **Admin Settings > Settings > SSO** to force all users through a single SSO provider on login.
+
+When this option is enabled:
+- All users are redirected to the configured SSO provider at login, regardless of their email domain
+- The email and password login form is no longer presented as a fallback option
+
+This is intended for organisations running a single identity provider across the entire platform, where per-domain SSO configuration is not sufficient to cover all users.
+
+> **Warning:** Verify that your SSO provider is fully working before enabling this option. If the provider becomes unavailable, no users will be able to log in through the normal login flow. It is strongly recommended to retain an emergency access path, such as a break-glass admin account or direct database access, before turning this on.
+
 ## Providers
 
 The following is a non-exhaustive list of the providers that are known to work
