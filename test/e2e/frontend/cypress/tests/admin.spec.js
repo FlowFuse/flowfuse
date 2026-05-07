@@ -59,7 +59,6 @@ describe('FlowFuse platform admin users', () => {
         cy.intercept('GET', '/api/*/projects/*').as('getInstance')
         cy.intercept('GET', '/api/*/applications/*').as('getApplication')
         cy.intercept('GET', '/api/*/applications/*/instances').as('getApplicationInstances')
-        cy.intercept('GET', '/api/*/teams/*/applications*').as('getTeamApplications')
 
         cy.visit('/admin/overview')
 
@@ -69,10 +68,17 @@ describe('FlowFuse platform admin users', () => {
         // Not a member of BTeam
         cy.get('[data-el="teams-table"]').contains('BTeam').click()
 
-        cy.get('[data-nav="team-applications"]').click()
-        cy.wait('@getTeamApplications')
-
+        cy.url().should('match', /\/team\/[^/]+/)
         cy.get('[data-el="banner-team-as-admin"]').should('exist')
+
+        // Unique alias to avoid colliding with cy.home()'s getTeamApplications
+        cy.intercept('GET', '/api/*/teams/*/applications*').as('getBTeamApplications')
+
+        cy.get('[data-nav="team-applications"]').should('be.visible').click()
+        cy.url().should('include', '/applications')
+        cy.wait('@getBTeamApplications')
+
+        cy.get('[data-el="applications-list"]').should('be.visible')
 
         cy.get('[data-action="view-application"]').contains('application-2').click()
 

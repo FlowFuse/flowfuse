@@ -53,8 +53,12 @@ export default {
         }
     },
     computed: {
-        ...mapState(useProductExpertStore, ['loadingVariant']),
+        ...mapState(useProductExpertStore, ['loadingVariant', 'inFlightUpdates']),
         messages () {
+            if (this.inFlightUpdates.length > 0) {
+                return this.inFlightUpdates
+            }
+
             return this.messageVariants[this.loadingVariant]
         },
         currentMessage () {

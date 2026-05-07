@@ -70,11 +70,7 @@ module.exports = async function (app) {
                 list.push({ ...conf, day: i })
             }
         }
-        if (list.length > 0) {
-            reply.send(list)
-            return
-        }
-        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        reply.send(list)
     })
 
     /**
