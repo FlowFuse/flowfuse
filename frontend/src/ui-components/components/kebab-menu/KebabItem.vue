@@ -5,7 +5,7 @@
             :class="{[className]: kind.length, active, disabled: disabled}"
             :data-el="'kebab-item-' + slugify(label)"
         >
-            <component v-if="icon" :is="icon" class="ff-icon" />
+            <component :is="icon" v-if="icon" class="ff-icon" />
             <label>{{ label }}</label>
         </li>
     </MenuItem>
