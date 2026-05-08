@@ -46,7 +46,6 @@ module.exports = {
                                 // Space out restarts a little to not overwhelm k8s api
                                 await delay(2000)
                             } catch (err) {
-                                console.log(err)
                                 app.log.info(`Problem updating project ${project.Project.id} - ${err.toString()}`)
                             }
                         } else if (project.value.restart) {
