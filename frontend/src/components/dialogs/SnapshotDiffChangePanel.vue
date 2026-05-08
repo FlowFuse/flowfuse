@@ -68,29 +68,29 @@
             <div v-show="!collapsed" class="font-mono">
                 <div class="diff-scroll-container" :class="{ 'diff-wrap': wrapped }">
                     <div class="diff-content">
-                    <template v-for="(line, i) in lines" :key="i">
-                        <!-- Collapsed unchanged section -->
-                        <div
-                            v-if="line.type === 'collapsed'"
-                            class="flex leading-5 text-blue-600 bg-blue-50 cursor-pointer hover:bg-blue-100 select-none border-y border-blue-100"
-                            @click="expandSection(i)"
-                        >
-                            <span class="line-num border-r border-blue-200 text-blue-400" />
-                            <span class="line-num border-r border-blue-200 text-blue-400" />
-                            <span class="px-3 flex-1 text-center">&#8597; {{ line.count }} unchanged line{{ line.count === 1 ? '' : 's' }}</span>
-                        </div>
-                        <!-- Diff line -->
-                        <div
-                            v-else
-                            :class="lineClass(line)"
-                            :data-change="line.type !== 'unchanged' || undefined"
-                            class="flex leading-5"
-                        >
-                            <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.oldNum || '' }}</span>
-                            <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.newNum || '' }}</span>
-                            <span class="px-2" :class="wrapped ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'">{{ linePrefix(line) }}{{ line.text }}</span>
-                        </div>
-                    </template>
+                        <template v-for="(line, i) in lines" :key="i">
+                            <!-- Collapsed unchanged section -->
+                            <div
+                                v-if="line.type === 'collapsed'"
+                                class="flex leading-5 text-blue-600 bg-blue-50 cursor-pointer hover:bg-blue-100 select-none border-y border-blue-100"
+                                @click="expandSection(i)"
+                            >
+                                <span class="line-num border-r border-blue-200 text-blue-400" />
+                                <span class="line-num border-r border-blue-200 text-blue-400" />
+                                <span class="px-3 flex-1 text-center">&#8597; {{ line.count }} unchanged line{{ line.count === 1 ? '' : 's' }}</span>
+                            </div>
+                            <!-- Diff line -->
+                            <div
+                                v-else
+                                :class="lineClass(line)"
+                                :data-change="line.type !== 'unchanged' || undefined"
+                                class="flex leading-5"
+                            >
+                                <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.oldNum || '' }}</span>
+                                <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.newNum || '' }}</span>
+                                <span class="px-2" :class="wrapped ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'">{{ linePrefix(line) }}{{ line.text }}</span>
+                            </div>
+                        </template>
                     </div>
                 </div>
             </div>
