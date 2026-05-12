@@ -1,7 +1,6 @@
 module.exports = {
     clean: function (app, topic) {
         const result = topic.toJSON()
-        
         const cleaned = {
             id: result.hashid,
             topic: result.topic,
