@@ -2,7 +2,7 @@
     <div ref="drawer" class="ff-expert-drawer" data-el="expert-drawer" tabindex="-1">
         <div class="header">
             <div class="flex items-center gap-1.5">
-                <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 flex-shrink-0">
+                <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 shrink-0">
                 <h2 class="title">Expert</h2>
             </div>
             <div v-if="isInsightsModeEnabled" class="agent-mode">

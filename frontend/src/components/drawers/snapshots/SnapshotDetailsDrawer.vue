@@ -18,7 +18,7 @@
                     </ff-button>
                 </div>
                 <information-well
-                    class="flex-grow-1 min-h-0 flex-col !mb-2"
+                    class="grow min-h-0 flex-col mb-2!"
                     :class="{['items-center justify-center']: !flows.length}"
                 >
                     <flow-viewer v-if="flows.length" :flow="flows" />

@@ -287,7 +287,7 @@ button {
         width: 0.75rem; // w-3
         height: 0.75rem; // h-3
         background-color: #1F2937; // gray-800
-        border-radius: 0.125rem; // rounded-sm
+        border-radius: 0.125rem; // rounded-xs
     }
 
     &:hover {

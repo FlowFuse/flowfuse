@@ -6,7 +6,7 @@
             data-click-exclude="right-drawer"
             @click="onClick"
         >
-            <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 -ml-1 mr-0.5 flex-shrink-0">
+            <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 -ml-1 mr-0.5 shrink-0">
             <span>Expert</span>
         </button>
     </div>

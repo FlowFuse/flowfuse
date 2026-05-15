@@ -8,7 +8,7 @@
             <li
                 v-for="option in options"
                 :key="option.id"
-                class="ff-option-tile p-4 border rounded bg-white border-gray-200 cursor-pointer flex items-center justify-center gap-2"
+                class="ff-option-tile p-4 border rounded-sm bg-white border-gray-200 cursor-pointer flex items-center justify-center gap-2"
                 :class="{ 'border-blue-600': modelValue === option.id }"
                 @click="$emit('update:modelValue', option.id)"
             >

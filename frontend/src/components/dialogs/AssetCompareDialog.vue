@@ -1,7 +1,7 @@
 <template>
     <ff-dialog
         ref="dialog" :header="header" confirm-label="Close" :closeOnConfirm="true" data-el="flow-view-dialog"
-        boxClass="!min-w-[80%] !min-h-[80%] !w-[80%] !h-[80%]" contentClass="overflow-hidden flex-grow"
+        boxClass="min-w-[80%]! min-h-[80%]! w-[80%]! h-[80%]!" contentClass="overflow-hidden grow"
         @confirm="confirm"
     >
         <template #default>
@@ -13,7 +13,7 @@
                     data-el="snapshots-list"
                     label-key="label"
                     option-title-key="description"
-                    class="flex-grow"
+                    class="grow"
                 />
                 <ff-kebab-menu v-if="hasCompared" :menu-items-attrs="{ 'data-click-exclude': 'right-drawer' }">
                     <ff-kebab-item
@@ -39,11 +39,11 @@
             <!-- Navigation bar — shown after comparison -->
             <div v-if="hasCompared && !loading" class="flex items-center gap-2 px-3 py-1.5 border-b border-gray-200 bg-white shrink-0">
                 <div v-if="currentGroup" class="flex-1 flex items-center gap-2 min-w-0">
-                    <span class="text-xs font-semibold px-1.5 py-0.5 rounded capitalize shrink-0" :class="diffTypeBadgeClass(currentGroup.diffType)">{{ currentGroup.diffType }}</span>
+                    <span class="text-xs font-semibold px-1.5 py-0.5 rounded-sm capitalize shrink-0" :class="diffTypeBadgeClass(currentGroup.diffType)">{{ currentGroup.diffType }}</span>
                     <span class="font-semibold text-sm text-gray-800 truncate">{{ currentGroup.name }}</span>
-                    <span class="text-xs font-semibold text-gray-700 bg-gray-200 px-1.5 py-0.5 rounded shrink-0">{{ currentGroup.type }}</span>
-                    <span v-if="currentGroupCategoryLabel" class="text-xs font-semibold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded shrink-0">{{ currentGroupCategoryLabel }}</span>
-                    <span v-if="currentGroupTabMove" class="text-xs text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded shrink-0">
+                    <span class="text-xs font-semibold text-gray-700 bg-gray-200 px-1.5 py-0.5 rounded-sm shrink-0">{{ currentGroup.type }}</span>
+                    <span v-if="currentGroupCategoryLabel" class="text-xs font-semibold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-sm shrink-0">{{ currentGroupCategoryLabel }}</span>
+                    <span v-if="currentGroupTabMove" class="text-xs text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-sm shrink-0">
                         {{ currentGroupTabMove.from }} → {{ currentGroupTabMove.to }}
                     </span>
                 </div>
@@ -51,7 +51,7 @@
                 <!-- Prev / counter / Next grouped so the two buttons are adjacent -->
                 <div class="flex items-center gap-1 shrink-0">
                     <button
-                        class="px-2 py-0.5 text-sm rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                        class="px-2 py-0.5 text-sm rounded-sm border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
                         :disabled="currentGroupIndex === 0"
                         title="Previous change (←)"
                         @click="navigate(-1)"
@@ -60,7 +60,7 @@
                     </button>
                     <span class="text-xs text-gray-400 px-1">{{ groupedChanges.length ? `${currentGroupIndex + 1} / ${groupedChanges.length}` : '0' }}</span>
                     <button
-                        class="px-2 py-0.5 text-sm rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                        class="px-2 py-0.5 text-sm rounded-sm border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
                         :disabled="currentGroupIndex >= groupedChanges.length - 1"
                         title="Next change (→)"
                         @click="navigate(1)"

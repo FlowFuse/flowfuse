@@ -43,9 +43,9 @@ export default defineComponent({
         openDetailedView () {
             let html = ''
             if (this.isJson) {
-                html = `<pre class="break-words overflow-auto py-3">${this.isJson}</pre>`
+                html = `<pre class="wrap-break-word overflow-auto py-3">${this.isJson}</pre>`
             } else {
-                html = `<code class="whitespace-normal break-words block">${this.rowValue}</code>`
+                html = `<code class="whitespace-normal wrap-break-word block">${this.rowValue}</code>`
             }
             Dialog.show({
                 header: `${this.column} value`,
