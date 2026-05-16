@@ -428,15 +428,15 @@ module.exports = {
                         include = [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'avatar', 'links', 'TeamTypeId', 'suspended']
                             },
-                            { model: M.Application, attributes: ['hashid', 'id', 'name', 'links'] },
+                            { model: M.Application, attributes: ['hashid', 'id', 'name', 'description', 'links'] },
                             {
                                 model: M.Project,
-                                attributes: ['id', 'name', 'links'],
+                                attributes: ['id', 'hashid', 'name', 'links', 'createdAt', 'updatedAt'],
                                 include: {
                                     model: M.Application,
-                                    attributes: ['id', 'name', 'links']
+                                    attributes: ['id', 'hashid', 'name', 'description', 'links']
                                 }
                             },
                             { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
@@ -553,7 +553,7 @@ module.exports = {
                     const filteringOnInstanceApplication = !!where.ApplicationId && includeInstanceApplication
                     const projectInclude = {
                         model: M.Project,
-                        attributes: ['id', 'name', 'links'],
+                        attributes: ['id', 'hashid', 'name', 'links', 'createdAt', 'updatedAt'],
                         required: filteringOnInstanceApplication
                     }
 
@@ -564,7 +564,7 @@ module.exports = {
                     if (excludeApplications || includeInstanceApplication) {
                         projectInclude.include = {
                             model: M.Application,
-                            attributes: ['hashid', 'id', 'name', 'links']
+                            attributes: ['hashid', 'id', 'name', 'description', 'links']
                         }
                         if (filteringOnInstanceApplication) {
                             projectInclude.include.where = { id: where.ApplicationId }
@@ -608,14 +608,14 @@ module.exports = {
                     const includes = [
                         {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                            attributes: ['hashid', 'id', 'name', 'slug', 'avatar', 'links', 'TeamTypeId', 'suspended']
                         },
                         projectInclude,
                         { model: M.ProjectSnapshot, as: 'targetSnapshot', attributes: ['id', 'hashid', 'name'] },
                         { model: M.ProjectSnapshot, as: 'activeSnapshot', attributes: ['id', 'hashid', 'name'] },
                         {
                             model: M.Application,
-                            attributes: ['hashid', 'id', 'name', 'links']
+                            attributes: ['hashid', 'id', 'name', 'description', 'links']
                         }
                     ]
 
@@ -680,11 +680,11 @@ module.exports = {
                         include: [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'avatar', 'links', 'TeamTypeId', 'suspended']
                             },
                             {
                                 model: M.Project,
-                                attributes: ['id', 'name', 'links']
+                                attributes: ['id', 'hashid', 'name', 'links', 'createdAt', 'updatedAt']
                             },
                             {
                                 model: M.ProjectSnapshot,

@@ -29,7 +29,8 @@ module.exports = fp(async function (app, opts) {
         const ajv = new Ajv({
             coerceTypes: false,
             useDefaults: true,
-            removeAdditional: true,
+            // removeAdditional off: mutates the working copy during allOf validation, breaking outer `required` checks.
+            removeAdditional: false,
             allErrors: true,
             strict: false
         })

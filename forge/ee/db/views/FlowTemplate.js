@@ -2,10 +2,12 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'FlowBlueprintSummary',
         type: 'object',
+        // Composed via `allOf` elsewhere — keep open.
         properties: {
             id: { type: 'string' },
             active: { type: 'boolean' },
             name: { type: 'string' },
+            // Coerced to '' when null — frontend uses these in string ops (marked.parse, toLowerCase).
             description: { type: 'string' },
             category: { type: 'string' },
             icon: { type: 'string', nullable: true },
@@ -14,21 +16,22 @@ module.exports = function (app) {
             createdAt: { type: 'string' },
             updatedAt: { type: 'string' },
             externalUrl: { type: 'string', nullable: true }
-        }
+        },
+        required: ['id', 'name', 'createdAt', 'updatedAt']
     })
     function flowBlueprintSummary (blueprint) {
         return {
             id: blueprint.hashid,
             active: blueprint.active,
             name: blueprint.name,
-            description: blueprint.description,
-            category: blueprint.category,
-            icon: blueprint.icon,
+            description: blueprint.description ?? '',
+            category: blueprint.category ?? '',
+            icon: blueprint.icon ?? null,
             order: blueprint.order,
             default: blueprint.default,
             createdAt: blueprint.createdAt,
             updatedAt: blueprint.updatedAt,
-            externalUrl: blueprint.externalUrl
+            externalUrl: blueprint.externalUrl ?? null
         }
     }
 
@@ -45,6 +48,25 @@ module.exports = function (app) {
                     type: 'string'
                 }
             }
+        },
+        required: ['flows', 'modules', 'teamTypeScope']
+    })
+    // Writable subset for POST/PUT bodies — `id`, `createdAt`, `updatedAt` are server-set.
+    app.addSchema({
+        $id: 'FlowBlueprintInput',
+        type: 'object',
+        properties: {
+            active: { type: 'boolean' },
+            name: { type: 'string' },
+            description: { type: 'string' },
+            category: { type: 'string' },
+            icon: { type: 'string', nullable: true },
+            order: { type: 'number' },
+            default: { type: 'boolean' },
+            externalUrl: { type: 'string', nullable: true },
+            flows: { type: 'object', additionalProperties: true },
+            modules: { type: 'object', additionalProperties: true },
+            teamTypeScope: { type: ['array', 'null'], items: { type: 'string' } }
         }
     })
     function flowBlueprint (blueprint) {
@@ -83,11 +105,15 @@ module.exports = function (app) {
                         icon: { type: 'string', nullable: true },
                         flows: { type: 'object', additionalProperties: true },
                         modules: { type: 'object', additionalProperties: true }
-                    }
+                    },
+                    required: ['name', 'description', 'category', 'icon', 'flows', 'modules'],
+                    additionalProperties: false
                 }
             },
             count: { type: 'integer' }
-        }
+        },
+        required: ['blueprints', 'count'],
+        additionalProperties: false
     })
 
     function flowBlueprintExport (blueprint, includeId = false) {
