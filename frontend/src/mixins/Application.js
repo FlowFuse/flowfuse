@@ -1,3 +1,5 @@
+import { mapActions } from 'pinia'
+
 import ApplicationApi from '../api/application.js'
 import alerts from '../services/alerts.js'
 
@@ -26,8 +28,14 @@ export default {
         }
     },
     watch: {
+        application (application) {
+            if (application) {
+                this.setContextualApplication(application)
+            }
+        }
     },
     methods: {
+        ...mapActions(useContextStore, { setContextualApplication: 'setApplication' }),
         async updateApplication () {
             const applicationId = this.$route.params.id
 
@@ -96,5 +104,8 @@ export default {
     },
     async created () {
 
+    },
+    beforeUnmount () {
+        this.setContextualApplication(null)
     }
 }

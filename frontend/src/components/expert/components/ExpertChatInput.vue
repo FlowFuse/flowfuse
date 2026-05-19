@@ -33,7 +33,7 @@
             />
 
             <div class="actions">
-                <div class="left">
+                <div class="left overflow-hidden">
                     <context-selector v-if="isImmersive && !isInsightsAgent" />
                 </div>
 
@@ -64,12 +64,12 @@
 <script>
 import { mapActions, mapState } from 'pinia'
 
-import { useResizingHelper } from '../../../composables/ResizingHelper.js'
-
 import ResizeBar from '../../ResizeBar.vue'
 
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
 import ContextSelector from './context-selection/index.vue'
+
+import { useResizingHelper } from '@/composables/ResizingHelper.js'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
@@ -113,8 +113,8 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, [
-            'immersiveInstance',
-            'immersiveDevice'
+            'isImmersiveInstance',
+            'isImmersiveDevice'
         ]),
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useProductExpertStore, [
@@ -145,7 +145,7 @@ export default {
                 : 'Tell us what you need help with'
         },
         isImmersive () {
-            return this.immersiveDevice || this.immersiveInstance
+            return this.isImmersiveDevice || this.isImmersiveInstance
         }
     },
     mounted () {
@@ -287,7 +287,7 @@ button {
         width: 0.75rem; // w-3
         height: 0.75rem; // h-3
         background-color: #1F2937; // gray-800
-        border-radius: 0.125rem; // rounded-sm
+        border-radius: 0.125rem; // rounded-xs
     }
 
     &:hover {

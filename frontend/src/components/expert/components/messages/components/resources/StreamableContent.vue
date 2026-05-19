@@ -222,5 +222,24 @@ export default {
             background-color: $ff-color--highlight;
         }
     }
+
+    :deep(code) {
+        padding: 0;
+        border: none;
+        border-radius: 0;
+    }
+
+    :deep(table) {
+        border-collapse: collapse; /* removes double borders */
+
+        tr + tr td {
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+            border-top: 1px solid $ff-grey-200;
+        }
+
+        td, th {
+            padding: 5px 10px;
+        }
+    }
 }
 </style>

@@ -3,7 +3,7 @@
         <h4 class="section-title">
             <streamable-content v-model="packagesTitle" :should-stream="shouldStream" />
         </h4>
-        <div v-if="!shouldStream || packagesTitle.streamed" class="packages-grid">
+        <div v-if="!shouldStream || packagesTitle.streamed" class="packages-list">
             <PackageResourceCard
                 v-for="(node, index) in visibleItems" :key="index"
                 :nodePackage="node"
@@ -74,9 +74,9 @@ export default {
 }
 
 .guide-packages {
-    .packages-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    .packages-list {
+        display: flex;
+        flex-direction: column;
         gap: 0.5rem;
     }
 }

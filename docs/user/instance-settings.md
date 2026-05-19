@@ -6,15 +6,32 @@ navTitle: Instance Settings
 
 The Instance Settings allow you to customize many aspects of your Node-RED runtime.
 
+To access them, click on an instance from the FlowFuse platform and select the **Settings** tab. The instance view also includes other tabs such as Overview, Devices, Version History, Assets, and Node-RED Logs.
+
+You can also access all the same settings from within the immersive Node-RED editor. The settings drawer sits alongside the canvas without overlapping it, so you can adjust environment variables, manage snapshots, update the palette, and make other changes without leaving your flow. 
+
+You can customize the drawer layout using the eye icon at the top of the drawer, which lets you move it from right to left, pin or unpin it, and toggle fullscreen mode.
+
+![Instance settings drawer](./images/instance-settings.png)
+
 Instance Settings are split into a number of sections:
 
- - [General](#general)
- - [Environment](#environment)
- - [High Availability](#high-availability)
- - [Editor](#editor)
- - [Security](#security)
- - [Palette](#palette)
- - [Alerts](#alerts)
+- [Instance Settings](#instance-settings)
+  - [General](#general)
+    - [Change Stack](#change-stack)
+    - [Copy Instance](#copy-instance)
+    - [Import Instance](#import-instance)
+    - [Suspend Instance](#suspend-instance)
+    - [Delete Instance](#delete-instance)
+  - [Environment](#environment)
+  - [High Availability](#high-availability)
+  - [Editor](#editor)
+  - [Security](#security)
+    - [None](#none)
+    - [Basic Authentication](#basic-authentication)
+    - [FlowFuse User Authentication](#flowfuse-user-authentication)
+  - [Palette](#palette)
+  - [Alerts](#alerts)
 
 ## General
 

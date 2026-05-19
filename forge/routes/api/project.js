@@ -434,7 +434,7 @@ module.exports = async function (app) {
                     // hidden env vars are received as empty strings so we'll replace the empty string with the previous value,
                     // allowing them to be overwritten when needed
                     if (Object.prototype.hasOwnProperty.call(env, 'hidden') && env.hidden && !env.value.length) {
-                        const previousValue = currentProjectSettings.env.find(e => e.name === env.name)
+                        const previousValue = currentProjectSettings.env?.find(e => e.name === env.name)
                         if (!previousValue) {
                             // this is a hidden env var with no value provided and no instance-level value. This
                             // means it has come from the template and we should not add it to the instance

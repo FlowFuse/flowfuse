@@ -2,7 +2,7 @@
     <button
         title="Toggle drawer"
         class="drawer-trigger"
-        :class="{ 'hidden': isHidden }"
+        :class="{ 'hidden': isHidden, 'nr5-plus': isNr5Plus }"
         :aria-label="isHidden ? 'Open drawer' : 'Close drawer'"
         :aria-expanded="!isHidden"
         type="button"
@@ -25,6 +25,10 @@ export default {
         isHidden: {
             type: Boolean,
             default: false
+        },
+        isNr5Plus: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['toggle']
@@ -42,6 +46,20 @@ export default {
     .ff-layout--immersive--fullscreen & {
         top: 10px;
     }
+
+    &.nr5-plus {
+        top: 63px;
+        padding: 8px;
+
+        .ff-btn--icon {
+            display: none;
+        }
+
+        .ff-layout--immersive--fullscreen & {
+            top: 4px;
+        }
+    }
+
     left: 0;
     z-index: 100;
     padding: 8px 2px 8px 8px;

@@ -5,7 +5,7 @@
                 <div class="ff-instance-info">
                     <FormHeading><TemplateIcon />Info</FormHeading>
 
-                    <table class="table-fixed w-full border border-separate rounded">
+                    <table class="table-fixed w-full border border-separate rounded-sm">
                         <tbody>
                             <tr class="border-b">
                                 <td class="w-48 font-medium">Direct URL</td>
@@ -125,7 +125,7 @@
                             <tr class="border-b">
                                 <td class="w-48 font-medium">Type</td>
                                 <td class="flex items-center">
-                                    <div class="py-2 flex-grow">{{ instance.projectType?.name || 'none' }} / {{ instance.stack?.label || instance.stack?.name || 'none' }}</div>
+                                    <div class="py-2 grow">{{ instance.projectType?.name || 'none' }} / {{ instance.stack?.label || instance.stack?.name || 'none' }}</div>
                                     <div v-if="instance.stack?.replacedBy">
                                         <ff-button size="small" to="./settings/general?highlight=updateStack">Update</ff-button>
                                     </div>
@@ -242,9 +242,11 @@ export default {
     watch: {
         instance: {
             handler: function (instance) {
-                if (instance) {
+                if (instance?.id) {
                     this.loadLogs()
-                    this.getUpdateSchedule(instance.id)
+                    if (this.features?.autoStackUpdate) {
+                        this.getUpdateSchedule(instance.id)
+                    }
                 }
             },
             immediate: true
@@ -273,12 +275,11 @@ export default {
         },
         getUpdateSchedule: async function (instanceId) {
             try {
-                await InstanceApi.getUpdateSchedule(instanceId)
-                this.autoStackUpgrade = true
-                return
+                const list = await InstanceApi.getUpdateSchedule(instanceId)
+                this.autoStackUpgrade = list.length > 0
             } catch (error) {
+                this.autoStackUpgrade = false
             }
-            this.autoStackUpgrade = false
         }
     }
 }
@@ -367,7 +368,7 @@ export default {
 }
 
 // Type field - ellipse from LEFT to show stack name
-.ff-instance-info table tr td.flex .flex-grow {
+.ff-instance-info table tr td.flex .grow {
   direction: rtl;
   text-align: left;
   overflow: hidden;

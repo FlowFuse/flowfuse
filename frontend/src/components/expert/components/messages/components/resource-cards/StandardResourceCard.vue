@@ -13,7 +13,7 @@
             @error="handleImageError"
         >
         <div class="resource-info">
-            <div class="resource-title">
+            <div class="resource-title" :title="resourceTitle.streamable">
                 <streamable-content v-model="resourceTitle" :should-stream="shouldStream" />
             </div>
             <div v-if="!shouldStream || resourceTitle.streamed" class="resource-url">
@@ -134,6 +134,12 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    :deep(.streamable-content) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 .resource-url {
@@ -143,5 +149,11 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    :deep(.streamable-content) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 </style>

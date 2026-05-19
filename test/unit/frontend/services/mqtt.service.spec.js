@@ -493,6 +493,7 @@ describe('MqttService', async () => {
             await service.subscribe('reconnect-key', 'topic/a', { qos: 1 })
 
             firstClient.emit('connect')
+            firstClient.connected = false
             firstClient.emit('offline')
 
             await vi.advanceTimersByTimeAsync(1000)
@@ -547,6 +548,7 @@ describe('MqttService', async () => {
             })
 
             firstClient.emit('connect')
+            firstClient.connected = false
             firstClient.emit('offline')
 
             await vi.advanceTimersByTimeAsync(1000)

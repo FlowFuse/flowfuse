@@ -195,6 +195,20 @@ For Self Hosted users there is an option in the Admin Settings to enable buttons
 
 These buttons will redirect to the SSO provider rather than requiring users to enter and email address in the username field to select the correct provider.
 
+## Forcing All Users to Use SSO
+
+For self-hosted installations that need to ensure no user can bypass SSO, there is an option in **Admin Settings > Settings > SSO > Force all logins for non-admin users via a single SAML SSO provider**.
+
+![SSO settings page showing the option to force all non-admin users to log in via a single SAML SSO provider](./images/force-sso.png)
+_SSO settings page showing the option to force all non-admin users to log in via a single SAML SSO provider_
+
+When this option is enabled:
+- All users are redirected to the configured SSO provider at login, regardless of their email domain
+- The email and password login form is no longer presented as a fallback option
+- Admin users can bypass SSO by accessing `/admin` routes
+
+This is intended for organisations running a single identity provider across the entire platform, where per-domain SSO configuration is not sufficient to cover all users.
+
 ## Providers
 
 The following is a non-exhaustive list of the providers that are known to work
@@ -345,6 +359,7 @@ In Keycloak and the Realm setup with FlowFuse as a client:
  - "Add mapper" and pick "By configuration"
  - Select "Group list" from the options
  - Give it a name and set "Group attribute name" to `ff-roles` (this must match the value configured in FlowFuse, default 'ff-roles')
+ - Enable 'Single Group Attribute'
  - Ensure that "Full group path" is unchecked
  - Save and return to the "Clients" list and select your FlowFuse Client created earlier
  - Under "Client scopes", use the "Add client scope" button to add the new scope

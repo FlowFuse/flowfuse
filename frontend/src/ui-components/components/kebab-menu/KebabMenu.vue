@@ -20,6 +20,7 @@
                     as="ul"
                     class="ff-kebab-options"
                     data-el="kebab-options"
+                    v-bind="menuItemsAttrs"
                     :style="{
                         position: 'fixed',
                         top: position.top + 'px',
@@ -57,6 +58,11 @@ export default {
             default: false,
             required: false,
             type: Boolean
+        },
+        menuItemsAttrs: {
+            default: () => ({}),
+            required: false,
+            type: Object
         }
     }
 }

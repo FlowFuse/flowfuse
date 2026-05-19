@@ -13,7 +13,7 @@ vi.mock('@/stores/context.js', () => ({
 
 vi.mock('@/stores/product-assistant.js', () => ({
     useProductAssistantStore: vi.fn(() => ({
-        immersiveInstance: null,
+        isImmersiveInstance: null,
         supportedActions: {}
     }))
 }))

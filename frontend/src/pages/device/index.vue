@@ -95,7 +95,7 @@
                         <div class="flex text-center">
                             <img class="h-16 w-16" src="../../images/pictograms/cloud_teal.png">
                         </div>
-                        <div class="flex-grow m-4">
+                        <div class="grow m-4">
                             <div class="w-full">
                                 <div class="h-1 w-full bg-teal-200 overflow-hidden">
                                     <div kind="secondary" class="progress w-full h-full bg-teal-800 left-right" />
@@ -368,6 +368,10 @@ export default {
     async mounted () {
         this.mounted = true
         await this.loadDevice()
+        this.setContextualDevice(this.device)
+    },
+    beforeUnmount () {
+        this.setContextualDevice(null)
     },
     unmounted () {
         this.pollTimer?.stop()
@@ -375,6 +379,7 @@ export default {
     },
     methods: {
         ...mapActions(useUxStore, ['validateUserAction']),
+        ...mapActions(useContextStore, { setContextualDevice: 'setDevice' }),
         pollTimerElapsed: async function () {
             // Only refresh device via the timer if we are on the overview page, developer mode page
             // the device status is empty or the device is in a transition state

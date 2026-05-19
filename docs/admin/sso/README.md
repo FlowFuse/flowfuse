@@ -18,8 +18,7 @@ registers when they first sign in.
 Otherwise, a user will have to first register on the platform, providing a temporary
 password in order to create an account. They will then be able to log in via their SSO provider.
 
-Admin users will still be able to log in with their original FlowFuse username/password - this ensures
-they don't get locked out of the platform if there is a problem with the SSO configuration.
+By default, admin users can still log in with their original FlowFuse username and password, which ensures they are not locked out if there is a problem with the SSO configuration.
 
 ## SAML SSO
 

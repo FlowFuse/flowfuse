@@ -42,5 +42,11 @@ const { editorImmersiveDrawer } = storeToRefs(drawersStore)
         height: 100vh;
         margin-top: 0;
     }
+
+    @media screen and (max-width: 1023px) {
+        .ff-header {
+            padding-left: 16px;
+        }
+    }
 }
 </style>
