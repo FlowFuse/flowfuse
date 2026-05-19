@@ -1,6 +1,6 @@
 <template>
     <div
-        class="ff-loading flex-grow flex flex-col items-center justify-center mx-auto"
+        class="ff-loading grow flex flex-col items-center justify-center mx-auto"
         :class="{'theme-light': color == 'black', 'theme-dark': color == 'white'}"
         data-el="loading"
     >

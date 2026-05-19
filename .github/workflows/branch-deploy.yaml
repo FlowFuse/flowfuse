@@ -299,7 +299,7 @@ jobs:
   
       - name: Configure AWS credentials for ECR interaction
         id: aws-config
-        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_ECR_PUSH_ROLE }}
           role-session-name: GithubActionsRoleSession
@@ -438,7 +438,7 @@ jobs:
 
       - name: Configure AWS credentials for ECR interaction
         id: aws-config
-        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_ECR_PUSH_ROLE }}
           role-session-name: GithubActionsRoleSession
@@ -458,7 +458,7 @@ jobs:
           docker push ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
 
       - name: Configure AWS credentials for EKS interaction
-        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_EKS_DEPLOY_ROLE }}
           role-session-name: GithubActionsRoleSessio
@@ -769,7 +769,7 @@ jobs:
       id-token: write
     steps:
       - name: Configure AWS credentials for EKS interaction
-        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_EKS_DEPLOY_ROLE }}
           role-session-name: GithubActionsRoleSession

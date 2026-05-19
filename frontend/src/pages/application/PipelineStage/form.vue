@@ -92,7 +92,7 @@
                 <template #input>
                     <ff-combobox
                         v-model="input.instanceId"
-                        class="w-full flex-grow max-w-sm ff-combobox"
+                        class="w-full grow max-w-sm ff-combobox"
                         :options="instanceOptions"
                         :disabled="instanceDropdownDisabled"
                         placeholder="Choose Instance"
@@ -111,7 +111,7 @@
                 <template #input>
                     <ff-combobox
                         v-model="input.deviceId"
-                        class="w-full flex-grow max-w-sm ff-combobox"
+                        class="w-full grow max-w-sm ff-combobox"
                         :options="deviceOptions"
                         :disabled="deviceDropdownDisabled"
                         placeholder="Choose Remote Instance"
@@ -127,7 +127,7 @@
                 data-form="stage-device-group"
                 :placeholder="deviceGroupDropdownPlaceholder"
                 :disabled="deviceGroupDropdownDisabled"
-                class="flex-grow"
+                class="grow"
             >
                 <template #default>
                     Choose Device Group
@@ -138,7 +138,7 @@
                     v-model="input.gitTokenId"
                     :options="gitTokens"
                     data-form="stage-repo-tokens"
-                    class="flex-grow"
+                    class="grow"
                 >
                     <template #default>
                         Choose Git Token
@@ -219,7 +219,7 @@
 
             <div
                 v-if="input.deviceGroupId === 'new'"
-                class="max-w-sm flex-grow space-y-2"
+                class="max-w-sm grow space-y-2"
             >
                 <FormRow
                     v-model="newDeviceGroupInput.name"

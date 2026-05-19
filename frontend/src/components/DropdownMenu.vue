@@ -20,7 +20,7 @@
                 <MenuItems
                     v-if="open"
                     ref="menu-items"
-                    class="z-[1000] fixed bg-white rounded overflow-hidden shadow-lg ring-1 ring-black ring-opacity-10 focus:outline-none"
+                    class="z-1000 fixed bg-white rounded-sm overflow-hidden shadow-lg ring-1 ring-black/10 focus:outline-hidden"
                     :style="teleportedStyle"
                 >
                     <div class="apx-1 apy-1">
@@ -38,7 +38,7 @@
                             <template v-else>
                                 <a :class="[active ? 'bg-gray-200' : '', item.selected? 'bg-gray-100':'', 'block px-4 py-2 text-sm text-gray-700',...(item.class||[])]" :data-action="`menu-${item.name.toLowerCase()}`" @click="item.action">
                                     <component :is="item.icon" v-if="item.icon" class="w-4 inline" />
-                                    <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded mr-1">
+                                    <img v-if="item.imgUrl" :src="item.imgUrl" class="h-4 v-4 inline rounded-sm mr-1">
                                     {{ item.name }}
                                 </a>
                             </template>
