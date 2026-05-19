@@ -1,9 +1,9 @@
 import {
-    BookOpenIcon, ChartBarIcon, ChatIcon, ChevronLeftIcon, ChipIcon, CogIcon,
-    CollectionIcon, ColorSwatchIcon, CurrencyDollarIcon,
-    DatabaseIcon, DesktopComputerIcon, HomeIcon, LockClosedIcon,
-    RssIcon, TableIcon, TemplateIcon, UserGroupIcon, UsersIcon
-} from '@heroicons/vue/outline'
+    BookOpenIcon, ChartBarIcon, ChatBubbleOvalLeftEllipsisIcon, ChevronLeftIcon, CpuChipIcon, Cog8ToothIcon,
+    RectangleStackIcon, SwatchIcon, CurrencyDollarIcon,
+    CircleStackIcon, ComputerDesktopIcon, HomeIcon, LockClosedIcon,
+    RssIcon, TableCellsIcon, RectangleGroupIcon, UserGroupIcon, UsersIcon
+} from '@heroicons/vue/24/outline'
 import { defineStore } from 'pinia'
 
 import DeviceGroupOutlineIcon from '../components/icons/DeviceGroupOutline.js'
@@ -58,7 +58,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             label: 'Overview',
                             to: { name: 'admin-overview' },
                             tag: 'admin-overview',
-                            icon: CollectionIcon
+                            icon: RectangleStackIcon
                         },
                         {
                             label: 'Users',
@@ -82,7 +82,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             label: 'Notifications Hub',
                             to: { name: 'admin-notifications-hub' },
                             tag: 'notifications-hub',
-                            icon: ChatIcon
+                            icon: ChatBubbleOvalLeftEllipsisIcon
                         }
                     ]
                 },
@@ -93,38 +93,38 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             label: 'Team Types',
                             to: { name: 'admin-team-types' },
                             tag: 'admin-teamtypes',
-                            icon: ColorSwatchIcon
+                            icon: SwatchIcon
                         },
                         {
                             label: 'Instance Types',
                             to: { name: 'admin-instance-types' },
                             tag: 'admin-instancetypes',
-                            icon: ColorSwatchIcon
+                            icon: SwatchIcon
                         },
                         {
                             label: 'Stacks',
                             to: { name: 'admin-stacks' },
                             tag: 'admin-stacks',
-                            icon: DesktopComputerIcon
+                            icon: ComputerDesktopIcon
                         },
                         {
                             label: 'Templates',
                             to: { name: 'admin-templates' },
                             tag: 'admin-templates',
-                            icon: TemplateIcon
+                            icon: RectangleGroupIcon
                         },
                         {
                             label: 'Blueprints',
                             to: { name: 'admin-flow-blueprints' },
                             tag: 'admin-flow-blueprints',
-                            icon: TemplateIcon,
+                            icon: RectangleGroupIcon,
                             featureUnavailable: !features.isBlueprintsFeatureEnabledForPlatform
                         },
                         {
                             label: 'FlowFuse Nodes',
                             to: { name: 'admin-certified-nodes' },
                             tag: 'admin-certified-nodes',
-                            icon: CollectionIcon,
+                            icon: RectangleStackIcon,
                             hidden: features.isCertifiedNodesFeatureEnabledForPlatform
                         }
                     ]
@@ -136,7 +136,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             label: 'Settings',
                             to: { name: 'admin-settings' },
                             tag: 'admin-settings',
-                            icon: CogIcon
+                            icon: Cog8ToothIcon
                         }
                     ]
                 }
@@ -160,7 +160,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             label: 'Settings',
                             to: { name: 'user-settings-overview' },
                             tag: 'account-settings',
-                            icon: CogIcon
+                            icon: Cog8ToothIcon
                         },
                         {
                             label: 'Teams',
@@ -218,7 +218,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-devices',
-                                icon: ChipIcon,
+                                icon: CpuChipIcon,
                                 disabled: requiresBilling,
                                 alert: isNewlyCreatedUser && !userActions.hasOpenedDeviceEditor
                                     ? {
@@ -240,7 +240,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-applications',
-                                icon: TemplateIcon,
+                                icon: RectangleGroupIcon,
                                 disabled: requiresBilling
                             },
                             {
@@ -274,7 +274,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-bom',
-                                icon: TableIcon,
+                                icon: TableCellsIcon,
                                 disabled: requiresBilling,
                                 featureUnavailable: !features.isBOMFeatureEnabled,
                                 hidden: hasALowerOrEqualTeamRoleThan(Roles.Owner, teamMembership)
@@ -301,7 +301,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 label: 'Tables',
                                 to: { name: 'team-tables', params: { team_slug: team.slug } },
                                 tag: 'team-tables',
-                                icon: DatabaseIcon,
+                                icon: CircleStackIcon,
                                 disabled: requiresBilling,
                                 featureUnavailable: !features.isTablesFeatureEnabled,
                                 hidden: hasALowerOrEqualTeamRoleThan(Roles.Member, teamMembership) && features.isTablesFeatureEnabledForPlatform
@@ -392,7 +392,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-settings',
-                                icon: CogIcon,
+                                icon: Cog8ToothIcon,
                                 permission: 'team:edit'
                             }
                         ]

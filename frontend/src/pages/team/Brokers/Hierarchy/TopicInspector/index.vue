@@ -3,10 +3,10 @@
         <main-title title="Topic Inspector">
             <template #actions>
                 <ff-toggle-switch v-if="isTeamBroker" v-model="agentActive" v-ff-tooltip:left="'Monitor Broker for Smart Schema Suggestions. This will automatically stop after 24 hours.'" :disabled="agentActive">
-                    <StatusOnlineIcon />
+                    <SignalIcon />
                 </ff-toggle-switch>
                 <ff-toggle-switch v-else v-model="isConnected" v-ff-tooltip:left="'FlowFuse will automatically monitor third-party brokers for Schema suggestions'" :disabled="true">
-                    <StatusOnlineIcon />
+                    <SignalIcon />
                 </ff-toggle-switch>
                 <template v-if="segment">
                     <ff-button kind="danger" :disabled="!hasId || hasChildren" @click="deleteTopic()">
@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import { StatusOnlineIcon } from '@heroicons/vue/outline'
+import { SignalIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import brokerApi from '../../../../../api/broker.js'
@@ -66,7 +66,7 @@ export default {
         EmptyState,
         MainTitle,
         PayloadMetadata,
-        StatusOnlineIcon
+        SignalIcon
     },
     props: {
         brokerState: {

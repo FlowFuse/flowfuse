@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { ChevronRightIcon, ExclamationCircleIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon, ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import usePermissions from '../../composables/Permissions.js'

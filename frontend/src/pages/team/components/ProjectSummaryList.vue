@@ -5,7 +5,7 @@
                 <router-link :to="{name: 'Application', params: {id: application.id}}" data-action="view-application" class="px-1 py-1 flex w-full">
                     <div class="grow">
                         <div class="flex items-center mt-2">
-                            <TemplateIcon class="w-6 h-6 mr-4" />
+                            <RectangleGroupIcon class="w-6 h-6 mr-4" />
                             <div class="text-base text-gray-800">{{ application.name }}</div>
                         </div>
                         <div class="flex space-x-2 mt-4">
@@ -22,7 +22,7 @@
             <div class="forge-button-tertiary text-xs border-dashed">
                 <router-link :to="{name: 'CreateTeamApplication'}" class="px-1 py-4 flex w-full">
                     <div class="grow">
-                        <div class="text-base flex items-center"><PlusSmIcon class="w-5 h-5 -ml-1 mr-1" /> Create Application</div>
+                        <div class="text-base flex items-center"><PlusSmallIcon class="w-5 h-5 -ml-1 mr-1" /> Create Application</div>
                     </div>
                     <div class="flex">
                         <ChevronRightIcon class="w-3" />
@@ -34,15 +34,15 @@
 </template>
 
 <script>
-import { ChevronRightIcon, PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon, PlusSmallIcon, RectangleGroupIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'MemberProjectSummaryList',
     props: ['applications', 'team'],
     components: {
         ChevronRightIcon,
-        PlusSmIcon,
-        TemplateIcon
+        PlusSmallIcon,
+        RectangleGroupIcon
     }
 }
 </script>

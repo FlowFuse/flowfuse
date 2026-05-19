@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
 
 import ApplicationAPI from '../../../api/application.js'

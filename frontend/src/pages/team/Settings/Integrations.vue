@@ -31,7 +31,7 @@
                         @click="showCreateTokenDialog"
                     >
                         <template #icon-left>
-                            <PlusSmIcon />
+                            <PlusSmallIcon />
                         </template>
                         Add Token
                     </ff-button>
@@ -60,7 +60,7 @@
                         @click="showCreateTokenDialog"
                     >
                         <template #icon-left>
-                            <PlusSmIcon />
+                            <PlusSmallIcon />
                         </template>
                         Add Token
                     </ff-button>
@@ -80,7 +80,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import teamApi from '../../../api/team.js'
@@ -100,7 +100,7 @@ export default {
     components: {
         CreateGitTokenDialog,
         SectionTopMenu,
-        PlusSmIcon,
+        PlusSmallIcon,
         EmptyState
     },
     setup () {

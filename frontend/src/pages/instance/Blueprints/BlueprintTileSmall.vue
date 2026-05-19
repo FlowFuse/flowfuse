@@ -15,8 +15,8 @@
 </template>
 
 <script>
-import { QuestionMarkCircleIcon } from '@heroicons/vue/outline'
-import { defineAsyncComponent } from 'vue'
+import * as outlineIcons from '@heroicons/vue/24/outline'
+import { QuestionMarkCircleIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'BlueprintTile',
@@ -39,21 +39,18 @@ export default {
                 return QuestionMarkCircleIcon
             }
 
-            // Convert kebab-case to pascalCase used for import
+            // Convert kebab-case to pascalCase used for icon lookup
             const camelCase = iconName.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
             const pascalCase = camelCase.charAt(0).toUpperCase() + camelCase.slice(1)
             const importName = `${pascalCase}Icon`
 
-            return defineAsyncComponent(async () => {
-                let icon
-                try {
-                    icon = await import(`@heroicons/vue/outline/${importName}.js`)
-                } catch (err) {
-                    console.warn(`Did not recognise icon name "${iconName}" (imported as "${importName}")`)
-                    icon = await import('@heroicons/vue/outline/QuestionMarkCircleIcon.js')
-                }
-                return icon
-            })
+            // eslint-disable-next-line import/namespace
+            const icon = outlineIcons[importName]
+            if (!icon) {
+                console.warn(`Did not recognise icon name "${iconName}" (looked up as "${importName}")`)
+                return QuestionMarkCircleIcon
+            }
+            return icon
         },
         onClick () {
             this.$emit('click', this.blueprint)

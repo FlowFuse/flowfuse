@@ -54,7 +54,7 @@
 
                         <DashboardSection title="Remote Instances" type="remote">
                             <template #icon>
-                                <ChipIcon class="ff-icon-lg" />
+                                <CpuChipIcon class="ff-icon-lg" />
                             </template>
 
                             <div class="stats flex gap-2 mb-5">
@@ -93,7 +93,7 @@
 
                     <DashboardSection title="Recent Activity" class="overflow-auto" type="audit">
                         <template #icon>
-                            <DatabaseIcon class="ff-icon-lg" />
+                            <CircleStackIcon class="ff-icon-lg" />
                         </template>
 
                         <AuditLog :entries="logEntries" />
@@ -129,7 +129,7 @@
 </template>
 
 <script>
-import { ChipIcon, DatabaseIcon, PlusIcon } from '@heroicons/vue/outline'
+import { CircleStackIcon, CpuChipIcon, PlusIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 
@@ -162,9 +162,9 @@ export default {
         RecentlyModifiedInstances,
         AuditLog,
         DashboardSection,
-        ChipIcon,
+        CpuChipIcon,
         ProjectsIcon,
-        DatabaseIcon,
+        CircleStackIcon,
         PlusIcon,
         RecentlyModifiedDevices,
         TeamDeviceCreateDialog

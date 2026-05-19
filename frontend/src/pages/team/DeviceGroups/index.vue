@@ -48,7 +48,7 @@
                         >
                             <template #actions>
                                 <ff-button data-action="create-device-group" @click="showCreateDeviceGroupDialog">
-                                    <template #icon-left><PlusSmIcon /></template>
+                                    <template #icon-left><PlusSmallIcon /></template>
                                     Add Device Group
                                 </ff-button>
                             </template>
@@ -115,7 +115,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 
@@ -137,7 +137,7 @@ import { useContextStore } from '@/stores/context.js'
 export default {
     name: 'DeviceGroups',
     components: {
-        PlusSmIcon,
+        PlusSmallIcon,
         FfListbox,
         FormRow,
         FfButton,

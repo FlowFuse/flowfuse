@@ -18,7 +18,7 @@
                         buttonClass="ff-btn ff-btn--secondary"
                         :options="snapshotFilterOptions"
                     >
-                        <FilterIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
+                        <FunnelIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
                         {{ snapshotFilter?.name || 'All Snapshots' }}
                         <span class="sr-only">Filter Snapshots</span>
                     </DropdownMenu>
@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import { FilterIcon } from '@heroicons/vue/outline'
+import { FunnelIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
 
@@ -77,7 +77,7 @@ export default {
     components: {
         DropdownMenu,
         EmptyState,
-        FilterIcon
+        FunnelIcon
     },
     mixins: [snapshotsMixin],
     inheritAttrs: false,

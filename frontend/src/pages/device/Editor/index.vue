@@ -14,7 +14,7 @@
                     data-el="device-actions-dropdown"
                     buttonClass="ff-btn ff-btn--primary device-actions-dropdown"
                 >
-                    <CogIcon class="ff-btn--icon ff-btn--icon-left mr-0" />
+                    <Cog8ToothIcon class="ff-btn--icon ff-btn--icon-left mr-0" />
                 </DropdownMenu>
             </template>
 
@@ -61,7 +61,7 @@
 </template>
 
 <script>
-import { CogIcon } from '@heroicons/vue/solid/index.js'
+import { Cog8ToothIcon } from '@heroicons/vue/20/solid/index.js'
 import { mapActions, mapState } from 'pinia'
 
 import deviceApi from '../../../api/devices.js'
@@ -89,7 +89,7 @@ export default {
     name: 'DeviceEditor',
     components: {
         AssignDeviceDialog,
-        CogIcon,
+        Cog8ToothIcon,
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog,
         DropdownMenu,
