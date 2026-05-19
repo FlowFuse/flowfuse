@@ -26,8 +26,8 @@ module.exports = function (env, argv) {
         output: {
             path: getPath('frontend/dist/app'),
             publicPath: '/app/',
-            assetModuleFilename: './assets/[hash][ext][query]',
-            filename: '[name].[contenthash].js',
+            assetModuleFilename: devMode ? './assets/[name][ext]' : './assets/[hash][ext][query]',
+            filename: devMode ? '[name].js' : '[name].[contenthash].js',
             clean: true
         },
         module: {
@@ -58,10 +58,7 @@ module.exports = function (env, argv) {
                     test: /\.css$/i,
                     include: getPath('frontend/src'),
                     use: [
-                        {
-                            loader: devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
-                            options: {}
-                        },
+                        MiniCssExtractPlugin.loader,
                         {
                             loader: 'css-loader',
                             options: { importLoaders: 1 }
@@ -75,23 +72,22 @@ module.exports = function (env, argv) {
                             }
                         }
                     ]
-                }, {
+                },
+                {
                     test: /\.css$/i,
                     exclude: getPath('frontend/src'),
                     use: [
-                        {
-                            loader: 'style-loader',
-                            options: {}
-                        },
+                        MiniCssExtractPlugin.loader,
                         {
                             loader: 'css-loader',
                             options: { importLoaders: 1 }
                         }
                     ]
-                }, {
+                },
+                {
                     test: /\.scss$/,
                     use: [
-                        devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
+                        MiniCssExtractPlugin.loader,
                         {
                             loader: 'css-loader',
                             options: { import: true, url: true }
@@ -102,7 +98,6 @@ module.exports = function (env, argv) {
                                 additionalData: '@use "@/ui-components/stylesheets/ff-colors.scss" as *;@use "@/ui-components/stylesheets/ff-utility.scss" as *;'
                             }
                         }
-
                     ]
                 },
                 {
@@ -135,9 +130,7 @@ module.exports = function (env, argv) {
                 filename: getPath('frontend/dist-setup/setup.html'),
                 chunks: ['setup']
             }),
-            new MiniCssExtractPlugin({
-                filename: '[name].[contenthash].css'
-            }),
+            new MiniCssExtractPlugin({ filename: devMode ? '[name].css' : '[name].[contenthash].css' }),
             new CopyPlugin({
                 patterns: [
                     { from: getPath('frontend/public'), to: '..' }
@@ -177,7 +170,8 @@ module.exports = function (env, argv) {
             historyApiFallback: true
         },
         watchOptions: {
-            poll: 1000
+            poll: 1000,
+            ignored: [getPath('frontend/dist/**'), '**/node_modules/**']
         },
         resolve: {
             extensions: ['.ts', '.js', '.vue', '.json'],
