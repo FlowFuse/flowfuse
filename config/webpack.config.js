@@ -66,6 +66,7 @@ module.exports = function (env, argv) {
                         {
                             loader: 'postcss-loader',
                             options: {
+                                sourceMap: false,
                                 postcssOptions: {
                                     config: path.resolve(__dirname, 'postcss.config.js')
                                 }
@@ -77,15 +78,16 @@ module.exports = function (env, argv) {
                     test: /\.css$/i,
                     exclude: getPath('frontend/src'),
                     use: [
-                        MiniCssExtractPlugin.loader,
+                        devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
                         {
                             loader: 'css-loader',
-                            options: { importLoaders: 1 }
+                            options: { importLoaders: 1, sourceMap: false }
                         }
                     ]
                 },
                 {
                     test: /\.scss$/,
+                    exclude: /node_modules/,
                     use: [
                         MiniCssExtractPlugin.loader,
                         {
@@ -97,6 +99,20 @@ module.exports = function (env, argv) {
                             options: {
                                 additionalData: '@use "@/ui-components/stylesheets/ff-colors.scss" as *;@use "@/ui-components/stylesheets/ff-utility.scss" as *;'
                             }
+                        }
+                    ]
+                },
+                {
+                    test: /\.scss$/,
+                    include: /node_modules/,
+                    use: [
+                        devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
+                        {
+                            loader: 'css-loader',
+                            options: { import: true, url: true }
+                        },
+                        {
+                            loader: 'sass-loader'
                         }
                     ]
                 },
