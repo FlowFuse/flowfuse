@@ -263,11 +263,12 @@ module.exports = async function (app) {
             const invitedUser = app.auditLog.formatters.userObject(invitation.external ? invitation : invitation.invitee)
 
             await app.db.models.Invitation.extendExpirationDate(invitation.id)
-            await invitation.reload()
 
             await app.db.controllers.Invitation.sendNotification(invitation, invitedUser, request.team, role, true)
 
-            reply.send(app.db.views.Invitation.invitation(invitation))
+            // Re-hydrate via byId so invitor/invitee/team associations are fresh for the view.
+            const refreshed = await app.db.models.Invitation.byId(invitation.hashid)
+            reply.send(app.db.views.Invitation.invitation(refreshed))
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
