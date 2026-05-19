@@ -235,9 +235,9 @@
         @apply text-red-600;
     }
     .forge-status-suspended {
-        @apply bg-red-200;
-        @apply border-red-400;
-        @apply text-red-600;
+        @apply bg-white;
+        @apply border-gray-300;
+        @apply text-gray-600;
     }
     .forge-status-stopped {
         @apply bg-gray-100;
