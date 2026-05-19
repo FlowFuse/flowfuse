@@ -454,7 +454,7 @@ module.exports = async function (app) {
                 await deviceGroupLogger.settings.updated(request.session.User, null, request.application, deviceGroup, updates)
             }
 
-            reply.send({})
+            reply.send({ status: 'okay' })
         } catch (err) {
             return handleError(err, reply)
         }

@@ -229,6 +229,8 @@ module.exports = async function (app) {
                 required: ['context']
             },
             response: {
+                // Kept open: fast-json-stringify strips undeclared fields, but Ajv
+                // response-validation runs before that — locking would reject stripped fields.
                 200: {
                     type: 'object',
                     properties: {
@@ -254,12 +256,10 @@ module.exports = async function (app) {
                                     version: { type: 'string' },
                                     description: { type: 'string' }
                                 },
-                                required: ['instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol'],
-                                additionalProperties: false
+                                required: ['instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol']
                             }
                         }
-                    },
-                    additionalProperties: false
+                    }
                 },
                 '4xx': {
                     $ref: 'APIError'

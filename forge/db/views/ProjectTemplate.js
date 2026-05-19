@@ -2,11 +2,13 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'Template',
         type: 'object',
+        // additionalProperties omitted — interacts poorly with allOf.
         allOf: [{ $ref: 'TemplateSummary' }],
         properties: {
             settings: { type: 'object', additionalProperties: true },
             policy: { type: 'object', additionalProperties: true }
-        }
+        },
+        required: ['settings', 'policy']
     })
     function template (template) {
         if (template) {
@@ -46,7 +48,9 @@ module.exports = function (app) {
             createdAt: { type: 'string' },
             links: { $ref: 'LinksMeta' },
             owner: { $ref: 'UserSummary' }
-        }
+        },
+        // Composed via `allOf` elsewhere — keep open.
+        required: ['id', 'name', 'description', 'active', 'instanceCount', 'createdAt', 'links']
     })
     function templateSummary (template) {
         if (template) {
