@@ -28,7 +28,7 @@
                             You can re-use the credentials you have previously used, or regenerate credentials now.
                         </p>
                         <ff-button kind="secondary" @click="generateCreds">Generate New Credentials</ff-button>
-                        <div v-if="loading.credentials" class="text-center p-2 mt-2 bg-gray-100 rounded text-gray-400 border-gray-300">
+                        <div v-if="loading.credentials" class="text-center p-2 mt-2 bg-gray-100 rounded-sm text-gray-400 border-gray-300">
                             Generating New Credentials...
                         </div>
                         <div v-else-if="credentials.username && credentials.token" class="mt-2">

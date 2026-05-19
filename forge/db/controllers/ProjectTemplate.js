@@ -1,3 +1,5 @@
+const validate = require('validate-npm-package-name')
+
 const { BUILT_IN_MODULES } = require('../../lib/builtInModules')
 const { templateFields, defaultTemplateValues, defaultTemplatePolicy } = require('../../lib/templates')
 const { hash, mapEnvArrayToObject } = require('../utils')
@@ -100,9 +102,9 @@ module.exports = {
             const validateModuleName = (name) => {
                 if (name.startsWith('@flowfuse-')) {
                     // Team Library private NPM packages
-                    return /^@flowfuse-[a-zA-Z0-9-._~]*\/[a-z0-9-~][a-z0-9-._~]*$/.test(name)
+                    return validate(name).validForOldPackages
                 } else {
-                    return !BUILT_IN_MODULES.includes(name) && /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(name)
+                    return !BUILT_IN_MODULES.includes(name) && validate(name).validForOldPackages
                 }
             }
             const validateModuleVersion = (version) => /^\*$|x|(?:[\^~]?(0|[1-9]\d*)\.(x$|0|[1-9]\d*)(?:\.(x$|0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)?)$/.test(version)

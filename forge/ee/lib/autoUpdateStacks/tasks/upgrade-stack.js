@@ -25,7 +25,7 @@ module.exports = {
                         if (project.Project.ProjectStack.replacedBy) {
                             // need to add audit logging
                             try {
-                                const newStack = await app.db.models.ProjectStack.byId(project.Project.ProjectStack.replacedBy)
+                                const newStack = await project.Project.ProjectStack.findLatestStack()
                                 app.log.info(`Updating project ${project.Project.id} to stack: '${newStack.hashid}'`)
 
                                 const suspendOptions = {

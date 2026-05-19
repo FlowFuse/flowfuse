@@ -1,3 +1,9 @@
+#### 2.30.1: Release
+
+ - Ensure auto updating stacks jump to latest version (#7228) @hardillb
+ - fix: resolve eslint indentation and attribute-order warnings (#7230) @andypalmi
+ - docs: update documentation to align with 2.30 (#7223) @sumitshinde-84
+
 #### 2.30.0: Release
 
  - bump flow-renderer to 0.5.1 (#7186)

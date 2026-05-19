@@ -10,7 +10,7 @@
                     <span v-else-if="seg.type === 'nodesep'" class="text-gray-400 font-mono -mx-0.5">,</span>
                     <span
                         v-else
-                        class="px-1.5 py-0.5 rounded font-mono text-xs"
+                        class="px-1.5 py-0.5 rounded-sm font-mono text-xs"
                         :title="seg.text"
                         :class="{
                             'bg-red-50 text-red-700 line-through': seg.kind === 'removed',
@@ -30,7 +30,7 @@
                 @click="collapsed = !collapsed"
             >
                 <svg
-                    class="w-2.5 h-2.5 text-gray-400 transition-transform duration-150 flex-shrink-0"
+                    class="w-2.5 h-2.5 text-gray-400 transition-transform duration-150 shrink-0"
                     :class="{ 'rotate-90': !collapsed }"
                     viewBox="0 0 20 20" fill="currentColor"
                     aria-hidden="true"
@@ -44,20 +44,20 @@
                         <!-- Wrap toggle (shown when any line exceeds 50 chars) -->
                         <button
                             v-if="hasLongLines"
-                            class="text-gray-400 hover:text-gray-600 px-1 py-0.5 rounded hover:bg-gray-200"
+                            class="text-gray-400 hover:text-gray-600 px-1 py-0.5 rounded-sm hover:bg-gray-200"
                             title="Toggle word wrap"
                             @click.stop="wrapped = !wrapped"
                         >Wrap</button>
                         <!-- Prettify button (shown when value looks like JSON) -->
                         <button
                             v-if="canPrettify && !prettified"
-                            class="text-gray-400 hover:text-gray-600 px-1 py-0.5 rounded hover:bg-gray-200"
+                            class="text-gray-400 hover:text-gray-600 px-1 py-0.5 rounded-sm hover:bg-gray-200"
                             title="Pretty-print JSON and re-diff"
                             @click.stop="prettify"
                         >Prettify</button>
                         <button
                             v-if="prettified"
-                            class="text-blue-500 hover:text-blue-700 px-1 py-0.5 rounded hover:bg-blue-50"
+                            class="text-blue-500 hover:text-blue-700 px-1 py-0.5 rounded-sm hover:bg-blue-50"
                             title="Show raw values"
                             @click.stop="unprettify"
                         >Raw</button>
@@ -68,29 +68,29 @@
             <div v-show="!collapsed" class="font-mono">
                 <div class="diff-scroll-container" :class="{ 'diff-wrap': wrapped }">
                     <div class="diff-content">
-                    <template v-for="(line, i) in lines" :key="i">
-                        <!-- Collapsed unchanged section -->
-                        <div
-                            v-if="line.type === 'collapsed'"
-                            class="flex leading-5 text-blue-600 bg-blue-50 cursor-pointer hover:bg-blue-100 select-none border-y border-blue-100"
-                            @click="expandSection(i)"
-                        >
-                            <span class="line-num border-r border-blue-200 text-blue-400" />
-                            <span class="line-num border-r border-blue-200 text-blue-400" />
-                            <span class="px-3 flex-1 text-center">&#8597; {{ line.count }} unchanged line{{ line.count === 1 ? '' : 's' }}</span>
-                        </div>
-                        <!-- Diff line -->
-                        <div
-                            v-else
-                            :class="lineClass(line)"
-                            :data-change="line.type !== 'unchanged' || undefined"
-                            class="flex leading-5"
-                        >
-                            <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.oldNum || '' }}</span>
-                            <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.newNum || '' }}</span>
-                            <span class="px-2" :class="wrapped ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'">{{ linePrefix(line) }}{{ line.text }}</span>
-                        </div>
-                    </template>
+                        <template v-for="(line, i) in lines" :key="i">
+                            <!-- Collapsed unchanged section -->
+                            <div
+                                v-if="line.type === 'collapsed'"
+                                class="flex leading-5 text-blue-600 bg-blue-50 cursor-pointer hover:bg-blue-100 select-none border-y border-blue-100"
+                                @click="expandSection(i)"
+                            >
+                                <span class="line-num border-r border-blue-200 text-blue-400" />
+                                <span class="line-num border-r border-blue-200 text-blue-400" />
+                                <span class="px-3 flex-1 text-center">&#8597; {{ line.count }} unchanged line{{ line.count === 1 ? '' : 's' }}</span>
+                            </div>
+                            <!-- Diff line -->
+                            <div
+                                v-else
+                                :class="lineClass(line)"
+                                :data-change="line.type !== 'unchanged' || undefined"
+                                class="flex leading-5"
+                            >
+                                <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.oldNum || '' }}</span>
+                                <span class="line-num border-r select-none shrink-0" :class="lineNumClass(line)">{{ line.newNum || '' }}</span>
+                                <span class="px-2" :class="wrapped ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'">{{ linePrefix(line) }}{{ line.text }}</span>
+                            </div>
+                        </template>
                     </div>
                 </div>
             </div>
