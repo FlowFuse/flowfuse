@@ -26,7 +26,7 @@
                 >
                     <li style="min-width: 300px;">
                         <div
-                            class="ff-option-content flex truncate justify-start !items-start !gap-2 !p-2"
+                            class="ff-option-content flex truncate justify-start items-start! gap-2! p-2!"
                             :class="{ active }"
                             data-click-exclude="right-drawer"
                         >

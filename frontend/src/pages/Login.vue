@@ -32,7 +32,7 @@
                     <ff-button data-action="login" :disabled="loggingIn || tooManyRequests" @click="login()">
                         <span>Login</span>
                         <span v-if="loggingIn || tooManyRequests" class="w-4">
-                            <SpinnerIcon class="ff-icon ml-3 !w-3.5" />
+                            <SpinnerIcon class="ff-icon ml-3 w-3.5!" />
                         </span>
                     </ff-button>
                     <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create" data-action="sign-up">Sign Up</ff-button>
@@ -46,7 +46,7 @@
                                 </template>
                                 <span>Sign In with Google</span>
                                 <span v-if="loggingIn || tooManyRequests" class="w-4">
-                                    <SpinnerIcon class="ff-icon ml-3 !w-3.5" />
+                                    <SpinnerIcon class="ff-icon ml-3 w-3.5!" />
                                 </span>
                             </ff-button>
                         </GoogleLogin>
@@ -71,7 +71,7 @@
                     <ff-button data-action="submit-token" :disabled="loggingIn || tokenInvalid" @click="submitMFAToken()">
                         <span>Continue</span>
                         <span class="w-4">
-                            <SpinnerIcon v-if="loggingIn" class="ff-icon ml-3 !w-3.5" />
+                            <SpinnerIcon v-if="loggingIn" class="ff-icon ml-3 w-3.5!" />
                         </span>
                     </ff-button>
                 </div>

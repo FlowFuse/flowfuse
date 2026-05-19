@@ -24,8 +24,10 @@ html, body, #app {
     flex: 1;
 }
 
-h1, h2, h3 {
-    font-weight: 500;
+@layer base {
+    h1, h2, h3 {
+        font-weight: 500;
+    }
 }
 
 #ff-app {

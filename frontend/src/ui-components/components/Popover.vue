@@ -12,7 +12,7 @@
             </span>
             <span>{{ buttonText }}</span>
             <span class="ml-2">
-                <ChevronDownIcon class="ff-icon transition-ease" :class="{ 'rotate-180 transform': open }" />
+                <ChevronDownIcon class="ff-icon transition-ease" :class="{ 'rotate-180': open }" />
             </span>
         </PopoverButton>
         <teleport to="body">
@@ -25,7 +25,7 @@
                     v-if="open"
                     v-slot="{ close }"
                     ref="menu-items"
-                    class="fixed w-full overflow-auto bg-white border border-gray-200 rounded-md shadow-md z-[200]"
+                    class="fixed w-full overflow-auto bg-white border border-gray-200 rounded-md shadow-md z-200"
                     :style="{
                         top: position.top + 'px',
                         left: position.left + 'px',
