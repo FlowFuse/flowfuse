@@ -1,11 +1,11 @@
-import axios from 'axios'
+import { create as createClient } from 'axios'
 
 import Alerts from '../services/alerts.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
-const client = axios.create({
+const client = createClient({
     headers: {
         'Content-Type': 'application/json'
     },

@@ -5,7 +5,7 @@
         </template>
         <div class="ff-instance-info space-y-4">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-gray-700">
-                <div class="border rounded px-4 py-2 text-center">
+                <div class="border rounded-sm px-4 py-2 text-center">
                     <router-link to="/admin/users/general">
                         <div class="text-xl">{{ stats.userCount }}</div>
                         <div>Users</div>
@@ -15,13 +15,13 @@
                         <div><router-link to="/admin/users/invitations">{{ stats.inviteCount }} {{ $filters.pluralize(stats.inviteCount,'invite') }}</router-link></div>
                     </div>
                 </div>
-                <div class="border rounded p-4 text-center">
+                <div class="border rounded-sm p-4 text-center">
                     <router-link to="/admin/teams">
                         <div class="text-xl">{{ stats.teamCount }}</div>
                         <div>{{ $filters.pluralize(stats.teamCount,'Team') }}</div>
                     </router-link>
                 </div>
-                <div class="border rounded p-4 text-center">
+                <div class="border rounded-sm p-4 text-center">
                     <div class="text-xl">{{ stats.instanceCount }}</div>
                     <div>{{ $filters.pluralize(stats.instanceCount,'Instance') }}</div>
                     <div v-if="stats.instancesByState && Object.keys(stats.instancesByState).length > 0" class="w-full grid grid-cols-1 pt-1 mt-2 border-t">
@@ -31,7 +31,7 @@
                     </div>
                 </div>
 
-                <div class="border rounded p-4 text-center">
+                <div class="border rounded-sm p-4 text-center">
                     <div class="text-xl">{{ stats.deviceCount }}</div>
                     <div>{{ $filters.pluralize(stats.deviceCount,'Device') }}</div>
                     <div v-if="stats.devicesByLastSeen && Object.keys(stats.devicesByLastSeen).length > 0" class="w-full grid grid-cols-1 pt-1 mt-2 border-t">

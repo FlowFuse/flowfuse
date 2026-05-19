@@ -118,6 +118,7 @@
         "stripe": "^8.222.0",
         "tar-stream": "^3.1.7",
         "uuid": "^14.0.0",
+        "validate-npm-package-name": "^7.0.2",
         "vue": "^3.4.5",
         "vue-echarts": "^7.0.3",
         "vue-router": "^4.2.5",
@@ -131,6 +132,7 @@
         "@babel/preset-env": "^7.22.15",
         "@fastify/response-validation": "^3.0.3",
         "@pinia/testing": "1.0.3",
+        "@tailwindcss/postcss": "^4.2.4",
         "@types/mqtt": "^0.0.34",
         "@typescript-eslint/eslint-plugin": "^8.58.0",
         "@typescript-eslint/parser": "^8.58.0",
@@ -177,7 +179,7 @@
         "should-sinon": "^0.0.6",
         "sinon": "^21.0.1",
         "style-loader": "^3.3.3",
-        "tailwindcss": "^2.2.19",
+        "tailwindcss": "^4.2.4",
         "ts-loader": "^9.5.7",
         "typescript": "^5.9.3",
         "vitest": "^3.1.1",
@@ -186,7 +188,7 @@
         "webpack": "^5.88.2",
         "webpack-cli": "^5.1.4",
         "webpack-dev-server": "^5.2.1",
-        "ws": "^8.14.0"
+        "ws": "^8.20.1"
     },
     "engines": {
         "node": ">=20.x"

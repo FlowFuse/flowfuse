@@ -18,7 +18,7 @@
                     <ff-button
                         kind="tertiary"
                         :disabled="dialog.is.payload.devices.length === 1"
-                        class="hover:text-indigo-900 hover:!bg-transparent"
+                        class="hover:text-indigo-900 hover:bg-transparent!"
                         @click="onRemoveFromSelection(row)"
                     >
                         Remove
@@ -55,7 +55,7 @@ export default {
         ...mapState(useUxDialogStore, ['dialog']),
         columns () {
             return [
-                { label: 'Name', key: 'name', class: ['flex-grow'], sortable: true },
+                { label: 'Name', key: 'name', class: ['grow'], sortable: true },
                 { label: 'Application', key: 'application.name', sortable: true },
                 { label: 'Instance', key: 'instance.name', sortable: true }
             ]
