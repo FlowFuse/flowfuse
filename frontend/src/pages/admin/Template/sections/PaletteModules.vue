@@ -149,6 +149,7 @@
 <script>
 
 import { CheckIcon, LockClosedIcon, PencilIcon, PlusSmIcon, TrashIcon, XIcon } from '@heroicons/vue/outline'
+import validate from 'validate-npm-package-name'
 
 import { BUILT_IN_MODULES } from '../../../../../../forge/lib/builtInModules.js'
 
@@ -275,9 +276,9 @@ export default {
     methods: {
         validateModuleName (name) {
             if (name.startsWith('@flowfuse-')) {
-                return /^@flowfuse-[a-zA-Z0-9-._~]*\/[a-z0-9-~][a-z0-9-._~]*$/.test(name)
+                return validate(name).validForOldPackages
             } else {
-                return /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(name) && !BUILT_IN_MODULES.includes(name)
+                return validate(name).validForOldPackages && !BUILT_IN_MODULES.includes(name)
             }
         },
         validateModuleVersion (version) {
