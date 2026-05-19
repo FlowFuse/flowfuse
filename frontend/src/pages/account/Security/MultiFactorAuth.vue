@@ -3,7 +3,7 @@
     <form v-else class="space-y-6">
         <FormHeading>Two-factor Authentication</FormHeading>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
+            <div class="grow">
                 <div class="max-w-sm">
                     Two-factor authentication helps to secure your account by requiring a second
                     layer of identification.
@@ -12,7 +12,7 @@
                     Note: when signing in via your SSO provider, you will not be challenged for your two-factor authentication code
                 </div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
+            <div class="min-w-fit shrink-0">
                 <ff-button v-if="!user.mfa_enabled" data-action="enable-mfa" kind="primary" @click="setupMFA()">Enable two-factor authentication</ff-button>
                 <ff-button v-else data-action="disable-mfa" kind="danger" @click="disableMFA()">Disable two-factor authentication</ff-button>
             </div>

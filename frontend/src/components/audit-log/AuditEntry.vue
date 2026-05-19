@@ -15,16 +15,16 @@
             </div>
             <div v-if="!disableAssociations" class="lg:w-36">
                 <template v-if="association && entry.scope.type === 'device'">
-                    <router-link class="flex content-center" :to="{ name: 'Device', params: { id: entry.scope.id } }"><ChipIcon class="ff-icon relative invisible lg:visible " /> <span class="truncate ml-2 !leading-normal">{{ association.name }}</span></router-link>
+                    <router-link class="flex content-center" :to="{ name: 'Device', params: { id: entry.scope.id } }"><ChipIcon class="ff-icon relative invisible lg:visible " /> <span class="truncate ml-2 leading-normal!">{{ association.name }}</span></router-link>
                 </template>
                 <template v-else-if="association && entry.scope.type === 'project'">
-                    <router-link class="flex content-center" :to="{ name: 'Instance', params: { id: entry.scope.id } }"><ProjectsIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 !leading-normal">{{ association.name }}</span></router-link>
+                    <router-link class="flex content-center" :to="{ name: 'Instance', params: { id: entry.scope.id } }"><ProjectsIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 leading-normal!">{{ association.name }}</span></router-link>
                 </template>
                 <template v-else-if="association && entry.scope.type === 'application'">
-                    <router-link class="flex content-center" :to="{ name: 'Application', params: { id: entry.scope.id }}"><TemplateIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 !leading-normal">{{ association.name }}</span></router-link>
+                    <router-link class="flex content-center" :to="{ name: 'Application', params: { id: entry.scope.id }}"><TemplateIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 leading-normal!">{{ association.name }}</span></router-link>
                 </template>
                 <template v-else-if="entry.scope.type === 'team'">
-                    <router-link class="flex content-center" :to="'#'"><UserGroupIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 !leading-normal">This Team</span></router-link>
+                    <router-link class="flex content-center" :to="'#'"><UserGroupIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 leading-normal!">This Team</span></router-link>
                 </template>
             </div>
         </div>

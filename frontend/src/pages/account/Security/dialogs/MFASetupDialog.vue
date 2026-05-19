@@ -9,7 +9,7 @@
                         </p>
                         <div class="text-center mt-4">
                             <template v-if="!!qrcode">
-                                <img v-if="!!qrcode" :src="qrcode" class="m-auto border rounded">
+                                <img v-if="!!qrcode" :src="qrcode" class="m-auto border rounded-sm">
                                 <p>
                                     <a class="cursor-pointer" @click="showSecret()">Can't scan QR code?</a>
                                 </p>
