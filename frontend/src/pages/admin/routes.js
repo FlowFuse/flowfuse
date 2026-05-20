@@ -1,4 +1,4 @@
-import { AdjustmentsHorizontalIcon } from '@heroicons/vue/24/outline'
+import { AdjustmentsVerticalIcon } from '@heroicons/vue/24/outline'
 
 import ensureAdmin from '../../utils/ensureAdmin.js'
 
@@ -41,7 +41,7 @@ export default [
         beforeEnter: ensureAdmin,
         redirect: '/admin/overview',
         name: 'Admin Settings',
-        icon: AdjustmentsHorizontalIcon,
+        icon: AdjustmentsVerticalIcon,
         component: Admin,
         meta: {
             title: 'Admin - Overview',

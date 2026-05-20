@@ -101,7 +101,7 @@
     </div>
 </template>
 <script>
-import { AcademicCapIcon, AdjustmentsHorizontalIcon, ArrowLeftOnRectangleIcon, Bars3Icon, Cog8ToothIcon, CursorArrowRaysIcon, PlusIcon, QuestionMarkCircleIcon, XMarkIcon } from '@heroicons/vue/20/solid'
+import { AcademicCapIcon, AdjustmentsVerticalIcon, ArrowLeftOnRectangleIcon, Bars3Icon, Cog8ToothIcon, CursorArrowRaysIcon, PlusIcon, QuestionMarkCircleIcon, XMarkIcon } from '@heroicons/vue/20/solid'
 import { mapActions, mapState } from 'pinia'
 import { ref } from 'vue'
 
@@ -149,7 +149,7 @@ export default {
                 },
                 {
                     label: 'Admin Settings',
-                    icon: AdjustmentsHorizontalIcon,
+                    icon: AdjustmentsVerticalIcon,
                     tag: 'admin-settings',
                     onclick: this.$router.push,
                     onclickparams: { name: 'Admin Settings' },

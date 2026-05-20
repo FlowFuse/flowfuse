@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { AdjustmentsHorizontalIcon, ArrowDownTrayIcon, ArrowPathIcon, CameraIcon, CheckBadgeIcon, EllipsisHorizontalIcon, PlusIcon } from '@heroicons/vue/24/outline'
+import { AdjustmentsVerticalIcon, ArrowDownTrayIcon, ArrowPathIcon, CameraIcon, CheckBadgeIcon, EllipsisHorizontalIcon, PlusIcon } from '@heroicons/vue/24/outline'
 
 import PipelinesIcon from '../../icons/Pipelines.js'
 import ProjectsIcon from '../../icons/Projects.js'
@@ -74,7 +74,7 @@ export default {
                 return CameraIcon
             case 'project.settings.updated':
             case 'device.settings.updated':
-                return AdjustmentsHorizontalIcon
+                return AdjustmentsVerticalIcon
             case 'device.restarted':
                 return ArrowPathIcon
             case 'project.created':
