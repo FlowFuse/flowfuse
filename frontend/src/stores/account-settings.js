@@ -23,7 +23,7 @@ const FEATURE_CONFIGS = [
     { output: 'isInstanceResourcesFeatureEnabled', platformKey: 'instanceResources', teamKey: 'instanceResources' },
     { output: 'isTablesFeatureEnabled', platformKey: 'tables', teamKey: 'tables' },
     { output: 'isAiFeatureEnabled', platformKey: 'ai', teamKey: 'ai' },
-    { output: 'isGeneratedSnapshotDescriptionFeatureEnabled', platformKey: 'generatedSnapshotDescription', teamKey: 'generatedSnapshotDescription' },
+    { output: 'isGeneratedSnapshotDescriptionFeatureEnabled', platformKey: 'generatedSnapshotDescription', teamKey: 'generatedSnapshotDescription', dependsOn: 'isAiFeatureEnabled' },
     { output: 'isApplicationsRBACFeatureEnabled', platformKey: 'rbacApplication', teamKey: 'rbacApplication' },
 
     // Team-only
@@ -32,7 +32,7 @@ const FEATURE_CONFIGS = [
     // Platform-only
     { output: 'isCertifiedNodesFeatureEnabled', platformKey: 'certifiedNodes' },
     { output: 'isFlowFuseNodesFeatureEnabled', platformKey: 'ffNodes' },
-    { output: 'isExpertAssistantFeatureEnabled', platformKey: 'expertAssistant' },
+    { output: 'isExpertAssistantFeatureEnabled', platformKey: 'expertAssistant', dependsOn: 'isAiFeatureEnabled' },
     { output: 'isInstanceAutoStackUpdateFeatureEnabled', platformKey: 'autoStackUpdate' },
     { output: 'isDevOpsPipelinesFeatureEnabled', platformKey: 'devops-pipelines' },
     { output: 'isExternalMqttBrokerFeatureEnabled', platformKey: 'externalBroker' }
@@ -41,7 +41,7 @@ const FEATURE_CONFIGS = [
 function buildFeatureChecks (state, team) {
     const checks = {}
 
-    for (const { output, platformKey, teamKey, optOut, platformSource } of FEATURE_CONFIGS) {
+    for (const { output, platformKey, teamKey, optOut, platformSource, dependsOn } of FEATURE_CONFIGS) {
         const platformCheckKey = `${output}ForPlatform`
         const teamCheckKey = `${output}ForTeam`
 
@@ -65,6 +65,10 @@ function buildFeatureChecks (state, team) {
             checks[output] = checks[platformCheckKey]
         } else if (teamKey) {
             checks[output] = checks[teamCheckKey]
+        }
+
+        if (dependsOn && !checks[dependsOn]) {
+            checks[output] = false
         }
     }
 

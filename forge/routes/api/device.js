@@ -1190,9 +1190,10 @@ module.exports = async function (app) {
                 await request.device.Team.ensureTeamTypeExists()
                 const tier = app.license.get('tier')
                 const isEnterprise = tier === 'enterprise'
+                const isAiEnabled = request.device.Team.getFeatureProperty('ai', false)
                 const hasFeature = request.device.Team.getFeatureProperty('generatedSnapshotDescription', false)
 
-                if (!isEnterprise || !hasFeature) {
+                if (!isEnterprise || !isAiEnabled || !hasFeature) {
                     return reply.code(404).send({ code: 'not_found' })
                 }
             }

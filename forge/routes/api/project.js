@@ -849,9 +849,10 @@ module.exports = async function (app) {
 
         await request.project.Team.ensureTeamTypeExists()
         const team = request.project.Team
-        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
+        const isAiEnabledForTeam = team.getFeatureProperty('ai', false)
+        const assistantInlineCompletionsFeatureEnabled = !!(isAiEnabledForTeam && app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
         settings.assistant = {
-            enabled: app.config.assistant?.enabled || false,
+            enabled: isAiEnabledForTeam && (app.config.assistant?.enabled || false),
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
             mcp: { enabled: true }, // default to enabled
             completions: {
@@ -1463,9 +1464,10 @@ module.exports = async function (app) {
                 await request.project.Team.ensureTeamTypeExists()
                 const tier = app.license.get('tier')
                 const isEnterprise = tier === 'enterprise'
+                const isAiEnabled = request.project.Team.getFeatureProperty('ai', false)
                 const hasFeature = request.project.Team.getFeatureProperty('generatedSnapshotDescription', false)
 
-                if (!isEnterprise || !hasFeature) {
+                if (!isEnterprise || !isAiEnabled || !hasFeature) {
                     return reply.code(404).send({ code: 'not_found' })
                 }
             }

@@ -178,9 +178,10 @@ module.exports = async function (app) {
     async (request, reply) => {
         const inlineDisabled = app.config.assistant?.completions?.inlineEnabled === false
         const featureEnabled = app.config.features.enabled('assistantInlineCompletions')
+        const isAiEnabledForTeam = request.team?.getFeatureProperty('ai', false)
         const featureEnabledForTeam = request.team?.getFeatureProperty('assistantInlineCompletions', false)
         const isStandaloneSessionUser = request.session.ownerType === 'user'
-        if (inlineDisabled || !featureEnabled || !(isStandaloneSessionUser || featureEnabledForTeam)) {
+        if (inlineDisabled || !featureEnabled || !(isStandaloneSessionUser || (isAiEnabledForTeam && featureEnabledForTeam))) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found - feature not enabled for team' })
             return
         }
