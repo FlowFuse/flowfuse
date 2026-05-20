@@ -38,6 +38,9 @@ module.exports = fp(async function (app, opts) {
         // Expert
         await app.register(require('./expert'))
 
+        // Set the AI Features Flag (global gate for all AI features)
+        app.config.features.register('ai', app.config?.ai?.enabled ?? false, true)
+
         // Set the Generate Snapshot Description Feature Flag
         app.config.features.register('generatedSnapshotDescription', true, true)
 
