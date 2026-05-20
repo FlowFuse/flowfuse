@@ -15,10 +15,16 @@
 </template>
 
 <script>
-import * as outlineIcons from '@heroicons/vue/24/outline'
 import { QuestionMarkCircleIcon } from '@heroicons/vue/24/outline'
+import { defineAsyncComponent } from 'vue'
 
 import { HEROICONS_V1_TO_V2_PASCAL_CASE } from '../../../utils/heroicons-v1-aliases'
+
+let outlineIconsPromise = null
+function loadOutlineIcons () {
+    outlineIconsPromise ??= import('@heroicons/vue/24/outline')
+    return outlineIconsPromise
+}
 
 export default {
     name: 'BlueprintTile',
@@ -42,17 +48,19 @@ export default {
             }
 
             // Convert kebab-case to pascalCase used for icon lookup
-            const camelCase = iconName.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
+            const camelCase = iconName.replace(/-([a-z0-9])/g, (g) => g[1].toUpperCase())
             const pascalCase = camelCase.charAt(0).toUpperCase() + camelCase.slice(1)
             const importName = `${pascalCase}Icon`
 
-            // eslint-disable-next-line import/namespace
-            const icon = outlineIcons[importName] ?? outlineIcons[HEROICONS_V1_TO_V2_PASCAL_CASE[importName]]
-            if (!icon) {
-                console.warn(`Did not recognise icon name "${iconName}" (looked up as "${importName}")`)
-                return QuestionMarkCircleIcon
-            }
-            return icon
+            return defineAsyncComponent(async () => {
+                const icons = await loadOutlineIcons()
+                const icon = icons[importName] ?? icons[HEROICONS_V1_TO_V2_PASCAL_CASE[importName]]
+                if (!icon) {
+                    console.warn(`Did not recognise icon name "${iconName}" (looked up as "${importName}")`)
+                    return QuestionMarkCircleIcon
+                }
+                return icon
+            })
         },
         onClick () {
             this.$emit('click', this.blueprint)
