@@ -1,8 +1,8 @@
 import {
-    BookOpenIcon, ChartBarIcon, ChatBubbleOvalLeftEllipsisIcon, ChevronLeftIcon, CpuChipIcon, Cog8ToothIcon,
-    RectangleStackIcon, SwatchIcon, CurrencyDollarIcon,
-    CircleStackIcon, ComputerDesktopIcon, HomeIcon, LockClosedIcon,
-    RssIcon, TableCellsIcon, RectangleGroupIcon, UserGroupIcon, UsersIcon
+    BookOpenIcon, ChartBarIcon, ChatBubbleOvalLeftEllipsisIcon, ChevronLeftIcon, CircleStackIcon, Cog8ToothIcon,
+    ComputerDesktopIcon, CpuChipIcon, CurrencyDollarIcon,
+    HomeIcon, LockClosedIcon, RectangleGroupIcon, RectangleStackIcon,
+    RssIcon, SwatchIcon, TableCellsIcon, UserGroupIcon, UsersIcon
 } from '@heroicons/vue/24/outline'
 import { defineStore } from 'pinia'
 
