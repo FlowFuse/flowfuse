@@ -18,6 +18,8 @@
 import * as outlineIcons from '@heroicons/vue/24/outline'
 import { QuestionMarkCircleIcon } from '@heroicons/vue/24/outline'
 
+import { HEROICONS_V1_TO_V2_PASCAL_CASE } from '../../../utils/heroicons-v1-aliases'
+
 export default {
     name: 'BlueprintTile',
     props: {
@@ -45,7 +47,7 @@ export default {
             const importName = `${pascalCase}Icon`
 
             // eslint-disable-next-line import/namespace
-            const icon = outlineIcons[importName]
+            const icon = outlineIcons[importName] ?? outlineIcons[HEROICONS_V1_TO_V2_PASCAL_CASE[importName]]
             if (!icon) {
                 console.warn(`Did not recognise icon name "${iconName}" (looked up as "${importName}")`)
                 return QuestionMarkCircleIcon

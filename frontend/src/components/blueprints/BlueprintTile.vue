@@ -71,6 +71,7 @@ import ProjectIcon from '../../components/icons/Projects.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import product from '../../services/product.js'
 import FfDialog from '../../ui-components/components/DialogBox.vue'
+import { HEROICONS_V1_TO_V2_PASCAL_CASE } from '../../utils/heroicons-v1-aliases'
 import FormRow from '../FormRow.vue'
 import AssetDetailDialog from '../dialogs/AssetDetailDialog.vue'
 
@@ -162,7 +163,7 @@ export default {
             const importName = `${pascalCase}Icon`
 
             // eslint-disable-next-line import/namespace
-            const icon = outlineIcons[importName]
+            const icon = outlineIcons[importName] ?? outlineIcons[HEROICONS_V1_TO_V2_PASCAL_CASE[importName]]
             if (!icon) {
                 console.warn(`Did not recognise icon name "${iconName}" (looked up as "${importName}")`)
                 return PlusIcon
