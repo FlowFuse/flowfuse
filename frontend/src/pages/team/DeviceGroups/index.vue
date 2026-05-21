@@ -80,14 +80,14 @@
                 <p>Enter the name and description of the Device Group to create.</p>
             </slot>
             <div class="flex gap-4">
-                <div class="flex-grow">
+                <div class="grow">
                     <div class="form-row max-w-sm mb-2">
                         <label class="block text-sm font-medium mb-1">Application</label>
                         <ff-listbox
                             v-model="input.application"
                             :options="applicationOptions"
                             data-el="applications-list"
-                            class="flex-grow w-full"
+                            class="grow w-full"
                         />
                     </div>
                     <FormRow v-model="input.name" class="mb-2" :error="!input.name ? 'required' : ''" data-form="name">Name</FormRow>

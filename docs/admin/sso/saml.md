@@ -359,6 +359,7 @@ In Keycloak and the Realm setup with FlowFuse as a client:
  - "Add mapper" and pick "By configuration"
  - Select "Group list" from the options
  - Give it a name and set "Group attribute name" to `ff-roles` (this must match the value configured in FlowFuse, default 'ff-roles')
+ - Enable 'Single Group Attribute'
  - Ensure that "Full group path" is unchecked
  - Save and return to the "Clients" list and select your FlowFuse Client created earlier
  - Under "Client scopes", use the "Add client scope" button to add the new scope

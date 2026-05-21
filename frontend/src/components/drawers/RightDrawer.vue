@@ -10,7 +10,7 @@
             class="resize-bar"
             @mousedown="startResize"
         />
-        <div v-if="rightDrawer?.header" class="header flex items-center justify-between p-4 border-b gap-2">
+        <div v-if="rightDrawer?.header" class="header flex items-center justify-between p-4 border-b border-gray-200 gap-2">
             <div class="title clipped-overflow" data-el="right-drawer-header-title">
                 <h1 class="text-xl font-semibold mb-0" :title="rightDrawer.header.title">{{ rightDrawer.header.title }}</h1>
             </div>

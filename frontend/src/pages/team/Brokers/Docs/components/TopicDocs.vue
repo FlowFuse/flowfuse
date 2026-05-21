@@ -11,7 +11,7 @@
                     <section>
                         <label>Payload Schema:</label>
                         <div class="space-y-2">
-                            <div v-if="topic.schema?.type" class="mt-2 flex items-center justify-between border rounded p-3">
+                            <div v-if="topic.schema?.type" class="mt-2 flex items-center justify-between border rounded-sm p-3">
                                 <label>Type</label>
                                 <span class="capitalize">{{ topic.schema.type }}</span>
                             </div>

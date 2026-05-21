@@ -97,7 +97,7 @@ jobs:
     if: |
       needs.check-tests-status.outputs.tests_status == 'success' && github.ref == 'refs/heads/main'
     needs: check-tests-status
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.76.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@publish_node_package/v1'
     with:
       package_name: flowfuse
       build_package: true
@@ -116,7 +116,7 @@ jobs:
     steps:
       - name: Generate a token
         id: generate_token
-        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ secrets.GH_BOT_APP_ID }}
           private-key: ${{ secrets.GH_BOT_APP_KEY }}
@@ -124,7 +124,7 @@ jobs:
           repositories: helm
 
       - name: Trigger flowforge container build
-        uses: benc-uk/workflow-dispatch@7a027648b88c2413826b6ddd6c76114894dc5ec4 # v1.3.1
+        uses: benc-uk/workflow-dispatch@31e2b3319479a63f0ab15bf800eff9e913504e26 # v1.3.2
         with:
           workflow: flowforge-container.yml
           repo: flowfuse/helm
@@ -140,7 +140,7 @@ jobs:
 
     steps:
     - name: Send notification
-      uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # v3.0.2
+      uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
       with:
         method: chat.postMessage
         token: ${{ secrets.SLACK_GHBOT_TOKEN }}
