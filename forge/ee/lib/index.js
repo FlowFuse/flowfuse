@@ -39,7 +39,7 @@ module.exports = fp(async function (app, opts) {
         await app.register(require('./expert'))
 
         // Set the AI Features Flag (global gate for all AI features)
-        app.config.features.register('ai', app.config?.ai?.enabled ?? false, true)
+        app.config.features.register('ai', app.config?.ai?.enabled ?? true, true)
 
         // Set the Generate Snapshot Description Feature Flag
         const isAssistantConfigured = app.config.assistant?.enabled === true && !!app.config.assistant?.service?.url
