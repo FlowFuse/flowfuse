@@ -350,6 +350,26 @@ module.exports = async function (app) {
                     connected: true,
                     error: null
                 }
+                // make Team Broker look like a client broker
+                clean.id = clean.hashid
+                clean.name = 'team-broker'
+                clean.host = ''
+                clean.port = 1883
+                clean.protocol = 'mqtt'
+                clean.protocolVersion = 3
+                clean.ssl = false
+                clean.verifySSL = false
+                clean.clientId = ''
+                clean.topicPrefix = []
+                delete clean.createdAt
+                delete clean.updatedAt
+                delete clean.Team
+                delete clean.TeamId
+                delete clean.links
+                delete clean.hashid
+                delete clean.slug
+                delete clean.settings
+
                 reply.send(clean)
             } else {
                 reply.send({
