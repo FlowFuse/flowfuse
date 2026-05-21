@@ -184,6 +184,9 @@ including what Instance Types are available and any limits that should be applie
  - **Tables**
 
     Provides a Team scoped shared SQL Relational Database (Requires specific configuration). More details [here](../user/ff-tables.md)
+ - **AI Features**
+
+    Global toggle for all AI functionality within the team. When disabled, all AI features below are unavailable regardless of their individual settings. Requires `ai.enabled: true` in the platform configuration.
  - **Assistant Inline Code Completion**
  
     Allows LLM assistance when writing Functions nodes (requires a token from FlowFuse Support and available to Enterprise License holders). More details [here](/docs/user/expert/)
