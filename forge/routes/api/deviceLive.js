@@ -294,7 +294,7 @@ module.exports = async function (app) {
             tables: !!(app.config.features.enabled('tables') && team.getFeatureProperty('tables', true))
         }
 
-        const isAiEnabled = app.config.features.enabled('ai') && team.getFeatureProperty('ai', true)
+        const isAiEnabled = !!(app.config.features.enabled('ai') && team.getFeatureProperty('ai', true))
         const assistantInlineCompletionsFeatureEnabled = !!(isAiEnabled && app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
         response.assistant = {
             enabled: isAiEnabled && (app.config.assistant?.enabled || false),

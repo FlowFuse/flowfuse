@@ -849,7 +849,7 @@ module.exports = async function (app) {
 
         await request.project.Team.ensureTeamTypeExists()
         const team = request.project.Team
-        const isAiEnabled = app.config.features.enabled('ai') && team.getFeatureProperty('ai', true)
+        const isAiEnabled = !!(app.config.features.enabled('ai') && team.getFeatureProperty('ai', true))
         const assistantInlineCompletionsFeatureEnabled = !!(isAiEnabled && app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
         settings.assistant = {
             enabled: isAiEnabled && (app.config.assistant?.enabled || false),
@@ -1464,7 +1464,7 @@ module.exports = async function (app) {
                 await request.project.Team.ensureTeamTypeExists()
                 const tier = app.license.get('tier')
                 const isEnterprise = tier === 'enterprise'
-                const isAiEnabled = app.config.features.enabled('ai') && request.project.Team.getFeatureProperty('ai', true)
+                const isAiEnabled = !!(app.config.features.enabled('ai') && request.project.Team.getFeatureProperty('ai', true))
                 const hasFeature = request.project.Team.getFeatureProperty('generatedSnapshotDescription', false)
 
                 if (!isEnterprise || !isAiEnabled || !hasFeature) {
