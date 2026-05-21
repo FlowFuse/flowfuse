@@ -1190,7 +1190,7 @@ module.exports = async function (app) {
                 await request.device.Team.ensureTeamTypeExists()
                 const tier = app.license.get('tier')
                 const isEnterprise = tier === 'enterprise'
-                const isAiEnabled = request.device.Team.getFeatureProperty('ai', false)
+                const isAiEnabled = request.device.Team.getFeatureProperty('ai', true)
                 const hasFeature = request.device.Team.getFeatureProperty('generatedSnapshotDescription', false)
 
                 if (!isEnterprise || !isAiEnabled || !hasFeature) {

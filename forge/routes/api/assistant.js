@@ -178,7 +178,7 @@ module.exports = async function (app) {
     async (request, reply) => {
         const inlineDisabled = app.config.assistant?.completions?.inlineEnabled === false
         const featureEnabled = app.config.features.enabled('assistantInlineCompletions')
-        const isAiEnabledForTeam = request.team?.getFeatureProperty('ai', false)
+        const isAiEnabledForTeam = request.team?.getFeatureProperty('ai', true)
         const featureEnabledForTeam = request.team?.getFeatureProperty('assistantInlineCompletions', false)
         const isStandaloneSessionUser = request.session.ownerType === 'user'
         if (inlineDisabled || !featureEnabled || !(isStandaloneSessionUser || (isAiEnabledForTeam && featureEnabledForTeam))) {
