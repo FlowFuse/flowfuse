@@ -7,8 +7,6 @@
  *   - `{output}ForTeam`     - team-level check result (only if `teamKey` is set)
  *   - `{output}`            - combined result (see combination rules below)
  *
- * @typedef {Object} FeatureConfig
- *
  * @property {string} output - Name of the computed property for the combined result.
  *   Always required. Convention: `is{Feature}FeatureEnabled`.
  *
@@ -62,7 +60,41 @@
  * At least one of `platformKey` or `teamKey` must be provided.
  * `dependsOn`, `dependsOnPlatform`, and `dependsOnTeam` can be used together.
  */
-export const FEATURE_CONFIGS = [
+
+interface FeatureConfig {
+    output: string
+    platformKey?: string
+    teamKey?: string
+    optOut?: boolean
+    platformSource?: 'settings'
+    dependsOn?: string
+    dependsOnPlatform?: string
+    dependsOnPlatformSource?: 'settings'
+    dependsOnTeam?: string
+    dependsOnTeamOptOut?: boolean
+}
+
+interface PlatformState {
+    features?: Record<string, boolean>
+    settings?: {
+        features?: Record<string, boolean>
+    }
+}
+
+interface TeamTypeProperties {
+    features?: Record<string, boolean>
+    enableAllFeatures?: boolean
+}
+
+interface Team {
+    type?: {
+        properties?: TeamTypeProperties
+    }
+}
+
+type FeatureChecks = Record<string, boolean>
+
+export const FEATURE_CONFIGS: FeatureConfig[] = [
     { output: 'isSharedLibraryFeatureEnabled', platformKey: 'shared-library', teamKey: 'shared-library', optOut: true },
     { output: 'isBlueprintsFeatureEnabled', platformKey: 'flowBlueprints', teamKey: 'flowBlueprints', optOut: true },
     { output: 'isCustomCatalogsFeatureEnabled', platformKey: 'customCatalogs', teamKey: 'customCatalogs', optOut: true },
@@ -98,12 +130,12 @@ export const FEATURE_CONFIGS = [
     { output: 'isExternalMqttBrokerFeatureEnabled', platformKey: 'externalBroker' }
 ]
 
-function isPlatformFeatureEnabled (state, platformKey, platformSource) {
+function isPlatformFeatureEnabled (state: PlatformState, platformKey: string, platformSource?: 'settings'): boolean {
     const source = platformSource === 'settings' ? state.settings?.features : state.features
     return !!source?.[platformKey]
 }
 
-function isTeamFeatureEnabled (team, teamKey, optOut) {
+function isTeamFeatureEnabled (team: Team | null | undefined, teamKey: string, optOut?: boolean): boolean {
     if (optOut) {
         const flag = team?.type?.properties?.features?.[teamKey]
         return (flag === undefined || !!flag) || !!team?.type?.properties?.enableAllFeatures
@@ -111,29 +143,29 @@ function isTeamFeatureEnabled (team, teamKey, optOut) {
     return !!team?.type?.properties?.features?.[teamKey] || !!team?.type?.properties?.enableAllFeatures
 }
 
-function applyDependencyGates (checks, output, { dependsOn, dependsOnPlatform, dependsOnTeam, dependsOnPlatformSource, dependsOnTeamOptOut }, state, team) {
-    if (dependsOn && !checks[dependsOn]) {
+function applyDependencyGates (
+    checks: FeatureChecks,
+    output: string,
+    config: FeatureConfig,
+    state: PlatformState,
+    team: Team | null | undefined
+): void {
+    if (config.dependsOn && !checks[config.dependsOn]) {
         checks[output] = false
     }
-    if (dependsOnPlatform && !isPlatformFeatureEnabled(state, dependsOnPlatform, dependsOnPlatformSource)) {
+    if (config.dependsOnPlatform && !isPlatformFeatureEnabled(state, config.dependsOnPlatform, config.dependsOnPlatformSource)) {
         checks[output] = false
     }
-    if (dependsOnTeam && !isTeamFeatureEnabled(team, dependsOnTeam, dependsOnTeamOptOut)) {
+    if (config.dependsOnTeam && !isTeamFeatureEnabled(team, config.dependsOnTeam, config.dependsOnTeamOptOut)) {
         checks[output] = false
     }
 }
 
-export function buildFeatureChecks (state, team) {
-    const checks = {}
+export function buildFeatureChecks (state: PlatformState, team: Team | null | undefined): FeatureChecks {
+    const checks: FeatureChecks = {}
 
     for (const config of FEATURE_CONFIGS) {
-        const {
-            output,
-            platformKey,
-            teamKey,
-            optOut,
-            platformSource
-        } = config
+        const { output, platformKey, teamKey, optOut, platformSource } = config
         const platformCheckKey = `${output}ForPlatform`
         const teamCheckKey = `${output}ForTeam`
 

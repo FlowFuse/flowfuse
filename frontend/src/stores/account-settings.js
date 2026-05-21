@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 
 import settingsApi from '@/api/settings.js'
-import { buildFeatureChecks } from '@/composables/FeatureChecks.js'
+import { buildFeatureChecks } from '@/composables/FeatureChecks'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 
