@@ -34,6 +34,7 @@ module.exports = async function (app) {
         if ((username.startsWith('device:') && password.startsWith('ffbd_')) ||
             (username.startsWith('project:') && password.startsWith('ffbp_')) ||
             (username.startsWith('frontend:') && password.startsWith('ffbf_')) ||
+            (username.startsWith('team-frontend:') && password.startsWith('ffbtf_')) ||
             (username.startsWith('expert-agent:') && password.startsWith('ffbea_')) ||
             (username.startsWith('expert-client:') && password.startsWith('ffbec_')) ||
             (username === 'forge_platform')) {
@@ -138,6 +139,7 @@ module.exports = async function (app) {
         if ((username.startsWith('device:') ||
             username.startsWith('project:') ||
             username.startsWith('frontend:') ||
+            username.startsWith('team-frontend:') ||
             username.startsWith('expert-agent:') ||
             username.startsWith('expert-client:') ||
             username === 'forge_platform') && !username.includes('@')) {

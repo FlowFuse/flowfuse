@@ -1,7 +1,7 @@
 import type { App } from 'vue'
 import type { Router } from 'vue-router'
 
-import type { BootstrapServiceI, MqttServiceI, PostMessageServiceI } from '@/types'
+import type { BootstrapServiceI, MqttServiceI, PostMessageServiceI, TeamChannelServiceI } from '@/types'
 
 /**
  * Minimal lifecycle contract for app services.
@@ -15,6 +15,7 @@ export type ServiceInstances = {
     bootstrap: BootstrapServiceI | null
     postMessage: PostMessageServiceI | null
     mqtt: MqttServiceI | null
+    teamChannel: TeamChannelServiceI | null
 }
 
 export interface CreateServiceOptions {

@@ -104,7 +104,8 @@ describe('ServicesOrchestrator', () => {
         expect(orchestrator.$serviceInstances).toEqual({
             bootstrap: null,
             postMessage: null,
-            mqtt: null
+            mqtt: null,
+            teamChannel: null
         })
         expect(orchestrator.$app).toBeNull()
         expect(orchestrator.$router).toBeNull()

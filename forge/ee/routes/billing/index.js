@@ -268,6 +268,9 @@ module.exports = async function (app) {
                 } else {
                     app.log.warn(`Stripe subscription ${stripeSubscriptionId} has transitioned in Stripe to a state not currently handled: '${stripeSubscriptionStatus}'`)
                 }
+                if (team) {
+                    app.comms?.team?.notify(team.hashid, 'billing-updated')
+                }
 
                 break
             }
@@ -286,6 +289,7 @@ module.exports = async function (app) {
                     response.status(200).send()
                     return
                 }
+                app.comms?.team?.notify(team.hashid, 'billing-deleted')
 
                 // Suspend all projects of that team
                 const projects = await app.db.models.Project.byTeam(team.hashid)
@@ -444,6 +448,7 @@ module.exports = async function (app) {
                     await team.save()
                 }
             }
+            app.comms?.team?.notify(team.hashid, 'billing-manual-enabled')
             response.code(200).send({})
         } catch (err) {
             // Standard errors
@@ -472,6 +477,7 @@ module.exports = async function (app) {
         const team = request.team
         try {
             await app.billing.disableManualBilling(team)
+            app.comms?.team?.notify(team.hashid, 'billing-manual-disabled')
             response.code(200).send({})
         } catch (err) {
             // Standard errors

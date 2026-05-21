@@ -5,6 +5,7 @@ import settingsApi from '../api/settings.js'
 import teamApi from '../api/team.js'
 import userApi from '../api/user.js'
 
+import getServicesOrchestrator from '@/services/service.orchestrator'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
@@ -192,7 +193,10 @@ export const useAccountAuthStore = defineStore('account-auth', {
             if (useAccountSettingsStore().settings['platform:sso:only']) {
                 logoutURL = useAccountSettingsStore().settings['platform:sso:only:logoutURL'] || '/'
             }
-            return userApi.logout()
+            const teamChannel = getServicesOrchestrator().$serviceInstances.teamChannel
+            const disconnect = teamChannel ? teamChannel.disconnect().catch(() => {}) : Promise.resolve()
+            return disconnect
+                .then(() => userApi.logout())
                 .then(() => {
                     useAccountAuthStore().$reset()
                     useAccountStore().$reset()

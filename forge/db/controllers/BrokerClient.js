@@ -10,7 +10,7 @@ module.exports = {
             attributes: ['username', 'password']
         })
         if (compareHash(password || '', user ? user.password : '')) {
-            if (username.startsWith('frontend:') || username.startsWith('expert-client:')) {
+            if (username.startsWith('frontend:') || username.startsWith('expert-client:') || username.startsWith('team-frontend:')) {
                 await user.destroy()
             }
             return true
@@ -178,6 +178,31 @@ module.exports = {
                 }
             })
             await app.settings.set('platform:expert-agent:creds', false)
+        }
+        return null
+    },
+
+    createClientForTeamFrontend: async function (app, user, team, sessionId) {
+        if (app.comms) {
+            const username = `team-frontend:${user.hashid}:${team.hashid}:${sessionId}`
+            const existingClient = await app.db.models.BrokerClient.findOne({
+                where: { username }
+            })
+            if (existingClient) {
+                await existingClient.destroy()
+            }
+            const password = generateToken(32, 'ffbtf')
+            await app.db.models.BrokerClient.create({
+                username,
+                password,
+                ownerId: '' + user.id,
+                ownerType: 'team-frontend'
+            })
+            return {
+                url: app.config.broker.public_url || app.config.broker.url || null,
+                username,
+                password
+            }
         }
         return null
     },

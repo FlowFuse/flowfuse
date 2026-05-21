@@ -841,6 +841,7 @@ module.exports = async function (app) {
                         }
                         teamAuditFunc(request.session.User, null, request.team)
                         platformAuditFunc(request.session.User, null, request.team)
+                        app.comms?.team?.notify(request.team.hashid, request.body.suspended ? 'suspended' : 'unsuspended')
                         reply.send(app.db.views.Team.team(request.team))
                         return
                     } catch (err) {
@@ -894,6 +895,7 @@ module.exports = async function (app) {
             // Only log if something changes
             if (updates.length > 0) {
                 auditLogFunc(request.session.User, null, request.team, updates)
+                app.comms?.team?.notify(request.team.hashid, 'updated')
             }
             reply.send(app.db.views.Team.team(request.team))
         } catch (err) {
@@ -912,6 +914,63 @@ module.exports = async function (app) {
             }
             reply.code(400).send(response)
         }
+    })
+
+    /**
+     * Issue MQTT/WS credentials for the team-level browser channel.
+     * @name /api/v1/teams/:teamId/comms-credentials
+     */
+    app.post('/:teamId/comms-credentials', {
+        preHandler: app.needsPermission('team:read'),
+        schema: {
+            summary: 'Issue team-channel broker credentials for the current user/session',
+            tags: ['Teams'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    sessionId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        url: { type: 'string' },
+                        username: { type: 'string' },
+                        password: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        if (!app.comms) {
+            reply.code(503).send({ code: 'comms_unavailable', error: 'Broker not configured' })
+            return
+        }
+        const sessionId = request.body?.sessionId
+        if (!sessionId || typeof sessionId !== 'string' || sessionId.length < 8) {
+            reply.code(400).send({ code: 'invalid_request', error: 'sessionId is required' })
+            return
+        }
+        const creds = await app.db.controllers.BrokerClient.createClientForTeamFrontend(
+            request.session.User,
+            request.team,
+            sessionId
+        )
+        if (!creds) {
+            reply.code(503).send({ code: 'comms_unavailable', error: 'Broker not configured' })
+            return
+        }
+        reply.send(creds)
     })
 
     /**

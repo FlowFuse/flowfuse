@@ -1,0 +1,284 @@
+/* eslint-env browser */
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+
+const getTeamCommsCreds = vi.fn()
+const refreshTeam = vi.fn().mockResolvedValue(undefined)
+const refreshTeamMembership = vi.fn().mockResolvedValue(undefined)
+const useContextStore = vi.fn(() => ({ refreshTeam, refreshTeamMembership }))
+const useAccountAuthStore = vi.fn(() => ({ user: { id: 'user-hashid-1' } }))
+
+vi.mock('@/api/team.js', () => ({
+    default: { getTeamCommsCreds: (...args) => getTeamCommsCreds(...args) }
+}))
+vi.mock('@/stores/context.js', () => ({ useContextStore }))
+vi.mock('@/stores/account-auth.js', () => ({ useAccountAuthStore }))
+
+function makeMqttService () {
+    return {
+        createClient: vi.fn(),
+        destroyClient: vi.fn().mockResolvedValue(undefined),
+        subscribe: vi.fn().mockResolvedValue(undefined)
+    }
+}
+
+function makeRouter (path = '/team/dev/instances') {
+    return {
+        push: vi.fn(),
+        currentRoute: { value: { path } }
+    }
+}
+
+describe('TeamChannelService', async () => {
+    const mod = await import('../../../../frontend/src/services/team-channel.service.ts')
+    const { createTeamChannelService, destroyTeamChannelService } = mod
+
+    function createService ({ mqtt = makeMqttService(), router = makeRouter() } = {}) {
+        const services = { mqtt, postMessage: null, bootstrap: null, teamChannel: null }
+        const service = createTeamChannelService({ app: {}, router, services })
+        services.teamChannel = service
+        return { service, mqtt, router }
+    }
+
+    beforeEach(async () => {
+        getTeamCommsCreds.mockReset()
+        refreshTeam.mockClear()
+        refreshTeamMembership.mockClear()
+        useContextStore.mockClear()
+        useAccountAuthStore.mockClear().mockReturnValue({ user: { id: 'user-hashid-1' } })
+        sessionStorage.clear()
+        await destroyTeamChannelService()
+    })
+
+    afterEach(async () => {
+        await destroyTeamChannelService()
+    })
+
+    describe('getSessionId', () => {
+        test('mints a sessionId and persists it to sessionStorage', () => {
+            const { service } = createService()
+            const id = service.getSessionId()
+            expect(id).toMatch(/^[0-9a-f-]{36}$/)
+            expect(sessionStorage.getItem('ff-team-channel-session-id')).toBe(id)
+        })
+
+        test('returns the same sessionId on subsequent calls', () => {
+            const { service } = createService()
+            const first = service.getSessionId()
+            const second = service.getSessionId()
+            expect(second).toBe(first)
+        })
+
+        test('reuses an existing sessionStorage value (same browser tab)', () => {
+            sessionStorage.setItem('ff-team-channel-session-id', 'existing-session')
+            const { service } = createService()
+            expect(service.getSessionId()).toBe('existing-session')
+        })
+    })
+
+    describe('connect', () => {
+        test('no-ops without a team', async () => {
+            const { service, mqtt } = createService()
+            await service.connect(null)
+            await service.connect({})
+            await service.connect({ id: '' })
+            await service.connect({ id: 123 })
+            expect(mqtt.createClient).not.toHaveBeenCalled()
+            expect(service.isConnected()).toBe(false)
+        })
+
+        test('no-ops without a logged-in user', async () => {
+            useAccountAuthStore.mockReturnValue({ user: null })
+            const { service, mqtt } = createService()
+            await service.connect({ id: 'team-1' })
+            expect(mqtt.createClient).not.toHaveBeenCalled()
+            expect(service.isConnected()).toBe(false)
+        })
+
+        test('creates an mqtt client keyed by team id', async () => {
+            const { service, mqtt } = createService()
+            mqtt.createClient.mockResolvedValue(undefined)
+            await service.connect({ id: 'team-1' })
+            expect(mqtt.createClient).toHaveBeenCalledTimes(1)
+            const [key, opts] = mqtt.createClient.mock.calls[0]
+            expect(key).toBe('team:team-1')
+            expect(typeof opts.getCredentials).toBe('function')
+            expect(typeof opts.onMessage).toBe('function')
+            expect(typeof opts.onConnect).toBe('function')
+            expect(service.isConnected()).toBe(true)
+        })
+
+        test('wires the full mqtt lifecycle handler surface', async () => {
+            const { service, mqtt } = createService()
+            mqtt.createClient.mockResolvedValue(undefined)
+            await service.connect({ id: 'team-1' })
+            const opts = mqtt.createClient.mock.calls[0][1]
+            expect(typeof opts.onMessage).toBe('function')
+            expect(typeof opts.onConnect).toBe('function')
+            expect(typeof opts.onClose).toBe('function')
+            expect(typeof opts.onOffline).toBe('function')
+            expect(typeof opts.onError).toBe('function')
+            expect(typeof opts.onDisconnect).toBe('function')
+        })
+
+        test('quiet mqtt lifecycle handlers do not throw', async () => {
+            const { service, mqtt } = createService()
+            mqtt.createClient.mockResolvedValue(undefined)
+            await service.connect({ id: 'team-1' })
+            const opts = mqtt.createClient.mock.calls[0][1]
+            expect(() => opts.onClose()).not.toThrow()
+            expect(() => opts.onOffline()).not.toThrow()
+            expect(() => opts.onDisconnect()).not.toThrow()
+            expect(() => opts.onError(new Error('boom'))).not.toThrow()
+        })
+
+        test('credential callback forwards team id + per-tab session id', async () => {
+            getTeamCommsCreds.mockResolvedValue({ url: 'wss://broker', username: 'u', password: 'p' })
+            const { service, mqtt } = createService()
+            mqtt.createClient.mockResolvedValue(undefined)
+            await service.connect({ id: 'team-1' })
+            const opts = mqtt.createClient.mock.calls[0][1]
+            await opts.getCredentials()
+            expect(getTeamCommsCreds).toHaveBeenCalledWith('team-1', service.getSessionId())
+        })
+
+        test('skips reconnect when already connected to the same team', async () => {
+            const { service, mqtt } = createService()
+            mqtt.createClient.mockResolvedValue(undefined)
+            await service.connect({ id: 'team-1' })
+            await service.connect({ id: 'team-1' })
+            expect(mqtt.createClient).toHaveBeenCalledTimes(1)
+        })
+
+        test('disconnects from the previous team when switching teams', async () => {
+            const { service, mqtt } = createService()
+            mqtt.createClient.mockResolvedValue(undefined)
+            await service.connect({ id: 'team-1' })
+            await service.connect({ id: 'team-2' })
+            expect(mqtt.destroyClient).toHaveBeenCalledWith('team:team-1')
+            expect(mqtt.createClient).toHaveBeenCalledTimes(2)
+            expect(mqtt.createClient.mock.calls[1][0]).toBe('team:team-2')
+        })
+
+        test('degrades gracefully when createClient rejects (e.g. no broker)', async () => {
+            const { service, mqtt } = createService()
+            mqtt.createClient.mockRejectedValue(new Error('comms_unavailable'))
+            await expect(service.connect({ id: 'team-1' })).resolves.toBeUndefined()
+            expect(service.isConnected()).toBe(false)
+        })
+    })
+
+    describe('subscribe on connect', () => {
+        test('subscribes to team/updated and membership topics with qos 1', async () => {
+            const { service, mqtt } = createService()
+            let onConnect
+            mqtt.createClient.mockImplementation(async (_key, opts) => {
+                onConnect = opts.onConnect
+            })
+            await service.connect({ id: 'team-1' })
+            await onConnect()
+            expect(mqtt.subscribe).toHaveBeenCalledWith(
+                'team:team-1',
+                ['ff/v1/team-1/team/updated', 'ff/v1/team-1/u/user-hashid-1/membership'],
+                { qos: 1 }
+            )
+        })
+
+        test('swallows subscribe errors (managed reconnect will retry)', async () => {
+            const { service, mqtt } = createService()
+            mqtt.subscribe.mockRejectedValue(new Error('subscribe failed'))
+            let onConnect
+            mqtt.createClient.mockImplementation(async (_key, opts) => {
+                onConnect = opts.onConnect
+            })
+            await service.connect({ id: 'team-1' })
+            await expect(onConnect()).resolves.toBeUndefined()
+        })
+    })
+
+    describe('message routing', () => {
+        async function connectAndCaptureOnMessage () {
+            const { service, mqtt, router } = createService()
+            let onMessage
+            mqtt.createClient.mockImplementation(async (_key, opts) => {
+                onMessage = opts.onMessage
+            })
+            await service.connect({ id: 'team-1' })
+            return { service, mqtt, router, onMessage }
+        }
+
+        test('team/updated triggers refreshTeam', async () => {
+            const { onMessage } = await connectAndCaptureOnMessage()
+            onMessage('ff/v1/team-1/team/updated', Buffer.from(JSON.stringify({})))
+            expect(refreshTeam).toHaveBeenCalledTimes(1)
+            expect(refreshTeamMembership).not.toHaveBeenCalled()
+        })
+
+        test('membership update triggers refreshTeamMembership', async () => {
+            const { onMessage, router } = await connectAndCaptureOnMessage()
+            onMessage('ff/v1/team-1/u/user-hashid-1/membership', Buffer.from(JSON.stringify({ reason: 'role-changed' })))
+            expect(refreshTeamMembership).toHaveBeenCalledTimes(1)
+            expect(refreshTeam).not.toHaveBeenCalled()
+            expect(router.push).not.toHaveBeenCalled()
+        })
+
+        test('membership "removed" redirects to Home when on a team route', async () => {
+            const { onMessage, router } = await connectAndCaptureOnMessage()
+            onMessage('ff/v1/team-1/u/user-hashid-1/membership', Buffer.from(JSON.stringify({ reason: 'removed' })))
+            expect(router.push).toHaveBeenCalledWith({ name: 'Home' })
+            expect(refreshTeamMembership).not.toHaveBeenCalled()
+        })
+
+        test('membership "removed" does not redirect when on a non-team route', async () => {
+            const router = makeRouter('/account')
+            const { service, mqtt } = createService({ router })
+            let onMessage
+            mqtt.createClient.mockImplementation(async (_key, opts) => {
+                onMessage = opts.onMessage
+            })
+            await service.connect({ id: 'team-1' })
+            onMessage('ff/v1/team-1/u/user-hashid-1/membership', Buffer.from(JSON.stringify({ reason: 'removed' })))
+            expect(router.push).not.toHaveBeenCalled()
+        })
+
+        test('does not throw on malformed JSON payloads', async () => {
+            const { onMessage } = await connectAndCaptureOnMessage()
+            expect(() => onMessage('ff/v1/team-1/team/updated', Buffer.from('not json'))).not.toThrow()
+            expect(refreshTeam).toHaveBeenCalledTimes(1)
+        })
+
+        test('ignores topics outside the team-channel scheme', async () => {
+            const { onMessage } = await connectAndCaptureOnMessage()
+            onMessage('ff/v1/team-1/some/other/topic', Buffer.from('{}'))
+            expect(refreshTeam).not.toHaveBeenCalled()
+            expect(refreshTeamMembership).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('disconnect / destroy', () => {
+        test('disconnect destroys the client and clears connected state', async () => {
+            const { service, mqtt } = createService()
+            mqtt.createClient.mockResolvedValue(undefined)
+            await service.connect({ id: 'team-1' })
+            await service.disconnect()
+            expect(mqtt.destroyClient).toHaveBeenCalledWith('team:team-1')
+            expect(service.isConnected()).toBe(false)
+        })
+
+        test('disconnect is a no-op when not connected', async () => {
+            const { service, mqtt } = createService()
+            await service.disconnect()
+            expect(mqtt.destroyClient).not.toHaveBeenCalled()
+        })
+
+        test('destroy disconnects and clears the sessionId cache', async () => {
+            const { service, mqtt } = createService()
+            mqtt.createClient.mockResolvedValue(undefined)
+            await service.connect({ id: 'team-1' })
+            const sessionIdBefore = service.getSessionId()
+            await service.destroy()
+            expect(mqtt.destroyClient).toHaveBeenCalledWith('team:team-1')
+            // per-tab id survives destroy (logout/login on same tab)
+            expect(sessionStorage.getItem('ff-team-channel-session-id')).toBe(sessionIdBefore)
+        })
+    })
+})

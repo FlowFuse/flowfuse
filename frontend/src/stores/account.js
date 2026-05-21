@@ -4,9 +4,16 @@ import flowBlueprintsApi from '@/api/flowBlueprints.js'
 import teamApi from '@/api/team.js'
 import userApi from '@/api/user.js'
 import product from '@/services/product.js'
+import getServicesOrchestrator from '@/services/service.orchestrator'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
+
+function ensureTeamChannelConnected (team) {
+    if (!team?.id) return
+    const teamChannel = getServicesOrchestrator().$serviceInstances.teamChannel
+    teamChannel?.connect(team).catch(() => {})
+}
 
 export const useAccountStore = defineStore('account', {
     state: () => ({
@@ -56,6 +63,7 @@ export const useAccountStore = defineStore('account', {
                 if (!currentTeam || currentTeam.slug !== team) {
                     team = await teamApi.getTeam({ slug: team })
                 } else {
+                    ensureTeamChannelConnected(currentTeam)
                     this.pendingTeamChange = false
                     return
                 }
@@ -69,6 +77,7 @@ export const useAccountStore = defineStore('account', {
                     if (team?.id) {
                         context.setTeamMembership(await teamApi.getTeamUserMembership(team.id))
                     }
+                    ensureTeamChannelConnected(team || currentTeam)
                     this.pendingTeamChange = false
                     return
                 }
@@ -80,6 +89,11 @@ export const useAccountStore = defineStore('account', {
             context.setTeam(team)
             this.clearOtherStores()
             context.setTeamMembership(teamMembership)
+            if (team?.id) {
+                ensureTeamChannelConnected(team)
+            } else {
+                getServicesOrchestrator().$serviceInstances.teamChannel?.disconnect().catch(() => {})
+            }
             this.pendingTeamChange = false
         },
         async refreshTeams () {

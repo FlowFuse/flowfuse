@@ -320,6 +320,11 @@ const getTeamAuditLog = async (teamId, params, cursor, limit) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/audit-log`, cursor, limit)
     return client.get(url, { params }).then(res => res.data)
 }
+const getTeamCommsCreds = (teamId, sessionId) => {
+    return client.post(`/api/v1/teams/${teamId}/comms-credentials`, { sessionId })
+        .then(res => res.data)
+}
+
 const getTeamUserMembership = (teamId) => {
     return client.get(`/api/v1/teams/${teamId}/user`).then(res => res.data)
 }
@@ -564,6 +569,7 @@ export default {
     resendTeamInvitation,
     getTeamAuditLog,
     getTeamUserMembership,
+    getTeamCommsCreds,
     getTeamDevices,
     getTeamRegistry,
     generateRegistryUserToken,

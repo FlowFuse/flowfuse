@@ -60,6 +60,18 @@ module.exports = fp(async function (app, _opts) {
                         client.publish('ff/v1/platform/leader', JSON.stringify(msg))
                     }
                 }
+            },
+            team: {
+                notify: function (teamHash, reason, srcId) {
+                    if (!teamHash) return
+                    const msg = { reason: reason || null, srcId: srcId || null }
+                    client.publish(`ff/v1/${teamHash}/team/updated`, JSON.stringify(msg))
+                },
+                notifyMembership: function (teamHash, userHash, reason, srcId) {
+                    if (!teamHash || !userHash) return
+                    const msg = { reason: reason || null, srcId: srcId || null }
+                    client.publish(`ff/v1/${teamHash}/u/${userHash}/membership`, JSON.stringify(msg))
+                }
             }
         })
 
