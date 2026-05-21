@@ -80,7 +80,9 @@ export const FEATURE_CONFIGS = [
         output: 'isGeneratedSnapshotDescriptionFeatureEnabled',
         platformKey: 'generatedSnapshotDescription',
         teamKey: 'generatedSnapshotDescription',
-        dependsOnPlatform: 'ai'
+        dependsOnPlatform: 'ai',
+        dependsOnTeam: 'ai',
+        dependsOnTeamOptOut: true
     },
     { output: 'isApplicationsRBACFeatureEnabled', platformKey: 'rbacApplication', teamKey: 'rbacApplication' },
 
