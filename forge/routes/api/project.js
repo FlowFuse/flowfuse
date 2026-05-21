@@ -849,10 +849,10 @@ module.exports = async function (app) {
 
         await request.project.Team.ensureTeamTypeExists()
         const team = request.project.Team
-        const isAiEnabledForTeam = team.getFeatureProperty('ai', true)
-        const assistantInlineCompletionsFeatureEnabled = !!(isAiEnabledForTeam && app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
+        const isAiEnabled = app.config.features.enabled('ai') && team.getFeatureProperty('ai', true)
+        const assistantInlineCompletionsFeatureEnabled = !!(isAiEnabled && app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
         settings.assistant = {
-            enabled: isAiEnabledForTeam && (app.config.assistant?.enabled || false),
+            enabled: isAiEnabled && (app.config.assistant?.enabled || false),
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
             mcp: { enabled: true }, // default to enabled
             completions: {
@@ -1464,7 +1464,7 @@ module.exports = async function (app) {
                 await request.project.Team.ensureTeamTypeExists()
                 const tier = app.license.get('tier')
                 const isEnterprise = tier === 'enterprise'
-                const isAiEnabled = request.project.Team.getFeatureProperty('ai', true)
+                const isAiEnabled = app.config.features.enabled('ai') && request.project.Team.getFeatureProperty('ai', true)
                 const hasFeature = request.project.Team.getFeatureProperty('generatedSnapshotDescription', false)
 
                 if (!isEnterprise || !isAiEnabled || !hasFeature) {

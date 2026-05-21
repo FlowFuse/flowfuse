@@ -216,6 +216,47 @@ describe('account-settings store', () => {
                 // flag undefined on team type → defaults to enabled
                 expect(store.featuresCheck.isSharedLibraryFeatureEnabledForTeam).toBe(true)
             })
+
+            it('isGeneratedSnapshotDescriptionFeatureEnabled requires platform and team ai', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { generatedSnapshotDescription: true, ai: true }, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { generatedSnapshotDescription: true, ai: true } })
+                expect(store.featuresCheck.isGeneratedSnapshotDescriptionFeatureEnabled).toBe(true)
+            })
+
+            it('isGeneratedSnapshotDescriptionFeatureEnabled is false when platform ai is disabled', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { generatedSnapshotDescription: true, ai: true }, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { generatedSnapshotDescription: true, ai: false } })
+                expect(store.featuresCheck.isGeneratedSnapshotDescriptionFeatureEnabled).toBe(false)
+            })
+
+            it('isGeneratedSnapshotDescriptionFeatureEnabled is false when team ai is disabled', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { generatedSnapshotDescription: true, ai: false }, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { generatedSnapshotDescription: true, ai: true } })
+                expect(store.featuresCheck.isGeneratedSnapshotDescriptionFeatureEnabled).toBe(false)
+            })
+
+            it('isExpertAssistantFeatureEnabled requires platform ai only', () => {
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { expertAssistant: true, ai: true } })
+                expect(store.featuresCheck.isExpertAssistantFeatureEnabled).toBe(true)
+            })
+
+            it('isExpertAssistantFeatureEnabled is true when platform ai is on even if team ai is off', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { ai: false }, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { expertAssistant: true, ai: true } })
+                expect(store.featuresCheck.isAiFeatureEnabled).toBe(false)
+                expect(store.featuresCheck.isExpertAssistantFeatureEnabled).toBe(true)
+            })
+
+            it('isExpertAssistantFeatureEnabled is false when platform ai is disabled', () => {
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { expertAssistant: true, ai: false } })
+                expect(store.featuresCheck.isExpertAssistantFeatureEnabled).toBe(false)
+            })
         })
     })
 })
