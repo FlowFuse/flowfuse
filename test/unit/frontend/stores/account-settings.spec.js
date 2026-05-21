@@ -217,6 +217,40 @@ describe('account-settings store', () => {
                 expect(store.featuresCheck.isSharedLibraryFeatureEnabledForTeam).toBe(true)
             })
 
+            it('isAiFeatureEnabled is true when both platform and team have ai enabled', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { ai: true }, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { ai: true } })
+                expect(store.featuresCheck.isAiFeatureEnabledForPlatform).toBe(true)
+                expect(store.featuresCheck.isAiFeatureEnabledForTeam).toBe(true)
+                expect(store.featuresCheck.isAiFeatureEnabled).toBe(true)
+            })
+
+            it('isAiFeatureEnabled is false when platform ai is disabled', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { ai: true }, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { ai: false } })
+                expect(store.featuresCheck.isAiFeatureEnabledForPlatform).toBe(false)
+                expect(store.featuresCheck.isAiFeatureEnabled).toBe(false)
+            })
+
+            it('isAiFeatureEnabled is false when team ai is explicitly disabled', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { ai: false }, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { ai: true } })
+                expect(store.featuresCheck.isAiFeatureEnabledForPlatform).toBe(true)
+                expect(store.featuresCheck.isAiFeatureEnabledForTeam).toBe(false)
+                expect(store.featuresCheck.isAiFeatureEnabled).toBe(false)
+            })
+
+            it('isAiFeatureEnabled is true when team ai is undefined and enableAllFeatures is true', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { enableAllFeatures: true, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { ai: true } })
+                expect(store.featuresCheck.isAiFeatureEnabledForTeam).toBe(true)
+                expect(store.featuresCheck.isAiFeatureEnabled).toBe(true)
+            })
+
             it('isGeneratedSnapshotDescriptionFeatureEnabled requires platform and team ai', () => {
                 mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { generatedSnapshotDescription: true, ai: true }, billing: {}, instances: {} } } } })
                 const store = useAccountSettingsStore()
