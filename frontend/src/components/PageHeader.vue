@@ -1,7 +1,7 @@
 <template>
     <div class="ff-header" data-sentry-unmask>
         <!-- Mobile: Toggle(Team & Team Admin Options) -->
-        <i v-if="!hiddenLeftDrawer" class="ff-header--mobile-toggle">
+        <i v-if="!hiddenLeftDrawer && !editorImmersiveDrawer.active" class="ff-header--mobile-toggle">
             <transition name="mobile-menu-fade" mode="out-in">
                 <MenuIcon v-if="!leftDrawer.state" class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
                 <XIcon v-else class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
@@ -132,7 +132,7 @@ export default {
         Roles () {
             return Roles
         },
-        ...mapState(useUxDrawersStore, ['leftDrawer', 'hiddenLeftDrawer']),
+        ...mapState(useUxDrawersStore, ['leftDrawer', 'hiddenLeftDrawer', 'editorImmersiveDrawer']),
         ...mapState(useAccountAuthStore, ['user']),
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountStore, ['teams', 'notifications', 'hasAvailableTeams', 'defaultUserTeam']),

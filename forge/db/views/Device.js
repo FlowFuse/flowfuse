@@ -34,7 +34,9 @@ module.exports = function (app) {
             },
             nrVersion: { type: 'string' },
             localLoginEnabled: { type: 'boolean' }
-        }
+        },
+        // POST /devices/ extends this via allOf with credentials + meta.
+        required: ['id', 'lastSeenAt', 'lastSeenMs', 'status', 'mode', 'isDeploying']
     })
 
     function device (device, { statusOnly = false } = {}) {
@@ -107,10 +109,12 @@ module.exports = function (app) {
             mode: { type: 'string' },
             isDeploying: { type: 'boolean' },
             links: { $ref: 'LinksMeta' },
-            application: { $ref: 'Application' },
+            application: { $ref: 'ApplicationSummary' },
             mostRecentAuditLogCreatedAt: { type: 'string' },
             mostRecentAuditLogEvent: { type: 'string' }
-        }
+        },
+        required: ['id', 'ownerType', 'name', 'type', 'lastSeenAt', 'lastSeenMs', 'status', 'mode', 'isDeploying', 'links'],
+        additionalProperties: false
     })
     app.addSchema({
         $id: 'DeviceSummaryList',
@@ -162,7 +166,9 @@ module.exports = function (app) {
             mode: { type: 'string' },
             isDeploying: { type: 'boolean' },
             editor: { type: 'object', additionalProperties: true }
-        }
+        },
+        required: ['id', 'lastSeenAt', 'lastSeenMs', 'status', 'mode', 'isDeploying'],
+        additionalProperties: false
     })
     app.addSchema({
         $id: 'DeviceStatusList',

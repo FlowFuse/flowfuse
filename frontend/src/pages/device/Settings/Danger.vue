@@ -3,24 +3,24 @@
     <template v-if="!loading.deleting && device?.lastSeenAt">
         <FormHeading class="text-red-700">Regenerate Configuration</FormHeading>
         <div class="flex flex-col lg:flex-row max-w-2xl space-y-4 mb-8" data-el="device-regenerate-config">
-            <div class="flex-grow">
+            <div class="grow">
                 <div class="max-w-sm pt-2">
                     Regenerate the agent configuration for this Remote Instance.
                 </div>
             </div>
-            <div class="min-w-fit flex-shrink-0">
+            <div class="min-w-fit shrink-0">
                 <ff-button kind="danger" @click="showRegenerateDialog()">Regenerate Configuration</ff-button>
             </div>
         </div>
     </template>
     <FormHeading v-if="!loading.deleting" class="text-red-700">Delete Remote Instance</FormHeading>
     <div v-if="!loading.deleting" class="flex flex-col lg:flex-row max-w-2xl space-y-4" data-el="device-danger">
-        <div class="flex-grow">
+        <div class="grow">
             <div class="max-w-sm pt-2">
                 Once deleted, your Remote Instance is removed. This cannot be undone.
             </div>
         </div>
-        <div class="min-w-fit flex-shrink-0">
+        <div class="min-w-fit shrink-0">
             <ff-button kind="danger" @click="showConfirmDeleteDialog()">Delete Remote Instance</ff-button>
             <ConfirmDeviceDeleteDialog @delete-device="deleteDevice()" ref="confirmDeviceDeleteDialog" />
         </div>

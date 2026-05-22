@@ -15,9 +15,12 @@ module.exports = function (app) {
                     user: { type: 'string' },
                     password: { type: 'string' }
                 },
-                required: ['host', 'port', 'ssl', 'database', 'user', 'password']
+                required: ['host', 'port', 'ssl', 'database', 'user', 'password'],
+                additionalProperties: false
             }
-        }
+        },
+        required: ['id', 'name', 'credentials'],
+        additionalProperties: false
     })
 
     app.addSchema({
@@ -32,16 +35,20 @@ module.exports = function (app) {
                 default: { type: 'string', nullable: true },
                 generated: { type: 'boolean' },
                 maxLength: { type: 'number', nullable: true }
-            }
+            },
+            required: ['name', 'type'],
+            additionalProperties: true
         }
     })
 
     function table (tableInstance) {
         if (tableInstance) {
             const result = tableInstance.toJSON()
-            result.id = result.hashid
-            delete result.hashid
-            return result
+            return {
+                id: result.hashid,
+                name: result.name,
+                credentials: result.credentials
+            }
         } else {
             return null
         }

@@ -7,7 +7,7 @@
                 </template>
             </ff-page-header>
         </template>
-        <div class="flex-grow">
+        <div class="grow">
             <router-view :inviteCount="inviteCount" @invites-updated="checkAccess()" />
         </div>
     </ff-page>

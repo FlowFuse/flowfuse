@@ -677,7 +677,8 @@
     </template>
     <template v-else-if="entry.event === 'stopped'">
         <label>{{ AuditEvents[entry.event] }}</label>
-        <span>Something has gone wrong. Check the instance logs to investigate further.</span>
+        <span v-if="!error && entry.body?.info">Stop reason: '{{ entry.body.info.code }}'. Additional information: '{{ entry.body.info.info || 'N/A' }}'.</span>
+        <span v-else-if="!error">Node-RED has stopped. Check the instance logs to investigate further.</span>
     </template>
     <template v-else-if="entry.event === 'safe-mode'">
         <label>{{ AuditEvents[entry.event] }}</label>

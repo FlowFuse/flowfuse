@@ -13,7 +13,9 @@ module.exports = function (app) {
             createdAt: { type: 'string' },
             instanceCount: { type: 'number' },
             links: { $ref: 'LinksMeta' }
-        }
+        },
+        required: ['id', 'name', 'active', 'properties', 'createdAt', 'links'],
+        additionalProperties: false
     })
 
     function stack (stack, includeCount) {
@@ -49,7 +51,9 @@ module.exports = function (app) {
             properties: { type: 'object', additionalProperties: true },
             replacedBy: { type: 'string' },
             links: { $ref: 'LinksMeta' }
-        }
+        },
+        required: ['id', 'name', 'properties', 'links'],
+        additionalProperties: false
     })
     function stackSummary (stack) {
         if (stack.toJSON) {

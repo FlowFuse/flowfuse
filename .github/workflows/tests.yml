@@ -84,7 +84,7 @@ jobs:
     - name: Run forge system tests
       run: npm run cover:system
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+      uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         flags: backend
@@ -173,7 +173,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Run UI E2E (Cypress) Tests - OS
-        uses: cypress-io/github-action@783cb3f07983868532cabaedaa1e6c00ff4786a8 # v7.1.9
+        uses: cypress-io/github-action@dace029018fcdf86e0df89a31bc3cfa5b32570d8 # v7.3.0
         with:
           install: false
           config-file: config/cypress-os.config.js
@@ -215,7 +215,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Run UI E2E (Cypress) Tests - EE
-        uses: cypress-io/github-action@783cb3f07983868532cabaedaa1e6c00ff4786a8 # v7.1.9
+        uses: cypress-io/github-action@dace029018fcdf86e0df89a31bc3cfa5b32570d8 # v7.3.0
         with:
             install: false
             config-file: config/cypress-ee.config.js
@@ -303,7 +303,7 @@ jobs:
         fi
 
     - name: Send notification
-      uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # v3.0.2
+      uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
       with:
         method: chat.postMessage
         token: ${{ secrets.SLACK_GHBOT_TOKEN }}

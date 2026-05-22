@@ -4,17 +4,17 @@ navTitle: Chat Interface
 
 # Chat Interface
 
-The FlowFuse Expert chat interface is your conversational AI companion that you can open directly in the Node-RED editor. While other FlowFuse Expert features (like inline code completions and next-node prediction) work passively in the Node-RED Editor, the chat interface is where you actively engage the AI - asking questions, exploring your flows, and gaining insights from your live data.
+The FlowFuse Expert chat interface is where you actively engage the AI: asking questions, building flows directly on your canvas, and querying live operational data. While other FlowFuse Expert features (like inline code completions and next-node prediction) work passively in the Node-RED editor, the chat interface is where you direct Expert and see it act on your behalf.
 
 ## Opening the Chat Interface
 
-To open the chat, first open your Node-RED instance using the **Open Editor** button. This launches Immersive Mode.
+To open the chat, first open your Node-RED instance using the **Open Editor** button. This launches Immersive Mode, where the Expert panel is available alongside your canvas.
 
-As of v2.29, the FlowFuse Expert panel opens automatically when you enter the immersive editor. If you close the panel, that preference is saved — Expert will remain closed on your next visit so it doesn't get in your way.
+While in Immersive Mode you also have access to all [instance settings](/docs/user/instance-settings/) from a drawer that sits beside the canvas. You can manage environment variables, snapshots, the palette, and other settings without leaving the editor. Use the eye icon at the top of the drawer to move it left or right, pin or unpin it, or toggle fullscreen mode.
 
-You can reopen the Expert panel at any time by clicking the **FlowFuse Expert** button in the top-left of the editor.
+> **Note:** Note: As of v2.29, the FlowFuse Expert panel opens automatically whenever you enter the FlowFuse platform or an instance. If you close the panel, your preference is saved — Expert will remain closed on your next visit so it doesn’t get in your way. To open or close the panel while within the editor, click the FlowFuse drawer button in the top-left corner of the editor.
 
-![FlowFuse Expert open by default in the immersive editor.](../images/assistant/ff-expert-opened-by-default.png){data-zoomable}
+!["Chat interface of FlowFuse Expert alongside the Node-RED editor"](../images/assistant/flowfuse-expert-drawer.png){data-zoomable}
 
 ## Chat Modes
 
@@ -42,13 +42,33 @@ The chat interface operates in two distinct modes. You can switch between them u
 
 ### Support Mode
 
-**Support mode** is for flow-building assistance. Use it when you need help understanding, building, or debugging your Node-RED flows. In this mode, the Expert draws on its knowledge of Node-RED, your installed palette, and the context of your current flows to answer questions and provide guidance.
+**Support mode** is for flow-building assistance. Use it when you need help understanding, building, or debugging your Node-RED flows. Expert draws on its knowledge of Node-RED, your installed palette, and the context of your current flows to answer questions, explain and debug flows, and, when agentic flow building is enabled, build flows directly on your canvas.
 
 Typical use cases in Support mode:
 - "How do I convert data to CSV for writing to file & do you have any flow examples?"
 - "Explain what this flow is doing"
 - "Why is this node outputting a number instead of a string?"
 - "Is `node-red-contrib-string` node installed on this instance?"
+- "Build a flow that reads from Modbus and publishes each tag value to MQTT"
+
+#### Building Flows on the Canvas
+
+Expert can act on your requests directly by adding tabs, placing and wiring nodes, and configuring node properties on the canvas, rather than only describing what you should do yourself.
+
+To use it, describe what you want to build in the chat input, the same way you would ask a question. Expert will start working immediately, and you can follow along via real-time status updates in the chat panel as each step completes. When it finishes, the result is live on your canvas. You can continue refining it through chat by asking Expert to adjust a configuration, add a node, or change a topic path, or you can edit the canvas directly as normal.
+
+![FlowFuse Expert building and configuring a flow directly on the Node-RED canvas](../images/assistant/flowfuse-expert-building-flow.gif){data-zoomable}
+
+Some prompts that work well:
+
+- "Create a flow that reads Modbus registers from `192.168.1.10` every 5 seconds and publishes the values to MQTT on `factory/line3/temperature`"
+- "Build an OEE dashboard tab with downtime reason buttons and a shift target gauge"
+- "Add a shift handover screen that shows the last 5 alarms and a notes input field"
+- "Set up a flow that polls an HTTP endpoint every minute and sends an alert if the response status is not 200"
+
+The more specific your prompt, the closer the result will be to what you need. Include node names, topic paths, endpoints, or field names where you have them. Expert will use them directly rather than substituting placeholders.
+
+> **Availability:** This feature is currently available on **FlowFuse Cloud** (Starter, Team, and Enterprise tiers) and must be enabled for your team on request. [Contact us](https://flowfuse.com/contact-us/?subject=FlowFuse%20Expert%20Application%20Building) to get access. Self-hosted support is coming in a future release.
 
 #### Context: What the Expert Can See
 
@@ -159,9 +179,9 @@ Typical use cases in Insights mode:
 
 ## Writing Better Queries
 
-The quality of the Expert's responses depends heavily on how your questions are phrased. The more specific and contextual your query, the more accurate and actionable the answer.
+The quality of Expert's responses depends heavily on how your prompt is phrased, whether you are asking a question or requesting Expert to build something on the canvas. The more specific and contextual your prompt, the more accurate and actionable the result.
 
-Here are some common patterns to improve your queries:
+Here are some common patterns to improve your prompts:
 
 ### Be specific about what you're referring to
 
