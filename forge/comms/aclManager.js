@@ -135,7 +135,8 @@ module.exports = function (app) {
                 if (!user) return false
                 const membership = await app.db.models.TeamMember.getTeamMembership(user.id, team.id, false)
                 return !!membership
-            } catch (err) {
+            } catch (error) {
+                app.log.error('Unexpected error during team-channel ACL check', { requestParts, usernameParts, error })
                 return false
             }
         },

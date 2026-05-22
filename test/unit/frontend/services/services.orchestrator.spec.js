@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 const mockCreateBootstrapService = vi.fn()
 const mockCreateMessagingService = vi.fn()
 const mockCreateMqttService = vi.fn()
+const mockCreateTeamChannelService = vi.fn()
 
 vi.mock('../../../../frontend/src/services/bootstrap.service.js', () => {
     return {
@@ -22,6 +23,12 @@ vi.mock('../../../../frontend/src/services/mqtt.service.js', () => {
     }
 })
 
+vi.mock('../../../../frontend/src/services/team-channel.service.js', () => {
+    return {
+        createTeamChannelService: mockCreateTeamChannelService
+    }
+})
+
 async function loadOrchestratorModule () {
     vi.resetModules()
     return await import('../../../../frontend/src/services/service.orchestrator.ts')
@@ -32,16 +39,19 @@ describe('ServicesOrchestrator', () => {
         mockCreateBootstrapService.mockReset()
         mockCreateMessagingService.mockReset()
         mockCreateMqttService.mockReset()
+        mockCreateTeamChannelService.mockReset()
     })
 
     test('init boots services, injects shared instances, and provides them on the app', async () => {
         const bootstrapService = { name: 'bootstrap', init: vi.fn(), destroy: vi.fn().mockResolvedValue() }
         const postMessageService = { name: 'postMessage', destroy: vi.fn().mockResolvedValue() }
         const mqttService = { name: 'mqtt', destroy: vi.fn().mockResolvedValue() }
+        const teamChannelService = { name: 'teamChannel', destroy: vi.fn().mockResolvedValue() }
 
         mockCreateBootstrapService.mockReturnValue(bootstrapService)
         mockCreateMessagingService.mockReturnValue(postMessageService)
         mockCreateMqttService.mockReturnValue(mqttService)
+        mockCreateTeamChannelService.mockReturnValue(teamChannelService)
 
         const app = {
             provide: vi.fn(),
@@ -57,17 +67,21 @@ describe('ServicesOrchestrator', () => {
         const bootstrapArgs = mockCreateBootstrapService.mock.calls[0][0]
         const messagingArgs = mockCreateMessagingService.mock.calls[0][0]
         const mqttArgs = mockCreateMqttService.mock.calls[0][0]
+        const teamChannelArgs = mockCreateTeamChannelService.mock.calls[0][0]
 
         expect(bootstrapArgs).toMatchObject({ app, router })
         expect(messagingArgs).toMatchObject({ app, router })
         expect(mqttArgs).toMatchObject({ app, router })
+        expect(teamChannelArgs).toMatchObject({ app, router })
 
         expect(messagingArgs.services).toBe(bootstrapArgs.services)
         expect(mqttArgs.services).toBe(bootstrapArgs.services)
+        expect(teamChannelArgs.services).toBe(bootstrapArgs.services)
         expect(bootstrapArgs.services).toMatchObject({
             bootstrap: bootstrapService,
             postMessage: postMessageService,
-            mqtt: mqttService
+            mqtt: mqttService,
+            teamChannel: teamChannelService
         })
 
         expect(bootstrapService.init).toHaveBeenCalledTimes(1)
@@ -78,10 +92,12 @@ describe('ServicesOrchestrator', () => {
         const bootstrapService = { name: 'bootstrap', init: vi.fn(), destroy: vi.fn().mockResolvedValue() }
         const postMessageService = { name: 'postMessage', destroy: vi.fn().mockResolvedValue() }
         const mqttService = { name: 'mqtt', destroy: vi.fn().mockRejectedValue(new Error('destroy failed')) }
+        const teamChannelService = { name: 'teamChannel', destroy: vi.fn().mockResolvedValue() }
 
         mockCreateBootstrapService.mockReturnValue(bootstrapService)
         mockCreateMessagingService.mockReturnValue(postMessageService)
         mockCreateMqttService.mockReturnValue(mqttService)
+        mockCreateTeamChannelService.mockReturnValue(teamChannelService)
 
         const app = {
             provide: vi.fn(),
@@ -96,11 +112,13 @@ describe('ServicesOrchestrator', () => {
         bootstrapService.destroy.mockClear()
         postMessageService.destroy.mockClear()
         mqttService.destroy.mockClear()
+        teamChannelService.destroy.mockClear()
         await orchestrator.dispose()
 
         expect(bootstrapService.destroy).toHaveBeenCalledTimes(1)
         expect(postMessageService.destroy).toHaveBeenCalledTimes(1)
         expect(mqttService.destroy).toHaveBeenCalledTimes(1)
+        expect(teamChannelService.destroy).toHaveBeenCalledTimes(1)
         expect(orchestrator.$serviceInstances).toEqual({
             bootstrap: null,
             postMessage: null,
@@ -116,10 +134,12 @@ describe('ServicesOrchestrator', () => {
         const bootstrapService = { name: 'bootstrap', init: vi.fn(), destroy: vi.fn().mockResolvedValue() }
         const postMessageService = { name: 'postMessage', destroy: vi.fn().mockResolvedValue() }
         const mqttService = { name: 'mqtt', destroy: vi.fn().mockResolvedValue() }
+        const teamChannelService = { name: 'teamChannel', destroy: vi.fn().mockResolvedValue() }
 
         mockCreateBootstrapService.mockReturnValue(bootstrapService)
         mockCreateMessagingService.mockReturnValue(postMessageService)
         mockCreateMqttService.mockReturnValue(mqttService)
+        mockCreateTeamChannelService.mockReturnValue(teamChannelService)
 
         const app = {
             provide: vi.fn(),

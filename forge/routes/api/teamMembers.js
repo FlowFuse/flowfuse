@@ -117,12 +117,10 @@ module.exports = async function (app) {
         // the needsPermission handler will have ensured the requesting user is allowed
         // to make this request. All we have to do
         try {
-            // Cue the targeted user's session to redirect before we delete the
-            // membership row (so their next API call doesn't 404 them mid-action).
-            app.comms?.team?.notifyMembership(request.team.hashid, request.user.hashid, 'removed')
             const result = await app.db.controllers.Team.removeUser(request.team, request.user, request.userRole)
             if (result) {
                 await app.auditLog.Team.team.user.removed(request.session.User, null, request.team, request.user)
+                app.comms?.team?.notifyMembership(request.team.hashid, request.user.hashid, 'removed')
             }
             reply.send({ status: 'okay' })
         } catch (err) {
