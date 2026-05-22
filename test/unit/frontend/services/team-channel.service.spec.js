@@ -54,24 +54,23 @@ describe('TeamChannelService', async () => {
     })
 
     describe('getSessionId', () => {
-        test('mints a sessionId and persists it to sessionStorage', () => {
+        test('mints a uuid sessionId on first call', () => {
             const { service } = createService()
             const id = service.getSessionId()
             expect(id).toMatch(/^[0-9a-f-]{36}$/)
-            expect(sessionStorage.getItem('ff-team-channel-session-id')).toBe(id)
         })
 
-        test('returns the same sessionId on subsequent calls', () => {
+        test('returns the same sessionId on subsequent calls within the same instance', () => {
             const { service } = createService()
             const first = service.getSessionId()
             const second = service.getSessionId()
             expect(second).toBe(first)
         })
 
-        test('reuses an existing sessionStorage value (same browser tab)', () => {
-            sessionStorage.setItem('ff-team-channel-session-id', 'existing-session')
+        test('does not persist to sessionStorage (so duplicated tabs get distinct ids)', () => {
             const { service } = createService()
-            expect(service.getSessionId()).toBe('existing-session')
+            service.getSessionId()
+            expect(sessionStorage.getItem('ff-team-channel-session-id')).toBeNull()
         })
     })
 
@@ -221,14 +220,24 @@ describe('TeamChannelService', async () => {
             expect(router.push).not.toHaveBeenCalled()
         })
 
-        test('membership "removed" redirects to Home when on a team route', async () => {
-            const { onMessage, router } = await connectAndCaptureOnMessage()
+        test('membership "removed" hard-reloads to / when on a team route', async () => {
+            const assign = vi.fn()
+            Object.defineProperty(window, 'location', {
+                writable: true,
+                value: { ...window.location, assign }
+            })
+            const { onMessage } = await connectAndCaptureOnMessage()
             onMessage('ff/v1/team-1/u/user-hashid-1/membership', Buffer.from(JSON.stringify({ reason: 'removed' })))
-            expect(router.push).toHaveBeenCalledWith({ name: 'Home' })
+            expect(assign).toHaveBeenCalledWith('/')
             expect(refreshTeamMembership).not.toHaveBeenCalled()
         })
 
-        test('membership "removed" does not redirect when on a non-team route', async () => {
+        test('membership "removed" does not reload when on a non-team route', async () => {
+            const assign = vi.fn()
+            Object.defineProperty(window, 'location', {
+                writable: true,
+                value: { ...window.location, assign }
+            })
             const router = makeRouter('/account')
             const { service, mqtt } = createService({ router })
             let onMessage
@@ -237,7 +246,7 @@ describe('TeamChannelService', async () => {
             })
             await service.connect({ id: 'team-1' })
             onMessage('ff/v1/team-1/u/user-hashid-1/membership', Buffer.from(JSON.stringify({ reason: 'removed' })))
-            expect(router.push).not.toHaveBeenCalled()
+            expect(assign).not.toHaveBeenCalled()
         })
 
         test('does not throw on malformed JSON payloads', async () => {
@@ -270,15 +279,15 @@ describe('TeamChannelService', async () => {
             expect(mqtt.destroyClient).not.toHaveBeenCalled()
         })
 
-        test('destroy disconnects and clears the sessionId cache', async () => {
+        test('destroy disconnects and clears the in-memory sessionId', async () => {
             const { service, mqtt } = createService()
             mqtt.createClient.mockResolvedValue(undefined)
             await service.connect({ id: 'team-1' })
             const sessionIdBefore = service.getSessionId()
             await service.destroy()
             expect(mqtt.destroyClient).toHaveBeenCalledWith('team:team-1')
-            // per-tab id survives destroy (logout/login on same tab)
-            expect(sessionStorage.getItem('ff-team-channel-session-id')).toBe(sessionIdBefore)
+            // next caller mints a fresh id rather than reusing the destroyed one
+            expect(service.getSessionId()).not.toBe(sessionIdBefore)
         })
     })
 })

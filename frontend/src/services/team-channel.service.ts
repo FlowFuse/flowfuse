@@ -9,7 +9,6 @@ import { Maybe } from '@/types/common/types'
 import type { CreateServiceOptions } from '@/types/services/service.types'
 import type { TeamChannelServiceI, TeamRef } from '@/types/services/team-channel.types'
 
-const SESSION_KEY = 'ff-team-channel-session-id'
 const MEMBERSHIP_TOPIC_REGEX = /^ff\/v1\/[^/]+\/u\/([^/]+)\/membership$/
 
 function connectionKey (teamId: string): string {
@@ -29,19 +28,11 @@ class TeamChannelService extends BaseService implements TeamChannelServiceI {
         })
     }
 
+    // Minted per page-load so duplicated tabs (which clone sessionStorage in
+    // most browsers) still get distinct credentials and don't kick each other.
     getSessionId (): string {
-        if (this.$sessionId) return this.$sessionId
-        try {
-            let sessionId = sessionStorage.getItem(SESSION_KEY)
-            if (!sessionId) {
-                sessionId = uuidv4()
-                sessionStorage.setItem(SESSION_KEY, sessionId)
-            }
-            this.$sessionId = sessionId
-        } catch {
-            this.$sessionId = uuidv4()
-        }
-        return this.$sessionId as string
+        if (!this.$sessionId) this.$sessionId = uuidv4()
+        return this.$sessionId
     }
 
     isConnected (): boolean {
@@ -153,13 +144,12 @@ class TeamChannelService extends BaseService implements TeamChannelServiceI {
 
     protected _handleMembership (payload: { reason?: string }): void {
         if (payload?.reason === 'removed') {
-            // Only redirect if the user is on a team-scoped route — leave them
+            // Only act if the user is on a team-scoped route — leave them
             // alone if they're already on /account or another non-team page.
             const path = this.$router?.currentRoute?.value?.path
             if (typeof path === 'string' && path.startsWith('/team/')) {
-                try {
-                    this.$router?.push({ name: 'Home' })
-                } catch {}
+                // Hard reload — a soft push to Home bounces back to the current team
+                try { window.location.assign('/') } catch {}
             }
             return
         }
