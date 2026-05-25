@@ -184,12 +184,18 @@ including what Instance Types are available and any limits that should be applie
  - **Tables**
 
     Provides a Team scoped shared SQL Relational Database (Requires specific configuration). More details [here](../user/ff-tables.md)
+ - **Expert Assistant**
+
+    Enables the FlowFuse Expert chat assistant for the team. Provides AI-powered support for building and debugging Node-RED flows. Enabled by default (opt-out). Requires the AI Features flag to be enabled. More details [here](/docs/user/expert/)
+ - **Expert Insights**
+
+    Enables the Insights mode of FlowFuse Expert, allowing users to query live operational data from Node-RED instances via MCP. Enabled by default (opt-out). Requires the AI Features flag to be enabled. More details [here](/docs/user/expert/chat/)
  - **Assistant Inline Code Completion**
  
-    Allows LLM assistance when writing Functions nodes (requires a token from FlowFuse Support and available to Enterprise License holders). More details [here](/docs/user/expert/)
+    Allows LLM assistance when writing Function nodes. Requires the AI Features flag to be enabled and assistant service configuration. More details [here](/docs/user/expert/node-red-embedded-ai/)
  - **Generated Snapshot Descriptions**
 
-    Enables the creation of Generative AI descriptions of Snapshots (requires a token from FlowFuse Support and available to Enterprise License holders). More details [here](/docs/user/expert/)
+    Enables AI-generated descriptions of Snapshots. Requires the AI Features flag to be enabled and assistant service configuration. More details [here](/docs/user/expert/node-red-embedded-ai/)
 
 ### Managing Instance Types
 
