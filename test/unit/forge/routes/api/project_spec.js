@@ -20,7 +20,7 @@ describe('Project API', function () {
     const TestObjects = {}
 
     async function setupApp (options) {
-        const setupConfig = { limits: { instances: 50 }, domain: 'flowforge.dev', ...options }
+        const setupConfig = { limits: { instances: 50 }, domain: 'flowforge.dev', assistant: { enabled: true, service: { url: 'http://localhost:9876' } }, ...options }
         app = await setup(setupConfig)
 
         TestObjects.project1 = app.project
@@ -3084,20 +3084,6 @@ describe('Project API', function () {
     })
 
     describe('Generate snapshot change description', function () {
-        let originalAssistantConfig
-        beforeEach(function () {
-            // Ensure assistant is configured so the preHandler passes
-            originalAssistantConfig = app.config.assistant
-            app.config.assistant = {
-                ...app.config.assistant,
-                enabled: true,
-                service: { url: 'http://localhost:9876', ...(app.config.assistant?.service || {}) }
-            }
-        })
-        afterEach(function () {
-            app.config.assistant = originalAssistantConfig
-        })
-
         it('returns 404 when ai platform flag is disabled', async function () {
             app.config.features.register('ai', false, true)
             const originalLicense = app.license
