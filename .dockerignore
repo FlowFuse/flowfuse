@@ -36,3 +36,21 @@ devbox.lock
 .gitmodules
 
 .claude
+.cursor
+.cursorrules
+.cursorignore
+.windsurf
+.windsurfrules
+.aider*
+.continue
+.codeium
+.tabnine
+.cody
+.sourcegraph
+.zed
+.roo
+.kilocode
+.specstory
+CLAUDE.md
+AGENTS.md
+GEMINI.md
