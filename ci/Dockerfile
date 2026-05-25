@@ -49,7 +49,7 @@ ENV FLOWFORGE_HOME=/usr/src/forge
 COPY --chown=node:node package.json package-lock.json ./
 COPY --chown=node:node --from=prod-deps /build/node_modules     ./node_modules
 COPY --chown=node:node --from=builder   /build/forge            ./forge
-COPY --chown=node:node --from=builder   /build/frontend/dist    ./frontend/dist
+COPY --chown=node:node --from=builder   /build/frontend         ./frontend
 
 USER node
 
