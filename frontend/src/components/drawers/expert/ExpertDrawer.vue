@@ -5,7 +5,7 @@
                 <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 shrink-0">
                 <h2 class="title">Expert</h2>
             </div>
-            <div v-if="isInsightsModeEnabled" class="agent-mode">
+            <div v-if="isInsightsModeEnabled && isAssistantModeEnabled" class="agent-mode">
                 <toggle-button-group
                     v-model="agentModeWrapper"
                     :buttons="agentModeButtons"
@@ -70,6 +70,9 @@ export default {
                 { title: 'Support', value: 'support-agent' },
                 { title: 'Insights', value: 'insights-agent' }
             ]
+        },
+        isAssistantModeEnabled () {
+            return !!this.featuresCheck?.isExpertAssistantFeatureEnabled
         },
         isInsightsModeEnabled () {
             return !!this.featuresCheck?.isExpertInsightsFeatureEnabled
