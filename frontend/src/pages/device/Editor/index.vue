@@ -166,7 +166,7 @@ export default {
                     },
                     tag: 'device-expert',
                     icon: ExpertTabIcon,
-                    hidden: !this.featuresCheck.isExpertAssistantFeatureEnabled
+                    hidden: !this.featuresCheck.isExpertAssistantFeatureEnabled && !this.featuresCheck.isExpertInsightsFeatureEnabled
                 },
                 {
                     label: 'Overview',

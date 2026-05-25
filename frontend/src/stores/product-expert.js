@@ -75,7 +75,7 @@ export const useProductExpertStore = defineStore('product-expert', {
     actions: {
         setContext ({ data, sessionId }) {
             const featuresCheck = useAccountSettingsStore().featuresCheck
-            if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
+            if (!featuresCheck.isExpertAssistantFeatureEnabled && !featuresCheck.isExpertInsightsFeatureEnabled) {
                 return
             }
 
@@ -93,7 +93,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         async hydrateClient () {
             const featuresCheck = useAccountSettingsStore().featuresCheck
-            if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
+            if (!featuresCheck.isExpertAssistantFeatureEnabled && !featuresCheck.isExpertInsightsFeatureEnabled) {
                 return
             }
 
@@ -121,7 +121,16 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         openAssistantDrawer (options = {}) {
             const featuresCheck = useAccountSettingsStore().featuresCheck
-            if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+            const hasAssistant = featuresCheck.isExpertAssistantFeatureEnabled
+            const hasInsights = featuresCheck.isExpertInsightsFeatureEnabled
+            if (!hasAssistant && !hasInsights) return
+
+            // If only one mode is available, ensure it is selected
+            if (hasAssistant && !hasInsights) {
+                this.setAgentMode(SUPPORT_AGENT)
+            } else if (!hasAssistant && hasInsights) {
+                this.setAgentMode(INSIGHTS_AGENT)
+            }
 
             // In immersive editor context, navigate to the Expert tab instead of opening RightDrawer
             const contextStore = useContextStore()
@@ -152,7 +161,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
             if (this.shouldWakeUpAssistant) {
                 const featuresCheck = useAccountSettingsStore().featuresCheck
-                if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+                if (!featuresCheck.isExpertAssistantFeatureEnabled && !featuresCheck.isExpertInsightsFeatureEnabled) return
 
                 this.clearWakeUp()
 
