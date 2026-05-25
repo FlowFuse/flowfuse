@@ -91,6 +91,12 @@ describe('Device API', async function () {
             limits: {
                 instances: 50
             },
+            assistant: {
+                enabled: true,
+                service: {
+                    url: 'http://localhost:9876'
+                }
+            },
             ...options
         }
         app = await setup(setupConfig)
@@ -2766,12 +2772,6 @@ describe('Device API', async function () {
             props.enableAllFeatures = false
             TestObjects.defaultTeamType.properties = props
             await TestObjects.defaultTeamType.save()
-
-            // Ensure assistant is configured so the preHandler passes
-            app.config.assistant = app.config.assistant || {}
-            app.config.assistant.enabled = true
-            app.config.assistant.service = app.config.assistant.service || {}
-            app.config.assistant.service.url = app.config.assistant.service.url || 'http://localhost:9876'
 
             // Make license tier appear as enterprise for the feature gate
             if (app.license && app.license.get) {
