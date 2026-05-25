@@ -40,7 +40,7 @@ RUN npm ci --omit=dev \
 
 FROM node:24-alpine
 
-RUN apk add --no-cache git dumb-init
+RUN apk add --no-cache git
 
 WORKDIR /usr/src/forge
 
@@ -55,5 +55,4 @@ USER node
 
 EXPOSE 3000
 
-ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "forge/app.js"]
