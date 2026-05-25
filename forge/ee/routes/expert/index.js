@@ -68,9 +68,12 @@ module.exports = async function (app) {
                 return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
             const isExpertAssistantEnabled = !!(app.config.features.enabled('expertAssistant') && request.team.getFeatureProperty('expertAssistant', true))
-            if (!isExpertAssistantEnabled) {
+            const isExpertInsightsEnabled = !!(app.config.features.enabled('expertInsights') && request.team.getFeatureProperty('expertInsights', true))
+            if (!isExpertAssistantEnabled && !isExpertInsightsEnabled) {
                 return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
+            request.isExpertAssistantEnabled = isExpertAssistantEnabled
+            request.isExpertInsightsEnabled = isExpertInsightsEnabled
         }
     })
 
@@ -284,9 +287,7 @@ module.exports = async function (app) {
      * @param {import('fastify').FastifyReply} reply
      */
     async (request, reply) => {
-        // Check expertInsights is enabled at platform and team level
-        const isExpertInsightsEnabled = !!(app.config.features.enabled('expertInsights') && request.team.getFeatureProperty('expertInsights', true))
-        if (!isExpertInsightsEnabled) {
+        if (!request.isExpertInsightsEnabled) {
             return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
 
