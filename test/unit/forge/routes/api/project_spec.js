@@ -69,12 +69,14 @@ describe('Project API', function () {
         // TestObjects.tokens.alice = (await app.db.controllers.AccessToken.createTokenForPasswordReset(TestObjects.alice)).token
         TestObjects.tokens.project = (await app.project.refreshAuthTokens()).token
 
-        // Enable ai feature flag at platform and team type level
+        // Enable ai and generatedSnapshotDescription feature flags at platform and team type level
         app.config.features.register('ai', true, true)
+        app.config.features.register('generatedSnapshotDescription', true, true)
         const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
         const defaultTeamTypeProps = defaultTeamType.properties || {}
         defaultTeamTypeProps.features = defaultTeamTypeProps.features || {}
         defaultTeamTypeProps.features.ai = true
+        defaultTeamTypeProps.features.generatedSnapshotDescription = true
         defaultTeamType.properties = defaultTeamTypeProps
         await defaultTeamType.save()
 
@@ -3082,6 +3084,20 @@ describe('Project API', function () {
     })
 
     describe('Generate snapshot change description', function () {
+        let originalAssistantConfig
+        beforeEach(function () {
+            // Ensure assistant is configured so the preHandler passes
+            originalAssistantConfig = app.config.assistant
+            app.config.assistant = {
+                ...app.config.assistant,
+                enabled: true,
+                service: { url: 'http://localhost:9876', ...(app.config.assistant?.service || {}) }
+            }
+        })
+        afterEach(function () {
+            app.config.assistant = originalAssistantConfig
+        })
+
         it('returns 404 when ai platform flag is disabled', async function () {
             app.config.features.register('ai', false, true)
             const originalLicense = app.license

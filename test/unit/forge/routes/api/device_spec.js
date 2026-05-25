@@ -122,8 +122,9 @@ describe('Device API', async function () {
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
 
         TestObjects.defaultTeamType = app.defaultTeamType
-        // Enable ai feature flag at platform and team type level
+        // Enable ai and generatedSnapshotDescription feature flags at platform and team type level
         app.config.features.register('ai', true, true)
+        app.config.features.register('generatedSnapshotDescription', true, true)
         const defaultTeamTypeProps = TestObjects.defaultTeamType.properties || {}
         defaultTeamTypeProps.features = defaultTeamTypeProps.features || {}
         defaultTeamTypeProps.features.ai = true
@@ -2761,9 +2762,16 @@ describe('Device API', async function () {
             const props = TestObjects.defaultTeamType.properties || {}
             props.features = props.features || {}
             props.features.generatedSnapshotDescription = true
+            props.features.ai = true
             props.enableAllFeatures = false
             TestObjects.defaultTeamType.properties = props
             await TestObjects.defaultTeamType.save()
+
+            // Ensure assistant is configured so the preHandler passes
+            app.config.assistant = app.config.assistant || {}
+            app.config.assistant.enabled = true
+            app.config.assistant.service = app.config.assistant.service || {}
+            app.config.assistant.service.url = app.config.assistant.service.url || 'http://localhost:9876'
 
             // Make license tier appear as enterprise for the feature gate
             if (app.license && app.license.get) {
