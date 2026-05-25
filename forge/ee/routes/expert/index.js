@@ -60,6 +60,17 @@ module.exports = async function (app) {
             const teamType = await request.team.getTeamType()
             const teamHttpSecurityFeature = !!teamType.properties.features?.teamHttpSecurity
             request.teamHttpSecurityFeature = teamHttpSecurityFeature
+
+            // Check AI and expert feature flags at platform and team level
+            await request.team.ensureTeamTypeExists()
+            const isAiEnabled = !!(app.config.features.enabled('ai') && request.team.getFeatureProperty('ai', true))
+            if (!isAiEnabled) {
+                return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
+            }
+            const isExpertAssistantEnabled = !!(app.config.features.enabled('expertAssistant') && request.team.getFeatureProperty('expertAssistant', true))
+            if (!isExpertAssistantEnabled) {
+                return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
+            }
         }
     })
 
@@ -273,6 +284,12 @@ module.exports = async function (app) {
      * @param {import('fastify').FastifyReply} reply
      */
     async (request, reply) => {
+        // Check expertInsights is enabled at platform and team level
+        const isExpertInsightsEnabled = !!(app.config.features.enabled('expertInsights') && request.team.getFeatureProperty('expertInsights', true))
+        if (!isExpertInsightsEnabled) {
+            return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+
         try {
             // Premise:
             // In order to get the MCP features (prompts/resources/tools) available to the user for their

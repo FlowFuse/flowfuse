@@ -23,6 +23,8 @@ const featureList = [
     'ai',
     'assistantInlineCompletions',
     'generatedSnapshotDescription',
+    'expertAssistant',
+    'expertInsights',
     'ffNodes',
     'rbacApplication'
 ]
@@ -51,6 +53,8 @@ const featureNames = {
     ai: 'AI Features',
     assistantInlineCompletions: 'Assistant Inline Code Completions',
     generatedSnapshotDescription: 'Generate Snapshot Descriptions',
+    expertAssistant: 'Expert Assistant',
+    expertInsights: 'Expert Insights',
     ffNodes: 'FlowFuse Exclusive Nodes',
     rbacApplication: 'Application-level RBAC'
 }

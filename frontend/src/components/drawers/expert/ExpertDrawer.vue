@@ -64,7 +64,7 @@ export default {
     computed: {
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useProductExpertStore, ['agentMode']),
-        ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         agentModeButtons () {
             return [
                 { title: 'Support', value: 'support-agent' },
@@ -72,7 +72,7 @@ export default {
             ]
         },
         isInsightsModeEnabled () {
-            return !!this.features.expertInsights
+            return !!this.featuresCheck?.isExpertInsightsFeatureEnabled
         },
         isPinned () {
             return this.rightDrawer.fixed
