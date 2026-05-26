@@ -151,7 +151,9 @@
                 </EmptyState>
             </template>
         </div>
-        <InstanceStatusPolling v-for="instance in instances" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
+        <template v-if="!mqttAvailable">
+            <InstanceStatusPolling v-for="instance in instances" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
+        </template>
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
     </ff-page>
 </template>
@@ -167,6 +169,7 @@ import EmptyState from '../../components/EmptyState.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
 import { useInstanceStates } from '../../composables/InstanceStates.js'
+import { useMqttAvailability, useMqttResourceList } from '../../composables/MqttTeamChannel.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 import instanceActionsMixin from '../../mixins/InstanceActions.js'
@@ -205,8 +208,19 @@ export default {
         const { isRunningState } = useInstanceStates()
         const { navigateTo } = useNavigationHelper()
         const { hasPermission } = usePermissions()
+        const { mqttAvailable, resolveMqttAvailability } = useMqttAvailability()
+        const { syncMqttSubscriptions, dropMqttSubscription, teardownMqttSubscriptions } = useMqttResourceList('instance')
 
-        return { hasPermission, isRunningState, navigateTo }
+        return {
+            hasPermission,
+            isRunningState,
+            navigateTo,
+            mqttAvailable,
+            resolveMqttAvailability,
+            syncMqttSubscriptions,
+            dropMqttSubscription,
+            teardownMqttSubscriptions
+        }
     },
     data () {
         return {
@@ -268,12 +282,21 @@ export default {
         }
     },
     watch: {
-        team: 'fetchData'
+        team: 'onTeamChanged'
     },
-    mounted () {
+    async mounted () {
+        await this.resolveMqttAvailability()
         this.fetchData()
     },
+    unmounted () {
+        this.teardownMqttSubscriptions()
+    },
     methods: {
+        async onTeamChanged () {
+            this.teardownMqttSubscriptions()
+            await this.resolveMqttAvailability()
+            this.fetchData()
+        },
         fetchData: async function () {
             this.loading = true
             let promise
@@ -296,14 +319,13 @@ export default {
                             instance.hideContextMenu = !(instance.canDelete || instance.canChangeStatus)
                             this.instancesMap.set(instance.id, instance)
                         })
+                        this.syncMqttSubscriptions(this.instancesMap.keys(), this.mqttAvailable, this.onMqttStateMessage)
                     })
                     .then(() => this.getInstanceMeta())
                     .catch(e => e)
                     .finally(() => {
                         this.loading = false
                     })
-
-                this.getInstanceMeta()
             } else {
                 this.loading = false
             }
@@ -323,6 +345,20 @@ export default {
                         }
                     }))
             })
+        },
+        onMqttStateMessage (id, payload) {
+            const current = this.instancesMap.get(id)
+            if (!current) return
+            const meta = (payload && payload.meta) || {}
+            const merged = {
+                ...current,
+                meta: { ...(current.meta || {}), ...meta },
+                running: this.isRunningState(meta.state),
+                notSuspended: meta.state !== 'suspended',
+                pendingStateChange: false,
+                optimisticStateChange: false
+            }
+            this.instancesMap.set(id, merged)
         },
         openInstance (instance, event) {
             this.navigateTo({
@@ -344,6 +380,7 @@ export default {
         },
         onInstanceDeleted (instance) {
             if (this.instancesMap.has(instance.id)) {
+                this.dropMqttSubscription(instance.id)
                 this.instancesMap.delete(instance.id)
             }
         }

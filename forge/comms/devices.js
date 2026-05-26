@@ -123,6 +123,7 @@ class DeviceCommsHandler {
             try {
                 const payload = JSON.parse(status.status)
                 await this.app.db.controllers.Device.updateState(device, payload)
+                this.app.comms?.team?.publishDeviceState(teamId, deviceId, payload)
 
                 if (payload === null) {
                     // This device is busy updating - don't interrupt it

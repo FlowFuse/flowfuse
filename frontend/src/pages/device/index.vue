@@ -146,6 +146,7 @@ import SectionNavigationHeader from '../../components/SectionNavigationHeader.vu
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import { useMqttAvailability, useMqttResourceSubscription } from '../../composables/MqttTeamChannel.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 import deviceActionsMixin from '../../mixins/DeviceActions.js'
@@ -207,8 +208,19 @@ export default {
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
         const { navigateTo, openInANewTab } = useNavigationHelper()
+        const { mqttAvailable, resolveMqttAvailability } = useMqttAvailability()
+        const { setupMqttSubscription, teardownMqttSubscription } = useMqttResourceSubscription('device')
 
-        return { hasPermission, isVisitingAdmin, navigateTo, openInANewTab }
+        return {
+            hasPermission,
+            isVisitingAdmin,
+            navigateTo,
+            openInANewTab,
+            mqttAvailable,
+            resolveMqttAvailability,
+            setupMqttSubscription,
+            teardownMqttSubscription
+        }
     },
     data: function () {
         return {
@@ -363,15 +375,22 @@ export default {
         }
     },
     watch: {
-        device: 'deviceChanged'
+        device: 'deviceChanged',
+        'device.id': function (newId, oldId) {
+            if (newId === oldId) return
+            this.refreshMqttSubscription()
+        }
     },
     async mounted () {
         this.mounted = true
+        await this.resolveMqttAvailability()
         await this.loadDevice()
         this.setContextualDevice(this.device)
+        this.refreshMqttSubscription()
     },
     beforeUnmount () {
         this.setContextualDevice(null)
+        this.teardownMqttSubscription()
     },
     unmounted () {
         this.pollTimer?.stop()
@@ -410,7 +429,7 @@ export default {
                     return this.$router.push({ name: 'Home' })
                 }
             }
-            if (!this.pollTimer) {
+            if (!this.pollTimer && !this.mqttAvailable) {
                 this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
             }
 
@@ -572,6 +591,20 @@ export default {
         },
         deviceChanged () {
             this.deviceStateMutator = new DeviceStateMutator(this.device)
+        },
+        refreshMqttSubscription () {
+            if (!this.mqttAvailable) return
+            this.setupMqttSubscription(this.device?.id, (payload) => this.onMqttDeviceState(payload))
+        },
+        onMqttDeviceState (payload) {
+            const meta = (payload && payload.meta) || {}
+            if (!this.device) return
+            const next = { ...this.device }
+            if (meta.state !== undefined) next.status = meta.state
+            if (meta.mode !== undefined) next.mode = meta.mode
+            next.lastSeenAt = new Date().toISOString()
+            this.device = next
+            this.deviceStateMutator?.clearState()
         },
         showConfirmDeleteDialog () {
             Dialog.show({

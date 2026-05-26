@@ -140,6 +140,58 @@ module.exports = function (app) {
                 return false
             }
         },
+        checkUserCanReadInstance: async function (requestParts, usernameParts) {
+            // requestParts = [ fullTopic, <teamHash>, <projectId> ]
+            // usernameParts = [ 'team-frontend', <userHash>, <teamHash>, <sessionId> ]
+            const topicTeamHash = requestParts[1]
+            const projectId = requestParts[2]
+            const usernameUserHash = usernameParts[1]
+            const usernameTeamHash = usernameParts[2]
+            if (topicTeamHash !== usernameTeamHash) {
+                return false
+            }
+            try {
+                const team = await app.db.models.Team.byId(usernameTeamHash)
+                if (!team) return false
+                const user = await app.db.models.User.byId(usernameUserHash)
+                if (!user) return false
+                const membership = await app.db.models.TeamMember.getTeamMembership(user.id, team.id, false)
+                if (!membership) return false
+                const project = await app.db.models.Project.byId(projectId)
+                if (!project || project.TeamId !== team.id) return false
+                const applicationId = app.db.models.Application.encodeHashid(project.ApplicationId)
+                return app.hasPermission(membership, 'project:read', { applicationId })
+            } catch (error) {
+                app.log.error('Unexpected error during instance-state ACL check', { requestParts, usernameParts, error })
+                return false
+            }
+        },
+        checkUserCanReadDevice: async function (requestParts, usernameParts) {
+            // requestParts = [ fullTopic, <teamHash>, <deviceId> ]
+            // usernameParts = [ 'team-frontend', <userHash>, <teamHash>, <sessionId> ]
+            const topicTeamHash = requestParts[1]
+            const deviceId = requestParts[2]
+            const usernameUserHash = usernameParts[1]
+            const usernameTeamHash = usernameParts[2]
+            if (topicTeamHash !== usernameTeamHash) {
+                return false
+            }
+            try {
+                const team = await app.db.models.Team.byId(usernameTeamHash)
+                if (!team) return false
+                const user = await app.db.models.User.byId(usernameUserHash)
+                if (!user) return false
+                const membership = await app.db.models.TeamMember.getTeamMembership(user.id, team.id, false)
+                if (!membership) return false
+                const device = await app.db.models.Device.byId(deviceId)
+                if (!device || device.TeamId !== team.id) return false
+                const applicationId = device.ApplicationId ? app.db.models.Application.encodeHashid(device.ApplicationId) : null
+                return app.hasPermission(membership, 'device:read', { applicationId })
+            } catch (error) {
+                app.log.error('Unexpected error during device-state ACL check', { requestParts, usernameParts, error })
+                return false
+            }
+        },
         checkExpertTopic: async function (topicParts, usernameParts, acl) {
             // topicParts = [ fullTopic , <userid>, <sessionid>, <entityType>, <entityId> [, <inflightType>] ]
             // usernameParts = [ 'expert-client' | 'expert-agent', <userid> [, <sessionid>] ]
@@ -320,6 +372,10 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/[^/]+\/team\/updated$/ },
                 // - ff/v1/<team>/u/<user>/membership
                 { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/membership$/ },
+                // - ff/v1/<team>/p/<project>/state
+                { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/state$/ },
+                // - ff/v1/<team>/d/<device>/state
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/state$/ },
                 // ff/v1/platform/sync
                 { topic: /^ff\/v1\/platform\/sync$/ },
                 // ff/v1/platform/leader
@@ -383,7 +439,11 @@ module.exports = function (app) {
                 // - ff/v1/<team>/team/updated
                 { topic: /^ff\/v1\/([^/]+)\/team\/updated$/, verify: 'checkUserIsTeamMember' },
                 // - ff/v1/<team>/u/<user>/membership
-                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkUserIsTeamMember' }
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkUserIsTeamMember' },
+                // - ff/v1/<team>/p/<project>/state
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/state$/, verify: 'checkUserCanReadInstance' },
+                // - ff/v1/<team>/d/<device>/state
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/state$/, verify: 'checkUserCanReadDevice' }
             ],
             pub: []
         },

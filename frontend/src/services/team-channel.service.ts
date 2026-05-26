@@ -7,17 +7,33 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 import { Maybe } from '@/types/common/types'
 import type { CreateServiceOptions } from '@/types/services/service.types'
-import type { TeamChannelServiceI, TeamRef } from '@/types/services/team-channel.types'
+import type {
+    StatusCallback,
+    StatusPayload,
+    TeamChannelServiceI,
+    TeamRef
+} from '@/types/services/team-channel.types'
 
 const MEMBERSHIP_TOPIC_REGEX = /^ff\/v1\/[^/]+\/u\/([^/]+)\/membership$/
+const INSTANCE_STATE_TOPIC_REGEX = /^ff\/v1\/[^/]+\/p\/([^/]+)\/state$/
+const DEVICE_STATE_TOPIC_REGEX = /^ff\/v1\/[^/]+\/d\/([^/]+)\/state$/
+
+type ResourceKind = 'p' | 'd'
 
 function connectionKey (teamId: string): string {
     return `team:${teamId}`
 }
 
+function stateTopic (teamId: string, kind: ResourceKind, id: string): string {
+    return `ff/v1/${teamId}/${kind}/${id}/state`
+}
+
 class TeamChannelService extends BaseService implements TeamChannelServiceI {
     protected $sessionId: Maybe<string> = null
     protected $connectedTeamId: Maybe<string> = null
+    protected $pendingConnect: Maybe<Promise<void>> = null
+    protected $instanceListeners: Map<string, Set<StatusCallback>> = new Map()
+    protected $deviceListeners: Map<string, Set<StatusCallback>> = new Map()
 
     constructor ({ app, router, services }: CreateServiceOptions) {
         super({
@@ -39,7 +55,27 @@ class TeamChannelService extends BaseService implements TeamChannelServiceI {
         return this.$connectedTeamId !== null
     }
 
+    // Awaits any in-flight connect so callers don't race the initial setTeam handshake.
+    async ready (): Promise<boolean> {
+        while (this.$pendingConnect) {
+            try { await this.$pendingConnect } catch {}
+        }
+        return this.isConnected()
+    }
+
     async connect (team: Maybe<TeamRef>): Promise<void> {
+        const promise = this._doConnect(team)
+        this.$pendingConnect = promise
+        try {
+            await promise
+        } finally {
+            if (this.$pendingConnect === promise) {
+                this.$pendingConnect = null
+            }
+        }
+    }
+
+    protected async _doConnect (team: Maybe<TeamRef>): Promise<void> {
         if (!team?.id || typeof team.id !== 'string' || team.id.length === 0) return
         const authStore = useAccountAuthStore()
         const userId = authStore.user?.id
@@ -72,11 +108,67 @@ class TeamChannelService extends BaseService implements TeamChannelServiceI {
         }
     }
 
+    subscribeInstance (id: string, cb: StatusCallback): () => void {
+        return this._subscribeResource('p', id, cb, this.$instanceListeners)
+    }
+
+    subscribeDevice (id: string, cb: StatusCallback): () => void {
+        return this._subscribeResource('d', id, cb, this.$deviceListeners)
+    }
+
+    protected _subscribeResource (
+        kind: ResourceKind,
+        id: string,
+        cb: StatusCallback,
+        map: Map<string, Set<StatusCallback>>
+    ): () => void {
+        if (!id || typeof cb !== 'function') return () => {}
+        const teamId = this.$connectedTeamId
+        if (!teamId) return () => {}
+
+        let set = map.get(id)
+        const firstListener = !set
+        if (!set) {
+            set = new Set()
+            map.set(id, set)
+        }
+        set.add(cb)
+
+        if (firstListener) {
+            const mqtt = this.$services?.mqtt
+            // mqtt.service replays subscriptions on reconnect — no explicit retry needed.
+            mqtt?.subscribe(connectionKey(teamId), stateTopic(teamId, kind, id), { qos: 1 })
+                .catch(() => undefined)
+        }
+
+        return () => this._unsubscribeResource(kind, id, cb, map)
+    }
+
+    protected _unsubscribeResource (
+        kind: ResourceKind,
+        id: string,
+        cb: StatusCallback,
+        map: Map<string, Set<StatusCallback>>
+    ): void {
+        const set = map.get(id)
+        if (!set) return
+        set.delete(cb)
+        if (set.size > 0) return
+        map.delete(id)
+        const teamId = this.$connectedTeamId
+        if (!teamId) return
+        const mqtt = this.$services?.mqtt
+        mqtt?.unsubscribe(connectionKey(teamId), stateTopic(teamId, kind, id))
+            .catch(() => undefined)
+    }
+
     async disconnect (): Promise<void> {
         if (!this.$connectedTeamId) return
         const mqtt = this.$services?.mqtt
         const key = connectionKey(this.$connectedTeamId)
         this.$connectedTeamId = null
+        this.$instanceListeners.clear()
+        this.$deviceListeners.clear()
         if (!mqtt) return
         try {
             await mqtt.destroyClient(key)
@@ -122,7 +214,7 @@ class TeamChannelService extends BaseService implements TeamChannelServiceI {
     }
 
     protected _onMqttMessage (topic: string, message: Buffer | Uint8Array | string): void {
-        let payload: { reason?: string } = {}
+        let payload: Record<string, unknown> = {}
         try {
             const raw = typeof message === 'string'
                 ? message
@@ -134,11 +226,34 @@ class TeamChannelService extends BaseService implements TeamChannelServiceI {
 
         const membershipMatch = MEMBERSHIP_TOPIC_REGEX.exec(topic)
         if (membershipMatch) {
-            this._handleMembership(payload)
+            this._handleMembership(payload as { reason?: string })
             return
         }
         if (topic.endsWith('/team/updated')) {
             this._handleTeamUpdated()
+            return
+        }
+        const instanceMatch = INSTANCE_STATE_TOPIC_REGEX.exec(topic)
+        if (instanceMatch) {
+            this._dispatchStatus(this.$instanceListeners, instanceMatch[1], payload as StatusPayload)
+            return
+        }
+        const deviceMatch = DEVICE_STATE_TOPIC_REGEX.exec(topic)
+        if (deviceMatch) {
+            this._dispatchStatus(this.$deviceListeners, deviceMatch[1], payload as StatusPayload)
+        }
+    }
+
+    protected _dispatchStatus (
+        map: Map<string, Set<StatusCallback>>,
+        id: string,
+        payload: StatusPayload
+    ): void {
+        const set = map.get(id)
+        if (!set) return
+        // Snapshot so a listener that unsubscribes during dispatch doesn't mutate the iterator.
+        for (const cb of Array.from(set)) {
+            try { cb(payload) } catch {}
         }
     }
 

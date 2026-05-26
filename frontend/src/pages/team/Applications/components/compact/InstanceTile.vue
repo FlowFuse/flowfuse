@@ -82,7 +82,7 @@
             </ff-kebab-menu>
         </div>
     </div>
-    <InstanceStatusPolling :instance="localInstance" @instance-updated="instanceUpdated" />
+    <InstanceStatusPolling v-if="!mqttAvailable" :instance="localInstance" @instance-updated="instanceUpdated" />
 </template>
 
 <script>
@@ -90,6 +90,7 @@ import { mapState } from 'pinia'
 
 import InstanceStatusPolling from '../../../../../components/InstanceStatusPolling.vue'
 import TextCopier from '../../../../../components/TextCopier.vue'
+import { useMqttAvailability, useMqttResourceSubscription } from '../../../../../composables/MqttTeamChannel.js'
 import { useNavigationHelper } from '../../../../../composables/NavigationHelper.js'
 import usePermissions from '../../../../../composables/Permissions.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
@@ -134,8 +135,17 @@ export default {
     setup () {
         const { hasPermission } = usePermissions()
         const { openInANewTab } = useNavigationHelper()
+        const { mqttAvailable, resolveMqttAvailability } = useMqttAvailability()
+        const { setupMqttSubscription, teardownMqttSubscription } = useMqttResourceSubscription('instance')
 
-        return { hasPermission, openInANewTab }
+        return {
+            hasPermission,
+            openInANewTab,
+            mqttAvailable,
+            resolveMqttAvailability,
+            setupMqttSubscription,
+            teardownMqttSubscription
+        }
     },
     data () {
         return {
@@ -166,7 +176,18 @@ export default {
     watch: {
         instance (newValue) {
             this.instanceUpdated(newValue)
+        },
+        'localInstance.id': function (newId, oldId) {
+            if (newId === oldId) return
+            this.refreshMqttSubscription()
         }
+    },
+    async mounted () {
+        await this.resolveMqttAvailability()
+        this.refreshMqttSubscription()
+    },
+    beforeUnmount () {
+        this.teardownMqttSubscription()
     },
     methods: {
         navigateToInstance () {
@@ -182,6 +203,15 @@ export default {
             mutator.clearState()
 
             this.localInstance = { ...this.localInstance, ...instanceData }
+        },
+        refreshMqttSubscription () {
+            if (!this.mqttAvailable) return
+            this.setupMqttSubscription(this.localInstance?.id, (payload) => this.onMqttStateMessage(payload))
+        },
+        onMqttStateMessage (payload) {
+            const meta = payload && payload.meta
+            if (!meta) return
+            this.instanceUpdated({ meta })
         }
     }
 }

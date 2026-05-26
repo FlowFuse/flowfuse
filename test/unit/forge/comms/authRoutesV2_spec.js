@@ -1324,15 +1324,24 @@ describe('Broker Auth v2 API', async function () {
             let membershipTopic
             let otherTeam
             let bob
+            let deviceInATeam
+            let projectInOtherTeam
+            let instanceStateTopic
+            let deviceStateTopic
 
             before(async function () {
                 await setupCE()
                 bob = await factory.createUser({ username: 'bob', name: 'Bob', email: 'bob@example.com', password: 'bbPassword1!' })
                 await TestObjects.ATeam.addUser(bob, { through: { role: Roles.Member } })
                 otherTeam = await factory.createTeam({ name: 'BTeam' })
+                deviceInATeam = await factory.createDevice({ name: 'team-frontend-device', type: 'test device' }, TestObjects.ATeam, null, null)
+                projectInOtherTeam = await app.db.models.Project.create({ name: 'project-in-other-team', type: '', url: '' })
+                await otherTeam.addProject(projectInOtherTeam)
                 teamFrontendUsername = `team-frontend:${TestObjects.alice.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
                 teamUpdatedTopic = `ff/v1/${TestObjects.ATeam.hashid}/team/updated`
                 membershipTopic = `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/membership`
+                instanceStateTopic = `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/state`
+                deviceStateTopic = `ff/v1/${TestObjects.ATeam.hashid}/d/${deviceInATeam.hashid}/state`
             })
 
             after(async function () {
@@ -1386,6 +1395,90 @@ describe('Broker Auth v2 API', async function () {
                 await allowWrite({
                     username: 'forge_platform',
                     topic: membershipTopic
+                })
+            })
+
+            it('allows a team member to subscribe to an instance-state topic for a project in their team', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: instanceStateTopic
+                })
+            })
+            it('denies subscribe when the instance-state topic team-hash mismatches the credential', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/p/${TestObjects.ProjectA.id}/state`
+                })
+            })
+            it('denies subscribe to an instance-state topic for a project owned by a different team', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${projectInOtherTeam.id}/state`
+                })
+            })
+            it('denies subscribe to an instance-state topic for a non-existent project', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/00000000-0000-0000-0000-000000000000/state`
+                })
+            })
+            it('denies subscribe to an instance-state topic for a user who is not a member of the team', async function () {
+                const dave = await factory.createUser({ username: 'dave', name: 'Dave', email: 'dave@example.com', password: 'ddPassword1!' })
+                const daveUsername = `team-frontend:${dave.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
+                await denyRead({
+                    username: daveUsername,
+                    topic: instanceStateTopic
+                })
+            })
+            it('denies team-frontend from publishing on an instance-state topic', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: instanceStateTopic
+                })
+            })
+            it('allows forge_platform to publish an instance-state topic', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: instanceStateTopic
+                })
+            })
+
+            it('allows a team member to subscribe to a device-state topic for a device in their team', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: deviceStateTopic
+                })
+            })
+            it('denies subscribe when the device-state topic team-hash mismatches the credential', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/d/${deviceInATeam.hashid}/state`
+                })
+            })
+            it('denies subscribe to a device-state topic for a non-existent device', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/d/missing-device-hashid/state`
+                })
+            })
+            it('denies subscribe to a device-state topic for a user who is not a member of the team', async function () {
+                const erin = await factory.createUser({ username: 'erin', name: 'Erin', email: 'erin@example.com', password: 'eePassword1!' })
+                const erinUsername = `team-frontend:${erin.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
+                await denyRead({
+                    username: erinUsername,
+                    topic: deviceStateTopic
+                })
+            })
+            it('denies team-frontend from publishing on a device-state topic', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: deviceStateTopic
+                })
+            })
+            it('allows forge_platform to publish a device-state topic', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: deviceStateTopic
                 })
             })
         })

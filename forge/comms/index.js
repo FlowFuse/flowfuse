@@ -31,11 +31,36 @@ module.exports = fp(async function (app, _opts) {
         // Create the handler for any device-related messages
         const deviceCommsHandler = DeviceCommsHandler(app, client)
 
-        // Not in the current release, but when we handle Launcher status
-        // via MQTT, it will arrive here. Compare to the status/device handler in `devices.js`
-        // client.on('status/project', (status) => {
-        //     // console.info(status)
-        // })
+        function publishInstanceState (teamHash, instanceId, meta) {
+            if (!teamHash || !instanceId) return
+            const msg = { id: instanceId, meta: meta || null, ts: Date.now() }
+            client.publish(`ff/v1/${teamHash}/p/${instanceId}/state`, JSON.stringify(msg), { retain: true })
+        }
+        function publishDeviceState (teamHash, deviceId, meta) {
+            if (!teamHash || !deviceId) return
+            const msg = { id: deviceId, meta: meta || null, ts: Date.now() }
+            client.publish(`ff/v1/${teamHash}/d/${deviceId}/state`, JSON.stringify(msg), { retain: true })
+        }
+        // empty + retain:true clears the broker's retained message
+        function clearInstanceState (teamHash, instanceId) {
+            if (!teamHash || !instanceId) return
+            client.publish(`ff/v1/${teamHash}/p/${instanceId}/state`, '', { retain: true })
+        }
+        function clearDeviceState (teamHash, deviceId) {
+            if (!teamHash || !deviceId) return
+            client.publish(`ff/v1/${teamHash}/d/${deviceId}/state`, '', { retain: true })
+        }
+
+        client.on('status/project', (status) => {
+            try {
+                const meta = status.status ? JSON.parse(status.status) : null
+                publishInstanceState(status.teamId, status.id, meta)
+            } catch (err) {
+                if (!(err instanceof SyntaxError)) {
+                    app.log.error({ msg: 'Failed to relay instance state', project: status.id, team: status.teamId, err: err.message })
+                }
+            }
+        })
 
         // Setup the platform API for the comms component
         app.decorate('comms', {
@@ -71,7 +96,11 @@ module.exports = fp(async function (app, _opts) {
                     if (!teamHash || !userHash) return
                     const msg = { reason: reason || null, srcId: srcId || null }
                     client.publish(`ff/v1/${teamHash}/u/${userHash}/membership`, JSON.stringify(msg))
-                }
+                },
+                publishInstanceState,
+                publishDeviceState,
+                clearInstanceState,
+                clearDeviceState
             }
         })
 

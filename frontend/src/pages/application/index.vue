@@ -25,7 +25,9 @@
                 @instance-delete="instanceShowConfirmDelete"
             />
 
-            <InstanceStatusPolling v-for="instance in instancesArray" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
+            <template v-if="!mqttAvailable">
+                <InstanceStatusPolling v-for="instance in instancesArray" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
+            </template>
         </div>
     </main>
 </template>
@@ -34,6 +36,7 @@
 import { mapState } from 'pinia'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
+import { useMqttAvailability, useMqttResourceList } from '../../composables/MqttTeamChannel.js'
 import usePermissions from '../../composables/Permissions.js'
 
 import applicationMixin from '../../mixins/Application.js'
@@ -56,8 +59,17 @@ export default {
     mixins: [applicationMixin, instanceActionsMixin],
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
+        const { mqttAvailable, resolveMqttAvailability } = useMqttAvailability()
+        const { syncMqttSubscriptions, teardownMqttSubscriptions } = useMqttResourceList('instance')
 
-        return { hasPermission, isVisitingAdmin }
+        return {
+            hasPermission,
+            isVisitingAdmin,
+            mqttAvailable,
+            resolveMqttAvailability,
+            syncMqttSubscriptions,
+            teardownMqttSubscriptions
+        }
     },
     computed: {
         ...mapState(useContextStore, ['team']),
@@ -133,6 +145,32 @@ export default {
         '$route.params': {
             handler: 'updateApplication',
             immediate: true
+        },
+        instancesArray: 'resyncMqtt'
+    },
+    async mounted () {
+        await this.resolveMqttAvailability()
+        this.resyncMqtt()
+    },
+    beforeUnmount () {
+        this.teardownMqttSubscriptions()
+    },
+    methods: {
+        resyncMqtt () {
+            this.syncMqttSubscriptions(
+                this.applicationInstances?.keys?.() || [],
+                this.mqttAvailable,
+                this.onMqttStateMessage
+            )
+        },
+        onMqttStateMessage (id, payload) {
+            const current = this.applicationInstances.get(id)
+            if (!current) return
+            const meta = (payload && payload.meta) || {}
+            this.applicationInstances.set(id, {
+                ...current,
+                meta: { ...(current.meta || {}), ...meta }
+            })
         }
     }
 }

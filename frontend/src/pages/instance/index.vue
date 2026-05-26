@@ -70,7 +70,7 @@
             />
         </div>
 
-        <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
+        <InstanceStatusPolling v-if="!mqttAvailable" :instance="instance" @instance-updated="instanceUpdated" />
     </ff-page>
 </template>
 
@@ -84,6 +84,7 @@ import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import InstanceActionsButton from '../../components/instance/ActionButton.vue'
+import { useMqttAvailability, useMqttResourceSubscription } from '../../composables/MqttTeamChannel.js'
 import usePermissions from '../../composables/Permissions.js'
 
 import instanceMixin from '../../mixins/Instance.js'
@@ -113,10 +114,16 @@ export default {
     mixins: [instanceMixin],
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
+        const { mqttAvailable, resolveMqttAvailability } = useMqttAvailability()
+        const { setupMqttSubscription, teardownMqttSubscription } = useMqttResourceSubscription('instance')
 
         return {
             hasPermission,
-            isVisitingAdmin
+            isVisitingAdmin,
+            mqttAvailable,
+            resolveMqttAvailability,
+            setupMqttSubscription,
+            teardownMqttSubscription
         }
     },
     data: function () {
@@ -175,8 +182,30 @@ export default {
             return null
         }
     },
-    mounted () {
+    watch: {
+        'instance.id': function (newId, oldId) {
+            if (newId === oldId) return
+            this.refreshMqttSubscription()
+        }
+    },
+    async mounted () {
         this.mounted = true
+        await this.resolveMqttAvailability()
+        this.refreshMqttSubscription()
+    },
+    beforeUnmount () {
+        this.teardownMqttSubscription()
+    },
+    methods: {
+        refreshMqttSubscription () {
+            if (!this.mqttAvailable) return
+            this.setupMqttSubscription(this.instance?.id, (payload) => this.onMqttInstanceState(payload))
+        },
+        onMqttInstanceState (payload) {
+            const meta = payload && payload.meta
+            if (!meta) return
+            this.instanceUpdated({ meta })
+        }
     }
 }
 </script>

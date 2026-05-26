@@ -352,6 +352,7 @@ import { markRaw } from 'vue'
 import deviceApi from '../api/devices.js'
 import teamApi from '../api/team.js'
 import DropdownMenu from '../components/DropdownMenu.vue'
+import { useMqttAvailability, useMqttResourceList } from '../composables/MqttTeamChannel.js'
 import usePermissions from '../composables/Permissions.js'
 import { getTeamProperty } from '../composables/TeamProperties.js'
 import deviceActionsMixin from '../mixins/DeviceActions.js'
@@ -429,8 +430,16 @@ export default {
     emits: ['instance-updated'],
     setup () {
         const { hasPermission } = usePermissions()
+        const { mqttAvailable, resolveMqttAvailability } = useMqttAvailability()
+        const { syncMqttSubscriptions, teardownMqttSubscriptions } = useMqttResourceList('device')
 
-        return { hasPermission }
+        return {
+            hasPermission,
+            mqttAvailable,
+            resolveMqttAvailability,
+            syncMqttSubscriptions,
+            teardownMqttSubscriptions
+        }
     },
     data () {
         return {
@@ -607,12 +616,18 @@ export default {
             }
         }
     },
-    mounted () {
+    async mounted () {
+        await this.resolveMqttAvailability()
         this.fullReloadOfData()
-        this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME) // auto starts
+        if (!this.mqttAvailable) {
+            this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME) // auto starts
+        }
     },
     async unmounted () {
-        this.pollTimer.stop()
+        if (this.pollTimer) {
+            this.pollTimer.stop()
+        }
+        this.teardownMqttSubscriptions()
         if (this.deviceCountDeltaSincePageLoad !== 0) {
             // Trigger a refresh of team info to resync following device
             // changes
@@ -854,6 +869,11 @@ export default {
         fullReloadOfData () {
             this.checkedDevices = []
             this.loadDevices(true)
+                .then(() => {
+                    this.resyncMqtt()
+                    return undefined
+                })
+                .catch(() => undefined)
             this.pollForDeviceStatuses(true)
         },
 
@@ -865,12 +885,29 @@ export default {
 
         async loadMoreDevices () {
             await this.fetchDevices()
+            this.resyncMqtt()
         },
 
         async pollForDeviceStatuses (reset) {
             if (this.hasLoadedModel) {
                 await this.fetchAllDeviceStatuses(reset)
             }
+        },
+
+        resyncMqtt () {
+            this.syncMqttSubscriptions(this.devices.keys(), this.mqttAvailable, this.onMqttDeviceState)
+        },
+        onMqttDeviceState (id, payload) {
+            const meta = (payload && payload.meta) || {}
+            const existing = this.allDeviceStatuses.get(id) || { id }
+            this.allDeviceStatuses.set(id, {
+                ...existing,
+                id,
+                status: meta.state || existing.status,
+                mode: meta.mode || existing.mode,
+                lastSeenAt: new Date().toISOString(),
+                lastSeenMs: 0
+            })
         },
 
         async fetchDevices (resetPage = false) {

@@ -47,17 +47,20 @@ class CommsClient extends EventEmitter {
             })
             this.client.on('message', (topic, message) => {
                 const topicParts = topic.split('/')
+                const teamId = topicParts[2]
                 const ownerType = topicParts[3]
                 const ownerId = topicParts[4]
                 const messageType = topicParts[5]
-                if (ownerType === 'p') {
+                if (ownerType === 'l' && messageType === 'status') {
                     this.emit('status/project', {
+                        teamId,
                         id: ownerId,
                         status: message.toString()
                     })
                 } else if (ownerType === 'd') {
                     if (messageType === 'status') {
                         this.emit('status/device', {
+                            teamId,
                             id: ownerId,
                             status: message.toString()
                         })
