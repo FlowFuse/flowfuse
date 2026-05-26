@@ -40,7 +40,7 @@ const app = createApp(App)
 const servicesOrchestrator = getServicesOrchestrator()
 
 // Error tracking
-setupSentry(app, router)
+setupSentry(app)
 
 // Boot all services before mounting
 servicesOrchestrator.init(app, router)

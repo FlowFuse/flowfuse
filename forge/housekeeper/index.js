@@ -1,4 +1,4 @@
-const { captureCheckIn, captureException } = require('@sentry/node')
+const { captureException } = require('@sentry/node')
 const { scheduleTask } = require('cronosjs')
 const fp = require('fastify-plugin')
 
@@ -41,56 +41,7 @@ module.exports = fp(async function (app, _opts) {
         clearInterval(voteInterval)
     })
 
-    function reportTask (name, schedule) {
-        try {
-            return captureCheckIn({
-                monitorSlug: name,
-                status: 'in_progress'
-            },
-            {
-                schedule: {
-                    type: 'crontab',
-                    value: schedule
-                },
-                checkinMargin: 5,
-                maxRuntime: 5,
-                timezone: 'Etc/UTC'
-            })
-        } catch (error) {
-            app.log.warn('Failed to report to Sentry', error)
-        }
-    }
-
-    function reportTaskComplete (checkInId, name) {
-        if (!checkInId) {
-            return
-        }
-
-        try {
-            captureCheckIn({
-                checkInId,
-                monitorSlug: name,
-                status: 'ok'
-            })
-        } catch (error) {
-            app.log.warn('Failed to report task complete to Sentry', error)
-        }
-    }
-
-    function reportTaskFailure (checkInId, name, errorMessage) {
-        if (checkInId) {
-            try {
-                captureCheckIn({
-                    checkInId,
-                    monitorSlug: name,
-                    status: 'error',
-                    errorMessage
-                })
-            } catch (error) {
-                app.log.warn('Failed to report task failure to Sentry', error)
-            }
-        }
-
+    function reportTaskFailure (errorMessage) {
         try {
             captureException(new Error(errorMessage))
         } catch (error) {
@@ -119,16 +70,13 @@ module.exports = fp(async function (app, _opts) {
         if (checkVote()) {
             app.log.trace(`Running task '${task.name}'`)
 
-            const checkInId = reportTask(task.name, task.schedule)
-
             return task
                 .run(app)
-                .then(reportTaskComplete.bind(this, checkInId, task.name))
                 .catch(err => {
                     const errorMessage = `Error running task '${task.name}: ${err.toString()}`
 
                     app.log.error(errorMessage)
-                    reportTaskFailure(checkInId, task.name, errorMessage)
+                    reportTaskFailure(errorMessage)
                 }).then(() => {
                     app.log.trace(`Completed task '${task.name}'`)
                     return null

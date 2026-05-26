@@ -1,3 +1,5 @@
+const Sentry = require('@sentry/node')
+
 /**
  * Routes related to session handling, login/out etc
  *
@@ -72,6 +74,7 @@ async function init (app, opts) {
                 const mfaMissing = request.session.User.mfa_enabled && !request.session.mfa_verified
 
                 if (emailVerified && passwordNotExpired && !suspended && !mfaMissing) {
+                    Sentry.setUser({ id: request.session.User.hashid, username: request.session.User.username, email: request.session.User.email, name: request.session.User.name })
                     return
                 }
                 if (request.routeOptions.config.allowAnonymous) {
@@ -116,6 +119,7 @@ async function init (app, opts) {
                             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                             return
                         }
+                        Sentry.setUser({ id: request.session.User.hashid, username: request.session.User.username, email: request.session.User.email, name: request.session.User.name })
                         if (accessToken.name) {
                             // Temp hack to give token full user scope
                             delete request.session.scope
