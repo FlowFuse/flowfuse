@@ -172,6 +172,10 @@ Proceed to the [next paragraph](#start-flowfuse-platform) to start the platform 
 
 If you have own TLS certificate, you can use it in FlowFuse platform installation as well. As mentioned before, the certificate must be a wildcard one for the domain you are using.
 
+{% note %}
+If your TLS certificate is issued by a private Certificate Authority, additional configuration is required so that Hosted Instances trust the CA. See [What additional configuration is required when the TLS certificate is issued by a private Certificate Authority?](#what-additional-configuration-is-required-when-the-tls-certificate-is-issued-by-a-private-certificate-authority%3F) for the step-by-step instructions.
+{% endnote %}
+
 To configure FlowFuse platform with your certificate, you need to have:
 * certificate key file
 * certificate's full chain (server certificate and intermediate certificates bundled into single file)
@@ -199,15 +203,6 @@ MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD
 -----END PRIVATE KEY-----
 "
 ```
-
-If you are using a private Certificate Authority then you will also need to tell the Node-RED instances to trust this CA.
-You can do this by includeing the `DOCKER_DRIVER_PRIVATE_CA_PATH` value in `.env` file. e.g. if the `ca.pem` file is located at `/usr/local/ssl/ca.pem`
-on the host machine
-
-```
-DOCKER_DRIVER_PRIVATE_CA_PATH="/usr/local/ssl/ca.pem"
-```
-
 
 
 ## Start FlowFuse platform
@@ -297,6 +292,34 @@ Once ready, [start the application](#start-flowfuse-platform) .
 ### How can I provide my own TLS certificate?
 
 If you have your own TLS certificate, you can use it in FlowFuse platform installation as well. See [Enable HTTPS](#enable-https-(optional)) section for more details.
+
+Additionally, if your TLS certificate is issued by a private Certificate Authority, you will need to perform some additional configuration to make hosted Node-RED instances trust the CA. See [What additional configuration is required when the TLS certificate is issued by a private Certificate Authority](#what-additional-configuration-is-required-when-the-tls-certificate-is-issued-by-a-private-certificate-authority%3F) for the step-by-step instructions.
+
+### What additional configuration is required when the TLS certificate is issued by a private Certificate Authority?
+
+When the FlowFuse platform is configured with a TLS certificate issued by a private Certificate Authority (CA), hosted Node-RED instances will not trust the CA by default. As a result, opening the editor for a hosted instance will fail with a certificate trust error.
+
+To make hosted Node-RED instances trust the private CA, follow the steps below:
+
+1. **Update the environment file.** In the `.env` file created during the installation process, set `DOCKER_DRIVER_PRIVATE_CA_PATH` to the path of your Certificate Authority certificate file. This must be the path to the file stored on the Docker host server. For example, if the `ca.pem` file is located at `/usr/local/ssl/ca.pem`:
+
+    ```bash
+    DOCKER_DRIVER_PRIVATE_CA_PATH="/usr/local/ssl/ca.pem"
+    ```
+
+2. **Modify the Compose file.** In the `docker-compose.yml` file used to create the FlowFuse Docker stack, uncomment the `NODE_EXTRA_CA_CERTS` environment variable and the corresponding volume mount on the `forge` service so the certificate is passed correctly to the platform. You can apply both changes with a single `sed` command:
+
+    ```bash
+    sed -i.bak -E -e 's/^#([[:space:]]*- "NODE_EXTRA_CA_CERTS=)/\1/' -e 's/^#([[:space:]]*- \$\{DOCKER_DRIVER_PRIVATE_CA_PATH\})/\1/' docker-compose.yml && rm docker-compose.yml.bak
+    ```
+
+3. **Restart the Forge service** to apply the changes:
+
+    ```bash
+    docker compose restart forge
+    ```
+
+4. **Apply changes to running instances.** Once the platform is online, manually suspend and start all running hosted instances so they pick up the new TLS settings.
 
 ### I would like to invite my team members to the platform with e-mail, how can I do that?
 
