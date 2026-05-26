@@ -34,21 +34,12 @@ module.exports = fp(async function (app, _opts) {
         function publishInstanceState (teamHash, instanceId, meta) {
             if (!teamHash || !instanceId) return
             const msg = { id: instanceId, meta: meta || null, ts: Date.now() }
-            client.publish(`ff/v1/${teamHash}/p/${instanceId}/state`, JSON.stringify(msg), { retain: true })
+            client.publish(`ff/v1/${teamHash}/p/${instanceId}/state`, JSON.stringify(msg))
         }
         function publishDeviceState (teamHash, deviceId, meta) {
             if (!teamHash || !deviceId) return
             const msg = { id: deviceId, meta: meta || null, ts: Date.now() }
-            client.publish(`ff/v1/${teamHash}/d/${deviceId}/state`, JSON.stringify(msg), { retain: true })
-        }
-        // empty + retain:true clears the broker's retained message
-        function clearInstanceState (teamHash, instanceId) {
-            if (!teamHash || !instanceId) return
-            client.publish(`ff/v1/${teamHash}/p/${instanceId}/state`, '', { retain: true })
-        }
-        function clearDeviceState (teamHash, deviceId) {
-            if (!teamHash || !deviceId) return
-            client.publish(`ff/v1/${teamHash}/d/${deviceId}/state`, '', { retain: true })
+            client.publish(`ff/v1/${teamHash}/d/${deviceId}/state`, JSON.stringify(msg))
         }
 
         client.on('status/project', (status) => {
@@ -98,9 +89,7 @@ module.exports = fp(async function (app, _opts) {
                     client.publish(`ff/v1/${teamHash}/u/${userHash}/membership`, JSON.stringify(msg))
                 },
                 publishInstanceState,
-                publishDeviceState,
-                clearInstanceState,
-                clearDeviceState
+                publishDeviceState
             }
         })
 

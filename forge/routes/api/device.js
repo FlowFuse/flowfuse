@@ -427,10 +427,7 @@ module.exports = async function (app) {
                     { model: app.db.models.TeamType }
                 ]
             })
-            const teamHash = team.hashid
-            const deviceHash = request.device.hashid
             await request.device.destroy()
-            app.comms?.team?.clearDeviceState(teamHash, deviceHash)
             await app.auditLog.Team.team.device.deleted(request.session.User, null, team, request.device)
             if (app.license.active() && app.billing) {
                 await app.billing.updateTeamBillingCounts(team)

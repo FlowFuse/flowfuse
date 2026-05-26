@@ -280,10 +280,7 @@ module.exports = async function (app) {
                 })
             }
 
-            const teamHash = request.project.Team.hashid
-            const instanceId = request.project.id
             await request.project.destroy()
-            app.comms?.team?.clearInstanceState(teamHash, instanceId)
             await app.auditLog.Team.project.deleted(request.session.User, null, request.project.Team, request.project)
             await app.auditLog.Project.project.deleted(request.session.User, null, request.project.Team, request.project)
             reply.send({ status: 'okay' })
