@@ -218,6 +218,19 @@ ingress:
 
 Apply changes with [platform startup command](#start-flowfuse-platform).
 
+#### Using Internal/Private Certificate Authorities
+
+If you are issuing your own HTTPS certificates (rather than using a Public Certificate Authority) you will need to tell the Hosted Node-RED Instances to trust this CA. To do this you need to pass base64 encoded CA certificate chain to the helm chart in the `customization.yml`. Details are in the Helm chart [README.md](https://github.com/FlowFuse/helm/blob/main/helm/flowfuse/README.md#private-certificate-authority).
+
+```yaml
+forge:
+  privateCA:
+    certs: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk...
+```
+
+Assuming the certificate chain is held in `chain.pem` the value would be created by running `base64 -w 0 certs.pem`
+
+
 ### I use Kubernetes Network Policies, how can I configure them?
 
 If your cluster uses Network Policies to restrict traffic between namespaces, you'll need to create appropriate policies.
