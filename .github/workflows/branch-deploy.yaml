@@ -363,11 +363,15 @@ jobs:
       - name: Set build-args if branch is not main
         id: set-build-args
         run: |
-          if [ "${{ inputs.driver_k8s_branch }}" != "" ]; then
-            echo "BUILD_ARGS=KUBERNETES_DRIVER_TAG=pre-staging-${{ inputs.driver_k8s_branch }}" >> $GITHUB_ENV
-          else
-            echo "BUILD_ARGS=" >> $GITHUB_ENV
-          fi
+          {
+            echo "BUILD_ARGS<<EOF"
+            # CACHEBUST forces a fresh fetch of the device-cache script (helm main branch)
+            echo "CACHEBUST=${{ github.run_id }}-${{ github.run_attempt }}"
+            if [ "${{ inputs.driver_k8s_branch }}" != "" ]; then
+              echo "KUBERNETES_DRIVER_TAG=pre-staging-${{ inputs.driver_k8s_branch }}"
+            fi
+            echo "EOF"
+          } >> $GITHUB_ENV
   
       - name: Build container image
         id: build
