@@ -642,9 +642,17 @@ module.exports = {
                     if (usingOffset && !pagination.statusOnly) {
                         findAllOptions.offset = offset
                     }
+                    // Mirror findAll's search/filter so total matches; strip cursor so we count the full match, not rows after it.
+                    const countWhere = buildPaginationSearchClause(
+                        { ...pagination, cursor: null },
+                        where,
+                        ['Device.name', 'Device.type'],
+                        {},
+                        order
+                    )
                     const [rows, count] = await Promise.all([
                         this.findAll(findAllOptions),
-                        this.count({ where, include: statusOnlyIncludes })
+                        this.count({ where: countWhere, include: statusOnlyIncludes })
                     ])
 
                     let nextCursors = []

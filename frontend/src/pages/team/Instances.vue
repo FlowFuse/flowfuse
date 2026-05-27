@@ -284,10 +284,9 @@ export default {
             return this.featuresCheck?.isHostedInstancesEnabledForTeam
         },
         paginationProps () {
+            if (this.dashboardRoleOnly) return null
             // Hide only when no page size could ever split the result — keeps the size selector reachable otherwise.
-            if (this.totalRows <= 10) {
-                return null
-            }
+            if (this.totalRows <= 10) return null
             return {
                 page: this.page,
                 pageSize: this.pageSize,

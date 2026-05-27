@@ -362,6 +362,20 @@ describe('Team Devices API', function () {
                 const idsTwo = pageTwo.devices.map(d => d.id)
                 idsTwo.forEach(id => idsOne.should.not.containEql(id))
             })
+
+            it('meta.total reflects the filtered count, not the unfiltered scope total', async function () {
+                // 4 devices in scope, but searching for "page-device 2" should match only one.
+                // Pre-fix bug: count ran against bare `where` so it returned 4 — pagination
+                // footer claimed multiple pages for a single-row result set.
+                const result = await queryDevices(
+                    `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?page=1&limit=2&query=page-device%202`,
+                    200, undefined, true
+                )
+                result.devices.should.have.length(1)
+                result.should.have.property('count', 1)
+                result.meta.should.have.property('total', 1)
+                result.meta.should.have.property('pageCount', 1)
+            })
         })
 
         describe('Supports filtering the devices', function () {
