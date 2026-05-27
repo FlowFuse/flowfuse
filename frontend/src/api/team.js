@@ -197,6 +197,10 @@ const getTeamInstancesList = async (teamId) => {
 
 const getInstances = async (teamId, {
     limit = 20,
+    page = null,
+    query = null,
+    sort = null,
+    dir = null,
     includeMeta = false,
     orderByMostRecentFlows = false
 } = {}) => {
@@ -204,11 +208,24 @@ const getInstances = async (teamId, {
 
     params.append('limit', limit.toString())
 
+    if (page !== null) params.append('page', String(page))
+    if (query) params.append('query', query)
+    if (sort) params.append('sort', sort)
+    if (dir) params.append('dir', dir)
     if (includeMeta) params.append('includeMeta', includeMeta.toString())
     if (orderByMostRecentFlows) params.append('orderByMostRecentFlows', orderByMostRecentFlows.toString())
 
-    return await client.get(`/api/v1/teams/${teamId}/projects?${params.toString()}`)
-        .then(res => res.data)
+    const res = await client.get(`/api/v1/teams/${teamId}/projects?${params.toString()}`)
+    res.data.projects = res.data.projects.map(r => {
+        if (r.flowLastUpdatedAt) {
+            r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)
+        }
+        if (r.meta?.state) {
+            r.status = r.meta.state
+        }
+        return r
+    })
+    return res.data
 }
 
 const getTeamMembers = (teamId) => {

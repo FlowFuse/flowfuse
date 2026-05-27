@@ -252,6 +252,16 @@ describe('Team Devices API', function () {
                 resultNameAsc.map((device) => device.name).should.match(['device 1', 'device 2', 'device 3', 'device 4'])
             })
 
+            it('accepts dir as a synonym for order (frontend sends dir)', async function () {
+                // Pre-fix the controller only read `order`; `dir=desc` was silently ignored and
+                // results came back ASC. This pins the working DESC behavior under the dir param.
+                const resultDirDesc = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=name&dir=desc`)
+                resultDirDesc.map((device) => device.name).should.match(['device 4', 'device 3', 'device 2', 'device 1'])
+
+                const resultDirAsc = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=name&dir=asc`)
+                resultDirAsc.map((device) => device.name).should.match(['device 1', 'device 2', 'device 3', 'device 4'])
+            })
+
             it('by instance->application name', async function () {
                 // Sort by application name ASC (default)
                 const resultName = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=application`)
@@ -304,6 +314,53 @@ describe('Team Devices API', function () {
                 // Sort by instance name ASC (explicit)
                 const resultNameAsc = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?sort=instance&order=asc`)
                 resultNameAsc.map((device) => device.instance?.name).should.match(ascendingOrder)
+            })
+        })
+
+        describe('Supports offset/page pagination', function () {
+            before(async function () {
+                // device 1 already exists from outer beforeEach; add 3 more for 4 total.
+                await app.factory.createDevice({ name: 'page-device 2' }, TestObjects.ATeam, TestObjects.Project1)
+                await app.factory.createDevice({ name: 'page-device 3' }, TestObjects.ATeam, TestObjects.Project1)
+                await app.factory.createDevice({ name: 'page-device 4' }, TestObjects.ATeam, TestObjects.Project1)
+            })
+
+            after(async function () {
+                await app.db.models.Device.destroy({
+                    where: { name: ['page-device 2', 'page-device 3', 'page-device 4'] }
+                })
+            })
+
+            it('?page=1&limit=2 returns first slice with offset-mode meta and true total in count', async function () {
+                const result = await queryDevices(
+                    `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?page=1&limit=2&sort=name&dir=asc`,
+                    200, undefined, true
+                )
+                result.devices.should.have.length(2)
+                // count is now the unbounded total (not page length — that was the pre-fix bug).
+                result.should.have.property('count', 4)
+                result.should.have.property('meta')
+                result.meta.should.have.property('page', 1)
+                result.meta.should.have.property('pageSize', 2)
+                result.meta.should.have.property('total', 4)
+                result.meta.should.have.property('pageCount', 2)
+                // Offset mode shouldn't emit a cursor.
+                should(result.meta.next_cursor).be.undefined()
+            })
+
+            it('?page=2 returns the second slice with non-overlapping rows', async function () {
+                const pageOne = await queryDevices(
+                    `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?page=1&limit=2&sort=name&dir=asc`
+                )
+                const pageTwo = await queryDevices(
+                    `/api/v1/teams/${TestObjects.ATeam.hashid}/devices?page=2&limit=2&sort=name&dir=asc`,
+                    200, undefined, true
+                )
+                pageTwo.devices.should.have.length(2)
+                pageTwo.meta.should.have.property('page', 2)
+                const idsOne = pageOne.map(d => d.id)
+                const idsTwo = pageTwo.devices.map(d => d.id)
+                idsTwo.forEach(id => idsOne.should.not.containEql(id))
             })
         })
 

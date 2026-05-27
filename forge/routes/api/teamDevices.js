@@ -95,7 +95,6 @@ module.exports = async function (app) {
         }
         const devices = await app.db.models.Device.getAll(paginationOptions, where, options)
         devices.devices = devices.devices.map(d => app.db.views.Device.device(d, { statusOnly: paginationOptions.statusOnly }))
-        devices.count = devices.devices.length
         reply.send(devices)
     })
 

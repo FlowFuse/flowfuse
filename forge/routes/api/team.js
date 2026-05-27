@@ -365,32 +365,62 @@ module.exports = async function (app) {
      */
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list'),
-        query: {
-            type: 'object',
-            properties: {
-                limit: {
-                    type: 'number',
-                    nullable: true
-                },
-                includeMeta: {
-                    type: 'boolean',
-                    nullable: true,
-                    default: false
-                },
-                orderByMostRecentFlows: {
-                    type: 'boolean',
-                    nullable: true,
-                    default: false
+        schema: {
+            querystring: {
+                type: 'object',
+                properties: {
+                    limit: {
+                        type: 'number',
+                        nullable: true
+                    },
+                    page: {
+                        type: 'number',
+                        nullable: true,
+                        minimum: 1
+                    },
+                    query: {
+                        type: 'string',
+                        nullable: true
+                    },
+                    sort: {
+                        type: 'string',
+                        nullable: true,
+                        enum: ['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']
+                    },
+                    dir: {
+                        type: 'string',
+                        nullable: true,
+                        enum: ['asc', 'desc']
+                    },
+                    includeMeta: {
+                        type: 'boolean',
+                        nullable: true,
+                        default: false
+                    },
+                    orderByMostRecentFlows: {
+                        type: 'boolean',
+                        nullable: true,
+                        default: false
+                    }
                 }
             }
         }
     }, async (request, reply) => {
         const includeMeta = request.query.includeMeta
+        const paginated = typeof request.query.page === 'number'
+        const limit = paginated ? (request.query.limit || 25) : (request.query.limit ?? null)
+        const offset = paginated ? (request.query.page - 1) * limit : null
+
         const options = {
             includeSettings: true,
-            limit: request.query.limit,
+            limit,
+            offset,
+            query: request.query.query?.trim() || null,
+            sort: request.query.sort || null,
+            dir: request.query.dir || 'asc',
             includeMeta,
-            orderByMostRecentFlows: request.query.orderByMostRecentFlows
+            orderByMostRecentFlows: request.query.orderByMostRecentFlows,
+            withTotal: paginated
         }
 
         const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.getFeatureProperty('rbacApplication', false)
@@ -406,7 +436,9 @@ module.exports = async function (app) {
             }
         }
 
-        const projects = await app.db.models.Project.byTeam(request.params.teamId, options)
+        const queryResult = await app.db.models.Project.byTeam(request.params.teamId, options)
+        const projects = paginated ? queryResult.rows : queryResult
+        const total = paginated ? queryResult.total : null
 
         if (projects) {
             let result = await app.db.views.Project.instancesList(projects, {
@@ -420,10 +452,19 @@ module.exports = async function (app) {
                     return { id: e.id, name: e.name }
                 })
             }
-            reply.send({
-                count: result.length,
+            const response = {
+                count: paginated ? total : result.length,
                 projects: result
-            })
+            }
+            if (paginated) {
+                response.meta = {
+                    page: request.query.page,
+                    pageSize: limit,
+                    total,
+                    pageCount: Math.max(1, Math.ceil(total / limit))
+                }
+            }
+            reply.send(response)
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }

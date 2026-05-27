@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-data-table overflow-auto flex flex-col">
+    <div class="ff-data-table overflow-auto flex flex-col" :class="{ 'ff-data-table--has-footer': !!pagination }">
         <div v-if="showOptions" class="ff-data-table--options flex flex-wrap">
             <ff-text-input
                 v-if="showSearch" v-model="filterTerm" class="ff-data-table--search"
@@ -120,6 +120,15 @@
         <div v-if="showLoadMore" class="ff-loadmore">
             <span data-action="load-more" @click="$emit('load-more')">Load More...</span>
         </div>
+        <ff-pagination
+            v-if="pagination"
+            :page="pagination.page"
+            :page-size="pagination.pageSize"
+            :total="pagination.total"
+            :page-size-options="pagination.pageSizeOptions || [10, 25, 50, 100]"
+            @update:page="$emit('update:page', $event)"
+            @update:page-size="$emit('update:page-size', $event)"
+        />
     </div>
 </template>
 
@@ -276,9 +285,13 @@ export default {
         collapsibleRow: {
             type: Object,
             default: null
+        },
+        pagination: {
+            type: Object,
+            default: null
         }
     },
-    emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked'],
+    emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked', 'update:page', 'update:page-size'],
     setup () {
         return { slugify }
     },

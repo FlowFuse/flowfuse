@@ -899,6 +899,18 @@ li.ff-kebab-item {
       justify-content: flex-end;
     }
   }
+
+  // Flatten last-row corners so the footer (pagination) carries the bottom radius.
+  &--has-footer .ff-data-table--data tbody .ff-data-table--row:last-child {
+    .ff-data-table--cell {
+      &:first-child {
+        border-bottom-left-radius: 0;
+      }
+      &:last-child {
+        border-bottom-right-radius: 0;
+      }
+    }
+  }
 }
 
 .ff-data-table thead .ff-checkbox,
@@ -923,6 +935,54 @@ li.ff-kebab-item {
       cursor: pointer;
       color: $ff-blue-700;
     }
+  }
+}
+
+.ff-pagination {
+  display: flex;
+  align-items: center;
+  gap: $ff-unit-md;
+  flex-wrap: wrap;
+  padding: $ff-unit-sm $ff-unit-md;
+  border: 1px solid $ff-grey-300;
+  border-top: 0;
+  border-radius: 0 0 6px 6px;
+  background-color: white;
+  font-size: 14px;
+  color: $ff-grey-700;
+
+  &--page-size {
+    display: flex;
+    align-items: center;
+    gap: $ff-unit-sm;
+    label { white-space: nowrap; }
+  }
+
+  .ff-listbox .ff-button {
+    min-height: 28px;
+    padding: 2px 8px;
+  }
+
+  &--summary {
+    margin-left: auto;
+  }
+
+  &--pages {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+
+    .ff-btn {
+      min-width: 28px;
+    }
+  }
+
+  &--ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    color: $ff-grey-500;
   }
 }
 

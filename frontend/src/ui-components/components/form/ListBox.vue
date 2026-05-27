@@ -3,6 +3,7 @@
              v-model="value"
              :disabled="disabled"
              class="ff-listbox"
+             :style="minWidth !== null ? { minWidth: minWidth + 'px' } : null"
              data-el="listbox"
              :data-select="selector"
              as="section"
@@ -163,6 +164,11 @@ export default {
         optionsMinWidth: {
             required: false,
             default: 200,
+            type: [null, Number]
+        },
+        minWidth: {
+            required: false,
+            default: null,
             type: [null, Number]
         },
         selector: {
