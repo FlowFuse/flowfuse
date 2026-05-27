@@ -1,0 +1,35 @@
+name: Sync Sprints (Development -> Product)
+
+# Mirrors the "Sprint" iteration field from the Development project (#1) onto the
+# Product project (#3) once a day. Product's field is named
+# "Sprint (auto-synced from Development)" and must not be edited by hand.
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-sprints
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.GH_BOT_APP_ID }}
+          private-key: ${{ secrets.GH_BOT_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Sync sprint field
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: python3 .github/scripts/sync_sprints.py
