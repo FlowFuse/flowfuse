@@ -21,6 +21,8 @@
                 :show-search="true"
                 search-placeholder="Search Remote Instances"
                 :pagination="paginationProps"
+                :loading="refetching"
+                :loading-overlay="true"
                 :check-key="row => row.id"
                 :show-row-checkboxes="hasPermission('team:device:bulk-edit', applicationContext)"
                 @rows-checked="checkedDevices = $event"
@@ -438,6 +440,8 @@ export default {
             // Page state
             loadingStatuses: true,
             loadingDevices: true,
+            // Separate from loadingDevices so the table stays mounted on refetch.
+            refetching: false,
             creatingDevice: false,
             deletingDevice: false,
 
@@ -880,40 +884,45 @@ export default {
         },
 
         async fetchDevices () {
-            /// Params to send to the server
-            const extraParams = {
-                page: this.page
-            }
-
-            // Specific filtering
-            if (this.filter?.property && this.filter?.bucket) {
-                extraParams.filters = `${this.filter.property}:${this.filter.bucket}`
-            }
-
-            // Search and sort
-            if (this.searchTerm) {
-                extraParams.query = this.searchTerm
-            }
-            if (this.sort.key) {
-                extraParams.sort = this.sort.key
-                if (this.sort.direction) {
-                    extraParams.dir = this.sort.direction
+            this.refetching = true
+            try {
+                /// Params to send to the server
+                const extraParams = {
+                    page: this.page
                 }
+
+                // Specific filtering
+                if (this.filter?.property && this.filter?.bucket) {
+                    extraParams.filters = `${this.filter.property}:${this.filter.bucket}`
+                }
+
+                // Search and sort
+                if (this.searchTerm) {
+                    extraParams.query = this.searchTerm
+                }
+                if (this.sort.key) {
+                    extraParams.sort = this.sort.key
+                    if (this.sort.direction) {
+                        extraParams.dir = this.sort.direction
+                    }
+                }
+
+                // Actually fetch the data — null cursor, pageSize as limit, extra params carry page/sort/filters/query.
+                const data = await this.fetchData(null, this.pageSize, extraParams)
+
+                const nextDevices = new Map()
+                data.devices.forEach(device => {
+                    nextDevices.set(device.id, device)
+                })
+                this.devices = nextDevices
+
+                // Pagination — prefer the new meta.total field, fall back to count for safety.
+                this.totalRows = data.meta?.total ?? data.count ?? data.devices.length
+
+                this.loadingDevices = false
+            } finally {
+                this.refetching = false
             }
-
-            // Actually fetch the data — null cursor, pageSize as limit, extra params carry page/sort/filters/query.
-            const data = await this.fetchData(null, this.pageSize, extraParams)
-
-            const nextDevices = new Map()
-            data.devices.forEach(device => {
-                nextDevices.set(device.id, device)
-            })
-            this.devices = nextDevices
-
-            // Pagination — prefer the new meta.total field, fall back to count for safety.
-            this.totalRows = data.meta?.total ?? data.count ?? data.devices.length
-
-            this.loadingDevices = false
         },
 
         getOwnerSortKeyForDevice (device) {

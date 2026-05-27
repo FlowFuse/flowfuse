@@ -42,6 +42,7 @@
                     :rows-selectable="!dashboardRoleOnly"
                     :pagination="paginationProps"
                     :loading="loading"
+                    :loading-overlay="true"
                     @row-selected="openInstance"
                     @update:search="updateSearch"
                     @update:sort="updateSort"

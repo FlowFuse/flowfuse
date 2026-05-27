@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-data-table overflow-auto flex flex-col" :class="{ 'ff-data-table--has-footer': !!pagination }">
+    <div class="ff-data-table overflow-auto flex flex-col" :class="{ 'ff-data-table--has-footer': !!pagination, 'ff-data-table--loading-overlay': loading && loadingOverlay }">
         <div v-if="showOptions" class="ff-data-table--options flex flex-wrap">
             <ff-text-input
                 v-if="showSearch" v-model="filterTerm" class="ff-data-table--search"
@@ -59,13 +59,13 @@
                     <tbody>
                         <!-- ROWS -->
                         <slot name="rows">
-                            <ff-data-table-row v-if="loading">
+                            <ff-data-table-row v-if="loading && !loadingOverlay">
                                 <ff-data-table-cell class="status-message" :colspan="messageColSpan">
                                     {{ loadingMessage }}
                                 </ff-data-table-cell>
                             </ff-data-table-row>
 
-                            <template v-if="!loading">
+                            <template v-if="!loading || loadingOverlay">
                                 <template v-for="(r, $index) in filteredRows" :key="r.id || r.name || r.label">
                                     <ff-data-table-row
                                         :data="r" :columns="columns"
@@ -289,6 +289,11 @@ export default {
         pagination: {
             type: Object,
             default: null
+        },
+        // Opt-in: dim existing rows on `loading` instead of collapsing tbody to a status row.
+        loadingOverlay: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked', 'update:page', 'update:page-size'],
