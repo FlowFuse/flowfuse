@@ -483,7 +483,7 @@ module.exports = async (options = {}) => {
         try {
             await server.close()
         } catch (err2) {
-            server.log.error(`Failed to shutdown: ${err2.toString()}`)
+            server.log.error(`ERROR: Failed to shutdown: ${err2.toString()}`)
             server.log.error(err2.stack)
         }
         throw err
