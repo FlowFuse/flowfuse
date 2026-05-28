@@ -17,7 +17,7 @@ describe('FlowFuse - Instance - Devices', () => {
     }
 
     beforeEach(() => {
-        cy.intercept('GET', '/api/*/projects/*/devices').as('getInstanceRemoteInstances') // TODO currently waiting on project API, rather than instances
+        cy.intercept('GET', '/api/*/projects/*/devices*').as('getInstanceRemoteInstances') // TODO currently waiting on project API, rather than instances
 
         cy.login('bob', 'bbPassword')
         cy.home()

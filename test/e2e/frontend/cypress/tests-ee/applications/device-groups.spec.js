@@ -111,7 +111,7 @@ describe('FlowFuse - Application - Device Groups', () => {
         it('snapshot info is displayed', () => {
             // override the fixtures with the devices having snapshots
             cy.intercept('GET', '/api/*/applications/*/device-groups/*', deviceGroup1).as('getDeviceGroup')
-            cy.intercept('GET', '/api/*/applications/*/devices', applicationDevices).as('getApplicationDevices')
+            cy.intercept('GET', '/api/*/applications/*/devices*', applicationDevices).as('getApplicationDevices')
 
             // open the application page
             cy.visit(`/team/${team.slug}/applications/${application.id}`)
