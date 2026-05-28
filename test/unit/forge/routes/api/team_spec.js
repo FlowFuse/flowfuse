@@ -1460,6 +1460,121 @@ describe('Team API', function () {
         // GET /api/v1/teams/:teamId/user
     })
 
+    describe('Comms credentials', async function () {
+        // POST /api/v1/teams/:teamId/comms-credentials
+        it('issues team-channel credentials for a team member', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                payload: { sessionId: 'tab-1234567890' },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('username', `team-frontend:${TestObjects.bob.hashid}:${TestObjects.ATeam.hashid}:tab-1234567890`)
+            result.should.have.property('password')
+            result.password.should.match(/^ffbtf_/)
+            result.should.have.property('url')
+        })
+        it('rejects a non-member with 404', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                payload: { sessionId: 'tab-1234567890' },
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.statusCode.should.equal(404)
+        })
+        it('rejects when sessionId is missing', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invalid_request')
+        })
+        it('rejects when sessionId is too short', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                payload: { sessionId: 'short' },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invalid_request')
+        })
+        it('returns 503 when comms is not configured', async function () {
+            const originalComms = app.comms
+            app.comms = null
+            try {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                    payload: { sessionId: 'tab-1234567890' },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(503)
+                response.json().should.have.property('code', 'comms_unavailable')
+            } finally {
+                app.comms = originalComms
+            }
+        })
+        it('returns 503 when broker client cannot be created', async function () {
+            const stub = sinon.stub(app.db.controllers.BrokerClient, 'createClientForTeamFrontend').resolves(null)
+            try {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                    payload: { sessionId: 'tab-1234567890' },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(503)
+                response.json().should.have.property('code', 'comms_unavailable')
+            } finally {
+                stub.restore()
+            }
+        })
+    })
+
+    describe('Team-channel notifications', async function () {
+        it('publishes a team-channel notify on team update', async function () {
+            const team = await app.db.models.Team.create({ name: generateName('notify-team'), slug: generateName('notify-slug'), TeamTypeId: app.defaultTeamType.id })
+            await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            const notifyStub = sinon.stub(app.comms.team, 'notify')
+            try {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: { name: team.name + '-updated' },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                notifyStub.calledWith(team.hashid, 'updated').should.be.true()
+            } finally {
+                notifyStub.restore()
+            }
+        })
+        it('publishes a team-channel notify when a team is suspended', async function () {
+            const team = await app.db.models.Team.create({ name: generateName('notify-suspend'), slug: generateName('notify-suspend-slug'), TeamTypeId: app.defaultTeamType.id })
+            await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            const notifyStub = sinon.stub(app.comms.team, 'notify')
+            try {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: { suspended: true },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                notifyStub.calledWith(team.hashid, 'suspended').should.be.true()
+            } finally {
+                notifyStub.restore()
+            }
+        })
+    })
+
     describe('Get team audit-log', async function () {
         // GET /api/v1/teams/:teamId/audit-log
     })

@@ -130,6 +130,53 @@ describe('BrokerClient', function () {
             app.settings.set.calledWith('platform:expert-agent:creds', false).should.be.true()
         })
     })
+    describe('createClientForTeamFrontend', function () {
+        it('should create broker client for team frontend', async function () {
+            const fakeClient = fakeBrokerClient()
+            app.db.models.BrokerClient.findOne.resolves(null)
+            app.db.models.BrokerClient.create.resolves(fakeClient)
+            const user = { id: 7, hashid: 'userHash' }
+            const team = { id: 11, hashid: 'teamHash' }
+            const sessionId = 'tab-1234567890'
+            const result = await BrokerClient.createClientForTeamFrontend(app, user, team, sessionId)
+            const expectedUsername = `team-frontend:${user.hashid}:${team.hashid}:${sessionId}`
+            should(result).have.property('username', expectedUsername)
+            should(result).have.property('password')
+            result.password.should.match(/^ffbtf_/)
+            should(result).have.property('url', 'http://public.url')
+            app.db.models.BrokerClient.create.calledWith({
+                username: expectedUsername,
+                password: result.password,
+                ownerId: '' + user.id,
+                ownerType: 'team-frontend'
+            }).should.be.true()
+        })
+        it('should destroy existing client for same session before creating a new one', async function () {
+            const existingClient = fakeBrokerClient()
+            app.db.models.BrokerClient.findOne.resolves(existingClient)
+            app.db.models.BrokerClient.create.resolves(fakeBrokerClient())
+            const user = { id: 7, hashid: 'userHash' }
+            const team = { id: 11, hashid: 'teamHash' }
+            const result = await BrokerClient.createClientForTeamFrontend(app, user, team, 'tab-1234567890')
+            existingClient.destroy.called.should.be.true()
+            should(result).have.property('username', `team-frontend:${user.hashid}:${team.hashid}:tab-1234567890`)
+        })
+        it('should look up existing client scoped to the full username (including sessionId) so different tabs do not revoke each other', async function () {
+            app.db.models.BrokerClient.findOne.resolves(null)
+            app.db.models.BrokerClient.create.resolves(fakeBrokerClient())
+            const user = { id: 7, hashid: 'userHash' }
+            const team = { id: 11, hashid: 'teamHash' }
+            await BrokerClient.createClientForTeamFrontend(app, user, team, 'tab-A')
+            const findOneArgs = app.db.models.BrokerClient.findOne.firstCall.args[0]
+            findOneArgs.should.have.property('where')
+            findOneArgs.where.should.have.property('username', `team-frontend:${user.hashid}:${team.hashid}:tab-A`)
+        })
+        it('should return null if app.comms is not available', async function () {
+            app.comms = null
+            const result = await BrokerClient.createClientForTeamFrontend(app, { id: 7, hashid: 'userHash' }, { id: 11, hashid: 'teamHash' }, 'tab-1234567890')
+            should(result).be.null()
+        })
+    })
     describe('createClientForExpertClient', function () {
         it('should create broker client for expert client', async function () {
             const fakeClient = fakeBrokerClient()

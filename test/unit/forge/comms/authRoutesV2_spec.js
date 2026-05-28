@@ -1,4 +1,6 @@
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+
 const { Roles } = require('../../../../forge/lib/roles')
 const setup = require('../routes/setup')
 const TestModelFactory = require('../../../lib/TestModelFactory') // eslint-disable-line
@@ -1387,6 +1389,39 @@ describe('Broker Auth v2 API', async function () {
                     username: 'forge_platform',
                     topic: membershipTopic
                 })
+            })
+            it('denies subscribe when the credential\'s team hash does not resolve to a team', async function () {
+                const teamLookupStub = sinon.stub(app.db.models.Team, 'byId').resolves(null)
+                try {
+                    await denyRead({
+                        username: teamFrontendUsername,
+                        topic: teamUpdatedTopic
+                    })
+                } finally {
+                    teamLookupStub.restore()
+                }
+            })
+            it('denies subscribe when the credential\'s user hash does not resolve to a user', async function () {
+                const userLookupStub = sinon.stub(app.db.models.User, 'byId').resolves(null)
+                try {
+                    await denyRead({
+                        username: teamFrontendUsername,
+                        topic: teamUpdatedTopic
+                    })
+                } finally {
+                    userLookupStub.restore()
+                }
+            })
+            it('denies subscribe when the membership lookup throws', async function () {
+                const teamLookupStub = sinon.stub(app.db.models.Team, 'byId').rejects(new Error('boom'))
+                try {
+                    await denyRead({
+                        username: teamFrontendUsername,
+                        topic: teamUpdatedTopic
+                    })
+                } finally {
+                    teamLookupStub.restore()
+                }
             })
         })
     })
