@@ -64,11 +64,11 @@
                         </ff-button>
                     </template>
                     <template #row-actions="{row}">
-                        <dashboard-link v-if="!!row.settings?.dashboard2UI?.length" :disabled="row.meta?.state !== 'running'" :instance="row" />
+                        <dashboard-link v-if="!!row.settings?.dashboard2UI?.length" :disabled="row.status !== 'running'" :instance="row" />
                         <instance-editor-link
                             v-if="hasPermission('team:projects:list')"
                             :instance="row"
-                            :disabled="row.meta?.state !== 'running'"
+                            :disabled="row.status !== 'running'"
                             disabled-reason="The Instance is not running"
                         />
                     </template>
@@ -241,7 +241,7 @@ export default {
                             instanceId: 'id',
                             pendingStateChange: 'pendingStateChange',
                             optimisticStateChange: 'optimisticStateChange',
-                            status: 'meta.state'
+                            status: 'status'
                         },
                         extraProps: {
                             instanceType: 'instance'

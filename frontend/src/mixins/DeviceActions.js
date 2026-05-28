@@ -67,6 +67,9 @@ export default {
                         Alerts.emit('Successfully deleted the device', 'confirmation')
                         this.deleteLocalCopyOfDevice(device)
                         this.$emit('delete-device')
+                        if (typeof this.loadDevices === 'function') {
+                            this.loadDevices(true)
+                        }
                     } catch (err) {
                         Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
                     }
