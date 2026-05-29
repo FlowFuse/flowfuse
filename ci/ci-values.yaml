@@ -2,7 +2,7 @@ forge:
   domain: flowfuse.dev
   https: true
   localPostgresql: true
-  localValkey: false
+  localValkey: true
   projectIngressClassName: traefik
   broker:
     enabled: true
