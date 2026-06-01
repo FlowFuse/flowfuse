@@ -1,43 +1,140 @@
-@use "../../ui-components/stylesheets/ff-colors.scss" as *;
+@use "./ff-colors.scss" as *;
 
-.ff-bg-light {
-    background-color: $ff-grey-50;
-}
+:root,
+[data-theme="light"] {
+    color-scheme: light;
 
-.ff-theme-light {
+    --ff-color-bg-app:            var(--ff-palette-white);
+    --ff-color-bg-surface:        var(--ff-palette-grey-50);
+    --ff-color-bg-surface-raised: var(--ff-palette-grey-100);
+    --ff-color-bg-emphasis:       var(--ff-palette-grey-200);
 
-    color: $ff-grey-800;
+    --ff-color-text:              var(--ff-palette-grey-800);
+    --ff-color-text-muted:        var(--ff-palette-grey-700);
+    --ff-color-text-subtle:       var(--ff-palette-grey-400);
+    --ff-color-text-disabled:     var(--ff-palette-grey-400);
+    --ff-color-text-strong:       var(--ff-palette-grey-900);
+    --ff-color-text-deep:         var(--ff-palette-grey-600);
+    --ff-color-text-on-brand:     var(--ff-palette-white);
 
-    /* Core */
+    --ff-color-border-subtle:     var(--ff-palette-grey-100);
+    --ff-color-border:            var(--ff-palette-grey-200);
+    --ff-color-border-strong:     var(--ff-palette-grey-300);
 
-    h1, h2, h3, h4, h5{
-        color: $ff-grey-700;
-    }
-    
-    p {
-        color: $ff-grey-800;
-    }
+    --ff-color-accent-surface:    var(--ff-palette-indigo-50);
+    --ff-color-accent-light:      var(--ff-palette-indigo-300);
+    --ff-color-accent:            var(--ff-palette-indigo-600);
+    --ff-color-accent-hover:      var(--ff-palette-indigo-700);
+    --ff-color-accent-hover-bg:   var(--ff-palette-indigo-700);
+    --ff-color-accent-strong:     var(--ff-palette-indigo-800);
+    --ff-color-focus:             var(--ff-palette-indigo-500);
 
-    .ff-description {
-        color: $ff-grey-500;
-    }
+    --ff-color-danger:            var(--ff-palette-red-500);
+    --ff-color-danger-text:       var(--ff-palette-red-500);
+    --ff-color-danger-strong:     var(--ff-palette-red-600);
+    --ff-color-danger-darker:     var(--ff-palette-red-700);
+    --ff-color-success:           var(--ff-palette-green-500);
 
-    select {
-        background-color: $ff-grey-50;
-    }
+    --ff-color-link:              var(--ff-palette-blue-700);
+    --ff-color-link-hover:        var(--ff-palette-blue-900);
 
-    code {
-        background-color: $ff-grey-100;
-        border-color: $ff-grey-200;
-    }
+    --ff-color-overlay-backdrop:    rgba(31, 41, 55, 0.3);
+    --ff-color-overlay-faint:       rgba(107, 114, 128, 0.2);
+    --ff-color-overlay-on-accent:   rgba(255, 255, 255, 0.3);
 
-    /* FlowFuse Components */
+    --ff-color-status-error-bg:        var(--ff-palette-red-100);
+    --ff-color-status-error-border:    var(--ff-palette-red-400);
+    --ff-color-status-error-text:      var(--ff-palette-red-600);
+    --ff-color-status-error-dot:       var(--ff-palette-red-600);
 
-    .ff-btn {
-        &:disabled {
-            background-color: $ff-white;
-            border-color: $ff-grey-300;
-            color: $ff-grey-300;
-        }
-    }
+    --ff-color-status-success-bg:      var(--ff-palette-green-200);
+    --ff-color-status-success-border:  var(--ff-palette-green-400);
+    --ff-color-status-success-text:    var(--ff-palette-green-700);
+    --ff-color-status-success-dot:     var(--ff-palette-green-400);
+
+    --ff-color-status-progress-bg:     var(--ff-palette-green-100);
+    --ff-color-status-progress-border: var(--ff-palette-green-300);
+
+    --ff-color-status-safe-bg:         var(--ff-palette-yellow-200);
+    --ff-color-status-safe-border:     var(--ff-palette-yellow-400);
+    --ff-color-status-safe-text:       var(--ff-palette-yellow-600);
+
+    --ff-color-status-warning-bg:      var(--ff-palette-yellow-400);
+    --ff-color-status-warning-border:  var(--ff-palette-yellow-700);
+    --ff-color-status-warning-text:    var(--ff-palette-yellow-900);
+
+    --ff-color-status-neutral-bg:      var(--ff-palette-white);
+    --ff-color-status-neutral-border:  var(--ff-palette-grey-300);
+    --ff-color-status-neutral-text:    var(--ff-palette-grey-600);
+    --ff-color-status-neutral-dot:     var(--ff-palette-grey-300);
+
+    --ff-color-status-info-bg:         var(--ff-palette-grey-100);
+    --ff-color-status-info-border:     var(--ff-palette-grey-300);
+    --ff-color-status-info-text:       var(--ff-palette-grey-700);
+
+    --ff-color-status-devmode-bg:      var(--ff-palette-purple-100);
+    --ff-color-status-devmode-border:  var(--ff-palette-purple-600);
+    --ff-color-status-devmode-text:    var(--ff-palette-purple-700);
+
+    --ff-color-status-info-surface:        var(--ff-palette-blue-100);
+    --ff-color-status-info-surface-border: var(--ff-palette-blue-300);
+
+    --ff-color-status-fleetmode-bg:      var(--ff-palette-teal-100);
+    --ff-color-status-fleetmode-border:  var(--ff-palette-teal-600);
+    --ff-color-status-fleetmode-text:    var(--ff-palette-teal-700);
+
+    --ff-color-surface-dark:               var(--ff-palette-grey-800);
+    --ff-color-surface-dark-text:          var(--ff-palette-grey-300);
+
+    --ff-color-code-surface:               var(--ff-palette-grey-800);
+    --ff-color-code-text:                  var(--ff-palette-grey-200);
+
+    --ff-color-log-system:                 var(--ff-palette-blue-400);
+    --ff-color-log-info:                   var(--ff-palette-grey-200);
+    --ff-color-log-warn:                   var(--ff-palette-yellow-300);
+    --ff-color-log-error:                  var(--ff-palette-red-300);
+
+    --ff-color-nav-divider:                var(--ff-palette-grey-600);
+    --ff-color-nav-divider-strong:         var(--ff-palette-grey-900);
+    --ff-color-nav-item-hover:             var(--ff-palette-grey-700);
+    --ff-color-nav-item-active:            var(--ff-palette-grey-600);
+    --ff-color-nav-item-active-text:       var(--ff-palette-teal-300);
+    --ff-color-nav-item-border:            var(--ff-palette-grey-800);
+
+    --ff-color-icon-git:                   var(--ff-palette-git-orange);
+    --ff-color-icon-flow-bg:               var(--ff-palette-grey-500);
+    --ff-color-icon-flow-fg:               var(--ff-palette-white);
+
+    --ff-color-banner-accent:              var(--ff-palette-red-500);
+    --ff-color-banner-warning-accent:      var(--ff-palette-red-800);
+
+    --ff-color-pill-ring:                  var(--ff-palette-red-700);
+    --ff-color-tab-active:                 var(--ff-palette-blue-700);
+
+    --ff-color-timeline-marker-border:     var(--ff-palette-blue-800);
+    --ff-color-timeline-marker-bg:         var(--ff-palette-white);
+
+    --ff-color-toggle-group-active-border: var(--ff-palette-blue-800);
+
+    --ff-color-chip-default-bg:            var(--ff-palette-indigo-300);
+    --ff-color-expert-drawer-bg:           var(--ff-palette-indigo-900);
+    --ff-color-blueprint-tile-bg:          var(--ff-palette-teal-100);
+    --ff-color-diff-highlight-bg:          var(--ff-palette-blue-300);
+
+    --ff-color-splash-brand-bg:            var(--ff-palette-teal-600);
+    --ff-color-splash-brand-bg-hover:      var(--ff-palette-teal-700);
+
+    --ff-color-progress-track:             var(--ff-palette-indigo-200);
+    --ff-color-progress-fill:              var(--ff-palette-indigo-400);
+    --ff-color-progress-track-neutral:     var(--ff-palette-grey-400);
+
+    --ff-color-tile-ribbon-shadow-red:     var(--ff-palette-red-900);
+    --ff-color-tile-ribbon-shadow-indigo:  var(--ff-palette-indigo-900);
+    --ff-color-tile-bevel-top:             var(--ff-palette-bevel-top);
+    --ff-color-tile-bevel-bottom:          var(--ff-palette-bevel-bottom);
+
+    --ff-color-checkmark-stroke:           var(--ff-palette-white);
+    --ff-color-checkbox-checked-bg:        var(--ff-color-accent);
+    --ff-color-checkbox-checked-border:    var(--ff-color-accent);
+    --ff-color-toggle-track-on:            var(--ff-palette-blue-900);
 }

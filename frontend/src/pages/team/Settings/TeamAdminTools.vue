@@ -482,17 +482,17 @@ export default {
 .ff-team-properties-table {
     padding: 9px 12px;
     border-radius: 0.25rem;
-    background-color: white;
+    background-color: var(--ff-color-bg-app);
     border-collapse: separate;
     border-width: 1px;
-    border-color: $ff-grey-300;
+    border-color: var(--ff-color-border-strong);
     min-width: 400px;
     td {
         height: 36px;
     }
     tr:not(:last-child) {
         td,th {
-            border-bottom: 1px solid $ff-grey-100;
+            border-bottom: 1px solid var(--ff-color-border-subtle);
         }
     }
     th {

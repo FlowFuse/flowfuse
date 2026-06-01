@@ -168,24 +168,24 @@ export default {
     font-size: $ff-funit-sm;
     font-weight: 600;
     line-height: 20px;
-    background-color: $ff-white;
-    color: $ff-color--action;
-    border: 1px solid $ff-color--action;
+    background-color: var(--ff-color-bg-app);
+    color: var(--ff-color-accent-strong);
+    border: 1px solid var(--ff-color-accent-strong);
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 
     &:hover:not(:disabled) {
-        background-color: $ff-color--highlight;
-        border-color: $ff-color--highlight;
-        color: $ff-white;
+        background-color: var(--ff-color-accent);
+        border-color: var(--ff-color-accent);
+        color: var(--ff-color-text-on-brand);
     }
 
     &:disabled,
     &.editor-link-split--disabled {
         cursor: not-allowed;
-        border-color: $ff-grey-300;
-        color: $ff-grey-400;
-        background-color: $ff-grey-50;
+        border-color: var(--ff-color-border-strong);
+        color: var(--ff-color-text-subtle);
+        background-color: var(--ff-color-bg-surface);
     }
 
     .ff-btn--icon {
@@ -215,7 +215,7 @@ export default {
     justify-content: center;
     padding: $ff-unit-sm;
     border-radius: 0 $ff-unit-sm $ff-unit-sm 0;
-    border-left: 1px solid $ff-color--action;
+    border-left: 1px solid var(--ff-color-accent-strong);
 
     .ff-btn--icon {
         width: 20px;
@@ -223,12 +223,12 @@ export default {
     }
 
     &:hover:not(:disabled) {
-        border-left-color: $ff-color--highlight;
+        border-left-color: var(--ff-color-accent);
     }
 
     &:disabled,
     &.editor-link-split--disabled {
-        border-left-color: $ff-grey-300;
+        border-left-color: var(--ff-color-border-strong);
     }
 }
 
@@ -236,21 +236,21 @@ export default {
 .editor-link-split--primary {
     .editor-link-split__action,
     .editor-link-split__toggle {
-        background-color: $ff-color--action;
-        border-color: $ff-color--action;
-        color: $ff-white;
+        background-color: var(--ff-color-accent-strong);
+        border-color: var(--ff-color-accent-strong);
+        color: var(--ff-color-text-on-brand);
 
         &:hover:not(:disabled) {
-            background-color: $ff-color--highlight;
-            border-color: $ff-color--highlight;
+            background-color: var(--ff-color-accent);
+            border-color: var(--ff-color-accent);
         }
     }
 
     .editor-link-split__toggle {
-        border-left-color: rgba($ff-white, 0.3);
+        border-left-color: var(--ff-color-overlay-on-accent);
 
         &:hover:not(:disabled) {
-            border-left-color: rgba($ff-white, 0.3);
+            border-left-color: var(--ff-color-overlay-on-accent);
         }
     }
 }

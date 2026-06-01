@@ -197,19 +197,19 @@ export default {
             }
 
             .edit:hover {
-                color: $ff-grey-700;
+                color: var(--ff-color-text-muted);
             }
             .delete:hover {
-                color: $ff-red-700;
+                color: var(--ff-color-danger-darker);
             }
         }
     }
 
     .ff-accordion--content {
-        background: $ff-grey-100;
+        background: var(--ff-color-bg-surface-raised);
         .acl-list {
             .acl-wrapper {
-                border-bottom: 1px solid $ff-grey-200;
+                border-bottom: 1px solid var(--ff-color-border);
                 padding: 15px 10px;
                 gap: 10px;
                 font-size: 80%;

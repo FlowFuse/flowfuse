@@ -1,8 +1,8 @@
 @use "../../ui-components/stylesheets/ff-colors.scss" as *;
 
 .ff-code-previewer {
-    background-color: white;
-    border: 1px solid $ff-grey-300;
+    background-color: var(--ff-color-bg-app);
+    border: 1px solid var(--ff-color-border-strong);
     border-radius: 6px;
     padding: 12px;
     code {

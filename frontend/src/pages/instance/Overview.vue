@@ -326,7 +326,7 @@ export default {
     background: transparent;
     border-radius: 4px;
     cursor: pointer;
-    color: $ff-color--action;
+    color: var(--ff-color-accent-strong);
     transition: color 0.15s ease, background-color 0.15s ease;
 
     .ff-icon {
@@ -340,17 +340,17 @@ export default {
     }
 
     &:hover {
-      background-color: $ff-color--highlight;
-      color: $ff-white;
+      background-color: var(--ff-color-accent);
+      color: var(--ff-color-text-on-brand);
     }
 
     &:disabled {
       cursor: not-allowed;
-      color: $ff-grey-300;
+      color: var(--ff-color-text-disabled);
 
       &:hover {
         background-color: transparent;
-        color: $ff-grey-300;
+        color: var(--ff-color-text-disabled);
       }
     }
   }

@@ -29,10 +29,10 @@ export default {
 
     .dp__action_button {
         &.dp__action_select {
-            background: $ff-indigo-700;
+            background: var(--ff-color-accent-hover-bg);
 
             &[disabled] {
-                background: $ff-grey-300;
+                background: var(--ff-color-border-strong);
             }
         }
     }

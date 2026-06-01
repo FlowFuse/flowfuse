@@ -232,7 +232,7 @@ export default {
 
 <style lang="scss">
 input:disabled {
-  background-color: $ff-white !important;
+  background-color: var(--ff-color-bg-app) !important;
   opacity: .9;
   -webkit-appearance: none;
   -moz-appearance: none;

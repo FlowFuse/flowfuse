@@ -30,7 +30,7 @@ export default {
     top: 0;
     width: 6px;
     height: 100%;
-    border-right: 1px solid $ff-grey-400;
+    border-right: 1px solid var(--ff-color-border-strong);
     background: transparent;
     display: flex;
     align-items: center;
@@ -44,14 +44,14 @@ export default {
         writing-mode: vertical-rl;
         line-height: 0.5;
         letter-spacing: 4px;
-        color: $ff-grey-500;
+        color: var(--ff-color-text-subtle);
     }
 
     &:hover {
         cursor: ew-resize;
 
         &::before {
-            color: $ff-grey-700;
+            color: var(--ff-color-text-muted);
         }
     }
 

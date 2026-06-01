@@ -1,271 +1,136 @@
-@use "../../ui-components/stylesheets/ff-colors.scss" as *;
+@use "./ff-colors.scss" as *;
 
-.ff-bg-dark {
-    background-color: $ff-grey-800;
-}
+[data-theme="dark"] {
+    color-scheme: dark;
 
-.ff-theme-dark {
-    color: $ff-grey-50;
-    
-    /* Core */
+    --ff-color-bg-app:            var(--ff-palette-slate-1-dark);
+    --ff-color-bg-surface:        var(--ff-palette-slate-2-dark);
+    --ff-color-bg-surface-raised: var(--ff-palette-slate-3-dark);
+    --ff-color-bg-emphasis:       var(--ff-palette-slate-4-dark);
 
-    table {
-        td, th {
-            border-color: $ff-grey-500;
-        }
-    }
+    --ff-color-text:              var(--ff-palette-slate-12-dark);
+    --ff-color-text-muted:        var(--ff-palette-slate-11-dark);
+    --ff-color-text-subtle:       var(--ff-palette-slate-10-dark);
+    --ff-color-text-disabled:     var(--ff-palette-slate-8-dark);
+    --ff-color-text-strong:       var(--ff-palette-slate-12-dark);
+    --ff-color-text-deep:         var(--ff-palette-slate-11-dark);
+    --ff-color-text-on-brand:     var(--ff-palette-white);
 
-    select {
-        background-color: $ff-grey-800;
-    }
+    --ff-color-border-subtle:     var(--ff-palette-slate-4-dark);
+    --ff-color-border:            var(--ff-palette-slate-6-dark);
+    --ff-color-border-strong:     var(--ff-palette-slate-7-dark);
 
-    code {
-        background-color: $ff-grey-900;
-        border-color: $ff-grey-700;
-    }
+    --ff-color-accent-surface:    var(--ff-palette-indigo-3-dark);
+    --ff-color-accent-light:      var(--ff-palette-indigo-7-dark);
+    --ff-color-accent:            var(--ff-palette-indigo-9-dark);
+    --ff-color-accent-hover:      var(--ff-palette-indigo-11-dark);
+    --ff-color-accent-hover-bg:   var(--ff-palette-indigo-9-dark);
+    --ff-color-accent-strong:     var(--ff-palette-indigo-9-strong-dark);
+    --ff-color-focus:             var(--ff-palette-indigo-8-dark);
 
-    .ff-description {
-        color: $ff-grey-400;
-    }
+    --ff-color-danger:            var(--ff-palette-red-9-dark);
+    --ff-color-danger-text:       var(--ff-palette-red-11-dark);
+    --ff-color-danger-strong:     var(--ff-palette-red-10-dark);
+    --ff-color-danger-darker:     var(--ff-palette-red-10-dark);
+    --ff-color-success:           var(--ff-palette-green-9-dark);
 
-    /* FlowFuse Components */
+    --ff-color-link:              var(--ff-palette-blue-11-dark);
+    --ff-color-link-hover:        var(--ff-palette-blue-12-dark);
 
-    /**
-    * Buttons
-    */
-    .ff-btn {
-        &--tertiary {
-            color: $ff-white;
-            &:hover {
-                // background-color: $ff-color--secondary--highlight;
-                color: $ff-white;
-            }
-        }
-        &:disabled {
-            background-color: $ff-grey-700;
-            border-color: $ff-grey-500;
-            color: $ff-grey-500;
-        }
-    }
+    --ff-color-overlay-backdrop:    rgba(0, 0, 0, 0.6);
+    --ff-color-overlay-faint:       rgba(255, 255, 255, 0.06);
+    --ff-color-overlay-on-accent:   rgba(255, 255, 255, 0.3);
 
-    /**
-    *  Text Input
-    */
+    --ff-color-progress-track:         var(--ff-palette-slate-4-dark);
+    --ff-color-progress-fill:          var(--ff-palette-indigo-8-dark);
+    --ff-color-progress-track-neutral: var(--ff-palette-slate-7-dark);
 
-    .ff-input.ff-text-input {
-        background-color: $ff-grey-700;
-        border-color: $ff-grey-900;
-        &:focus {
-          border-color: $ff-white;
-        }
-    }
+    --ff-color-status-error-bg:        rgba(237, 78, 78, 0.15);
+    --ff-color-status-error-border:    rgba(237, 78, 78, 0.4);
+    --ff-color-status-error-text:      var(--ff-palette-red-11-dark);
+    --ff-color-status-error-dot:       var(--ff-palette-red-11-dark);
 
-    /**
-    *  Dropdowns
-    */
+    --ff-color-status-success-bg:      rgba(76, 195, 138, 0.18);
+    --ff-color-status-success-border:  rgba(76, 195, 138, 0.45);
+    --ff-color-status-success-text:    var(--ff-palette-green-300);
+    --ff-color-status-success-dot:     var(--ff-palette-green-300);
 
-    .ff-dropdown {
-        &[disabled="true"] {
-            background-color: $ff-grey-700;
-            color: $ff-grey-500;
-        }
-        .ff-dropdown-selected {
-            background-color: $ff-grey-700;
-            border-color: $ff-grey-500;
-        }
-        .ff-dropdown-options {
-            border-color: $ff-grey-700;
-        }
-        .ff-dropdown-option {
-            background-color: $ff-grey-700;
-            border-color: $ff-grey-800;
-            &:hover {
-                background-color: $ff-grey-800;
-            }
-        }
-    }
+    --ff-color-status-progress-bg:     rgba(76, 195, 138, 0.12);
+    --ff-color-status-progress-border: rgba(76, 195, 138, 0.35);
 
-    /**
-    *  Checkboxes
-    */
+    --ff-color-status-safe-bg:         rgba(251, 191, 36, 0.15);
+    --ff-color-status-safe-border:     rgba(251, 191, 36, 0.4);
+    --ff-color-status-safe-text:       var(--ff-palette-yellow-300);
 
-    .ff-checkbox {
-        .checkbox[checked=true] {
-            background-color: transparent;
-            border-color: $ff-grey-500;
-        }
-        &:hover:not([disabled=true]) {
-            .checkbox {
-                background-color: $ff-grey-600;
-            }
-        }
-        &:hover:not([disabled=true]) {
-            .checkbox[checked=true] {
-                background-color: $ff-grey-800;
-                border-color: $ff-grey-600;
-            }
-        }
-    }
+    --ff-color-status-warning-bg:      rgba(251, 191, 36, 0.25);
+    --ff-color-status-warning-border:  rgba(251, 191, 36, 0.55);
+    --ff-color-status-warning-text:    var(--ff-palette-yellow-200);
 
-    /**
-    *  FF Toggle Switch
-    */
-    .ff-toggle-switch {
-        svg {
-          color: $ff-grey-800;
-        }
-        input:checked + .ff-toggle-switch-slider {
-          background-color: $ff-blue-600;
-        }
-        &[disabled=true] {
-          .ff-toggle-switch-slider {
-            background-color: $ff-grey-700;
-          }
-          .ff-toggle-switch-button {
-            background-color: $ff-grey-800;
-          }
-          svg {
-            color: $ff-grey-500;
-          }
-        }
-    }
+    --ff-color-status-neutral-bg:      var(--ff-color-bg-surface-raised);
+    --ff-color-status-neutral-border:  var(--ff-color-border);
+    --ff-color-status-neutral-text:    var(--ff-color-text-subtle);
+    --ff-color-status-neutral-dot:     var(--ff-color-text-subtle);
 
-    .ff-toggle-switch-slider {
-        background-color: $ff-grey-600;
-        &:hover {
-          background-color: $ff-indigo-500 !important;
-        }
-    }
+    --ff-color-status-info-bg:         var(--ff-color-bg-surface-raised);
+    --ff-color-status-info-border:     var(--ff-color-border);
+    --ff-color-status-info-text:       var(--ff-color-text-muted);
 
-    .ff-toggle-switch-button {
-        background-color: $ff-white;
-    }
+    --ff-color-status-devmode-bg:      rgba(168, 85, 247, 0.18);
+    --ff-color-status-devmode-border:  rgba(168, 85, 247, 0.45);
+    --ff-color-status-devmode-text:    var(--ff-palette-purple-300);
 
-    /**
-    *  Radio Group
-    */
+    --ff-color-status-info-surface:        rgba(112, 184, 255, 0.12);
+    --ff-color-status-info-surface-border: rgba(112, 184, 255, 0.35);
 
-    .ff-radio-btn {
-      .checkbox {
-        border: 1px solid $ff-grey-600;
-        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%231F2937' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='4'/%3e%3c/svg%3e")    
-      }
-    }
-    
-    .ff-radio-btn {
-        .checkbox {
-            &[checked=true] {
-                background-color: $ff-white;
-                border-color: $ff-grey-700;
-            }
-            &[checked=true]:after {
-                display: block;
-            }
-        }
-        &:hover:not([disabled=true]) {
-            .checkbox {
-                background-color: $ff-grey-600;
-            }
-        }
-        &:hover:not([disabled=true]) {
-            .checkbox[checked=true] {
-                background-color: $ff-white;
-            }
-        }
-    }
+    --ff-color-status-fleetmode-bg:      rgba(80, 195, 201, 0.18);
+    --ff-color-status-fleetmode-border:  rgba(80, 195, 201, 0.45);
+    --ff-color-status-fleetmode-text:    var(--ff-palette-teal-light-dark);
 
-    /**
-    *  Toast Notification
-    */
+    --ff-color-timeline-marker-border:     var(--ff-color-accent-light);
+    --ff-color-timeline-marker-bg:         var(--ff-color-bg-surface-raised);
 
-    .ff-notification-toast {
-        color: $ff-grey-800;
-    }
+    --ff-color-toggle-track-on:            var(--ff-color-accent);
 
-    /**
-    *  Selection Tile
-    */
+    --ff-color-banner-accent:              var(--ff-color-danger);
+    --ff-color-banner-warning-accent:      var(--ff-color-danger);
 
-    .ff-tile-selection {
-        .ff-tile-selection-option--header > h2 svg {
-            fill: $ff-grey-500;
-            &.ff-tile-selection-option--edit:hover {
-                fill: $ff-blue-300;
-            }
-        }
-        .ff-tile-selection-option {
-            background-color: $ff-grey-700;
-            border-color: $ff-grey-800;
-            &.active svg {
-                fill: $ff-blue-300;
-            }
-            &:hover {
-                background-color: $ff-grey-800;
-            }
-            &:not(.editable):hover {
-                border-color: $ff-blue-300;
-            }
-            &[selected=true] {
-                background-color: $ff-grey-800;
-                border-color: $ff-grey-800;
-            }
-        }
-    }
+    --ff-color-pill-ring:                  var(--ff-color-danger);
+    --ff-color-tab-active:                 var(--ff-color-accent);
+    --ff-color-toggle-group-active-border: var(--ff-color-accent);
 
-    /**
-    *  Data Table
-    */
-    .ff-data-table {
-        &--data {
-          .ff-data-table--cell {
-          }
-          thead {
-            .ff-data-table--cell {
-              background-color: $ff-grey-900;
-              &.sortable {
-                &:hover {
-                  background-color: $ff-grey-800;
-                }
-              }
-              &.sorted {
-                background-color: $ff-grey-900;
-              }
-            }
-          }
-          tbody {
-            .ff-data-table--row:last-child {
-              .ff-data-table--cell {
-                border-top-color: $ff-grey-600;
-              }
-            }
-            .ff-data-table--cell {
-              background-color: $ff-grey-700;
-              &.highlight {
-                background-color: $ff-grey-800;
-              }
-            }
-            .selectable:hover .ff-data-table--cell {
-              color: $ff-blue-300;
-              background-color: $ff-grey-600;
-            }
-          }
-        }
-        &--row {
-          td {
-            border-color: $ff-grey-600;
-          }
-        }
-      }
-      
-      .ff-loadmore {
-        span {
-          color: $ff-white;
-          background-color: $ff-grey-900;
-          border: 1px solid $ff-grey-600;
-          &:hover {
-            color: $ff-blue-300;
-            background-color: $ff-grey-600;
-          }
-        }
-      }
+    --ff-color-chip-default-bg:            var(--ff-color-bg-surface-raised);
+    --ff-color-blueprint-tile-bg:          var(--ff-color-bg-surface-raised);
+    --ff-color-diff-highlight-bg:          var(--ff-color-accent-surface);
+
+    --ff-color-splash-brand-bg:            var(--ff-palette-teal-600);
+    --ff-color-splash-brand-bg-hover:      var(--ff-palette-teal-700);
+
+    --ff-color-checkbox-checked-bg:        var(--ff-color-accent);
+    --ff-color-checkbox-checked-border:    var(--ff-color-accent);
+    --ff-color-checkmark-stroke:           var(--ff-palette-white);
+
+    --ff-color-code-surface:               var(--ff-palette-grey-800);
+    --ff-color-code-text:                  var(--ff-palette-grey-200);
+    --ff-color-log-system:                 var(--ff-palette-blue-400);
+    --ff-color-log-info:                   var(--ff-palette-grey-200);
+    --ff-color-log-warn:                   var(--ff-palette-yellow-300);
+    --ff-color-log-error:                  var(--ff-palette-red-300);
+    --ff-color-surface-dark:               var(--ff-palette-grey-800);
+    --ff-color-surface-dark-text:          var(--ff-palette-grey-300);
+
+    --ff-color-nav-divider:                var(--ff-palette-grey-600);
+    --ff-color-nav-divider-strong:         var(--ff-palette-grey-900);
+    --ff-color-nav-item-active:            var(--ff-palette-grey-600);
+    --ff-color-nav-item-active-text:       var(--ff-palette-teal-300);
+    --ff-color-nav-item-border:            var(--ff-palette-grey-800);
+    --ff-color-nav-item-hover:             var(--ff-palette-grey-700);
+
+    --ff-color-icon-flow-bg:               var(--ff-palette-grey-500);
+    --ff-color-icon-flow-fg:               var(--ff-palette-white);
+    --ff-color-icon-git:                   var(--ff-palette-git-orange);
+    --ff-color-expert-drawer-bg:           var(--ff-palette-indigo-900);
+    --ff-color-tile-bevel-bottom:          var(--ff-palette-bevel-bottom);
+    --ff-color-tile-bevel-top:             var(--ff-palette-bevel-top);
+    --ff-color-tile-ribbon-shadow-indigo:  var(--ff-palette-indigo-900);
+    --ff-color-tile-ribbon-shadow-red:     var(--ff-palette-red-900);
 }

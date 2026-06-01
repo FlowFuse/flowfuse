@@ -201,7 +201,7 @@ export default {
 
 .no-results {
   text-align: center;
-  color: $ff-grey-400;
+  color: var(--ff-color-text-subtle);
 }
 
 .fade-slide-enter-active,

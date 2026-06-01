@@ -56,8 +56,8 @@ export default {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     gap: 15px;
-    background: $ff-grey-50;
-    border-bottom: 1px solid $ff-grey-300;
+    background: var(--ff-color-bg-surface);
+    border-bottom: 1px solid var(--ff-color-border-strong);
     justify-content: space-between;
     padding: 6px;
     align-items: center;

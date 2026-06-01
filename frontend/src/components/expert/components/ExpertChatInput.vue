@@ -214,8 +214,8 @@ export default {
     flex-direction: column;
     gap: 0;
     padding: 1rem; // p-4
-    border-top: 1px solid #E5E7EB; // border-gray-200
-    background: white;
+    border-top: 1px solid var(--ff-color-border); // border-gray-200
+    background: var(--ff-color-bg-app);
     flex-shrink: 0; // Prevent input area from shrinking
     position: relative;
     min-height: 180px;
@@ -249,33 +249,33 @@ button {
 }
 
 .btn-start-over {
-    background-color: white;
+    background-color: var(--ff-color-bg-app);
     color: inherit;
-    border-color: #C7D2FE; // indigo-300
+    border-color: var(--ff-color-accent-light); // indigo-300
     padding: 0.25rem 0.50rem;
     border-radius: 5px;
 
     &:hover:not(:disabled) {
-        background-color: #F9FAFB; // gray-50
+        background-color: var(--ff-color-bg-surface); // gray-50
     }
 }
 
 .btn-send {
-    background-color: $ff-indigo-600;
-    color: white;
-    border-color: $ff-indigo-600;
+    background-color: var(--ff-color-accent);
+    color: var(--ff-color-text-on-brand);
+    border-color: var(--ff-color-accent);
     border-radius: 5px;
     padding: 0.25rem 0.50rem;
 
     &:hover:not(:disabled) {
-        background-color: $ff-indigo-700;
+        background-color: var(--ff-color-accent-hover-bg);
     }
 }
 
 .btn-stop {
-    background-color: white;
+    background-color: var(--ff-color-bg-app);
     color: inherit;
-    border-color: #C7D2FE; // indigo-300
+    border-color: var(--ff-color-accent-light); // indigo-300
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -286,12 +286,12 @@ button {
         content: '';
         width: 0.75rem; // w-3
         height: 0.75rem; // h-3
-        background-color: #1F2937; // gray-800
+        background-color: var(--ff-color-surface-dark);
         border-radius: 0.125rem; // rounded-xs
     }
 
     &:hover {
-        background-color: #F9FAFB; // gray-50
+        background-color: var(--ff-color-bg-surface); // gray-50
     }
 }
 
@@ -299,12 +299,12 @@ button {
     flex: 1;
     display: flex;
     flex-direction: column;
-    border: 2px solid #D1D5DB; // border-2 border-gray-300
+    border: 2px solid var(--ff-color-border-strong); // border-2 border-gray-300
     border-radius: 0.5rem; // rounded-lg
     transition: border-color 0.2s ease;
 
     &.focused {
-        border-color: $ff-indigo-500;
+        border-color: var(--ff-color-focus);
     }
 
     .chat-input {
@@ -317,10 +317,10 @@ button {
         outline: none;
         font-size: 0.875rem; // text-sm
         line-height: 1.5;
-        color: #111827; // text-gray-900
+        color: var(--ff-color-text-strong); // text-gray-900
         resize: none;
         font-family: inherit;
-        background: white;
+        background: var(--ff-color-bg-app);
 
         &:focus {
             outline: none;
@@ -328,12 +328,12 @@ button {
 
         &:disabled {
             cursor: not-allowed;
-            background-color: #F9FAFB; // bg-gray-50
-            color: #6B7280; // text-gray-500
+            background-color: var(--ff-color-bg-surface); // bg-gray-50
+            color: var(--ff-color-text-subtle); // text-gray-500
         }
 
         &::placeholder {
-            color: #9CA3AF; // placeholder gray
+            color: var(--ff-color-text-subtle); // placeholder gray
         }
     }
 

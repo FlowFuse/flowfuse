@@ -90,17 +90,17 @@ export default {
     button {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
-        background: $ff-white;
+        background: var(--ff-color-bg-app);
         gap: 15px;
         border: none;
-        border-bottom: 1px solid $ff-grey-300;
+        border-bottom: 1px solid var(--ff-color-border-strong);
 
         .version {
             grid-column-start: 2;
             display: flex;
             justify-content: flex-start;
             span {
-                color: $ff-black;
+                color: var(--ff-color-text);
                 font-weight: 500;
             }
         }
@@ -130,13 +130,13 @@ export default {
             gap: 15px;
             align-items: center;
             justify-content: center;
-            color: $ff-grey-500;
+            color: var(--ff-color-text-subtle);
             line-height: 30px;
             cursor: pointer;
             transition: ease-in-out .3s;
 
             &:hover {
-                    color: $ff-color--action
+                    color: var(--ff-color-accent-strong)
             }
         }
     }

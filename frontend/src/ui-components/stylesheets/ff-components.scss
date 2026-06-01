@@ -43,7 +43,7 @@
   display: flex;
   align-items: center;
   a {
-    color: $ff-blue-600;
+    color: var(--ff-color-link);
     font-weight: bold;
     font-size: 1.25rem;
     line-height: 1.75rem;
@@ -55,7 +55,7 @@
 }
 
 .ff-nav-breadcrumb--active span {
-  color: $ff-grey-800;
+  color: var(--ff-color-text);
   font-weight: bold;
   font-size: 1.25rem;
   line-height: 1.75rem;
@@ -123,56 +123,56 @@
   }
 
   &--primary {
-    background-color: $ff-color--action;
-    border: 1px solid $ff-color--action;
-    color: $ff-grey-50;
+    background-color: var(--ff-color-accent-strong);
+    border: 1px solid var(--ff-color-accent-strong);
+    color: var(--ff-color-text-on-brand);
     &:hover, &.active {
-      background-color: $ff-color--highlight;
+      background-color: var(--ff-color-accent);
     }
   }
   &--secondary {
-    background-color: $ff-white;
-    color: $ff-color--action;
-    border: 1px solid $ff-color--action;
+    background-color: var(--ff-color-bg-app);
+    color: var(--ff-color-accent-strong);
+    border: 1px solid var(--ff-color-accent-strong);
     &:hover, &.active {
-      background-color: $ff-color--highlight;
-      border-color: $ff-color--highlight;
-      color: $ff-white;
+      background-color: var(--ff-color-accent);
+      border-color: var(--ff-color-accent);
+      color: var(--ff-color-text-on-brand);
     }
   }
   &--tertiary {
-    color: $ff-color--action;
+    color: var(--ff-color-accent-strong);
     &:hover, &.active {
-      background-color: $ff-color--highlight;
-      color: $ff-white;
+      background-color: var(--ff-color-accent);
+      color: var(--ff-color-text-on-brand);
     }
     &[disabled=""] {
       background-color: transparent !important;
     }
   }
   &--danger {
-    color: $ff-white;
-    background-color: $ff-color--danger;
-    border: 1px solid $ff-color--danger;
+    color: var(--ff-color-text-on-brand);
+    background-color: var(--ff-color-danger);
+    border: 1px solid var(--ff-color-danger);
     &:hover {
-      background-color: $ff-color--danger--dark;
-      color: $ff-white;
+      background-color: var(--ff-color-danger-strong);
+      color: var(--ff-color-text-on-brand);
     }
   }
   &--secondary-danger {
-    color: $ff-color--danger;
-    background-color: $ff-white;
-    border: 1px solid $ff-color--danger;
+    color: var(--ff-color-danger-text);
+    background-color: var(--ff-color-bg-app);
+    border: 1px solid var(--ff-color-danger-text);
     &:hover {
-      background-color: $ff-color--danger--dark;
-      color: $ff-white;
+      background-color: var(--ff-color-danger-strong);
+      color: var(--ff-color-text-on-brand);
     }
   }
   &--tertiary-danger {
-    color: $ff-color--danger;
+    color: var(--ff-color-danger-text);
     &:hover {
-      background-color: $ff-color--danger--dark;
-      color: $ff-white;
+      background-color: var(--ff-color-danger-strong);
+      color: var(--ff-color-text-on-brand);
     }
   }
 
@@ -207,9 +207,9 @@
   &:disabled,
   &[disabled=true] {
     cursor: not-allowed;
-    border-color: $ff-grey-200;
-    color: $ff-grey-400;
-    background-color: $ff-grey-200;
+    border-color: var(--ff-color-border);
+    color: var(--ff-color-text-subtle);
+    background-color: var(--ff-color-bg-emphasis);
   }
 }
 
@@ -258,29 +258,29 @@
     width: 20px;
     cursor: pointer;
     &:hover {
-      fill: $ff-blue-600;
+      fill: var(--ff-color-link);
     }
   }
   &.active {
     >svg {
-      fill: $ff-blue-600;
+      fill: var(--ff-color-link);
     }
   }
 }
 
 .ff-kebab-options {
-  color: $ff-grey-800;
+  color: var(--ff-color-text);
   position: absolute;
   top: 24px;
-  border: 1px solid $ff-grey-300;
+  border: 1px solid var(--ff-color-border-strong);
   z-index: 1000;
   padding: 0;
-  box-shadow: 0px 6px 9px 0px #00000038;
+  box-shadow: 0px 6px 9px 0px rgba(0, 0, 0, 0.22);
   li {
     min-width: 150px;
     white-space: nowrap;
     &.ff-kebab-item--danger {
-      color: $ff-red-500;
+      color: var(--ff-color-danger);
     }
   }
   &--left {
@@ -293,7 +293,7 @@
 
 .ff-kebab-divider {
   height: 1px;
-  background-color: $ff-grey-200;
+  background-color: var(--ff-color-bg-emphasis);
   list-style: none;
 }
 
@@ -302,13 +302,13 @@
 */
 li.ff-kebab-item {
   padding: 12px 48px 12px 12px;
-  background-color: white;
+  background-color: var(--ff-color-bg-app);
   &:hover {
     cursor: pointer;
-    background-color: $ff-grey-200;
+    background-color: var(--ff-color-bg-emphasis);
   }
   &.active {
-    background-color: $ff-grey-100;
+    background-color: var(--ff-color-bg-surface-raised);
   }
   &.disabled, :disabled {
     pointer-events: none;
@@ -324,15 +324,15 @@ li.ff-kebab-item {
 
 .ff-input {
   &.ff-text-input {
-    border: 1px solid $ff-grey-300;
+    border: 1px solid var(--ff-color-border-strong);
     border-radius: $ff-unit-sm;
     height: 32px;
     width: 100%;
     display: flex;
     gap: 0px;
     align-items: center;
-    background-color: $ff-white;
-    border-color: $ff-grey-300;
+    background-color: var(--ff-color-bg-app);
+    border-color: var(--ff-color-border-strong);
     svg {
       width: 20px;
       height: 20px;
@@ -347,8 +347,8 @@ li.ff-kebab-item {
       border-width: 0;
       min-width: 0;
       &[disabled] {
-        background-color: $ff-grey-50;
-        color: $ff-grey-300;
+        background-color: var(--ff-color-bg-surface);
+        color: var(--ff-color-text-disabled);
       }
       &:focus-visible {
         border: none;
@@ -356,7 +356,7 @@ li.ff-kebab-item {
       }
     }
     &:focus-within {
-      border-color: $ff-blue-600;
+      border-color: var(--ff-color-link);
       border-width: 2px;
       outline: none;
       svg {
@@ -368,7 +368,7 @@ li.ff-kebab-item {
 
 .ff-input--error {
   &.ff-text-input {
-    border-color: $ff-red-500;
+    border-color: var(--ff-color-danger);
     border-width: 2px;
     outline: none;
   }
@@ -380,12 +380,12 @@ li.ff-kebab-item {
   cursor: pointer;
   &[disabled="true"] {
     cursor: not-allowed;
-    background-color: $ff-grey-50;
-    color: $ff-grey-400;
+    background-color: var(--ff-color-bg-surface);
+    color: var(--ff-color-text-subtle);
   }
   .ff-dropdown-selected {
-    background-color: white;
-    border: 1px solid $ff-grey-300;
+    background-color: var(--ff-color-bg-app);
+    border: 1px solid var(--ff-color-border-strong);
     border-radius: $ff-unit-sm;
     padding: $ff-unit-sm $ff-unit-md;
     height: 32px;
@@ -411,15 +411,15 @@ li.ff-kebab-item {
     display: none;
     max-height: 14rem;
     overflow-y: auto;
-    box-shadow: 0px 6px 9px 0px #00000038;
+    box-shadow: 0px 6px 9px 0px rgba(0, 0, 0, 0.22);
     .ff-dropdown-option {
       padding: $ff-unit-sm $ff-unit-md;
-      background-color: $ff-grey-50;
-      border-bottom: 1px solid $ff-grey-200;
+      background-color: var(--ff-color-bg-surface);
+      border-bottom: 1px solid var(--ff-color-border);
       cursor: pointer;
       transition: ease-in-out .3s;
       &:hover {
-        background-color: $ff-grey-100;
+        background-color: var(--ff-color-bg-surface-raised);
       }
     }
     &.ff-dropdown-options--full-width {
@@ -478,22 +478,22 @@ li.ff-kebab-item {
     border-radius: 4px;
     background-color: transparent;
     border: 1px solid;
-    border-color: $ff-grey-400;
+    border-color: var(--ff-color-border-strong);
   }
   &:hover:not([disabled=true]) {
     .checkbox {
-      background-color: $ff-grey-200;
+      background-color: var(--ff-color-bg-emphasis);
     }
   }
   &:hover:not([disabled=true]) {
     .checkbox[checked=true] {
-      background-color: $ff-grey-500;
+      background-color: var(--ff-color-accent-strong);
     }
   }
   &[disabled=true] {
     cursor: not-allowed;
     label, p {
-      color: $ff-grey-400;
+      color: var(--ff-color-text-subtle);
     }
   }
   &[disabled=true] * {
@@ -501,8 +501,8 @@ li.ff-kebab-item {
   }
   .checkbox {
     &[checked=true] {
-      background-color: $ff-grey-600;
-      border-color: $ff-grey-700;
+      background-color: var(--ff-color-checkbox-checked-bg);
+      border-color: var(--ff-color-checkbox-checked-border);
     }
     &[checked=true]:after {
       display: block;
@@ -519,7 +519,7 @@ li.ff-kebab-item {
     top: 1px;
     width: 5px;
     height: 10px;
-    border: solid white;
+    border: solid var(--ff-color-checkmark-stroke);
     border-width: 0 2px 2px 0;
     -webkit-transform: rotate(45deg);
     -ms-transform: rotate(45deg);
@@ -543,7 +543,7 @@ li.ff-kebab-item {
       display: none;
     }
     &.checked .ff-toggle-switch-slider {
-      background-color: $ff-blue-900;
+      background-color: var(--ff-color-toggle-track-on);
     }
     &.checked .ff-toggle-switch-slider .ff-toggle-switch-button{
       -webkit-transform: translateX(var(--ff-toggle-translate));
@@ -554,13 +554,13 @@ li.ff-kebab-item {
       cursor: not-allowed;
       .ff-toggle-switch-slider {
         pointer-events: none;
-        background-color: $ff-grey-200;
+        background-color: var(--ff-color-bg-emphasis);
       }
       .ff-toggle-switch-button {
-        background-color: $ff-grey-50;
+        background-color: var(--ff-color-bg-surface);
       }
       svg {
-        color: $ff-grey-300;
+        color: var(--ff-color-text-disabled);
       }
     }
 }
@@ -571,7 +571,7 @@ li.ff-kebab-item {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: $ff-grey-400;
+    background-color: var(--ff-color-progress-track-neutral);
     border-radius: 34px;
     -webkit-transition: 0.4s;
     transition: 0.4s;
@@ -581,7 +581,7 @@ li.ff-kebab-item {
       height: 100%;
     }
     &:hover {
-      background-color: $ff-indigo-700 !important;
+      background-color: var(--ff-color-accent-hover-bg) !important;
     }
 }
 
@@ -592,7 +592,7 @@ li.ff-kebab-item {
     width: 26px;
     left: 4px;
     bottom: 4px;
-    background-color: white;
+    background-color: var(--ff-color-bg-app);
     border-radius: 50%;
     -webkit-transition: 0.4s;
     transition: 0.4s;
@@ -640,7 +640,7 @@ li.ff-kebab-item {
     width: 16px;
     border-radius: 4px;
     background-color: transparent;
-    border: 1px solid $ff-grey-400;
+    border: 1px solid var(--ff-color-border-strong);
     background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e")
   }
 }
@@ -650,12 +650,12 @@ li.ff-kebab-item {
   flex-wrap: wrap;
   gap: $ff-unit-md;
   .ff-tile-selection-option {
-    --ff-tile-selection-color: #{$ff-blue-700};
+    --ff-tile-selection-color: var(--ff-color-link-hover);
     display: flex;
     flex-direction: column;
-    background-color: $ff-white;
+    background-color: var(--ff-color-bg-app);
     font-size: 0.875rem;
-    border: 2px solid $ff-grey-300;
+    border: 2px solid var(--ff-color-border-strong);
     border-radius: $ff-unit-sm;
     padding: 12px $ff-unit-lg;
     width: 275px;
@@ -686,12 +686,12 @@ li.ff-kebab-item {
         svg {
           width: 20px;
           height: 20px;
-          fill: $ff-grey-300;
+          fill: var(--ff-color-text-subtle);
           &.ff-tile-selection-option--edit {
             cursor: pointer;
-            fill: $ff-blue-800;
+            fill: var(--ff-color-link-hover);
             &:hover {
-              fill: $ff-indigo-600;
+              fill: var(--ff-color-accent);
             }
           }
         }
@@ -711,12 +711,12 @@ li.ff-kebab-item {
       flex-grow: 1;
       margin-top: $ff-unit-sm;
       padding-top: $ff-unit-sm;
-      border-top: 1px solid $ff-grey-300;
+      border-top: 1px solid var(--ff-color-border-strong);
     }
     &--meta {
       margin-top: $ff-unit-md;
       padding-top: $ff-unit-md;
-      border-top: 1px solid $ff-grey-300;
+      border-top: 1px solid var(--ff-color-border-strong);
       >div {
         display: flex;
         justify-content: space-between;
@@ -789,7 +789,7 @@ li.ff-kebab-item {
       }
     }
     thead {
-      background: white; // hides td borders when header is sticky
+      background: var(--ff-color-bg-app); // hides td borders when header is sticky
       .ff-data-table--row .ff-data-table--cell {
         &:first-child {
           border-top-left-radius: 6px;
@@ -800,7 +800,7 @@ li.ff-kebab-item {
       }
       .ff-data-table--cell {
         padding: 9px 12px;
-        background-color: $ff-grey-100;
+        background-color: var(--ff-color-bg-surface-raised);
         font-weight: 600;
         transition: 0.3s background-color, 0.3s color;
         -webkit-transition: 0.3s background-color, 0.3s color;
@@ -814,7 +814,7 @@ li.ff-kebab-item {
             opacity: 0.2;
           }
           &:hover {
-            background-color: $ff-grey-200;
+            background-color: var(--ff-color-bg-emphasis);
             cursor: pointer;
             .ff-icon {
               opacity: 0.5;
@@ -822,7 +822,7 @@ li.ff-kebab-item {
           }
         }
         &.sorted {
-          background-color: $ff-grey-200;
+          background-color: var(--ff-color-bg-emphasis);
           .ff-icon.icon-sorted {
             opacity: 1;
           }
@@ -841,14 +841,14 @@ li.ff-kebab-item {
 
         &:last-of-type {
           td {
-            border-bottom: 1px solid $ff-grey-300;
+            border-bottom: 1px solid var(--ff-color-border-strong);
           }
         }
 
         &:last-child {
           .ff-data-table--cell {
             border-bottom-width: 1px;
-            border-top-color: $ff-grey-200;
+            border-top-color: var(--ff-color-border);
             &:first-child {
               border-bottom-left-radius: 6px;
             }
@@ -860,20 +860,20 @@ li.ff-kebab-item {
       }
       .ff-data-table--cell {
         padding: 12px 12px;
-        background-color: white;
+        background-color: var(--ff-color-bg-app);
         &.highlight {
-          background-color: $ff-grey-50;
+          background-color: var(--ff-color-bg-surface);
         }
         &.status-message {
           text-align: center;
-          color: $ff-grey-400;
+          color: var(--ff-color-text-subtle);
         }
       }
       .selectable:hover .ff-data-table--cell,
       .selectable:hover .ff-data-table--cell span svg.ff-icon {
         cursor: pointer;
-        color: $ff-blue-600;
-        background-color: $ff-grey-50;
+        color: var(--ff-color-link);
+        background-color: var(--ff-color-bg-surface);
       }
       .selectable:hover .ff-data-table--cell button svg.ff-icon {
         background-color: transparent;
@@ -885,7 +885,7 @@ li.ff-kebab-item {
     td {
       border-width: 1px 0px 0px;
       border-style: solid;
-      border-color: $ff-grey-300;
+      border-color: var(--ff-color-border-strong);
       &:first-child {
         border-left-width: 1px;
       }
@@ -913,15 +913,15 @@ li.ff-kebab-item {
   span {
     display: inline-block;
     margin: auto;
-    color: $ff-blue-500;
-    background-color: white;
+    color: var(--ff-color-link);
+    background-color: var(--ff-color-bg-app);
     padding: $ff-unit-xs $ff-unit-md 4px;
-    border: 1px solid $ff-grey-300;
+    border: 1px solid var(--ff-color-border-strong);
     border-top: 0;
     border-radius: 0 0 6px 6px;
     &:hover {
       cursor: pointer;
-      color: $ff-blue-700;
+      color: var(--ff-color-link-hover);
     }
   }
 }
@@ -939,7 +939,7 @@ li.ff-kebab-item {
   justify-content: center;
   align-items: flex-start;
   overflow-y: hidden;
-  background-color: rgba($ff-grey-800, 0.3);
+  background-color: var(--ff-color-overlay-backdrop);
   &--open {
     display: flex;
   }
@@ -956,17 +956,17 @@ li.ff-kebab-item {
   margin: 90px auto;
   display: flex;
   flex-direction: column;
-  background-color: $ff-white;
+  background-color: var(--ff-color-bg-app);
   max-height: 85vh;
   overflow: auto;
   .ff-dialog {
     &-header {
       height: 48px;
       line-height: 48px;
-      background-color: $ff-grey-800;
-      border-bottom: 2px solid $ff-red-400;
+      background-color: var(--ff-color-surface-dark);
+      border-bottom: 2px solid var(--ff-color-status-error-border);
       padding: 0 $ff-unit-lg;
-      color: $ff-white;
+      color: var(--ff-color-text-on-brand);
       font-weight: 600;
       display: flex;
       justify-content: space-between;
@@ -974,9 +974,9 @@ li.ff-kebab-item {
       &--light {
         height: auto;
         line-height: normal;
-        background-color: $ff-white;
-        border-bottom: 1px solid $ff-grey-200;
-        color: $ff-grey-800;
+        background-color: var(--ff-color-bg-app);
+        border-bottom: 1px solid var(--ff-color-border);
+        color: var(--ff-color-text);
         padding: $ff-unit-md $ff-unit-lg;
         align-items: center;
       }
@@ -1011,7 +1011,7 @@ li.ff-kebab-item {
 .ff-help-tooltip {
   &:hover {
     path {
-      fill: $ff-blue-800;
+      fill: var(--ff-color-link-hover);
     }
   }
 }
@@ -1021,8 +1021,8 @@ li.ff-kebab-item {
 */
 
 .ff-notification-pill {
-  background-color: $ff-red-600;
-  color: $ff-white;
+  background-color: var(--ff-color-danger-strong);
+  color: var(--ff-color-text-on-brand);
   padding: $ff-unit-xs $ff-unit-md;
   font-weight: 600;
   border-radius: $ff-unit-sm;
@@ -1031,17 +1031,17 @@ li.ff-kebab-item {
 
 .ff-notification-toast {
   position: relative;
-  background-color: $ff-white;
-  border: 1px solid $ff-grey-400;
+  background-color: var(--ff-color-bg-app);
+  border: 1px solid var(--ff-color-border-strong);
   padding: $ff-unit-md $ff-unit-md $ff-unit-md $ff-unit-lg;
-  box-shadow: -$ff-unit-sm $ff-unit-sm $ff-unit-sm #0000008c;
+  box-shadow: -$ff-unit-sm $ff-unit-sm $ff-unit-sm rgba(0, 0, 0, 0.55);
   border-radius: 0 $ff-unit-sm $ff-unit-sm 0;
   max-width: 475px;
 
   &--bar {
     height: 100%;
     width: $ff-unit-md;
-    background-color: black;
+    background-color: var(--ff-color-surface-dark);
     display: block;
     position: absolute;
     top: 0;
@@ -1049,21 +1049,21 @@ li.ff-kebab-item {
   }
 
   &--info {
-    border-color: $ff-grey-400;
+    border-color: var(--ff-color-border-strong);
     .ff-notification-toast--bar {
-      background-color: $ff-grey-400;
+      background-color: var(--ff-color-progress-track-neutral);
     }
   }
   &--warning {
-    border-color: $ff-red-400;
+    border-color: var(--ff-color-status-error-border);
     .ff-notification-toast--bar {
-      background-color: $ff-red-400;
+      background-color: var(--ff-color-status-error-border);
     }
   }
   &--confirmation {
-    border-color: $ff-green-400;
+    border-color: var(--ff-color-status-success-border);
     .ff-notification-toast--bar {
-      background-color: $ff-green-400;
+      background-color: var(--ff-color-status-success-border);
     }
   }
 
@@ -1090,7 +1090,7 @@ li.ff-kebab-item {
       z-index: 1;
     }
     &:hover {
-      color: $ff-indigo-600;
+      color: var(--ff-color-accent);
     }
   }
 
@@ -1111,15 +1111,15 @@ $countdown_size: 20px;
   position: absolute;
   top: 0;
   left: 0;
-  background: white;
+  background: var(--ff-color-bg-app);
 }
 
 .countdown-pie {
   width: 50%;
   height: 100%;
   position: absolute;
-  background: $ff-white;
-  border: 2px solid $ff-grey-300;
+  background: var(--ff-color-bg-app);
+  border: 2px solid var(--ff-color-border-strong);
 }
 
 .countdown-spinner {
@@ -1167,14 +1167,14 @@ $countdown_size: 20px;
 */
 .ff-tabs {
   display: flex;
-  color: $ff-grey-800;
+  color: var(--ff-color-text);
   .ff-tab-option {
     display: flex;
     align-items: center;
     gap: 6px;
     padding: $ff-unit-md;
     &:hover {
-      color: $ff-blue-700;
+      color: var(--ff-color-link-hover);
       cursor: pointer;
     }
     .ff-tab-icon {
@@ -1194,7 +1194,7 @@ $countdown_size: 20px;
       margin-bottom: $ff-unit-xs;
       &.router-link-active,
       &.ff-tab-option--active {
-        border-bottom: $ff-unit-xs solid $ff-blue-700;
+        border-bottom: $ff-unit-xs solid var(--ff-color-tab-active);
         margin-bottom: 0;
       }
     }
@@ -1207,13 +1207,13 @@ $countdown_size: 20px;
       margin-bottom: $ff-unit-md;
       &.router-link-active,
       &.ff-tab-option--active {
-        border-left: $ff-unit-xs solid $ff-blue-700;
+        border-left: $ff-unit-xs solid var(--ff-color-tab-active);
       }
     }
   }
   .router-link-active,
   .ff-tab-option--active {
-    color: $ff-blue-600;
+    color: var(--ff-color-link);
   }
 }
 
@@ -1266,10 +1266,10 @@ $countdown_size: 20px;
     align-items: center;
     justify-content: center;
     padding: $ff-unit-sm;
-    background: white;
+    background: var(--ff-color-bg-app);
     border: none;
-    border-right: 1px solid $ff-grey-300;
-    color: $ff-grey-500;
+    border-right: 1px solid var(--ff-color-border-strong);
+    color: var(--ff-color-text-subtle);
     cursor: pointer;
     z-index: 10;
     transition: all 0.2s ease;
@@ -1284,24 +1284,24 @@ $countdown_size: 20px;
     }
 
     &:hover {
-      background: $ff-grey-100;
-      color: $ff-grey-700;
-      border-color: $ff-grey-400;
+      background: var(--ff-color-bg-surface-raised);
+      color: var(--ff-color-text-muted);
+      border-color: var(--ff-color-border-strong);
     }
 
     &:active {
-      background: $ff-grey-200;
+      background: var(--ff-color-bg-emphasis);
     }
 
     &--left {
       left: 0;
-      border-right: 1px solid $ff-grey-300;
+      border-right: 1px solid var(--ff-color-border-strong);
       border-left: none;
     }
 
     &--right {
       right: 0;
-      border-left: 1px solid $ff-grey-300;
+      border-left: 1px solid var(--ff-color-border-strong);
       border-right: none;
     }
   }
@@ -1328,8 +1328,8 @@ $countdown_size: 20px;
   .ff-tabs__dropdown {
     position: absolute;
     top: calc(100% + 4px);
-    background: white;
-    border: 1px solid $ff-grey-300;
+    background: var(--ff-color-bg-app);
+    border: 1px solid var(--ff-color-border-strong);
     border-radius: 4px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 100;
@@ -1350,7 +1350,7 @@ $countdown_size: 20px;
     align-items: center;
     gap: 6px;
     padding: $ff-unit-sm $ff-unit-md;
-    color: $ff-grey-800;
+    color: var(--ff-color-text);
     transition: background-color 0.2s ease;
 
     .ff-tab-icon {
@@ -1368,20 +1368,20 @@ $countdown_size: 20px;
     }
 
     &:hover {
-      background: $ff-grey-100;
-      color: $ff-blue-700;
+      background: var(--ff-color-bg-surface-raised);
+      color: var(--ff-color-link-hover);
       cursor: pointer;
     }
 
     &--active {
-      background: $ff-grey-100;
-      color: $ff-blue-700;
+      background: var(--ff-color-bg-surface-raised);
+      color: var(--ff-color-link-hover);
       cursor: pointer;
     }
 
     &.router-link-active {
-      color: $ff-blue-600;
-      background: $ff-blue-50;
+      color: var(--ff-color-link);
+      background: var(--ff-color-status-info-surface);
     }
 
     &:first-child {
@@ -1407,8 +1407,8 @@ $countdown_size: 20px;
   font-weight: normal; // prevent parent overriding if embedded in hX
   white-space: preserve-breaks;
   height: fit-content;
-  background-color: black;
-  color: white;
+  background-color: var(--ff-color-surface-dark);
+  color: var(--ff-color-text-on-brand);
   padding: 3px 12px;
   border-radius: 3px;
   opacity: 0;
@@ -1424,7 +1424,7 @@ $countdown_size: 20px;
       margin-top: -5px;
       border-width: 5px;
       border-style: solid;
-      border-color: transparent black transparent transparent;
+      border-color: transparent var(--ff-color-tooltip-arrow) transparent transparent;
     }
   }
   &.ff-tooltip-left {
@@ -1436,7 +1436,7 @@ $countdown_size: 20px;
       margin-top: -5px;
       border-width: 5px;
       border-style: solid;
-      border-color: transparent transparent transparent black;
+      border-color: transparent transparent transparent var(--ff-color-tooltip-arrow);
     }
   }
   &.ff-tooltip-top {
@@ -1449,7 +1449,7 @@ $countdown_size: 20px;
       margin-left: -5px;
       border-width: 5px;
       border-style: solid;
-      border-color: black transparent transparent transparent;
+      border-color: var(--ff-color-tooltip-arrow) transparent transparent transparent;
     }
   }
   &.ff-tooltip-bottom {
@@ -1462,7 +1462,7 @@ $countdown_size: 20px;
       margin-left: -5px;
       border-width: 5px;
       border-style: solid;
-      border-color: transparent transparent black transparent;
+      border-color: transparent transparent var(--ff-color-tooltip-arrow) transparent;
     }
   }
   &--visible {
@@ -1481,7 +1481,7 @@ $countdown_size: 20px;
   display: inline-block;
   width: 20px;
   height: 20px;
-  color: $ff-grey-500;
+  color: var(--ff-color-text-subtle);
   circle {
     stroke: transparent;
   }

@@ -130,7 +130,7 @@ export default {
 .ff-expert-tool-call--title {
     font-size: 0.875rem;
     font-weight: 600;
-    color: $ff-grey-800;
+    color: var(--ff-color-text);
 }
 
 .ff-expert-tool-call--name {
@@ -139,7 +139,7 @@ export default {
     justify-content: space-between;
     gap: 0.375rem;
     font-size: 0.75rem;
-    color: $ff-grey-500;
+    color: var(--ff-color-text-subtle);
     font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
@@ -152,8 +152,8 @@ export default {
     padding: 0 0.25rem;
     font-size: 0.5625rem;
     font-weight: 700;
-    color: $ff-grey-600;
-    background-color: $ff-grey-200;
+    color: var(--ff-color-text-deep);
+    background-color: var(--ff-color-bg-emphasis);
     border-radius: 0.1875rem;
     flex-shrink: 0;
     cursor: help;
@@ -167,7 +167,7 @@ export default {
 }
 
 .ff-expert-tool-call--section {
-    border: 1px solid $ff-grey-200;
+    border: 1px solid var(--ff-color-border);
     border-radius: 0.375rem;
     overflow: hidden;
 }
@@ -177,21 +177,21 @@ export default {
     align-items: center;
     gap: 0.375rem;
     padding: 0.5rem 0.75rem;
-    background-color: white;
+    background-color: var(--ff-color-bg-app);
     cursor: pointer;
     user-select: none;
     font-size: 0.75rem;
     font-weight: 500;
-    color: $ff-grey-600;
+    color: var(--ff-color-text-deep);
 
     &:hover {
-        background-color: $ff-grey-50;
+        background-color: var(--ff-color-bg-surface);
     }
 
     .ff-icon-small {
         width: 0.75rem;
         height: 0.75rem;
-        color: $ff-grey-400;
+        color: var(--ff-color-text-subtle);
         flex-shrink: 0;
         transition: transform 0.2s ease;
 
@@ -206,7 +206,7 @@ export default {
 }
 
 .ff-expert-tool-call--section-duration {
-    color: $ff-grey-400;
+    color: var(--ff-color-text-subtle);
     font-weight: 400;
 }
 
@@ -214,14 +214,14 @@ export default {
     pre {
         margin: 0;
         padding: 0.75rem;
-        background-color: $ff-grey-100;
+        background-color: var(--ff-color-bg-surface-raised);
         border-radius: 0.375rem;
         overflow-x: auto;
 
         code {
             font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
             font-size: 0.8125rem;
-            color: $ff-grey-800;
+            color: var(--ff-color-text);
             white-space: pre-wrap;
             word-break: break-word;
             border: none;
@@ -232,7 +232,7 @@ export default {
 
     // When inside a section, remove border-radius top and add border
     .ff-expert-tool-call--section & {
-        border-top: 1px solid $ff-grey-200;
+        border-top: 1px solid var(--ff-color-border);
 
         pre {
             border-radius: 0;

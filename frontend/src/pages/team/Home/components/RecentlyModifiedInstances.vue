@@ -97,7 +97,7 @@ export default {
     flex-direction: column;
 
     & > p {
-        border-bottom: 1px solid $ff-grey-100;
+        border-bottom: 1px solid var(--ff-color-border-subtle);
         margin-bottom: 10px;
         line-height: 2rem;
     }
@@ -106,7 +106,7 @@ export default {
         height: fit-content;
 
         .instance-tile {
-            border: 1px solid $ff-grey-100;
+            border: 1px solid var(--ff-color-border-subtle);
             padding: 2px 4px 2px 10px;
             border-radius: 5px;
             display: flex;
@@ -125,8 +125,8 @@ export default {
             }
 
             &:hover {
-                border-color: $ff-grey-300;
-                background-color: $ff-indigo-50;
+                border-color: var(--ff-color-border-strong);
+                background-color: var(--ff-color-accent-surface);
             }
 
             .details {
@@ -139,7 +139,7 @@ export default {
 
                     &.detail {
                         font-size: $ff-funit-sm;
-                        color: $ff-grey-400;
+                        color: var(--ff-color-text-subtle);
                     }
                 }
             }
@@ -151,7 +151,7 @@ export default {
                 gap: 4px;
 
                 .ff-kebab-menu .ff-btn {
-                    color: $ff-color--action;
+                    color: var(--ff-color-accent-strong);
 
                     .ff-icon {
                         width: 20px;
@@ -159,8 +159,8 @@ export default {
                     }
 
                     &:hover {
-                        background-color: $ff-color--highlight;
-                        color: $ff-white;
+                        background-color: var(--ff-color-accent);
+                        color: var(--ff-color-text-on-brand);
                     }
                 }
             }

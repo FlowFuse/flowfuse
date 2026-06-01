@@ -195,13 +195,13 @@ export default {
 
 <style lang="scss">
 .ff-blueprint-tile {
-    background-color: $ff-white;
+    background-color: var(--ff-color-bg-app);
     width: 250px;
     border-width: 2px;
 
     &.active {
         border-width: 2px;
-        border-color: $ff-blue-600;
+        border-color: var(--ff-color-link);
         transition: border-color .3s;
     }
 
@@ -225,7 +225,7 @@ export default {
                 opacity: .7;
                 &:hover {
                     cursor: zoom-in;
-                    color: $ff-blue-600;
+                    color: var(--ff-color-link);
                 }
             }
         }
@@ -261,7 +261,7 @@ export default {
     }
     &.interactive:hover {
         border-width: 2px;
-        border-color: $ff-blue-600;
+        border-color: var(--ff-color-link);
         .ff-blueprint-tile--header {
             .ff-icon:not(.alt-preview) {
                 transform: scale(10);

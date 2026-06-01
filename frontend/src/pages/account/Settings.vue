@@ -13,6 +13,14 @@
                 <template #description>The team you'll see when you log in</template>
             </FormRow>
 
+            <FormRow v-if="!editing" v-model="themeLabel" type="uneditable">
+                Theme
+            </FormRow>
+            <FormRow v-else v-model="input.themeMode" :options="themeOptions">
+                Theme
+                <template #description>Light, dark, or follow your system preference</template>
+            </FormRow>
+
             <template v-if="editing">
                 <div class="flex space-x-4">
                     <ff-button :disabled="!formValid" @click="confirm">Save Changes</ff-button>
@@ -66,6 +74,7 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useThemeStore } from '@/stores/theme.ts'
 
 export default {
     name: 'AccountSettings',
@@ -86,18 +95,28 @@ export default {
                 username: currentUser.username,
                 name: currentUser.name,
                 email: currentUser.email,
-                defaultTeam: currentUser.defaultTeam
+                defaultTeam: currentUser.defaultTeam,
+                themeMode: useThemeStore().mode
             },
             defaultTeamName,
             ownerCounts: {},
-            changed: {}
+            changed: {},
+            themeOptions: [
+                { label: 'System', value: 'system' },
+                { label: 'Light', value: 'light' },
+                { label: 'Dark', value: 'dark' }
+            ]
         }
     },
     computed: {
         ...mapState(useAccountSettingsStore, ['settings']),
         ...mapState(useAccountStore, { storeTeams: 'teams' }),
+        themeLabel () {
+            const opt = this.themeOptions.find(o => o.value === useThemeStore().mode)
+            return opt ? opt.label : ''
+        },
         formValid () {
-            return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam) &&
+            return (this.changed.name || this.changed.username || this.changed.email || this.changed.defaultTeam || this.changed.themeMode) &&
                    (!this.emailEditingEnabled || (this.input.email && !this.errors.email)) &&
                    (this.input.username && !this.errors.username) &&
                    (this.input.name && !this.errors.name)
@@ -166,6 +185,9 @@ export default {
         },
         'input.defaultTeam': function (v) {
             this.changed.defaultTeam = (this.user.defaultTeam !== v)
+        },
+        'input.themeMode': function (v) {
+            this.changed.themeMode = (useThemeStore().mode !== v)
         }
     },
     mounted () {
@@ -196,6 +218,7 @@ export default {
             this.input.name = this.user.name
             this.input.email = this.user.email
             this.input.defaultTeam = this.user.defaultTeam
+            this.input.themeMode = useThemeStore().mode
             this.errors.email = ''
             this.editing = false
         },
@@ -222,6 +245,17 @@ export default {
             if (this.input.defaultTeam !== this.defaultTeam) {
                 opts.defaultTeam = this.input.defaultTeam
                 changed = true
+            }
+            const themeStore = useThemeStore()
+            if (this.input.themeMode !== themeStore.mode) {
+                themeStore.setMode(this.input.themeMode)
+            }
+            if (!changed) {
+                // Only theme (a local preference) changed — no API call needed
+                this.changed = {}
+                this.resetInputs()
+                this.loading = false
+                return
             }
             if (changed) {
                 userApi.updateUser(opts).then((response) => {

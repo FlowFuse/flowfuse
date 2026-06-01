@@ -17,7 +17,7 @@ $nav_height: 60px;
 
 .ff-layout--box {
     font-family: 'Heebo', system-ui, sans-serif;
-    background-color: $ff-white;
+    background-color: var(--ff-color-bg-app);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -27,12 +27,19 @@ $nav_height: 60px;
     background-size: cover;
     background-repeat: no-repeat;
     background-position-y: 0%;
-    color: $ff-grey-700;
+    color: var(--ff-color-text-muted);
+
+    .ff-logo--dark { display: none; }
+    [data-theme="dark"] & {
+        background-image: none;
+        .ff-logo--light { display: none; }
+        .ff-logo--dark { display: block; }
+    }
     .ff-error-inline {
         font-size: 0.875rem;;
         display: block;
         margin-top: 0.25rem;
-        color: $ff-red-200;
+        color: var(--ff-color-danger-text);
     }
 
     &.ff--center-box {
@@ -101,7 +108,7 @@ $nav_height: 60px;
     min-height: 400px;
     padding: 64px 24px;
     @apply rounded-xl;
-    color: $ff-grey-700;
+    color: var(--ff-color-text-muted);
     h2 {
         margin-top: -12px;
         margin-bottom: 24px;
@@ -112,7 +119,7 @@ $nav_height: 60px;
     }
     label {
         display: block;
-        color: $ff-grey-700;
+        color: var(--ff-color-text-muted);
         margin-bottom: 4px;
     }
     .ff-radio-btn label {
@@ -122,20 +129,20 @@ $nav_height: 60px;
         margin-bottom: 1rem;
     }
     a {
-        color: $ff-blue-600;
+        color: var(--ff-color-link);
     }
     .ff-input:not(.ff-input--error) {
-        border-color: $ff-grey-300;
+        border-color: var(--ff-color-border-strong);
     }
     .ff-input {
         border-width: 2px;
         &:focus-within {
-            border-color: $ff-indigo-600;
+            border-color: var(--ff-color-accent);
         }
     }
     .ff-radio-btn {
         .checkbox {
-          border: 1px solid $ff-grey-400;
+          border: 1px solid var(--ff-color-border-strong);
         }
     }
 
@@ -152,23 +159,23 @@ $nav_height: 60px;
         margin-bottom: 6px;
     }
     .ff-btn.ff-btn--primary {
-        background-color: $ff-indigo-600;
-        color: white;
+        background-color: var(--ff-color-accent);
+        color: var(--ff-color-text-on-brand);
         &:hover {
-            background-color: $ff-indigo-700;
+            background-color: var(--ff-color-accent-hover-bg);
         }
         &:disabled {
-            background-color: $ff-grey-300;
-            color: $ff-grey-400;
+            background-color: var(--ff-color-border-strong);
+            color: var(--ff-color-text-subtle);
         }
     }
     .ff-btn.ff-btn--tertiary {
-        color: $ff-indigo-500;
+        color: var(--ff-color-focus);
         font-weight: normal;
         border: 1px solid transparent;
         &:hover {
             background-color: transparent;
-            border-color: $ff-indigo-600;
+            border-color: var(--ff-color-accent);
         }
     }
 }
@@ -206,11 +213,11 @@ $nav_height: 60px;
         transition: ease-in-out margin-left .3s;
     }
     main {
-        background-color: $ff-grey-50;
+        background-color: var(--ff-color-bg-surface);
     }
     .ff-page-header {
-        background-color: $ff-white;
-        border-color: $ff-color--border;
+        background-color: var(--ff-color-bg-app);
+        border-color: var(--ff-color-border);
     }
 }
 
@@ -221,7 +228,7 @@ $nav_height: 60px;
     flex: 1;
 
     main {
-        background-color: $ff-grey-50;
+        background-color: var(--ff-color-bg-surface);
         flex: 1;
     }
 }
@@ -285,11 +292,11 @@ $nav_height: 60px;
     label {
         font-size: 0.7rem;
         line-height: 0.7rem;
-        color: $ff-grey-500;
+        color: var(--ff-color-text-subtle);
         margin-left: 0;
     }
     h5 {
-        color: $ff-grey-800;
+        color: var(--ff-color-text);
         white-space: nowrap;
     }
 }
@@ -300,15 +307,15 @@ $nav_height: 60px;
     cursor: pointer;
 }
 .ff-banner {
-    background-color: $ff-grey-800;
-    color: $ff-grey-300;
+    background-color: var(--ff-color-surface-dark);
+    color: var(--ff-color-surface-dark-text);
     padding: 8px;
     text-align: center;
-    border-bottom: 2px solid $ff-red-500;
+    border-bottom: 2px solid var(--ff-color-banner-accent);
 
     &.ff-banner-info {
-        background-color: $ff-blue-100;
-        color: $ff-grey-700;
+        background-color: var(--ff-color-status-info-surface);
+        color: var(--ff-color-text-muted);
         text-align: left;
         border-bottom: none;
         display: flex;
@@ -319,10 +326,10 @@ $nav_height: 60px;
     }
 
     &.ff-banner-warning {
-        background-color: $ff-red-700;
-        color: $ff-grey-50;
+        background-color: var(--ff-color-danger-darker);
+        color: var(--ff-color-text-on-brand);
         text-align: left;
-        border-bottom: 2px solid $ff-red-800;
+        border-bottom: 2px solid var(--ff-color-banner-warning-accent);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -332,9 +339,9 @@ $nav_height: 60px;
 }
 .ff-header {
     z-index: 120;
-    background-color: $ff-white;
+    background-color: var(--ff-color-bg-app);
     height: $nav_height;
-    border-bottom: 1px solid $ff-color--border;
+    border-bottom: 1px solid var(--ff-color-border);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -357,12 +364,12 @@ $nav_height: 60px;
     .ff-header--mobile-toggle {
         padding: 16px;
         svg {
-            fill: $ff-grey-800;
+            fill: var(--ff-color-text);
             min-width: 24px;
         }
         &.active {
             cursor: pointer;
-            background-color: $ff-grey-700;
+            background-color: var(--ff-color-nav-item-hover);
         }
     }
     .ff-header--mobile-usertoggle {
@@ -375,7 +382,7 @@ $nav_height: 60px;
         }
         &.active {
             cursor: pointer;
-            background-color: $ff-grey-100;
+            background-color: var(--ff-color-bg-surface-raised);
         }
     }
     .ff-navigation {
@@ -399,8 +406,8 @@ $nav_height: 60px;
             .ff-notification-pill {
                 font-size: 0.65rem;
                 padding: 0px 6px;
-                background-color: $ff-red-600;
-                border: 1px solid $ff-grey-800;
+                background-color: var(--ff-color-danger-strong);
+                border: 1px solid var(--ff-color-nav-item-border);
                 position: absolute;
                 bottom: -9px;
                 line-height: 0.85rem;
@@ -418,21 +425,21 @@ $nav_height: 60px;
     }
     .ff-border-left {
         border-width: 0 0 0 1px;
-        border-color: $ff-grey-500;
+        border-color: var(--ff-color-border-strong);
     }
     .ff-navigation-right {
         height: 100%;
         ul {
-            background: $ff-white;
-            border: 1px solid $ff-color--border;
+            background: var(--ff-color-bg-app);
+            border: 1px solid var(--ff-color-border);
 
             .ff-nav-item {
                 transition: ease-in-out .3s;
                 &:hover {
-                    background: $ff-grey-100;
+                    background: var(--ff-color-bg-surface-raised);
                     label, svg {
-                        color: $ff-indigo-700;
-                        fill: $ff-indigo-700;
+                        color: var(--ff-color-accent-hover);
+                        fill: var(--ff-color-accent-hover);
                     }
                 }
             }
@@ -446,7 +453,7 @@ $nav_height: 60px;
                 content: '';
                 width: 1px;
                 height: 15px;
-                background: $ff-color--border;
+                background: var(--ff-color-border);
                 top: 40%;
             }
         }
@@ -464,7 +471,7 @@ $nav_height: 60px;
             display: flex;
             align-items: center;
             .ff-avatar {
-                border: 2px solid #1f2937;
+                border: 2px solid var(--ff-color-nav-item-border);
                 transition: ease-in-out .1s;
             }
             &:hover {
@@ -473,14 +480,14 @@ $nav_height: 60px;
                     transform: scale(1.25) translateZ(0);
                     backface-visibility: hidden;
                     perspective: 1000px;
-                    border-color: $ff-indigo-600;
+                    border-color: var(--ff-color-accent);
                 }
             }
         }
     }
 }
     .ff-dropdown {
-        color: white;
+        color: var(--ff-color-text-on-brand);
         min-width: $sidenav_width;
         position: relative;
         top: 0;
@@ -497,14 +504,14 @@ $nav_height: 60px;
         }
         .ff-dropdown-options {
             width: 100%;
-            border-color: $ff-color--border;
+            border-color: var(--ff-color-border);
             border-right: 0;
 
             .ff-dropdown-option {
                 &:hover {
                     label, svg {
-                        color: $ff-indigo-700;
-                        fill: $ff-indigo-700;
+                        color: var(--ff-color-accent-hover);
+                        fill: var(--ff-color-accent-hover);
                     }
                 }
             }
@@ -531,8 +538,8 @@ $nav_height: 60px;
 
             &.danger {
                 label, svg {
-                    color: $ff-red-700;
-                    fill: $ff-red-700;
+                    color: var(--ff-color-danger-darker);
+                    fill: var(--ff-color-danger-darker);
                 }
             }
         }
@@ -550,40 +557,40 @@ $nav_height: 60px;
 }
 
 .ff-navigation .ff-nav-item {
-    border-bottom: 1px solid $ff-grey-600;
+    border-bottom: 1px solid var(--ff-color-nav-divider);
     padding: 16px 16px 16px 24px;
     display: grid;
     grid-template-columns: 20px 1fr;
     svg {
-        fill: $ff-grey-500;
+        fill: var(--ff-color-text-subtle);
         width: 20px;
     }
     svg.hollow {
         fill: none;
-        stroke: $ff-white;
+        stroke: var(--ff-color-text-on-brand);
     }
     label {
         margin-left: 12px;
-        color: $ff-grey-800;
+        color: var(--ff-color-text);
         white-space: nowrap;
         pointer-events: none;
     }
 }
 
 .ff-team-selection ul .ff-nav-item {
-    border-bottom: 1px solid $ff-grey-600;
+    border-bottom: 1px solid var(--ff-color-nav-divider);
     padding: 16px 16px 16px 22px;
     display: grid;
     align-items: center;
     grid-template-columns: 24px 1fr;
     height: $nav_height;
     svg {
-        fill: $ff-white;
+        fill: var(--ff-color-text-on-brand);
         width: 20px;
     }
     label {
         margin-left: 12px;
-        color: $ff-white;
+        color: var(--ff-color-text-on-brand);
         white-space: nowrap;
         pointer-events: none;
     }
@@ -604,13 +611,13 @@ $nav_height: 60px;
         .router-link-active {
             li {
                 label {
-                    color: $ff-teal-300;
+                    color: var(--ff-color-nav-item-active-text);
                 }
                 svg {
-                    fill: $ff-teal-300;
+                    fill: var(--ff-color-nav-item-active-text);
                     &.hollow {
                         fill: none;
-                        stroke: $ff-teal-300;
+                        stroke: var(--ff-color-nav-item-active-text);
                     }
                 }
             }
@@ -621,7 +628,7 @@ $nav_height: 60px;
         width: 0;
         overflow: hidden;
         .ff-nested-title {
-            color: $ff-teal-300;
+            color: var(--ff-color-nav-item-active-text);
             font-weight: bold;
             font-size: 1.1rem;
             padding: 12px 16px;
@@ -634,16 +641,16 @@ $nav_height: 60px;
         }
         .router-link-active {
             li {
-                background-color: $ff-grey-600;
+                background-color: var(--ff-color-nav-item-active);
             }
             label {
-                color: $ff-teal-300;
+                color: var(--ff-color-nav-item-active-text);
             }
             svg {
-                fill: $ff-teal-300;
+                fill: var(--ff-color-nav-item-active-text);
                 &.hollow {
                     fill: none;
-                    stroke: $ff-teal-300;
+                    stroke: var(--ff-color-nav-item-active-text);
                 }
             }
         }
@@ -655,12 +662,12 @@ $nav_height: 60px;
         .ff-nav-item {
             &.danger {
                 label, svg {
-                    color: $ff-red-700;
-                    fill: $ff-red-700;
+                    color: var(--ff-color-danger-darker);
+                    fill: var(--ff-color-danger-darker);
                 }
             }
             &.create {
-                background: $ff-grey-100;
+                background: var(--ff-color-bg-surface-raised);
                 border-bottom: none;
             }
         }
@@ -682,13 +689,13 @@ $nav_height: 60px;
         right: 0;
     }
     .ff-navigation-divider {
-        background-color: $ff-grey-900;
-        color: white;
+        background-color: var(--ff-color-nav-divider-strong);
+        color: var(--ff-color-text-on-brand);
         padding: 6px 12px;
         height: 32px;
         display: block;
         font-size: 0.85rem;
-        border-bottom: 1px solid $ff-grey-600;
+        border-bottom: 1px solid var(--ff-color-nav-divider);
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
@@ -699,7 +706,7 @@ $nav_height: 60px;
     .ff-nav-item {
         display: flex;
         justify-content: space-between;
-        border-bottom: 1px solid $ff-color--border;
+        border-bottom: 1px solid var(--ff-color-border);
     }
     .disabled {
         pointer-events: none;
@@ -707,12 +714,12 @@ $nav_height: 60px;
     }
     .ff-notification-pill {
         padding: 2px 12px;
-        background-color: $ff-red-600;
-        border: 1px solid $ff-red-700;
+        background-color: var(--ff-color-danger-strong);
+        border: 1px solid var(--ff-color-pill-ring);
     }
     .ff-side-navigation--options-back {
         li {
-            border-top: 1px solid $ff-grey-600;
+            border-top: 1px solid var(--ff-color-nav-divider);
         }
     }
 }
@@ -754,8 +761,8 @@ $nav_height: 60px;
         height: 100%;
         z-index: 100;
         left: 0;
-        background: $ff-color--context-menu;
-        border-right: 1px solid $ff-color--border;
+        background: var(--ff-color-bg-app);
+        border-right: 1px solid var(--ff-color-border);
         overflow: auto;
 
         .ff-main-navigation {
@@ -769,7 +776,7 @@ $nav_height: 60px;
                         margin: 10px 0 15px;
                         padding: 0 10px;
                         text-transform: uppercase;
-                        color: $ff-color--disabled;
+                        color: var(--ff-color-text-subtle);
                         font-size: 11px;
                     }
 
@@ -794,20 +801,20 @@ $nav_height: 60px;
                                 }
 
                                 &:hover {
-                                    background: $ff-color--highlight--light;
+                                    background: var(--ff-color-bg-surface-raised);
                                 }
                             }
 
                             .router-link-active {
                                 .ff-nav-item {
-                                    background: $ff-color--action;
-                                    color: white;
+                                    background: var(--ff-color-accent-strong);
+                                    color: var(--ff-color-text-on-brand);
                                 }
                             }
 
                             .disabled {
                                 .ff-nav-item {
-                                    color: $ff-color--disabled;
+                                    color: var(--ff-color-text-disabled);
                                     cursor: not-allowed;
                                 }
                             }

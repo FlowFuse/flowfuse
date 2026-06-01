@@ -63,18 +63,18 @@ export default {
 .ff-select-team-step {
     .team-tile {
         padding: 12px;
-        border: 2px solid $ff-grey-300;
+        border: 2px solid var(--ff-color-border-strong);
         width: 100%;
         border-radius: 6px;
         cursor: pointer;
         transition: ease-in-out .3s;
 
         &:hover {
-            border-color: $ff-indigo-400;
+            border-color: var(--ff-color-accent);
         }
 
         &.selected {
-            border-color: $ff-indigo-600;
+            border-color: var(--ff-color-accent);
         }
 
         .header {
@@ -83,13 +83,13 @@ export default {
             }
 
             .counters {
-                color: $ff-grey-400;
+                color: var(--ff-color-text-subtle);
                 font-size: $ff-funit-xs;
             }
         }
 
         .description {
-            color: $ff-grey-400;
+            color: var(--ff-color-text-subtle);
             font-size: $ff-funit-sm;
         }
     }

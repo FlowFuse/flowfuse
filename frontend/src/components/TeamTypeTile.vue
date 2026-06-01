@@ -105,8 +105,8 @@ export default {
 .ff-team-type-tile {
     position: relative;
     border-radius: 6px;
-    border: 2px solid $ff-grey-300;
-    background: white;
+    border: 2px solid var(--ff-color-border-strong);
+    background: var(--ff-color-bg-app);
     box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.25);
     padding: 24px;
     width: 100%;
@@ -134,12 +134,11 @@ export default {
     margin: 0;
     position: absolute;
     top: 8px;
-    color: white;
+    color: var(--ff-color-text-on-brand);
     // text-shadow: 0 1px 1px #111;
-    border-top: 1px solid #363636;
-    border-bottom: 1px solid #202020;
-    background: $ff-red-500;
-    // background: linear-gradient($ff-red-500 0%, $ff-red-700 100%);
+    border-top: 1px solid var(--ff-color-tile-bevel-top);
+    border-bottom: 1px solid var(--ff-color-tile-bevel-bottom);
+    background: var(--ff-color-danger);
     border-radius: 2px 2px 0 0;
     box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
@@ -153,7 +152,7 @@ export default {
     bottom: calc((-2 * var(--ribbon-overlap)) - 1px);
     z-index: -10;
     border: var(--ribbon-overlap) solid;
-    border-color: $ff-red-900 transparent transparent transparent;
+    border-color: var(--ff-color-tile-ribbon-shadow-red) transparent transparent transparent;
 }
 .trial-ribbon::before {left: 0;}
 .trial-ribbon::after {right: 0;}

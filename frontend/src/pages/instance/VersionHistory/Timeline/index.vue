@@ -162,7 +162,7 @@ export default {
 <style scoped lang="scss">
 #visual-timeline {
     .timeline {
-        border: 1px solid $ff-grey-300;
+        border: 1px solid var(--ff-color-border-strong);
         border-radius: 3px;
         overflow: auto;
 

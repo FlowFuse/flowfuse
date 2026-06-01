@@ -285,11 +285,11 @@ defineExpose({ notifyDrawerState })
         box-shadow: none;
 
         &.open {
-            border-right: 1px solid $ff-grey-200;
+            border-right: 1px solid var(--ff-color-border);
 
             &.side-right {
                 border-right: none;
-                border-left: 1px solid $ff-grey-200;
+                border-left: 1px solid var(--ff-color-border);
             }
         }
     }
@@ -314,7 +314,7 @@ defineExpose({ notifyDrawerState })
         left: 0;
         right: auto;
         border-right: none;
-        border-left: 1px solid $ff-grey-400;
+        border-left: 1px solid var(--ff-color-border-strong);
 
         &::before {
             left: -3px;
@@ -331,7 +331,7 @@ defineExpose({ notifyDrawerState })
         background: none;
         border: none;
         padding: 0 15px;
-        color: $ff-grey-500;
+        color: var(--ff-color-text-subtle);
         font: inherit;
         display: flex;
         align-items: center;
@@ -344,12 +344,12 @@ defineExpose({ notifyDrawerState })
         }
 
         &:hover {
-            background: $ff-grey-100;
-            color: $ff-grey-700;
+            background: var(--ff-color-bg-surface-raised);
+            color: var(--ff-color-text-muted);
         }
 
         &:active {
-            background: $ff-grey-200;
+            background: var(--ff-color-bg-emphasis);
         }
     }
 
@@ -357,7 +357,7 @@ defineExpose({ notifyDrawerState })
         flex: 1;
         font-weight: 600;
         font-size: 14px;
-        color: $ff-grey-800;
+        color: var(--ff-color-text);
         padding: 0 10px;
         display: flex;
         align-items: center;

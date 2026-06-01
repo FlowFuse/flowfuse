@@ -42,7 +42,7 @@
                     label="Remote Instance"
                     :value="StageType.DEVICE"
                     description=""
-                    color="#31959A"
+                    color="var(--ff-palette-teal-700)"
                     :disabled="!allowInstanceSelection"
                     disabledTooltip="Cannot add Remote Instance after a device group"
                 >
@@ -53,7 +53,7 @@
                     label="Device Group"
                     :value="StageType.DEVICEGROUP"
                     description=""
-                    color="#31959A"
+                    color="var(--ff-palette-teal-700)"
                     :disabled="isFirstStage || !allowDeviceGroupSelection"
                     disabledTooltip="Device Groups cannot be the first stage or proceed non Device Group stages"
                 >

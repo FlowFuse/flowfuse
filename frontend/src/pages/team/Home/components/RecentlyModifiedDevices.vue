@@ -128,14 +128,14 @@ export default {
 <style lang="scss">
 .recently-modified {
     & > p {
-        border-bottom: 1px solid $ff-grey-100;
+        border-bottom: 1px solid var(--ff-color-border-subtle);
         margin-bottom: 10px;
         line-height: 2rem;
     }
 
     .device-wrapper {
         .device-tile {
-            border: 1px solid $ff-grey-100;
+            border: 1px solid var(--ff-color-border-subtle);
             padding: 2px 10px;
             border-radius: 5px;
             display: flex;
@@ -153,7 +153,7 @@ export default {
             }
 
             &:hover {
-                border-color: $ff-grey-200;
+                border-color: var(--ff-color-border);
             }
 
             .details {
@@ -162,13 +162,13 @@ export default {
                 .detail-wrapper {
                     &:last-of-type {
                         font-size: $ff-funit-sm;
-                        color: $ff-grey-400;
+                        color: var(--ff-color-text-subtle);
                     }
                 }
 
                 .name {
                     &:hover {
-                        color: $ff-indigo-700;
+                        color: var(--ff-color-accent-hover);
                     }
                 }
             }

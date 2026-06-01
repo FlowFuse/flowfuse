@@ -114,15 +114,15 @@ export default {
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: $ff-color--action;
+    color: var(--ff-color-accent-strong);
 
     &:hover {
-      color: $ff-white;
-      background-color: $ff-color--highlight;
+      color: var(--ff-color-text-on-brand);
+      background-color: var(--ff-color-accent);
     }
 
     &:active {
-      background-color: $ff-color--highlight;
+      background-color: var(--ff-color-accent);
     }
 
     .ff-icon {
@@ -130,12 +130,12 @@ export default {
     }
 
     .ff-icon-check {
-      color: $ff-green-600;
+      color: var(--ff-color-success);
     }
   }
   .ff-copied {
-    background-color: black;
-    color: white;
+    background-color: var(--ff-color-surface-dark);
+    color: var(--ff-color-text-on-brand);
     padding: 3px;
     border-radius: 3px;
     position: absolute;

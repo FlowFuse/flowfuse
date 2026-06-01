@@ -37,8 +37,8 @@ export default {
 
 <style scoped lang="scss">
 .notice {
-    border: 1px solid $ff-yellow-100;
-    background-color: $ff-yellow-10;
+    border: 1px solid var(--ff-color-status-warning-border);
+    background-color: var(--ff-color-status-warning-bg);
     border-radius: $ff-unit-sm;
     padding: $ff-unit-md;
 

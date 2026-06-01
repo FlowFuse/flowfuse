@@ -204,27 +204,27 @@ export default {
 
                     textarea {
                         background: none;
-                        border-color: $ff-grey-200;
+                        border-color: var(--ff-color-border);
                         resize: none;
                         min-height: 200px;
                         transition: background-color ease-out .3s, border-color ease-out .3s;
                         flex: 1;
 
                         &:hover, &:focus {
-                            background: $ff-white;
-                            border-color: $ff-grey-300;
+                            background: var(--ff-color-bg-app);
+                            border-color: var(--ff-color-border-strong);
                             resize: vertical;
                         }
 
                         &.has-content {
-                            border-color: $ff-grey-300;
+                            border-color: var(--ff-color-border-strong);
                         }
 
                         @media (max-width: 768px) {
                             max-height: 100%;
                             min-height: 100px;
-                            background: $ff-white;
-                            border-color: $ff-grey-300;
+                            background: var(--ff-color-bg-app);
+                            border-color: var(--ff-color-border-strong);
                             resize: none;
                         }
                     }

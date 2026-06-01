@@ -142,7 +142,7 @@ td {
             line-height: 29px;
             display: grid;
             grid-template-columns: 55px repeat(10, 1fr) 56px;
-            border-bottom: 1px solid $ff-grey-200;
+            border-bottom: 1px solid var(--ff-color-border);
             transition: ease-in-out .3s;
 
             .name {
@@ -160,7 +160,7 @@ td {
             }
 
             &:hover {
-                background: $ff-grey-100;
+                background: var(--ff-color-bg-surface-raised);
                 .action {
                     .ff-icon {
                         opacity: 1;

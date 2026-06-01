@@ -18,7 +18,7 @@ export default {
 
 <style lang="scss">
 .ff-layout--docs {
-    background-color: white;
+    background-color: var(--ff-color-bg-app);
     &-contents {
         max-width: 1012px;
         margin: auto;

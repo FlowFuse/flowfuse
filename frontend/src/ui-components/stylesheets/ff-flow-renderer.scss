@@ -1,0 +1,85 @@
+$icon-view-source:   "data:image/svg+xml;utf8,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg' fill='none'><path stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9.5 5H9a2 2 0 0 0-2 2v2c0 1-.6 3-3 3 1 0 3 .6 3 3v2a2 2 0 0 0 2 2h.5m5-14h.5a2 2 0 0 1 2 2v2c0 1 .6 3 3 3-1 0-3 .6-3 3v2a2 2 0 0 1-2 2h-.5'/></svg>";
+$icon-download-flow: "data:image/svg+xml;utf8,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path fill='black' d='M12 2a1 1 0 0 1 1 1v10.586l2.293-2.293a1 1 0 0 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L11 13.586V3a1 1 0 0 1 1-1zM5 17a1 1 0 0 1 1 1v2h12v-2a1 1 0 1 1 2 0v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a1 1 0 0 1 1-1z'/></svg>";
+$icon-copy-flow:     "data:image/svg+xml;utf8,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path fill='black' d='M8 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1h2a2 2 0 0 1 2 2v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2zm0 2H6v15h12V5h-2v1a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V5zm6-1h-4v1h4V4z'/></svg>";
+$icon-zoom-reset:    "data:image/svg+xml;utf8,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path fill='black' d='M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12zm-8 6a8 8 0 1 1 14.32 4.906l5.387 5.387a1 1 0 0 1-1.414 1.414l-5.387-5.387A8 8 0 0 1 2 10z'/></svg>";
+
+$toolbar-icons: (
+    'view-source':   $icon-view-source,
+    'download-flow': $icon-download-flow,
+    'copy-flow':     $icon-copy-flow,
+    'zoom-reset':    $icon-zoom-reset,
+);
+
+@each $scope in (ff-flow-viewer, ff-flow-compare-view, viewer) {
+    [data-theme="dark"] .#{$scope} {
+        --red-ui-view-grid-color:                  var(--ff-color-border-subtle);
+        --red-ui-view-border:                      1px solid var(--ff-color-border);
+        --red-ui-node-border:                      var(--ff-color-border-strong);
+        --red-ui-node-port-background:             var(--ff-color-bg-emphasis);
+        --red-ui-workspace-button-color:           var(--ff-color-text);
+        --red-ui-workspace-button-background:      var(--ff-color-bg-surface-raised);
+        --red-ui-primary-background:               var(--ff-color-bg-app);
+
+        --red-ui-form-background:                  var(--ff-color-bg-surface);
+        --red-ui-form-placeholder-color:           var(--ff-color-text-subtle);
+        --red-ui-form-text-color:                  var(--ff-color-text);
+        --red-ui-form-text-color-disabled:         var(--ff-color-text-disabled);
+        --red-ui-form-input-border-color:          var(--ff-color-border);
+        --red-ui-form-input-border-selected-color: var(--ff-color-border-strong);
+        --red-ui-form-input-background:            var(--ff-color-bg-surface);
+        --red-ui-form-input-background-disabled:   var(--ff-color-bg-emphasis);
+        --red-ui-form-button-background:           var(--ff-color-bg-surface-raised);
+
+        --red-ui-diff-state-color:                 var(--ff-color-text-muted);
+        --red-ui-diff-state-prefix-color:          var(--ff-color-text-subtle);
+    }
+
+    [data-theme="dark"] .#{$scope} .red-ui-tab {
+        background-color: var(--ff-color-bg-surface);
+        border-color: var(--ff-color-border);
+        color: var(--ff-color-text-muted);
+    }
+
+    [data-theme="dark"] .#{$scope} .red-ui-tab:last-child {
+        border-right-color: var(--ff-color-border);
+    }
+
+    [data-theme="dark"] .#{$scope} .red-ui-tab.active,
+    [data-theme="dark"] .#{$scope} .red-ui-tab:hover {
+        background-color: var(--ff-color-bg-app);
+        border-bottom-color: var(--ff-color-bg-app);
+        color: var(--ff-color-text);
+    }
+
+    [data-theme="dark"] .#{$scope} .diff-table thead tr {
+        border-bottom-color: var(--ff-color-border);
+    }
+
+    [data-theme="dark"] .#{$scope} .diff-table td {
+        border-bottom-color: var(--ff-color-border-subtle);
+    }
+
+    [data-theme="dark"] .#{$scope} code {
+        background-color: var(--ff-color-bg-surface-raised);
+        color: var(--ff-color-text);
+    }
+
+    @each $name, $svg in $toolbar-icons {
+        [data-theme="dark"] .#{$scope} .toolbar .icon-button-bg.#{$name} {
+            background-image: none;
+            position: relative;
+        }
+        [data-theme="dark"] .#{$scope} .toolbar .icon-button-bg.#{$name}::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-color: var(--ff-color-text-muted);
+            -webkit-mask: url("#{$svg}") no-repeat center / 16px 16px;
+            mask: url("#{$svg}") no-repeat center / 16px 16px;
+        }
+    }
+
+    [data-theme="dark"] .#{$scope} .toolbar .icon-button-bg:hover {
+        background-color: var(--ff-color-bg-surface-raised);
+    }
+}

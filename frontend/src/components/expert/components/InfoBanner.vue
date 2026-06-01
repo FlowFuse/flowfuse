@@ -53,13 +53,13 @@ export default {
 <style scoped lang="scss">
 
 .info-banner {
-    background-color: #eef2ff; // indigo-100
+    background-color: var(--ff-color-accent-surface); // indigo-100
     border-radius: 0.5rem;
     margin-bottom: 1.5rem;
     padding: 0.75rem 1rem;
 
     .info-text {
-        color: #4338ca; // indigo-700
+        color: var(--ff-color-accent-hover); // indigo-700
         font-size: 0.875rem;
         margin: 0;
         line-height: 1.5;
@@ -70,14 +70,14 @@ export default {
         text-decoration: underline;
 
         &:hover {
-            color: #3730a3; // indigo-800
+            color: var(--ff-color-accent-strong); // indigo-800
         }
     }
 
     .beta-badge {
         display: inline-block;
-        background-color: #818cf8; // indigo-400
-        color: white;
+        background-color: var(--ff-color-accent); // indigo-400
+        color: var(--ff-color-text-on-brand);
         font-size: 0.625rem;
         font-weight: 600;
         padding: 0.125rem 0.375rem;

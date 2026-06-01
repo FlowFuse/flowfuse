@@ -15,17 +15,22 @@ import {
 } from 'echarts/components'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { mapState } from 'pinia'
+import { computed, provide } from 'vue'
 import VChart, { THEME_KEY } from 'vue-echarts'
 
 import { debounce } from '../../../utils/eventHandling.js'
+
+import { useThemeStore } from '@/stores/theme.ts'
+
+function cssVar (name, _themeDep) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
 
 export default {
     name: 'MemoryChart',
     components: {
         VChart
-    },
-    provide: {
-        [THEME_KEY]: 'light'
     },
     props: {
         resources: {
@@ -58,6 +63,10 @@ export default {
             LegendComponent,
             GridComponent
         ])
+        // Reactive echarts theme — flips with the FF theme store so charts
+        // re-render with the appropriate light/dark palette.
+        const themeStore = useThemeStore()
+        provide(THEME_KEY, computed(() => themeStore.effective))
     },
     data () {
         return {
@@ -68,6 +77,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useThemeStore, ['effective']),
         chartOptions () {
             return {
                 tooltip: {
@@ -108,12 +118,12 @@ export default {
                         },
                         moveHandleSize: 12,
                         textStyle: {
-                            color: '#333',
+                            color: cssVar('--ff-color-text', this.effective),
                             fontSize: 12,
                             rich: {
                                 label: {
-                                    borderColor: 'grey',
-                                    backgroundColor: 'white',
+                                    borderColor: cssVar('--ff-color-border', this.effective),
+                                    backgroundColor: cssVar('--ff-color-bg-surface', this.effective),
                                     borderWidth: 1,
                                     borderRadius: 4,
                                     padding: [4, 6]

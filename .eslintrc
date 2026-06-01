@@ -162,9 +162,12 @@
             }
         },
 
-        // Front ends tests are modules
+        // Front ends tests are modules and run in jsdom (browser globals available)
         {
             "files": ["test/unit/frontend/**", "test/e2e/frontend/**"],
+            "env": {
+                "browser": true
+            },
             "parserOptions": {
                 "sourceType": "module"
             }

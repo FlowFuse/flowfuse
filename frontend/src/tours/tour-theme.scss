@@ -1,19 +1,19 @@
 .shepherd-theme-ff {
     &.shepherd-has-title[data-popper-placement^=bottom]>.shepherd-arrow:before {
-        background-color: $ff-grey-800;
+        background-color: var(--ff-color-surface-dark);
     }
     .shepherd-content {
         .shepherd-header {
-            background-color: $ff-grey-800;
+            background-color: var(--ff-color-surface-dark);
             padding: 0.5rem 1rem;
             line-height: 2rem;
         }
         .shepherd-title {
-            color: white;
+            color: var(--ff-color-text-on-brand);
             font-weight: 500;
         }
         .shepherd-cancel-icon {
-            color: $ff-white;
+            color: var(--ff-color-text-on-brand);
         }
         .shepherd-text {
             padding: 1rem;
@@ -26,11 +26,11 @@
         display: flex;
         gap: 0;
         padding: 0;
-        border-top: 1px solid $ff-grey-300;
+        border-top: 1px solid var(--ff-color-border-strong);
         .shepherd-button {
             flex-grow: 1;
             border-radius: 0;
-            background-color: white;
+            background-color: var(--ff-color-bg-app);
             font-weight: 500;
             padding: 0.5rem 1rem;
             line-height: 2rem;
@@ -38,9 +38,9 @@
             margin: 0;
         }
         .shepherd-button:last-child {
-            background-color: $ff-blue-900;
+            background-color: var(--ff-color-toggle-track-on);
             &:hover {
-                background-color: $ff-indigo-800;
+                background-color: var(--ff-color-accent-strong);
             }
         }
     }
@@ -51,4 +51,23 @@
 
 .shepherd-modal-overlay-container.shepherd-modal-is-visible path {
     transition: 0.3s all;
+}
+
+[data-theme="dark"] .shepherd-theme-ff {
+    &.shepherd-element {
+        background: var(--ff-color-bg-surface);
+    }
+    .shepherd-text {
+        color: var(--ff-color-text);
+    }
+    .shepherd-arrow:before {
+        background: var(--ff-color-bg-surface);
+    }
+    .shepherd-footer .shepherd-button {
+        color: var(--ff-color-text);
+        &:not(:last-child):hover {
+            background-color: var(--ff-color-bg-surface-raised);
+            color: var(--ff-color-text);
+        }
+    }
 }

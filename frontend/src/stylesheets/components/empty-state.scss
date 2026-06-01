@@ -4,8 +4,8 @@
     text-align: center;
     padding-top: 64px;
     padding-bottom: 64px;
-    background-color: white;
-    border: 1px solid $ff-grey-200;
+    background-color: var(--ff-color-bg-app);
+    border: 1px solid var(--ff-color-border);
     border-radius: 3px;
     >div {
         margin: auto;
@@ -31,7 +31,7 @@
         p {
             margin-bottom: 0.75rem;
             line-height: 1.5rem;
-            color: $ff-grey-800;
+            color: var(--ff-color-text);
         }
     }
     &--actions {
@@ -43,7 +43,7 @@
         display: flex;
         justify-content: center;
         margin-top: 1.75rem;
-        color: $ff-grey-400;
+        color: var(--ff-color-text-subtle);
     }
 
     &.ff-empty-state-feature-unavailable {

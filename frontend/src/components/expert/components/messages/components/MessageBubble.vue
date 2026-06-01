@@ -44,14 +44,14 @@ export default {
 
     &.ai-message {
         justify-content: flex-start;
-        background-color: $ff-grey-100;
-        color: #1F2937;
+        background-color: var(--ff-color-bg-surface-raised);
+        color: var(--ff-color-text);
         border-bottom-left-radius: 0.125rem;
     }
 
     &.human-message {
-        background-color: $ff-indigo-600;
-        color: white;
+        background-color: var(--ff-color-accent);
+        color: var(--ff-color-text-on-brand);
         border-bottom-right-radius: 0.125rem;
         width: fit-content;
         align-self: end;
@@ -63,8 +63,8 @@ export default {
         line-height: 1.5;
 
         &.system-warning {
-            background-color: #FEF3C7;
-            color: #92400E;
+            background-color: var(--ff-color-status-warning-bg);
+            color: var(--ff-color-status-warning-text);
             border-radius: 0.5rem;
             text-align: left;
             max-width: 100%;
@@ -72,8 +72,8 @@ export default {
         }
 
         &.system-expired {
-            background-color: #FEE2E2; // red-100
-            color: #991B1B; // red-900
+            background-color: var(--ff-color-status-error-bg);
+            color: var(--ff-color-danger-darker);
         }
     }
 }

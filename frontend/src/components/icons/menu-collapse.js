@@ -3,21 +3,21 @@ const { createVNode: _createVNode, openBlock: _openBlock, createBlock: _createBl
 module.exports = function render (_ctx, _cache) {
     const path1 = _createVNode('path', {
         d: 'M21.8333 8.5H10.1667C9.24619 8.5 8.5 9.24619 8.5 10.1667V21.8333C8.5 22.7538 9.24619 23.5 10.1667 23.5H21.8333C22.7538 23.5 23.5 22.7538 23.5 21.8333V10.1667C23.5 9.24619 22.7538 8.5 21.8333 8.5Z',
-        stroke: 'black',
+        stroke: 'currentColor',
         'stroke-linecap': 'round',
         'stroke-linejoin': 'round'
     })
 
     const path2 = _createVNode('path', {
         d: 'M13.5 8.5V23.5',
-        stroke: 'black',
+        stroke: 'currentColor',
         'stroke-linecap': 'round',
         'stroke-linejoin': 'round'
     })
 
     const path3 = _createVNode('path', {
         d: 'M19.3333 18.5L16.8333 16L19.3333 13.5',
-        stroke: 'black',
+        stroke: 'currentColor',
         'stroke-linecap': 'round',
         'stroke-linejoin': 'round'
     })

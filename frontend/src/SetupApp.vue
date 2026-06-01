@@ -11,7 +11,6 @@ import { markRaw } from 'vue'
 
 import httpClient from './api/client.js'
 import Logo from './components/Logo.vue'
-import PageFooter from './components/PageFooter.vue'
 import FFLayoutBox from './layouts/Box.vue'
 import CreateAdminUser from './pages/setup/CreateAdminUser.vue'
 import DefaultStack from './pages/setup/DefaultStack.vue'
@@ -35,7 +34,6 @@ const views = [
 export default {
     name: 'SetupApp',
     components: {
-        PageFooter,
         Logo,
         CreateAdminUser,
         License,

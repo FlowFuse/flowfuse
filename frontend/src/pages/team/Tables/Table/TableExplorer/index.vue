@@ -60,7 +60,7 @@ export default defineComponent({
     }
 
     #tables-list {
-        border-right: 1px solid $ff-color--border;
+        border-right: 1px solid var(--ff-color-border);
         padding-right: 10px;
         transition: ease-in-out .3s, border-right-color ease-out .3s;
     }

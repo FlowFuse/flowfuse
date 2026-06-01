@@ -278,15 +278,15 @@ export default {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background-color: $ff-grey-500;
+    background-color: var(--ff-color-progress-track-neutral);
 }
 
 .ff-socket-status-icon-connected {
-    background-color: $ff-green-500;
+    background-color: var(--ff-color-success);
 }
 
 .ff-socket-status-icon-disconnected {
-    background-color: $ff-red-500;
+    background-color: var(--ff-color-danger);
 }
 
 .ff-chart-section {

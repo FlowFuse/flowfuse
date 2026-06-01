@@ -44,7 +44,7 @@ align-items: center;
 position: relative;
 
 border-radius: $ff-unit-sm;
-border: 1px solid $ff-grey-300;
+border: 1px solid var(--ff-color-border-strong);
 
 height: 28px;
 padding: $ff-unit-sm 5px;
@@ -58,13 +58,13 @@ svg {
 
 &:hover {
   cursor: pointer;
-  border-color: $ff-blue-600;
+  border-color: var(--ff-color-link);
 
-  color: $ff-blue-600;;
-  background-color: $ff-grey-50;
+  color: var(--ff-color-link);;
+  background-color: var(--ff-color-bg-surface);
 
   .ff-icon {
-      color: $ff-blue-600;
+      color: var(--ff-color-link);
   }
 }
 }

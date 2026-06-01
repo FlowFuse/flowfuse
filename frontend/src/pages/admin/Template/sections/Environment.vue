@@ -427,7 +427,7 @@ export default {
     resize: vertical;
     max-height: 10rem; /* 160px approx ~8 lines, after which user will need to scroll */
     /* Below styles emulate the text control in a form row */
-    border: 1px solid #D1D5DB;
+    border: 1px solid var(--ff-color-border-strong);
     border-radius: 6px;
     /* height: 32px; */
     padding: 6px;
@@ -436,8 +436,8 @@ export default {
     display: flex;
     gap: 0px;
     align-items: center;
-    background-color: white;
-    border-color: #D1D5DB;
+    background-color: var(--ff-color-bg-app);
+    border-color: var(--ff-color-border-strong);
 }
 .ff-data-table--cell .env-cell-uneditable {
     max-height: 10rem; /* 160px approx ~8 lines, after which user will need to scroll */
@@ -457,7 +457,7 @@ export default {
 .ff-environment {
     .ff-input.ff-text-input {
         input:disabled {
-            color: $ff-grey-600
+            color: var(--ff-color-text-deep)
         }
     }
 }

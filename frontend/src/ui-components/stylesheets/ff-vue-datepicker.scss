@@ -1,0 +1,34 @@
+// Dark-mode overrides for @vuepic/vue-datepicker.
+
+[data-theme="dark"] .dp__theme_light {
+    --dp-background-color:        var(--ff-color-bg-surface);
+    --dp-text-color:              var(--ff-color-text);
+    --dp-hover-color:             var(--ff-color-bg-surface-raised);
+    --dp-hover-text-color:        var(--ff-color-text);
+    --dp-hover-icon-color:        var(--ff-color-text);
+
+    --dp-primary-color:           var(--ff-color-accent);
+    --dp-primary-disabled-color:  var(--ff-color-border-strong);
+    --dp-primary-text-color:      var(--ff-color-text-on-brand);
+
+    --dp-secondary-color:         var(--ff-color-text-subtle);
+
+    --dp-border-color:            var(--ff-color-border);
+    --dp-menu-border-color:       var(--ff-color-border);
+    --dp-border-color-hover:      var(--ff-color-border-strong);
+    --dp-border-color-focus:      var(--ff-color-focus);
+
+    --dp-disabled-color:          var(--ff-color-bg-emphasis);
+    --dp-disabled-color-text:     var(--ff-color-text-disabled);
+
+    --dp-scroll-bar-background:   var(--ff-color-bg-surface-raised);
+    --dp-scroll-bar-color:        var(--ff-color-border-strong);
+
+    --dp-icon-color:              var(--ff-color-text-muted);
+    --dp-marker-color:            var(--ff-color-accent);
+
+    --dp-success-color:           var(--ff-color-success);
+    --dp-danger-color:            var(--ff-color-danger);
+
+    --dp-tooltip-color:           var(--ff-color-bg-emphasis);
+}

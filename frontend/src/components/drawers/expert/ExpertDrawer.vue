@@ -118,8 +118,8 @@ export default {
 
     .header {
         padding: 1rem 1.5rem;
-        background: linear-gradient(white, white) padding-box,
-                    linear-gradient(90deg, $ff-red-600, #5048e5, $ff-red-600, #5048e5, $ff-red-600) border-box;
+        background: linear-gradient(var(--ff-color-bg-app), var(--ff-color-bg-app)) padding-box,
+                    linear-gradient(90deg, var(--ff-palette-red-600), var(--ff-palette-indigo-600), var(--ff-palette-red-600), var(--ff-palette-indigo-600), var(--ff-palette-red-600)) border-box;
         border: none;
         border-bottom: 1px solid transparent;
         background-size: 200% 100%;
@@ -167,7 +167,7 @@ export default {
             font-size: 1rem;
             font-weight: 700; // font-bold
             line-height: 20px;
-            color: #1f2937; // text-gray-800
+            color: var(--ff-color-text); // text-gray-800
             margin: 0;
         }
 
@@ -193,20 +193,20 @@ export default {
 
                 &:hover {
                     cursor: pointer;
-                    background: $ff-grey-100;
+                    background: var(--ff-color-bg-surface-raised);
                 }
 
                 &:focus-visible {
-                    outline: 2px solid $ff-indigo-700;
+                    outline: 2px solid var(--ff-color-accent-hover);
                     outline-offset: 1px;
                 }
 
                 &.pin-button.is-pinned {
-                    background: $ff-indigo-800;
-                    color: white;
+                    background: var(--ff-color-accent-strong);
+                    color: var(--ff-color-text-on-brand);
 
                     &:hover {
-                        background: $ff-indigo-900;
+                        background: var(--ff-color-expert-drawer-bg);
                     }
                 }
             }

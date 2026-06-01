@@ -209,14 +209,14 @@ export default {
 <style lang="scss">
 
     .clients-wrapper {
-        border: 1px solid $ff-grey-300;
+        border: 1px solid var(--ff-color-border-strong);
         border-radius: 5px;
         overflow: hidden;
 
         .header {
-            background: $ff-grey-100;
+            background: var(--ff-color-bg-surface-raised);
             padding: 10px;
-            border-bottom: 1px solid $ff-grey-300;
+            border-bottom: 1px solid var(--ff-color-border-strong);
 
             span {
                 &.username {
@@ -226,10 +226,10 @@ export default {
         }
 
         .clients-list {
-            background: $ff-white;
+            background: var(--ff-color-bg-app);
 
             .client {
-                border-bottom: 1px solid $ff-grey-300;
+                border-bottom: 1px solid var(--ff-color-border-strong);
 
                 &:last-of-type {
                     border-bottom: none;

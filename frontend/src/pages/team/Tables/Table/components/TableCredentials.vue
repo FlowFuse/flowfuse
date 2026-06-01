@@ -102,8 +102,8 @@ export default defineComponent({
     .client-details,
     .database-details {
         padding: 10px;
-        background: $ff-white;
-        border: 1px solid $ff-color--border;
+        background: var(--ff-color-bg-app);
+        border: 1px solid var(--ff-color-border);
         border-radius: 5px;
 
         .item {

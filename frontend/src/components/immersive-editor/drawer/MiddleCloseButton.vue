@@ -28,7 +28,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: white;
+  background: var(--ff-color-bg-app);
   border-radius: 0 5px 5px 0;
   width: 30px;
   height: 100px;
@@ -36,9 +36,9 @@ export default {
   right: -30px;
   margin-top: -50px;
   box-shadow: -4px 4px 8px rgba(0, 0, 0, 0.10);
-  border: 1px solid $ff-grey-300;
+  border: 1px solid var(--ff-color-border-strong);
   border-left: none;
-  color: $ff-grey-400;
+  color: var(--ff-color-text-subtle);
 
   &:hover {
     cursor: pointer;

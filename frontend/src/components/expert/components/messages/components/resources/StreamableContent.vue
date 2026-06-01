@@ -156,7 +156,7 @@ export default {
 
     :deep(.ff-code-block) {
         margin: 0.75rem 0;
-        border: 1px solid $ff-grey-200;
+        border: 1px solid var(--ff-color-border);
         border-radius: 0.5rem;
         overflow: hidden;
         font-size: 0.8125rem;
@@ -165,7 +165,7 @@ export default {
             margin: 0;
             padding: 1rem;
             overflow-x: auto;
-            background: $ff-grey-50;
+            background: var(--ff-color-bg-surface);
             border-radius: 0;
             white-space: pre;
             overflow-wrap: normal;
@@ -187,15 +187,15 @@ export default {
         align-items: center;
         justify-content: space-between;
         padding: 0.3rem 1rem;
-        background: $ff-grey-100;
-        border-bottom: 1px solid $ff-grey-200;
+        background: var(--ff-color-bg-surface-raised);
+        border-bottom: 1px solid var(--ff-color-border);
         min-height: 2rem;
     }
 
     :deep(.ff-code-block--lang) {
         font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
         font-size: 0.6875rem;
-        color: $ff-grey-500;
+        color: var(--ff-color-text-subtle);
         text-transform: lowercase;
     }
 
@@ -208,7 +208,7 @@ export default {
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        color: $ff-color--action;
+        color: var(--ff-color-accent-strong);
         transition: all 0.2s ease;
 
         svg {
@@ -218,8 +218,8 @@ export default {
         }
 
         &:hover {
-            color: $ff-white;
-            background-color: $ff-color--highlight;
+            color: var(--ff-color-text-on-brand);
+            background-color: var(--ff-color-accent);
         }
     }
 
@@ -234,7 +234,7 @@ export default {
 
         tr + tr td {
             font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-            border-top: 1px solid $ff-grey-200;
+            border-top: 1px solid var(--ff-color-border);
         }
 
         td, th {

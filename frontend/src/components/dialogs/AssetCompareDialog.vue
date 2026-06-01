@@ -537,6 +537,6 @@ export default {
     transition: background 0.15s;
 }
 .ff-resize-handle:hover {
-    background: #93c5fd; /* blue-300 */
+    background: var(--ff-color-diff-highlight-bg); /* blue-300 */
 }
 </style>

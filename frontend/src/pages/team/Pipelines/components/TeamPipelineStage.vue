@@ -7,7 +7,7 @@
             <IconNodeRedSolid v-if="isInstanceStage" class="ff-icon-sm text-red-700" />
             <DeviceSolid v-if="isDeviceStage" class="ff-icon-sm text-teal-700" />
             <DeviceGroupSolidIcon v-if="isDeviceGroupsStage" class="ff-icon-sm text-teal-800" />
-            <IconGit v-if="isGitRepoStage" class="ff-icon-sm" style="color: #e46133" :type="gitType" />
+            <IconGit v-if="isGitRepoStage" class="ff-icon-sm" style="color: var(--ff-color-icon-git)" :type="gitType" />
             <span>{{ targetName }}</span>
         </router-link>
     </div>
@@ -111,10 +111,10 @@ export default {
 
 <style scoped lang="scss">
 .ff-pipeline-stage {
-    border: 1px solid $ff-grey-300;
+    border: 1px solid var(--ff-color-border-strong);
     border-radius: 6px;
     overflow: hidden;
-    background: $ff-white;
+    background: var(--ff-color-bg-app);
     padding: 12px;
     display: flex;
     flex-direction: column;
@@ -127,14 +127,14 @@ export default {
         gap: 6px;
         font-size: 11px;
         align-items: center;
-        border: 1px solid $ff-grey-300;
+        border: 1px solid var(--ff-color-border-strong);
         padding: 6px;
         border-radius: 6px;
         transition: ease-in-out .3s;
 
         &:hover {
-            color: $ff-indigo-700;
-            border-color: $ff-indigo-700;
+            color: var(--ff-color-accent-hover);
+            border-color: var(--ff-color-accent-hover);
         }
     }
 }

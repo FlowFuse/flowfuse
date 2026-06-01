@@ -49,13 +49,13 @@ export default {
     .ff-tab-option {
         flex: 1;
         text-align: center;
-        border-bottom: 2px solid $ff-color--border;
+        border-bottom: 2px solid var(--ff-color-border);
         padding-bottom: 5px;
         cursor: pointer;
         transition: border-color ease-in-out .3s;
 
         &.active {
-            border-color: $ff-indigo-500;
+            border-color: var(--ff-color-focus);
         }
     }
 
@@ -63,7 +63,7 @@ export default {
         flex-shrink: 0;
         font-style: italic;
         font-size: $ff-funit-sm;
-        color: $ff-grey-500;
+        color: var(--ff-color-text-subtle);
         padding: 0 12px 5px;
         border-bottom: 2px solid transparent; // keeps height aligned with tabs
     }

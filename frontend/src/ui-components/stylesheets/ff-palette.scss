@@ -1,0 +1,127 @@
+:root {
+    --ff-palette-black: black;
+    --ff-palette-white: white;
+
+    --ff-palette-grey-50:  #F9FAFB;
+    --ff-palette-grey-100: #F3F4F6;
+    --ff-palette-grey-200: #E5E7EB;
+    --ff-palette-grey-300: #D1D5DB;
+    --ff-palette-grey-400: #9CA3AF;
+    --ff-palette-grey-500: #6B7280;
+    --ff-palette-grey-600: #4B5563;
+    --ff-palette-grey-700: #374151;
+    --ff-palette-grey-800: #1F2937;
+    --ff-palette-grey-900: #111827;
+
+    --ff-palette-red-50:   #FFEBEB;
+    --ff-palette-red-100:  #FFC6C6;
+    --ff-palette-red-200:  #FF8D8D;
+    --ff-palette-red-300:  #F16F6F;
+    --ff-palette-red-400:  #ED4E4E;
+    --ff-palette-red-500:  #D12B2B;
+    --ff-palette-red-500B: #D82525;
+    --ff-palette-red-600:  #BC3838;
+    --ff-palette-red-700:  #AB1818;
+    --ff-palette-red-800:  #8F0001;
+    --ff-palette-red-900:  #760000;
+
+    --ff-palette-teal-50:  #E4FBFC;
+    --ff-palette-teal-100: #C4F3F5;
+    --ff-palette-teal-200: #B2EBEE;
+    --ff-palette-teal-300: #8CE2E7;
+    --ff-palette-teal-400: #74D4D9;
+    --ff-palette-teal-500: #50C3C9;
+    --ff-palette-teal-600: #35AAB0;
+    --ff-palette-teal-700: #31959A;
+    --ff-palette-teal-800: #397B7E;
+    --ff-palette-teal-900: #406466;
+
+    --ff-palette-blue-50:  #EFF6FF;
+    --ff-palette-blue-100: #DBEAFE;
+    --ff-palette-blue-200: #BFDBFE;
+    --ff-palette-blue-300: #93C5FD;
+    --ff-palette-blue-400: #60A5FA;
+    --ff-palette-blue-500: #3B82F6;
+    --ff-palette-blue-600: #2563EB;
+    --ff-palette-blue-700: #1D4ED8;
+    --ff-palette-blue-800: #1E40AF;
+    --ff-palette-blue-900: #1E3A8A;
+
+    --ff-palette-indigo-50:  #EEF2FF;
+    --ff-palette-indigo-100: #E0E7FF;
+    --ff-palette-indigo-200: #C7D2FE;
+    --ff-palette-indigo-300: #A5B4FC;
+    --ff-palette-indigo-400: #818CF8;
+    --ff-palette-indigo-500: #6366F1;
+    --ff-palette-indigo-600: #4F46E5;
+    --ff-palette-indigo-700: #4338CA;
+    --ff-palette-indigo-800: #3730A3;
+    --ff-palette-indigo-900: #312E81;
+
+    --ff-palette-green-50:  #ECFDF5;
+    --ff-palette-green-100: #D1FAE5;
+    --ff-palette-green-200: #A7F3D0;
+    --ff-palette-green-300: #6EE7B7;
+    --ff-palette-green-400: #34D399;
+    --ff-palette-green-500: #10B981;
+    --ff-palette-green-600: #059669;
+    --ff-palette-green-700: #047857;
+    --ff-palette-green-800: #065F46;
+    --ff-palette-green-900: #064E3B;
+
+    --ff-palette-yellow-10:  #FFFCF5;
+    --ff-palette-yellow-50:  #FFFBEB;
+    --ff-palette-yellow-100: #FEF3C7;
+    --ff-palette-yellow-200: #FDE68A;
+    --ff-palette-yellow-300: #FCD34D;
+    --ff-palette-yellow-400: #FBBF24;
+    --ff-palette-yellow-500: #F59E0B;
+    --ff-palette-yellow-600: #D97706;
+    --ff-palette-yellow-700: #B45309;
+    --ff-palette-yellow-800: #92400E;
+    --ff-palette-yellow-900: #78350F;
+
+    --ff-palette-purple-50:  #FAF5FF;
+    --ff-palette-purple-100: #F3E8FF;
+    --ff-palette-purple-200: #E9D5FF;
+    --ff-palette-purple-300: #D8B4FE;
+    --ff-palette-purple-400: #C084FC;
+    --ff-palette-purple-500: #A855F7;
+    --ff-palette-purple-600: #9333EA;
+    --ff-palette-purple-700: #7E22CE;
+    --ff-palette-purple-800: #6B21A8;
+    --ff-palette-purple-900: #581C87;
+
+    --ff-palette-bevel-top:    #363636;
+    --ff-palette-bevel-bottom: #202020;
+
+    --ff-palette-git-orange: #e46133;
+
+    --ff-palette-slate-1-dark:   #111113;
+    --ff-palette-slate-2-dark:   #18191b;
+    --ff-palette-slate-3-dark:   #212225;
+    --ff-palette-slate-4-dark:   #272a2d;
+    --ff-palette-slate-6-dark:   #363a3f;
+    --ff-palette-slate-7-dark:   #43484e;
+    --ff-palette-slate-8-dark:   #5a6169;
+    --ff-palette-slate-10-dark:  #777b84;
+    --ff-palette-slate-11-dark:  #b0b4ba;
+    --ff-palette-slate-12-dark:  #edeef0;
+
+    --ff-palette-indigo-3-dark:        #182449;
+    --ff-palette-indigo-7-dark:        #3a4f97;
+    --ff-palette-indigo-8-dark:        #435db1;
+    --ff-palette-indigo-9-dark:        #3e63dd;
+    --ff-palette-indigo-9-strong-dark: #4b6ce1;
+    --ff-palette-indigo-11-dark:       #9eb1ff;
+
+    --ff-palette-red-9-dark:    #e5484d;
+    --ff-palette-red-10-dark:   #ec5d5e;
+    --ff-palette-red-11-dark:   #ff9592;
+    --ff-palette-blue-11-dark:  #70b8ff;
+    --ff-palette-blue-12-dark:  #c2e6ff;
+    --ff-palette-amber-11-dark: #ffb224;
+    --ff-palette-green-9-dark:  #4cc38a;
+
+    --ff-palette-teal-light-dark: #99f0f0;
+}

@@ -135,14 +135,14 @@ export default {
 
 <style lang="scss" scoped>
 .update-banner {
-    background-color: #eef2ff; // indigo-100
+    background-color: var(--ff-color-accent-surface); // indigo-100
     margin-bottom: 0rem;
     border-radius: 0;
     padding: 0.5rem 1rem;
-    border-top: 1px solid #E5E7EB;
+    border-top: 1px solid var(--ff-color-border);
 
     .update-banner-text {
-        color: #4338ca; // indigo-700
+        color: var(--ff-color-accent-hover); // indigo-700
         font-size: 0.875rem;
         margin: 0;
         line-height: 1.5;
@@ -165,8 +165,8 @@ export default {
 
     .update-banner-badge {
         display: inline-block;
-        background-color: #818cf8; // indigo-400
-        color: white;
+        background-color: var(--ff-color-accent); // indigo-400
+        color: var(--ff-color-text-on-brand);
         font-weight: 600;
         border-radius: 0.25rem;
         text-transform: uppercase;
@@ -179,8 +179,8 @@ export default {
 
     &.warning {
         .update-banner-badge {
-            background-color: $ff-red-700;
-            color: $ff-grey-50;
+            background-color: var(--ff-color-danger-darker);
+            color: var(--ff-color-text-on-brand);
         }
     }
 
