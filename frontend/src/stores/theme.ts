@@ -9,8 +9,7 @@ function readStoredMode (): ThemeMode {
     try {
         const direct = localStorage.getItem(STORAGE_KEY)
         if (direct === 'light' || direct === 'dark' || direct === 'system') return direct
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) { /* ignore */ }
+    } catch { /* ignore */ }
     return 'system'
 }
 
@@ -39,8 +38,7 @@ export const useThemeStore = defineStore('theme', () => {
 
     watchEffect(() => {
         document.documentElement.dataset.theme = effective.value
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        try { localStorage.setItem(STORAGE_KEY, mode.value) } catch (_) { /* ignore */ }
+        try { localStorage.setItem(STORAGE_KEY, mode.value) } catch { /* ignore */ }
     })
 
     function setMode (m: ThemeMode) {
