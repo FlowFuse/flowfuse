@@ -911,14 +911,6 @@ li.ff-kebab-item {
       }
     }
   }
-
-  &--loading-overlay tbody {
-    opacity: 0.5;
-    pointer-events: none;
-  }
-  &--data tbody {
-    transition: opacity 0.15s ease-out;
-  }
 }
 
 .ff-data-table thead .ff-checkbox,
