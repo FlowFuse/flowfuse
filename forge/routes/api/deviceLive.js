@@ -294,9 +294,10 @@ module.exports = async function (app) {
             tables: !!(app.config.features.enabled('tables') && team.getFeatureProperty('tables', true))
         }
 
-        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
+        const isAiEnabled = !!(app.config.features.enabled('ai') && team.getFeatureProperty('ai', true))
+        const assistantInlineCompletionsFeatureEnabled = !!(isAiEnabled && app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
         response.assistant = {
-            enabled: app.config.assistant?.enabled || false,
+            enabled: isAiEnabled && (app.config.assistant?.enabled || false),
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
             mcp: { enabled: true }, // default to enabled
             completions: {
