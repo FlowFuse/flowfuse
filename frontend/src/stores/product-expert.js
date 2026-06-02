@@ -418,7 +418,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             const welcomeMessages = {
-                [SUPPORT_AGENT]: 'Hello! I am here to help you get started with FlowFuse and Node-RED. I can answer your questions, provide links to documentation, or help you build step-by-step guides to achieve your goals. How can I assist you today?',
+                [SUPPORT_AGENT]: 'Hello! I am here to help you get started with FlowFuse and Node-RED. I can build industrial application for you, answer your questions and provide links to documentation, or help you debug your existing flows. How can I assist you today?',
                 [INSIGHTS_AGENT]: 'Hello! I can help you gather insights by interacting with your configured resources and MCP tools in your Node-RED instances. What would you like to find out?'
             }
 

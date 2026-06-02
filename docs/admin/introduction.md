@@ -27,6 +27,7 @@ meta:
  - [Licensing](/docs/admin/licensing.md)
  - [User management](/docs/admin/user_management.md)
  - [Platform Monitoring](/docs/admin/monitoring.md)
+ - [Soft Launch Enablement](/docs/admin/feature-flags.md)
 
 ## Administering FlowFuse
 
