@@ -229,6 +229,12 @@ Option         | Description
 `broker.url`   | The full url to the platform broker. This is used by the platform and Node-RED instances to connect to the broker. For example: `mqtt://localhost:1883`.
 `broker.public_url` | If set, this is the url provided to Devices to connect to the broker with. When running in a Docker or K8S environment, this url should be the externally addressable url the broker is provided on. This could be via WebSockets, for example: `ws://example.com:1884`
 
+## AI Configuration
+
+Option         | Description
+---------------|--------------
+`ai.enabled`   | Enables all AI features on the platform. When set to `false`, all AI functionality is disabled regardless of individual feature configuration (assistant, expert, inline completions, snapshot descriptions). Default: `true`
+
 ## FF Tables
 
 Option         | Description
