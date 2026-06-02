@@ -366,43 +366,21 @@ module.exports = async function (app) {
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list'),
         schema: {
-            querystring: {
-                type: 'object',
-                properties: {
-                    limit: {
-                        type: 'number',
-                        nullable: true
-                    },
-                    page: {
-                        type: 'number',
-                        nullable: true,
-                        minimum: 1
-                    },
-                    query: {
-                        type: 'string',
-                        nullable: true
-                    },
-                    sort: {
-                        type: 'string',
-                        nullable: true,
-                        enum: ['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']
-                    },
-                    dir: {
-                        type: 'string',
-                        nullable: true,
-                        enum: ['asc', 'desc']
-                    },
-                    includeMeta: {
-                        type: 'boolean',
-                        nullable: true,
-                        default: false
-                    },
-                    orderByMostRecentFlows: {
-                        type: 'boolean',
-                        nullable: true,
-                        default: false
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    {
+                        type: 'object',
+                        properties: {
+                            sort: {
+                                type: 'string',
+                                enum: ['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']
+                            },
+                            includeMeta: { type: 'boolean', default: false },
+                            orderByMostRecentFlows: { type: 'boolean', default: false }
+                        }
                     }
-                }
+                ]
             }
         }
     }, async (request, reply) => {
