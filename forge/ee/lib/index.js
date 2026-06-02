@@ -38,11 +38,15 @@ module.exports = fp(async function (app, opts) {
         // Expert
         await app.register(require('./expert'))
 
+        // Set the AI Features Flag (global gate for all AI features)
+        app.config.features.register('ai', app.config?.ai?.enabled ?? true, true)
+
         // Set the Generate Snapshot Description Feature Flag
-        app.config.features.register('generatedSnapshotDescription', true, true)
+        const isAssistantConfigured = app.config.assistant?.enabled === true && !!app.config.assistant?.service?.url
+        app.config.features.register('generatedSnapshotDescription', isAssistantConfigured, true)
 
         // Set the assistant inline completions Feature Flag
-        app.config.features.register('assistantInlineCompletions', true, true)
+        app.config.features.register('assistantInlineCompletions', isAssistantConfigured, true)
 
         // Set the expert assistant Feature Flag
         app.config.features.register('expertAssistant', app.config?.expert?.enabled ?? false, true)
