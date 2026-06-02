@@ -7,7 +7,7 @@ forge:
   broker:
     enabled: true
     teamBroker:
-      uiOnly: true
+      enabled: true
   cloudProvider: aws
   cache:
     type: memory
