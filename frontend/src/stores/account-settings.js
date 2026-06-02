@@ -22,6 +22,7 @@ const FEATURE_CONFIGS = [
     { output: 'isGitIntegrationFeatureEnabled', platformKey: 'gitIntegration', teamKey: 'gitIntegration' },
     { output: 'isInstanceResourcesFeatureEnabled', platformKey: 'instanceResources', teamKey: 'instanceResources' },
     { output: 'isTablesFeatureEnabled', platformKey: 'tables', teamKey: 'tables' },
+    { output: 'isAiFeatureEnabled', platformKey: 'ai', teamKey: 'ai' },
     { output: 'isGeneratedSnapshotDescriptionFeatureEnabled', platformKey: 'generatedSnapshotDescription', teamKey: 'generatedSnapshotDescription' },
     { output: 'isApplicationsRBACFeatureEnabled', platformKey: 'rbacApplication', teamKey: 'rbacApplication' },
 
