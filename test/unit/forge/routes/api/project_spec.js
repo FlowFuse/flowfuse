@@ -20,7 +20,7 @@ describe('Project API', function () {
     const TestObjects = {}
 
     async function setupApp (options) {
-        const setupConfig = { limits: { instances: 50 }, domain: 'flowforge.dev', ...options }
+        const setupConfig = { limits: { instances: 50 }, domain: 'flowforge.dev', assistant: { enabled: true, service: { url: 'http://localhost:9876' } }, ...options }
         app = await setup(setupConfig)
 
         TestObjects.project1 = app.project
@@ -68,6 +68,17 @@ describe('Project API', function () {
 
         // TestObjects.tokens.alice = (await app.db.controllers.AccessToken.createTokenForPasswordReset(TestObjects.alice)).token
         TestObjects.tokens.project = (await app.project.refreshAuthTokens()).token
+
+        // Enable ai and generatedSnapshotDescription feature flags at platform and team type level
+        app.config.features.register('ai', true, true)
+        app.config.features.register('generatedSnapshotDescription', true, true)
+        const defaultTeamType = await app.db.models.TeamType.findOne({ where: { name: 'starter' } })
+        const defaultTeamTypeProps = defaultTeamType.properties || {}
+        defaultTeamTypeProps.features = defaultTeamTypeProps.features || {}
+        defaultTeamTypeProps.features.ai = true
+        defaultTeamTypeProps.features.generatedSnapshotDescription = true
+        defaultTeamType.properties = defaultTeamTypeProps
+        await defaultTeamType.save()
 
         TestObjects.projectType1 = app.projectType
         TestObjects.template1 = app.template
@@ -2460,6 +2471,25 @@ describe('Project API', function () {
                 body.assistant.completions.should.have.property('enabled', true) // defaults to enabled
                 body.assistant.completions.should.have.property('inlineEnabled', true) // enabled due to tier/licensed
             })
+            it('instance settings with assistant.enabled false when ai platform flag is disabled', async function () {
+                app = await setup({
+                    license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A',
+                    assistant: {
+                        enabled: true,
+                        requestTimeout: 12345
+                    }
+                })
+                app.config.features.register('ai', false, true)
+
+                await login('alice', 'aaPassword')
+                TestObjects.tokens.project = (await app.project.refreshAuthTokens()).token
+
+                const body = await getSettings(app.project)
+                body.should.have.property('assistant').and.be.an.Object()
+                body.assistant.should.have.property('enabled', false)
+                body.assistant.should.have.property('completions').and.be.an.Object()
+                body.assistant.completions.should.have.property('inlineEnabled', false)
+            })
         })
     })
 
@@ -3054,6 +3084,53 @@ describe('Project API', function () {
     })
 
     describe('Generate snapshot change description', function () {
+        it('returns 404 when ai platform flag is disabled', async function () {
+            app.config.features.register('ai', false, true)
+            const originalLicense = app.license
+            app.license = { get: (k) => (k === 'tier' ? 'enterprise' : undefined) }
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: { target: 'latest' },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(404)
+            app.license = originalLicense
+            app.config.features.register('ai', true, true)
+        })
+
+        it('returns 404 when ai team flag is disabled', async function () {
+            const originalLicense = app.license
+            app.license = { get: (k) => (k === 'tier' ? 'enterprise' : undefined) }
+            const originalProjectById = app.db.models.Project.byId
+            const byIdStub = sinon.stub(app.db.models.Project, 'byId').callsFake(async function (id, opts) {
+                const project = await originalProjectById.call(this, id, opts)
+                if (project && project.Team) {
+                    project.Team.getTeamType = async () => ({
+                        getFeatureProperty: (name, def) => {
+                            if (name === 'ai') return false
+                            if (name === 'generatedSnapshotDescription') return true
+                            return def
+                        }
+                    })
+                }
+                return project
+            })
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: { target: 'latest' },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            response.statusCode.should.equal(404)
+            byIdStub.restore()
+            app.license = originalLicense
+        })
+
         it('returns 200 and forwards LLM response', async function () {
             // Stub buildSnapshot to avoid heavy export logic and signature mismatches
             const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
