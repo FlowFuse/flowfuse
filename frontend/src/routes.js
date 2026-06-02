@@ -13,6 +13,8 @@ import InstanceRoutes from './pages/instance/routes.js'
 import TeamRoutes from './pages/team/routes.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useContextStore } from '@/stores/context.js'
+import { computePageTitle } from '@/utils/page-title'
 
 const routes = [
     {
@@ -85,22 +87,12 @@ router.beforeEach((to, from, next) => {
     } catch (err) {
         console.error('posthog error logging route change')
     }
-    // This goes through the matched routes from last to first, finding the closest route with a title.
-    // e.g., if we have `/some/deep/nested/route` and `/some`, `/deep`, and `/nested` have titles,
-    // `/nested`'s will be chosen.
-    const nearestWithTitle = to.matched.slice().reverse().find(r => r.meta && r.meta.title)
-
     // Find the nearest route element with meta tags.
     const nearestWithMeta = to.matched.slice().reverse().find(r => r.meta && r.meta.metaTags)
 
-    const previousNearestWithMeta = from.matched.slice().reverse().find(r => r.meta && r.meta.metaTags)
-
-    // If a route with a title was found, set the document (page) title to that value.
-    if (nearestWithTitle) {
-        document.title = nearestWithTitle.meta.title + ' - FlowFuse'
-    } else if (previousNearestWithMeta) {
-        document.title = previousNearestWithMeta.meta.title + ' - FlowFuse'
-    }
+    const contextStore = useContextStore()
+    const title = computePageTitle(to, contextStore) ?? computePageTitle(from, contextStore)
+    if (title) document.title = title
 
     // Remove any stale meta tags from the document using the key attribute we set below.
     Array.from(document.querySelectorAll('[data-vue-router-controlled]')).map(el => el.parentNode.removeChild(el))

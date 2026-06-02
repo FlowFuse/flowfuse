@@ -83,6 +83,7 @@ import { useContextStore } from '@/stores/context.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
+import { computePageTitle, isEditorRoute } from '@/utils/page-title'
 
 export default {
     name: 'App',
@@ -105,6 +106,10 @@ export default {
         ...mapState(useAccountAuthStore, ['user']),
         ...mapState(useUxLoadingStore, ['appLoader', 'offline']),
         ...mapState(useAccountSettingsStore, ['settings']),
+        ...mapState(useContextStore, ['instance', 'device']),
+        pageTitleSignal () {
+            return [this.instance?.id, this.instance?.name, this.device?.id, this.device?.name, this.$route.name]
+        },
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },
@@ -142,6 +147,14 @@ export default {
             immediate: true,
             handler (to) {
                 this.updateRoute(to)
+            }
+        },
+        pageTitleSignal: {
+            immediate: true,
+            handler () {
+                if (isEditorRoute(this.$route)) return
+                const title = computePageTitle(this.$route, { instance: this.instance, device: this.device })
+                if (title) document.title = title
             }
         }
     },

@@ -319,11 +319,14 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                 return this.removeDebugLogContext(payload.data.debugLog)
             case payload.data.type === 'debug-log-context-clear':
                 return this.resetDebugLogContext()
-            case payload.data.type === 'nr-assistant/workspace:change':
+            case payload.data.type === 'nr-assistant/workspace:change': {
                 if (payload.data.tab?.label) {
-                    document.title = `Node-RED: ${payload.data.tab.label} - FlowFuse`
+                    const instanceName = useContextStore().instance?.name
+                    const suffix = instanceName ? ` - ${instanceName} - FlowFuse` : ' - FlowFuse'
+                    document.title = `Node-RED: ${payload.data.tab.label}${suffix}`
                 }
                 break
+            }
             default:
                 // do nothing
             }
