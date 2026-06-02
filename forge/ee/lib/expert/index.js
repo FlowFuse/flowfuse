@@ -13,6 +13,9 @@ module.exports = fp(async function (app, _opts) {
     const TOKEN_TTL = app.config.expert?.tokenCache?.ttl || 5 * 60 * 1000 // Default 5 minutes
     const TOKEN_REMAINING_LIMIT = 15000 // token life edge window (avoid using tokens about to expire)
 
+    app.housekeeper.registerTask(require('./tasks/startup'))
+    app.housekeeper.registerTask(require('./tasks/weekly'))
+
     app.caches.createCache(TOKEN_CACHE_NAME, {
         max: app.config.expert?.tokenCache?.max || 1000,
         ttl: TOKEN_TTL,

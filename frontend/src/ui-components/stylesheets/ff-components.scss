@@ -1191,9 +1191,11 @@ $countdown_size: 20px;
     flex-direction: row;
     .ff-tab-option {
       margin-right: $ff-unit-md;
+      margin-bottom: $ff-unit-xs;
       &.router-link-active,
       &.ff-tab-option--active {
         border-bottom: $ff-unit-xs solid $ff-blue-700;
+        margin-bottom: 0;
       }
     }
   }
