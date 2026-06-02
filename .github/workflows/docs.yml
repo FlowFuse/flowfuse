@@ -37,7 +37,7 @@ jobs:
           path: 'website'
       - name: Generate a token
         id: generate_token
-        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ secrets.GH_BOT_APP_ID }}
           private-key: ${{ secrets.GH_BOT_APP_KEY }}
@@ -67,11 +67,11 @@ jobs:
         run: npm install
         working-directory: 'website'
       - name: Build the forge
-        run: npm run build:skip-images
+        run: npm run build:nuxt:skip-images
         working-directory: 'website'
       - uses: untitaker/hyperlink@fb5bb9c5011a3d143a54b4b30aedc30ec5bc0f89 # 0.2.0
         with:
-          args: website/_site/ --check-anchors --sources website/src
+          args: website/nuxt/.output/public/ --check-anchors --sources website/src
   publish:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -82,7 +82,7 @@ jobs:
     steps:
       - name: Generate token
         id: generate_token
-        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ secrets.GH_BOT_APP_ID }}
           private-key: ${{ secrets.GH_BOT_APP_KEY }}

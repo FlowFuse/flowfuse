@@ -350,6 +350,26 @@ module.exports = async function (app) {
                     connected: true,
                     error: null
                 }
+                // make Team Broker look like a client broker
+                clean.id = clean.hashid
+                clean.name = 'team-broker'
+                clean.host = ''
+                clean.port = 1883
+                clean.protocol = 'mqtt'
+                clean.protocolVersion = 3
+                clean.ssl = false
+                clean.verifySSL = false
+                clean.clientId = ''
+                clean.topicPrefix = []
+                delete clean.createdAt
+                delete clean.updatedAt
+                delete clean.Team
+                delete clean.TeamId
+                delete clean.links
+                delete clean.hashid
+                delete clean.slug
+                delete clean.settings
+
                 reply.send(clean)
             } else {
                 reply.send({
@@ -506,7 +526,27 @@ module.exports = async function (app) {
      * @memberof forge.routes.api.team.broker
      */
     app.get('/:brokerId/topics', {
-        preHandler: app.needsPermission('broker:topics:list'),
+        // preHandler: app.needsPermission('broker:topics:list'),
+        preHandler: [
+            async (request, reply) => {
+                if (request.session?.scope?.includes('broker:topics')) {
+                    if (request.session.ownerType === 'broker') {
+                        if (request.params.teamId !== request.session.Broker.Team.hashid) {
+                            reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                        }
+                    } else if (request.session.ownerType === 'teamBrokerAgent') {
+                        if (request.params.teamId !== request.session.TeamBrokerAgent.Team.hashid) {
+                            reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                        }
+                    } else {
+                        reply.code('401').send({ code: 'unauthorized', error: 'unauthorized' })
+                    }
+                } else {
+                    const hasPermission = app.needsPermission('broker:topics:list')
+                    await hasPermission(request, reply) // hasPermission sends the error response if required which stops the request
+                }
+            }
+        ],
         schema: {
             summary: '',
             tags: ['MQTT Broker'],
