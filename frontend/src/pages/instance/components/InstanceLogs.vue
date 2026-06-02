@@ -222,10 +222,10 @@ export default {
 .forge-log-offline-background {
   background: repeating-linear-gradient(
       -45deg,
-      #363848,
-      #363848 10px,
-      rgba(31, 41, 55, 1) 10px,
-      rgba(31, 41, 55, 1) 20px
+      var(--ff-color-border-strong),
+      var(--ff-color-border-strong) 10px,
+      var(--ff-color-code-surface) 10px,
+      var(--ff-color-code-surface) 20px
   );
 }
 </style>

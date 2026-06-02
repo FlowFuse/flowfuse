@@ -10,10 +10,10 @@
 
     --ff-color-text:              var(--ff-palette-slate-12-dark);
     --ff-color-text-muted:        var(--ff-palette-slate-11-dark);
-    --ff-color-text-subtle:       var(--ff-palette-slate-10-dark);
+    --ff-color-text-subtle:       var(--ff-palette-slate-10-strong-dark);
     --ff-color-text-disabled:     var(--ff-palette-slate-8-dark);
-    --ff-color-text-strong:       var(--ff-palette-slate-12-dark);
-    --ff-color-text-deep:         var(--ff-palette-slate-11-dark);
+    --ff-color-text-strong:       var(--ff-palette-white);
+    --ff-color-text-deep:         var(--ff-palette-slate-11-soft-dark);
     --ff-color-text-on-brand:     var(--ff-palette-white);
 
     --ff-color-border-subtle:     var(--ff-palette-slate-4-dark);
@@ -24,14 +24,15 @@
     --ff-color-accent-light:      var(--ff-palette-indigo-7-dark);
     --ff-color-accent:            var(--ff-palette-indigo-9-dark);
     --ff-color-accent-hover:      var(--ff-palette-indigo-11-dark);
-    --ff-color-accent-hover-bg:   var(--ff-palette-indigo-9-dark);
+    --ff-color-accent-hover-bg:   var(--ff-palette-indigo-10-dark);
     --ff-color-accent-strong:     var(--ff-palette-indigo-9-strong-dark);
+    --ff-color-accent-text:       var(--ff-palette-indigo-11-dark);
     --ff-color-focus:             var(--ff-palette-indigo-8-dark);
 
     --ff-color-danger:            var(--ff-palette-red-9-dark);
     --ff-color-danger-text:       var(--ff-palette-red-11-dark);
     --ff-color-danger-strong:     var(--ff-palette-red-10-dark);
-    --ff-color-danger-darker:     var(--ff-palette-red-10-dark);
+    --ff-color-danger-darker:     var(--ff-palette-red-11-dark);
     --ff-color-success:           var(--ff-palette-green-9-dark);
 
     --ff-color-link:              var(--ff-palette-blue-11-dark);
@@ -40,6 +41,7 @@
     --ff-color-overlay-backdrop:    rgba(0, 0, 0, 0.6);
     --ff-color-overlay-faint:       rgba(255, 255, 255, 0.06);
     --ff-color-overlay-on-accent:   rgba(255, 255, 255, 0.3);
+    --ff-color-overlay-loading:     rgba(17, 17, 19, 0.5);
 
     --ff-color-progress-track:         var(--ff-palette-slate-4-dark);
     --ff-color-progress-fill:          var(--ff-palette-indigo-8-dark);

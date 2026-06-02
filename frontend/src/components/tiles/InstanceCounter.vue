@@ -79,6 +79,9 @@ export default {
     transition: ease-in-out .15s;
     will-change: border-color;
 
+    &.red label   { color: var(--ff-color-status-error-text); }
+    &.green label { color: var(--ff-color-status-success-text); }
+
     &.empty {
         opacity: .3;
     }

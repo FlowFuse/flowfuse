@@ -63,8 +63,6 @@ export default {
             LegendComponent,
             GridComponent
         ])
-        // Reactive echarts theme — flips with the FF theme store so charts
-        // re-render with the appropriate light/dark palette.
         const themeStore = useThemeStore()
         provide(THEME_KEY, computed(() => themeStore.effective))
     },

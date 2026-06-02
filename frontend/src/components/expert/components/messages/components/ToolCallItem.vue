@@ -119,8 +119,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import 'highlight.js/styles/github.css';
-
 .ff-expert-tool-call--item {
     display: flex;
     flex-direction: column;
