@@ -91,6 +91,12 @@ describe('Device API', async function () {
             limits: {
                 instances: 50
             },
+            assistant: {
+                enabled: true,
+                service: {
+                    url: 'http://localhost:9876'
+                }
+            },
             ...options
         }
         app = await setup(setupConfig)
@@ -122,8 +128,9 @@ describe('Device API', async function () {
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
 
         TestObjects.defaultTeamType = app.defaultTeamType
-        // Enable ai feature flag at platform and team type level
+        // Enable ai and generatedSnapshotDescription feature flags at platform and team type level
         app.config.features.register('ai', true, true)
+        app.config.features.register('generatedSnapshotDescription', true, true)
         const defaultTeamTypeProps = TestObjects.defaultTeamType.properties || {}
         defaultTeamTypeProps.features = defaultTeamTypeProps.features || {}
         defaultTeamTypeProps.features.ai = true
@@ -2662,6 +2669,7 @@ describe('Device API', async function () {
             const props = TestObjects.defaultTeamType.properties || {}
             props.features = props.features || {}
             props.features.generatedSnapshotDescription = true
+            props.features.ai = true
             props.enableAllFeatures = false
             TestObjects.defaultTeamType.properties = props
             await TestObjects.defaultTeamType.save()
