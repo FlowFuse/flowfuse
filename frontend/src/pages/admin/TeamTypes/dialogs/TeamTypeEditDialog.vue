@@ -312,6 +312,12 @@ export default {
                     if (this.input.properties.features.ai === undefined) {
                         this.input.properties.features.ai = true
                     }
+                    if (this.input.properties.features.expertAssistant === undefined) {
+                        this.input.properties.features.expertAssistant = true
+                    }
+                    if (this.input.properties.features.expertInsights === undefined) {
+                        this.input.properties.features.expertInsights = true
+                    }
                     if (!this.input.autoStack) {
                         this.input.autoStack = {}
                     }

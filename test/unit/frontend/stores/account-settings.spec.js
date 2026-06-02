@@ -272,24 +272,66 @@ describe('account-settings store', () => {
                 expect(store.featuresCheck.isGeneratedSnapshotDescriptionFeatureEnabled).toBe(false)
             })
 
-            it('isExpertAssistantFeatureEnabled requires platform ai only', () => {
+            it('isExpertAssistantFeatureEnabled is true when platform and team ai are enabled', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { ai: true }, billing: {}, instances: {} } } } })
                 const store = useAccountSettingsStore()
                 store.setSettings({ features: { expertAssistant: true, ai: true } })
                 expect(store.featuresCheck.isExpertAssistantFeatureEnabled).toBe(true)
             })
 
-            it('isExpertAssistantFeatureEnabled is true when platform ai is on even if team ai is off', () => {
+            it('isExpertAssistantFeatureEnabled is true when team ai is undefined (opt-out default)', () => {
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { expertAssistant: true, ai: true } })
+                // default mockTeam has no features.ai set, opt-out defaults to true
+                expect(store.featuresCheck.isExpertAssistantFeatureEnabled).toBe(true)
+            })
+
+            it('isExpertAssistantFeatureEnabled is false when team ai is explicitly disabled', () => {
                 mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { ai: false }, billing: {}, instances: {} } } } })
                 const store = useAccountSettingsStore()
                 store.setSettings({ features: { expertAssistant: true, ai: true } })
                 expect(store.featuresCheck.isAiFeatureEnabled).toBe(false)
-                expect(store.featuresCheck.isExpertAssistantFeatureEnabled).toBe(true)
+                expect(store.featuresCheck.isExpertAssistantFeatureEnabled).toBe(false)
+            })
+
+            it('isExpertAssistantFeatureEnabled is false when team expertAssistant is explicitly disabled', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { ai: true, expertAssistant: false }, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { expertAssistant: true, ai: true } })
+                expect(store.featuresCheck.isExpertAssistantFeatureEnabled).toBe(false)
             })
 
             it('isExpertAssistantFeatureEnabled is false when platform ai is disabled', () => {
                 const store = useAccountSettingsStore()
                 store.setSettings({ features: { expertAssistant: true, ai: false } })
                 expect(store.featuresCheck.isExpertAssistantFeatureEnabled).toBe(false)
+            })
+
+            it('isExpertInsightsFeatureEnabled is true when platform and team flags are enabled', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { ai: true }, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { expertInsights: true, ai: true } })
+                expect(store.featuresCheck.isExpertInsightsFeatureEnabled).toBe(true)
+            })
+
+            it('isExpertInsightsFeatureEnabled is false when team ai is disabled', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { ai: false }, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { expertInsights: true, ai: true } })
+                expect(store.featuresCheck.isExpertInsightsFeatureEnabled).toBe(false)
+            })
+
+            it('isExpertInsightsFeatureEnabled is false when team expertInsights is explicitly disabled', () => {
+                mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { ai: true, expertInsights: false }, billing: {}, instances: {} } } } })
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { expertInsights: true, ai: true } })
+                expect(store.featuresCheck.isExpertInsightsFeatureEnabled).toBe(false)
+            })
+
+            it('isExpertInsightsFeatureEnabled is false when platform ai is disabled', () => {
+                const store = useAccountSettingsStore()
+                store.setSettings({ features: { expertInsights: true, ai: false } })
+                expect(store.featuresCheck.isExpertInsightsFeatureEnabled).toBe(false)
             })
         })
     })

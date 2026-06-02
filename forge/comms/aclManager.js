@@ -230,6 +230,19 @@ module.exports = function (app) {
                         throw ValidationError('user is not a member of the team that owns this project')
                     }
 
+                    // check expert assistant feature is enabled for the team (support agent uses MQTT)
+                    if (acl.isClient) {
+                        const team = await app.db.models.Team.byId(teamId)
+                        if (team) {
+                            await team.ensureTeamTypeExists()
+                            const isAiEnabled = !!(app.config.features.enabled('ai') && team.getFeatureProperty('ai', true))
+                            const isExpertAssistantEnabled = !!(app.config.features.enabled('expertAssistant') && team.getFeatureProperty('expertAssistant', true))
+                            if (!isAiEnabled || !isExpertAssistantEnabled) {
+                                throw ValidationError('expert assistant feature is not enabled for this team')
+                            }
+                        }
+                    }
+
                     // if this is an inflight channel messages we must validate the user has appropriate RBAC permission
                     if (isInflight) {
                         const result = await expertRbacToolCheck(teamMembership, applicationHash, inflightType)
