@@ -122,6 +122,14 @@ describe('Device API', async function () {
         await TestObjects.CTeam.addUser(TestObjects.chris, { through: { role: Roles.Owner } })
 
         TestObjects.defaultTeamType = app.defaultTeamType
+        // Enable ai feature flag at platform and team type level
+        app.config.features.register('ai', true, true)
+        const defaultTeamTypeProps = TestObjects.defaultTeamType.properties || {}
+        defaultTeamTypeProps.features = defaultTeamTypeProps.features || {}
+        defaultTeamTypeProps.features.ai = true
+        TestObjects.defaultTeamType.properties = defaultTeamTypeProps
+        await TestObjects.defaultTeamType.save()
+
         TestObjects.Project1 = app.project
         TestObjects.Application1 = app.application
         TestObjects.provisioningTokens = {
@@ -2491,6 +2499,27 @@ describe('Device API', async function () {
             body.assistant.completions.should.have.property('enabled', true) // defaults to enabled
             body.assistant.completions.should.have.property('inlineEnabled', true) // enabled due to tier/licensed
         })
+        it('device downloads settings with assistant.enabled false when ai platform flag is disabled', async function () {
+            app = await setup({
+                license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNTk1MjAwLCJleHAiOjc5ODcwNzUxOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjoyLCJkZXYiOnRydWUsImlhdCI6MTY2MjY1MzkyMX0.Tj4fnuDuxi_o5JYltmVi1Xj-BRn0aEjwRPa_fL2MYa9MzSwnvJEd-8bsRM38BQpChjLt-wN-2J21U7oSq2Fp5A',
+                assistant: {
+                    enabled: true,
+                    requestTimeout: 12345
+                }
+            })
+            app.config.features.register('ai', false, true)
+            await login('alice', 'aaPassword')
+            const device = await createDevice({ name: 'AppDeviceAiOff', type: 'AppDeviceAiOff_type', team: app.team.hashid, as: TestObjects.tokens.alice })
+            const dbDevice = await app.db.models.Device.byId(device.id)
+            dbDevice.setApplication(app.application)
+            await dbDevice.save()
+
+            const body = await getLiveSettings(device)
+            body.should.have.property('assistant').and.be.an.Object()
+            body.assistant.should.have.property('enabled', false)
+            body.assistant.should.have.property('completions').and.be.an.Object()
+            body.assistant.completions.should.have.property('inlineEnabled', false)
+        })
     })
 
     describe('Device state', function () {
@@ -2652,6 +2681,46 @@ describe('Device API', async function () {
 
         afterEach(function () {
             sinon.restore()
+        })
+
+        it('returns 404 when ai platform flag is disabled', async function () {
+            app.config.features.register('ai', false, true)
+            const device = await app.db.models.Device.create({ name: 'ai-plat-off', type: 'x', credentialSecret: '' })
+            await device.setTeam(TestObjects.ATeam)
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
+                cookies: { sid: TestObjects.tokens.alice },
+                body: { target: 'latest' }
+            })
+
+            response.statusCode.should.equal(404)
+            app.config.features.register('ai', true, true)
+        })
+
+        it('returns 404 when ai team flag is disabled', async function () {
+            const props = TestObjects.defaultTeamType.properties || {}
+            props.features = props.features || {}
+            props.features.ai = false
+            TestObjects.defaultTeamType.properties = props
+            await TestObjects.defaultTeamType.save()
+
+            const device = await app.db.models.Device.create({ name: 'ai-team-off', type: 'x', credentialSecret: '' })
+            await device.setTeam(TestObjects.ATeam)
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/devices/${device.hashid}/generate/snapshot-description`,
+                cookies: { sid: TestObjects.tokens.alice },
+                body: { target: 'latest' }
+            })
+
+            response.statusCode.should.equal(404)
+            // Restore
+            props.features.ai = true
+            TestObjects.defaultTeamType.properties = props
+            await TestObjects.defaultTeamType.save()
         })
 
         it('returns 404 when feature is disabled for the team type', async function () {

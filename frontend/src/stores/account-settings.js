@@ -1,74 +1,13 @@
 import { defineStore } from 'pinia'
 
 import settingsApi from '@/api/settings.js'
+import { buildFeatureChecks } from '@/composables/FeatureChecks'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 
 export const POSTHOG_FLAGS = {
     FF_FEATURE_FLAGS: 'FF_FEATURE_FLAGS',
     EXPERT_COMMS_BETA_ENABLED: 'EXPERT_COMMS_BETA_ENABLED'
-}
-
-const FEATURE_CONFIGS = [
-    { output: 'isSharedLibraryFeatureEnabled', platformKey: 'shared-library', teamKey: 'shared-library', optOut: true },
-    { output: 'isBlueprintsFeatureEnabled', platformKey: 'flowBlueprints', teamKey: 'flowBlueprints', optOut: true },
-    { output: 'isCustomCatalogsFeatureEnabled', platformKey: 'customCatalogs', teamKey: 'customCatalogs', optOut: true },
-    { output: 'isPrivateRegistryFeatureEnabled', platformKey: 'npm', teamKey: 'npm' },
-    { output: 'isStaticAssetsFeatureEnabled', platformKey: 'staticAssets', teamKey: 'staticAssets' },
-    { output: 'isHTTPBearerTokensFeatureEnabled', platformKey: 'httpBearerTokens', teamKey: 'teamHttpSecurity', platformSource: 'settings' },
-    { output: 'isBOMFeatureEnabled', platformKey: 'bom', teamKey: 'bom' },
-    { output: 'isTimelineFeatureEnabled', platformKey: 'projectHistory', teamKey: 'projectHistory' },
-    { output: 'isMqttBrokerFeatureEnabled', platformKey: 'teamBroker', teamKey: 'teamBroker' },
-    { output: 'isGitIntegrationFeatureEnabled', platformKey: 'gitIntegration', teamKey: 'gitIntegration' },
-    { output: 'isInstanceResourcesFeatureEnabled', platformKey: 'instanceResources', teamKey: 'instanceResources' },
-    { output: 'isTablesFeatureEnabled', platformKey: 'tables', teamKey: 'tables' },
-    { output: 'isAiFeatureEnabled', platformKey: 'ai', teamKey: 'ai' },
-    { output: 'isGeneratedSnapshotDescriptionFeatureEnabled', platformKey: 'generatedSnapshotDescription', teamKey: 'generatedSnapshotDescription' },
-    { output: 'isApplicationsRBACFeatureEnabled', platformKey: 'rbacApplication', teamKey: 'rbacApplication' },
-
-    // Team-only
-    { output: 'isDeviceGroupsFeatureEnabled', teamKey: 'deviceGroups' },
-
-    // Platform-only
-    { output: 'isCertifiedNodesFeatureEnabled', platformKey: 'certifiedNodes' },
-    { output: 'isFlowFuseNodesFeatureEnabled', platformKey: 'ffNodes' },
-    { output: 'isExpertAssistantFeatureEnabled', platformKey: 'expertAssistant' },
-    { output: 'isInstanceAutoStackUpdateFeatureEnabled', platformKey: 'autoStackUpdate' },
-    { output: 'isDevOpsPipelinesFeatureEnabled', platformKey: 'devops-pipelines' },
-    { output: 'isExternalMqttBrokerFeatureEnabled', platformKey: 'externalBroker' }
-]
-
-function buildFeatureChecks (state, team) {
-    const checks = {}
-
-    for (const { output, platformKey, teamKey, optOut, platformSource } of FEATURE_CONFIGS) {
-        const platformCheckKey = `${output}ForPlatform`
-        const teamCheckKey = `${output}ForTeam`
-
-        if (platformKey) {
-            const source = platformSource === 'settings' ? state.settings?.features : state.features
-            checks[platformCheckKey] = !!source?.[platformKey]
-        }
-
-        if (teamKey) {
-            if (optOut) {
-                const flag = team?.type?.properties?.features?.[teamKey]
-                checks[teamCheckKey] = (flag === undefined || !!flag) || !!team?.type?.properties?.enableAllFeatures
-            } else {
-                checks[teamCheckKey] = !!team?.type?.properties?.features?.[teamKey] || !!team?.type?.properties?.enableAllFeatures
-            }
-        }
-
-        if (platformKey && teamKey) {
-            checks[output] = checks[platformCheckKey] && checks[teamCheckKey]
-        } else if (platformKey) {
-            checks[output] = checks[platformCheckKey]
-        } else if (teamKey) {
-            checks[output] = checks[teamCheckKey]
-        }
-    }
-
-    return checks
 }
 
 export const useAccountSettingsStore = defineStore('account-settings', {
