@@ -309,6 +309,9 @@ export default {
                     if (this.input.properties.features.instanceResources === undefined) {
                         this.input.properties.features.instanceResources = false
                     }
+                    if (this.input.properties.features.ai === undefined) {
+                        this.input.properties.features.ai = true
+                    }
                     if (!this.input.autoStack) {
                         this.input.autoStack = {}
                     }
