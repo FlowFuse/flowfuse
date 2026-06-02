@@ -162,13 +162,6 @@ module.exports = async function (app) {
                     return
                 }
                 // determine is device is in application mode? if so, return a default snapshot to permit the user to generate flows
-                const defaultModules = device.getDefaultModules()
-                // Remove nr-assistant from default modules if AI is disabled at platform or team level
-                await device.Team.ensureTeamTypeExists()
-                const isAiEnabledForDevice = !!(app.config.features.enabled('ai') && device.Team.getFeatureProperty('ai', true))
-                if (!isAiEnabledForDevice) {
-                    delete defaultModules['@flowfuse/nr-assistant']
-                }
                 const DEFAULT_APP_SNAPSHOT = {
                     id: '0',
                     name: 'Starter Snapshot',
@@ -180,7 +173,7 @@ module.exports = async function (app) {
                         { id: 'FFCHA00000000001', type: 'change', z: 'FFF0000000000001', name: 'Get Env Vars', rules: [{ t: 'set', p: 'payload', pt: 'msg', to: '{}', tot: 'json' }, { t: 'set', p: 'payload.device', pt: 'msg', to: 'FF_DEVICE_NAME', tot: 'env' }, { t: 'set', p: 'payload.application', pt: 'msg', to: 'FF_APPLICATION_NAME', tot: 'env' }], action: '', reg: false, x: 320, y: 160, wires: [['FFDBG00000000001']] },
                         { id: 'FFDBG00000000001', type: 'debug', z: 'FFF0000000000001', name: 'Info', active: true, tosidebar: true, console: true, tostatus: true, complete: 'payload', targetType: 'msg', statusVal: 'payload', statusType: 'auto', x: 490, y: 160 }
                     ],
-                    modules: defaultModules,
+                    modules: device.getDefaultModules(),
                     env: {
                         FF_SNAPSHOT_ID: '0',
                         FF_SNAPSHOT_NAME: 'None',
@@ -226,15 +219,8 @@ module.exports = async function (app) {
                     if (!settings.modules['@flowfuse/nr-tables-nodes']) {
                         settings.modules['@flowfuse/nr-tables-nodes'] = defaultModules['@flowfuse/nr-tables-nodes'] || '>0.1.0'
                     }
-                    // Only include nr-assistant if AI is enabled at platform and team level
-                    await device.Team.ensureTeamTypeExists()
-                    const isAiEnabledForDevice = !!(app.config.features.enabled('ai') && device.Team.getFeatureProperty('ai', true))
-                    if (isAiEnabledForDevice) {
-                        if (!settings.modules['@flowfuse/nr-assistant']) {
-                            settings.modules['@flowfuse/nr-assistant'] = defaultModules['@flowfuse/nr-assistant'] || '>=0.1.0'
-                        }
-                    } else {
-                        delete settings.modules['@flowfuse/nr-assistant']
+                    if (!settings.modules['@flowfuse/nr-assistant']) {
+                        settings.modules['@flowfuse/nr-assistant'] = defaultModules['@flowfuse/nr-assistant'] || '>=0.1.0'
                     }
                     if (!settings.modules['node-red']) {
                         // if the snapshot does not have the node-red module specified, ensure it is set to a valid version
@@ -308,10 +294,9 @@ module.exports = async function (app) {
             tables: !!(app.config.features.enabled('tables') && team.getFeatureProperty('tables', true))
         }
 
-        const isAiEnabled = !!(app.config.features.enabled('ai') && team.getFeatureProperty('ai', true))
-        const assistantInlineCompletionsFeatureEnabled = !!(isAiEnabled && app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
+        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
         response.assistant = {
-            enabled: isAiEnabled && (app.config.assistant?.enabled || false),
+            enabled: app.config.assistant?.enabled || false,
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
             mcp: { enabled: true }, // default to enabled
             completions: {
