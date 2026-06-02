@@ -38,17 +38,22 @@ module.exports = fp(async function (app, opts) {
         // Expert
         await app.register(require('./expert'))
 
+        // Set the AI Features Flag (global gate for all AI features)
+        const isAiEnabled = app.config?.ai?.enabled ?? true
+        app.config.features.register('ai', isAiEnabled, true)
+
         // Set the Generate Snapshot Description Feature Flag
-        app.config.features.register('generatedSnapshotDescription', true, true)
+        const isAssistantConfigured = isAiEnabled && app.config.assistant?.enabled === true && !!app.config.assistant?.service?.url
+        app.config.features.register('generatedSnapshotDescription', isAssistantConfigured, true)
 
         // Set the assistant inline completions Feature Flag
-        app.config.features.register('assistantInlineCompletions', true, true)
+        app.config.features.register('assistantInlineCompletions', isAssistantConfigured, true)
 
         // Set the expert assistant Feature Flag
-        app.config.features.register('expertAssistant', app.config?.expert?.enabled ?? false, true)
+        app.config.features.register('expertAssistant', isAiEnabled && (app.config?.expert?.enabled ?? false), true)
 
         // temporary until FF Expert Insights can be enabled on Self Hosted EE instance
-        const isInsightsEnabled = app.config?.expert?.enabled && app.config?.expert?.insights?.enabled
+        const isInsightsEnabled = isAiEnabled && app.config?.expert?.enabled && app.config?.expert?.insights?.enabled
         app.config.features.register('expertInsights', isInsightsEnabled ?? false, false)
     }
 

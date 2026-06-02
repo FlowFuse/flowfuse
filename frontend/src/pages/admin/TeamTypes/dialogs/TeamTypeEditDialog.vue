@@ -172,9 +172,9 @@
                 </div>
                 <div class="grid gap-3 grid-cols-2">
                     <template v-if="!input.properties.enableAllFeatures">
-                        <FormRow v-for="(feature, index) in featureList" :key="index" v-model="input.properties.features[feature]" :disabled="input.properties.enableAllFeatures" type="checkbox">{{ featureNames[feature] }}</FormRow>
+                        <FormRow v-for="(feature, index) in teamTypeFeatureList" :key="index" v-model="input.properties.features[feature]" :disabled="input.properties.enableAllFeatures" type="checkbox">{{ featureNames[feature] }}</FormRow>
                         <!-- to make the grid work nicely, only needed if there is an odd number of checkbox features above-->
-                        <span v-if="featureList.length % 2 === 1" />
+                        <span v-if="teamTypeFeatureList.length % 2 === 1" />
                     </template>
                     <FormRow v-model="input.properties.features.fileStorageLimit">Persistent File storage limit (Mb)</FormRow>
                     <FormRow v-model="input.properties.features.contextLimit">Persistent Context storage limit (Mb)</FormRow>
@@ -309,6 +309,9 @@ export default {
                     if (this.input.properties.features.instanceResources === undefined) {
                         this.input.properties.features.instanceResources = false
                     }
+                    if (this.input.properties.features.ai === undefined) {
+                        this.input.properties.features.ai = true
+                    }
                     if (!this.input.autoStack) {
                         this.input.autoStack = {}
                     }
@@ -419,6 +422,14 @@ export default {
     },
     computed: {
         ...mapState(useAccountSettingsStore, ['features']),
+        teamTypeFeatureList () {
+            return this.featureList.filter(feature => {
+                if (!Object.prototype.hasOwnProperty.call(this.features, feature)) {
+                    return true
+                }
+                return this.features[feature] !== false
+            })
+        },
         formValid () {
             return (this.input.name)
         },
@@ -436,7 +447,8 @@ export default {
             return !!this.features.billing
         },
         teamBrokerEnabled () {
-            return !!this.input.properties.features.teamBroker
+            const disabledOnPlatform = Object.prototype.hasOwnProperty.call(this.features, 'teamBroker') && this.features.teamBroker === false
+            return !disabledOnPlatform && !!this.input.properties.features.teamBroker
         },
         autoStackUpdateEnforced () {
             return !!this.input.properties.autoStackUpdate?.enabled
