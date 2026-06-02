@@ -1190,10 +1190,17 @@ module.exports = async function (app) {
                 await request.device.Team.ensureTeamTypeExists()
                 const tier = app.license.get('tier')
                 const isEnterprise = tier === 'enterprise'
-                const hasFeature = request.device.Team.getFeatureProperty('generatedSnapshotDescription', false)
+                const isAiEnabled = !!(app.config.features.enabled('ai') && request.device.Team.getFeatureProperty('ai', true))
+                const hasPlatformFeature = !!app.config.features.enabled('generatedSnapshotDescription')
+                const hasTeamFeature = request.device.Team.getFeatureProperty('generatedSnapshotDescription', false)
 
-                if (!isEnterprise || !hasFeature) {
+                if (!isEnterprise || !isAiEnabled || !hasPlatformFeature || !hasTeamFeature) {
                     return reply.code(404).send({ code: 'not_found' })
+                }
+
+                const isAssistantConfigured = app.config.assistant?.enabled === true && !!app.config.assistant?.service?.url
+                if (!isAssistantConfigured) {
+                    return reply.code(400).send({ code: 'assistant_not_configured', error: 'Assistant service is not configured' })
                 }
             }
         ],

@@ -849,9 +849,10 @@ module.exports = async function (app) {
 
         await request.project.Team.ensureTeamTypeExists()
         const team = request.project.Team
-        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
+        const isAiEnabled = !!(app.config.features.enabled('ai') && team.getFeatureProperty('ai', true))
+        const assistantInlineCompletionsFeatureEnabled = !!(isAiEnabled && app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
         settings.assistant = {
-            enabled: app.config.assistant?.enabled || false,
+            enabled: isAiEnabled && (app.config.assistant?.enabled || false),
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
             mcp: { enabled: true }, // default to enabled
             completions: {
@@ -1463,10 +1464,17 @@ module.exports = async function (app) {
                 await request.project.Team.ensureTeamTypeExists()
                 const tier = app.license.get('tier')
                 const isEnterprise = tier === 'enterprise'
-                const hasFeature = request.project.Team.getFeatureProperty('generatedSnapshotDescription', false)
+                const isAiEnabled = !!(app.config.features.enabled('ai') && request.project.Team.getFeatureProperty('ai', true))
+                const hasPlatformFeature = !!app.config.features.enabled('generatedSnapshotDescription')
+                const hasTeamFeature = request.project.Team.getFeatureProperty('generatedSnapshotDescription', false)
 
-                if (!isEnterprise || !hasFeature) {
+                if (!isEnterprise || !isAiEnabled || !hasPlatformFeature || !hasTeamFeature) {
                     return reply.code(404).send({ code: 'not_found' })
+                }
+
+                const isAssistantConfigured = app.config.assistant?.enabled === true && !!app.config.assistant?.service?.url
+                if (!isAssistantConfigured) {
+                    return reply.code(400).send({ code: 'assistant_not_configured', error: 'Assistant service is not configured' })
                 }
             }
         ],
