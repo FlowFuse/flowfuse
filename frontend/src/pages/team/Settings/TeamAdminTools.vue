@@ -189,7 +189,7 @@
                             <td colspan="2" class="text-sm text-gray-500">This allows the team to be configured with a custom list of certified node catalogues.</td>
                         </tr>
                         <tr>
-                            <th colspan="2" class="py-2">
+                            <td colspan="2" class="py-2">
                                 <FormRow containerClass="none">
                                     <template #input>
                                         <textarea
@@ -201,7 +201,7 @@
                                         />
                                     </template>
                                 </FormRow>
-                            </th>
+                            </td>
                         </tr>
                     </template>
                 </tbody>
@@ -514,14 +514,26 @@ export default {
 
             // Check if certifiedNodes is enabled
             if (this.editableLimits.features.certifiedNodes) {
-                properties.certifiedNodesCatalogues = []
-                this.editableLimits.certifiedNodesCatalogues.trim().split('\n').forEach(line => {
+                const catalogues = []
+                this.editableLimits.certifiedNodesCatalogues.split('\n').forEach(line => {
                     const trimmedLine = line.trim()
-                    if (URL.parse(trimmedLine)) {
-                        properties.certifiedNodesCatalogues.push(trimmedLine)
+                    if (!trimmedLine) {
+                        return
+                    }
+                    try {
+                        const url = new URL(trimmedLine)
+                        if (!['http:', 'https:'].includes(url.protocol)) {
+                            return
+                        }
+                        catalogues.push(url.toString())
+                    } catch {
+                        // ignore invalid URLs
                     }
                 })
-                this.editableLimits.certifiedNodesCatalogues = properties.certifiedNodesCatalogues.join('\n')
+                if (catalogues.length > 0) {
+                    properties.certifiedNodesCatalogues = catalogues
+                }
+                this.editableLimits.certifiedNodesCatalogues = catalogues.join('\n')
             }
 
             await teamApi.updateTeam(this.team.id, { properties })
