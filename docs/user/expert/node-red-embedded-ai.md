@@ -10,6 +10,8 @@ FlowFuse Expert brings AI assistance directly into the Node-RED editor itself. U
 
 To enable the latest features, ensure your instance is running the latest Stack. **For FlowFuse Cloud instances, FlowFuse Expert (`@flowfuse/nr-assistant`) is automatically updated to the latest version.**
 
+Team owners can disable all AI features, including the in-editor AI, from the team settings page. When AI is disabled, the `@flowfuse/nr-assistant` plugin will not be loaded on new deployments. Running instances will need to be restarted for the change to take full effect.
+
 ## Features
 
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0;">

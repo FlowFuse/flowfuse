@@ -97,3 +97,24 @@ This allows different messages to be displayed with the most appropriate call to
 
 The `EmptyState` component has support for this - see [here](https://github.com/FlowFuse/flowfuse/blob/0335c9056019ff9987d97f3ad3f18675de1c2422/frontend/src/pages/application/DeviceGroups.vue#L29)
 for how that is applied.
+
+### Using the FEATURE_CONFIGS composable
+
+The recommended approach for frontend feature checks is to use the `FEATURE_CONFIGS` array
+in `frontend/src/composables/FeatureChecks.ts`. Each entry defines a feature with platform
+and/or team level checks, and the `buildFeatureChecks` function produces computed properties
+that are available via the `featuresCheck` getter on the `account-settings` store.
+
+Features can be **opt-in** (disabled by default, must be explicitly enabled per team type) or
+**opt-out** (enabled by default, must be explicitly disabled). Opt-out features use `optOut: true`
+in their config entry.
+
+Features can also declare dependencies on other features using `dependsOn`, `dependsOnPlatform`,
+and `dependsOnTeam`. For example, all AI sub-features depend on the `ai` flag:
+
+```
+{ output: 'isExpertAssistantFeatureEnabled', platformKey: 'expertAssistant', teamKey: 'expertAssistant', optOut: true, dependsOnPlatform: 'ai', dependsOnTeam: 'ai', dependsOnTeamOptOut: true }
+```
+
+See the JSDoc on the `FEATURE_CONFIGS` array in `FeatureChecks.ts` for full documentation
+of all available options.
