@@ -179,6 +179,29 @@
                             </div>
                         </td>
                     </tr>
+                    <template v-if="certifiedNodesEnabled">
+                        <tr>
+                            <th colspan="2" class="font-medium py-2">Certified Nodes Catalogues:</th>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="text-sm text-gray-500">This allows the team to be configured with a custom list of certified node catalogues.</td>
+                        </tr>
+                        <tr>
+                            <th colspan="2" class="py-2">
+                                <FormRow containerClass="none">
+                                    <template #input>
+                                        <textarea
+                                            v-model="editableLimits.certifiedNodesCatalogues"
+                                            class="font-mono w-full"
+                                            :disabled="!editingLimits"
+                                            :placeholder="editingLimits ? 'Enter one catalogue url per line' : 'None set'"
+                                            rows="4"
+                                        />
+                                    </template>
+                                </FormRow>
+                            </th>
+                        </tr>
+                    </template>
                 </tbody>
             </table>
         </div>
@@ -234,7 +257,8 @@ export default {
             editingLimits: false,
             editableLimits: {
                 users: {},
-                features: {}
+                features: {},
+                certifiedNodesCatalogues: ''
             }
         }
     },
@@ -295,6 +319,9 @@ export default {
                 }
             })
             return count
+        },
+        certifiedNodesEnabled () {
+            return !!this.editableLimits.features.certifiedNodes
         }
     },
     async created () {
@@ -311,6 +338,7 @@ export default {
         this.featureList.forEach(feature => {
             this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`) || false
         })
+        this.editableLimits.certifiedNodesCatalogues = this.getTeamProperty('certifiedNodesCatalogues') || ''
     },
     methods: {
         getTeamProperty (property) {
@@ -396,6 +424,7 @@ export default {
             this.featureList.forEach(feature => {
                 this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`) || false
             })
+            this.editableLimits.certifiedNodesCatalogues = this.getTeamProperty('certifiedNodesCatalogues') || ''
 
             this.editingLimits = true
         },
@@ -470,6 +499,11 @@ export default {
                     delete properties.features[feature]
                 }
             })
+
+            // Check if certifiedNodes is enabled
+            if (this.editableLimits.features.certifiedNodes) {
+                properties.certifiedNodesCatalogues = this.editableLimits.certifiedNodesCatalogues
+            }
 
             await teamApi.updateTeam(this.team.id, { properties })
             await useContextStore().refreshTeam()
