@@ -2,7 +2,7 @@
     <div class="ff-project-overview space-y-4">
         <div class="max-w-3xl">
             <div class="ff-instance-info">
-                <FormHeading><TemplateIcon />Team Info</FormHeading>
+                <FormHeading><RectangleGroupIcon />Team Info</FormHeading>
 
                 <table class="table-fixed w-full border border-separate rounded-sm">
                     <tbody>
@@ -72,7 +72,7 @@
 
 <script>
 
-import { SparklesIcon, TemplateIcon } from '@heroicons/vue/outline'
+import { RectangleGroupIcon, SparklesIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import teamApi from '../../../api/team.js'
@@ -92,7 +92,7 @@ export default {
         FormHeading,
         FormRow,
         SparklesIcon,
-        TemplateIcon
+        RectangleGroupIcon
     },
     data () {
         return {

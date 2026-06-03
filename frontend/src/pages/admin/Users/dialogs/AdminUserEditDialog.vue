@@ -93,7 +93,7 @@
 
 <script>
 
-import { LockClosedIcon } from '@heroicons/vue/outline'
+import { LockClosedIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import usersApi from '../../../../api/users.js'

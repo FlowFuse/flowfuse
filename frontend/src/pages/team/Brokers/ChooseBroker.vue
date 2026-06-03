@@ -47,7 +47,7 @@
 
 <script>
 
-import { CheckIcon, MinusIcon } from '@heroicons/vue/outline'
+import { CheckIcon, MinusIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import MediumTile from '../../../components/tiles/MediumTile.vue'

@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'DrawerTrigger',

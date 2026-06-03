@@ -22,7 +22,7 @@
                             class="separator cursor-help"
                             title="This topic is also able to receive events"
                         >
-                            <ArchiveIcon class="ff-icon-sm" />
+                            <ArchiveBoxIcon class="ff-icon-sm" />
                         </span>
                     </span>
                     <span v-if="hasChildren" class="font-normal opacity-50 text-xs">{{ topicsCounterLabel }}</span>
@@ -49,14 +49,14 @@
 </template>
 
 <script>
-import { ArchiveIcon } from '@heroicons/vue/outline'
-import { ChevronRightIcon } from '@heroicons/vue/solid'
+import { ChevronRightIcon } from '@heroicons/vue/20/solid'
+import { ArchiveBoxIcon } from '@heroicons/vue/24/outline'
 import { ref } from 'vue'
 
 import TextCopier from '../../../../../components/TextCopier.vue'
 export default {
     name: 'TopicSegment',
-    components: { TextCopier, ChevronRightIcon, ArchiveIcon },
+    components: { TextCopier, ChevronRightIcon, ArchiveBoxIcon },
     props: {
         segment: {
             required: true,

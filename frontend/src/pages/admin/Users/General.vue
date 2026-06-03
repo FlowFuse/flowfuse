@@ -16,7 +16,7 @@
             <template #actions>
                 <ff-button :to="{name: 'admin-users-create'}">
                     <template #icon-left>
-                        <UserAddIcon />
+                        <UserPlusIcon />
                     </template>
                     Create New User
                 </ff-button>
@@ -31,7 +31,7 @@
 
 <script>
 
-import { UserAddIcon } from '@heroicons/vue/outline'
+import { UserPlusIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
@@ -46,7 +46,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 export default {
     name: 'AdminUsers',
     components: {
-        UserAddIcon,
+        UserPlusIcon,
         AdminUserEditDialog
     },
     data () {

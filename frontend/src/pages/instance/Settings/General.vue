@@ -71,14 +71,14 @@
             </FormRow>
             <p v-if="customHostnameLauncherVersion && customHostnameTeamAvailable && original.customHostname" class="text-xs pl-2 mt-1">
                 <span v-if="checkingDomain">
-                    <RefreshIcon class="w-4 inline" />
+                    <ArrowPathIcon class="w-4 inline" />
                     Checking domain status...
                 </span>
                 <span v-else-if="domainStatusValid" class="text-green-700">
-                    <BadgeCheckIcon class="w-4 inline" /> DNS verified
+                    <CheckBadgeIcon class="w-4 inline" /> DNS verified
                 </span>
                 <span v-else class="text-red-700">
-                    <ExclamationIcon class="w-4 inline" />
+                    <ExclamationTriangleIcon class="w-4 inline" />
                     DNS check failed
                 </span>
             </p>
@@ -93,7 +93,7 @@
 </template>
 
 <script>
-import { BadgeCheckIcon, ExclamationIcon, RefreshIcon } from '@heroicons/vue/solid'
+import { ArrowPathIcon, CheckBadgeIcon, ExclamationTriangleIcon } from '@heroicons/vue/20/solid'
 
 import { mapState } from 'pinia'
 import SemVer from 'semver'
@@ -115,9 +115,9 @@ import { useContextStore } from '@/stores/context.js'
 export default {
     name: 'InstanceSettings',
     components: {
-        BadgeCheckIcon,
-        ExclamationIcon,
-        RefreshIcon,
+        CheckBadgeIcon,
+        ExclamationTriangleIcon,
+        ArrowPathIcon,
         FormRow,
         FormHeading,
         TextCopier,

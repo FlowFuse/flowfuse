@@ -24,7 +24,7 @@
                     data-form="search"
                     placeholder="Search Package Dependency, Instance or Device"
                 >
-                    <template #icon><SearchIcon /></template>
+                    <template #icon><MagnifyingGlassIcon /></template>
                 </ff-text-input>
 
                 <BomDependencies :payload="payload" :search-term="searchTerm" />
@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import { SearchIcon } from '@heroicons/vue/outline'
+import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import ApplicationsApi from '../../../api/application.js'
@@ -69,7 +69,7 @@ export default {
         FeatureUnavailableToTeam,
         EmptyState,
         SectionTopMenu,
-        SearchIcon
+        MagnifyingGlassIcon
     },
     inheritAttrs: false,
     props: {

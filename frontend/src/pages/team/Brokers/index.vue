@@ -76,7 +76,7 @@
 
 <script>
 
-import { PlusIcon } from '@heroicons/vue/outline'
+import { PlusIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
 import brokerAPI from '../../../api/broker.js'

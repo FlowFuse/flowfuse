@@ -45,7 +45,7 @@
                         data-form="search"
                         placeholder="Search Package Dependency, Hosted Instance or Remote Instance"
                     >
-                        <template #icon><SearchIcon /></template>
+                        <template #icon><MagnifyingGlassIcon /></template>
                     </ff-text-input>
 
                     <BomDependencies :payload="payload" :search-term="searchTerm" :start-closed="true" />
@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import { SearchIcon } from '@heroicons/vue/outline'
+import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import teamApi from '../../../api/team.js'
@@ -91,7 +91,7 @@ export default {
         BomDependencies,
         FeatureUnavailableToTeam,
         FeatureUnavailable,
-        SearchIcon,
+        MagnifyingGlassIcon,
         EmptyState
     },
     setup () {

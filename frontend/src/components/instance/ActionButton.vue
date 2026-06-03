@@ -5,7 +5,7 @@
             :buttonClass="`ff-btn ${isEditorUsable ? 'ff-btn--secondary' : 'ff-btn--primary'} ff-btn-icon`"
             :options="actionsDropdownOptions"
         >
-            <CogIcon class="ff-btn--icon ff-btn--icon-left" />
+            <Cog8ToothIcon class="ff-btn--icon ff-btn--icon-left" />
             <span class="hidden sm:inline actions-text-container">Actions</span>
         </DropdownMenu>
         <ConfirmInstanceDeleteDialog
@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { CogIcon } from '@heroicons/vue/solid'
+import { Cog8ToothIcon } from '@heroicons/vue/20/solid'
 
 import InstanceApi from '../../api/instances.js'
 import usePermissions from '../../composables/Permissions.js'
@@ -30,7 +30,7 @@ import DropdownMenu from '../DropdownMenu.vue'
 
 export default {
     name: 'InstanceActionsButton',
-    components: { CogIcon, ConfirmInstanceDeleteDialog, DropdownMenu },
+    components: { Cog8ToothIcon, ConfirmInstanceDeleteDialog, DropdownMenu },
     props: {
         instance: {
             type: Object,

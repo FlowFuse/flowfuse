@@ -91,7 +91,7 @@ import {
     ListboxButton,
     ListboxOption, ListboxOptions
 } from '@headlessui/vue'
-import { ChevronDownIcon } from '@heroicons/vue/solid'
+import { ChevronDownIcon } from '@heroicons/vue/20/solid'
 
 import TeleportedMenuMixin from '../../../mixins/TeleportedMenuMixin.js'
 

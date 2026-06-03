@@ -7,7 +7,7 @@
 <script>
 import {
     ArrowDownIcon
-} from '@heroicons/vue/outline'
+} from '@heroicons/vue/24/outline'
 
 export default {
     name: 'AnimIconPulling',

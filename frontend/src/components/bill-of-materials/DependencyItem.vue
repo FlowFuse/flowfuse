@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon } from '@heroicons/vue/24/outline'
 
 import ExternalClient from '../../api/external.js'
 import { pluralize } from '../../composables/strings/String.js'
