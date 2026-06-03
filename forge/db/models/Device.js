@@ -541,6 +541,8 @@ module.exports = {
                                 }
                             } else if (key === 'instance') {
                                 order.unshift([M.Project, 'name', pagination.order[key] || 'ASC'])
+                            } else if (key === 'deviceGroup.name') {
+                                order.unshift([M.DeviceGroup, 'name', pagination.order[key] || 'ASC'])
                             } else if (key === 'state-priority') {
                                 order.unshift([literal(`
                                     CASE

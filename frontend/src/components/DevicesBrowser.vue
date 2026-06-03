@@ -493,7 +493,8 @@ export default {
                 if (this.featuresCheck.isDeviceGroupsFeatureEnabled) {
                     columns.push({
                         label: 'Group',
-                        key: 'deviceGroup.name'
+                        key: 'deviceGroup.name',
+                        sortable: true
                     })
                 }
             } else if (this.displayingInstance) {
@@ -504,7 +505,8 @@ export default {
             } else if (this.displayingApplication && this.featuresCheck.isDeviceGroupsFeatureEnabled) {
                 columns.push({
                     label: 'Group',
-                    key: 'deviceGroup.name'
+                    key: 'deviceGroup.name',
+                    sortable: true
                 })
             }
 
