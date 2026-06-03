@@ -32,7 +32,7 @@
             <div class="banner-wrapper">
                 <FeatureUnavailableToTeam v-if="!instancesAvailable" />
             </div>
-            <ff-loading v-if="loading && !hasLoadedOnce" message="Loading Instances..." />
+            <ff-loading v-if="loading && !instancesMap.size" message="Loading Instances..." />
             <template v-else-if="instancesAvailable">
                 <ff-data-table
                     v-if="instances.length > 0 || searchTerm"
@@ -217,8 +217,6 @@ export default {
     data () {
         return {
             loading: false,
-            // Gates the full-page spinner to first paint so refetches don't unmount the search input.
-            hasLoadedOnce: false,
             instancesMap: new Map(),
             page: 1,
             pageSize: 25,
@@ -342,7 +340,6 @@ export default {
                 Alerts.emit('Failed to load instances.', 'warning')
             } finally {
                 this.loading = false
-                this.hasLoadedOnce = true
             }
         },
         updateSearch: debounce(function (term) {
