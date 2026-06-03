@@ -1007,7 +1007,7 @@ describe('Project API', function () {
                 await app.defaultTeamType.save()
             }
             it('Should include certified nodes', async function () {
-                await app.settings.set('platform:ff-npm-registry:token', 'verySecret')
+                await app.settings.set('platform:ff-npm-registry:token', Buffer.from('platform:verySecret').toString('base64'))
 
                 await setTeamFlags(true, true)
 
@@ -1037,18 +1037,20 @@ describe('Project API', function () {
                     }
                 })).json()
 
+                const teamHashId = newProject.Team.hashid
+                const newToken = Buffer.from(`platform/${teamHashId}:verySecret`).toString('base64')
                 const settings = runtimeSettings.settings
                 settings.should.have.property('palette')
                 settings.palette.should.have.property('npmrc')
                 settings.palette.should.have.property('catalogue')
                 settings.palette.catalogue.should.containEql('https://localhost/cert-nodes-catalogue.json')
                 settings.palette.catalogue.should.containEql('https://localhost/ff-nodes-catalogue.json')
-                settings.palette.should.have.property('npmrc')
+                settings.palette.should.have.property('npmrc')s
                 settings.palette.npmrc.should.equal(`@flowfuse-certified-nodes:registry=https://localhost:1234/
-//localhost:1234:_auth="verySecret"
+//localhost:1234:_auth="${newToken}"
 
 @flowfuse-nodes:registry=https://localhost:1234/
-//localhost:1234:_auth="verySecret"
+//localhost:1234:_auth="${newToken}"
 `)
             })
         })
