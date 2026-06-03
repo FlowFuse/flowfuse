@@ -25,7 +25,7 @@
                                     <div class="title flex justify-between w-full items-center">
                                         <span class="truncate bold flex-1">{{ option.name }}</span>
                                         <span class="truncate text-gray-500 flex gap-1 items-center">
-                                            <ChipIcon class="ff-icon ff-icon-sm" />
+                                            <CpuChipIcon class="ff-icon ff-icon-sm" />
                                             {{ option.deviceCount }}
                                         </span>
                                     </div>
@@ -78,7 +78,7 @@
 </template>
 
 <script>
-import { ChipIcon } from '@heroicons/vue/outline'
+import { CpuChipIcon } from '@heroicons/vue/24/outline'
 import { mapActions } from 'pinia'
 
 import ApplicationAPI from '../../../api/application.js'
@@ -98,7 +98,7 @@ export default {
         DeployNotice,
         NoticeBanner,
         FfLoading,
-        ChipIcon
+        CpuChipIcon
     },
     props: {
         device: {

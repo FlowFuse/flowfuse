@@ -1,5 +1,5 @@
 <template>
-    <div v-if="!status && text === null" class="forge-badge"><RefreshIcon class="w-4 h-4 animate-spin" /></div>
+    <div v-if="!status && text === null" class="forge-badge"><ArrowPathIcon class="w-4 h-4 animate-spin" /></div>
     <div
         v-else
         class="forge-badge"
@@ -10,7 +10,7 @@
         <slot name="icon">
             <AnimIconStarting v-if="status === null" class="w-4 h-4" />
             <ExclamationCircleIcon v-if="status === 'error' || status === 'crashed'" class="w-4 h-4" />
-            <ExclamationIcon v-if="status === 'suspended' || status === 'stopped' || status === 'warning'" class="w-4 h-4" />
+            <ExclamationTriangleIcon v-if="status === 'suspended' || status === 'stopped' || status === 'warning'" class="w-4 h-4" />
             <PlayIcon v-if="['running', 'connected'].includes(status)" class="w-4 h-4" />
             <InformationCircleIcon v-if="status === 'info'" class="w-4 h-4" />
             <CheckCircleIcon v-if="status === 'success'" class="w-4 h-4" />
@@ -20,9 +20,9 @@
             <AnimIconPushing v-if="status === 'pushing'" class="w-4 h-4" />
             <AnimIconPulling v-if="status === 'pulling'" class="w-4 h-4" />
             <AnimIconStarting v-if="status === 'starting'" class="w-4 h-4" />
-            <CloudUploadIcon v-if="status === 'loading'" class="w-4 h-4" />
+            <CloudArrowUpIcon v-if="status === 'loading'" class="w-4 h-4" />
             <AnimIconInstalling v-if="status === 'installing' || status === 'updating'" class="w-3 h-3" />
-            <SupportIcon v-if="status === 'safe'" class="w-4 h-4" />
+            <LifebuoyIcon v-if="status === 'safe'" class="w-4 h-4" />
             <LockClosedIcon v-if="status === 'protected'" class="w-4 h-4" />
         </slot>
         <span v-if="text !== ''" class="ml-1">{{ text === null ? status : text }}</span>
@@ -31,17 +31,17 @@
 
 <script>
 import {
+    ArrowPathIcon,
     CheckCircleIcon,
-    CloudUploadIcon,
+    CloudArrowUpIcon,
     ExclamationCircleIcon,
-    ExclamationIcon,
+    ExclamationTriangleIcon,
     InformationCircleIcon,
+    LifebuoyIcon,
     LockClosedIcon,
     PlayIcon,
-    RefreshIcon,
-    StopIcon,
-    SupportIcon
-} from '@heroicons/vue/outline'
+    StopIcon
+} from '@heroicons/vue/24/outline'
 
 import {
     AnimIconInstalling,
@@ -55,15 +55,15 @@ export default {
     name: 'StatusBadge',
     components: {
         CheckCircleIcon,
-        CloudUploadIcon,
+        CloudArrowUpIcon,
         ExclamationCircleIcon,
-        ExclamationIcon,
+        ExclamationTriangleIcon,
         InformationCircleIcon,
         LockClosedIcon,
         PlayIcon,
         StopIcon,
-        SupportIcon,
-        RefreshIcon,
+        LifebuoyIcon,
+        ArrowPathIcon,
         AnimIconInstalling,
         AnimIconPushing,
         AnimIconPulling,

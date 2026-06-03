@@ -1,12 +1,12 @@
 <template>
     <FolderIcon v-if="type === 'folder'" class="ff-icon" />
     <ProjectIcon v-if="type === 'flows'" class="ff-icon" />
-    <CodeIcon v-if="type === 'functions'" class="ff-icon" />
+    <CodeBracketIcon v-if="type === 'functions'" class="ff-icon" />
 </template>
 
 <script>
 
-import { CodeIcon, FolderIcon } from '@heroicons/vue/solid'
+import { CodeBracketIcon, FolderIcon } from '@heroicons/vue/20/solid'
 
 import ProjectIcon from '../../../components/icons/Projects.js'
 
@@ -21,7 +21,7 @@ export default {
     },
     components: {
         FolderIcon,
-        CodeIcon,
+        CodeBracketIcon,
         ProjectIcon
     }
 }

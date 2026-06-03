@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import { ArrowsExpandIcon, EyeIcon, LockClosedIcon, LockOpenIcon, SwitchHorizontalIcon } from '@heroicons/vue/outline'
+import { ArrowsPointingOutIcon, ArrowsRightLeftIcon, EyeIcon, LockClosedIcon, LockOpenIcon } from '@heroicons/vue/24/outline'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 
@@ -28,7 +28,7 @@ const settingsOptions = computed(() => {
     return [
         {
             name: isLeft ? 'Move to Right' : 'Move to Left',
-            icon: SwitchHorizontalIcon,
+            icon: ArrowsRightLeftIcon,
             action: () => drawers.setEditorImmersiveDrawerSide(isLeft ? 'right' : 'left')
         },
         {
@@ -38,7 +38,7 @@ const settingsOptions = computed(() => {
         },
         {
             name: isFullscreen ? 'Exit Fullscreen' : 'Fullscreen',
-            icon: ArrowsExpandIcon,
+            icon: ArrowsPointingOutIcon,
             action: () => drawers.toggleEditorImmersiveFullscreen()
         }
     ]

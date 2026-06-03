@@ -61,19 +61,19 @@
         </div>
         <div class="col-section col-span-1 flex items-center justify-end">
             <span v-ff-tooltip:left="'Remove'" @click="$emit('remove')">
-                <XIcon class="ff-icon ff-icon-sm cursor-pointer text-gray-600" />
+                <XMarkIcon class="ff-icon ff-icon-sm cursor-pointer text-gray-600" />
             </span>
         </div>
     </div>
 </template>
 
 <script>
-import { XIcon } from '@heroicons/vue/solid'
+import { XMarkIcon } from '@heroicons/vue/20/solid'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
     name: 'TableColumn',
-    components: { XIcon },
+    components: { XMarkIcon },
     props: {
         column: {
             type: Object,

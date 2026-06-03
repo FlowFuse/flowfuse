@@ -102,7 +102,7 @@
 </template>
 
 <script>
-import { BeakerIcon } from '@heroicons/vue/outline'
+import { BeakerIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 import semver from 'semver'
 

@@ -54,7 +54,7 @@
 
 <script>
 import { ListboxOption } from '@headlessui/vue'
-import { GlobeAltIcon } from '@heroicons/vue/outline'
+import { GlobeAltIcon } from '@heroicons/vue/24/outline'
 
 import ProjectIcon from '../../components/icons/Projects.js'
 import { removeSlashes } from '../../composables/strings/String.js'

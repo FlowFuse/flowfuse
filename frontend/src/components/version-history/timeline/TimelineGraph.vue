@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { AdjustmentsIcon, BadgeCheckIcon, CameraIcon, DotsHorizontalIcon, DownloadIcon, PlusIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { AdjustmentsVerticalIcon, ArrowDownTrayIcon, ArrowPathIcon, CameraIcon, CheckBadgeIcon, EllipsisHorizontalIcon, PlusIcon } from '@heroicons/vue/24/outline'
 
 import PipelinesIcon from '../../icons/Pipelines.js'
 import ProjectsIcon from '../../icons/Projects.js'
@@ -60,7 +60,7 @@ export default {
                 // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
                 if (Object.prototype.hasOwnProperty.call(this.event.data, 'sourceProject')) {
                     return PipelinesIcon
-                } else return DownloadIcon
+                } else return ArrowDownTrayIcon
             case 'project.snapshot.rolled-back':
                 return UndoIcon
             case 'device.pipeline.deployed':
@@ -74,15 +74,15 @@ export default {
                 return CameraIcon
             case 'project.settings.updated':
             case 'device.settings.updated':
-                return AdjustmentsIcon
+                return AdjustmentsVerticalIcon
             case 'device.restarted':
-                return RefreshIcon
+                return ArrowPathIcon
             case 'project.created':
                 return PlusIcon
             case 'device.snapshot.target-set':
-                return BadgeCheckIcon
+                return CheckBadgeIcon
             case 'load-more':
-                return DotsHorizontalIcon
+                return EllipsisHorizontalIcon
             default:
                 return null
             }

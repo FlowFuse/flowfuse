@@ -17,7 +17,7 @@
                     </span>
                     <RoleCompare :baseRole="data.role" :overrideRole="application.role" class="w-40" />
                     <span class="item action w-40 pl-5" data-action="update-role">
-                        <PencilAltIcon class="ff-icon ff-icon-sm ff-link" @click.prevent="onUpdateRole(application)" />
+                        <PencilSquareIcon class="ff-icon ff-icon-sm ff-link" @click.prevent="onUpdateRole(application)" />
                     </span>
                 </li>
             </ul>
@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import { ArrowDownIcon, ArrowUpIcon, BanIcon, PencilAltIcon } from '@heroicons/vue/outline'
+import { ArrowDownIcon, ArrowUpIcon, NoSymbolIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
 import { defineComponent } from 'vue'
 
 import RoleCompare from '../../../../components/permissions/RoleCompare.vue'
@@ -37,7 +37,7 @@ import { slugify } from '../../../../composables/strings/String.js'
 
 export default defineComponent({
     name: 'ApplicationPermissionsRow',
-    components: { FfTeamLink, PencilAltIcon, RoleCompare },
+    components: { FfTeamLink, PencilSquareIcon, RoleCompare },
     props: {
         applications: {
             required: true,
@@ -56,7 +56,7 @@ export default defineComponent({
     emits: ['application-role-updated'],
     setup () {
         const { hasPermission } = usePermissions()
-        return { ArrowDownIcon, ArrowUpIcon, BanIcon, slugify, hasPermission }
+        return { ArrowDownIcon, ArrowUpIcon, NoSymbolIcon, slugify, hasPermission }
     },
     computed: {
         rows () {
@@ -92,7 +92,7 @@ export default defineComponent({
 
             switch (true) {
             case parseInt(customRole) === 0 && parseInt(teamRole) !== parseInt(customRole):
-                icon = this.BanIcon
+                icon = this.NoSymbolIcon
                 iconClass = 'text-red-500'
                 break
             case parseInt(customRole) < teamRole:

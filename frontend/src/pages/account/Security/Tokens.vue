@@ -9,7 +9,7 @@
         <template #actions>
             <ff-button data-action="new-token" @click="newToken()">
                 <template #icon-left>
-                    <PlusSmIcon />
+                    <PlusSmallIcon />
                 </template>
                 Add Token
             </ff-button>
@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { markRaw } from 'vue'
 
 import userApi from '../../../api/user.js'
@@ -43,7 +43,7 @@ import TokenDialog from './dialogs/TokenDialog.vue'
 export default {
     name: 'PersonalAccessTokens',
     components: {
-        PlusSmIcon,
+        PlusSmallIcon,
         SectionTopMenu,
         TokenDialog,
         TokenCreated

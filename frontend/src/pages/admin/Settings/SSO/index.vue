@@ -11,7 +11,7 @@
         <template #actions>
             <ff-button :to="{ name: 'admin-settings-sso-edit', params: { id: 'create' } }">
                 <template #icon-right>
-                    <PlusSmIcon />
+                    <PlusSmallIcon />
                 </template>
                 Create SSO Configuration
             </ff-button>
@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import ssoApi from '../../../../api/sso.js'
@@ -39,7 +39,7 @@ export default {
     name: 'AdminSettingsSSO',
     components: {
         FormHeading,
-        PlusSmIcon
+        PlusSmallIcon
     },
     data () {
         return {

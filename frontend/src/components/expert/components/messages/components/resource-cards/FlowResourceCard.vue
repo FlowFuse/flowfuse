@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/solid'
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/20/solid'
 import { mapActions, mapState } from 'pinia'
 
 import TextCopier from '../../../../../TextCopier.vue'

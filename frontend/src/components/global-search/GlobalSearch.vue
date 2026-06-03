@@ -9,13 +9,13 @@
         <div class="content-wrapper">
             <div class="search-wrapper">
                 <ff-button class="close-button" size="small" kind="secondary">
-                    <XIcon class="ff-icon-sm" @click="deFocusSearch" />
+                    <XMarkIcon class="ff-icon-sm" @click="deFocusSearch" />
                 </ff-button>
 
                 <div class="input-wrapper">
                     <transition name="primary-fade" mode="out-in">
                         <SpinnerIcon v-if="loading" class="ff-icon-sm search" />
-                        <SearchIcon v-else class="ff-icon-sm search" />
+                        <MagnifyingGlassIcon v-else class="ff-icon-sm search" />
                     </transition>
 
                     <SearchTrigger @interacted="focusSearch" />
@@ -29,7 +29,7 @@
                         placeholder="Search your team (CTRL + K)"
                     >
                     <transition name="fade" mode="out-in">
-                        <XIcon v-if="query.length && isFocused" class="ff-icon-sm close cursor-pointer" @click="resetSearch" />
+                        <XMarkIcon v-if="query.length && isFocused" class="ff-icon-sm close cursor-pointer" @click="resetSearch" />
                     </transition>
                 </div>
             </div>
@@ -38,7 +38,7 @@
                 <result-section
                     v-if="resApplication.length > 0"
                     title="Applications"
-                    :icon="TemplateIcon"
+                    :icon="RectangleGroupIcon"
                     :results="resApplication"
                     :query="query"
                     result-type="application"
@@ -46,7 +46,7 @@
                     @result-selected="handleSelectedResult"
                 >
                     <template #result-icon>
-                        <TemplateIcon class="ff-icon-sm" />
+                        <RectangleGroupIcon class="ff-icon-sm" />
                     </template>
                     <template #result-actions="{item}">
                         <span class="result-badge">
@@ -54,7 +54,7 @@
                             <span class="truncate">{{ item.instanceCount }}</span>
                         </span>
                         <span class="result-badge">
-                            <ChipIcon class="ff-icon-sm" />
+                            <CpuChipIcon class="ff-icon-sm" />
                             <span class="truncate">{{ item.deviceCount }}</span>
                         </span>
                         <span class="result-badge">
@@ -91,7 +91,7 @@
 
                 <result-section
                     v-if="resDevices.length > 0"
-                    title="Devices" :icon="ChipIcon"
+                    title="Devices" :icon="CpuChipIcon"
                     :results="resDevices"
                     :query="query"
                     result-type="device"
@@ -108,7 +108,7 @@
 </template>
 
 <script>
-import { ChipIcon, ClockIcon, SearchIcon, TemplateIcon, XIcon } from '@heroicons/vue/outline'
+import { ClockIcon, CpuChipIcon, MagnifyingGlassIcon, RectangleGroupIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 
@@ -130,12 +130,12 @@ export default {
         SearchTrigger,
         InstanceStatusBadge,
         ResultSection,
-        SearchIcon,
+        MagnifyingGlassIcon,
         SpinnerIcon,
-        XIcon,
-        TemplateIcon,
+        XMarkIcon,
+        RectangleGroupIcon,
         ProjectsIcon,
-        ChipIcon,
+        CpuChipIcon,
         ClockIcon,
         PipelinesIcon
     },
@@ -162,8 +162,8 @@ export default {
             return this.results.length > 0
         },
         ProjectsIcon,
-        TemplateIcon,
-        ChipIcon
+        RectangleGroupIcon,
+        CpuChipIcon
     },
     watch: {
         query (newVal, oldVal) {
