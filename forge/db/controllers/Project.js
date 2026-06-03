@@ -24,17 +24,20 @@ module.exports = {
 
     getProjectPaginationOptions: function (app, request) {
         const { page, limit, sort, dir } = request.query || {}
-        if (typeof page !== 'number') {
-            return null
+        const pagination = {}
+        if (typeof page === 'number') {
+            const pageSize = limit || 25
+            pagination.page = page
+            pagination.limit = pageSize
+            pagination.offset = (page - 1) * pageSize
+        } else if (limit) {
+            pagination.limit = limit
         }
-        const pageSize = limit || 25
-        return {
-            page,
-            limit: pageSize,
-            offset: (page - 1) * pageSize,
-            sort: sort || null,
-            dir: dir || 'asc'
+        if (sort) {
+            pagination.sort = sort
+            pagination.dir = dir || 'asc'
         }
+        return pagination
     },
 
     /**

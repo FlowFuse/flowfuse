@@ -562,12 +562,13 @@ module.exports = {
                     excludeApplications = null
                 } = {}) => {
                     const {
+                        page = null,
                         limit = null,
                         offset = null,
                         sort = null,
                         dir = 'asc'
                     } = pagination || {}
-                    const withTotal = pagination !== null
+                    const withTotal = page !== null
                     let teamId = teamIdOrHash
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)

@@ -409,8 +409,9 @@ module.exports = async function (app) {
         }
 
         const queryResult = await app.db.models.Project.byTeam(request.params.teamId, options)
-        const projects = pagination ? queryResult.rows : queryResult
-        const total = pagination ? queryResult.total : null
+        const paginated = pagination.page != null
+        const projects = paginated ? queryResult.rows : queryResult
+        const total = paginated ? queryResult.total : null
 
         if (projects) {
             let result = await app.db.views.Project.instancesList(projects, {
@@ -425,10 +426,10 @@ module.exports = async function (app) {
                 })
             }
             const response = {
-                count: pagination ? total : result.length,
+                count: paginated ? total : result.length,
                 projects: result
             }
-            if (pagination) {
+            if (paginated) {
                 response.meta = {
                     page: pagination.page,
                     pageSize: pagination.limit,
