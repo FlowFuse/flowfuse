@@ -363,7 +363,6 @@ module.exports = async function (app) {
         if (platformNPMEnabled && (certifiedNodesEnabledForTeam || ffNodesEnabledForTeam)) {
             try {
                 // modify token with team hash id
-                // const token = app.settings.get('platform:ff-npm-registry:token')
                 const token = updateCertifiedNodesToken(app.settings.get('platform:ff-npm-registry:token'), team.hashid)
                 const npmRegURL = new URL(app.config['ff-npm-registry']?.url || 'https://registry.flowfuse.com/')
                 const certNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.certifiedNodes || 'https://ff-certified-nodes.flowfuse.cloud/catalogue.json'
