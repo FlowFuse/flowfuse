@@ -961,6 +961,8 @@ describe('Broker Auth v2 API', async function () {
         describe('Expert Acls', async function () {
             before(async function () {
                 await setupEE()
+                app.config.features.register('ai', true, true)
+                app.config.features.register('expertAssistant', true, true)
                 TestObjects.DeviceA = await factory.createDevice({ name: 'my expert device', type: 'test device' }, TestObjects.ATeam, null, null)
                 TestObjects.bob = await factory.createUser({ admin: false, username: 'bob', name: 'Bob Solo', email: 'bob@example.com', password: 'bbPassword' })
                 await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })

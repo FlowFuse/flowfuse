@@ -17,7 +17,7 @@
         <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
-            <ExpertButton class="ff-header--mobile-experttoggle" v-if="featuresCheck.isExpertAssistantFeatureEnabled" />
+            <ExpertButton class="ff-header--mobile-experttoggle" v-if="featuresCheck.isExpertAssistantFeatureEnabled || featuresCheck.isExpertInsightsFeatureEnabled" />
             <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle ff-header--mobile-teamtoggle" :class="{'active': mobileTeamSelectionOpen}">
                 <img :src="team ? team.avatar : defaultUserTeam.avatar" class="ff-avatar" @click="toggleMobileTeamSelectionMenu">
             </i>
@@ -65,7 +65,7 @@
         </div>
         <div class="hidden lg:flex items-stretch ff-desktop-navigation-right" data-el="desktop-nav-right">
             <!-- Desktop: User Options -->
-            <ExpertButton v-if="featuresCheck.isExpertAssistantFeatureEnabled" />
+            <ExpertButton v-if="featuresCheck.isExpertAssistantFeatureEnabled || featuresCheck.isExpertInsightsFeatureEnabled" />
             <ff-team-selection data-action="team-selection" />
             <NotificationsButton />
             <ff-dropdown

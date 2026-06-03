@@ -118,7 +118,7 @@ export default {
                     to: { name: 'instance-editor-expert', params: { id: this.instance.id } },
                     tag: 'instance-expert',
                     icon: ExpertTabIcon,
-                    hidden: !this.featuresCheck.isExpertAssistantFeatureEnabled
+                    hidden: !this.featuresCheck.isExpertAssistantFeatureEnabled && !this.featuresCheck.isExpertInsightsFeatureEnabled
                 },
                 {
                     label: 'Overview',

@@ -6,6 +6,8 @@ navTitle: Chat Interface
 
 The FlowFuse Expert chat interface is where you actively engage the AI: asking questions, building flows directly on your canvas, and querying live operational data. While other FlowFuse Expert features (like inline code completions and next-node prediction) work passively in the Node-RED editor, the chat interface is where you direct Expert and see it act on your behalf.
 
+> Team owners can disable all AI features, including the chat interface, from the team settings page. If AI has been disabled for your team, the Expert panel will not be available.
+
 ## Opening the Chat Interface
 
 To open the chat, first open your Node-RED instance using the **Open Editor** button. This launches Immersive Mode, where the Expert panel is available alongside your canvas.

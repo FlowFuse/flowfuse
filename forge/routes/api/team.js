@@ -761,7 +761,8 @@ module.exports = async function (app) {
                     slug: { type: 'string' },
                     type: { type: 'string' },
                     suspended: { type: 'boolean' },
-                    properties: { type: 'object' }
+                    properties: { type: 'object' },
+                    features: { type: 'object' }
                 }
             },
             response: {
@@ -858,6 +859,22 @@ module.exports = async function (app) {
                     reply.send(app.db.views.Team.team(request.team))
                     return
                 }
+            } else if (Object.hasOwn(request.body, 'features')) {
+                // Team owners can update feature overrides (e.g. opt out of AI)
+                const allowedFeatures = ['ai']
+                const requestedFeatures = request.body.features || {}
+                const currentProperties = typeof request.team.properties === 'string' ? JSON.parse(request.team.properties) : (request.team.properties || {})
+                currentProperties.features = currentProperties.features || {}
+
+                updates = new app.auditLog.formatters.UpdatesCollection()
+                for (const key of allowedFeatures) {
+                    if (Object.hasOwn(requestedFeatures, key)) {
+                        updates.push(`features.${key}`, currentProperties.features[key], requestedFeatures[key])
+                        currentProperties.features[key] = requestedFeatures[key]
+                    }
+                }
+                request.team.properties = currentProperties
+                await request.team.save()
             } else if (Object.hasOwn(request.body, 'properties')) {
                 if (!request.session.User.admin) {
                     reply.code(403).send({ code: 'forbidden', error: 'Team properties can only be updated by admins' })
