@@ -537,10 +537,6 @@ export default {
             return this.totalRows > this.pageSize
         },
         paginationProps () {
-            // Hide only when no page size could ever split the result — keeps the size selector reachable otherwise.
-            if (this.totalRows <= 10) {
-                return null
-            }
             return {
                 page: this.page,
                 pageSize: this.pageSize,

@@ -900,8 +900,8 @@ li.ff-kebab-item {
     }
   }
 
-  // Flatten last-row corners so the footer (pagination) carries the bottom radius.
-  &--has-footer .ff-data-table--data tbody .ff-data-table--row:last-child {
+  // Flatten last-row corners only when the pagination footer actually renders.
+  &:has(.ff-pagination) .ff-data-table--data tbody .ff-data-table--row:last-child {
     .ff-data-table--cell {
       &:first-child {
         border-bottom-left-radius: 0;

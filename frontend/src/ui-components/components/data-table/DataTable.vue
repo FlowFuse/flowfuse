@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-data-table overflow-auto flex flex-col" :class="{ 'ff-data-table--has-footer': !!pagination }">
+    <div class="ff-data-table overflow-auto flex flex-col">
         <div v-if="showOptions" class="ff-data-table--options flex flex-wrap">
             <ff-text-input
                 v-if="showSearch" v-model="filterTerm" class="ff-data-table--search"

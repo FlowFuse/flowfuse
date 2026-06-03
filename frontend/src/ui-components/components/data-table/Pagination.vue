@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-pagination" data-el="pagination">
+    <div v-if="total > pageSize" class="ff-pagination" data-el="pagination">
         <div class="ff-pagination--page-size">
             <label>Rows per page:</label>
             <ff-listbox
