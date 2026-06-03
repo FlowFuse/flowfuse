@@ -510,11 +510,8 @@ export default {
 
             return columns
         },
-        filteredDevices () {
-            return Array.from(this.devices.values())
-        },
         devicesWithStatuses () {
-            const output = this.filteredDevices.map(device => {
+            const output = Array.from(this.devices.values()).map(device => {
                 const statusObject = this.allDeviceStatuses.get(device.id)
                 const ownerKey = this.getOwnerSortKeyForDevice(device)
                 const context = device.application?.id ? { applicationId: device.application?.id } : {}
@@ -901,8 +898,7 @@ export default {
                 }
             }
 
-            // Actually fetch the data — null cursor, pageSize as limit, extra params carry page/sort/filters/query.
-            const data = await this.fetchData(null, this.pageSize, extraParams)
+            const data = await this.fetchData(this.pageSize, extraParams)
 
             const nextDevices = new Map()
             data.devices.forEach(device => {

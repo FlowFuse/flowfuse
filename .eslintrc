@@ -81,6 +81,9 @@
                 "commonjs": false
             },
             "parserOptions": {
+                "parser": {
+                    "ts": "@typescript-eslint/parser"
+                },
                 "ecmaVersion": 2022,
                 "sourceType": "module"
             },

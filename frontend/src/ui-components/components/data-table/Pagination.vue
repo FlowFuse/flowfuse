@@ -48,17 +48,22 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/solid'
 import { computed } from 'vue'
 
 defineOptions({ name: 'ff-pagination' })
 
-const props = defineProps({
-    page: { type: Number, default: 1 },
-    pageSize: { type: Number, default: 25 },
-    total: { type: Number, default: 0 },
-    pageSizeOptions: { type: Array, default: () => [10, 25, 50, 100] }
+const props = withDefaults(defineProps<{
+    page?: number
+    pageSize?: number
+    total?: number
+    pageSizeOptions?: number[]
+}>(), {
+    page: 1,
+    pageSize: 25,
+    total: 0,
+    pageSizeOptions: () => [10, 25, 50, 100]
 })
 
 const emit = defineEmits(['update:page', 'update:pageSize'])
@@ -72,16 +77,16 @@ const summary = computed(() => {
     return `${from}–${to} of ${props.total}`
 })
 
-const pageItems = computed(() => {
+const pageItems = computed<(number | '...')[]>(() => {
     // Compact list: 1, …, page-1, page, page+1, …, N (always show first, last, and a window around current).
     const total = pageCount.value
     const current = props.page
     if (total <= 7) {
         return Array.from({ length: total }, (_, i) => i + 1)
     }
-    const items = new Set([1, total, current, current - 1, current + 1])
+    const items = new Set<number>([1, total, current, current - 1, current + 1])
     const list = [...items].filter(p => p >= 1 && p <= total).sort((a, b) => a - b)
-    const out = []
+    const out: (number | '...')[] = []
     for (let i = 0; i < list.length; i++) {
         if (i > 0 && list[i] - list[i - 1] > 1) out.push('...')
         out.push(list[i])
@@ -93,7 +98,7 @@ const pageSizeListboxOptions = computed(() =>
     props.pageSizeOptions.map(size => ({ label: String(size), value: size }))
 )
 
-const pageSizeModel = computed({
+const pageSizeModel = computed<number>({
     get: () => props.pageSize,
     set: (value) => {
         const next = Number(value)
@@ -101,7 +106,7 @@ const pageSizeModel = computed({
     }
 })
 
-function goTo (target) {
+function goTo (target: number) {
     if (typeof target !== 'number') return
     const next = Math.min(pageCount.value, Math.max(1, target))
     if (next !== props.page) emit('update:page', next)

@@ -210,18 +210,18 @@ export default {
         },
 
         // Actual fetching methods
-        async fetchData (nextCursor = null, limit = null, extraParams = { statusOnly: false }) {
+        async fetchData (limit = null, extraParams = { statusOnly: false }) {
             const query = null // handled via extraParams
             if (this.displayingInstance) {
-                return await instanceApi.getInstanceDevices(this.instance.id, nextCursor, limit, query, extraParams)
+                return await instanceApi.getInstanceDevices(this.instance.id, null, limit, query, extraParams)
             }
 
             if (this.displayingApplication) {
-                return await ApplicationApi.getApplicationDevices(this.application.id, nextCursor, limit, query, extraParams)
+                return await ApplicationApi.getApplicationDevices(this.application.id, null, limit, query, extraParams)
             }
 
             if (this.displayingTeam) {
-                return await teamApi.getTeamDevices(this.team.id, nextCursor, limit, query, extraParams)
+                return await teamApi.getTeamDevices(this.team.id, null, limit, query, extraParams)
             }
 
             console.warn('Trying to fetch data without a loaded model.')
@@ -230,7 +230,7 @@ export default {
         },
 
         async fetchAllDeviceStatuses (reset = false) {
-            const data = await this.fetchData(null, null, { statusOnly: true })
+            const data = await this.fetchData(null, { statusOnly: true })
 
             if (reset) {
                 this.allDeviceStatuses = new Map()
