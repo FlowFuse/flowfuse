@@ -1045,7 +1045,7 @@ describe('Project API', function () {
                 settings.palette.should.have.property('catalogue')
                 settings.palette.catalogue.should.containEql('https://localhost/cert-nodes-catalogue.json')
                 settings.palette.catalogue.should.containEql('https://localhost/ff-nodes-catalogue.json')
-                settings.palette.should.have.property('npmrc')s
+                settings.palette.should.have.property('npmrc')
                 settings.palette.npmrc.should.equal(`@flowfuse-certified-nodes:registry=https://localhost:1234/
 //localhost:1234:_auth="${newToken}"
 
