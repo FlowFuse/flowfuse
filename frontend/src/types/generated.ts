@@ -1710,6 +1710,7 @@ export interface paths {
                         type?: string;
                         suspended?: boolean;
                         properties?: Record<string, never>;
+                        features?: Record<string, never>;
                     };
                 };
             };
