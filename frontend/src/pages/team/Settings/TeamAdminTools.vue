@@ -338,7 +338,12 @@ export default {
         this.featureList.forEach(feature => {
             this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`) || false
         })
-        this.editableLimits.certifiedNodesCatalogues = this.getTeamProperty('certifiedNodesCatalogues') || ''
+        const teamCatalogues = this.getTeamProperty('certifiedNodesCatalogues')
+        if (Array.isArray(teamCatalogues)) {
+            this.editableLimits.certifiedNodesCatalogues = teamCatalogues.join('\n')
+        } else {
+            this.editableLimits.certifiedNodesCatalogues = ''
+        }
     },
     methods: {
         getTeamProperty (property) {
@@ -424,7 +429,12 @@ export default {
             this.featureList.forEach(feature => {
                 this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`) || false
             })
-            this.editableLimits.certifiedNodesCatalogues = this.getTeamProperty('certifiedNodesCatalogues') || ''
+            const teamCatalogues = this.getTeamProperty('certifiedNodesCatalogues')
+            if (Array.isArray(teamCatalogues)) {
+                this.editableLimits.certifiedNodesCatalogues = teamCatalogues.join('\n')
+            } else {
+                this.editableLimits.certifiedNodesCatalogues = ''
+            }
 
             this.editingLimits = true
         },
@@ -502,7 +512,14 @@ export default {
 
             // Check if certifiedNodes is enabled
             if (this.editableLimits.features.certifiedNodes) {
-                properties.certifiedNodesCatalogues = this.editableLimits.certifiedNodesCatalogues
+                properties.certifiedNodesCatalogues = []
+                this.editableLimits.certifiedNodesCatalogues.trim().split('\n').forEach(line => {
+                    const trimmedLine = line.trim()
+                    if (URL.parse(trimmedLine)) {
+                        properties.certifiedNodesCatalogues.push(trimmedLine)
+                    }
+                })
+                this.editableLimits.certifiedNodesCatalogues = properties.certifiedNodesCatalogues.join('\n')
             }
 
             await teamApi.updateTeam(this.team.id, { properties })
