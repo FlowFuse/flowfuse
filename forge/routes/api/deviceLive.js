@@ -371,7 +371,7 @@ module.exports = async function (app) {
                 const teamFFCertifiedExtra = team.getProperty('certifiedNodesCatalogues', null)
 
                 // Handle FF Exclusive Nodes
-                if (certNodesCatalogue || ffNodesCatalogue) {
+                if (certNodesCatalogue || ffNodesCatalogue || teamFFCertifiedExtra) {
                     // At least one is configured - so initialise the settings
                     response.palette = response.palette || {}
                     response.palette.catalogues = response.palette.catalogues || ['https://catalogue.nodered.org/catalogue.json']
