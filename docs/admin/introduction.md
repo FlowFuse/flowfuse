@@ -185,6 +185,9 @@ including what Instance Types are available and any limits that should be applie
  - **Tables**
 
     Provides a Team scoped shared SQL Relational Database (Requires specific configuration). More details [here](../user/ff-tables.md)
+ - **AI Features**
+
+    Global toggle for all AI functionality within the team. When disabled, all AI features below are unavailable regardless of their individual settings. Requires `ai.enabled: true` in the platform configuration.
  - **Expert Assistant**
 
     Enables the FlowFuse Expert chat assistant for the team. Provides AI-powered support for building and debugging Node-RED flows. Enabled by default (opt-out). Requires the AI Features flag to be enabled. More details [here](/docs/user/expert/)
