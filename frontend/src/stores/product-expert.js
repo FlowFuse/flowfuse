@@ -601,7 +601,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             // Must run synchronously before any await so a second delivery can't race past the check.
             if (transactionId) {
                 if (this._seenTransactionIds.has(transactionId)) {
-                    console.warn(`Duplicate MQTT message received and ignored (transactionId: ${transactionId})`)
                     return // already processed this message
                 }
                 this._seenTransactionIds.set(transactionId, true)
