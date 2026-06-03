@@ -90,7 +90,7 @@ const ruleIn = {
                 retain: false,
                 payload: '${payload}', // eslint-disable-line no-template-curly-in-string
                 topic: '${topic}', // eslint-disable-line no-template-curly-in-string
-                qos: 1,
+                qos: 2,
                 direct_dispatch: false,
                 mqtt_properties: {
                     'Correlation-Data': '${correlation_data}', // eslint-disable-line no-template-curly-in-string
