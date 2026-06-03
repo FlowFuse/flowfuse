@@ -368,7 +368,7 @@ module.exports = async function (app) {
                 const npmRegURL = new URL(app.config['ff-npm-registry']?.url || 'https://registry.flowfuse.com/')
                 const certNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.certifiedNodes || 'https://ff-certified-nodes.flowfuse.cloud/catalogue.json'
                 const ffNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.ffNodes || 'https://ff-certified-nodes.flowfuse.cloud/ff-catalogue.json'
-                const teamFFCertifiedExtra = team.getPoperty('certifiedNodesCatalogues', null)
+                const teamFFCertifiedExtra = team.getProperty('certifiedNodesCatalogues', null)
 
                 // Handle FF Exclusive Nodes
                 if (certNodesCatalogue || ffNodesCatalogue) {
