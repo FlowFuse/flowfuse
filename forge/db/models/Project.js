@@ -552,19 +552,22 @@ module.exports = {
                     })
                 },
                 byTeam: async (teamIdOrHash, {
+                    pagination = null,
                     query = null,
                     instanceId = null,
                     includeAssociations = true,
                     includeSettings = false,
                     includeMeta = false,
-                    limit = null,
-                    offset = null,
-                    sort = null,
-                    dir = 'asc',
                     orderByMostRecentFlows = false,
-                    excludeApplications = null,
-                    withTotal = false
+                    excludeApplications = null
                 } = {}) => {
+                    const {
+                        limit = null,
+                        offset = null,
+                        sort = null,
+                        dir = 'asc'
+                    } = pagination || {}
+                    const withTotal = pagination !== null
                     let teamId = teamIdOrHash
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)

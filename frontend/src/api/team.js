@@ -196,14 +196,17 @@ const getTeamInstancesList = async (teamId) => {
 }
 
 const getInstances = async (teamId, {
-    limit = 20,
-    page = null,
-    query = null,
-    sort = null,
-    dir = null,
+    pagination = null,
     includeMeta = false,
     orderByMostRecentFlows = false
 } = {}) => {
+    const {
+        page = null,
+        limit = 20,
+        query = null,
+        sort = null,
+        dir = null
+    } = pagination || {}
     const params = new URLSearchParams()
 
     params.append('limit', limit.toString())

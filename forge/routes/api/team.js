@@ -385,20 +385,14 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const includeMeta = request.query.includeMeta
-        const paginated = typeof request.query.page === 'number'
-        const limit = paginated ? (request.query.limit || 25) : (request.query.limit ?? null)
-        const offset = paginated ? (request.query.page - 1) * limit : null
+        const pagination = app.db.controllers.Project.getProjectPaginationOptions(request)
 
         const options = {
             includeSettings: true,
-            limit,
-            offset,
+            pagination,
             query: request.query.query?.trim() || null,
-            sort: request.query.sort || null,
-            dir: request.query.dir || 'asc',
             includeMeta,
-            orderByMostRecentFlows: request.query.orderByMostRecentFlows,
-            withTotal: paginated
+            orderByMostRecentFlows: request.query.orderByMostRecentFlows
         }
 
         const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.getFeatureProperty('rbacApplication', false)
@@ -415,8 +409,8 @@ module.exports = async function (app) {
         }
 
         const queryResult = await app.db.models.Project.byTeam(request.params.teamId, options)
-        const projects = paginated ? queryResult.rows : queryResult
-        const total = paginated ? queryResult.total : null
+        const projects = pagination ? queryResult.rows : queryResult
+        const total = pagination ? queryResult.total : null
 
         if (projects) {
             let result = await app.db.views.Project.instancesList(projects, {
@@ -431,15 +425,15 @@ module.exports = async function (app) {
                 })
             }
             const response = {
-                count: paginated ? total : result.length,
+                count: pagination ? total : result.length,
                 projects: result
             }
-            if (paginated) {
+            if (pagination) {
                 response.meta = {
-                    page: request.query.page,
-                    pageSize: limit,
+                    page: pagination.page,
+                    pageSize: pagination.limit,
                     total,
-                    pageCount: Math.max(1, Math.ceil(total / limit))
+                    pageCount: Math.max(1, Math.ceil(total / pagination.limit))
                 }
             }
             reply.send(response)

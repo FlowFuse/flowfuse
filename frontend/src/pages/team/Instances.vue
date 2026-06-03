@@ -311,11 +311,13 @@ export default {
                 let response
                 if (this.hasPermission('team:projects:list')) {
                     response = await teamApi.getInstances(this.team.id, {
-                        page: this.page,
-                        limit: this.pageSize,
-                        query: this.searchTerm || null,
-                        sort: this.sort.key || null,
-                        dir: this.sort.order || null,
+                        pagination: {
+                            page: this.page,
+                            limit: this.pageSize,
+                            query: this.searchTerm || null,
+                            sort: this.sort.key || null,
+                            dir: this.sort.order || null
+                        },
                         includeMeta: true
                     })
                 } else if (this.hasPermission('team:read')) {
