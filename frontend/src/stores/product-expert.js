@@ -30,7 +30,8 @@ export const useProductExpertStore = defineStore('product-expert', {
         agentMode: SUPPORT_AGENT, // support-agent or insights-agent
         loadingVariant: SUPPORT_AGENT,
         shouldWakeUpAssistant: false,
-        inFlightUpdates: []
+        inFlightUpdates: [],
+        _seenTransactionIds: new Map()
     }),
     getters: {
         _agentStore () {
@@ -596,14 +597,27 @@ export const useProductExpertStore = defineStore('product-expert', {
             const sessionId = packet.properties?.userProperties?.sessionId // chat session
             const chatTransactionId = packet.properties?.userProperties?.transactionId // passed through for integrity
 
+            // Drop duplicates (QoS 1 retries, bridge re-fires, redundant resubscribes).
+            // Must run synchronously before any await so a second delivery can't race past the check.
+            if (transactionId) {
+                if (this._seenTransactionIds.has(transactionId)) {
+                    console.warn(`Duplicate MQTT message received and ignored (transactionId: ${transactionId})`)
+                    return // already processed this message
+                }
+                this._seenTransactionIds.set(transactionId, true)
+                if (this._seenTransactionIds.size > 200) {
+                    this._seenTransactionIds.delete(this._seenTransactionIds.keys().next().value)
+                }
+            }
+
             switch (true) {
-            case parsedTopic.isReply:
+            case parsedTopic.isReply: // final chat response
                 // remove inFlight request because it is now resolved
                 this._inFlightRequests.delete(transactionId)
                 // handle the response
                 await this.handleMessageResponse(JSON.parse(message.toString()))
                 break
-            case parsedTopic.isInflightRequest:
+            case parsedTopic.isInflightRequest: // in-flight request from the agent (e.g., action invocation, status update)
                 await this.handleInFlightRequest({
                     topic,
                     message,
