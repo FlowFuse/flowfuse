@@ -406,6 +406,7 @@ module.exports = async function (app) {
                 oneOf: [
                     // Case 1: ownerType and ownerId are obtained from the token
                     {
+                        type: 'object',
                         required: ['password'],
                         properties: {
                             password: { type: 'string' }
@@ -414,6 +415,7 @@ module.exports = async function (app) {
                     },
                     // Case 2: Body has ownerType and ownerId
                     {
+                        type: 'object',
                         required: ['ownerType', 'ownerId'],
                         properties: {
                             ownerType: { type: 'string', enum: ['device', 'instance'] },
