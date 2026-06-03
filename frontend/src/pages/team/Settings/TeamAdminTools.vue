@@ -202,6 +202,7 @@
                                     </template>
                                 </FormRow>
                             </td>
+                        </tr>
                     </template>
                 </tbody>
             </table>
