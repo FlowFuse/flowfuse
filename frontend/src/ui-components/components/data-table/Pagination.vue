@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/20/solid'
 import { computed } from 'vue'
 
 defineOptions({ name: 'ff-pagination' })
