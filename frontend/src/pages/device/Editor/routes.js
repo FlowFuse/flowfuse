@@ -23,7 +23,8 @@ export default [
             layout: 'immersive'
         },
         redirect: to => {
-            const name = useAccountSettingsStore().featuresCheck.isExpertAssistantFeatureEnabled
+            const fc = useAccountSettingsStore().featuresCheck
+            const name = (fc.isExpertAssistantFeatureEnabled || fc.isExpertInsightsFeatureEnabled)
                 ? 'device-editor-expert'
                 : 'device-editor-overview'
             return { name, params: { id: to.params.id } }

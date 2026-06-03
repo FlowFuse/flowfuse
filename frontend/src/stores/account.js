@@ -65,8 +65,10 @@ export const useAccountStore = defineStore('account', {
                     return
                 }
                 if (currentTeam?.id === team?.id) {
-                    // Same team — skip full reload but always refresh membership
+                    // Same team — update team data and refresh membership
+                    // without clearing other stores
                     if (team?.id) {
+                        context.setTeam(team)
                         context.setTeamMembership(await teamApi.getTeamUserMembership(team.id))
                     }
                     this.pendingTeamChange = false
