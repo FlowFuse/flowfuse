@@ -943,7 +943,6 @@ module.exports = async function (app) {
                 const certNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.certifiedNodes || 'https://ff-certified-nodes.flowfuse.cloud/catalogue.json'
                 const ffNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.ffNodes || 'https://ff-certified-nodes.flowfuse.cloud/ff-catalogue.json'
                 const teamFFCertifiedExtra = team.getProperty('certifiedNodesCatalogues', null)
-                console.log('BEN', teamFFCertifiedExtra)
 
                 // Handle FF Exclusive Nodes
 
