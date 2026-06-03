@@ -1,6 +1,7 @@
 const SemVer = require('semver')
 
 const { exportEnvVarObject, mapEnvObjectToArray, mapEnvArrayToObject } = require('../../db/utils')
+const { updateCertifiedNodesToken } = require('../../lib/npm')
 /**
  * Device Live api routes
  *
@@ -361,10 +362,13 @@ module.exports = async function (app) {
 
         if (platformNPMEnabled && (certifiedNodesEnabledForTeam || ffNodesEnabledForTeam)) {
             try {
-                const token = app.settings.get('platform:ff-npm-registry:token')
+                // modify token with team hash id
+                // const token = app.settings.get('platform:ff-npm-registry:token')
+                const token = updateCertifiedNodesToken(app.settings.get('platform:ff-npm-registry:token'), team.hashid)
                 const npmRegURL = new URL(app.config['ff-npm-registry']?.url || 'https://registry.flowfuse.com/')
                 const certNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.certifiedNodes || 'https://ff-certified-nodes.flowfuse.cloud/catalogue.json'
                 const ffNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.ffNodes || 'https://ff-certified-nodes.flowfuse.cloud/ff-catalogue.json'
+                const teamFFCertifiedExtra = team.getPoperty('certifiedNodesCatalogues', null)
 
                 // Handle FF Exclusive Nodes
                 if (certNodesCatalogue || ffNodesCatalogue) {
@@ -393,6 +397,11 @@ module.exports = async function (app) {
                 }
                 if (ffNodesEnabledForTeam && ffNodesCatalogue) {
                     updateSettingsForCatalogue('@flowfuse-nodes', ffNodesCatalogue)
+                }
+                if (teamFFCertifiedExtra) {
+                    for (const cat of teamFFCertifiedExtra) {
+                        settings.settings.palette.catalogue.push(cat)
+                    }
                 }
             } catch (err) {
                 app.log.error(`Failed to configure platform npm registry for device ${err.toString()}`)
