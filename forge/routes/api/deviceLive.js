@@ -400,7 +400,7 @@ module.exports = async function (app) {
                 }
                 if (teamFFCertifiedExtra) {
                     for (const cat of teamFFCertifiedExtra) {
-                        settings.settings.palette.catalogue.push(cat)
+                        response.palette.catalogues.push(cat)
                     }
                 }
             } catch (err) {
