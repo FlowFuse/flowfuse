@@ -71,7 +71,7 @@ jobs:
         working-directory: 'website'
       - uses: untitaker/hyperlink@fb5bb9c5011a3d143a54b4b30aedc30ec5bc0f89 # 0.2.0
         with:
-          args: website/nuxt/.output/public/ --check-anchors --sources website/src
+          args: website/nuxt/dist/ --check-anchors --sources website/src
   publish:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
