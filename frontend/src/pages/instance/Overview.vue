@@ -326,7 +326,7 @@ export default {
     background: transparent;
     border-radius: 4px;
     cursor: pointer;
-    color: var(--ff-color-accent-strong);
+    color: var(--ff-color-accent-text);
     transition: color 0.15s ease, background-color 0.15s ease;
 
     .ff-icon {

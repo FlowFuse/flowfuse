@@ -133,7 +133,7 @@
   &--secondary {
     background-color: var(--ff-color-bg-app);
     color: var(--ff-color-accent-text);
-    border: 1px solid var(--ff-color-accent-strong);
+    border: 1px solid var(--ff-color-border-accent);
     &:hover, &.active {
       background-color: var(--ff-color-accent);
       border-color: var(--ff-color-accent);
@@ -141,7 +141,7 @@
     }
   }
   &--tertiary {
-    color: var(--ff-color-accent-strong);
+    color: var(--ff-color-accent-text);
     &:hover, &.active {
       background-color: var(--ff-color-accent);
       color: var(--ff-color-text-on-brand);

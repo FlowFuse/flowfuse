@@ -169,7 +169,7 @@ export default {
     font-weight: 600;
     line-height: 20px;
     background-color: var(--ff-color-bg-app);
-    color: var(--ff-color-accent-strong);
+    color: var(--ff-color-accent-text);
     border: 1px solid var(--ff-color-accent-strong);
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;

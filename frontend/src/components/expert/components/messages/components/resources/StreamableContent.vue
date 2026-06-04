@@ -208,7 +208,7 @@ export default {
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        color: var(--ff-color-accent-strong);
+        color: var(--ff-color-accent-text);
         transition: all 0.2s ease;
 
         svg {

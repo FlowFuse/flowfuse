@@ -114,7 +114,7 @@ export default {
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: var(--ff-color-accent-strong);
+    color: var(--ff-color-accent-text);
 
     &:hover {
       color: var(--ff-color-text-on-brand);

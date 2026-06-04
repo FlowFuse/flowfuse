@@ -136,7 +136,7 @@ export default {
             transition: ease-in-out .3s;
 
             &:hover {
-                    color: var(--ff-color-accent-strong)
+                    color: var(--ff-color-accent-text)
             }
         }
     }

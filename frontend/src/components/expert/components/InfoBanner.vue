@@ -70,7 +70,7 @@ export default {
         text-decoration: underline;
 
         &:hover {
-            color: var(--ff-color-accent-strong); // indigo-800
+            color: var(--ff-color-accent-text); // indigo-800
         }
     }
 

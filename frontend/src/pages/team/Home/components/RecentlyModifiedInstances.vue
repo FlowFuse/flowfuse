@@ -151,7 +151,7 @@ export default {
                 gap: 4px;
 
                 .ff-kebab-menu .ff-btn {
-                    color: var(--ff-color-accent-strong);
+                    color: var(--ff-color-accent-text);
 
                     .ff-icon {
                         width: 20px;

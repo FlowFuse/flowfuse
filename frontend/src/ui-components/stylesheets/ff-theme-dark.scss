@@ -8,31 +8,32 @@
     --ff-color-bg-surface-raised: var(--ff-palette-slate-3-dark);
     --ff-color-bg-emphasis:       var(--ff-palette-slate-4-dark);
 
-    --ff-color-text:              var(--ff-palette-slate-12-dark);
-    --ff-color-text-muted:        var(--ff-palette-slate-11-dark);
-    --ff-color-text-subtle:       var(--ff-palette-slate-10-strong-dark);
+    --ff-color-text:              var(--ff-palette-slate-11-dark);
+    --ff-color-text-muted:        var(--ff-palette-slate-11-soft-dark);
+    --ff-color-text-subtle:       var(--ff-palette-slate-10-dark);
     --ff-color-text-disabled:     var(--ff-palette-slate-8-dark);
-    --ff-color-text-strong:       var(--ff-palette-white);
-    --ff-color-text-deep:         var(--ff-palette-slate-11-soft-dark);
-    --ff-color-text-on-brand:     var(--ff-palette-white);
+    --ff-color-text-strong:       var(--ff-palette-slate-12-dark);
+    --ff-color-text-deep:         var(--ff-palette-slate-10-strong-dark);
+    --ff-color-text-on-brand:     var(--ff-palette-slate-12-dark);
 
     --ff-color-border-subtle:     var(--ff-palette-slate-4-dark);
     --ff-color-border:            var(--ff-palette-slate-6-dark);
     --ff-color-border-strong:     var(--ff-palette-slate-7-dark);
+    --ff-color-border-accent:     var(--ff-palette-indigo-8-dark);
 
     --ff-color-accent-surface:    var(--ff-palette-indigo-3-dark);
     --ff-color-accent-light:      var(--ff-palette-indigo-7-dark);
-    --ff-color-accent:            var(--ff-palette-indigo-9-dark);
+    --ff-color-accent:            var(--ff-palette-indigo-8-dark);
     --ff-color-accent-hover:      var(--ff-palette-indigo-11-dark);
-    --ff-color-accent-hover-bg:   var(--ff-palette-indigo-10-dark);
-    --ff-color-accent-strong:     var(--ff-palette-indigo-9-strong-dark);
-    --ff-color-accent-text:       var(--ff-palette-indigo-11-dark);
+    --ff-color-accent-hover-bg:   var(--ff-palette-indigo-8-dark);
+    --ff-color-accent-strong:     var(--ff-palette-indigo-7-dark);
+    --ff-color-accent-text:       var(--ff-palette-indigo-11-soft-dark);
     --ff-color-focus:             var(--ff-palette-indigo-8-dark);
 
     --ff-color-danger:            var(--ff-palette-red-9-dark);
     --ff-color-danger-text:       var(--ff-palette-red-11-dark);
     --ff-color-danger-strong:     var(--ff-palette-red-10-dark);
-    --ff-color-danger-darker:     var(--ff-palette-red-11-dark);
+    --ff-color-danger-darker:     var(--ff-palette-red-10-dark);
     --ff-color-success:           var(--ff-palette-green-9-dark);
 
     --ff-color-link:              var(--ff-palette-blue-11-dark);
@@ -49,24 +50,24 @@
 
     --ff-color-status-error-bg:        rgba(237, 78, 78, 0.15);
     --ff-color-status-error-border:    rgba(237, 78, 78, 0.4);
-    --ff-color-status-error-text:      var(--ff-palette-red-11-dark);
-    --ff-color-status-error-dot:       var(--ff-palette-red-11-dark);
+    --ff-color-status-error-text:      var(--ff-palette-red-200);
+    --ff-color-status-error-dot:       var(--ff-palette-red-200);
 
     --ff-color-status-success-bg:      rgba(76, 195, 138, 0.18);
     --ff-color-status-success-border:  rgba(76, 195, 138, 0.45);
-    --ff-color-status-success-text:    var(--ff-palette-green-300);
-    --ff-color-status-success-dot:     var(--ff-palette-green-300);
+    --ff-color-status-success-text:    var(--ff-palette-green-400);
+    --ff-color-status-success-dot:     var(--ff-palette-green-400);
 
     --ff-color-status-progress-bg:     rgba(76, 195, 138, 0.12);
     --ff-color-status-progress-border: rgba(76, 195, 138, 0.35);
 
     --ff-color-status-safe-bg:         rgba(251, 191, 36, 0.15);
     --ff-color-status-safe-border:     rgba(251, 191, 36, 0.4);
-    --ff-color-status-safe-text:       var(--ff-palette-yellow-300);
+    --ff-color-status-safe-text:       var(--ff-palette-yellow-400);
 
     --ff-color-status-warning-bg:      rgba(251, 191, 36, 0.25);
     --ff-color-status-warning-border:  rgba(251, 191, 36, 0.55);
-    --ff-color-status-warning-text:    var(--ff-palette-yellow-200);
+    --ff-color-status-warning-text:    var(--ff-palette-yellow-400);
 
     --ff-color-status-neutral-bg:      var(--ff-color-bg-surface-raised);
     --ff-color-status-neutral-border:  var(--ff-color-border);
@@ -79,14 +80,14 @@
 
     --ff-color-status-devmode-bg:      rgba(168, 85, 247, 0.18);
     --ff-color-status-devmode-border:  rgba(168, 85, 247, 0.45);
-    --ff-color-status-devmode-text:    var(--ff-palette-purple-300);
+    --ff-color-status-devmode-text:    var(--ff-palette-purple-400);
 
     --ff-color-status-info-surface:        rgba(112, 184, 255, 0.12);
     --ff-color-status-info-surface-border: rgba(112, 184, 255, 0.35);
 
     --ff-color-status-fleetmode-bg:      rgba(80, 195, 201, 0.18);
     --ff-color-status-fleetmode-border:  rgba(80, 195, 201, 0.45);
-    --ff-color-status-fleetmode-text:    var(--ff-palette-teal-light-dark);
+    --ff-color-status-fleetmode-text:    var(--ff-palette-teal-500);
 
     --ff-color-timeline-marker-border:     var(--ff-color-accent-light);
     --ff-color-timeline-marker-bg:         var(--ff-color-bg-surface-raised);
@@ -123,7 +124,7 @@
     --ff-color-nav-divider:                var(--ff-palette-grey-600);
     --ff-color-nav-divider-strong:         var(--ff-palette-grey-900);
     --ff-color-nav-item-active:            var(--ff-palette-grey-600);
-    --ff-color-nav-item-active-text:       var(--ff-palette-teal-300);
+    --ff-color-nav-item-active-text:       var(--ff-palette-teal-400);
     --ff-color-nav-item-border:            var(--ff-palette-grey-800);
     --ff-color-nav-item-hover:             var(--ff-palette-grey-700);
 
