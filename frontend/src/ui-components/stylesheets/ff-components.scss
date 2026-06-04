@@ -761,6 +761,7 @@ li.ff-kebab-item {
     width: auto;
     height: 34px;
     border-radius: 6px;
+    background-color: var(--ff-color-table-search-bg);
   }
   &--actions {
     display: flex;
@@ -800,7 +801,7 @@ li.ff-kebab-item {
       }
       .ff-data-table--cell {
         padding: 9px 12px;
-        background-color: var(--ff-color-bg-surface-raised);
+        background-color: var(--ff-color-table-header-bg);
         font-weight: 600;
         transition: 0.3s background-color, 0.3s color;
         -webkit-transition: 0.3s background-color, 0.3s color;
@@ -814,7 +815,7 @@ li.ff-kebab-item {
             opacity: 0.2;
           }
           &:hover {
-            background-color: var(--ff-color-bg-emphasis);
+            background-color: var(--ff-color-table-header-bg-hover);
             cursor: pointer;
             .ff-icon {
               opacity: 0.5;
@@ -822,7 +823,7 @@ li.ff-kebab-item {
           }
         }
         &.sorted {
-          background-color: var(--ff-color-bg-emphasis);
+          background-color: var(--ff-color-table-header-bg-hover);
           .ff-icon.icon-sorted {
             opacity: 1;
           }
@@ -860,9 +861,9 @@ li.ff-kebab-item {
       }
       .ff-data-table--cell {
         padding: 12px 12px;
-        background-color: var(--ff-color-bg-app);
+        background-color: var(--ff-color-table-row-bg);
         &.highlight {
-          background-color: var(--ff-color-bg-surface);
+          background-color: var(--ff-color-table-row-highlight-bg);
         }
         &.status-message {
           text-align: center;
@@ -873,7 +874,7 @@ li.ff-kebab-item {
       .selectable:hover .ff-data-table--cell span svg.ff-icon {
         cursor: pointer;
         color: var(--ff-color-link);
-        background-color: var(--ff-color-bg-surface);
+        background-color: var(--ff-color-table-row-bg-hover);
       }
       .selectable:hover .ff-data-table--cell button svg.ff-icon {
         background-color: transparent;

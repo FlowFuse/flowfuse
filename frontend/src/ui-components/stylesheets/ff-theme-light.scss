@@ -9,6 +9,13 @@
     --ff-color-bg-surface-raised: var(--ff-palette-grey-100);
     --ff-color-bg-emphasis:       var(--ff-palette-grey-200);
 
+    --ff-color-table-header-bg:        var(--ff-color-bg-surface-raised);
+    --ff-color-table-header-bg-hover:  var(--ff-color-bg-emphasis);
+    --ff-color-table-row-bg:           var(--ff-color-bg-app);
+    --ff-color-table-row-bg-hover:     var(--ff-color-bg-surface);
+    --ff-color-table-row-highlight-bg: var(--ff-color-bg-surface);
+    --ff-color-table-search-bg:        var(--ff-color-bg-app);
+
     --ff-color-text:              var(--ff-palette-grey-800);
     --ff-color-text-muted:        var(--ff-palette-grey-700);
     --ff-color-text-subtle:       var(--ff-palette-grey-500);
