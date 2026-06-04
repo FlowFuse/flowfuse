@@ -1,6 +1,6 @@
 <template>
     <div class="title mb-2 flex gap-2 items-center">
-        <img v-if="!icon" src="../../../../../images/icons/tree-view.svg" alt="tree-icon" class="ff-icon-sm">
+        <ShareIcon v-if="!icon" class="ff-icon-sm" aria-label="tree-icon" />
         <h3 class="my-2 grow" data-el="subtitle">{{ title }}</h3>
         <div class="flex items-center gap-2">
             <slot name="actions" />
@@ -9,8 +9,11 @@
 </template>
 
 <script>
+import { ShareIcon } from '@heroicons/vue/24/outline'
+
 export default {
     name: 'MainTitle',
+    components: { ShareIcon },
     props: {
         title: {
             type: String,
