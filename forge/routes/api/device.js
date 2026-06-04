@@ -598,6 +598,11 @@ module.exports = async function (app) {
                     reply.code(400).send({ code: 'invalid_snapshot', error: 'invalid snapshot' })
                     return
                 }
+                const snapshotTeamId = await targetSnapshot.getTeamId()
+                if (snapshotTeamId !== device.Team.id) {
+                    reply.code(400).send({ code: 'invalid_snapshot', error: 'invalid snapshot' })
+                    return
+                }
                 // store original value for later audit log
                 const originalSnapshotId = device.targetSnapshotId
 

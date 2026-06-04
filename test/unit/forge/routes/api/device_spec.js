@@ -1439,6 +1439,23 @@ describe('Device API', async function () {
                 liveSettings.security.should.have.property('localAuth').and.be.an.Object()
                 liveSettings.security.localAuth.should.have.property('enabled', false)
             })
+            it('cannot set targetSnapshot for snapshot outside of the team', async function () {
+                // Create a project and snapshot in another team
+                const otherProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+                otherProject.setTeam(TestObjects.BTeam)
+                const otherSnapshot = (await createSnapshot(otherProject.id, 'other-snapshot', TestObjects.tokens.bob)).json()
+
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        targetSnapshot: otherSnapshot.id
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+            })
         })
         describe('device certified nodes', function () {
             async function setTeamFlags (certifiedNodes, ffNodes) {
