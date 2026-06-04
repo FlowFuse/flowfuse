@@ -1439,6 +1439,23 @@ describe('Device API', async function () {
                 liveSettings.security.should.have.property('localAuth').and.be.an.Object()
                 liveSettings.security.localAuth.should.have.property('enabled', false)
             })
+            it('cannot set targetSnapshot for snapshot outside of the team', async function () {
+                // Create a project and snapshot in another team
+                const otherProject = await app.db.models.Project.create({ name: generateProjectName(), type: '', url: '' })
+                otherProject.setTeam(TestObjects.BTeam)
+                const otherSnapshot = (await createSnapshot(otherProject.id, 'other-snapshot', TestObjects.tokens.bob)).json()
+
+                const device = await createDevice({ name: 'Ad1', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        targetSnapshot: otherSnapshot.id
+                    },
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(400)
+            })
         })
         describe('device certified nodes', function () {
             async function setTeamFlags (certifiedNodes, ffNodes) {
@@ -1469,7 +1486,8 @@ describe('Device API', async function () {
                 app.defaultTeamType.properties = defaultTeamTypeProperties
                 await app.defaultTeamType.save()
 
-                await app.settings.set('platform:ff-npm-registry:token', 'verySecret')
+                // await app.settings.set('platform:ff-npm-registry:token', 'verySecret')
+                await app.settings.set('platform:ff-npm-registry:token', Buffer.from('platform:verySecret').toString('base64'))
             })
             after(async function () {
                 // After this set of tests, close the app and recreate (ie remove the license)
@@ -1485,40 +1503,43 @@ describe('Device API', async function () {
             it('includes cert nodes settings if feature flag is set', async function () {
                 await setTeamFlags(true, false)
                 const device = await createDevice({ name: 'CertifiedNodes', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const newToken = Buffer.from(`platform/${TestObjects.ATeam.hashid}:verySecret`).toString('base64')
                 const liveSettings = await getLiveSettings(device)
                 liveSettings.palette.should.have.property('catalogues')
                 liveSettings.palette.catalogues.should.containEql('https://localhost/cert-nodes-catalogue.json')
                 liveSettings.palette.catalogues.should.not.containEql('https://localhost/ff-nodes-catalogue.json')
                 liveSettings.palette.should.have.property('npmrc')
                 liveSettings.palette.npmrc.should.equal(`@flowfuse-certified-nodes:registry=https://localhost:1234/
-//localhost:1234:_auth="verySecret"
+//localhost:1234:_auth="${newToken}"
 `)
             })
             it('includes ff-nodes if feature flag is set', async function () {
                 await setTeamFlags(false, true)
                 const device = await createDevice({ name: 'CertifiedNodes', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const newToken = Buffer.from(`platform/${TestObjects.ATeam.hashid}:verySecret`).toString('base64')
                 const liveSettings = await getLiveSettings(device)
                 liveSettings.palette.should.have.property('catalogues')
                 liveSettings.palette.catalogues.should.not.containEql('https://localhost/cert-nodes-catalogue.json')
                 liveSettings.palette.catalogues.should.containEql('https://localhost/ff-nodes-catalogue.json')
                 liveSettings.palette.should.have.property('npmrc')
                 liveSettings.palette.npmrc.should.equal(`@flowfuse-nodes:registry=https://localhost:1234/
-//localhost:1234:_auth="verySecret"
+//localhost:1234:_auth="${newToken}"
 `)
             })
             it('includes both cert nodes and ff-nodes if feature flag is set', async function () {
                 await setTeamFlags(true, true)
                 const device = await createDevice({ name: 'CertifiedNodes', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                const newToken = Buffer.from(`platform/${TestObjects.ATeam.hashid}:verySecret`).toString('base64')
                 const liveSettings = await getLiveSettings(device)
                 liveSettings.palette.should.have.property('catalogues')
                 liveSettings.palette.catalogues.should.containEql('https://localhost/cert-nodes-catalogue.json')
                 liveSettings.palette.catalogues.should.containEql('https://localhost/ff-nodes-catalogue.json')
                 liveSettings.palette.should.have.property('npmrc')
                 liveSettings.palette.npmrc.should.equal(`@flowfuse-certified-nodes:registry=https://localhost:1234/
-//localhost:1234:_auth="verySecret"
+//localhost:1234:_auth="${newToken}"
 
 @flowfuse-nodes:registry=https://localhost:1234/
-//localhost:1234:_auth="verySecret"
+//localhost:1234:_auth="${newToken}"
 `)
             })
         })

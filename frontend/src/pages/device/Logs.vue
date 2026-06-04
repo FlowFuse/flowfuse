@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { WifiIcon } from '@heroicons/vue/outline'
+import { WifiIcon } from '@heroicons/vue/24/outline'
 
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 

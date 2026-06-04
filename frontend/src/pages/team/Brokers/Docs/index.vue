@@ -9,7 +9,7 @@
         <h1>
             {{ schema.info.title }}
             <ff-button @click="downloadSchema">
-                <template #icon-right><ExternalLinkIcon /></template>
+                <template #icon-right><ArrowTopRightOnSquareIcon /></template>
                 View Raw Schema
             </ff-button>
         </h1>
@@ -21,8 +21,8 @@
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/outline'
-import { ExternalLinkIcon } from '@heroicons/vue/solid'
+import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/20/solid'
+import { ChevronLeftIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import BrokerAPI from '../../../../api/broker.js'
@@ -37,7 +37,7 @@ export default {
     name: 'UNSDocs',
     components: {
         'ff-topic-docs': FFTopicDocs,
-        ExternalLinkIcon,
+        ArrowTopRightOnSquareIcon,
         ChevronLeftIcon
     },
     data () {

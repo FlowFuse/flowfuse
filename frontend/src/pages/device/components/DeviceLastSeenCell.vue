@@ -1,7 +1,7 @@
 <template>
     <template v-if="neverConnected && hasPermission('device:edit', { application })">
         <ff-button kind="secondary" @click="finishSetup">
-            <template #icon-left><ExclamationIcon class="ff-icon" /></template>
+            <template #icon-left><ExclamationTriangleIcon class="ff-icon" /></template>
             Finish Setup
         </ff-button>
     </template>
@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import { ExclamationIcon } from '@heroicons/vue/outline'
+import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 
 import usePermissions from '../../../composables/Permissions.js'
 
@@ -19,7 +19,7 @@ import DeviceLastSeenBadge from './DeviceLastSeenBadge.vue'
 
 export default {
     components: {
-        ExclamationIcon,
+        ExclamationTriangleIcon,
         DeviceLastSeenBadge
     },
     mixins: [deviceActionsMixin],

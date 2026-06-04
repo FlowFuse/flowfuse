@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import { EyeIcon, EyeOffIcon } from '@heroicons/vue/outline'
+import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 
 import TextCopier from '../../components/TextCopier.vue'
 
@@ -62,7 +62,7 @@ export default {
             }
         },
         revealIcon () {
-            return this.revealed ? EyeOffIcon : EyeIcon
+            return this.revealed ? EyeSlashIcon : EyeIcon
         }
     },
     methods: {

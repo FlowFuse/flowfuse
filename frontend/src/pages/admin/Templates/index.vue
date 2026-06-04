@@ -5,7 +5,7 @@
                 <template #tools>
                     <ff-button :to="{ name: 'admin-templates-template', params: { id: 'create' } }" size="small">
                         <template #icon-right>
-                            <PlusSmIcon />
+                            <PlusSmallIcon />
                         </template>
                         Create template
                     </ff-button>
@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { markRaw } from 'vue'
 
 import templatesApi from '../../../api/templates.js'
@@ -50,7 +50,7 @@ import Dialog from '../../../services/dialog.js'
 export default {
     name: 'AdminTemplates',
     components: {
-        PlusSmIcon
+        PlusSmallIcon
     },
     data () {
         return {

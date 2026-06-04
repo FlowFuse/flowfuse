@@ -3,10 +3,10 @@
         <h2>An application would like to connect to your account</h2>
         <div v-if="user" class="flex flex-row justify-center">
             <div class="flex">
-                <TemplateIcon class="w-12" />
-                <ArrowSmLeftIcon class="w-8" />
+                <RectangleGroupIcon class="w-12" />
+                <ArrowSmallLeftIcon class="w-8" />
                 <KeyIcon class="w-8" />
-                <ArrowSmRightIcon class="w-8" />
+                <ArrowSmallRightIcon class="w-8" />
                 <div class="ff-user">
                     <img :src="user.avatar" class="ff-avatar-large">
                 </div>
@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { ArrowSmLeftIcon, ArrowSmRightIcon, KeyIcon, TemplateIcon } from '@heroicons/vue/solid'
+import { ArrowSmallLeftIcon, ArrowSmallRightIcon, KeyIcon, RectangleGroupIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
@@ -31,10 +31,10 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 export default {
     name: 'AccessRequest',
     components: {
-        TemplateIcon,
+        RectangleGroupIcon,
         KeyIcon,
-        ArrowSmRightIcon,
-        ArrowSmLeftIcon
+        ArrowSmallRightIcon,
+        ArrowSmallLeftIcon
     },
     computed: {
         ...mapState(useAccountAuthStore, ['user'])

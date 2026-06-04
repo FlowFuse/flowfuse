@@ -13,7 +13,7 @@
         >
             <template v-if="hasPermission('team:user:invite')" #actions>
                 <ff-button data-action="member-invite-button" :disabled="teamUserLimitReached" kind="primary" @click="inviteMember">
-                    <template #icon-left><UserAddIcon class="w-4" /></template>
+                    <template #icon-left><UserPlusIcon class="w-4" /></template>
                     Invite Members
                 </ff-button>
             </template>
@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import { UserAddIcon } from '@heroicons/vue/solid'
+import { UserPlusIcon } from '@heroicons/vue/20/solid'
 import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
 
@@ -84,7 +84,7 @@ export default {
         ChangeTeamRoleDialog,
         ConfirmTeamUserRemoveDialog,
         FeatureUnavailableToTeam,
-        UserAddIcon,
+        UserPlusIcon,
         InviteMemberDialog
     },
     props: {

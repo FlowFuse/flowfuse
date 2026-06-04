@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/solid/index.js'
+import { ChevronLeftIcon } from '@heroicons/vue/20/solid/index.js'
 import { mapState } from 'pinia'
 
 import instanceApi from '../../api/instances.js'

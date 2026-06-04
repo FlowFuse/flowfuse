@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import { ExclamationCircleIcon } from '@heroicons/vue/outline'
+import { ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import { useContextStore } from '@/stores/context.js'

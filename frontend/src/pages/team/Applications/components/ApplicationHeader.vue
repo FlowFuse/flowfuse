@@ -6,7 +6,7 @@
     >
         <div class="flex items-cente flex-wrap">
             <span class="ff-application-list--icon flex shrink-0 grow-0 whitespace-nowrap gap-2 w-full">
-                <TemplateIcon class="ff-icon text-gray-600" />
+                <RectangleGroupIcon class="ff-icon text-gray-600" />
                 {{ application.name }}
             </span>
             <span class="inline-block! shrink! grow! italic text-gray-500 dark:text-gray-400 truncate">
@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { TemplateIcon } from '@heroicons/vue/outline'
+import { RectangleGroupIcon } from '@heroicons/vue/24/outline'
 
 import ApplicationSummaryLabel from '../../components/ApplicationSummaryLabel.vue'
 
@@ -26,7 +26,7 @@ export default {
     name: 'ApplicationHeader',
     components: {
         ApplicationSummaryLabel,
-        TemplateIcon
+        RectangleGroupIcon
     },
     props: {
         application: {

@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import { BeakerIcon } from '@heroicons/vue/outline'
+import { BeakerIcon } from '@heroicons/vue/24/outline'
 
 import IconDeviceSolid from '../../../components/icons/DeviceSolid.js'
 
