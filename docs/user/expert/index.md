@@ -10,7 +10,7 @@ FlowFuse Expert is the AI built into FlowFuse and the Node-RED editor. It is not
 
 ## Managing AI Features
 
-**Team owners** can enable or disable all AI features for their team from the team settings page. When disabled, the Expert chat panel, inline code completions, snapshot description generation, and the `@flowfuse/nr-assistant` plugin are all removed for that team. Running instances need to be restarted for the change to take full effect.
+**Team owners** can enable or disable all AI features for their team from the team settings page. When disabled, the Expert chat panel with all AI feature will get removed for that team. Running instances need to be restarted for the change to take full effect.
 
 **Self-Hosted Enterprise admins** have two additional controls:
 - Disable AI across the entire platform via the `ai.enabled` [configuration option](/docs/install/configuration/#ai-configuration). This overrides all team-level settings.
