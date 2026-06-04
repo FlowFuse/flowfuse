@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import { ChevronDoubleDownIcon } from '@heroicons/vue/outline'
+import { ChevronDoubleDownIcon } from '@heroicons/vue/24/outline'
 
 import FfAccordion from '../Accordion.vue'
 

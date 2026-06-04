@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import { ExclamationCircleIcon } from '@heroicons/vue/outline'
+import { ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 
 import DeviceStatus from '../../../services/device-status.js'
 import daysSince from '../../../utils/daysSince.js'

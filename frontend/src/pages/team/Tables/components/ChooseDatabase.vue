@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import { CheckIcon, MinusIcon } from '@heroicons/vue/outline'
+import { CheckIcon, MinusIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 import { defineComponent } from 'vue'
 

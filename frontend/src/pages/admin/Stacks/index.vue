@@ -18,7 +18,7 @@
                 <template #actions>
                     <ff-button @click="showCreateStackDialog">
                         <template #icon-right>
-                            <PlusSmIcon />
+                            <PlusSmallIcon />
                         </template>
                         Create stack
                     </ff-button>
@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import { DesktopComputerIcon, PlusSmIcon } from '@heroicons/vue/outline'
+import { ComputerDesktopIcon, PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { markRaw } from 'vue'
 
 import instanceTypesApi from '../../../api/instanceTypes.js'
@@ -73,7 +73,7 @@ import AdminStackEditDialog from './dialogs/AdminStackEditDialog.vue'
 
 const StackName = {
     template: `<div class="flex items-center">
-        <DesktopComputerIcon class="w-6 mr-2 text-gray-500" />
+        <ComputerDesktopIcon class="w-6 mr-2 text-gray-500" />
         <div class="flex grow flex-col space-y-1">
             <span class="text-lg">{{label || name}}</span>
             <span class="text-xs text-gray-500">name: {{ name }}</span>
@@ -82,7 +82,7 @@ const StackName = {
         </div>
     </div>`,
     props: ['id', 'name', 'label', 'description', 'projectTypeName'],
-    components: { DesktopComputerIcon }
+    components: { ComputerDesktopIcon }
 }
 
 function comparator (A, B) {
@@ -104,7 +104,7 @@ export default {
     components: {
         FormHeading,
         AdminStackEditDialog,
-        PlusSmIcon
+        PlusSmallIcon
     },
     data () {
         return {

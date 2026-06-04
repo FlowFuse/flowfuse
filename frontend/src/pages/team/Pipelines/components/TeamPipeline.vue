@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon } from '@heroicons/vue/24/outline'
 
 import { slugify } from '../../../../composables/strings/String.js'
 

@@ -7,16 +7,16 @@
         @click="interacted"
     >
     <span class="icon-trigger" @click="interacted">
-        <SearchIcon class="ff-icon ff-icon-md" />
+        <MagnifyingGlassIcon class="ff-icon ff-icon-md" />
     </span>
 </template>
 
 <script>
-import { SearchIcon } from '@heroicons/vue/outline'
+import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'SearchTrigger',
-    components: { SearchIcon },
+    components: { MagnifyingGlassIcon },
     emits: ['interacted'],
     methods: {
         interacted () {

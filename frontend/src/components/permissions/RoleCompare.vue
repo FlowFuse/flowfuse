@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { ArrowDownIcon, ArrowUpIcon, BanIcon } from '@heroicons/vue/outline'
+import { ArrowDownIcon, ArrowUpIcon, NoSymbolIcon } from '@heroicons/vue/24/outline'
 
 import { capitalize } from '../../composables/strings/String.js'
 
@@ -56,7 +56,7 @@ export default {
         style () {
             if (parseInt(this.baseRole) === 0) {
                 return {
-                    icon: BanIcon,
+                    icon: NoSymbolIcon,
                     iconClass: 'text-red-500',
                     roleClass: 'opacity-50'
                 }

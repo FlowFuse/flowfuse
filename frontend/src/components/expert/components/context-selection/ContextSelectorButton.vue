@@ -25,7 +25,7 @@
 
 <script>
 
-import { CubeIcon, DocumentIcon, PaperClipIcon, ViewListIcon } from '@heroicons/vue/outline'
+import { Bars4Icon, CubeIcon, DocumentIcon, PaperClipIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
 import { pluralize } from '../../../../composables/strings/String.js'
@@ -60,8 +60,8 @@ export default {
                     let icon = DocumentIcon
                     if (option.menuIcon === 'CubeIcon') {
                         icon = CubeIcon
-                    } else if (option.menuIcon === 'ViewListIcon') {
-                        icon = ViewListIcon
+                    } else if (option.menuIcon === 'Bars4Icon') {
+                        icon = Bars4Icon
                     }
                     return {
                         ...option,

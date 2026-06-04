@@ -36,7 +36,7 @@
 </template>
 <script>
 
-import { DocumentIcon } from '@heroicons/vue/outline'
+import { DocumentIcon } from '@heroicons/vue/24/outline'
 
 import snapshotsApi from '../../api/snapshots.js'
 import ImportInstanceComponents from '../../pages/instance/components/ExportImportComponents.vue'

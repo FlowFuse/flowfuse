@@ -25,7 +25,7 @@
                         data-action="import-snapshot"
                         @click="$emit('show-import-snapshot-dialog')"
                     >
-                        <template #icon-left><UploadIcon /></template>Upload Snapshot
+                        <template #icon-left><ArrowUpTrayIcon /></template>Upload Snapshot
                     </ff-button>
                     <ff-button
                         v-if="hasPermission('device:snapshot:create', { application: device.application })"
@@ -34,7 +34,7 @@
                         data-action="create-snapshot"
                         @click="$emit('show-create-snapshot-dialog')"
                     >
-                        <template #icon-left><PlusSmIcon /></template>Create Snapshot
+                        <template #icon-left><PlusSmallIcon /></template>Create Snapshot
                     </ff-button>
                 </template>
             </EmptyState>
@@ -54,7 +54,7 @@
                 >
                     <template #actions>
                         <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">
-                            <FilterIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
+                            <FunnelIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
                             {{ snapshotFilter?.name || 'All Snapshots' }}
                             <span class="sr-only">Filter Snapshots</span>
                         </DropdownMenu>
@@ -86,7 +86,7 @@
                             data-action="import-snapshot"
                             @click="$emit('show-import-snapshot-dialog')"
                         >
-                            <template #icon-left><UploadIcon /></template>Upload Snapshot
+                            <template #icon-left><ArrowUpTrayIcon /></template>Upload Snapshot
                         </ff-button>
                         <ff-button
                             kind="primary"
@@ -94,7 +94,7 @@
                             data-action="create-snapshot"
                             @click="$emit('show-create-snapshot-dialog')"
                         >
-                            <template #icon-left><PlusSmIcon /></template>Create Snapshot
+                            <template #icon-left><PlusSmallIcon /></template>Create Snapshot
                         </ff-button>
                     </template>
                 </EmptyState>
@@ -104,7 +104,7 @@
 </template>
 
 <script>
-import { FilterIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
+import { ArrowUpTrayIcon, FunnelIcon, PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 import SemVer from 'semver'
 import { markRaw } from 'vue'
@@ -132,9 +132,9 @@ export default {
     components: {
         DropdownMenu,
         EmptyState,
-        FilterIcon,
-        PlusSmIcon,
-        UploadIcon
+        FunnelIcon,
+        PlusSmallIcon,
+        ArrowUpTrayIcon
     },
     inheritAttrs: false,
     props: {

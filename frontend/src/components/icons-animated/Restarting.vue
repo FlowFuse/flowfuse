@@ -1,18 +1,18 @@
 <template>
     <div class="ff-icon-anim ff-icon-restarting">
-        <RefreshIcon />
+        <ArrowPathIcon />
     </div>
 </template>
 
 <script>
 import {
-    RefreshIcon
-} from '@heroicons/vue/outline'
+    ArrowPathIcon
+} from '@heroicons/vue/24/outline'
 
 export default {
     name: 'AnimIconStarting',
     components: {
-        RefreshIcon
+        ArrowPathIcon
     }
 }
 </script>

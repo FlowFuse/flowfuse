@@ -31,7 +31,7 @@
                     data-el="expert-drawer-close-button"
                     @click="closeDrawer"
                 >
-                    <XIcon class="ff-icon" />
+                    <XMarkIcon class="ff-icon" />
                 </button>
             </div>
         </div>
@@ -40,7 +40,7 @@
 </template>
 
 <script>
-import { LockClosedIcon, LockOpenIcon, XIcon } from '@heroicons/vue/solid'
+import { LockClosedIcon, LockOpenIcon, XMarkIcon } from '@heroicons/vue/20/solid'
 
 import { mapActions, mapState } from 'pinia'
 
@@ -56,7 +56,7 @@ export default {
     components: {
         ToggleButtonGroup,
         ExpertPanel,
-        XIcon,
+        XMarkIcon,
         LockClosedIcon,
         LockOpenIcon
     },

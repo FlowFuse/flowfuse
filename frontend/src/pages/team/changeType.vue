@@ -92,7 +92,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/outline'
+import { ChevronLeftIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import billingApi from '../../api/billing.js'
