@@ -33,7 +33,7 @@
                         <template #default>
                             <span class="file-input">
                                 <span>Choosing your file</span>
-                                <span><DocumentAddIcon class="ff-btn--icon" /></span>
+                                <span><DocumentPlusIcon class="ff-btn--icon" /></span>
                             </span>
                         </template>
                     </ff-button>
@@ -41,7 +41,7 @@
                         <span><DocumentIcon class="ff-btn--icon" /></span>
                         <span>{{ file.name }}</span>
                         <span class="clear" data-action="clear-file" @click="file=null">
-                            <XIcon class="ff-btn--icon" />
+                            <XMarkIcon class="ff-btn--icon" />
                         </span>
                     </div>
                 </template>
@@ -74,13 +74,13 @@
 
 <script>
 
-import { DocumentAddIcon, DocumentIcon, XIcon } from '@heroicons/vue/outline'
+import { DocumentIcon, DocumentPlusIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
 import FormRow from '../../../../components/FormRow.vue'
 
 export default {
     name: 'ImportFlowBlueprintsDialog',
-    components: { FormRow, DocumentAddIcon, DocumentIcon, XIcon },
+    components: { FormRow, DocumentPlusIcon, DocumentIcon, XMarkIcon },
     emits: ['import-blueprints'],
     setup () {
         return {

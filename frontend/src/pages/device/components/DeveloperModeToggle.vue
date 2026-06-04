@@ -7,13 +7,13 @@
             :disabled="toggleDisabled"
             @click="toggleDeveloperMode"
         >
-            <CodeIcon />
+            <CodeBracketIcon />
         </ff-toggle-switch>
     </span>
 </template>
 
 <script>
-import { CodeIcon } from '@heroicons/vue/outline'
+import { CodeBracketIcon } from '@heroicons/vue/24/outline'
 import semver from 'semver'
 
 import alerts from '../../../services/alerts.js'
@@ -22,7 +22,7 @@ import Dialog from '../../../services/dialog.js'
 export default {
     name: 'DeveloperModeToggle',
     components: {
-        CodeIcon
+        CodeBracketIcon
     },
     props: {
         device: {

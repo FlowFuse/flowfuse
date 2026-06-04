@@ -18,12 +18,12 @@
                                 <ff-text-input ref="secret" v-model="input.secret" type="text" placeholder="Secret" />
                                 <ff-button v-ff-tooltip:top="'Random Secret'" kind="secondary" size="small" class="ml-2" data-el="refresh" @click="input.secret = generateRandomKey()">
                                     <template #icon>
-                                        <RefreshIcon />
+                                        <ArrowPathIcon />
                                     </template>
                                 </ff-button>
                                 <ff-button v-if="clipboardSupported" v-ff-tooltip:top="'Copy to Clipboard'" kind="secondary" size="small" class="ml-2" @click="copySecret()">
                                     <template #icon>
-                                        <ClipboardCopyIcon />
+                                        <ClipboardDocumentIcon />
                                     </template>
                                 </ff-button>
                             </div>
@@ -36,7 +36,7 @@
     </ff-dialog>
 </template>
 <script>
-import { ClipboardCopyIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { ArrowPathIcon, ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 
 import snapshotsApi from '../../../../../api/snapshots.js'
 import FormRow from '../../../../../components/FormRow.vue'
@@ -48,10 +48,10 @@ import ExportInstanceComponents from '../../../../instance/components/ExportImpo
 export default {
     name: 'SnapshotExportDialog',
     components: {
-        ClipboardCopyIcon,
+        ClipboardDocumentIcon,
         ExportInstanceComponents,
         FormRow,
-        RefreshIcon
+        ArrowPathIcon
     },
     mixins: [clipboardMixin],
     setup () {

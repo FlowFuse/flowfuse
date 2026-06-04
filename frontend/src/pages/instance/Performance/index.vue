@@ -32,7 +32,7 @@
                         <SectionTopMenu>
                             <template #hero>
                                 <div class="flex items-center gap-2">
-                                    <ChipIcon class="ff-icon ff-icon-md text-gray-800" />
+                                    <CpuChipIcon class="ff-icon ff-icon-md text-gray-800" />
                                     <div class="text-gray-800 text-xl font-medium whitespace-nowrap">CPU Utilisation</div>
                                 </div>
                             </template>
@@ -45,7 +45,7 @@
                                         </div>
                                     </div>
                                     <ff-button v-if="!wsConnected" size="small" kind="secondary" @click="getResources">
-                                        <template #icon><RefreshIcon /></template>
+                                        <template #icon><ArrowPathIcon /></template>
                                     </ff-button>
                                 </div>
                             </template>
@@ -60,7 +60,7 @@
                         <SectionTopMenu>
                             <template #hero>
                                 <div class="flex items-center gap-2">
-                                    <ChipIcon class="ff-icon ff-icon-md text-gray-800" />
+                                    <CpuChipIcon class="ff-icon ff-icon-md text-gray-800" />
                                     <div class="text-gray-800 text-xl font-medium whitespace-nowrap">Memory Utilisation</div>
                                 </div>
                             </template>
@@ -73,7 +73,7 @@
                                         </div>
                                     </div>
                                     <ff-button v-if="!wsConnected" size="small" kind="secondary" @click="getResources">
-                                        <template #icon><RefreshIcon /></template>
+                                        <template #icon><ArrowPathIcon /></template>
                                     </ff-button>
                                 </div>
                             </template>
@@ -101,7 +101,7 @@
 </template>
 
 <script>
-import { ChipIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { ArrowPathIcon, CpuChipIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 import SemVer from 'semver'
 
@@ -128,8 +128,8 @@ export default {
         EmptyState,
         FfLoading,
         SectionTopMenu,
-        ChipIcon,
-        RefreshIcon,
+        CpuChipIcon,
+        ArrowPathIcon,
         FeatureUnavailable,
         FeatureUnavailableToTeam
     },

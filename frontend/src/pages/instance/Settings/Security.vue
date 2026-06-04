@@ -13,7 +13,7 @@
                         <template #actions>
                             <ff-button data-action="new-token" @click="newToken()">
                                 <template #icon-left>
-                                    <PlusSmIcon />
+                                    <PlusSmallIcon />
                                 </template>
                                 Add Token
                             </ff-button>
@@ -40,7 +40,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 import SemVer from 'semver'
@@ -73,7 +73,7 @@ export default {
     name: 'InstanceSettingsSecurity',
     components: {
         FormHeading,
-        PlusSmIcon,
+        PlusSmallIcon,
         TemplateSettingsSecurity,
         TokenCreated,
         TokenDialog

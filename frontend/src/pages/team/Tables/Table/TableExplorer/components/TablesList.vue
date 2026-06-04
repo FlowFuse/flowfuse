@@ -7,7 +7,7 @@
                 data-form="search"
                 placeholder="Search Tables"
             >
-                <template #icon><SearchIcon /></template>
+                <template #icon><MagnifyingGlassIcon /></template>
             </ff-text-input>
             <button class="ff-btn ff-btn--secondary transition-fade--color" type="button" @click.stop="onCreateTable">
                 <span class="ff-btn--icon">
@@ -25,8 +25,8 @@
                 @click="updateTableSelection(table.name)"
             >
                 <span class="icon-toggle">
-                    <TableIcon class="ff-icon ff-icon-sm" />
-                    <PencilAltIcon class="ff-icon ff-icon-sm edit" @click="showSchema(table)" />
+                    <TableCellsIcon class="ff-icon ff-icon-sm" />
+                    <PencilSquareIcon class="ff-icon ff-icon-sm edit" @click="showSchema(table)" />
                 </span>
                 <span class="truncate">{{ table.name }}</span>
             </li>
@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { PencilAltIcon, PlusIcon, SearchIcon, TableIcon } from '@heroicons/vue/outline'
+import { MagnifyingGlassIcon, PencilSquareIcon, PlusIcon, TableCellsIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 import { defineComponent, markRaw } from 'vue'
 
@@ -56,7 +56,7 @@ import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default defineComponent({
     name: 'TablesList',
-    components: { SearchIcon, TableIcon, PlusIcon, PencilAltIcon },
+    components: { MagnifyingGlassIcon, TableCellsIcon, PlusIcon, PencilSquareIcon },
     emits: ['select-table'],
     data () {
         return {

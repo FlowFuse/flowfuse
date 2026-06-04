@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { CheckCircleIcon, EyeIcon, XCircleIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, EyeIcon, XCircleIcon } from '@heroicons/vue/24/outline'
 import { defineComponent } from 'vue'
 
 import { capitalize } from '../../../../../../composables/strings/String.js'

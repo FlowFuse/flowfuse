@@ -9,13 +9,13 @@
             :disabled="!tableSelection"
             @click="refreshTable"
         >
-            <RefreshIcon class="ff-icon ff-icon-md" aria-hidden="true" />
+            <ArrowPathIcon class="ff-icon ff-icon-md" aria-hidden="true" />
         </button>
     </section>
 </template>
 
 <script>
-import { RefreshIcon } from '@heroicons/vue/outline'
+import { ArrowPathIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
 import MenuCollapse from '../../.././../../../components/icons/menu-collapse.js'
@@ -26,7 +26,7 @@ import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default {
     name: 'RowsHeader',
-    components: { MenuCollapse, MenuExpand, RefreshIcon },
+    components: { MenuCollapse, MenuExpand, ArrowPathIcon },
     props: {
         menuCollapsed: {
             type: Boolean,

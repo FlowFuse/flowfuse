@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import { ExclamationCircleIcon } from '@heroicons/vue/outline'
+import { ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 
 import applicationApi from '../../../../api/application.js'
 import usePermissions from '../../../../composables/Permissions.js'

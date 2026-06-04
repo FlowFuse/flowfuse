@@ -27,7 +27,7 @@
                     <p class="ff-title">Target Snapshot: </p>
                     <div class="flex gap-2 pr-2" data-el="device-group-target-snapshot">
                         <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">
-                            <ExclamationIcon v-if="!targetSnapshot?.name" class="text-yellow-600 w-4" />
+                            <ExclamationTriangleIcon v-if="!targetSnapshot?.name" class="text-yellow-600 w-4" />
                             <CheckCircleIcon v-else class="text-green-700 w-4" />
                         </span>
                         <div class="flex flex-col">
@@ -59,7 +59,7 @@
 </template>
 
 <script>
-import { CheckCircleIcon, CogIcon, ExclamationIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, Cog8ToothIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 
@@ -77,7 +77,7 @@ export default {
     name: 'DeviceGroup',
     components: {
         CheckCircleIcon,
-        ExclamationIcon,
+        ExclamationTriangleIcon,
         SubscriptionExpiredBanner,
         TeamTrialBanner
     },
@@ -120,7 +120,7 @@ export default {
                         }
                     },
                     tag: 'application-device-group-settings',
-                    icon: CogIcon
+                    icon: Cog8ToothIcon
                 }
             ]
             return routes

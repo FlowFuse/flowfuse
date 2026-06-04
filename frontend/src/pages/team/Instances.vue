@@ -51,7 +51,7 @@
                             :disabled="!hasPermission('project:create')"
                         >
                             <template #icon-left>
-                                <PlusSmIcon />
+                                <PlusSmallIcon />
                             </template>
                             Create Instance
                         </ff-button>
@@ -124,7 +124,7 @@
                             :disabled="!hasPermission('project:create')"
                         >
                             <template #icon-left>
-                                <PlusSmIcon />
+                                <PlusSmallIcon />
                             </template>
                             Create Instance
                         </ff-button>
@@ -157,7 +157,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 
@@ -189,7 +189,7 @@ export default {
         InstanceStatusPolling,
         InstanceEditorLink,
         DashboardLink,
-        PlusSmIcon,
+        PlusSmallIcon,
         EmptyState,
         FeatureUnavailableToTeam
     },

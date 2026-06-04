@@ -8,7 +8,7 @@
                 </slot>
             </div>
             <span class="ff-notification-toast--close">
-                <XIcon v-if="showClose" @click="close()" />
+                <XMarkIcon v-if="showClose" @click="close()" />
                 <div v-if="countdown" class="countdown-wrapper">
                     <div class="countdown-pie countdown-spinner" :style="'animation: rota ' + (countdown/1000) + 's linear infinite;'" />
                     <div class="countdown-pie countdown-filler" :style="'animation: fill ' + (countdown/1000) + 's steps(1, end) infinite;'" />
@@ -24,12 +24,12 @@
 
 <script>
 
-import { XIcon } from '@heroicons/vue/solid'
+import { XMarkIcon } from '@heroicons/vue/20/solid'
 
 export default {
     name: 'ff-notification-toast',
     components: {
-        XIcon
+        XMarkIcon
     },
     props: {
         message: {

@@ -80,13 +80,13 @@ export default {
         ...mapState(useUxDrawersStore, {
             isPinned: state => state.rightDrawer.fixed
         }),
-        ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         isEditorContext () {
             // In editor context, the route name includes 'editor'
             return this.$route?.name?.includes('editor') || false
         },
         isInsightsModeEnabled () {
-            return !!this.features.expertInsights
+            return !!this.featuresCheck?.isExpertInsightsFeatureEnabled
         },
         agentModeWrapper: {
             get () {

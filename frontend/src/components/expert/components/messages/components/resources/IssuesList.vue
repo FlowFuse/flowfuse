@@ -18,7 +18,6 @@
 </template>
 
 <script>
-import { ExclamationIcon } from '@heroicons/vue/solid'
 
 import useStreamingList from '../../../../../../composables/StreamingListHelper.js'
 import { sanitize } from '../../../../../../composables/strings/String.js'
@@ -27,7 +26,7 @@ import StreamableContent from './StreamableContent.vue'
 
 export default {
     name: 'IssuesList',
-    components: { StreamableContent, ExclamationIcon },
+    components: { StreamableContent },
     props: {
         issues: {
             type: Array,

@@ -5,7 +5,7 @@
 
 <script>
 
-import { DocumentIcon, FolderIcon } from '@heroicons/vue/outline'
+import { DocumentIcon, FolderIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'FileBrowserCellType',

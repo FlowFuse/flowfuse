@@ -30,7 +30,8 @@ export const useProductExpertStore = defineStore('product-expert', {
         agentMode: SUPPORT_AGENT, // support-agent or insights-agent
         loadingVariant: SUPPORT_AGENT,
         shouldWakeUpAssistant: false,
-        inFlightUpdates: []
+        inFlightUpdates: [],
+        _seenTransactionIds: new Map()
     }),
     getters: {
         _agentStore () {
@@ -75,7 +76,7 @@ export const useProductExpertStore = defineStore('product-expert', {
     actions: {
         setContext ({ data, sessionId }) {
             const featuresCheck = useAccountSettingsStore().featuresCheck
-            if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
+            if (!featuresCheck.isExpertAssistantFeatureEnabled && !featuresCheck.isExpertInsightsFeatureEnabled) {
                 return
             }
 
@@ -93,7 +94,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         async hydrateClient () {
             const featuresCheck = useAccountSettingsStore().featuresCheck
-            if (featuresCheck.isExpertAssistantFeatureEnabled === false) {
+            if (!featuresCheck.isExpertAssistantFeatureEnabled && !featuresCheck.isExpertInsightsFeatureEnabled) {
                 return
             }
 
@@ -121,7 +122,16 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         openAssistantDrawer (options = {}) {
             const featuresCheck = useAccountSettingsStore().featuresCheck
-            if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+            const hasAssistant = featuresCheck.isExpertAssistantFeatureEnabled
+            const hasInsights = featuresCheck.isExpertInsightsFeatureEnabled
+            if (!hasAssistant && !hasInsights) return
+
+            // If only one mode is available, ensure it is selected
+            if (hasAssistant && !hasInsights) {
+                this.setAgentMode(SUPPORT_AGENT)
+            } else if (!hasAssistant && hasInsights) {
+                this.setAgentMode(INSIGHTS_AGENT)
+            }
 
             // In immersive editor context, navigate to the Expert tab instead of opening RightDrawer
             const contextStore = useContextStore()
@@ -152,7 +162,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
             if (this.shouldWakeUpAssistant) {
                 const featuresCheck = useAccountSettingsStore().featuresCheck
-                if (featuresCheck.isExpertAssistantFeatureEnabled === false) return
+                if (!featuresCheck.isExpertAssistantFeatureEnabled && !featuresCheck.isExpertInsightsFeatureEnabled) return
 
                 this.clearWakeUp()
 
@@ -596,14 +606,26 @@ export const useProductExpertStore = defineStore('product-expert', {
             const sessionId = packet.properties?.userProperties?.sessionId // chat session
             const chatTransactionId = packet.properties?.userProperties?.transactionId // passed through for integrity
 
+            // Drop duplicates (QoS 1 retries, bridge re-fires, redundant resubscribes).
+            // Must run synchronously before any await so a second delivery can't race past the check.
+            if (transactionId) {
+                if (this._seenTransactionIds.has(transactionId)) {
+                    return // already processed this message
+                }
+                this._seenTransactionIds.set(transactionId, true)
+                if (this._seenTransactionIds.size > 200) {
+                    this._seenTransactionIds.delete(this._seenTransactionIds.keys().next().value)
+                }
+            }
+
             switch (true) {
-            case parsedTopic.isReply:
+            case parsedTopic.isReply: // final chat response
                 // remove inFlight request because it is now resolved
                 this._inFlightRequests.delete(transactionId)
                 // handle the response
                 await this.handleMessageResponse(JSON.parse(message.toString()))
                 break
-            case parsedTopic.isInflightRequest:
+            case parsedTopic.isInflightRequest: // in-flight request from the agent (e.g., action invocation, status update)
                 await this.handleInFlightRequest({
                     topic,
                     message,

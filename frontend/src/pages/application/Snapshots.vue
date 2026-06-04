@@ -17,7 +17,7 @@
             <ff-data-table data-el="snapshots" class="space-y-4" :columns="columns" :rows="snapshotsFiltered" :show-search="true" search-placeholder="Search Snapshots...">
                 <template #actions>
                     <DropdownMenu data-el="snapshot-filter" buttonClass="ff-btn ff-btn--secondary" :options="snapshotFilterOptions">
-                        <FilterIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
+                        <FunnelIcon class="ff-btn--icon ff-btn--icon-left" aria-hidden="true" />
                         {{ snapshotFilter?.name || 'All Snapshots' }}
                         <span class="sr-only">Filter Snapshots</span>
                     </DropdownMenu>
@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import { FilterIcon } from '@heroicons/vue/outline'
+import { FunnelIcon } from '@heroicons/vue/24/outline'
 import { markRaw } from 'vue'
 
 import ApplicationApi from '../../api/application.js'
@@ -90,7 +90,7 @@ export default {
         AssetCompareDialog,
         DropdownMenu,
         EmptyState,
-        FilterIcon,
+        FunnelIcon,
         SectionTopMenu,
         SnapshotEditDialog,
         SnapshotExportDialog

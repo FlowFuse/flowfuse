@@ -29,7 +29,7 @@
                                     v-ff-tooltip="'Generate a new name'" size="small" kind="tertiary"
                                     @click="generateName"
                                 >
-                                    <RefreshIcon class="ff-icon ff-icon-sm" />
+                                    <ArrowPathIcon class="ff-icon ff-icon-sm" />
                                 </ff-button>
                                 <ff-button v-ff-tooltip="'Edit'" size="small" kind="tertiary" @click="goToStep(1)">
                                     <PencilIcon class="ff-icon ff-icon-sm" />
@@ -98,7 +98,7 @@
 </template>
 
 <script>
-import { PencilIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { ArrowPathIcon, PencilIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import billingApi from '../../../../api/billing.js'
@@ -128,7 +128,7 @@ export default {
         ExportInstanceComponents,
         FfLoading,
         PencilIcon,
-        RefreshIcon
+        ArrowPathIcon
     },
     props: {
         applications: {

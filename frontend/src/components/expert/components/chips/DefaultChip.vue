@@ -9,21 +9,21 @@
         <span class="separator" />
 
         <div class="icon-wrapper">
-            <XIcon v-if="modelValue" class="ff-icon ff-icon-sm" />
+            <XMarkIcon v-if="modelValue" class="ff-icon ff-icon-sm" />
             <PlusIcon v-else class="ff-icon ff-icon-sm" />
         </div>
     </div>
 </template>
 
 <script>
-import { PlusIcon, XIcon } from '@heroicons/vue/outline'
+import { PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
 import { pluralize } from '../../../../composables/strings/String.js'
 
 export default {
     name: 'DefaultChip',
     components: {
-        XIcon,
+        XMarkIcon,
         PlusIcon
     },
     props: {

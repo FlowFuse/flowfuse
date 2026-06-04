@@ -25,7 +25,7 @@
                                     v-ff-tooltip="nrLocalLoginEnabledWarning"
                                 />
                                 <router-link to="settings/security" class="flex items-center">
-                                    <CogIcon class="w-5 h-5 text-gray-500" />
+                                    <Cog8ToothIcon class="w-5 h-5 text-gray-500" />
                                 </router-link>
                             </div>
                         </template>
@@ -34,7 +34,7 @@
             </InfoCard>
             <InfoCard header="Deployment:">
                 <template #icon>
-                    <TemplateIcon />
+                    <RectangleGroupIcon />
                 </template>
                 <template #content>
                     <InfoCardRow property="Agent Version:">
@@ -91,7 +91,7 @@
                                     :to="{name: isImmersiveEditor ? 'device-editor-settings' : 'device-settings', query: { highlight: 'device-group-section' }}"
                                 >
                                     <template #icon>
-                                        <PencilAltIcon class="ff-icon ff-icon-sm" />
+                                        <PencilSquareIcon class="ff-icon ff-icon-sm" />
                                     </template>
                                 </ff-button>
                             </section>
@@ -109,7 +109,7 @@
                         <template #value>
                             <span v-ff-tooltip:left="'Set Active Snapshots via Pipelines'" class="flex gap-2 pr-2">
                                 <span class="flex items-center space-x-2 text-gray-500 italic">
-                                    <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.activeSnapshot || !targetSnapshotDeployed" />
+                                    <ExclamationTriangleIcon class="text-yellow-600 w-4" v-if="!device.activeSnapshot || !targetSnapshotDeployed" />
                                     <CheckCircleIcon class="text-green-700 w-4" v-else />
                                 </span>
 
@@ -130,7 +130,7 @@
                         <template #value>
                             <span v-ff-tooltip:left="'Set Target Snapshots via Pipelines'" class="flex gap-2 pr-2">
                                 <span class="flex items-center space-x-2 pt-1 text-gray-500 italic">
-                                    <ExclamationIcon class="text-yellow-600 w-4" v-if="!device.targetSnapshot" />
+                                    <ExclamationTriangleIcon class="text-yellow-600 w-4" v-if="!device.targetSnapshot" />
                                     <CheckCircleIcon class="text-green-700 w-4" v-else />
                                 </span>
                                 <template v-if="device.targetSnapshot">
@@ -157,7 +157,7 @@
         <div class="flex-1">
             <FormHeading>
                 <div class="flex gap-2 items-center text-xl">
-                    <TrendingUpIcon class="ff-icon" />Recent Activity
+                    <ArrowTrendingUpIcon class="ff-icon" />Recent Activity
                 </div>
             </FormHeading>
             <div class="ff-device-overview-audit">
@@ -173,7 +173,7 @@
 <script>
 
 // utilities
-import { CheckCircleIcon, CogIcon, ExclamationIcon, PencilAltIcon, TemplateIcon, TrendingUpIcon, WifiIcon } from '@heroicons/vue/outline'
+import { ArrowTrendingUpIcon, CheckCircleIcon, Cog8ToothIcon, ExclamationTriangleIcon, PencilSquareIcon, RectangleGroupIcon, WifiIcon } from '@heroicons/vue/24/outline'
 
 // api
 import { mapState } from 'pinia'
@@ -199,19 +199,19 @@ export default {
     props: ['device'],
     components: {
         CheckCircleIcon,
-        CogIcon,
-        ExclamationIcon,
+        Cog8ToothIcon,
+        ExclamationTriangleIcon,
         FormHeading,
-        TrendingUpIcon,
+        ArrowTrendingUpIcon,
         WifiIcon,
         InfoCard,
         InfoCardRow,
-        TemplateIcon,
+        RectangleGroupIcon,
         DeviceModeBadge,
         DeviceLastSeenBadge,
         StatusBadge,
         AuditLog,
-        PencilAltIcon
+        PencilSquareIcon
     },
     setup () {
         const { hasPermission } = usePermissions()

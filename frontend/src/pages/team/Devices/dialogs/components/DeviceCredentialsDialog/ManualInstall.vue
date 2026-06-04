@@ -7,11 +7,11 @@
         <pre class="overflow-auto text-xs font-light p-4 my-2 border rounded-sm ff-code-surface">{{ credentials }}</pre>
         <div class="flex flex-row justify-end space-x-2 -mt-1">
             <ff-button kind="tertiary" size="small" class="ml-4" @click="downloadCredentials()">
-                <template #icon-right><DocumentDownloadIcon /></template>
+                <template #icon-right><DocumentArrowDownIcon /></template>
                 <span class="">Download</span>
             </ff-button>
             <ff-button kind="tertiary" size="small" @click="copy(credentials)">
-                <template #icon-right><ClipboardCopyIcon /></template>
+                <template #icon-right><ClipboardDocumentIcon /></template>
                 <span class="">Copy</span>
             </ff-button>
         </div>
@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import { ClipboardCopyIcon, DocumentDownloadIcon } from '@heroicons/vue/outline'
+import { ClipboardDocumentIcon, DocumentArrowDownIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import { downloadData } from '../../../../../../composables/Download.js'
@@ -31,8 +31,8 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 export default {
     name: 'ManualInstall',
     components: {
-        ClipboardCopyIcon,
-        DocumentDownloadIcon
+        ClipboardDocumentIcon,
+        DocumentArrowDownIcon
     },
     mixins: [clipboardMixin],
     props: {

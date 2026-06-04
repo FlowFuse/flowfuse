@@ -43,7 +43,7 @@
 
                 <FormRow v-model="input.icon" :error="errors.icon" data-form="icon">
                     Custom Icon
-                    <template #description>From https://v1.heroicons.com/, falls back to category icon</template>
+                    <template #description>Kebab-case heroicons.com outline name (e.g. globe-alt). v1 names still recognised. Falls back to the category icon.</template>
                 </FormRow>
 
                 <FormRow v-model="input.order" type="number" :error="errors.order" data-form="order">
@@ -93,6 +93,7 @@
 import FlowBlueprintsApi from '../../../../api/flowBlueprints.js'
 
 import FormRow from '../../../../components/FormRow.vue'
+import { HEROICONS_V1_TO_V2_KEBAB_CASE } from '../../../../utils/heroicons-v1-aliases'
 
 /**
  * @typedef {import('../../../../api/flowBlueprints').FlowBlueprint} FlowBlueprint
@@ -120,7 +121,7 @@ export default {
                     active: flowBlueprint?.active ?? true,
                     category: flowBlueprint?.category ?? '',
                     description: flowBlueprint?.description ?? '',
-                    icon: flowBlueprint?.icon ?? '',
+                    icon: HEROICONS_V1_TO_V2_KEBAB_CASE[flowBlueprint?.icon] ?? flowBlueprint?.icon ?? '',
                     order: flowBlueprint?.order ?? '',
                     default: flowBlueprint?.default ?? false,
                     externalUrl: flowBlueprint?.externalUrl ?? '',

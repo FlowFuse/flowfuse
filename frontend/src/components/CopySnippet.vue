@@ -1,20 +1,20 @@
 <template>
     <div class="flex flex-row justify-end space-x-2 mt-1">
         <ff-button kind="tertiary" size="small" @click="copy(snippet)">
-            <template #icon-right><ClipboardCopyIcon /></template>
+            <template #icon-right><ClipboardDocumentIcon /></template>
             <span class="">Copy</span>
         </ff-button>
     </div>
 </template>
 <script>
-import { ClipboardCopyIcon } from '@heroicons/vue/outline'
+import { ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 
 import clipboardMixin from '../mixins/Clipboard.js'
 import Alerts from '../services/alerts.js'
 export default {
     name: 'CopySnippet',
     components: {
-        ClipboardCopyIcon
+        ClipboardDocumentIcon
     },
     mixins: [clipboardMixin],
     props: {

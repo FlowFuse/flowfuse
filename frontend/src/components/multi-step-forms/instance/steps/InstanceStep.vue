@@ -18,7 +18,7 @@
                     />
                     <ff-button kind="secondary" @click="refreshName">
                         <template #icon>
-                            <RefreshIcon />
+                            <ArrowPathIcon />
                         </template>
                     </ff-button>
                 </div>
@@ -125,7 +125,7 @@
 </template>
 
 <script>
-import { CheckCircleIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { ArrowPathIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import billingApi from '../../../../api/billing.js'
@@ -154,7 +154,7 @@ export default {
     components: {
         InstanceChargesTable,
         FeatureUnavailableToTeam,
-        RefreshIcon,
+        ArrowPathIcon,
         CheckCircleIcon,
         Loading,
         InstanceCreditBanner,
