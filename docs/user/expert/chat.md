@@ -70,7 +70,7 @@ Some prompts that work well:
 
 The more specific your prompt, the closer the result will be to what you need. Include node names, topic paths, endpoints, or field names where you have them. Expert will use them directly rather than substituting placeholders.
 
-> **Availability:** This feature is in open beta on **FlowFuse Cloud** (Starter, Team, and Enterprise tiers) — no request needed. It is now also available on **Self-Hosted Enterprise**; [contact us](https://flowfuse.com/contact-us/?subject=FlowFuse%20Expert%20Application%20Building) to get it set up. Agentic flow building works on both Hosted and Remote Instances.
+> Availability: This feature is in open beta on FlowFuse Cloud (Starter, Team, and Enterprise tiers) — no request needed. It is now also available on Self-Hosted Enterprise: [contact us](https://flowfuse.com/contact-us/?subject=FlowFuse%20Expert%20Application%20Building) to enable it, and new self-hosted customers get it enabled automatically. Agentic flow building works on both Hosted and Remote Instances.
 
 #### Context: What the Expert Can See
 
