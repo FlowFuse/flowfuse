@@ -23,7 +23,7 @@ When configuring persistent context in different nodes (e.g., Change, Inject, or
 - **Change Node, Inject Node, Switch Node**:  
   When you configure these nodes to store or access context data, you’ll notice a storage option at the right corner. By default, it will be set to **Memory**. To make the context **persistent**, simply switch the selection to **Persistent**.
 
-![Persistent Store Option in Change Node](https://flowfuse.com/img/variables-in-node-red-change-node-persistent-store-option--UYd_d_m4p-528.webp)
+![Persistent Store Option in Change Node](images/variables-in-node-red-change-node-persistent-store-option.gif)
 
 #### Using Persistent Context in Function Nodes
 
