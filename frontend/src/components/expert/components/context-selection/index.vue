@@ -4,7 +4,7 @@
         <div class="chips-container" @wheel="horizontalScrolling">
             <context-chip v-for="(context, index) in selectedContextFiltered" :key="index" :contextItem="context" />
             <debug-chip v-if="hasDebugLogsSelected && !isInsightsAgent" />
-            <selection-chip v-if="hasUserSelection && !isInsightsAgent" />
+            <selection-chip v-if="hasUserSelection && !isInsightsAgent && !isDevice" />
         </div>
     </div>
 </template>
@@ -18,6 +18,7 @@ import SelectionChip from '../chips/SelectionChip.vue'
 
 import ContextSelectorButton from './ContextSelectorButton.vue'
 
+import { useContextStore } from '@/stores/context.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 
@@ -32,6 +33,7 @@ export default {
     computed: {
         ...mapState(useProductAssistantStore, ['getSelectedContext', 'hasDebugLogsSelected', 'hasUserSelection']),
         ...mapState(useProductExpertStore, ['isInsightsAgent']),
+        ...mapState(useContextStore, { isDevice: store => store.editorEntityType === 'device' }),
         selectedContext () {
             // for insights mode, return empty array
             if (this.isInsightsAgent) {

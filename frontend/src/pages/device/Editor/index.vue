@@ -267,6 +267,7 @@ export default {
         }
     },
     mounted () {
+        this.setIsImmersive(true)
         this.loadDevice()
     },
     beforeUnmount () {
