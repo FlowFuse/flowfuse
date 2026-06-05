@@ -41,12 +41,12 @@ module.exports = async function (app) {
                 const apihost = telemetry.frontend.posthog.apiurl || 'https://app.posthog.com'
                 const apikey = telemetry.frontend.posthog.apikey
                 const options = {
-                    api_host: apihost
+                    api_host: apihost,
+                    cookieless_mode: 'on_reject'
                 }
                 if ('capture_pageview' in telemetry.frontend.posthog) {
                     options.capture_pageview = telemetry.frontend.posthog.capture_pageview
                 }
-                // TODO: object to string in the injection script
                 injection += `<script>
                 !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
                 posthog.init('${apikey}', ${JSON.stringify(options)})
@@ -55,16 +55,34 @@ module.exports = async function (app) {
 
             if (telemetry.frontend.google?.tag) {
                 const tag = telemetry.frontend.google.tag
-                injection += `<script async src="https://www.googletagmanager.com/gtag/js?id=${tag}"></script>`
-                injection += `<script> window.dataLayer = window.dataLayer || []; let gtag = window.gtag = function (){dataLayer.push(arguments);}; gtag('js', new Date()); gtag('config', '${tag}'); </script>`
+                // Deferred until consent is given - the cookie-consent store calls this on accept.
+                injection += `<script>
+                window._ffLoadGoogleAnalytics = function () {
+                    if (window._ffGoogleAnalyticsLoaded) { return }
+                    window._ffGoogleAnalyticsLoaded = true
+                    var s = document.createElement('script'); s.async = true
+                    s.src = 'https://www.googletagmanager.com/gtag/js?id=${tag}'
+                    document.head.appendChild(s)
+                    window.dataLayer = window.dataLayer || []
+                    window.gtag = function () { dataLayer.push(arguments) }
+                    gtag('js', new Date()); gtag('config', '${tag}')
+                }
+            </script>`
             }
 
             if (support?.enabled && support.frontend?.hubspot?.trackingcode) {
                 const trackingCode = support.frontend.hubspot.trackingcode
-                injection += `<!-- Start of HubSpot Embed Code -->
-                <script type="text/javascript">window._ffhstc = "${trackingCode}"</script>
-                <script type="text/javascript" id="hs-script-loader" async defer src="//js-eu1.hs-scripts.com/${trackingCode}.js"></script>
-              <!-- End of HubSpot Embed Code -->`
+                // Deferred until consent is given - the cookie-consent store calls this on accept.
+                injection += `<script type="text/javascript">
+                window._ffhstc = "${trackingCode}"
+                window._ffLoadHubSpot = function () {
+                    if (document.getElementById('hs-script-loader')) { return }
+                    var s = document.createElement('script')
+                    s.type = 'text/javascript'; s.id = 'hs-script-loader'; s.async = true; s.defer = true
+                    s.src = '//js-eu1.hs-scripts.com/${trackingCode}.js'
+                    document.head.appendChild(s)
+                }
+            </script>`
             }
 
             if (telemetry.frontend?.sentry?.dsn) {
