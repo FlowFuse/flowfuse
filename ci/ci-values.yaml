@@ -5,7 +5,7 @@ forge:
   localValkey: false
   projectIngressClassName: traefik
   broker:
-    enabled: true
+    enabled: false
     teamBroker:
       enabled: false
   cloudProvider: aws
