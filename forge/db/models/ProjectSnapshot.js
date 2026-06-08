@@ -52,6 +52,22 @@ module.exports = {
     finders: function (M) {
         const self = this
         return {
+            instance: {
+                getTeamId: async function () {
+                    if (this.ownerType === 'instance') {
+                        const project = await this.getProject()
+                        if (project) {
+                            return project.get('TeamId')
+                        }
+                    } else if (this.ownerType === 'device') {
+                        const device = await this.getDevice()
+                        if (device) {
+                            return device.get('TeamId')
+                        }
+                    }
+                    return null
+                }
+            },
             static: {
                 byId: async function (id, { includeFlows = true, includeSettings = true } = {}) {
                     // By default, this returns the full snapshot - including settings and flows
