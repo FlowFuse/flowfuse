@@ -20,8 +20,11 @@ const featureList = [
     'instanceResources',
     'tables',
     'certifiedNodes',
+    'ai',
     'assistantInlineCompletions',
     'generatedSnapshotDescription',
+    'expertAssistant',
+    'expertInsights',
     'ffNodes',
     'rbacApplication'
 ]
@@ -47,8 +50,11 @@ const featureNames = {
     instanceResources: 'Instance Resources',
     tables: 'Tables',
     certifiedNodes: 'Certified Nodes',
+    ai: 'AI Features',
     assistantInlineCompletions: 'Assistant Inline Code Completions',
     generatedSnapshotDescription: 'Generate Snapshot Descriptions',
+    expertAssistant: 'Expert Assistant',
+    expertInsights: 'Expert Insights',
     ffNodes: 'FlowFuse Exclusive Nodes',
     rbacApplication: 'Application-level RBAC'
 }

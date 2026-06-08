@@ -1,3 +1,64 @@
+#### 2.31.0: Release
+
+ - Update available Node-RED Versions for Application Devices (#7373)
+ - Validate snapshot owner in device api (#7377)
+ - Fix: Add type: 'object' to schema roots with required to silence AJV strictTypes warning on startup (#7375)
+ - [5637] Upgrade hericons to v 2.1.5 (#7308)
+ - Allow per-team cert nodes catalogues via admin override (#7369)
+ - Document team-level and platform-level AI feature management options (#7335)
+ - Handle duplicate expert messages (#7372)
+ - Add team level support for expert features (#7331)
+ - Fix inconsistend backend gating of snapshot description endpoint (#7330)
+ - docs: add `ai.enabled` platform configuration and team type feature (#7321)
+ - Enforce AI feature dependency checks for feature flags and assistant-… (#7319)
+ - Add documentation for soft launch enablement using PostHog feature flags (#7343)
+ - Gate snapshot description and inline completions flags behind assistant config (#7318)
+ - Introduce generic `ai` platform and team type feature flag (#7317)
+ - docs: update Cloud free trial length from 14 to 30 days (#7358)
+ - Register startup and weekly tasks in expert module (#7357)
+ - Add automated EMQX bridge setup for Expert broker (#7184)
+ - Bump tmp from 0.2.4 to 0.2.6 (#7351)
+ - Bump docker/login-action from 4.1.0 to 4.2.0 (#7340)
+ - Bump docker/build-push-action from 7.1.0 to 7.2.0 (#7338)
+ - chore: Bump docker/setup-buildx-action from 4.0.0 to 4.1.0 (#7339)
+ - ci: Improve pre-staging `forge` container image size (#7329)
+ - feat: update support agent initial sentence (#7349)
+ - Bump webpack-cli from 5.1.4 to 7.0.2 (#7336)
+ - docs: Clarify how to use TLS from a private Certificate Authority in the docker deployment (#7344)
+ - Bump nodemon from 3.1.7 to 3.1.14 (#7337)
+ - Add section on private CA to k8s install instructions (#7328)
+ - ci: Update website links validation method in `Publish Documentation` workflow (#7341)
+ - Adjust tab option margins for consistent spacing in ff-components (#7301)
+ - Fix Team Broker response to match schema (#7323)
+ - Include updatedAt timestamp in MQTTTopicSchema (#7246)
+ - Bump actions/create-github-app-token from 3.1.1 to 3.2.0 (#7291)
+ - Bump @tootallnate/once and @sentry/profiling-node (#7227)
+ - Fix dev/prod CSS loader inconsistencies causing cascade ordering mismatches (#7304)
+ - Bump protobufjs from 7.5.6 to 7.6.0 (#7309)
+ - Bump codecov/codecov-action from 6.0.0 to 6.0.1 (#7290)
+ - [7126] Tighten response schemas: add `required` and `additionalProperties: false` (#7131)
+ - Bump tailwindcss from 4.2.4 to 4.3.0 (#7245)
+ - Bump benc-uk/workflow-dispatch from 1.3.1 to 1.3.2 (#7299)
+ - Switch internal reusable workflows to new tagging approach (#7298)
+ - Run pre-staging on node 24 container (#7247)
+ - Bump slackapi/slack-github-action from 3.0.2 to 3.0.3 (#7189) @app/dependabot
+ - Bump aws-actions/amazon-ecr-login from 2.1.4 to 2.1.5 (#7242) @app/dependabot
+ - Bump aws-actions/configure-aws-credentials from 6.1.0 to 6.1.1 (#7241) @app/dependabot
+ - Manually bump ws to 8.20.1 (#7297) @hardillb
+ - [7141] Bump tailwindcss from 2.2.19 to 4.2.1 (#7203) @n-lark
+ - Allow valid npm package names to be deployed via pipelines (#7294) @hardillb
+ - Bump mocha and copy-webpack-plugin (#7287) @hardillb
+ - Bump webpack-dev-server from 5.2.1 to 5.2.4 (#7286) @app/dependabot
+ - Bump diff from 5.2.0 to 9.0.0 (#7240) @app/dependabot
+ - Added a missing keycloack SSO setup required step (#7284) @robmarcer
+ - Bump qs and body-parser (#7252) @app/dependabot
+ - Bump minimatch from 10.1.1 to 10.2.5 (#7251) @app/dependabot
+ - Bump systeminformation from 5.31.5 to 5.31.6 (#7249) @app/dependabot
+ - ci: enable dependabot cooldown (#7248) @ppawlowski
+ - Bump @babel/plugin-transform-modules-systemjs from 7.24.1 to 7.29.4 (#7238) @app/dependabot
+ - Bump fast-xml-builder from 1.1.5 to 1.2.0 (#7236) @app/dependabot
+ - Bump fast-uri from 3.1.0 to 3.1.2 (#7239) @app/dependabot
+
 #### 2.30.1: Release
 
  - Ensure auto updating stacks jump to latest version (#7228) @hardillb

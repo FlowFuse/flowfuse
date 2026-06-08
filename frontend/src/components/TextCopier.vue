@@ -6,20 +6,20 @@
             </slot>
         </span>
         <button v-if="hasText" class="ff-icon-button" @click.stop="copyPath">
-            <DuplicateIcon v-if="!copied" class="ff-icon" />
+            <DocumentDuplicateIcon v-if="!copied" class="ff-icon" />
             <CheckIcon v-else class="ff-icon ff-icon-check" />
         </button>
     </span>
 </template>
 
 <script>
-import { CheckIcon, DuplicateIcon } from '@heroicons/vue/outline'
+import { CheckIcon, DocumentDuplicateIcon } from '@heroicons/vue/24/outline'
 
 import Alert from '../services/alerts.js'
 
 export default {
     name: 'TextCopier',
-    components: { DuplicateIcon, CheckIcon },
+    components: { DocumentDuplicateIcon, CheckIcon },
     props: {
         text: {
             required: true,

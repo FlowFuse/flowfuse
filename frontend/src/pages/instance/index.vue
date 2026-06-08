@@ -75,8 +75,8 @@
 </template>
 
 <script>
-import { LockClosedIcon } from '@heroicons/vue/outline'
-import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon } from '@heroicons/vue/20/solid'
+import { LockClosedIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'

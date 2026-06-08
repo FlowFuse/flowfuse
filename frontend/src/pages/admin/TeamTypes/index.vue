@@ -5,7 +5,7 @@
                 <template #tools>
                     <ff-button data-action="create-type" @click="showEditTeamTypeDialog()">
                         <template #icon-right>
-                            <PlusSmIcon />
+                            <PlusSmallIcon />
                         </template>
                         Create team type
                     </ff-button>
@@ -50,7 +50,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 
 import teamTypesApi from '../../../api/teamTypes.js'
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
@@ -65,7 +65,7 @@ export default {
     name: 'AdminTeamTypes',
     components: {
         SectionTopMenu,
-        PlusSmIcon,
+        PlusSmallIcon,
         TeamTypeEditDialog
     },
     data () {

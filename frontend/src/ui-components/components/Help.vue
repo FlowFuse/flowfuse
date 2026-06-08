@@ -6,7 +6,7 @@
 
 <script>
 
-import { QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+import { QuestionMarkCircleIcon } from '@heroicons/vue/20/solid'
 
 export default {
     name: 'ff-help',

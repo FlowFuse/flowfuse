@@ -58,7 +58,7 @@
                         </template>
                     </ff-popover>
                     <DropdownMenu v-if="hasPermission('team:device:bulk-delete', applicationContext) || hasPermission('team:device:bulk-edit', applicationContext)" :disabled="!checkedDevices?.length" data-el="bulk-actions-dropdown" buttonClass="ff-btn ff-btn--secondary ff-btn-icon" :options="bulkActionsDropdownOptions">
-                        <CogIcon class="ff-btn--icon ff-btn--icon-left" />
+                        <Cog8ToothIcon class="ff-btn--icon ff-btn--icon-left" />
                         <span class="hidden sm:inline bulk-actions-text">Actions</span>
                     </DropdownMenu>
                     <ff-button
@@ -84,7 +84,7 @@
                         @click="showCreateDeviceDialog"
                     >
                         <template #icon-left>
-                            <PlusSmIcon />
+                            <PlusSmallIcon />
                         </template>
                         <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                     </ff-button>
@@ -161,7 +161,7 @@
                                 @click="showCreateDeviceDialog"
                             >
                                 <template #icon-left>
-                                    <PlusSmIcon />
+                                    <PlusSmallIcon />
                                 </template>
                                 <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
@@ -200,7 +200,7 @@
                                 @click="showCreateDeviceDialog"
                             >
                                 <template #icon-left>
-                                    <PlusSmIcon />
+                                    <PlusSmallIcon />
                                 </template>
                                 <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
@@ -239,7 +239,7 @@
                                 @click="showCreateDeviceDialog"
                             >
                                 <template #icon-left>
-                                    <PlusSmIcon />
+                                    <PlusSmallIcon />
                                 </template>
                                 <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
                             </ff-button>
@@ -343,8 +343,8 @@
 </template>
 
 <script>
-import { ClockIcon } from '@heroicons/vue/outline'
-import { CogIcon, PlusSmIcon } from '@heroicons/vue/solid'
+import { Cog8ToothIcon, PlusSmallIcon } from '@heroicons/vue/20/solid'
+import { ClockIcon } from '@heroicons/vue/24/outline'
 
 import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
@@ -399,13 +399,13 @@ export default {
         PopoverItem,
         FfPopover,
         ClockIcon,
-        CogIcon,
+        Cog8ToothIcon,
         DeviceAssignApplicationDialog,
         DeviceAssignInstanceDialog,
         DeviceCredentialsDialog,
         DropdownMenu,
         FeatureUnavailableToTeam,
-        PlusSmIcon,
+        PlusSmallIcon,
         SnapshotAssignDialog,
         TeamDeviceCreateDialog,
         EmptyState,

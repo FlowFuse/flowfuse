@@ -1,4 +1,4 @@
-import { CogIcon } from '@heroicons/vue/solid'
+import { Cog8ToothIcon } from '@heroicons/vue/20/solid'
 import { mount } from '@vue/test-utils'
 import { expect } from 'vitest'
 
@@ -23,7 +23,7 @@ describe('NavItem', () => {
         const wrapper = mount(NavItem, {
             props: {
                 label: 'nav item',
-                icon: CogIcon
+                icon: Cog8ToothIcon
             }
         })
 

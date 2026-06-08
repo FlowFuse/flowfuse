@@ -114,7 +114,7 @@ const ALL_CONTEXT_OPTIONS = [
         value: 'visible-debug-logs',
         name: 'Debug Logs',
         label: 'Add Debug Logs (all visible)',
-        menuIcon: 'ViewListIcon',
+        menuIcon: 'Bars4Icon',
         showAsChip: false,
         onSelectAction: 'requestDebugLogContextVisibleEntries'
     },
@@ -122,7 +122,7 @@ const ALL_CONTEXT_OPTIONS = [
         value: 'visible-debug-errors',
         name: 'Error Logs',
         label: 'Add Debug Logs (errors only)',
-        menuIcon: 'ViewListIcon',
+        menuIcon: 'Bars4Icon',
         showAsChip: false,
         onSelectAction: 'requestDebugLogContextVisibleErrorEntries'
     }

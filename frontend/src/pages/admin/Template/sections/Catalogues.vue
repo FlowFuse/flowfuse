@@ -41,7 +41,7 @@
                                 :disabled="isDisabled"
                                 @click="removeURL(defaultCatalogue)"
                             >
-                                <template #icon><XIcon /></template>
+                                <template #icon><XMarkIcon /></template>
                             </ff-button>
                         </div>
                         <div v-for="(url, index) in thirdPartyUrls" :key="index" class="w-full flex items-center">
@@ -52,7 +52,7 @@
                                 :disabled="isDisabled"
                                 @click="removeURL(url)"
                             >
-                                <template #icon><XIcon /></template>
+                                <template #icon><XMarkIcon /></template>
                             </ff-button>
                         </div>
                         <FormRow
@@ -70,7 +70,7 @@
                                     :disabled="isDisabled" @click="addURL()"
                                 >
                                     <template #icon>
-                                        <PlusSmIcon />
+                                        <PlusSmallIcon />
                                     </template>
                                 </ff-button>
                             </template>
@@ -90,7 +90,7 @@
 </template>
 
 <script>
-import { PlusSmIcon, XIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import SemVer from 'semver'
@@ -114,8 +114,8 @@ export default {
         FormHeading,
         ChangeIndicator,
         LockSetting,
-        PlusSmIcon,
-        XIcon,
+        PlusSmallIcon,
+        XMarkIcon,
         UndoIcon
     },
     props: {

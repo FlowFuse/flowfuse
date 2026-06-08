@@ -10,64 +10,87 @@ describe('ProjectSnapshot model', function () {
     after(async function () {
         await app.close()
     })
-    describe('Relations', function () {
-        let ProjectSnapshot
-        beforeEach(async () => {
-            ({ ProjectSnapshot } = app.db.models)
+    let ProjectSnapshot
+    beforeEach(async () => {
+        ({ ProjectSnapshot } = app.db.models)
+    })
+
+    // helper functions
+    const nameGenerator = (name) => `${name} ${Math.random().toString(36).substring(7)}`
+    const newSnapshot = async (projectId, deviceId, userId) => {
+        const name = nameGenerator('Test Snapshot')
+        const snapshot = await app.db.models.ProjectSnapshot.create({ name, ProjectId: projectId, DeviceId: deviceId, UserId: userId })
+        return snapshot
+    }
+    const newProject = async (applicationId, teamId, projectTypeId, projectStackId, projectTemplateId) => {
+        const name = nameGenerator('Test Project')
+        const project = await app.db.models.Project.create({
+            name,
+            safeName: name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+            type: '',
+            url: '',
+            ApplicationId: applicationId,
+            TeamId: teamId,
+            ProjectTypeId: projectTypeId || null,
+            ProjectStackId: projectStackId || null,
+            ProjectTemplateId: projectTemplateId || null
         })
+        return project
+    }
+    const newDevice = async (teamId, { targetSnapshotId, activeSnapshotId, applicationId, projectId, deviceGroupId } = {}) => {
+        const name = nameGenerator('Test Device')
+        const device = await app.db.models.Device.create({
+            name,
+            TeamId: teamId,
+            type: 'PI',
+            credentialSecret: 'abc',
+            state: 'active',
+            targetSnapshotId: targetSnapshotId || null,
+            activeSnapshotId: activeSnapshotId || null,
+            ApplicationId: applicationId || null,
+            ProjectId: projectId || null,
+            DeviceGroupId: deviceGroupId || null
+        })
+        return device
+    }
+    const newUser = async () => {
+        const name = nameGenerator('Test User')
+        const username = name.toLowerCase().replace(/[^a-z0-9]/g, '-')
+        const email = username + '@example.com'
+        const user = await app.db.models.User.create({
+            name,
+            username,
+            email,
+            password: 'password',
+            email_verified: true
+        })
+        return user
+    }
 
-        // helper functions
-        const nameGenerator = (name) => `${name} ${Math.random().toString(36).substring(7)}`
-        const newSnapshot = async (projectId, deviceId, userId) => {
-            const name = nameGenerator('Test Snapshot')
-            const snapshot = await app.db.models.ProjectSnapshot.create({ name, ProjectId: projectId, DeviceId: deviceId, UserId: userId })
-            return snapshot
-        }
-        const newProject = async (applicationId, teamId, projectTypeId, projectStackId, projectTemplateId) => {
-            const name = nameGenerator('Test Project')
-            const project = await app.db.models.Project.create({
-                name,
-                safeName: name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-                type: '',
-                url: '',
-                ApplicationId: applicationId,
-                TeamId: teamId,
-                ProjectTypeId: projectTypeId || null,
-                ProjectStackId: projectStackId || null,
-                ProjectTemplateId: projectTemplateId || null
-            })
-            return project
-        }
-        const newDevice = async (teamId, { targetSnapshotId, activeSnapshotId, applicationId, projectId, deviceGroupId } = {}) => {
-            const name = nameGenerator('Test Device')
-            const device = await app.db.models.Device.create({
-                name,
-                TeamId: teamId,
-                type: 'PI',
-                credentialSecret: 'abc',
-                state: 'active',
-                targetSnapshotId: targetSnapshotId || null,
-                activeSnapshotId: activeSnapshotId || null,
-                ApplicationId: applicationId || null,
-                ProjectId: projectId || null,
-                DeviceGroupId: deviceGroupId || null
-            })
-            return device
-        }
-        const newUser = async () => {
-            const name = nameGenerator('Test User')
-            const username = name.toLowerCase().replace(/[^a-z0-9]/g, '-')
-            const email = username + '@example.com'
-            const user = await app.db.models.User.create({
-                name,
-                username,
-                email,
-                password: 'password',
-                email_verified: true
-            })
-            return user
-        }
+    describe('Model Definition', function () {
+        it('should report team id when snapshot is owned by a project', async function () {
+            const project = await newProject(null, app.TestObjects.team1.id)
+            const snapshot = await newSnapshot(project.id)
+            snapshot.ownerType.should.equal('instance')
+            const teamId = await snapshot.getTeamId()
+            teamId.should.equal(app.TestObjects.team1.id)
+        })
+        it('should report team id when snapshot is owned by a device', async function () {
+            const device = await newDevice(app.TestObjects.team1.id)
+            const snapshot = await newSnapshot(null, device.id)
+            snapshot.ownerType.should.equal('device')
+            const teamId = await snapshot.getTeamId()
+            teamId.should.equal(app.TestObjects.team1.id)
+        })
+        it('should report null team id when snapshot is not owned', async function () {
+            const snapshot = await newSnapshot()
+            should(snapshot.ownerType).be.null()
+            const teamId = await snapshot.getTeamId()
+            should(teamId).be.null()
+        })
+    })
 
+    describe('Relations', function () {
         // TESTS
 
         // RELATION: ProjectId UUID REFERENCES Projects (id) ON DELETE CASCADE ON UPDATE CASCADE,

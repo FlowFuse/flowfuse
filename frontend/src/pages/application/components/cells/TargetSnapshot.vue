@@ -4,7 +4,7 @@
             v-ff-tooltip:left="targetSnapshot.description"
             class="flex items-center space-x-2 text-gray-500 italic"
         >
-            <ExclamationIcon
+            <ExclamationTriangleIcon
                 v-if="!targetSnapshot?.id"
                 class="text-yellow-600 w-4"
             />
@@ -24,12 +24,12 @@
 </template>
 
 <script>
-import { CheckCircleIcon, ExclamationIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'TargetSnapshotCell',
     components: {
-        ExclamationIcon,
+        ExclamationTriangleIcon,
         CheckCircleIcon
     },
     inheritAttrs: false,

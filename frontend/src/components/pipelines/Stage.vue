@@ -9,7 +9,7 @@
             <div class="ff-pipeline-stage-banner-name">
                 <label>{{ stage.name }}</label>
                 <span v-if="error" class="ff-pipelines-stage-banner-error" data-el="stage-banner-error">
-                    <ExclamationIcon class="ff-icon-sm" />
+                    <ExclamationTriangleIcon class="ff-icon-sm" />
                     {{ error }}
                 </span>
             </div>
@@ -20,7 +20,7 @@
                     data-action="stage-edit"
                     @click="edit"
                 >
-                    <PencilAltIcon
+                    <PencilSquareIcon
                         v-if="editEnabled && application?.id && !deploying"
                         class="ff-icon ff-clickable"
                     />
@@ -206,7 +206,7 @@
 </template>
 
 <script>
-import { ExclamationIcon, LockClosedIcon, PencilAltIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/outline'
+import { ExclamationTriangleIcon, LockClosedIcon, PencilSquareIcon, PlayIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
 import PipelineAPI, { StageAction, StageType } from '../../api/pipeline.js'
 
@@ -240,13 +240,13 @@ export default {
         IconNodeRedSolid,
         InstanceStatusBadge,
         LockClosedIcon,
-        PencilAltIcon,
+        PencilSquareIcon,
         PlayIcon,
         PlusCircleIcon,
         SpinnerIcon,
         StatusBadge,
         TrashIcon,
-        ExclamationIcon
+        ExclamationTriangleIcon
     },
     props: {
         application: {

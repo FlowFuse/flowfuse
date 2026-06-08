@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { ChartPieIcon } from '@heroicons/vue/outline'
+import { ChartPieIcon } from '@heroicons/vue/24/outline'
 
 import { useNavigationHelper } from '../../../composables/NavigationHelper.js'
 

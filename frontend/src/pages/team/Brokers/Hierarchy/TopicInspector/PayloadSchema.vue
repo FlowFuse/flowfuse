@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import { LightBulbIcon, XCircleIcon } from '@heroicons/vue/outline'
+import { LightBulbIcon, XCircleIcon } from '@heroicons/vue/24/outline'
 
 import CodeBracketSquareIcon from '../../../../../components/icons/CodeBracketSquare.js'
 import MainTitle from '../components/MainTitle.vue'

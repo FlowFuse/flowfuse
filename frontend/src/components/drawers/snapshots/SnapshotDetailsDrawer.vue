@@ -100,7 +100,7 @@
                     >
                         Download Snapshot
                         <template #icon-left>
-                            <DownloadIcon class="ff-icon" />
+                            <ArrowDownTrayIcon class="ff-icon" />
                         </template>
                     </ff-button>
                     <ff-button
@@ -111,7 +111,7 @@
                     >
                         Download package.json
                         <template #icon-left>
-                            <DocumentDownloadIcon class="ff-icon" />
+                            <DocumentArrowDownIcon class="ff-icon" />
                         </template>
                     </ff-button>
                 </div>
@@ -125,7 +125,7 @@
                 >
                     Set as Device Target
                     <template #icon-left>
-                        <ChipIcon class="ff-icon" />
+                        <CpuChipIcon class="ff-icon" />
                     </template>
                 </ff-button>
                 <ff-button
@@ -149,14 +149,13 @@
 
 <script>
 import {
-    ChipIcon,
+    ArrowDownTrayIcon,
     ClockIcon,
-    DocumentDownloadIcon,
-    DownloadIcon,
-    PencilAltIcon,
-    SaveAsIcon,
+    CpuChipIcon,
+    DocumentArrowDownIcon,
+    PencilSquareIcon,
     TrashIcon
-} from '@heroicons/vue/outline'
+} from '@heroicons/vue/24/outline'
 import { mapActions } from 'pinia'
 import { defineComponent } from 'vue'
 
@@ -181,10 +180,10 @@ export default defineComponent({
         InformationWell,
         FormRow,
         AssetCompareDialog,
-        ChipIcon,
+        CpuChipIcon,
         FlowViewer,
-        DownloadIcon,
-        DocumentDownloadIcon,
+        ArrowDownTrayIcon,
+        DocumentArrowDownIcon,
         SnapshotExportDialog,
         TrashIcon
     },
@@ -346,7 +345,7 @@ export default defineComponent({
                     {
                         label: 'Edit',
                         kind: 'secondary',
-                        iconLeft: PencilAltIcon,
+                        iconLeft: PencilSquareIcon,
                         handler: () => {
                             this.isEditing = !this.isEditing
                         },
@@ -363,7 +362,7 @@ export default defineComponent({
                     {
                         label: 'Save',
                         kind: 'primary',
-                        iconLeft: SaveAsIcon,
+                        iconLeft: DocumentArrowDownIcon,
                         handler: () => {
                             context.saveSnapshot()
                         },

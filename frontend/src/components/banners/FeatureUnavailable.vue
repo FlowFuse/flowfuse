@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import { SparklesIcon } from '@heroicons/vue/outline'
+import { SparklesIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'FeatureUnavailable',

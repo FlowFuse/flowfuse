@@ -7,7 +7,7 @@
             @click="() => { $nextTick(() => { updateItemsPosition() } ) }"
             @keydown.space="() => { $nextTick(() => { updateItemsPosition() } ) }"
         >
-            <DotsVerticalIcon class="ff-icon" />
+            <EllipsisVerticalIcon class="ff-icon" />
         </MenuButton>
         <teleport to="body">
             <transition
@@ -40,14 +40,14 @@ import {
     MenuButton,
     MenuItems
 } from '@headlessui/vue'
-import { DotsVerticalIcon } from '@heroicons/vue/solid'
+import { EllipsisVerticalIcon } from '@heroicons/vue/20/solid'
 
 import TeleportedMenuMixin from '../../../mixins/TeleportedMenuMixin.js'
 
 export default {
     name: 'ff-kebab-menu',
     components: {
-        DotsVerticalIcon,
+        EllipsisVerticalIcon,
         KebabMenu: Menu,
         MenuButton,
         MenuItems

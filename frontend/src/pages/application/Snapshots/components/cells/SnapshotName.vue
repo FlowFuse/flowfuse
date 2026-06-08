@@ -25,7 +25,7 @@
 </template>
 
 <script>
-import { ClockIcon } from '@heroicons/vue/outline'
+import { ClockIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'SnapshotName',

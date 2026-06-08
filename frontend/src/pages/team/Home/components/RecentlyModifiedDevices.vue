@@ -50,7 +50,7 @@
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import teamAPI from '../../../../api/team.js'

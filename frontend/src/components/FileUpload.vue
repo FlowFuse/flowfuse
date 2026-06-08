@@ -18,7 +18,7 @@
                     <PaperClipIcon class="ff-icon ff-icon-sm" />
                     <span>{{ file.name }} (<FileSize :size="file.size" />)</span>
                     <span class="ff-file-upload--clear ff-clickable" data-action="clear-file" @click="file=null">
-                        <XIcon class="ff-btn--icon" />
+                        <XMarkIcon class="ff-btn--icon" />
                     </span>
                 </div>
                 <ff-button
@@ -27,7 +27,7 @@
                     @click="$refs.fileUpload.click()"
                 >
                     <template #icon-left>
-                        <DocumentAddIcon />
+                        <DocumentPlusIcon />
                     </template>
                     <template #default>
                         Select File
@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { DocumentAddIcon, PaperClipIcon, XIcon } from '@heroicons/vue/outline'
+import { DocumentPlusIcon, PaperClipIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
 import FileSize from './FileSize.vue'
 import FormRow from './FormRow.vue'
@@ -49,9 +49,9 @@ export default {
     components: {
         FileSize,
         PaperClipIcon,
-        DocumentAddIcon,
+        DocumentPlusIcon,
         FormRow,
-        XIcon
+        XMarkIcon
     },
     props: {
         modelValue: {

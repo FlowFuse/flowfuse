@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon, CogIcon, LockClosedIcon, UserGroupIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, Cog8ToothIcon, LockClosedIcon, UserGroupIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
@@ -26,7 +26,7 @@ export default {
         return {
             mounted: false,
             navigation: [
-                { name: 'Settings', path: '/account/settings', tag: 'account-settings', icon: CogIcon },
+                { name: 'Settings', path: '/account/settings', tag: 'account-settings', icon: Cog8ToothIcon },
                 { name: 'Teams', path: '/account/teams', tag: 'account-teams', icon: UserGroupIcon },
                 { name: 'Security', path: '/account/security', tag: 'account-security', icon: LockClosedIcon }
             ],
