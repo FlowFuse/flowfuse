@@ -126,6 +126,7 @@ module.exports = async function (app) {
             summary: 'Create a flow blueprint - admin-only',
             tags: ['Flow Blueprints'],
             body: {
+                type: 'object',
                 allOf: [{ $ref: 'FlowBlueprintInput' }],
                 required: ['name']
             },

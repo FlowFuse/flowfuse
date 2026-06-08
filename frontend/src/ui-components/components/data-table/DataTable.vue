@@ -7,7 +7,7 @@
                 data-form="search" :placeholder="searchPlaceholder"
             >
                 <template #icon>
-                    <SearchIcon />
+                    <MagnifyingGlassIcon />
                 </template>
             </ff-text-input>
 
@@ -38,14 +38,14 @@
                                         <!-- eslint-disable-next-line vue/no-v-html -->
                                         <span v-if="col.html" :class="col.tableLabelClass ?? ''" v-html="col.html"> </span>
                                         <span v-else :class="col.tableLabelClass ?? ''">{{ col.label }}</span>
-                                        <SwitchVerticalIcon v-if="col.sortable && col.key !== sort.key"
-                                                            class="ff-icon ff-icon-sm"
+                                        <ArrowsUpDownIcon v-if="col.sortable && col.key !== sort.key"
+                                                          class="ff-icon ff-icon-sm"
                                         />
-                                        <SortAscendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'asc'"
+                                        <BarsArrowUpIcon v-if="col.sortable && col.key === sort.key && sort.order === 'asc'"
+                                                         class="ff-icon ff-icon-sm icon-sorted"
+                                        />
+                                        <BarsArrowDownIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'"
                                                            class="ff-icon ff-icon-sm icon-sorted"
-                                        />
-                                        <SortDescendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'"
-                                                            class="ff-icon ff-icon-sm icon-sorted"
                                         />
                                     </div>
                                 </ff-data-table-cell>
@@ -127,12 +127,12 @@
 
 // icons
 import {
+    ArrowsUpDownIcon,
+    BarsArrowDownIcon,
+    BarsArrowUpIcon,
     ChevronRightIcon,
-    SearchIcon,
-    SortAscendingIcon,
-    SortDescendingIcon,
-    SwitchVerticalIcon
-} from '@heroicons/vue/outline'
+    MagnifyingGlassIcon
+} from '@heroicons/vue/24/outline'
 
 import { slugify } from '../../../composables/strings/String.js'
 
@@ -192,10 +192,10 @@ export default {
     name: 'ff-data-table',
     components: {
         FfDataTableRow,
-        SearchIcon,
-        SwitchVerticalIcon,
-        SortAscendingIcon,
-        SortDescendingIcon,
+        MagnifyingGlassIcon,
+        ArrowsUpDownIcon,
+        BarsArrowUpIcon,
+        BarsArrowDownIcon,
         ChevronRightIcon
     },
     props: {

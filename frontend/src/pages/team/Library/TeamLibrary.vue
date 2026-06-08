@@ -55,7 +55,7 @@
 </template>
 
 <script>
-import { ChevronRightIcon, PlusIcon } from '@heroicons/vue/solid'
+import { ChevronRightIcon, PlusIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
 
 import teamApi from '../../../api/team.js'

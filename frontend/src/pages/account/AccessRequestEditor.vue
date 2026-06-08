@@ -6,15 +6,15 @@
                 <div class="ff-user">
                     <img :src="user.avatar" class="ff-avatar-large">
                 </div>
-                <ArrowSmRightIcon class="w-8" />
-                <TemplateIcon class="w-12" />
+                <ArrowSmallRightIcon class="w-8" />
+                <RectangleGroupIcon class="w-12" />
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import { ArrowSmRightIcon, TemplateIcon } from '@heroicons/vue/solid'
+import { ArrowSmallRightIcon, RectangleGroupIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
@@ -22,8 +22,8 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 export default {
     name: 'AccessRequest',
     components: {
-        TemplateIcon,
-        ArrowSmRightIcon
+        RectangleGroupIcon,
+        ArrowSmallRightIcon
     },
     computed: {
         ...mapState(useAccountAuthStore, ['user'])

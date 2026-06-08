@@ -21,7 +21,7 @@
                 class="edit hover:cursor-pointer"
                 data-action="nav-to-client-owner"
             >
-                <ChipIcon
+                <CpuChipIcon
                     v-if="client.owner?.instanceType === 'device'"
                     v-ff-tooltip:left="`Client is linked to Device '${client.owner.name || client.owner.id}'`"
                     class="ff-icon-sm"
@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import { ChipIcon, PencilIcon, TrashIcon } from '@heroicons/vue/outline'
+import { CpuChipIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 
@@ -81,7 +81,7 @@ export default {
     name: 'BrokerClient',
     components: {
         BrokerAclRule,
-        ChipIcon,
+        CpuChipIcon,
         ProjectsIcon,
         TextCopier,
         PencilIcon,

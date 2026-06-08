@@ -5,7 +5,7 @@
                 <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 shrink-0">
                 <h2 class="title">Expert</h2>
             </div>
-            <div v-if="isInsightsModeEnabled" class="agent-mode">
+            <div v-if="isInsightsModeEnabled && isAssistantModeEnabled" class="agent-mode">
                 <toggle-button-group
                     v-model="agentModeWrapper"
                     :buttons="agentModeButtons"
@@ -31,7 +31,7 @@
                     data-el="expert-drawer-close-button"
                     @click="closeDrawer"
                 >
-                    <XIcon class="ff-icon" />
+                    <XMarkIcon class="ff-icon" />
                 </button>
             </div>
         </div>
@@ -40,7 +40,7 @@
 </template>
 
 <script>
-import { LockClosedIcon, LockOpenIcon, XIcon } from '@heroicons/vue/solid'
+import { LockClosedIcon, LockOpenIcon, XMarkIcon } from '@heroicons/vue/20/solid'
 
 import { mapActions, mapState } from 'pinia'
 
@@ -56,7 +56,7 @@ export default {
     components: {
         ToggleButtonGroup,
         ExpertPanel,
-        XIcon,
+        XMarkIcon,
         LockClosedIcon,
         LockOpenIcon
     },
@@ -64,15 +64,18 @@ export default {
     computed: {
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useProductExpertStore, ['agentMode']),
-        ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         agentModeButtons () {
             return [
                 { title: 'Support', value: 'support-agent' },
                 { title: 'Insights', value: 'insights-agent' }
             ]
         },
+        isAssistantModeEnabled () {
+            return !!this.featuresCheck?.isExpertAssistantFeatureEnabled
+        },
         isInsightsModeEnabled () {
-            return !!this.features.expertInsights
+            return !!this.featuresCheck?.isExpertInsightsFeatureEnabled
         },
         isPinned () {
             return this.rightDrawer.fixed

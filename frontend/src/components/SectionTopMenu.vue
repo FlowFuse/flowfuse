@@ -39,7 +39,7 @@
     </ff-dialog>
 </template>
 <script>
-import { InformationCircleIcon } from '@heroicons/vue/outline'
+import { InformationCircleIcon } from '@heroicons/vue/24/outline'
 import { ref } from 'vue'
 
 export default {

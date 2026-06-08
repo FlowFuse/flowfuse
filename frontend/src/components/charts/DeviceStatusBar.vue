@@ -4,13 +4,13 @@
             <div class="flex items-center gap-4">
                 <h3>{{ label }}</h3>
                 <label v-if="filter?.property === property" class="flex items-center gap-1 opacity-50">
-                    <FilterIcon class="ff-icon ff-icon-sm" />
+                    <FunnelIcon class="ff-icon ff-icon-sm" />
                     Filter Applied - {{ filter?.devices.length }} Device<template v-if="filter?.devices.length > 1">s</template>
                 </label>
             </div>
             <button class="ff-btn ff-btn--tertiary" @click="toggle()">
                 <EyeIcon v-if="visible" class="ff-icon" />
-                <EyeOffIcon v-else class="ff-icon" />
+                <EyeSlashIcon v-else class="ff-icon" />
             </button>
         </div>
         <div v-if="visible" class="ff-chart-device-status">
@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import { EyeIcon, EyeOffIcon, FilterIcon } from '@heroicons/vue/outline'
+import { EyeIcon, EyeSlashIcon, FunnelIcon } from '@heroicons/vue/24/outline'
 
 import DeviceStatus from '../../services/device-status.js'
 
@@ -38,8 +38,8 @@ export default {
     name: 'DeviceStatusBar',
     components: {
         EyeIcon,
-        EyeOffIcon,
-        FilterIcon
+        EyeSlashIcon,
+        FunnelIcon
     },
     props: {
         label: {

@@ -10,7 +10,7 @@
                     <li v-for="(option, $key) in helpOptions" :key="$key">
                         <a :href="option.href" class="ff-link" target="_blank" @click="capturePostHog(option)">
                             <span>{{ option.title }}</span>
-                            <ExternalLinkIcon class="ff-icon" />
+                            <ArrowTopRightOnSquareIcon class="ff-icon" />
                         </a>
                     </li>
                 </ul>
@@ -38,7 +38,7 @@
 </template>
 
 <script>
-import { ExternalLinkIcon } from '@heroicons/vue/solid'
+import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/20/solid'
 
 import { mapActions, mapState } from 'pinia'
 
@@ -48,7 +48,7 @@ import { useUxToursStore } from '@/stores/ux-tours.js'
 
 export default {
     name: 'EducationModal',
-    components: { ExternalLinkIcon },
+    components: { ArrowTopRightOnSquareIcon },
     data () {
         return {
             isClosing: false,

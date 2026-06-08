@@ -76,8 +76,8 @@
 
 <script>
 import { Menu as HeadlessMenu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { SparklesIcon } from '@heroicons/vue/outline'
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/20/solid'
+import { SparklesIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'ff-tabs',

@@ -12,7 +12,7 @@
     >
         <div class="ff-tile-selection-option--header">
             <h2>
-                <PencilAltIcon v-if="editable" class="ff-tile-selection-option--edit" @click="select(true)" />
+                <PencilSquareIcon v-if="editable" class="ff-tile-selection-option--edit" @click="select(true)" />
                 <slot v-else name="icon"><CheckCircleIcon /></slot>
                 {{ label }}
             </h2>
@@ -36,13 +36,13 @@
 <script>
 
 // icons
-import { CheckCircleIcon, PencilAltIcon } from '@heroicons/vue/solid'
+import { CheckCircleIcon, PencilSquareIcon } from '@heroicons/vue/20/solid'
 
 export default {
     name: 'ff-tile-selection-option',
     components: {
         CheckCircleIcon,
-        PencilAltIcon
+        PencilSquareIcon
     },
     props: {
         value: {

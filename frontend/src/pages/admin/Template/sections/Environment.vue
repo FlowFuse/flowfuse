@@ -33,11 +33,11 @@
                     <template v-if="!readOnly">
                         <input id="fileUpload" ref="fileUpload" type="file" accept=".env, text/plain, *" class="hidden" hidden>
                         <ff-button kind="secondary" data-action="import-env" @click="importEnv">
-                            <template #icon><DocumentDownloadIcon /></template>
+                            <template #icon><DocumentArrowDownIcon /></template>
                             <span class="hidden sm:flex pl-1">Import .env</span>
                         </ff-button>
                         <ff-button kind="primary" accesskey="a" data-el="add-variable" @click="addVarHandler">
-                            <template #icon><PlusSmIcon /></template>
+                            <template #icon><PlusSmallIcon /></template>
                             <span class="hidden sm:flex pl-1">Add variable</span>
                         </ff-button>
                     </template>
@@ -117,7 +117,7 @@
                                         @click="setEnvHidden(item.index)"
                                     >
                                         <template #icon>
-                                            <EyeOffIcon v-if="item.hidden" />
+                                            <EyeSlashIcon v-if="item.hidden" />
                                             <EyeIcon v-else />
                                         </template>
                                     </ff-button>
@@ -130,7 +130,7 @@
                                         class="mx-2 disabled"
                                         data-el="visibility"
                                     >
-                                        <EyeOffIcon class="ff-icon-sm color-grey" />
+                                        <EyeSlashIcon class="ff-icon-sm color-grey" />
                                     </span>
                                     <ff-button
                                         v-else
@@ -139,7 +139,7 @@
                                         @click="setEnvHidden(item.index)"
                                     >
                                         <template #icon>
-                                            <EyeOffIcon v-if="item.hidden" />
+                                            <EyeSlashIcon v-if="item.hidden" />
                                             <EyeIcon v-else />
                                         </template>
                                     </ff-button>
@@ -150,7 +150,7 @@
                                 v-ff-tooltip:left="'This setting has been deprecated'"
                                 class="flex justify-center mt-1"
                             >
-                                <ExclamationIcon class="inline text-yellow-700 w-4" />
+                                <ExclamationTriangleIcon class="inline text-yellow-700 w-4" />
                             </div>
                             <div v-else-if="(item.platform === true)" class="flex justify-center mt-2">
                                 <LockClosedIcon class="inline w-4" />
@@ -167,7 +167,7 @@
 </template>
 
 <script>
-import { DocumentDownloadIcon, ExclamationIcon, EyeIcon, EyeOffIcon, InformationCircleIcon, LockClosedIcon, PlusSmIcon, TrashIcon } from '@heroicons/vue/outline'
+import { DocumentArrowDownIcon, ExclamationTriangleIcon, EyeIcon, EyeSlashIcon, InformationCircleIcon, LockClosedIcon, PlusSmallIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
@@ -184,14 +184,14 @@ export default {
         FormHeading,
         LockSetting,
         ChangeIndicator,
-        DocumentDownloadIcon,
+        DocumentArrowDownIcon,
         TrashIcon,
-        PlusSmIcon,
+        PlusSmallIcon,
         LockClosedIcon,
-        ExclamationIcon,
+        ExclamationTriangleIcon,
         InformationCircleIcon,
         EyeIcon,
-        EyeOffIcon,
+        EyeSlashIcon,
         TextCopier
     },
     props: {

@@ -6,19 +6,19 @@
                     <div class="tools">
                         <ff-button data-action="export-flow-blueprints" @click="exportFlowBlueprints">
                             <template #icon-right>
-                                <DownloadIcon class="ff-icon" />
+                                <ArrowDownTrayIcon class="ff-icon" />
                             </template>
                             Export
                         </ff-button>
                         <ff-button data-action="import-flow-blueprints" @click="showImportFlowBlueprintsDialog()">
                             <template #icon-right>
-                                <UploadIcon class="ff-icon" />
+                                <ArrowUpTrayIcon class="ff-icon" />
                             </template>
                             Import
                         </ff-button>
                         <ff-button data-action="create-flow-blueprint" @click="showBlueprintForm()">
                             <template #icon-right>
-                                <PlusSmIcon class="ff-icon" />
+                                <PlusSmallIcon class="ff-icon" />
                             </template>
                             Create Flow Blueprint
                         </ff-button>
@@ -62,7 +62,7 @@
 </template>
 
 <script>
-import { DownloadIcon, PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
+import { ArrowDownTrayIcon, ArrowUpTrayIcon, PlusSmallIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
@@ -89,11 +89,11 @@ const marked = require('marked')
 export default {
     name: 'AdminFlowBlueprints',
     components: {
-        UploadIcon,
+        ArrowUpTrayIcon,
         ImportFlowBlueprintsDialog,
         SectionTopMenu,
-        PlusSmIcon,
-        DownloadIcon,
+        PlusSmallIcon,
+        ArrowDownTrayIcon,
         FlowBlueprintFormDialog,
         BlueprintTile
     },

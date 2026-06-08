@@ -30,7 +30,7 @@
                         <SectionTopMenu>
                             <template #hero>
                                 <div class="flex items-center gap-2">
-                                    <ChipIcon class="ff-icon ff-icon-md text-gray-800" />
+                                    <CpuChipIcon class="ff-icon ff-icon-md text-gray-800" />
                                     <div class="text-gray-800 text-xl font-medium whitespace-nowrap">CPU Utilisation</div>
                                 </div>
                             </template>
@@ -44,7 +44,7 @@
                         <SectionTopMenu>
                             <template #hero>
                                 <div class="flex items-center gap-2">
-                                    <ChipIcon class="ff-icon ff-icon-md text-gray-800" />
+                                    <CpuChipIcon class="ff-icon ff-icon-md text-gray-800" />
                                     <div class="text-gray-800 text-xl font-medium whitespace-nowrap">Memory Utilisation</div>
                                 </div>
                             </template>
@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import { ChipIcon } from '@heroicons/vue/outline'
+import { CpuChipIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 import SemVer from 'semver'
 
@@ -89,7 +89,7 @@ export default {
         FfLoading,
         EmptyState,
         SectionTopMenu,
-        ChipIcon,
+        CpuChipIcon,
         FeatureUnavailable,
         FeatureUnavailableToTeam
     },

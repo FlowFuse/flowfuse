@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import { PlusIcon } from '@heroicons/vue/solid'
+import { PlusIcon } from '@heroicons/vue/20/solid'
 import { mapActions, mapState } from 'pinia'
 
 import brokerApi from '../../../../../api/broker.js'

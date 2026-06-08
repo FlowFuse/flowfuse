@@ -102,8 +102,8 @@
 </template>
 <script>
 
-import { ClockIcon, CubeTransparentIcon } from '@heroicons/vue/outline'
-import { ChevronRightIcon, QuestionMarkCircleIcon } from '@heroicons/vue/solid'
+import { ChevronRightIcon, QuestionMarkCircleIcon } from '@heroicons/vue/20/solid'
+import { ClockIcon, CubeTransparentIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import instanceApi from '../../../../../api/instances.js'

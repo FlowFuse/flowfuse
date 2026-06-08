@@ -1,42 +1,42 @@
 <template>
     <LockClosedIcon v-if="icon === 'security'" class="ff-icon" />
-    <CogIcon v-else-if="icon === 'settings'" class="ff-icon" />
+    <Cog8ToothIcon v-else-if="icon === 'settings'" class="ff-icon" />
     <NodeRedIcon v-else-if="icon === 'nodered'" class="ff-icon text-red-700" />
     <ProjectIcon v-else-if="icon === 'project'" class="ff-icon text-red-700" />
-    <TemplateIcon v-else-if="icon === 'template'" class="ff-icon text-red-700" />
+    <RectangleGroupIcon v-else-if="icon === 'template'" class="ff-icon text-red-700" />
     <PipelineIcon v-else-if="icon === 'pipeline'" class="ff-icon text-indigo-600" />
-    <ChipIcon v-else-if="icon === 'device'" class="ff-icon text-blue-700" />
+    <CpuChipIcon v-else-if="icon === 'device'" class="ff-icon text-blue-700" />
     <BeakerIcon v-else-if="icon === 'beaker'" class="ff-icon text-yellow-600" />
     <DeviceGroupSolidIcon v-else-if="icon === 'device-group'" class="ff-icon text-teal-700" />
     <UserIcon v-else-if="icon === 'user'" class="ff-icon text-green-700" />
     <ClockIcon v-else-if="icon === 'clock'" class="ff-icon text-purple-700" />
-    <LoginIcon v-else-if="icon === 'login'" class="ff-icon text-blue-700" />
-    <LogoutIcon v-else-if="icon === 'logout'" class="ff-icon text-gray-600" />
-    <MailIcon v-else-if="icon === 'mail'" class="ff-icon text-green-700" />
+    <ArrowRightOnRectangleIcon v-else-if="icon === 'login'" class="ff-icon text-blue-700" />
+    <ArrowLeftOnRectangleIcon v-else-if="icon === 'logout'" class="ff-icon text-gray-600" />
+    <EnvelopeIcon v-else-if="icon === 'mail'" class="ff-icon text-green-700" />
     <UserGroupIcon v-else-if="icon === 'users'" class="ff-icon text-teal-700" />
-    <DesktopComputerIcon v-else-if="icon === 'stacks'" class="ff-icon text-red-700" />
-    <ColorSwatchIcon v-else-if="icon === 'project-types'" class="ff-icon text-red-700" />
+    <ComputerDesktopIcon v-else-if="icon === 'stacks'" class="ff-icon text-red-700" />
+    <SwatchIcon v-else-if="icon === 'project-types'" class="ff-icon text-red-700" />
     <IdentificationIcon v-else-if="icon === 'user-profile'" class="ff-icon text-green-700" />
     <ExclamationCircleIcon v-else-if="icon === 'error'" class="ff-icon text-red-500" />
     <TicketIcon v-else-if="icon === 'token'" class="ff-icon text-blue-500" />
-    <ExclamationIcon v-else-if="icon === 'resource'" class="ff-icon text-yellow-500" />
+    <ExclamationTriangleIcon v-else-if="icon === 'resource'" class="ff-icon text-yellow-500" />
     <CurrencyDollarIcon v-else-if="icon === 'billing'" class="ff-icon text-yellow-500" />
     <KeyIcon v-else-if="icon === 'key'" class="ff-icon text-green-700" />
     <KeyIcon v-else-if="icon === 'overage'" class="ff-icon text-red-700" />
-    <PuzzleIcon v-else-if="icon === 'package'" class="ff-icon text-green-700" />
-    <DatabaseIcon v-else-if="icon == 'tables'" class="ff-icon text-green-700" />
+    <PuzzlePieceIcon v-else-if="icon === 'package'" class="ff-icon text-green-700" />
+    <CircleStackIcon v-else-if="icon == 'tables'" class="ff-icon text-green-700" />
     <InformationCircleIcon v-else class="ff-icon text-gray-600" />
 </template>
 
 <script>
 
 import {
-    BeakerIcon, ChipIcon, ClockIcon, CogIcon, ColorSwatchIcon,
-    CurrencyDollarIcon, DatabaseIcon, DesktopComputerIcon, ExclamationCircleIcon,
-    ExclamationIcon, IdentificationIcon, InformationCircleIcon,
-    KeyIcon, LockClosedIcon, LoginIcon, LogoutIcon, MailIcon,
-    PuzzleIcon, TemplateIcon, TicketIcon, UserGroupIcon, UserIcon
-} from '@heroicons/vue/outline'
+    ArrowLeftOnRectangleIcon, ArrowRightOnRectangleIcon, BeakerIcon, CircleStackIcon, ClockIcon,
+    Cog8ToothIcon, ComputerDesktopIcon, CpuChipIcon, CurrencyDollarIcon,
+    EnvelopeIcon, ExclamationCircleIcon, ExclamationTriangleIcon,
+    IdentificationIcon, InformationCircleIcon, KeyIcon, LockClosedIcon, PuzzlePieceIcon,
+    RectangleGroupIcon, SwatchIcon, TicketIcon, UserGroupIcon, UserIcon
+} from '@heroicons/vue/24/outline'
 
 import DeviceGroupSolidIcon from '../icons/DeviceGroupSolid.js'
 import NodeRedIcon from '../icons/NodeRed.js'
@@ -293,30 +293,30 @@ export default {
     components: {
         PipelineIcon,
         BeakerIcon,
-        DesktopComputerIcon,
+        ComputerDesktopIcon,
         LockClosedIcon,
         ProjectIcon,
         NodeRedIcon,
-        TemplateIcon,
-        ChipIcon,
+        RectangleGroupIcon,
+        CpuChipIcon,
         DeviceGroupSolidIcon,
-        ColorSwatchIcon,
-        MailIcon,
-        CogIcon,
+        SwatchIcon,
+        EnvelopeIcon,
+        Cog8ToothIcon,
         KeyIcon,
         ClockIcon,
         IdentificationIcon,
         UserIcon,
         UserGroupIcon,
-        LoginIcon,
-        LogoutIcon,
+        ArrowRightOnRectangleIcon,
+        ArrowLeftOnRectangleIcon,
         CurrencyDollarIcon,
         ExclamationCircleIcon,
-        ExclamationIcon,
+        ExclamationTriangleIcon,
         TicketIcon,
         InformationCircleIcon,
-        PuzzleIcon,
-        DatabaseIcon
+        PuzzlePieceIcon,
+        CircleStackIcon
     }
 }
 </script>

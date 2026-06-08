@@ -3,8 +3,8 @@
         <!-- Mobile: Toggle(Team & Team Admin Options) -->
         <i v-if="!hiddenLeftDrawer && !editorImmersiveDrawer.active" class="ff-header--mobile-toggle">
             <transition name="mobile-menu-fade" mode="out-in">
-                <MenuIcon v-if="!leftDrawer.state" class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
-                <XIcon v-else class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
+                <Bars3Icon v-if="!leftDrawer.state" class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
+                <XMarkIcon v-else class="ff-avatar cursor-pointer" @click="toggleLeftDrawer" />
             </transition>
         </i>
         <!-- FlowFuse Logo -->
@@ -17,7 +17,7 @@
         <global-search v-if="teams.length > 0 && hasAMinimumTeamRoleOf(Roles.Viewer)" />
         <!-- Mobile: Toggle(User Options) -->
         <div class="flex ff-mobile-navigation-right" data-el="mobile-nav-right">
-            <ExpertButton class="ff-header--mobile-experttoggle" v-if="featuresCheck.isExpertAssistantFeatureEnabled" />
+            <ExpertButton class="ff-header--mobile-experttoggle" v-if="featuresCheck.isExpertAssistantFeatureEnabled || featuresCheck.isExpertInsightsFeatureEnabled" />
             <i v-if="hasAvailableTeams" class="ff-header--mobile-usertoggle ff-header--mobile-teamtoggle" :class="{'active': mobileTeamSelectionOpen}">
                 <img :src="team ? team.avatar : defaultUserTeam.avatar" class="ff-avatar" @click="toggleMobileTeamSelectionMenu">
             </i>
@@ -65,7 +65,7 @@
         </div>
         <div class="hidden lg:flex items-stretch ff-desktop-navigation-right" data-el="desktop-nav-right">
             <!-- Desktop: User Options -->
-            <ExpertButton v-if="featuresCheck.isExpertAssistantFeatureEnabled" />
+            <ExpertButton v-if="featuresCheck.isExpertAssistantFeatureEnabled || featuresCheck.isExpertInsightsFeatureEnabled" />
             <ff-team-selection data-action="team-selection" />
             <NotificationsButton />
             <ff-dropdown
@@ -101,7 +101,7 @@
     </div>
 </template>
 <script>
-import { AcademicCapIcon, AdjustmentsIcon, CogIcon, CursorClickIcon, LogoutIcon, MenuIcon, PlusIcon, QuestionMarkCircleIcon, XIcon } from '@heroicons/vue/solid'
+import { AcademicCapIcon, AdjustmentsVerticalIcon, ArrowLeftOnRectangleIcon, Bars3Icon, Cog8ToothIcon, CursorArrowRaysIcon, PlusIcon, QuestionMarkCircleIcon, XMarkIcon } from '@heroicons/vue/20/solid'
 import { mapActions, mapState } from 'pinia'
 import { ref } from 'vue'
 
@@ -141,7 +141,7 @@ export default {
             return [
                 {
                     label: 'User Settings',
-                    icon: CogIcon,
+                    icon: Cog8ToothIcon,
                     tag: 'user-settings',
                     onclick: this.$router.push,
                     onclickparams: { name: 'User Settings' },
@@ -149,7 +149,7 @@ export default {
                 },
                 {
                     label: 'Admin Settings',
-                    icon: AdjustmentsIcon,
+                    icon: AdjustmentsVerticalIcon,
                     tag: 'admin-settings',
                     onclick: this.$router.push,
                     onclickparams: { name: 'Admin Settings' },
@@ -170,13 +170,13 @@ export default {
                 },
                 {
                     label: 'Welcome Tour',
-                    icon: CursorClickIcon,
+                    icon: CursorArrowRaysIcon,
                     tag: 'welcome-tour',
                     onclick: this.startWelcomeTour
                 },
                 {
                     label: 'Sign Out',
-                    icon: LogoutIcon,
+                    icon: ArrowLeftOnRectangleIcon,
                     tag: 'sign-out',
                     onclick: this.signOut,
                     class: 'danger'
@@ -196,8 +196,8 @@ export default {
         GlobalSearch,
         NavItem,
         'ff-team-selection': TeamSelection,
-        MenuIcon,
-        XIcon,
+        Bars3Icon,
+        XMarkIcon,
         NotificationsButton,
         ExpertButton
     },

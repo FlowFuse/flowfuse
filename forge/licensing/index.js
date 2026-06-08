@@ -77,6 +77,9 @@ module.exports = fp(async function (app, opts) {
             }
             return defaultLimits[key]
         },
+        raw: () => {
+            return userLicense
+        },
         status: () => {
             return status()
         },

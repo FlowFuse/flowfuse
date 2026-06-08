@@ -25,7 +25,7 @@
                         type="anchor"
                     >
                         <template #icon-left>
-                            <PlusSmIcon />
+                            <PlusSmallIcon />
                         </template>
                         Create Application
                     </ff-button>
@@ -42,7 +42,7 @@
                     data-form="search"
                     placeholder="Search Applications, Instances and Devices..."
                 >
-                    <template #icon><SearchIcon /></template>
+                    <template #icon><MagnifyingGlassIcon /></template>
                 </ff-text-input>
                 <ul v-if="filteredApplications.length > 0" class="ff-applications-list relative" data-el="applications-list">
                     <transition-group name="fade-slide">
@@ -82,7 +82,7 @@
                         :to="{name: 'CreateTeamApplication'}"
                     >
                         <template #icon-left>
-                            <PlusSmIcon />
+                            <PlusSmallIcon />
                         </template>
                         Create Application
                     </ff-button>
@@ -101,7 +101,7 @@
 </template>
 
 <script>
-import { PlusSmIcon, SearchIcon } from '@heroicons/vue/outline'
+import { MagnifyingGlassIcon, PlusSmallIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 
@@ -116,10 +116,10 @@ import { useContextStore } from '@/stores/context.js'
 export default {
     name: 'TeamApplications',
     components: {
-        SearchIcon,
+        MagnifyingGlassIcon,
         ApplicationListItem,
         EmptyState,
-        PlusSmIcon
+        PlusSmallIcon
     },
     setup () {
         const { hasPermission } = usePermissions()

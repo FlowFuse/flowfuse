@@ -7,7 +7,7 @@
         @deselected="onDeselect"
     >
         <template #icon>
-            <UserAddIcon />
+            <UserPlusIcon />
         </template>
         <template #title>
             Team Invitation
@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import { UserAddIcon } from '@heroicons/vue/solid'
+import { UserPlusIcon } from '@heroicons/vue/20/solid'
 
 import NotificationMessageMixin from '../../../mixins/NotificationMessage.js'
 
@@ -27,7 +27,7 @@ import NotificationMessage from '../Notification.vue'
 
 export default {
     name: 'TeamInvitationReceivedNotification',
-    components: { NotificationMessage, UserAddIcon },
+    components: { NotificationMessage, UserPlusIcon },
     mixins: [NotificationMessageMixin],
     computed: {
         invitorName () {

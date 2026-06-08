@@ -1,4 +1,4 @@
-import { CogIcon } from '@heroicons/vue/outline'
+import { Cog8ToothIcon } from '@heroicons/vue/24/outline'
 
 import AccessRequest from './AccessRequest.vue'
 import AccessRequestEditor from './AccessRequestEditor.vue'
@@ -49,7 +49,7 @@ export default [
             title: 'Account - Settings',
             menu: 'user'
         },
-        icon: CogIcon,
+        icon: Cog8ToothIcon,
         component: Account,
         children: [
             {

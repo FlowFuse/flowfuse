@@ -89,7 +89,7 @@
                     <template v-if="creatingNew" #append>
                         <ff-button kind="secondary" @click="refreshName">
                             <template #icon>
-                                <RefreshIcon />
+                                <ArrowPathIcon />
                             </template>
                         </ff-button>
                     </template>
@@ -235,7 +235,7 @@
 </template>
 
 <script>
-import { CheckCircleIcon, FolderIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { ArrowPathIcon, CheckCircleIcon, FolderIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
 import billingApi from '../../../api/billing.js'
@@ -274,7 +274,7 @@ export default {
         FormRow,
         InstanceChargesTable,
         InstanceCreditBanner,
-        RefreshIcon,
+        ArrowPathIcon,
         SectionTopMenu,
         BlueprintTileSmall,
         CheckCircleIcon,

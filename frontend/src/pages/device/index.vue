@@ -69,7 +69,7 @@
                         :buttonClass="`ff-btn ff-btn-icon ${ actionsButtonKind }`"
                         :options="actionsDropdownOptions"
                     >
-                        <CogIcon class="ff-btn--icon ff-btn--icon-left" />
+                        <Cog8ToothIcon class="ff-btn--icon ff-btn--icon-left" />
                         Actions
                     </DropdownMenu>
                 </div>
@@ -135,7 +135,7 @@
 
 <script>
 
-import { CogIcon } from '@heroicons/vue/solid/index.js'
+import { Cog8ToothIcon } from '@heroicons/vue/20/solid/index.js'
 import { mapActions, mapState } from 'pinia'
 import semver from 'semver'
 
@@ -188,7 +188,7 @@ const deviceTransitionStates = [
 export default {
     name: 'DevicePage',
     components: {
-        CogIcon,
+        Cog8ToothIcon,
         DeviceEditorLink,
         FinishSetupButton,
         DeveloperModeToggle,
@@ -313,7 +313,7 @@ export default {
                     label: 'Node-RED Logs',
                     to: { name: 'device-logs' },
                     tag: 'device-logs'
-                    // icon: TerminalIcon
+                    // icon: CommandLineIcon
                 },
                 {
                     label: 'Performance',

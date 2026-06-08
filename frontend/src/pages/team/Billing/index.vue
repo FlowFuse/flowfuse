@@ -27,7 +27,7 @@
                                 <span v-else>Upgrade Team</span>
                             </ff-button>
                             <ff-button v-if="subscription" @click="customerPortal()">
-                                <template #icon-right><ExternalLinkIcon /></template>
+                                <template #icon-right><ArrowTopRightOnSquareIcon /></template>
                                 Stripe Customer Portal
                             </ff-button>
                         </div>
@@ -42,7 +42,7 @@
                     Your subscription has expired. Please renew it to continue using FlowFuse.
 
                     <ff-button data-action="renew-subscription" class="mx-auto mt-3" @click="setupBilling()">
-                        <template #icon-right><ExternalLinkIcon /></template>
+                        <template #icon-right><ArrowTopRightOnSquareIcon /></template>
                         Renew Subscription
                     </ff-button>
                 </div>
@@ -113,7 +113,7 @@
 
 <script>
 
-import { ExternalLinkIcon } from '@heroicons/vue/outline'
+import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
@@ -162,7 +162,7 @@ export default {
         UsageOverview,
         Loading,
         FormHeading,
-        ExternalLinkIcon,
+        ArrowTopRightOnSquareIcon,
         EmptyState
     },
     mixins: [formatDateMixin, formatCurrency],

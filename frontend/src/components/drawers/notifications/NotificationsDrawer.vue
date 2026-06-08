@@ -12,7 +12,7 @@
                     data-el="notifications-drawer-close-button"
                     @click="closeDrawer"
                 >
-                    <XIcon class="ff-icon" />
+                    <XMarkIcon class="ff-icon" />
                 </button>
             </div>
         </div>
@@ -73,7 +73,7 @@
 </template>
 
 <script>
-import { XIcon } from '@heroicons/vue/solid'
+import { XMarkIcon } from '@heroicons/vue/20/solid'
 import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
 
@@ -91,7 +91,7 @@ import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 export default {
     name: 'NotificationsDrawer',
     components: {
-        XIcon
+        XMarkIcon
     },
     data () {
         return {

@@ -1,77 +1,79 @@
 <template>
-    <div v-if="features.billing" class="space-y-6">
+    <div class="space-y-6">
         <FormHeading class="text-red-700">Admin Only Tools</FormHeading>
-        <div class="font-bold">Stripe Details</div>
-        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <table class="ff-team-properties-table">
-                <tbody>
-                    <tr>
-                        <td class="font-medium pr-4">Customer ID:</td>
-                        <td><div class="py-2"><a v-if="stripeCustomerUrl" :href="stripeCustomerUrl" class="underline" target="_blank">{{ team.billing.customer }}</a><span v-else>none</span></div></td>
-                    </tr>
-                    <tr>
-                        <td class="font-medium pr-4">Subscription ID:</td>
-                        <td><div class="py-2"><a v-if="stripeSubscriptionUrl" :href="stripeSubscriptionUrl" class="underline" target="_blank">{{ team.billing.subscription }}</a><span v-else>none</span></div></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div v-if="!isUnmanaged && trialMode" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="grow">
-                <table class="table-fixed max-w-sm">
+        <template v-if="features.billing">
+            <div class="font-bold">Stripe Details</div>
+            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                <table class="ff-team-properties-table">
                     <tbody>
-                        <tr v-if="!trialHasEnded">
-                            <td class="font-medium font-bold pr-4">Trial Ends:</td>
-                            <td><div class="py-2">{{ trialEndDate }}</div></td>
+                        <tr>
+                            <td class="font-medium pr-4">Customer ID:</td>
+                            <td><div class="py-2"><a v-if="stripeCustomerUrl" :href="stripeCustomerUrl" class="underline" target="_blank">{{ team.billing.customer }}</a><span v-else>none</span></div></td>
                         </tr>
-                        <tr v-else>
-                            <td class="font-medium font-bold pr-4">Trial Ended</td>
+                        <tr>
+                            <td class="font-medium pr-4">Subscription ID:</td>
+                            <td><div class="py-2"><a v-if="stripeSubscriptionUrl" :href="stripeSubscriptionUrl" class="underline" target="_blank">{{ team.billing.subscription }}</a><span v-else>none</span></div></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="min-w-fit shrink-0">
-                <ff-button kind="danger" @click="confirmExtendTrial()">Extend Trial</ff-button>
-            </div>
-        </div>
-        <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="grow">
-                <div class="max-w-sm pr-2">
-                    <template v-if="team.suspended">
-                        <b>This team is suspended.</b><br>
-                        It must be reactivated before it can be put into manual billing mode.
-                    </template>
-                    <template v-else-if="isUnmanaged">
-                        <b>This team is in manual billing mode.</b><br>
-                        Enabling billing will require the team to setup
-                        billing again before they can continue using the team.
-                    </template>
-                    <template v-else-if="trialMode">
-                        <b>This team is in trial mode.</b><br>
-                        Setting up manual billing will allow this team to make
-                        full use of the platform without requiring them to
-                        configure their billing details.
-                    </template>
-                    <template v-else-if="billingSetUp">
-                        <b>This team already has billing setup.</b><br>
-                        Setting up manual billing will cancel their existing
-                        subscription and allow this team to make full use of the
-                        platform without requiring them to configure their billing
-                        details.
-                    </template>
-                    <template v-else>
-                        <b>This team does not have billing setup.</b><br>
-                        Enabling manual billing will allow this team to make full
-                        use of the platform without requiring them to configure
-                        their billing details.
-                    </template>
+            <div v-if="!isUnmanaged && trialMode" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                <div class="grow">
+                    <table class="table-fixed max-w-sm">
+                        <tbody>
+                            <tr v-if="!trialHasEnded">
+                                <td class="font-medium font-bold pr-4">Trial Ends:</td>
+                                <td><div class="py-2">{{ trialEndDate }}</div></td>
+                            </tr>
+                            <tr v-else>
+                                <td class="font-medium font-bold pr-4">Trial Ended</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="min-w-fit shrink-0">
+                    <ff-button kind="danger" @click="confirmExtendTrial()">Extend Trial</ff-button>
                 </div>
             </div>
-            <div class="min-w-fit shrink-0">
-                <ff-button v-if="!isUnmanaged" kind="danger" data-action="admin-setup-billing" :disabled="team.suspended" @click="confirmManualBilling()">Setup Manual Billing</ff-button>
-                <ff-button v-else kind="danger" data-action="admin-disable-billing" @click="disableManualBilling()">Enable Billing</ff-button>
+            <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
+                <div class="grow">
+                    <div class="max-w-sm pr-2">
+                        <template v-if="team.suspended">
+                            <b>This team is suspended.</b><br>
+                            It must be reactivated before it can be put into manual billing mode.
+                        </template>
+                        <template v-else-if="isUnmanaged">
+                            <b>This team is in manual billing mode.</b><br>
+                            Enabling billing will require the team to setup
+                            billing again before they can continue using the team.
+                        </template>
+                        <template v-else-if="trialMode">
+                            <b>This team is in trial mode.</b><br>
+                            Setting up manual billing will allow this team to make
+                            full use of the platform without requiring them to
+                            configure their billing details.
+                        </template>
+                        <template v-else-if="billingSetUp">
+                            <b>This team already has billing setup.</b><br>
+                            Setting up manual billing will cancel their existing
+                            subscription and allow this team to make full use of the
+                            platform without requiring them to configure their billing
+                            details.
+                        </template>
+                        <template v-else>
+                            <b>This team does not have billing setup.</b><br>
+                            Enabling manual billing will allow this team to make full
+                            use of the platform without requiring them to configure
+                            their billing details.
+                        </template>
+                    </div>
+                </div>
+                <div class="min-w-fit shrink-0">
+                    <ff-button v-if="!isUnmanaged" kind="danger" data-action="admin-setup-billing" :disabled="team.suspended" @click="confirmManualBilling()">Setup Manual Billing</ff-button>
+                    <ff-button v-else kind="danger" data-action="admin-disable-billing" @click="disableManualBilling()">Enable Billing</ff-button>
+                </div>
             </div>
-        </div>
+        </template>
         <div class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
             <div class="font-bold grow">Usage Limits</div>
             <div class="min-w-fit shrink-0">
@@ -90,7 +92,7 @@
                 Individual limits can be modified for this team to provide a custom configuration.
             </p>
             <ul class="list-disc pl-6">
-                <li>The team's billing will not update until they add/remove an instance</li>
+                <li v-if="features.billing">The team's billing will not update until they add/remove an instance</li>
                 <li>Any changes made here will still apply if the team changes its type</li>
             </ul>
         </div>
@@ -179,6 +181,29 @@
                             </div>
                         </td>
                     </tr>
+                    <template v-if="certifiedNodesEnabled">
+                        <tr>
+                            <th colspan="2" class="font-medium py-2">Certified Nodes Catalogues:</th>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="text-sm text-gray-500">This allows the team to be configured with a custom list of certified node catalogues.</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" class="py-2">
+                                <FormRow containerClass="none">
+                                    <template #input>
+                                        <textarea
+                                            v-model="editableLimits.certifiedNodesCatalogues"
+                                            class="font-mono w-full"
+                                            :disabled="!editingLimits"
+                                            :placeholder="editingLimits ? 'Enter one catalogue url per line' : 'None set'"
+                                            rows="4"
+                                        />
+                                    </template>
+                                </FormRow>
+                            </td>
+                        </tr>
+                    </template>
                 </tbody>
             </table>
         </div>
@@ -234,7 +259,8 @@ export default {
             editingLimits: false,
             editableLimits: {
                 users: {},
-                features: {}
+                features: {},
+                certifiedNodesCatalogues: ''
             }
         }
     },
@@ -295,6 +321,9 @@ export default {
                 }
             })
             return count
+        },
+        certifiedNodesEnabled () {
+            return !!this.editableLimits.features.certifiedNodes
         }
     },
     async created () {
@@ -311,6 +340,12 @@ export default {
         this.featureList.forEach(feature => {
             this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`) || false
         })
+        const teamCatalogues = this.getTeamProperty('certifiedNodesCatalogues')
+        if (Array.isArray(teamCatalogues)) {
+            this.editableLimits.certifiedNodesCatalogues = teamCatalogues.join('\n')
+        } else {
+            this.editableLimits.certifiedNodesCatalogues = ''
+        }
     },
     methods: {
         getTeamProperty (property) {
@@ -396,6 +431,12 @@ export default {
             this.featureList.forEach(feature => {
                 this.editableLimits.features[feature] = this.getTeamProperty(`features_${feature}`) || false
             })
+            const teamCatalogues = this.getTeamProperty('certifiedNodesCatalogues')
+            if (Array.isArray(teamCatalogues)) {
+                this.editableLimits.certifiedNodesCatalogues = teamCatalogues.join('\n')
+            } else {
+                this.editableLimits.certifiedNodesCatalogues = ''
+            }
 
             this.editingLimits = true
         },
@@ -470,6 +511,30 @@ export default {
                     delete properties.features[feature]
                 }
             })
+
+            // Check if certifiedNodes is enabled
+            if (this.editableLimits.features.certifiedNodes) {
+                const catalogues = []
+                this.editableLimits.certifiedNodesCatalogues.split('\n').forEach(line => {
+                    const trimmedLine = line.trim()
+                    if (!trimmedLine) {
+                        return
+                    }
+                    try {
+                        const url = new URL(trimmedLine)
+                        if (!['http:', 'https:'].includes(url.protocol)) {
+                            return
+                        }
+                        catalogues.push(url.toString())
+                    } catch {
+                        // ignore invalid URLs
+                    }
+                })
+                if (catalogues.length > 0) {
+                    properties.certifiedNodesCatalogues = catalogues
+                }
+                this.editableLimits.certifiedNodesCatalogues = catalogues.join('\n')
+            }
 
             await teamApi.updateTeam(this.team.id, { properties })
             await useContextStore().refreshTeam()

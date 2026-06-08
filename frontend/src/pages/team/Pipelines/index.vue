@@ -54,7 +54,7 @@
                         placeholder="Search Pipelines..."
                     >
                         <template #icon>
-                            <SearchIcon />
+                            <MagnifyingGlassIcon />
                         </template>
                     </ff-text-input>
 
@@ -87,7 +87,7 @@
 </template>
 
 <script>
-import { SearchIcon } from '@heroicons/vue/outline'
+import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import pipelineAPI from '../../../api/pipeline.js'
@@ -102,7 +102,7 @@ import { useContextStore } from '@/stores/context.js'
 export default {
     name: 'TeamPipelines',
     components: {
-        SearchIcon,
+        MagnifyingGlassIcon,
         EmptyState,
         TeamPipeline
     },

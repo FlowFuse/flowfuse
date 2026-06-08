@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import { PlusIcon } from '@heroicons/vue/solid'
+import { PlusIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
 
 import flowBlueprintsApi from '../../../api/flowBlueprints.js'

@@ -33,7 +33,7 @@
                         @click="showCreateTokenDialog"
                     >
                         <template #icon-left>
-                            <PlusSmIcon />
+                            <PlusSmallIcon />
                         </template>
                         Add Token
                     </ff-button>
@@ -55,7 +55,7 @@
 </template>
 
 <script>
-import { KeyIcon, PlusSmIcon, TemplateIcon } from '@heroicons/vue/outline'
+import { KeyIcon, PlusSmallIcon, RectangleGroupIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 
@@ -80,7 +80,7 @@ const TokenFieldFormatter = {
 const AutoAssignToFieldFormatter = {
     template: `
         <template v-if="application">
-            <router-link class="flex content-center" :to="{ name: 'Application', params: { id: application }}"><TemplateIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 leading-normal!">{{ applicationName }}</span></router-link>
+            <router-link class="flex content-center" :to="{ name: 'Application', params: { id: application }}"><RectangleGroupIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 leading-normal!">{{ applicationName }}</span></router-link>
         </template>
         <template v-else-if="instance">
             <router-link class="flex content-center" :to="{ name: 'Instance', params: { id: instance } }"><ProjectsIcon class="ff-icon relative invisible lg:visible" /> <span class="truncate ml-2 leading-normal!">{{ instanceName }}</span></router-link>
@@ -88,7 +88,7 @@ const AutoAssignToFieldFormatter = {
         <template v-else><span class="italic text-gray-500">Don't assign</span></template>`,
     props: ['instance', 'instanceName', 'application', 'applicationName'],
     components: {
-        TemplateIcon,
+        RectangleGroupIcon,
         ProjectsIcon
     }
 }
@@ -99,7 +99,7 @@ export default {
         CreateProvisioningTokenDialog,
         ProvisioningCredentialsDialog,
         SectionTopMenu,
-        PlusSmIcon
+        PlusSmallIcon
     },
     setup () {
         const { hasPermission } = usePermissions()

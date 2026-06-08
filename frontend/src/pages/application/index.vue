@@ -74,13 +74,13 @@ export default {
                     label: 'Remote Instances',
                     to: { name: 'ApplicationDevices' },
                     tag: 'application-devices-overview'
-                    // icon: ChipIcon
+                    // icon: CpuChipIcon
                 },
                 {
                     label: 'Device Groups',
                     to: { name: 'ApplicationDeviceGroups' },
                     tag: 'application-devices-groups-overview',
-                    // icon: ChipIcon,
+                    // icon: CpuChipIcon,
                     hidden: !this.hasPermission('application:device-group:list', { application: this.application }),
                     featureUnavailable: !this.features?.deviceGroups
                 },
@@ -102,27 +102,27 @@ export default {
                     label: 'Logs',
                     to: { name: 'application-logs' },
                     tag: 'application-logs'
-                    // icon: TerminalIcon
+                    // icon: CommandLineIcon
                 },
                 {
                     label: 'Audit Log',
                     to: { name: 'application-activity' },
                     tag: 'application-activity',
-                    // icon: ViewListIcon,
+                    // icon: Bars4Icon,
                     hidden: !this.hasPermission('application:audit-log', { application: this.application })
                 },
                 {
                     label: 'Dependencies',
                     to: { name: 'application-dependencies' },
                     tag: 'application-dependencies',
-                    // icon: CogIcon,
+                    // icon: Cog8ToothIcon,
                     hidden: !this.hasPermission('application:bom', { application: this.application })
                 },
                 {
                     label: 'Settings',
                     to: { name: 'application-settings' },
                     tag: 'application-settings'
-                    // icon: CogIcon
+                    // icon: Cog8ToothIcon
                 }
             ]
 

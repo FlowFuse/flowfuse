@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { InformationCircleIcon } from '@heroicons/vue/solid'
+import { InformationCircleIcon } from '@heroicons/vue/20/solid'
 
 import useStreamingList from '../../../../../../composables/StreamingListHelper.js'
 
