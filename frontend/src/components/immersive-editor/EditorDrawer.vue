@@ -51,7 +51,7 @@
                         aria-label="Close drawer"
                         @click="drawersStore.toggleEditorImmersiveDrawer"
                     >
-                        <XIcon class="ff-btn--icon" />
+                        <XMarkIcon class="ff-btn--icon" />
                     </button>
                 </div>
             </div>
@@ -82,7 +82,7 @@
                         aria-label="Close drawer"
                         @click="drawersStore.toggleEditorImmersiveDrawer"
                     >
-                        <XIcon class="ff-btn--icon" />
+                        <XMarkIcon class="ff-btn--icon" />
                     </button>
                 </div>
             </div>
@@ -113,8 +113,8 @@
 </template>
 
 <script setup>
-import { ArrowLeftIcon } from '@heroicons/vue/outline'
-import { HomeIcon, XIcon } from '@heroicons/vue/solid'
+import { HomeIcon, XMarkIcon } from '@heroicons/vue/20/solid'
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import { storeToRefs } from 'pinia'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'

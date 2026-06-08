@@ -3,12 +3,12 @@
         <div class="action col-start-2 flex gap-2.5">
             <span :class="pubClass" data-el="pub">
                 <CheckIcon v-if="canPublish" class="ff-icon-sm" />
-                <XIcon v-else class="ff-icon-sm" />
+                <XMarkIcon v-else class="ff-icon-sm" />
                 pub
             </span>
             <span :class="subClass" data-el="sub">
                 <CheckIcon v-if="canSubscribe" class="ff-icon-sm" />
-                <XIcon v-else class="ff-icon-sm" />
+                <XMarkIcon v-else class="ff-icon-sm" />
                 sub
             </span>
         </div>
@@ -19,13 +19,13 @@
 </template>
 
 <script>
-import { CheckIcon, XIcon } from '@heroicons/vue/outline'
+import { CheckIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'BrokerAclRule',
     components: {
         CheckIcon,
-        XIcon
+        XMarkIcon
     },
     props: {
         acl: {

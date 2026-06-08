@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import { MinusIcon } from '@heroicons/vue/solid'
+import { MinusIcon } from '@heroicons/vue/20/solid'
 
 import FormRow from '../../../../../components/FormRow.vue'
 import FfListbox from '../../../../../ui-components/components/form/ListBox.vue'

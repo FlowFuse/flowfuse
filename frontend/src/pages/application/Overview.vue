@@ -17,7 +17,7 @@
                     type="anchor"
                     :disabled="!hasPermission('project:create', { application })"
                 >
-                    <template #icon-left><PlusSmIcon /></template>
+                    <template #icon-left><PlusSmallIcon /></template>
                     Add Instance
                 </ff-button>
             </template>
@@ -83,7 +83,7 @@
                         type="anchor"
                         :disabled="!hasPermission('project:create', { application })"
                     >
-                        <template #icon-left><PlusSmIcon /></template>
+                        <template #icon-left><PlusSmallIcon /></template>
                         Add Instance
                     </ff-button>
                 </template>
@@ -112,7 +112,7 @@
 
 <script>
 
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 
@@ -134,7 +134,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 export default {
     name: 'ProjectOverview',
     components: {
-        PlusSmIcon,
+        PlusSmallIcon,
         SectionTopMenu,
         EmptyState,
         FeatureUnavailableToTeam

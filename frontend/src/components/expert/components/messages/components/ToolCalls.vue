@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/solid'
+import { ChevronRightIcon } from '@heroicons/vue/20/solid'
 
 import ToolCallItem from './ToolCallItem.vue'
 

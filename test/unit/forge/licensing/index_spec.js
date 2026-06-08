@@ -146,12 +146,14 @@ describe('License API', async function () {
         after(async function () {
             await app.close()
         })
+        it('Reports as not active', async function () {
+            app.license.active().should.equal(false)
+        })
         it('Uses default limits when no license applied', async function () {
             app.license.get('users').should.equal(app.license.defaults.users)
             app.license.get('teams').should.equal(app.license.defaults.teams)
             app.license.get('instances').should.equal(app.license.defaults.instances)
         })
-
         it('Gets all usage count and limits (unlicensed)', async function () {
             const usage = await app.license.usage()
             // check usage contains the correct keys
@@ -222,6 +224,14 @@ describe('License API', async function () {
         })
         after(async function () {
             await app.close()
+        })
+        it('Reports as active', async function () {
+            app.license.active().should.equal(true)
+        })
+        it('Returns raw license', async function () {
+            const raw = app.license.raw()
+            should(raw).be.a.String()
+            raw.should.equal(TEST_LICENSE_4u_5t_6p_7d)
         })
         it('Gets all usage count and limits (licensed)', async function () {
             const usage = await app.license.usage()

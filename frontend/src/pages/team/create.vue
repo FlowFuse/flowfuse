@@ -55,7 +55,7 @@
                             <p v-if="(!presetTeamType && isBillingRequired) || (presetTeamType && !isSelectionTrial && !presetTeamType.isFree)">To create the team we need to setup payment details via Stripe, our secure payment provider.</p>
                         </div>
                         <ff-button v-if="isBillingRequired" :disabled="!formValid" class="w-full" @click="createTeam()">
-                            <template #icon-right><ExternalLinkIcon /></template>
+                            <template #icon-right><ArrowTopRightOnSquareIcon /></template>
                             Create team and setup payment details
                         </ff-button>
                         <ff-button v-else-if="isSelectionTrial" :disabled="!formValid" class="w-full" @click="createTeam()">
@@ -84,7 +84,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon, ExternalLinkIcon } from '@heroicons/vue/solid'
+import { ArrowTopRightOnSquareIcon, ChevronLeftIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
 
 import teamApi from '../../api/team.js'
@@ -299,7 +299,7 @@ export default {
     },
     components: {
         FormRow,
-        ExternalLinkIcon,
+        ArrowTopRightOnSquareIcon,
         'team-type-tile': TeamTypeTile
     }
 }

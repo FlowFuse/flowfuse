@@ -3,7 +3,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <div class="ff-instance-info">
-                    <FormHeading><TemplateIcon />Info</FormHeading>
+                    <FormHeading><RectangleGroupIcon />Info</FormHeading>
 
                     <table class="table-fixed w-full border border-separate rounded-sm">
                         <tbody>
@@ -19,7 +19,7 @@
                                             :disabled="!editorAvailable"
                                             @click="openUrl"
                                         >
-                                            <ExternalLinkIcon class="ff-icon" />
+                                            <ArrowTopRightOnSquareIcon class="ff-icon" />
                                         </button>
                                     </div>
                                 </td>
@@ -154,7 +154,7 @@
                 </div>
             </div>
             <div class="ff-instance-info" data-el="recent-activity">
-                <FormHeading><TrendingUpIcon />Recent Activity</FormHeading>
+                <FormHeading><ArrowTrendingUpIcon />Recent Activity</FormHeading>
                 <AuditLog :entries="auditLog" :loading="loading" :showLoadMore="false" :disableAccordion="true" :disableAssociations="true" />
                 <div v-if="!loading" class="pt-4 pb-4 text-center">
                     <router-link to="./audit-log" class="forge-button-secondary">More...</router-link>
@@ -165,7 +165,7 @@
 </template>
 
 <script>
-import { ArrowRightIcon, ExternalLinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
+import { ArrowRightIcon, ArrowTopRightOnSquareIcon, ArrowTrendingUpIcon, RectangleGroupIcon, ServerIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import InstanceApi from '../../api/instances.js'
@@ -185,14 +185,14 @@ export default {
     components: {
         AuditLog,
         ArrowRightIcon,
-        ExternalLinkIcon,
+        ArrowTopRightOnSquareIcon,
         FormHeading,
         InstanceStatusBadge,
         ServerIcon,
         StatusBadge,
-        TemplateIcon,
+        RectangleGroupIcon,
         TextCopier,
-        TrendingUpIcon
+        ArrowTrendingUpIcon
     },
     inheritAttrs: false,
     props: {

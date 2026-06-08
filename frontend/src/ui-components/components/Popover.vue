@@ -41,7 +41,7 @@
 
 <script>
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
-import { ChevronDownIcon } from '@heroicons/vue/solid'
+import { ChevronDownIcon } from '@heroicons/vue/20/solid'
 import { defineComponent } from 'vue'
 
 import TeleportedMenuMixin from '../../mixins/TeleportedMenuMixin.js'

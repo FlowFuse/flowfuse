@@ -15,8 +15,16 @@
 </template>
 
 <script>
-import { QuestionMarkCircleIcon } from '@heroicons/vue/outline'
+import { QuestionMarkCircleIcon } from '@heroicons/vue/24/outline'
 import { defineAsyncComponent } from 'vue'
+
+import { HEROICONS_V1_TO_V2_PASCAL_CASE } from '../../../utils/heroicons-v1-aliases'
+
+let outlineIconsPromise = null
+function loadOutlineIcons () {
+    outlineIconsPromise ??= import('@heroicons/vue/24/outline')
+    return outlineIconsPromise
+}
 
 export default {
     name: 'BlueprintTile',
@@ -39,18 +47,17 @@ export default {
                 return QuestionMarkCircleIcon
             }
 
-            // Convert kebab-case to pascalCase used for import
-            const camelCase = iconName.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
+            // Convert kebab-case to pascalCase used for icon lookup
+            const camelCase = iconName.replace(/-([a-z0-9])/g, (g) => g[1].toUpperCase())
             const pascalCase = camelCase.charAt(0).toUpperCase() + camelCase.slice(1)
             const importName = `${pascalCase}Icon`
 
             return defineAsyncComponent(async () => {
-                let icon
-                try {
-                    icon = await import(`@heroicons/vue/outline/${importName}.js`)
-                } catch (err) {
-                    console.warn(`Did not recognise icon name "${iconName}" (imported as "${importName}")`)
-                    icon = await import('@heroicons/vue/outline/QuestionMarkCircleIcon.js')
+                const icons = await loadOutlineIcons()
+                const icon = icons[importName] ?? icons[HEROICONS_V1_TO_V2_PASCAL_CASE[importName]]
+                if (!icon) {
+                    console.warn(`Did not recognise icon name "${iconName}" (looked up as "${importName}")`)
+                    return QuestionMarkCircleIcon
                 }
                 return icon
             })

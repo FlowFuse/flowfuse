@@ -2,7 +2,7 @@
     <div id="table-credentials" class="flex gap-5">
         <section class="database flex-1">
             <div class="title">
-                <DatabaseIcon class="ff-icon ff-icon-sm" />
+                <CircleStackIcon class="ff-icon ff-icon-sm" />
                 <h3>Database Details</h3>
             </div>
             <div class="database-details">
@@ -65,7 +65,7 @@
 
 <script>
 
-import { DatabaseIcon, LockClosedIcon } from '@heroicons/vue/outline'
+import { CircleStackIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 import { defineComponent } from 'vue'
@@ -78,7 +78,7 @@ import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default defineComponent({
     name: 'TableCredentials',
-    components: { TextCopier, PasswordField, DatabaseIcon, LockClosedIcon },
+    components: { TextCopier, PasswordField, CircleStackIcon, LockClosedIcon },
     computed: {
         ...mapState(useProductTablesStore, ['database'])
     }

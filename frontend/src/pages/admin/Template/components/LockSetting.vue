@@ -17,7 +17,7 @@
     </div>
 </template>
 <script>
-import { LockClosedIcon } from '@heroicons/vue/outline'
+import { LockClosedIcon } from '@heroicons/vue/24/outline'
 
 import FormRow from '../../../../components/FormRow.vue'
 

@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/outline'
+import { ChevronLeftIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
 import NavItem from '../../NavItem.vue'

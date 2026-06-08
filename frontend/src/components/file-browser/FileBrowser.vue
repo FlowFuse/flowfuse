@@ -21,7 +21,7 @@
                 @click="$emit('items-updated')"
             >
                 <template #icon-right>
-                    <RefreshIcon />
+                    <ArrowPathIcon />
                 </template>
                 Refresh
             </ff-button>
@@ -45,7 +45,7 @@
                 @click="showDialog('upload-file')"
             >
                 <template #icon-right>
-                    <UploadIcon />
+                    <ArrowUpTrayIcon />
                 </template>
                 Upload
             </ff-button>
@@ -94,7 +94,7 @@
 
 <script>
 
-import { PlusIcon, RefreshIcon, UploadIcon } from '@heroicons/vue/outline'
+import { ArrowPathIcon, ArrowUpTrayIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import { markRaw } from 'vue'
 
 import AssetsAPI from '../../api/assets.js'
@@ -113,8 +113,8 @@ export default {
     name: 'FileBrowser',
     components: {
         PlusIcon,
-        RefreshIcon,
-        UploadIcon,
+        ArrowPathIcon,
+        ArrowUpTrayIcon,
         'ff-file-upload': FFFileUpload
     },
     props: {

@@ -3,13 +3,13 @@
         <main-title title="Topic Hierarchy">
             <template #actions>
                 <ff-toggle-switch v-if="isTeamBroker" v-ff-tooltip:bottom="'FlowFuse Broker is always monitoring for new topics'" :disabled="true" :modelValue="true">
-                    <StatusOnlineIcon />
+                    <SignalIcon />
                 </ff-toggle-switch>
                 <ff-toggle-switch v-else v-model="isConnected" v-ff-tooltip:bottom="'FlowFuse will automatically monitor third-party brokers for new topics when connected'" :disabled="true">
-                    <StatusOnlineIcon />
+                    <SignalIcon />
                 </ff-toggle-switch>
                 <ff-button v-if="shouldDisplayRefreshButton" kind="secondary" @click="$emit('refresh-hierarchy')">
-                    <template #icon><RefreshIcon /></template>
+                    <template #icon><ArrowPathIcon /></template>
                 </ff-button>
                 <ff-button v-if="shouldDisplaySchemaButton" :to="{ name: 'team-broker-docs', params: { brokerId: $route.params.brokerId } }">
                     Open Schema
@@ -24,9 +24,9 @@
                 data-form="search"
                 placeholder="Search topics..."
             >
-                <template #icon><SearchIcon /></template>
+                <template #icon><MagnifyingGlassIcon /></template>
                 <template #icon-right>
-                    <XIcon v-if="filterTerm.length" class="ff-icon-sm cursor-pointer ease-in mr-2" @click="filterTerm=''" />
+                    <XMarkIcon v-if="filterTerm.length" class="ff-icon-sm cursor-pointer ease-in mr-2" @click="filterTerm=''" />
                 </template>
             </ff-text-input>
 
@@ -78,8 +78,8 @@
 </template>
 
 <script>
-import { SearchIcon, StatusOnlineIcon, XIcon } from '@heroicons/vue/outline'
-import { RefreshIcon } from '@heroicons/vue/solid'
+import { ArrowPathIcon } from '@heroicons/vue/20/solid'
+import { MagnifyingGlassIcon, SignalIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
 import EmptyState from '../../../../../components/EmptyState.vue'
@@ -95,12 +95,12 @@ export default {
     name: 'TopicHierarchy',
     components: {
         MainTitle,
-        RefreshIcon,
+        ArrowPathIcon,
         EmptyState,
         TopicSegment,
-        SearchIcon,
-        XIcon,
-        StatusOnlineIcon
+        MagnifyingGlassIcon,
+        XMarkIcon,
+        SignalIcon
     },
     props: {
         brokerState: {

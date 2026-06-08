@@ -120,7 +120,7 @@ export default {
             } else if (event.icon === 'device') {
                 event.iconComponent = IconDeviceSolid
             } else {
-                event.iconComponent = markRaw(defineAsyncComponent(() => import('@heroicons/vue/solid').then(x => x[event.icon] || x.BellIcon)))
+                event.iconComponent = markRaw(defineAsyncComponent(() => import('@heroicons/vue/20/solid').then(x => x[event.icon] || x.BellIcon)))
             }
 
             // Perform known substitutions

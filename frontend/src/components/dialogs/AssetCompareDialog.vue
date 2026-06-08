@@ -113,7 +113,7 @@
 
 <script>
 import FlowRenderer from '@flowfuse/flow-renderer'
-import { CheckIcon } from '@heroicons/vue/outline'
+import { CheckIcon } from '@heroicons/vue/24/outline'
 
 import SnapshotsApi from '../../api/snapshots.js'
 import Alerts from '../../services/alerts.js'

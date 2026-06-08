@@ -23,7 +23,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td><FormHeading><ChipIcon />Remote Instances</FormHeading></td>
+                        <td><FormHeading><CpuChipIcon />Remote Instances</FormHeading></td>
                         <td class="text-right">
                             <usage-value
                                 :used="team.deviceCount"
@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import { ChipIcon, IdentificationIcon, RssIcon, UsersIcon } from '@heroicons/vue/outline'
+import { CpuChipIcon, IdentificationIcon, RssIcon, UsersIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
 import instanceTypesApi from '../../../../api/instanceTypes.js'
@@ -82,7 +82,7 @@ export default {
     components: {
         FormHeading,
         UsageValue,
-        ChipIcon,
+        CpuChipIcon,
         UsersIcon,
         ProjectsIcon,
         RssIcon,

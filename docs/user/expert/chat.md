@@ -6,6 +6,8 @@ navTitle: Chat Interface
 
 The FlowFuse Expert chat interface is where you actively engage the AI: asking questions, building flows directly on your canvas, and querying live operational data. While other FlowFuse Expert features (like inline code completions and next-node prediction) work passively in the Node-RED editor, the chat interface is where you direct Expert and see it act on your behalf.
 
+> Team owners can disable all AI features, including the chat interface, from the team settings page. If AI has been disabled for your team, the Expert panel will not be available.
+
 ## Opening the Chat Interface
 
 To open the chat, first open your Node-RED instance using the **Open Editor** button. This launches Immersive Mode, where the Expert panel is available alongside your canvas.
@@ -68,7 +70,7 @@ Some prompts that work well:
 
 The more specific your prompt, the closer the result will be to what you need. Include node names, topic paths, endpoints, or field names where you have them. Expert will use them directly rather than substituting placeholders.
 
-> **Availability:** This feature is currently available on **FlowFuse Cloud** (Starter, Team, and Enterprise tiers) and must be enabled for your team on request. [Contact us](https://flowfuse.com/contact-us/?subject=FlowFuse%20Expert%20Application%20Building) to get access. Self-hosted support is coming in a future release.
+> Availability: This feature is in open beta on FlowFuse Cloud (Starter, Team, and Enterprise tiers), no request needed. It is also available on Self-Hosted Enterprise: [contact us](https://flowfuse.com/contact-us/?subject=FlowFuse%20Expert%20Application%20Building) to get it set up as Self-hosted requires a provisioning token and the bridge to be configured on the instance. Agentic flow building works on both Hosted and Remote Instances, and requires the nr-assistant plugin at v0.16.0 or newer. FlowFuse Expert will let you know when an update is available in your instance's immersive editor.
 
 #### Context: What the Expert Can See
 

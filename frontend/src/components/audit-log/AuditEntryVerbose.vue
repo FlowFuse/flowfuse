@@ -763,7 +763,7 @@
 </template>
 
 <script>
-import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/solid'
+import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/20/solid'
 
 import AuditEventsService from '../../services/audit-events.js'
 
