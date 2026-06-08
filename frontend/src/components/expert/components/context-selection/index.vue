@@ -4,7 +4,7 @@
         <div class="chips-container" @wheel="horizontalScrolling">
             <context-chip v-for="(context, index) in selectedContextFiltered" :key="index" :contextItem="context" />
             <debug-chip v-if="hasDebugLogsSelected && !isInsightsAgent" />
-            <selection-chip v-if="hasUserSelection && !isInsightsAgent && !isDevice" />
+            <selection-chip v-if="hasUserSelection && !isInsightsAgent" />
         </div>
     </div>
 </template>
