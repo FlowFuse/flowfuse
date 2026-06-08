@@ -188,6 +188,7 @@ create_stack "Default" "Default (4.1.x)" 30 256 "flowfuse/node-red:$(get_latest_
 create_stack "NR-40x" "4.0.x" 30 256 "flowfuse/node-red:$(get_latest_image_tag "4.0.x")"
 create_stack "NR-30x" "3.0.x" 30 256 "flowfuse/node-red:latest"
 create_stack "NR-31x" "3.1.x" 30 256 "flowfuse/node-red:$(get_latest_image_tag "3.1.x")"
+create_stack "NR-50x" "5.0.x" 30 256 "flowfuse/node-red:$(get_latest_image_tag "5.0.x")"
 
 
 ### Link Default to project type
