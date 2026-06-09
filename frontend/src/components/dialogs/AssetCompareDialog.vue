@@ -292,6 +292,9 @@ export default {
             } finally {
                 this.loading = false
             }
+            // Wait for the container to become visible (v-show removes display:none)
+            // before rendering — SVG getBBox() returns zeros in hidden containers
+            await this.$nextTick()
             if (!compareSnapshot?.flows?.flows) {
                 Alerts.emit('Flows not found in the selected snapshot', 'warning')
                 return
