@@ -67,19 +67,8 @@ export default {
             // Use viewport-relative coordinates (no window.scrollX/Y)
             let triggerTop = triggerRect.bottom + this.optionsOffsetTop
             let triggerLeft = triggerRect.left
-            let width = triggerRect.width
+            const width = triggerRect.width
             const transform = ''
-
-            const menuEl = this.$refs['menu-items']?.$el
-            if (menuEl) {
-                const firstChild = menuEl.firstElementChild
-                if (firstChild) {
-                    const firstChildWidth = firstChild.getBoundingClientRect().width
-                    if (firstChildWidth > width) {
-                        width = firstChildWidth
-                    }
-                }
-            }
 
             // Set initial position immediately
             this.position = {
@@ -95,8 +84,9 @@ export default {
                     return
                 }
 
+                const menuEl = this.$refs['menu-items'].$el
                 const menuRect = menuEl.getBoundingClientRect()
-                const menuWidth = width // Use the calculated width
+                const menuWidth = menuRect.width
                 const menuHeight = menuRect.height
 
                 // Re-calculate based on actual dimensions
