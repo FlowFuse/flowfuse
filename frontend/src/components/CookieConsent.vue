@@ -40,9 +40,9 @@ const consent = useCookieConsentStore()
     flex-direction: column;
     gap: 0.75rem;
     padding: 1rem 1.25rem;
-    background-color: $ff-white;
-    color: $ff-grey-800;
-    border: 1px solid $ff-color--border;
+    background-color: var(--ff-color-bg-surface-raised);
+    color: var(--ff-color-text);
+    border: 1px solid var(--ff-color-border);
     border-radius: 6px;
     box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.25);
 
@@ -58,7 +58,7 @@ const consent = useCookieConsentStore()
         margin: 0;
 
         a {
-            color: $ff-blue-600;
+            color: var(--ff-color-link);
             text-decoration: underline;
         }
     }
