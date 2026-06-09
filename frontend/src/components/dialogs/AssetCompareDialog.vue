@@ -292,9 +292,8 @@ export default {
             } finally {
                 this.loading = false
             }
-            // v-show="!loading" uses display:none — wait for Vue to flush
-            // the DOM update so the container is visible before rendering
-            // (SVG getBBox() returns zeros inside display:none ancestors)
+            // Wait for the container to become visible (v-show removes display:none)
+            // before rendering — SVG getBBox() returns zeros in hidden containers
             await this.$nextTick()
             if (!compareSnapshot?.flows?.flows) {
                 Alerts.emit('Flows not found in the selected snapshot', 'warning')
