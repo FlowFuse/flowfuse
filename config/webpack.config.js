@@ -187,7 +187,7 @@ module.exports = function (env, argv) {
         },
         watchOptions: {
             poll: 1000,
-            ignored: [getPath('frontend/dist/**'), '**/node_modules/**']
+            ignored: ['**/frontend/dist/**', '**/node_modules/**']
         },
         resolve: {
             extensions: ['.ts', '.js', '.vue', '.json'],
