@@ -71,8 +71,8 @@ export const useContextStore = defineStore('context', {
                 ? state.route.params?.id
                 : null
             const scope =
-                state.route.fullPath.includes('/instance/') &&
-                state.route.fullPath.includes('editor')
+                (state.route.fullPath.startsWith('/instance/') || state.route.fullPath.startsWith('/device/')) &&
+                state.route.fullPath.includes('/editor')
                     ? 'immersive'
                     : 'ff-app'
 

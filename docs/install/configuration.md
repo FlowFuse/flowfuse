@@ -233,7 +233,7 @@ Option         | Description
 
 Option         | Description
 ---------------|--------------
-`ai.enabled`   | Enables all AI features on the platform. When set to `false`, all AI functionality is disabled regardless of individual feature configuration (assistant, expert, inline completions, snapshot descriptions). Default: `true`
+`ai.enabled`   | Enables all AI features on the platform (still requires an Enterprise License). When set to `false`, all AI functionality is disabled regardless of individual feature configuration (assistant, expert, inline completions, snapshot descriptions). Default: `true`
 
 ## FF Tables
 
