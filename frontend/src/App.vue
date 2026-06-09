@@ -58,12 +58,14 @@
         <template v-else>
             <Login />
         </template>
+        <CookieConsent />
     </div>
 </template>
 
 <script>
 import { mapActions, mapState } from 'pinia'
 
+import CookieConsent from './components/CookieConsent.vue'
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
 import LicenseBanner from './components/banners/LicenseBanner.vue'
@@ -80,6 +82,7 @@ import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useCookieConsentStore } from '@/stores/cookie-consent'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
@@ -87,6 +90,7 @@ import { useUxLoadingStore } from '@/stores/ux-loading.js'
 export default {
     name: 'App',
     components: {
+        CookieConsent,
         EducationModal,
         Login,
         PasswordExpired,
@@ -146,6 +150,7 @@ export default {
         }
     },
     mounted () {
+        useCookieConsentStore().applyDecision()
         useAccountAuthStore().checkState()
         useProductBrokersStore().checkFlags()
         useAccountSettingsStore().loadPosthogFlags()
