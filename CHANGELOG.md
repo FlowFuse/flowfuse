@@ -1,3 +1,18 @@
+#### 2.31.2: Release
+
+ - Release 2.31.1 (#7402)
+ - [7356] Add cookie consent on login page (#7387)
+ - Align Expert FF Expert chat and MCP endpoints (#7389)
+ - fix: snapshots list dropdown not flexible on resize (#7399)
+ - Fix ignored paths in webpack watch options (#7384)
+ - fix: await DOM flush before rendering snapshot comparison (#7398)
+ - [7385] Expert Tools row not available on device   (#7386)
+ - Update AI configuration description for licensing (#7390)
+ - docs: update FlowFuse Expert docs for 2.31 release (#7378)
+ - Bump @redis/client from 5.11.0 to 6.0.0 (#7363)
+ - docs: fix broken persistent-context image link (#7382)
+ - ci: point docs link checker at website/nuxt/dist (#7381)
+
 #### 2.31.1: Release
 
  - [7356] Add cookie consent on login page (#7387)
