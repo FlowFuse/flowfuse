@@ -1,6 +1,6 @@
 {
     "name": "@flowfuse/flowfuse",
-    "version": "2.31.0",
+    "version": "2.31.2",
     "description": "An open source low-code development platform",
     "homepage": "https://flowfuse.com",
     "bugs": {
@@ -70,7 +70,7 @@
         "@fastify/swagger": "^9.6.1",
         "@fastify/swagger-ui": "^5.2.5",
         "@fastify/websocket": "^11.2.0",
-        "@flowfuse/driver-localfs": "^2.31.0",
+        "@flowfuse/driver-localfs": "^2.31.2",
         "@flowfuse/flow-renderer": "^0.5.1",
         "@headlessui/vue": "1.7.19",
         "@heroicons/vue": "2.1.5",
@@ -78,7 +78,7 @@
         "@levminer/speakeasy": "^1.4.2",
         "@node-red/util": "^4.0.2",
         "@node-saml/passport-saml": "^5.0.0",
-        "@redis/client": "^5.11.0",
+        "@redis/client": "^6.0.0",
         "@sentry/node": "^7.73.0",
         "@sentry/profiling-node": "^1.2.1",
         "@sentry/vue": "^7.91.0",
@@ -143,7 +143,7 @@
         "@vue/test-utils": "^2.4.3",
         "ajv": "^8.18.0",
         "autoprefixer": "^10.4.15",
-        "babel-loader": "^9.1.3",
+        "babel-loader": "^10.1.1",
         "clean-webpack-plugin": "^4.0.0",
         "copy-webpack-plugin": "^14.0.0",
         "cross-env": "^7.0.3",
@@ -193,7 +193,7 @@
         "ws": "^8.20.1"
     },
     "engines": {
-        "node": ">=20.x"
+        "node": ">=20.10.0"
     },
     "keywords": [
         "low-code-platform",
