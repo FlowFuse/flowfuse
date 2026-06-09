@@ -1,4 +1,6 @@
-function isSnapshot (snapshot) {
+type SnapshotLike = Record<string, unknown>
+
+function isSnapshot (snapshot: SnapshotLike): boolean {
     // Ideally, we would use a JSON schema to validate the snapshot, but to minimise imports, we'll do it manually
     // const schema = {
     //     $schema: 'http://json-schema.org/draft-04/schema#',
@@ -32,10 +34,10 @@ function isSnapshot (snapshot) {
     //     required: ['id', 'name', 'description', 'flows', 'settings']
     // }
 
-    const hasProperty = (object, key) => {
+    const hasProperty = (object: SnapshotLike, key: string): boolean => {
         return Object.prototype.hasOwnProperty.call(object, key)
     }
-    const checkProperty = (object, key, propertyType, mustExist) => {
+    const checkProperty = (object: SnapshotLike, key: string, propertyType?: string, mustExist?: boolean): boolean => {
         if (!object) {
             throw new Error('Missing object')
         }
@@ -84,26 +86,26 @@ function isSnapshot (snapshot) {
     // must haves
     checkProperty(snapshot, 'name', 'string', true)
     checkProperty(snapshot, 'flows', 'object', true)
-    checkProperty(snapshot.flows, 'flows', 'array', true)
+    checkProperty(snapshot.flows as SnapshotLike, 'flows', 'array', true)
     checkProperty(snapshot, 'settings', 'object', true)
 
     // optional (but check if they exist and are the right type if they do)
-    checkProperty(snapshot.settings, 'settings', 'object', false)
-    checkProperty(snapshot.settings, 'env', 'object', false)
-    checkProperty(snapshot.settings, 'modules', 'object', false)
+    checkProperty(snapshot.settings as SnapshotLike, 'settings', 'object', false)
+    checkProperty(snapshot.settings as SnapshotLike, 'env', 'object', false)
+    checkProperty(snapshot.settings as SnapshotLike, 'modules', 'object', false)
     checkProperty(snapshot, 'id', 'string', false)
     checkProperty(snapshot, 'description', 'string', false)
     checkProperty(snapshot, 'createdAt', 'string', false)
     checkProperty(snapshot, 'updatedAt', 'string', false)
     checkProperty(snapshot, 'user', 'object', false)
     checkProperty(snapshot, 'exportedBy', 'object', false)
-    checkProperty(snapshot.flows, 'credentials', 'object', false)
+    checkProperty(snapshot.flows as SnapshotLike, 'credentials', 'object', false)
     return true
 }
 
 const AUTO_SNAPSHOT_PREFIX = 'Auto Snapshot' // Any changes to the format should be reflected in forge/db/controllers/ProjectSnapshot.js
-const nameRegex = (prefix) => new RegExp(`^${prefix} - \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$`)
-const isAutoSnapshot = (snapshot) => nameRegex(AUTO_SNAPSHOT_PREFIX).test(snapshot.name)
+const nameRegex = (prefix: string): RegExp => new RegExp(`^${prefix} - \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$`)
+const isAutoSnapshot = (snapshot: SnapshotLike): boolean => nameRegex(AUTO_SNAPSHOT_PREFIX).test(snapshot.name as string)
 
 export {
     isSnapshot,

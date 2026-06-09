@@ -1,6 +1,8 @@
-const reportTime = (s, v) => `${v} ${v !== 1 ? s + 's' : s}`
+type DateInput = string | number | Date
 
-const periodSeconds = {
+const reportTime = (s: string, v: number): string => `${v} ${v !== 1 ? s + 's' : s}`
+
+const periodSeconds: Record<string, number> = {
     years: 31536000,
     months: 2592000,
     weeks: 604800,
@@ -10,34 +12,34 @@ const periodSeconds = {
     seconds: 1
 }
 
-function dateDiff (toStringDateOrNumber, fromStringDateOrNumber = new Date()) {
-    let to = toStringDateOrNumber
+function dateDiff (toStringDateOrNumber: DateInput, fromStringDateOrNumber: DateInput = new Date()): Record<string, number> {
+    let to: DateInput = toStringDateOrNumber
     if (typeof to === 'string' || typeof to === 'number') {
-        if (!isNaN(to)) {
-            to = Number.parseInt(to)
+        if (!isNaN(to as number)) {
+            to = Number.parseInt(to as string)
         }
         to = new Date(to)
     }
 
-    let from = fromStringDateOrNumber
+    let from: DateInput = fromStringDateOrNumber
     if (typeof from === 'string' || typeof from === 'number') {
-        if (!isNaN(from)) {
-            from = Number.parseInt(from)
+        if (!isNaN(from as number)) {
+            from = Number.parseInt(from as string)
         }
         from = new Date(from)
     }
 
-    if (!(to instanceof Date) || isNaN(to)) {
+    if (!(to instanceof Date) || isNaN(to.getTime())) {
         throw new RangeError(`To date is required to be a valid ISO 8601 string, milliseconds since epoch or Date object, received ${toStringDateOrNumber}`)
     }
 
-    if (!(from instanceof Date) || isNaN(from)) {
+    if (!(from instanceof Date) || isNaN(from.getTime())) {
         throw new RangeError(`From date is required to be a valid ISO 8601 string, milliseconds since epoch or Date object, received ${fromStringDateOrNumber}`)
     }
 
     let delta = Math.abs(to.getTime() - from.getTime()) / 1000
 
-    const res = {}
+    const res: Record<string, number> = {}
 
     for (const key in periodSeconds) {
         res[key] = Math.floor(delta / periodSeconds[key])
@@ -47,10 +49,10 @@ function dateDiff (toStringDateOrNumber, fromStringDateOrNumber = new Date()) {
     return res
 }
 
-export default function (to, from) {
+export default function (to: DateInput, from?: DateInput): string {
     const periods = dateDiff(to, from)
 
-    const parts = []
+    const parts: string[] = []
     let fineGrained = true
     if (periods.years > 0) {
         parts.push(reportTime('year', periods.years))

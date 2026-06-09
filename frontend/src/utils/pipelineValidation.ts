@@ -1,33 +1,45 @@
 /*
-    `frontend/src/utils/pipelineValidation.js` and `forge/lib/pipelineValidation.js` are 1:1 copies
-     of each other and should be kept in sync to maintain domain cohesion and separation of concerns.
+    `frontend/src/utils/pipelineValidation.ts` and `forge/lib/pipelineValidation.js` are 1:1 copies
+     of each other (logic) and should be kept in sync to maintain domain cohesion and separation of concerns.
 */
 
-// NOTE: The below PipelineStage Type definitions are not exact types but used in this code file only
-//       for clarity of the props and types we use in these routines.
+import { Maybe } from '@/types/common/types'
 
-/**
- * @typedef {Object} PipelineStageServerSide
- * @property {Array<Object>} [Instances] - Array of instances in the stage (if it contains any, then this stage is an INSTANCE)
- * @property {Array<Object>} [Devices] - Array of devices in the stage (if it contains any, then this stage is a DEVICE)
- * @property {Array<Object>} [DeviceGroups] - Array of device groups in the stage (if it contains any, then this stage is a DEVICE_GROUP)
- * @property {Object} [PipelineStageGitRepo] - The git repository for the stage (if this is an object then this stage is a GITHUB_REPO)
-*/
-/**
- * @typedef {Object} PipelineStageClientSide
- * @property {Object} [instance] - The instance associated with the stage (if present, this stage is an INSTANCE)
- * @property {Object} [device] - The device associated with the stage (if present, this stage is a DEVICE)
- * @property {Object} [deviceGroup] - The deviceGroup associated with the stage (if present, this stage is an DEVICE_GROUP)
- * @property {Object} [gitRepo] - The "view" compatible alternative for PipelineStageGitRepo object that signifies this stage is a GITHUB_REPO
- * @property {'instance'|'device'|'device-group'|'git-repo'} [stageType] - The type of the stage (e.g., 'device', 'instance', 'device-group', 'git-repo')
-*/
-/**
- * @typedef {PipelineStageServerSide & PipelineStageClientSide} PipelineStage
- * @property {string} [id] - The ID of the stage
- * @property {string} [name] - The name of the stage
-*/
+// The PipelineStage shapes below are not exact domain types — they capture only the props
+// these routines read, for clarity.
 
-const pipelineStageRules = {
+interface PipelineStageServerSide {
+    Instances?: object[]
+    Devices?: object[]
+    DeviceGroups?: object[]
+    PipelineStageGitRepo?: { GitTokenId?: unknown }
+}
+
+interface PipelineStageClientSide {
+    instance?: object
+    device?: object
+    deviceGroup?: object
+    gitRepo?: { GitTokenId?: unknown }
+    stageType?: 'instance' | 'device' | 'device-group' | 'git-repo'
+}
+
+type PipelineStage = PipelineStageServerSide & PipelineStageClientSide & {
+    id?: string
+    name?: string
+}
+
+interface PipelineStageRule {
+    type: string
+    description: string
+    canBeFirst: boolean
+    canBeLast: boolean
+    canPrecede: string[]
+    canFollow: string[]
+    mustBeLast: boolean
+    canBeMoreThanOne: boolean
+}
+
+const pipelineStageRules: Record<string, PipelineStageRule> = {
     INSTANCE: {
         type: 'INSTANCE',
         description: 'Hosted Instance',
@@ -72,12 +84,7 @@ const pipelineStageRules = {
 // freeze the rules so they cannot be modified
 Object.freeze(pipelineStageRules)
 
-/**
- * Get the pipeline stage rule for a given stage
- * @param {PipelineStage} stage - The pipeline stage to get the rule for
- * @returns {Object|null} The pipeline stage rule for the given stage, or null if no rule is found
- */
-const getPipelineStageRule = (stage) => {
+const getPipelineStageRule = (stage: PipelineStage): Maybe<PipelineStageRule> => {
     if (!stage) {
         return null
     }
@@ -93,13 +100,8 @@ const getPipelineStageRule = (stage) => {
     return null
 }
 
-/**
- * Get the pipeline rules for a given ordered list of stages
- * @param {Array<PipelineStage>} orderedStages - The ordered list of pipeline stages to get the rules for
- * @returns {Array<Object>} The pipeline rules for the given ordered list of stages
- */
-const getPipelineRules = (orderedStages) => {
-    const pipelineRules = []
+const getPipelineRules = (orderedStages: PipelineStage[]): PipelineStageRule[] => {
+    const pipelineRules: PipelineStageRule[] = []
     for (const stage of orderedStages) {
         const rule = getPipelineStageRule(stage)
         if (!rule) {
@@ -110,17 +112,13 @@ const getPipelineRules = (orderedStages) => {
     return pipelineRules
 }
 
-module.exports = {
-    /**
-     * Validate the stages of a pipeline
-     * @param {Array<PipelineStage>} orderedStages Pipeline stages to validate (MUST be in order - use the helper function `app.db.models.PipelineStage.sortStages` to get the ordered stages)
-     * @returns {boolean} `true` if the stages are valid
-     */
-    validateStages (orderedStages) {
+export default {
+    // Validate the stages of a pipeline (MUST be passed in order). Returns `true` if valid, throws otherwise.
+    validateStages (orderedStages: PipelineStage[]): boolean {
         try {
             const rules = getPipelineRules(orderedStages)
-            let prevRule = null
-            const typeCounts = {
+            let prevRule: PipelineStageRule | null = null
+            const typeCounts: Record<string, number> = {
                 INSTANCE: 0,
                 DEVICE: 0,
                 DEVICE_GROUP: 0,
