@@ -267,16 +267,16 @@ export default {
   }
 
   .ff-button {
-    border: 1px solid $ff-grey-300;
+    border: 1px solid var(--ff-color-border-strong);
     padding: 5px 5px 5px 10px;
-    background: $ff-white;
+    background: var(--ff-color-bg-app);
 
     &:focus-visible {
         outline: none;
     }
 
     &:focus {
-        border-color: $ff-blue-500;
+        border-color: var(--ff-color-link);
     }
 
     .icon {
@@ -296,22 +296,22 @@ export default {
 }
 
 .ff-options {
-    background: $ff-grey-50;
-    box-shadow: 0 6px 9px 0 #00000038;
+    background: var(--ff-color-bg-surface);
+    box-shadow: 0 6px 9px 0 rgba(0, 0, 0, 0.22);
     max-height: 28rem;
     z-index: 200;
     overflow-y: auto;
     padding: 0;
-    border-left: 1px solid $ff-grey-200;
-    border-right: 1px solid $ff-grey-200;
-    border-bottom: 1px solid $ff-grey-200;
+    border-left: 1px solid var(--ff-color-border);
+    border-right: 1px solid var(--ff-color-border);
+    border-bottom: 1px solid var(--ff-color-border);
     &:focus-visible, &:focus {
         outline: none;
     }
 
     .ff-option {
-        border-bottom: 1px solid $ff-grey-200;
-        background-color: $ff-grey-50;
+        border-bottom: 1px solid var(--ff-color-border);
+        background-color: var(--ff-color-bg-surface);
         cursor: pointer;
 
         &:last-of-type {
@@ -323,10 +323,10 @@ export default {
             border: 1px solid transparent;
 
             &.selected {
-                background-color: $ff-grey-200;
+                background-color: var(--ff-color-bg-emphasis);
             }
             &.active {
-                border: 1px solid $ff-indigo-300;
+                border: 1px solid var(--ff-color-accent-light);
             }
             &.selected.active {
                 border-color: transparent;
@@ -334,7 +334,7 @@ export default {
         }
 
         &:hover {
-            background-color: $ff-grey-200;
+            background-color: var(--ff-color-bg-emphasis);
             .ff-option-content.active {
                 border-color: transparent
             }

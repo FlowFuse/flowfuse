@@ -106,7 +106,7 @@ export default {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background-color: $ff-indigo-500;
+    background-color: var(--ff-color-focus);
     animation: bounce-dot 1.4s infinite ease-in-out both;
 
     &:nth-child(1) {
@@ -131,7 +131,7 @@ export default {
 
 .loading-message {
     font-size: 0.875rem;
-    color: $ff-grey-600;
+    color: var(--ff-color-text-deep);
     font-style: italic;
     animation: fade-in 0.3s ease-in;
 }

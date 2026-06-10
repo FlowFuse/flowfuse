@@ -121,8 +121,8 @@ export default {
   top: 65px;
   right: 5px;
   width: 350px;
-  background: $ff-white;
-  border: 1px solid $ff-grey-300;
+  background: var(--ff-color-bg-app);
+  border: 1px solid var(--ff-color-border-strong);
   box-shadow: -6px 6px 10px rgba(0, 0, 0, .2);
   margin: 0;
 
@@ -141,7 +141,7 @@ export default {
   .title {
     margin-bottom: 20px;
     text-align: center;
-    border-bottom: 1px solid $ff-grey-200;
+    border-bottom: 1px solid var(--ff-color-border);
     padding-bottom: 15px;
   }
 
@@ -156,15 +156,15 @@ export default {
         display: flex;
         justify-content: space-between;
         width: 100%;
-        border: 1px solid $ff-grey-200;
+        border: 1px solid var(--ff-color-border);
         align-items: center;
         padding: 5px;
-        color: $ff-black;
+        color: var(--ff-color-text);
 
         &:hover {
           text-decoration: none;
-          border: 1px solid $ff-blue-700;
-          color: $ff-blue-700;
+          border: 1px solid var(--ff-color-link-hover);
+          color: var(--ff-color-link-hover);
         }
       }
     }

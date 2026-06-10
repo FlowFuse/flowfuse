@@ -67,7 +67,7 @@ export default {
 .flow-selection-button {
     .text {
         .counter {
-            color: $ff-grey-500;
+            color: var(--ff-color-text-subtle);
             margin-left: 4px;
             font-size: $ff-funit-xs;
         }
