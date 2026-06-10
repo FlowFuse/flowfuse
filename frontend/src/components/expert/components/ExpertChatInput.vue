@@ -16,6 +16,7 @@
                 Start over
             </button>
             <div class="right-buttons">
+                <tool-permissions-selector />
                 <capabilities-selector v-if="isInsightsAgent" />
             </div>
         </div>
@@ -67,6 +68,7 @@ import { mapActions, mapState } from 'pinia'
 import ResizeBar from '../../ResizeBar.vue'
 
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
+import ToolPermissionsSelector from './ToolPermissionsSelector.vue'
 import ContextSelector from './context-selection/index.vue'
 
 import { useResizingHelper } from '@/composables/ResizingHelper.js'
@@ -80,7 +82,8 @@ export default {
     components: {
         CapabilitiesSelector,
         ContextSelector,
-        ResizeBar
+        ResizeBar,
+        ToolPermissionsSelector
     },
     inject: {
         togglePinWithWidth: {

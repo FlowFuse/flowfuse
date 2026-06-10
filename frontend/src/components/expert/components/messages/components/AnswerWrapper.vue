@@ -66,6 +66,13 @@
             :should-stream="shouldStream"
             @streaming-complete="onComponentComplete('suggestions-list')"
         />
+
+        <mcp-tool-result
+            v-if="shouldShowMcpToolResult"
+            :ui="answer.ui"
+            class="mt-2"
+            @action="handleMcpAction"
+        />
     </message-bubble>
 </template>
 
@@ -78,6 +85,7 @@ import useTimerHelper from '../../../../../composables/TimerHelper.js'
 import AnswerBadge from './AnswerBadge.vue'
 import GuideHeader from './GuideHeader.vue'
 import MessageBubble from './MessageBubble.vue'
+import McpToolResult from './mcp/McpToolResult.vue'
 import FlowsList from './resources/FlowsList.vue'
 import GuideStepsList from './resources/GuideStepsList.vue'
 import IssuesList from './resources/IssuesList.vue'
@@ -101,7 +109,8 @@ export default {
         GuideStepsList,
         MessageBubble,
         GuideHeader,
-        IssuesList
+        IssuesList,
+        McpToolResult
     },
     props: {
         answer: {
@@ -153,7 +162,14 @@ export default {
             return this.answer.content && this.answer.content.length > 0
         },
         isChatAnswer () {
-            return !Object.hasOwnProperty.call(this.answer, 'kind') || this.answer.kind === 'chat'
+            // 'mcp-tool-result' is treated as chat-like (no badge) since it renders its own UI
+            return !Object.hasOwnProperty.call(this.answer, 'kind') || this.answer.kind === 'chat' || this.answer.kind === 'mcp-tool-result'
+        },
+        isMcpToolResult () {
+            return this.answer.kind === 'mcp-tool-result'
+        },
+        hasMcpUI () {
+            return this.isMcpToolResult && !!this.answer.ui
         },
         isEditorContext () {
             // In editor context, the route name includes 'editor'
@@ -215,6 +231,12 @@ export default {
             if (this.componentStreamingOrder.indexOf(key) === 0) return true
             return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
         },
+        shouldShowMcpToolResult () {
+            // Rendered after markdown content (if any) finishes streaming
+            if (!this.hasMcpUI) return false
+            const priorComponents = this.componentStreamingOrder.filter(k => k !== 'mcp-tool-result')
+            return this.streamedComponents.length >= priorComponents.length
+        },
         shouldStream () {
             return !this.answer._streamed
         }
@@ -248,6 +270,11 @@ export default {
         if (this.isEditorContext) {
             this.$refs.messageBubble.$el.addEventListener('click', this.handleClick)
         }
+        // Items with nothing to stream (e.g. mcp-tool-result with no content) must
+        // immediately signal completion so the streaming list can advance.
+        if (this.componentStreamingOrder.length === 0) {
+            this.$nextTick(() => this.$emit('streaming-complete'))
+        }
     },
     methods: {
         ...mapActions(useProductExpertStore, ['updateAnswerStreamedState']),
@@ -268,6 +295,29 @@ export default {
             if (!this.shouldStream) await this.waitFor(200)
 
             this.streamedComponents.push(key)
+        },
+        /**
+         * Handle actions emitted by MCP UI components (e.g. confirmation, selection, navigation).
+         * Navigation actions (result-card links) use Vue Router; other actions are forwarded to the
+         * expert store for transmission back to the agent.
+         */
+        handleMcpAction (event) {
+            if (event && event.navigation) {
+                this.$router.push(event.navigation)
+            }
+            if (event && event.actionId) {
+                const match = /^(approve|deny|allow-always):(.+)$/.exec(event.actionId)
+                if (match) {
+                    const expertStore = useProductExpertStore()
+                    const action = match[1]
+                    const id = match[2]
+                    if (action === 'allow-always') {
+                        expertStore.resolveToolConfirmation(id, true, true)
+                    } else {
+                        expertStore.resolveToolConfirmation(id, action === 'approve')
+                    }
+                }
+            }
         },
         handleClick (e) {
             const target = e.target

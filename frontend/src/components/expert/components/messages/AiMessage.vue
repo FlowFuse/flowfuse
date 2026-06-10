@@ -67,7 +67,7 @@ export default {
         toolCalls () {
             // todo we need to reconsider how we serve data to the tool calls component. This is ok for now as it
             //  only impacts the immediate child component (was hacked out of the expert store)
-            const mcpItems = this.answer.filter(answer => ['mcp_tool', 'mcp_resource', 'mcp_resource_template', 'mcp_prompt'].includes(answer.kind))
+            const mcpItems = this.answer.filter(answer => ['mcp_tool', 'mcp_resource', 'mcp_resource_template', 'mcp_prompt', 'platform_tool'].includes(answer.kind))
 
             // Handle MCP calls if present - includes tools, resources, and prompts
             if (mcpItems.length > 0) {
@@ -98,7 +98,9 @@ export default {
             return null
         },
         filteredAnswers () {
-            return this.answer.filter(answer => !['mcp_tool', 'mcp_resource', 'mcp_resource_template', 'mcp_prompt'].includes(answer.kind))
+            // Keep all answer kinds except raw MCP call records (those are rendered by ToolCalls).
+            // 'mcp-tool-result' is intentionally included — it carries structured UI to render inline.
+            return this.answer.filter(answer => !['mcp_tool', 'mcp_resource', 'mcp_resource_template', 'mcp_prompt', 'platform_tool'].includes(answer.kind))
         }
     },
     async mounted () {

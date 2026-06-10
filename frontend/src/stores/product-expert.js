@@ -8,6 +8,7 @@ import useTimerHelper from '../composables/TimerHelper.js'
 
 import { useAccountSettingsStore } from './account-settings.js'
 import { useContextStore } from './context.js'
+import { useMCPToolPermissionsStore } from './mcp-tool-permissions.js'
 import { useProductAssistantStore } from './product-assistant.js'
 import { INSIGHTS_AGENT, SUPPORT_AGENT } from './product-expert-agents.js'
 import { useProductExpertInsightsAgentStore } from './product-expert-insights-agent.js'
@@ -22,8 +23,11 @@ import {
     THROTTLED_ERROR_CODES,
     TRANSIENT_ERROR_CODES
 } from '@/services/mqtt.service'
-
 import getServicesOrchestrator from '@/services/service.orchestrator'
+
+// Stores pending tool confirmations (confirmationId → resolve callback).
+// Module-level to avoid Pinia proxy interference with Map/Promise internals.
+const pendingToolConfirmations = new Map()
 
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
@@ -31,7 +35,10 @@ export const useProductExpertStore = defineStore('product-expert', {
         loadingVariant: SUPPORT_AGENT,
         shouldWakeUpAssistant: false,
         inFlightUpdates: [],
-        _seenTransactionIds: new Map()
+        platformTools: [],
+        _seenTransactionIds: new Map(),
+        _editorHeartbeatInterval: null,
+        _editorHeartbeatProjectId: null
     }),
     getters: {
         _agentStore () {
@@ -148,9 +155,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 return router.push({ name: expertRouteName, params: contextStore.route.params })
             }
 
-            if (this.agentMode === INSIGHTS_AGENT) {
-                useProductExpertInsightsAgentStore().getCapabilities()
-            }
+            this.fetchCapabilities()
             // Lazy import to avoid circular dep: product-expert.js → ExpertDrawer.vue → product-expert.js
             return import('../components/drawers/expert/ExpertDrawer.vue')
                 .then(({ default: ExpertDrawer }) => useUxDrawersStore().openRightDrawer({
@@ -158,6 +163,11 @@ export const useProductExpertStore = defineStore('product-expert', {
                     fixed: options?.openPinned === true,
                     closeOnClickOutside: options?.openPinned !== true
                 }))
+        },
+        async fetchCapabilities () {
+            const insightsStore = useProductExpertInsightsAgentStore()
+            const data = await insightsStore.getCapabilities()
+            this.platformTools = data?.platformTools || []
         },
         wakeUpAssistant ({ shouldHydrateMessages = false } = {}) {
             if (this.shouldWakeUpAssistant) {
@@ -262,15 +272,23 @@ export const useProductExpertStore = defineStore('product-expert', {
             })
 
             try {
+                const insightsStore = useProductExpertInsightsAgentStore()
+                const mqttContext = {
+                    ...useContextStore().expert,
+                    agent: this.agentMode
+                }
+                if (insightsStore.selectedCapabilities?.length > 0) {
+                    mqttContext.selectedCapabilities = insightsStore.selectedCapabilities
+                }
+                if (this.platformTools?.length > 0) {
+                    mqttContext.platformTools = this.platformTools
+                }
                 await mqttService.publishMessage(mqttConnectionKey, {
                     topic,
                     qos: 2,
                     payload: {
                         query,
-                        context: {
-                            ...useContextStore().expert,
-                            agent: this.agentMode
-                        }
+                        context: mqttContext
                     },
                     correlationData: transactionId,
                     userProperties: {
@@ -300,10 +318,19 @@ export const useProductExpertStore = defineStore('product-expert', {
             })
         },
         async handleInFlightRequest ({ topic, message, transactionId, sessionId, chatTransactionId } = {}) {
-            const inFlightRequest = this._inFlightRequests.values().next().value
+            const payload = JSON.parse(message.toString())
+            const isExternalDispatch = payload.source === 'forge-mcp'
 
-            // dismiss inFlight requests that don't match the existing sessionId or the inFlight message transactionId
-            if (sessionId !== this.sessionId || inFlightRequest?.transactionId !== chatTransactionId) return
+            // For external MCP dispatch, the forge platform uses MQTT v3.1.1
+            // (no v5 properties), so correlationId and sessionId are in the payload body.
+            if (isExternalDispatch) {
+                transactionId = transactionId || payload.correlationId
+                sessionId = sessionId || payload.sessionId || this.sessionId
+                chatTransactionId = chatTransactionId || transactionId
+            } else {
+                const inFlightRequest = this._inFlightRequests.values().next().value
+                if (sessionId !== this.sessionId || inFlightRequest?.transactionId !== chatTransactionId) return
+            }
 
             const servicesOrchestrator = getServicesOrchestrator()
             const assistantStore = useProductAssistantStore()
@@ -311,35 +338,45 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
             const parsedTopic = topicHelper.parseTopic(topic)
-            const payload = JSON.parse(message.toString())
 
             this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
 
-            const responseTopic = topicHelper.buildTopic({
+            let responseTopic = topicHelper.buildTopic({
                 entityType: parsedTopic.entityType,
                 entityId: parsedTopic.entityId,
                 agentChannel: 'support',
                 topicType: 'inflight',
                 topicAction: 'response',
-                inflightType: parsedTopic.inflightType,
-                sessionId: sessionId || this.sessionId
+                inflightType: parsedTopic.inflightType
             })
+            // Preserve the original topic namespace — MCP dispatch uses
+            // ff/v1/mcp/... so the response must go back on the same prefix.
+            if (isExternalDispatch && topic.startsWith('ff/v1/mcp/')) {
+                responseTopic = responseTopic.replace('ff/v1/expert/', 'ff/v1/mcp/')
+            }
 
-            switch (true) {
-            case parsedTopic.inflightType === 'expert:status-message':
-                await mqttService.publishMessage(this.mqttConnectionKey, {
+            // For external dispatch, publish responses without v5 properties
+            // (the forge platform matches by response topic, not correlationData)
+            const publishResponse = async (resultPayload) => {
+                const opts = {
                     qos: 2,
                     topic: responseTopic,
-                    payload: JSON.stringify({
-                        ack: true
-                    }),
-                    correlationData: transactionId,
-                    userProperties: {
+                    payload: JSON.stringify(resultPayload)
+                }
+                if (!isExternalDispatch) {
+                    opts.correlationData = transactionId
+                    opts.userProperties = {
                         sessionId,
                         transactionId: chatTransactionId,
                         origin: window.origin || window.location.origin
                     }
-                })
+                }
+                await mqttService.publishMessage(this.mqttConnectionKey, opts)
+            }
+
+            switch (true) {
+            case parsedTopic.inflightType === 'expert:status-message':
+                await publishResponse({ ack: true })
                 break
             case parsedTopic.inflightType.startsWith('automation:'):
                 try {
@@ -350,25 +387,149 @@ export const useProductExpertStore = defineStore('product-expert', {
                         chatTransactionId,
                         transactionId
                     })
-
-                    await mqttService.publishMessage(this.mqttConnectionKey, {
-                        qos: 2,
-                        topic: responseTopic,
-                        payload: JSON.stringify(result),
-                        correlationData: transactionId,
-                        userProperties: {
-                            sessionId,
-                            transactionId: chatTransactionId,
-                            origin: window.origin || window.location.origin
-                        }
-                    })
+                    await publishResponse(result)
                 } catch (e) {
-                    this._onMqttError(e)
+                    if (isExternalDispatch) {
+                        await publishResponse({ error: e.message || 'unknown error' })
+                    } else {
+                        this._onMqttError(e)
+                    }
+                }
+                break
+            case parsedTopic.inflightType.startsWith('platform:'):
+                try {
+                    const platformResult = await this.handlePlatformAction(
+                        parsedTopic.inflightType.replace('platform:', 'platform.'),
+                        payload.params || {}
+                    )
+                    await publishResponse({ ack: true, ...platformResult })
+                } catch (e) {
+                    if (isExternalDispatch) {
+                        await publishResponse({ error: e.message || 'unknown error' })
+                    } else {
+                        this._onMqttError(e)
+                    }
                 }
                 break
             default:
                 // do nothing
             }
+        },
+        /**
+         * Handle a platform action triggered via the expert MQTT inflight channel.
+         * Navigation actions are handled client-side; all other platform tools are
+         * forwarded to the backend /api/v1/expert/platform-tool endpoint.
+         * Uses lazy router import to avoid circular dependencies.
+         * @param {string} action  e.g. 'platform.open-editor'
+         * @param {object} params  action parameters
+         * @returns {Promise<object>} result object to ACK back to the agent
+         */
+        async handlePlatformAction (action, params) {
+            // Check tool permissions before executing anything
+            const toolPermissions = useMCPToolPermissionsStore()
+            const policy = toolPermissions.getPolicy(action)
+            if (policy === 'deny') {
+                return { error: `Tool '${action}' is blocked by your tool permissions settings` }
+            }
+            if (policy === 'prompt') {
+                const approved = await this._requestToolConfirmation(action, params)
+                if (!approved) {
+                    return { error: `Tool '${action}' was denied by user` }
+                }
+            }
+
+            // Lazy require to avoid circular dependency (same pattern used in openAssistantDrawer)
+            const router = require('@/routes.js').default
+
+            // Navigation actions are handled client-side
+            switch (action) {
+            case 'platform.open-editor':
+                if (params.instanceId) {
+                    router.push(`/instance/${params.instanceId}/editor`)
+                    return { navigated: true, target: `/instance/${params.instanceId}/editor` }
+                }
+                break
+            case 'platform.open-instance':
+                if (params.instanceId) {
+                    router.push(`/instance/${params.instanceId}`)
+                    return { navigated: true, target: `/instance/${params.instanceId}` }
+                }
+                break
+            }
+
+            // All other platform tools: call the backend
+            try {
+                const context = useContextStore().expert
+                const response = await expertApi.callPlatformTool(action, params, { teamId: context.teamId })
+                return response.data?.result || response.data || {}
+            } catch (err) {
+                return { error: err.response?.data?.error || err.message }
+            }
+        },
+        /**
+         * Show an inline confirmation in the chat and wait for user approval.
+         * Returns a Promise<boolean> that resolves when the user clicks Allow/Deny.
+         */
+        _requestToolConfirmation (action, params) {
+            const confirmationId = uuidv4()
+            const toolLabel = action.replace('platform.', '').replace(/[-_]/g, ' ')
+
+            const details = Object.entries(params || {})
+                .filter(([, v]) => v !== undefined && v !== null)
+                .map(([key, value]) => ({
+                    label: key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim(),
+                    value: String(value)
+                }))
+
+            this.addAiMessage({
+                answer: [{
+                    kind: 'mcp-tool-result',
+                    content: '',
+                    ui: {
+                        type: 'confirmation',
+                        title: `Allow "${toolLabel}"?`,
+                        details,
+                        actions: [
+                            { id: `approve:${confirmationId}`, label: 'Allow', variant: 'primary' },
+                            { id: `allow-always:${confirmationId}`, label: 'Always Allow', variant: 'tertiary' },
+                            { id: `deny:${confirmationId}`, label: 'Deny', variant: 'secondary' }
+                        ]
+                    }
+                }]
+            })
+
+            return new Promise(resolve => {
+                pendingToolConfirmations.set(confirmationId, { resolve, toolName: action })
+            })
+        },
+        /**
+         * Resolve a pending tool confirmation (called when user clicks Allow/Deny).
+         */
+        resolveToolConfirmation (confirmationId, approved, addToAllowlist = false) {
+            const entry = pendingToolConfirmations.get(confirmationId)
+            if (!entry) return
+
+            pendingToolConfirmations.delete(confirmationId)
+
+            if (approved && addToAllowlist && entry.toolName) {
+                useMCPToolPermissionsStore().addToAllowlist(entry.toolName)
+            }
+
+            // Update the confirmation card to show the outcome
+            for (const msg of this._agentStore.messages) {
+                if (!msg.answer) continue
+                for (const ans of msg.answer) {
+                    if (!ans.ui?.actions) continue
+                    if (ans.ui.actions.some(a => a.id.includes(confirmationId))) {
+                        const toolLabel = ans.ui.title?.replace('Allow ', '') || 'tool'
+                        ans.ui.title = approved ? `Allowed ${toolLabel}` : `Denied ${toolLabel}`
+                        ans.ui.actions = []
+                        break
+                    }
+                }
+            }
+
+            entry.resolve(approved)
         },
         async handleMessageResponse (response) {
             // ignore aborted messages through mqtt
@@ -398,7 +559,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             // Clear resource selection
             const insightsStore = useProductExpertInsightsAgentStore()
             insightsStore.setSelectedCapabilities([])
-            await insightsStore.getCapabilities()
+            await this.fetchCapabilities()
 
             // Add welcome message for current mode
             this.addWelcomeMessageIfNeeded()
@@ -597,11 +758,13 @@ export const useProductExpertStore = defineStore('product-expert', {
             })
         },
         async _onMqttMessage  (topic, message, packet) {
-            // ignore any messages if inFlightRequests has been cleared (it means that the chat was stopped mid-flight)
-            if (this._inFlightRequests.size === 0) return
-
             const topicHelper = useMqttExpertTopicHelper()
             const parsedTopic = topicHelper.parseTopic(topic)
+
+            // Allow inflight requests through even without an active chat —
+            // external MCP clients dispatch actions without a preceding chat message.
+            if (this._inFlightRequests.size === 0 && !parsedTopic.isInflightRequest) return
+
             const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
             const sessionId = packet.properties?.userProperties?.sessionId // chat session
             const chatTransactionId = packet.properties?.userProperties?.transactionId // passed through for integrity
@@ -707,6 +870,21 @@ export const useProductExpertStore = defineStore('product-expert', {
                             topicAction: 'request',
                             inflightType: '+'
                         }),
+                        { qos: 2 }
+                    ),
+                    // Subscribe to MCP dispatch inflight requests (from forge platform
+                    // via external MCP clients). Uses ff/v1/mcp/... namespace to avoid
+                    // cross-talk with the expert agent's ff/v1/expert/... subscriptions.
+                    mqttService.subscribe(
+                        this.mqttConnectionKey,
+                        mqttTopicHelper.buildTopic({
+                            entityType: '+',
+                            entityId: '+',
+                            agentChannel: 'support',
+                            topicType: 'inflight',
+                            topicAction: 'request',
+                            inflightType: '+'
+                        }).replace('ff/v1/expert/', 'ff/v1/mcp/'),
                         { qos: 2 }
                     )
                 ])
@@ -1061,6 +1239,91 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
             }
             this._inFlightRequests.clear()
+        },
+        /**
+         * Start publishing editor heartbeats for a project.
+         * Publishes an 'alive' heartbeat immediately and then every 10 seconds.
+         * @param {string} projectId - The instance/project ID
+         */
+        async startEditorHeartbeat (projectId) {
+            this.stopEditorHeartbeat()
+
+            if (!this.shouldUseMqtt || !projectId) return
+
+            this._editorHeartbeatProjectId = projectId
+
+            const publish = async () => {
+                try {
+                    const servicesOrchestrator = getServicesOrchestrator()
+                    const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+
+                    if (!mqttService.hasClient(this.mqttConnectionKey)) {
+                        const agentStore = this._agentStore
+                        if (!agentStore.sessionId) {
+                            agentStore.sessionId = uuidv4()
+                        }
+                        await this.establishMqttComms()
+                    }
+
+                    const contextStore = useContextStore()
+                    const teamId = contextStore.team?.id
+                    if (!teamId) return
+
+                    const topic = `ff/v1/${teamId}/p/${projectId}/editor/heartbeat`
+
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                        topic,
+                        qos: 1,
+                        payload: JSON.stringify({
+                            sessionId: this.sessionId,
+                            userId: contextStore.expert?.userId,
+                            action: 'alive'
+                        })
+                    })
+                } catch (_) {
+                    // Heartbeat failures are non-critical, silently ignore
+                }
+            }
+
+            await publish()
+            this._editorHeartbeatInterval = setInterval(publish, 10000)
+        },
+        /**
+         * Stop publishing editor heartbeats.
+         * Publishes a 'leaving' message and clears the interval.
+         */
+        stopEditorHeartbeat () {
+            if (this._editorHeartbeatInterval) {
+                clearInterval(this._editorHeartbeatInterval)
+                this._editorHeartbeatInterval = null
+            }
+
+            if (this._editorHeartbeatProjectId && this.shouldUseMqtt) {
+                try {
+                    const servicesOrchestrator = getServicesOrchestrator()
+                    const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+                    const contextStore = useContextStore()
+                    const teamId = contextStore.team?.id
+
+                    if (teamId && mqttService.hasClient(this.mqttConnectionKey)) {
+                        const topic = `ff/v1/${teamId}/p/${this._editorHeartbeatProjectId}/editor/heartbeat`
+
+                        mqttService.publishMessage(this.mqttConnectionKey, {
+                            topic,
+                            qos: 1,
+                            payload: JSON.stringify({
+                                sessionId: this.sessionId,
+                                userId: contextStore.expert?.userId,
+                                action: 'leaving'
+                            })
+                        })
+                    }
+                } catch (_) {
+                    // Best effort on leaving
+                }
+            }
+
+            this._editorHeartbeatProjectId = null
         }
     },
     persist: {

@@ -281,6 +281,37 @@ module.exports = {
         result.token = token
         return result
     },
+    createMCPToken: async function (app, user, scope, expiresAt, name) {
+        const userId = typeof user === 'number' ? user : user.id
+        const token = generateToken(32, 'ffmcp')
+        const tok = await app.db.models.AccessToken.create({
+            name,
+            token,
+            scope,
+            expiresAt,
+            ownerId: '' + userId,
+            ownerType: 'user'
+        })
+        const result = app.db.views.AccessToken.mcpTokenSummary(tok)
+        result.token = token
+        return result
+    },
+    updateMCPToken: async function (app, user, tokenId, scope, expiresAt) {
+        const userId = typeof user === 'number' ? user : user.id
+        const token = await app.db.models.AccessToken.byId(tokenId, 'user', userId)
+        if (token) {
+            token.scope = scope
+            if (expiresAt === undefined) {
+                token.expiresAt = null
+            } else {
+                token.expiresAt = expiresAt
+            }
+            await token.save()
+        } else {
+            throw new Error('Not Found')
+        }
+        return token
+    },
     updatePersonalAccessToken: async function (app, user, tokenId, scope, expiresAt) {
         const userId = typeof user === 'number' ? user : user.id
         const token = await app.db.models.AccessToken.byId(tokenId, 'user', userId)

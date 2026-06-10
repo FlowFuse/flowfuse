@@ -97,6 +97,46 @@ module.exports = function (app) {
     }
 
     app.addSchema({
+        $id: 'MCPTokenSummary',
+        type: 'object',
+        // Composed via `allOf` elsewhere — keep open.
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            expiresAt: { type: 'string', nullable: true }
+        },
+        required: ['id', 'name', 'expiresAt']
+    })
+    app.addSchema({
+        $id: 'MCPToken',
+        type: 'object',
+        allOf: [{ $ref: 'MCPTokenSummary' }],
+        properties: {
+            token: { type: 'string' }
+        },
+        required: ['token']
+    })
+
+    function mcpTokenSummary (token) {
+        const tokenSummary = {
+            id: token.hashid,
+            name: token.name,
+            expiresAt: token.expiresAt ?? null
+        }
+        return tokenSummary
+    }
+    app.addSchema({
+        $id: 'MCPTokenSummaryList',
+        type: 'array',
+        items: {
+            $ref: 'MCPTokenSummary'
+        }
+    })
+    function mcpTokenSummaryList (tokenArray) {
+        return tokenArray.map(token => mcpTokenSummary(token))
+    }
+
+    app.addSchema({
         $id: 'InstanceHTTPTokenSummary',
         type: 'object',
         // Composed via `allOf` elsewhere — keep open.
@@ -141,6 +181,8 @@ module.exports = function (app) {
         provisioningTokenSummary,
         personalAccessTokenSummary,
         personalAccessTokenSummaryList,
+        mcpTokenSummary,
+        mcpTokenSummaryList,
         instanceHTTPTokenSummary,
         instanceHTTPTokenSummaryList
     }
