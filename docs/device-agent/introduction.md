@@ -12,7 +12,7 @@ meta:
 
 # FlowFuse Device Agent
 
-![FlowFuse Device Agent Workflow](./images/device-agent-workflow.png){data-zoomable}
+![FlowFuse Device Agent Workflow](./images/device-agent-workflow.png)
 _Workflow to onboard new Remote Instances through the FlowFuse Platform and Device Agent_
 
 The FlowFuse platform can be used to manage Node-RED Remote Instances running on remote hardware, e.g. devices on your factory floor.

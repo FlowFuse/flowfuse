@@ -13,17 +13,17 @@ This guide will help you learn how to use the FlowFuse platform to quickly creat
 
 Your first Node-RED instance should be automatically created upon your initial login to FlowFuse.
 
-![Instance created initial login](./images/getting-started/ff-home-initial-login.png){data-zoomable}
+![Instance created initial login](./images/getting-started/ff-home-initial-login.png)
 
 **Accessing the Node-RED Editor:**
 
 To access the Node-RED Editor, simply click on the option shown in the image below marked with a red box:
 
-![Open Editor Shortcut](./images/getting-started/open-editor-shortcut.png){data-zoomable}
+![Open Editor Shortcut](./images/getting-started/open-editor-shortcut.png)
 
 Alternatively, you can click on that instance and then you will find the "Open Editor" button at the top right:
 
-![Open Editor](./images/getting-started/Open-Editor.png){data-zoomable}
+![Open Editor](./images/getting-started/Open-Editor.png)
 
 ### Creating Additional Instances
 
@@ -38,7 +38,7 @@ For utilizing various other FlowFuse features (e.g., DevOps Pipelines), it's hig
 5. Select the Node-RED version from the dropdown
 6. Click "Next" and [select the blueprint](#selecting-a-blueprint) you want to use
 
-![Add Instance](./images/getting-started/ff-home-after-initial-login-add-instance.png){data-zoomable}
+![Add Instance](./images/getting-started/ff-home-after-initial-login-add-instance.png)
 
 **From the Applications Page:**
 
@@ -57,9 +57,9 @@ A remote instance allows you to run Node-RED on your own hardware while managing
 3. Enter a name for your instance and select the device type
 4. Select your application and click "Add"
 
-![Add Remote Instance](./images/getting-started/add-remote-instance.png){data-zoomable}
+![Add Remote Instance](./images/getting-started/add-remote-instance.png)
 
-![Add Remote Instance Form](./images/getting-started/instance-add-form.png){data-zoomable}
+![Add Remote Instance Form](./images/getting-started/instance-add-form.png)
 
 **Installing the Device Agent:**
 
@@ -68,7 +68,7 @@ FlowFuse will show you a device configuration window with installation options:
 - **One-Line Install** (Recommended): Automatically installs Node.js (if needed), the device agent, and registers your device
 - **NPM Installation**: Manual installation instructions for Windows, Mac, or Linux
 
-![Device Configuration Window](./images/getting-started/device-configuration-window-2.gif){data-zoomable}
+![Device Configuration Window](./images/getting-started/device-configuration-window-2.gif)
 
 Follow the steps in the window to connect your device—it takes less than a minute.
 
@@ -83,9 +83,9 @@ To start building flows:
 1. Enable "Developer Mode" from the top right
 2. Click "Open Editor"
 
-![Developer Mode](./images/getting-started/developer-mode.png){data-zoomable}
+![Developer Mode](./images/getting-started/developer-mode.png)
 
-![Open Editor](./images/getting-started/open-editor-remote-instance.png){data-zoomable}
+![Open Editor](./images/getting-started/open-editor-remote-instance.png)
 
 ### Selecting a Blueprint
 
@@ -93,7 +93,7 @@ When creating a new Node-RED instance, you have the option to choose a blueprint
 
 While these templates are powerful out-of-the-box, they're also fully customizable, allowing you to tweak them to suit your unique requirements. Ultimately, blueprints speed up the learning curve for new users and expedite the solution-building process for experienced ones.
 
-![Blueprint selection](./images/getting-started/blueprint-selection.png){data-zoomable}
+![Blueprint selection](./images/getting-started/blueprint-selection.png)
 
 **NOTE**: _Some blueprints may only be available on certain tiers_
 
