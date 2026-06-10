@@ -54,7 +54,7 @@
                 <ChevronRightIcon class="ff-icon ff-icon-second" />
             </MenuButton>
             <Teleport to="body">
-                <MenuItems class="z-50 fixed origin-top-left max-h-96 overflow-y-auto bg-white divide-y divide-gray-100 rounded-sm shadow-lg ring-1 ring-black/10 focus:outline-hidden" :style="rightMenuStyle">
+                <MenuItems class="fixed origin-top-left max-h-96 overflow-y-auto bg-white divide-y divide-gray-100 rounded-sm shadow-lg ring-1 ring-black/10 focus:outline-hidden" :style="rightMenuStyle">
                     <MenuItem
                         v-for="tab in hiddenRightTabs"
                         :key="'right-' + tab.label"
@@ -146,7 +146,7 @@ export default {
             })
         },
         rightMenuStyle () {
-            return this.rightMenuPosition
+            return { ...this.rightMenuPosition, zIndex: 200 }
         }
     },
     watch: {
