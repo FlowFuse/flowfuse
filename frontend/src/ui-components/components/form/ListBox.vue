@@ -52,7 +52,7 @@
                         :style="{
                             top: position.top + 'px',
                             left: position.left + 'px',
-                            width: position.width + 'px',
+                            minWidth: Math.max(position.width, optionsMinWidth || 0) + 'px',
                             transform: position.transform || ''
                         }"
                     >
