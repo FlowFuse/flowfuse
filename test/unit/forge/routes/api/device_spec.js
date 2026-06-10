@@ -790,7 +790,7 @@ describe('Device API', async function () {
                 result.should.have.property('id')
                 result.should.have.property('name', 'Starter Snapshot')
                 result.should.have.property('modules').and.be.an.Object()
-                result.modules.should.have.property('node-red', 'latest')
+                result.modules.should.have.property('node-red', '~4.1.11')
             })
             it('snapshot uploaded without node-red dependency is always delivered to a device with the node-red:version', async function () {
                 const agentVersion = '1.11.2' // min agent version required for NR 3.1 (as this agent handles ESM issue)
@@ -846,7 +846,7 @@ describe('Device API', async function () {
                 result.should.have.property('id')
                 result.should.have.property('name', 'uploaded snapshot')
                 result.should.have.property('modules').and.be.an.Object()
-                result.modules.should.have.property('node-red', 'latest')
+                result.modules.should.have.property('node-red', '~4.1.11')
             })
             it('device updated to use target snapshot of an instance returns correct env vars', async function () {
                 // It is possible to "view all application snapshots" and pick one to assign to a device
