@@ -311,7 +311,7 @@ export default {
             .mobile-search {
                 display: none;
                 cursor: pointer;
-                color: $ff-white;
+                color: var(--ff-color-text-on-brand);
                 min-width: 20px;
                 min-height: 20px;
             }
@@ -329,7 +329,7 @@ export default {
 
                 .ff-icon-sm.close,
                 .ff-icon-sm.search {
-                    color: $ff-grey-400;
+                    color: var(--ff-color-text-subtle);
                     position: absolute;
                     z-index: 1;
                     top: 8px;
@@ -346,8 +346,8 @@ export default {
                 input {
                     color: transparent;
                     padding: 6px 27px;
-                    background: $ff-grey-50;
-                    border-color: $ff-color--border;
+                    background: var(--ff-color-bg-surface);
+                    border-color: var(--ff-color-border);
                     width: 100%;
                     line-height: 20px;
                     height: 34px;
@@ -361,7 +361,7 @@ export default {
         }
 
         .results-wrapper {
-            background: $ff-white;
+            background: var(--ff-color-bg-app);
             min-width: 100%;
             z-index: 120;
             padding: 5px 5px 15px 5px;
@@ -374,10 +374,10 @@ export default {
                 justify-content: center;
                 align-items: center;
                 gap: 5px;
-                border: 1px solid $ff-indigo-700;
-                color: $ff-indigo-700;
+                border: 1px solid var(--ff-color-accent-hover);
+                color: var(--ff-color-accent-hover);
                 border-radius: 5px;
-                background: $ff-white;
+                background: var(--ff-color-bg-app);
             }
         }
     }
@@ -386,7 +386,7 @@ export default {
         .content-wrapper {
             position: fixed;
             width: 60vw;
-            background: white;
+            background: var(--ff-color-bg-app);
             top: 15px;
             left: 20vw;
             z-index: 120;
@@ -397,13 +397,13 @@ export default {
                 .input-wrapper {
                     .ff-icon-sm.search,
                     .ff-icon-sm.close {
-                        color: $ff-grey-500;
+                        color: var(--ff-color-text-subtle);
                     }
 
                     input {
-                        color: $ff-grey-500;
+                        color: var(--ff-color-text-subtle);
                         flex: 1;
-                        background: white;
+                        background: var(--ff-color-bg-app);
                         display: none;
                         width: 100%;
 
@@ -540,7 +540,7 @@ export default {
                     }
                     .icon {
                         .forge-badge {
-                            background: $ff-white;
+                            background: var(--ff-color-bg-app);
                         }
                     }
                 }

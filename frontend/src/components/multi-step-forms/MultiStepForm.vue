@@ -175,7 +175,7 @@ export default {
         left:0;
         width: 100%;
         height: 100%;
-        background: rgba(255,255,255, .6);
+        background: var(--ff-color-overlay-loading);
         z-index: 100;
     }
 
