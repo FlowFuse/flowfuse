@@ -1,6 +1,6 @@
 const { KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_DISABLE_AUTO_SAFE_MODE, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
 const { exportEnvVarObject } = require('../../db/utils')
-const { updateCertifiedNodesToken } = require('../../lib/npm')
+const { decodeCertifiedNodesToken } = require('../../lib/npm')
 const { Roles } = require('../../lib/roles')
 
 const ProjectActions = require('./projectActions')
@@ -937,11 +937,15 @@ module.exports = async function (app) {
         if (platformNPMEnabled && (certifiedNodesEnabledForTeam || ffNodesEnabledForTeam)) {
             try {
                 // modify token with team hash id
-                const token = updateCertifiedNodesToken(app.settings.get('platform:ff-npm-registry:token'), team.hashid)
+                const { token, catalogues } = decodeCertifiedNodesToken(app.settings.get('platform:ff-npm-registry:token'), team.hashid)
+                // const token = updateCertifiedNodesToken(app.settings.get('platform:ff-npm-registry:token'), team.hashid)
                 const npmRegURL = new URL(app.config['ff-npm-registry']?.url || 'https://registry.flowfuse.com/')
                 const certNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.certifiedNodes || 'https://ff-certified-nodes.flowfuse.cloud/catalogue.json'
                 const ffNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.ffNodes || 'https://ff-certified-nodes.flowfuse.cloud/ff-catalogue.json'
-                const teamFFCertifiedExtra = team.getProperty('certifiedNodesCatalogues', null)
+                let teamFFCertifiedExtra = team.getProperty('certifiedNodesCatalogues', null)
+                if ((teamFFCertifiedExtra && teamFFCertifiedExtra.length === 0) || !teamFFCertifiedExtra) {
+                    teamFFCertifiedExtra = catalogues
+                }
 
                 // Handle FF Exclusive Nodes
 
@@ -962,6 +966,9 @@ module.exports = async function (app) {
                           `//${npmRegURL.host}:_auth="${token}"\n`
                     if (settings.settings.palette.npmrc) {
                         settings.settings.palette.npmrc += '\n' + npmrcEntry
+                        if (!settings.settings.palette.npmrc.includes(npmrcEntry)) {
+                            settings.settings.palette.npmrc += '\n' + npmrcEntry
+                        }
                     } else {
                         settings.settings.palette.npmrc = npmrcEntry
                     }
@@ -974,7 +981,7 @@ module.exports = async function (app) {
                 }
                 if (teamFFCertifiedExtra) {
                     for (const cat of teamFFCertifiedExtra) {
-                        settings.settings.palette.catalogue.push(cat)
+                        updateSettingsForCatalogue('@flowfuse-certified-nodes', cat)
                     }
                 }
             } catch (err) {
