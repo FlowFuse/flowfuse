@@ -774,6 +774,6 @@ export default {
   margin: 5px 0;
   display: flex;
   gap: 5px;
-  color: $ff-green-600;
+  color: var(--ff-color-success);
 }
 </style>

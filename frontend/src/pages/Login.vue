@@ -1,7 +1,7 @@
 <template>
     <ff-layout-box class="ff-login">
         <div v-if="!appLoader" data-form="login">
-            <ff-loading v-if="loggingIn" message="Logging in..." color="white" />
+            <ff-loading v-if="loggingIn" message="Logging in..." />
             <template v-else-if="!mfaRequired">
                 <label>Username / E-Mail</label>
                 <ff-text-input

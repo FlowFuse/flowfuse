@@ -65,12 +65,12 @@ export default {
     .guide-title {
         font-size: 1.125rem; // text-lg
         font-weight: 600; // font-semibold
-        color: #111827; // text-gray-900
+        color: var(--ff-color-text-strong); // text-gray-900
         margin: 0 0 0.5rem 0; // mb-2
     }
 
     .guide-summary {
-        color: #374151; // text-gray-700
+        color: var(--ff-color-text-muted); // text-gray-700
         margin: 0 0 1rem 0; // mb-4
         line-height: 1.625;
     }

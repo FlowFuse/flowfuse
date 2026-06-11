@@ -277,10 +277,10 @@ export default {
     overflow: auto;
 
     .topics {
-        background: $ff-white;
+        background: var(--ff-color-bg-app);
         padding: 10px;
         border-radius: 6px;
-        border: 1px solid $ff-grey-200;
+        border: 1px solid var(--ff-color-border);
         overflow: auto;
         height: 100%;
     }

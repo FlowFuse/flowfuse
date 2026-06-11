@@ -234,13 +234,13 @@ export default {
       .line {
         height: 1px;
         width: 100%;
-        background: $ff-grey-400;
+        background: var(--ff-color-progress-track-neutral);
         position: absolute;
         top: 50%;
         display: block;
       }
       .text {
-        background: white;
+        background: var(--ff-color-bg-app);
         padding: 5px;
         position: relative;
         z-index: 10;
