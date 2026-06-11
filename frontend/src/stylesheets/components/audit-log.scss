@@ -12,7 +12,7 @@
         font-weight: 500;
     }
     span {
-        color: $ff-grey-400;
+        color: var(--ff-color-text-subtle);
         font-weight: 400;
         font-size: 0.875rem;
         line-height: 1rem;
@@ -31,7 +31,7 @@
             list-style: none;
             cursor: pointer;
             font-size: 0.875rem;
-            color: $ff-grey-500;
+            color: var(--ff-color-text-subtle);
             &::-webkit-details-marker {
                 display: none;
             }
@@ -41,15 +41,15 @@
             position: absolute;
             top: 3px;
             left: 0;
-            background-color: $ff-grey-50;
-            fill: $ff-grey-500;
+            background-color: var(--ff-color-bg-surface);
+            fill: var(--ff-color-text-subtle);
         }
         &:hover {
             summary {
-                color: black;
+                color: var(--ff-color-text);
             }
             span .ff-icon {
-                fill: black;
+                fill: var(--ff-color-text);
             }
         }
     }
@@ -62,7 +62,7 @@
 .ff-audit-entry-trigger, .ff-audit-entry-time {
     grid-area: time;
     display: block;
-    color: $ff-grey-500;
+    color: var(--ff-color-text-subtle);
     overflow-x: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;

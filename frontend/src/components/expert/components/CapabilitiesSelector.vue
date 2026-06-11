@@ -166,11 +166,11 @@ export default {
         }
 
         button.ff-button {
-            border: 1px solid #c7d2fe; // indigo-300 to match other buttons
+            border: 1px solid var(--ff-color-accent-light); // indigo-300 to match other buttons
             border-radius: 5px;
             padding: 0.25rem 0.50rem;
-            background: $ff-white;
-            color: #1f2937; // gray-800, explicit dark text
+            background: var(--ff-color-bg-app);
+            color: var(--ff-color-text); // gray-800, explicit dark text
             font-size: 0.875rem;
 
             .icon {
@@ -182,7 +182,7 @@ export default {
             }
 
             &:hover:not(:disabled) {
-                background-color: #f9fafb; // gray-50
+                background-color: var(--ff-color-bg-surface); // gray-50
             }
 
             &:focus,
@@ -199,13 +199,13 @@ export default {
         &[data-headlessui-state="open"] {
             button.ff-button,
             button.ff-button:hover {
-                background: $ff-indigo-600;
-                border-color: $ff-indigo-600;
-                color: $ff-white;
+                background: var(--ff-color-accent);
+                border-color: var(--ff-color-accent);
+                color: var(--ff-color-text-on-brand);
 
                 .icon {
                     svg {
-                        color: $ff-white;
+                        color: var(--ff-color-text-on-brand);
                     }
                 }
             }
@@ -214,8 +214,8 @@ export default {
 }
 
 .tool-count-badge {
-    background-color: #e0e7ff; // indigo-100
-    color: #4338ca; // indigo-700
+    background-color: var(--ff-color-accent-surface); // indigo-100
+    color: var(--ff-color-accent-hover); // indigo-700
     font-size: 0.75rem;
     font-weight: 500;
     padding: 0.125rem 0.5rem;

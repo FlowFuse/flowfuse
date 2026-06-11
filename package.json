@@ -1,6 +1,6 @@
 {
     "name": "@flowfuse/flowfuse",
-    "version": "2.31.0",
+    "version": "2.31.2",
     "description": "An open source low-code development platform",
     "homepage": "https://flowfuse.com",
     "bugs": {
@@ -28,8 +28,10 @@
         "start-watch": "cross-env NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
         "start-watch-repl": "cross-env NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js --repl",
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
-        "lint": "eslint -c .eslintrc \"forge/**/*.js\" \"frontend/**/*.js\" \"frontend/**/*.vue\" \"test/**/*.js\" --ignore-pattern \"frontend/dist/**\"",
+        "lint": "npm-run-all --sequential lint:eslint lint:colors",
+        "lint:eslint": "eslint -c .eslintrc \"forge/**/*.js\" \"frontend/**/*.js\" \"frontend/**/*.vue\" \"test/**/*.js\" --ignore-pattern \"frontend/dist/**\"",
         "lint:fix": "eslint -c .eslintrc \"forge/**/*.js\" \"frontend/**/*.js\" \"frontend/**/*.vue\" \"test/**/*.js\" --ignore-pattern \"frontend/dist/**\" --fix",
+        "lint:colors": "node scripts/lint-colors.js",
         "test": "npm-run-all --sequential lint test:unit test:system",
         "test:unit": "npm-run-all --sequential test:unit:forge test:unit:frontend",
         "test:unit:forge": "mocha 'test/unit/forge/**/*_spec.js' --timeout 10000 --node-option=unhandled-rejections=strict",
@@ -68,7 +70,7 @@
         "@fastify/swagger": "^9.6.1",
         "@fastify/swagger-ui": "^5.2.5",
         "@fastify/websocket": "^11.2.0",
-        "@flowfuse/driver-localfs": "^2.31.0",
+        "@flowfuse/driver-localfs": "^2.31.2",
         "@flowfuse/flow-renderer": "^0.5.1",
         "@headlessui/vue": "1.7.19",
         "@heroicons/vue": "2.1.5",
@@ -141,7 +143,7 @@
         "@vue/test-utils": "^2.4.3",
         "ajv": "^8.18.0",
         "autoprefixer": "^10.4.15",
-        "babel-loader": "^9.1.3",
+        "babel-loader": "^10.1.1",
         "clean-webpack-plugin": "^4.0.0",
         "copy-webpack-plugin": "^14.0.0",
         "cross-env": "^7.0.3",
@@ -191,7 +193,7 @@
         "ws": "^8.20.1"
     },
     "engines": {
-        "node": ">=20.x"
+        "node": ">=20.10.0"
     },
     "keywords": [
         "low-code-platform",

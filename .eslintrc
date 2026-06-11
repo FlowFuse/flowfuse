@@ -85,7 +85,10 @@
                     "ts": "@typescript-eslint/parser"
                 },
                 "ecmaVersion": 2022,
-                "sourceType": "module"
+                "sourceType": "module",
+                "parser": {
+                    "ts": "@typescript-eslint/parser"
+                }
             },
             "rules": {
                 // plugin:vue
@@ -165,9 +168,12 @@
             }
         },
 
-        // Front ends tests are modules
+        // Front ends tests are modules and run in jsdom (browser globals available)
         {
             "files": ["test/unit/frontend/**", "test/e2e/frontend/**"],
+            "env": {
+                "browser": true
+            },
             "parserOptions": {
                 "sourceType": "module"
             }

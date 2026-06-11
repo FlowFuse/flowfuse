@@ -403,7 +403,8 @@ module.exports = {
                     let nodeRedVersion = '3.0.2' // default to older Node-RED
                     if (SemVer.satisfies(SemVer.coerce(this.agentVersion), '>=1.11.2')) {
                         // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
-                        nodeRedVersion = 'latest'
+                        // pinning to NR 4.1.x while we fix the device agent
+                        nodeRedVersion = '~4.1.11'
                     }
                     return nodeRedVersion
                 },
