@@ -1,7 +1,7 @@
 const cookie = require('@fastify/cookie')
 const csrf = require('@fastify/csrf-protection')
 const helmet = require('@fastify/helmet')
-const { ProfilingIntegration } = require('@sentry/profiling-node')
+const Sentry = require('@sentry/node')
 const fastify = require('fastify')
 
 const auditLog = require('./auditLog')
@@ -139,6 +139,15 @@ module.exports = async (options = {}) => {
             }
         }
     }
+    if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
+        Sentry.init({
+            dsn: runtimeConfig.telemetry.backend.sentry.dsn,
+            sendClientReports: true,
+            environment: process.env.SENTRY_ENV ?? (process.env.NODE_ENV ?? 'unknown'),
+            release: `flowfuse@${runtimeConfig.version}`
+        })
+    }
+
     const server = fastify({
         forceCloseConnections: true,
         bodyLimit: 10485760, // 10mb max payload size, set to allow for VERY large flows
@@ -151,73 +160,13 @@ module.exports = async (options = {}) => {
         pluginTimeout: 20000
     })
 
+    if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
+        Sentry.setupFastifyErrorHandler(server)
+    }
+
     if (runtimeConfig.telemetry.backend?.prometheus?.enabled) {
         const metricsPlugin = require('fastify-metrics')
         await server.register(metricsPlugin, { endpoint: '/metrics' })
-    }
-
-    if (runtimeConfig.telemetry.backend?.sentry?.dsn) {
-        const environment = process.env.SENTRY_ENV ?? (process.env.NODE_ENV ?? 'unknown')
-        const sentrySampleRate = environment === 'production' ? 0.1 : 0.5
-        server.register(require('@immobiliarelabs/fastify-sentry'), {
-            dsn: runtimeConfig.telemetry.backend.sentry.dsn,
-            sendClientReports: true,
-            environment,
-            release: `flowfuse@${runtimeConfig.version}`,
-            profilesSampleRate: sentrySampleRate, // relative to output from tracesSampler
-            integrations: [
-                new ProfilingIntegration()
-            ],
-            extractUserData (request) {
-                const user = request.session?.User || request.user
-                if (!user) {
-                    return {}
-                }
-                const extractedUser = {
-                    id: user.hashid,
-                    username: user.username,
-                    email: user.email,
-                    name: user.name
-                }
-
-                return extractedUser
-            },
-            tracesSampler: (samplingContext) => {
-                // Adjust sample rates for routes with high volumes, sorted descending by volume
-
-                // Used for mosquitto auth
-                if (samplingContext?.transactionContext?.name === 'POST /api/comms/auth/client' || samplingContext?.transactionContext?.name === 'POST /api/comms/auth/acl') {
-                    return 0.001
-                }
-
-                // Used by nr-launcher and for nr-auth
-                if (samplingContext?.transactionContext?.name === 'GET POST /account/token') {
-                    return 0.01
-                }
-
-                // Common endpoints in app (list devices by team, list devices by project)
-                if (samplingContext?.transactionContext?.name === 'GET /api/v1/teams/:teamId/devices' || samplingContext?.transactionContext?.name === 'GET /api/v1/projects/:instanceId/devices') {
-                    return 0.01
-                }
-
-                // Used by device editor device tunnel
-                if (samplingContext?.transactionContext?.name === 'GET /api/v1/devices/:deviceId/editor/proxy/*') {
-                    return 0.01
-                }
-
-                // Prometheus scraping
-                if (samplingContext?.transactionContext?.name === 'GET /metrics') {
-                    return 0.01
-                }
-
-                // OAuth check
-                if (samplingContext?.transactionContext?.name === 'GET /account/check/:ownerType/:ownerId') {
-                    return 0.01
-                }
-
-                return sentrySampleRate
-            }
-        })
     }
 
     server.addHook('onError', async (request, reply, error) => {
