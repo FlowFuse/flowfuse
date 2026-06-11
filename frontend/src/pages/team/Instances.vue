@@ -32,15 +32,20 @@
             <div class="banner-wrapper">
                 <FeatureUnavailableToTeam v-if="!instancesAvailable" />
             </div>
-            <ff-loading v-if="loading" message="Loading Instances..." />
+            <ff-loading v-if="loading && !instancesMap.size" message="Loading Instances..." />
             <template v-else-if="instancesAvailable">
                 <ff-data-table
-                    v-if="instances.length > 0"
+                    v-if="instances.length > 0 || searchTerm"
                     data-el="instances-table" :columns="columns" :rows="instances" :show-search="true"
                     search-placeholder="Search Instances..."
-                    initialSortKey="flowLastUpdatedAt" initialSortOrder="desc"
+                    :initialSortKey="sort.key" :initialSortOrder="sort.order"
                     :rows-selectable="!dashboardRoleOnly"
+                    :pagination="paginationProps"
                     @row-selected="openInstance"
+                    @update:search="updateSearch"
+                    @update:sort="updateSort"
+                    @update:page="onPageChange"
+                    @update:page-size="onPageSizeChange"
                 >
                     <template #actions>
                         <ff-button
@@ -57,11 +62,11 @@
                         </ff-button>
                     </template>
                     <template #row-actions="{row}">
-                        <dashboard-link v-if="!!row.settings?.dashboard2UI?.length" :disabled="row.meta?.state !== 'running'" :instance="row" />
+                        <dashboard-link v-if="!!row.settings?.dashboard2UI?.length" :disabled="row.status !== 'running'" :instance="row" />
                         <instance-editor-link
                             v-if="hasPermission('team:projects:list')"
                             :instance="row"
-                            :disabled="row.meta?.state !== 'running'"
+                            :disabled="row.status !== 'running'"
                             disabled-reason="The Instance is not running"
                         />
                     </template>
@@ -161,7 +166,6 @@ import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 
-import instanceApi from '../../api/instances.js'
 import teamApi from '../../api/team.js'
 import EmptyState from '../../components/EmptyState.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
@@ -170,7 +174,9 @@ import { useInstanceStates } from '../../composables/InstanceStates.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 import instanceActionsMixin from '../../mixins/InstanceActions.js'
+import Alerts from '../../services/alerts.js'
 import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
+import { debounce } from '../../utils/eventHandling.js'
 import ApplicationLink from '../application/components/cells/ApplicationLink.vue'
 import DeploymentName from '../application/components/cells/DeploymentName.vue'
 import SimpleTextCell from '../application/components/cells/SimpleTextCell.vue'
@@ -212,19 +218,26 @@ export default {
         return {
             loading: false,
             instancesMap: new Map(),
+            page: 1,
+            pageSize: 25,
+            totalRows: 0,
+            searchTerm: '',
+            sort: {
+                key: 'flowLastUpdatedAt',
+                order: 'desc'
+            },
             columns: [
                 { label: 'Name', class: ['grow'], key: 'name', sortable: true, component: { is: markRaw(DeploymentName), map: { url: 'url' }, extraProps: { copyable: true } } },
                 {
                     label: 'Status',
                     class: ['w-44'],
-                    sortable: true,
                     component: {
                         is: markRaw(InstanceStatusBadge),
                         map: {
                             instanceId: 'id',
                             pendingStateChange: 'pendingStateChange',
                             optimisticStateChange: 'optimisticStateChange',
-                            status: 'meta.state'
+                            status: 'status'
                         },
                         extraProps: {
                             instanceType: 'instance'
@@ -265,64 +278,89 @@ export default {
         },
         instancesAvailable () {
             return this.featuresCheck?.isHostedInstancesEnabledForTeam
+        },
+        paginationProps () {
+            if (this.dashboardRoleOnly) return null
+            return {
+                page: this.page,
+                pageSize: this.pageSize,
+                total: this.totalRows
+            }
         }
     },
     watch: {
-        team: 'fetchData'
+        team: 'fullReload'
     },
     mounted () {
-        this.fetchData()
+        this.fullReload()
     },
     methods: {
-        fetchData: async function () {
+        fullReload () {
+            this.page = 1
+            this.fetchData()
+        },
+        async fetchData () {
+            if (!this.team.id || !this.instancesAvailable) {
+                this.loading = false
+                return
+            }
             this.loading = true
-            let promise
-            if (this.team.id && this.instancesAvailable) {
+            try {
+                let response
                 if (this.hasPermission('team:projects:list')) {
-                    promise = teamApi.getTeamInstances(this.team.id)
+                    response = await teamApi.getInstances(this.team.id, {
+                        pagination: {
+                            page: this.page,
+                            limit: this.pageSize,
+                            query: this.searchTerm || null,
+                            sort: this.sort.key || null,
+                            dir: this.sort.order || null
+                        },
+                        includeMeta: true
+                    })
                 } else if (this.hasPermission('team:read')) {
-                    promise = teamApi.getTeamDashboards(this.team.id)
+                    // Dashboards endpoint not paginated server-side; keep current behavior.
+                    response = await teamApi.getTeamDashboards(this.team.id)
                 }
-
-                promise.then(response => response.projects)
-                    .then((projects) => {
-                        projects.forEach(instance => {
-                            instance.running = this.isRunningState(instance.status)
-                            instance.notSuspended = instance.status !== 'suspended'
-                            instance.pendingStateChange = false
-                            instance.optimisticStateChange = false
-                            instance.canDelete = this.hasPermission('project:delete', { application: instance.application })
-                            instance.canChangeStatus = this.hasPermission('project:change-status', { application: instance.application })
-                            instance.hideContextMenu = !(instance.canDelete || instance.canChangeStatus)
-                            this.instancesMap.set(instance.id, instance)
-                        })
-                    })
-                    .then(() => this.getInstanceMeta())
-                    .catch(e => e)
-                    .finally(() => {
-                        this.loading = false
-                    })
-
-                this.getInstanceMeta()
-            } else {
+                const projects = response?.projects || []
+                this.totalRows = response?.meta?.total ?? response?.count ?? projects.length
+                const nextMap = new Map()
+                projects.forEach(instance => {
+                    instance.running = this.isRunningState(instance.meta?.state || instance.status)
+                    instance.notSuspended = (instance.meta?.state || instance.status) !== 'suspended'
+                    instance.pendingStateChange = false
+                    instance.optimisticStateChange = false
+                    instance.canDelete = this.hasPermission('project:delete', { application: instance.application })
+                    instance.canChangeStatus = this.hasPermission('project:change-status', { application: instance.application })
+                    instance.hideContextMenu = !(instance.canDelete || instance.canChangeStatus)
+                    nextMap.set(instance.id, instance)
+                })
+                this.instancesMap = nextMap
+            } catch (e) {
+                Alerts.emit('Failed to load instances.', 'warning')
+            } finally {
                 this.loading = false
             }
         },
-        getInstanceMeta () {
-            const promises = []
-            this.instances.forEach(i => {
-                promises.push(instanceApi.getStatus(i.id)
-                    .then(res => {
-                        if (this.instancesMap.has(res.id)) {
-                            res.running = this.isRunningState(res.meta.state)
-                            res.notSuspended = res.meta.state !== 'suspended'
-                            this.instancesMap.set(res.id, {
-                                ...this.instancesMap.get(res.id),
-                                ...res
-                            })
-                        }
-                    }))
-            })
+        updateSearch: debounce(function (term) {
+            this.searchTerm = term
+            this.page = 1
+            this.fetchData()
+        }, 200),
+        updateSort (key, order) {
+            this.sort.key = key
+            this.sort.order = order
+            this.page = 1
+            this.fetchData()
+        },
+        onPageChange (page) {
+            this.page = page
+            this.fetchData()
+        },
+        onPageSizeChange (pageSize) {
+            this.pageSize = pageSize
+            this.page = 1
+            this.fetchData()
         },
         openInstance (instance, event) {
             this.navigateTo({
@@ -345,6 +383,8 @@ export default {
         onInstanceDeleted (instance) {
             if (this.instancesMap.has(instance.id)) {
                 this.instancesMap.delete(instance.id)
+                // Refetch to refresh totals and pull in any backfill row from the next page.
+                this.fetchData()
             }
         }
     }

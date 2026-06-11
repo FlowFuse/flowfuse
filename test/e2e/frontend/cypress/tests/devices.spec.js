@@ -4,7 +4,7 @@ import deviceRunning from '../fixtures/device-running.json'
 describe('FlowFuse - Team Devices', () => {
     describe('team with no devices', () => {
         beforeEach(() => {
-            cy.intercept('GET', '/api/*/teams/*/devices').as('getDevices')
+            cy.intercept('GET', '/api/*/teams/*/devices*').as('getDevices')
             cy.login('alice', 'aaPassword')
             cy.home()
 
@@ -71,44 +71,171 @@ describe('FlowFuse - Team Devices', () => {
             cy.get('main').contains('Connect your First Remote Instance')
         })
 
-        it('can load multiple pages of devices when the API paginates', function () {
-            // Mock active and inactive stacks having multiple pages
-            cy.intercept('GET', '/api/v1/teams/*/devices*', {
-                count: 2,
-                meta: { next_cursor: 'next' },
-                devices: [deviceOffline]
-            }).as('getDevicesPaginated')
+        it('renders numeric pagination and lets the user move between pages', function () {
+            // statusOnly poll feeds the status bars AND the v-if that mounts the table —
+            // empty `devices` keeps the table hidden, so seed it with the full set.
+            const allDevices = Array.from({ length: 30 }, (_, i) => ({
+                ...deviceOffline,
+                id: i + 1,
+                name: `device-${i + 1}`
+            }))
+            cy.intercept('GET', '/api/v1/teams/*/devices?statusOnly=true', {
+                count: 30,
+                devices: allDevices
+            }).as('getDeviceStatus')
+
+            // Mock page 1: 25 devices returned, total = 30 → footer shows, 2 pages.
+            cy.intercept({
+                method: 'GET',
+                pathname: '/api/v1/teams/*/devices',
+                query: { page: '1' }
+            }, {
+                count: 30,
+                meta: { page: 1, pageSize: 25, total: 30, pageCount: 2 },
+                devices: Array.from({ length: 25 }, (_, i) => ({
+                    ...deviceOffline,
+                    id: i + 1,
+                    name: `device-${i + 1}`
+                }))
+            }).as('getDevicesPage1')
 
             cy.request('GET', '/api/v1/teams/')
                 .then((response) => {
                     const team = response.body.teams[0]
                     cy.visit(`/team/${team.slug}/devices`)
-                    cy.wait('@getDevicesPaginated')
+                    cy.wait('@getDevicesPage1')
                 })
 
-            // Load more active
-            cy.get('[data-el="devices-browser"] tbody').find('tr').should('have.length', 1)
+            // Page 1: full slice rendered, footer present, page-1 button is current.
+            cy.get('[data-el="devices-browser"] tbody').find('tr').should('have.length', 25)
+            cy.get('[data-el="pagination"]').should('exist')
+            cy.get('[data-action="page-1"]').should('have.class', 'ff-btn--primary')
+            cy.get('[data-action="page-2"]').should('exist')
 
-            cy.intercept('GET', '/api/v1/teams/*/devices?cursor=next', {
-                count: 2,
-                meta: { next_cursor: null },
-                devices: [{ ...deviceOffline, ...{ id: 2, name: 'device-2' } }]
-            }).as('getDevicesNextPage')
+            // Mock page 2: remaining 5 devices.
+            cy.intercept({
+                method: 'GET',
+                pathname: '/api/v1/teams/*/devices',
+                query: { page: '2' }
+            }, {
+                count: 30,
+                meta: { page: 2, pageSize: 25, total: 30, pageCount: 2 },
+                devices: Array.from({ length: 5 }, (_, i) => ({
+                    ...deviceOffline,
+                    id: 26 + i,
+                    name: `device-${26 + i}`
+                }))
+            }).as('getDevicesPage2')
 
-            cy.get('[data-action="load-more"]').click()
+            cy.get('[data-action="page-2"]').click()
+            cy.wait('@getDevicesPage2')
 
-            cy.wait('@getDevicesNextPage')
+            // Page 2: smaller slice rendered, page-2 button is now current.
+            cy.get('[data-el="devices-browser"] tbody').find('tr').should('have.length', 5)
+            cy.get('[data-el="devices-browser"] tbody').contains('td', 'device-26')
+            cy.get('[data-action="page-2"]').should('have.class', 'ff-btn--primary')
+        })
 
-            cy.get('[data-el="devices-browser"] tbody').find('tr').should('have.length', 2)
-            cy.get('[data-el="devices-browser"] tbody').contains('td', 'device-2')
+        it('prev/next buttons advance and return between pages', function () {
+            const allDevices = Array.from({ length: 30 }, (_, i) => ({
+                ...deviceOffline,
+                id: i + 1,
+                name: `device-${i + 1}`
+            }))
+            cy.intercept('GET', '/api/v1/teams/*/devices?statusOnly=true', {
+                count: 30,
+                devices: allDevices
+            }).as('getDeviceStatus')
 
-            cy.get('[data-action="load-more"]').should('not.exist')
+            cy.intercept({
+                method: 'GET',
+                pathname: '/api/v1/teams/*/devices',
+                query: { page: '1' }
+            }, {
+                count: 30,
+                meta: { page: 1, pageSize: 25, total: 30, pageCount: 2 },
+                devices: Array.from({ length: 25 }, (_, i) => ({
+                    ...deviceOffline,
+                    id: i + 1,
+                    name: `device-${i + 1}`
+                }))
+            }).as('getDevicesPage1')
+
+            cy.intercept({
+                method: 'GET',
+                pathname: '/api/v1/teams/*/devices',
+                query: { page: '2' }
+            }, {
+                count: 30,
+                meta: { page: 2, pageSize: 25, total: 30, pageCount: 2 },
+                devices: Array.from({ length: 5 }, (_, i) => ({
+                    ...deviceOffline,
+                    id: 26 + i,
+                    name: `device-${26 + i}`
+                }))
+            }).as('getDevicesPage2')
+
+            cy.request('GET', '/api/v1/teams/')
+                .then((response) => {
+                    const team = response.body.teams[0]
+                    cy.visit(`/team/${team.slug}/devices`)
+                    cy.wait('@getDevicesPage1')
+                })
+
+            // Prev disabled on page 1; Next advances to page 2.
+            cy.get('[data-action="page-prev"]').should('be.disabled')
+            cy.get('[data-action="page-next"]').click()
+            cy.wait('@getDevicesPage2')
+            cy.get('[data-action="page-2"]').should('have.class', 'ff-btn--primary')
+
+            // Next disabled on last page; Prev returns to page 1.
+            cy.get('[data-action="page-next"]').should('be.disabled')
+            cy.get('[data-action="page-prev"]').click()
+            cy.wait('@getDevicesPage1')
+            cy.get('[data-action="page-1"]').should('have.class', 'ff-btn--primary')
+        })
+
+        it('hides the pagination footer when total fits within the smallest page size', function () {
+            const allDevices = Array.from({ length: 5 }, (_, i) => ({
+                ...deviceOffline,
+                id: i + 1,
+                name: `device-${i + 1}`
+            }))
+            cy.intercept('GET', '/api/v1/teams/*/devices?statusOnly=true', {
+                count: 5,
+                devices: allDevices
+            }).as('getDeviceStatus')
+
+            // Total of 5 ≤ 10 (smallest page-size option) → footer should not render.
+            cy.intercept({
+                method: 'GET',
+                pathname: '/api/v1/teams/*/devices',
+                query: { page: '1' }
+            }, {
+                count: 5,
+                meta: { page: 1, pageSize: 25, total: 5, pageCount: 1 },
+                devices: Array.from({ length: 5 }, (_, i) => ({
+                    ...deviceOffline,
+                    id: i + 1,
+                    name: `device-${i + 1}`
+                }))
+            }).as('getDevicesSmall')
+
+            cy.request('GET', '/api/v1/teams/')
+                .then((response) => {
+                    const team = response.body.teams[0]
+                    cy.visit(`/team/${team.slug}/devices`)
+                    cy.wait('@getDevicesSmall')
+                })
+
+            cy.get('[data-el="devices-browser"] tbody').find('tr').should('have.length', 5)
+            cy.get('[data-el="pagination"]').should('not.exist')
         })
     })
 
     describe('team with devices', () => {
         beforeEach(() => {
-            cy.intercept('GET', '/api/*/teams/*/devices').as('getDevices')
+            cy.intercept('GET', '/api/*/teams/*/devices*').as('getDevices')
             cy.login('bob', 'bbPassword')
             cy.home()
 
@@ -120,56 +247,123 @@ describe('FlowFuse - Team Devices', () => {
                 })
         })
 
-        describe('with a single page (client side filtering)', () => {
+        // Small dataset (under the pagination footer threshold) — filters still go server-side.
+        // This describe complements the multi-page block below by verifying the same flow works
+        // when the rows-per-page selector is hidden.
+        describe('with a small dataset (no pagination footer)', () => {
             it('can filter the device browser by "last seen" values', () => {
                 // ensure we have something "last seen" in the past 1.5 mins
                 deviceRunning.lastSeenAt = (new Date()).toISOString()
-                cy.intercept('GET', '/api/v1/teams/*/devices*', {
+
+                cy.intercept('GET', '/api/v1/teams/*/devices?statusOnly=true', {
                     count: 2,
-                    meta: {},
                     devices: [deviceOffline, deviceRunning]
-                }).as('getDevicesNextPage')
+                }).as('getDeviceStatus')
+
+                // Unfiltered initial fetch.
+                cy.intercept({
+                    method: 'GET',
+                    pathname: '/api/v1/teams/*/devices',
+                    query: { page: '1' }
+                }, req => {
+                    // Let the per-filter intercepts below handle requests that carry a filter param.
+                    if (req.query.filters) return
+                    req.reply({
+                        count: 2,
+                        meta: { page: 1, pageSize: 25, total: 2, pageCount: 1 },
+                        devices: [deviceOffline, deviceRunning]
+                    })
+                }).as('getDevicesUnfiltered')
 
                 cy.visit('/team/bteam/devices')
+                cy.wait('@getDevicesUnfiltered')
                 cy.contains('device-1')
                 cy.contains('device-2')
 
-                // apply filter
+                cy.intercept({
+                    method: 'GET',
+                    pathname: '/api/v1/teams/*/devices',
+                    query: { filters: 'lastseen:never' }
+                }, {
+                    count: 1,
+                    meta: { page: 1, pageSize: 25, total: 1, pageCount: 1 },
+                    devices: [deviceOffline]
+                }).as('getDevicesFilteredNever')
+
                 cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--never').click()
+                cy.wait('@getDevicesFilteredNever')
                 cy.contains('device-1')
                 cy.contains('device-2').should('not.exist')
 
-                // select different filter value
-                cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--running').click()
-                cy.contains('device-1').should('not.exist')
-                cy.contains('device-2')
+                cy.intercept({
+                    method: 'GET',
+                    pathname: '/api/v1/teams/*/devices',
+                    query: { filters: 'lastseen:running' }
+                }, {
+                    count: 1,
+                    meta: { page: 1, pageSize: 25, total: 1, pageCount: 1 },
+                    devices: [deviceRunning]
+                }).as('getDevicesFilteredRunning')
 
-                // reverse the filter
                 cy.get('[data-el="devicestatus-lastseen"] .ff-chart-bar.ff-chart-bar--running').click()
-                cy.contains('device-1')
+                cy.wait('@getDevicesFilteredRunning')
+                cy.contains('device-1').should('not.exist')
                 cy.contains('device-2')
             })
 
             it('can filter the device browser by "status" values', () => {
-                // ensure we have something "last seen" in the past 1.5 mins
                 deviceRunning.lastSeenAt = (new Date()).toISOString()
-                cy.intercept('GET', '/api/v1/teams/*/devices*', {
+
+                cy.intercept('GET', '/api/v1/teams/*/devices?statusOnly=true', {
                     count: 2,
-                    meta: {},
                     devices: [deviceOffline, deviceRunning]
-                }).as('getDevicesNextPage')
+                }).as('getDeviceStatus')
+
+                cy.intercept({
+                    method: 'GET',
+                    pathname: '/api/v1/teams/*/devices',
+                    query: { page: '1' }
+                }, req => {
+                    if (req.query.filters) return
+                    req.reply({
+                        count: 2,
+                        meta: { page: 1, pageSize: 25, total: 2, pageCount: 1 },
+                        devices: [deviceOffline, deviceRunning]
+                    })
+                }).as('getDevicesUnfiltered')
 
                 cy.visit('/team/bteam/devices')
+                cy.wait('@getDevicesUnfiltered')
                 cy.contains('device-1')
                 cy.contains('device-2')
 
-                // apply filter
+                cy.intercept({
+                    method: 'GET',
+                    pathname: '/api/v1/teams/*/devices',
+                    query: { filters: 'status:offline' }
+                }, {
+                    count: 1,
+                    meta: { page: 1, pageSize: 25, total: 1, pageCount: 1 },
+                    devices: [deviceOffline]
+                }).as('getDevicesFilteredOffline')
+
                 cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--offline').click()
+                cy.wait('@getDevicesFilteredOffline')
                 cy.contains('device-1')
                 cy.contains('device-2').should('not.exist')
 
-                // select different filter value
+                cy.intercept({
+                    method: 'GET',
+                    pathname: '/api/v1/teams/*/devices',
+                    query: { filters: 'status:running' }
+                }, {
+                    count: 1,
+                    meta: { page: 1, pageSize: 25, total: 1, pageCount: 1 },
+                    devices: [deviceRunning]
+                }).as('getDevicesFilteredRunning')
+
                 cy.get('[data-el="devicestatus-status"] .ff-chart-bar.ff-chart-bar--running').click()
+                cy.wait('@getDevicesFilteredRunning')
                 cy.contains('device-1').should('not.exist')
                 cy.contains('device-2')
 
@@ -185,7 +379,7 @@ describe('FlowFuse - Team Devices', () => {
                 const secondOfflineDevice = { ...deviceOffline, name: 'device-3', id: 3 }
 
                 deviceRunning.lastSeenAt = (new Date()).toISOString()
-                cy.intercept('GET', '/api/v1/teams/*/devices', {
+                cy.intercept('GET', '/api/v1/teams/*/devices*', {
                     count: 3,
                     meta: { next_cursor: 'next' },
                     devices: [deviceOffline, deviceRunning]
@@ -201,7 +395,11 @@ describe('FlowFuse - Team Devices', () => {
                 cy.contains('device-1') // offline
                 cy.contains('device-2') // online
 
-                cy.intercept('GET', '/api/v1/teams/*/devices?filters=lastseen%3Anever', {
+                cy.intercept({
+                    method: 'GET',
+                    pathname: '/api/v1/teams/*/devices',
+                    query: { filters: 'lastseen:never' }
+                }, {
                     count: 1,
                     meta: { next_cursor: null },
                     devices: [deviceOffline, secondOfflineDevice]
@@ -214,7 +412,11 @@ describe('FlowFuse - Team Devices', () => {
                 cy.contains('device-2').should('not.exist') // online
                 cy.contains('device-3') // offline
 
-                cy.intercept('GET', '/api/v1/teams/*/devices?filters=lastseen%3Arunning', {
+                cy.intercept({
+                    method: 'GET',
+                    pathname: '/api/v1/teams/*/devices',
+                    query: { filters: 'lastseen:running' }
+                }, {
                     count: 1,
                     meta: { next_cursor: null },
                     devices: [deviceRunning]
@@ -236,7 +438,7 @@ describe('FlowFuse - Team Devices', () => {
 
             it('can filter the device browser by "status" values', () => {
                 const secondOfflineDevice = { ...deviceOffline, name: 'device-3', id: '3' }
-                cy.intercept('GET', '/api/v1/teams/*/devices', {
+                cy.intercept('GET', '/api/v1/teams/*/devices*', {
                     count: 3,
                     meta: { next_cursor: 'next' },
                     devices: [deviceOffline, deviceRunning]
@@ -252,7 +454,11 @@ describe('FlowFuse - Team Devices', () => {
                 cy.contains('device-1') // offline
                 cy.contains('device-2') // running
 
-                cy.intercept('GET', '/api/v1/teams/*/devices?filters=status%3Aoffline', {
+                cy.intercept({
+                    method: 'GET',
+                    pathname: '/api/v1/teams/*/devices',
+                    query: { filters: 'status:offline' }
+                }, {
                     count: 1,
                     meta: { next_cursor: null },
                     devices: [deviceOffline, secondOfflineDevice]
@@ -265,7 +471,11 @@ describe('FlowFuse - Team Devices', () => {
                 cy.contains('device-2').should('not.exist') // running
                 cy.contains('device-3') // offline
 
-                cy.intercept('GET', '/api/v1/teams/*/devices?filters=status%3Arunning', {
+                cy.intercept({
+                    method: 'GET',
+                    pathname: '/api/v1/teams/*/devices',
+                    query: { filters: 'status:running' }
+                }, {
                     count: 1,
                     meta: { next_cursor: null },
                     devices: [deviceRunning]

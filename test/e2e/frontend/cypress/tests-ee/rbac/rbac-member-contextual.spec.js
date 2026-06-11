@@ -14,7 +14,7 @@ describe('FlowFuse - RBAC Member Contextual permissions', () => {
             team = response.body.teams.find(t => t.slug === 'rbac-team')
             const teamId = team.id
 
-            cy.intercept('GET', `/api/*/teams/${teamId}/projects`).as('getProjects')
+            cy.intercept('GET', `/api/*/teams/${teamId}/projects*`).as('getProjects')
 
             cy.get('[data-nav="team-instances"]').click()
 
@@ -24,7 +24,7 @@ describe('FlowFuse - RBAC Member Contextual permissions', () => {
                 instances = response.body.projects
             })
             .then(() => {
-                cy.intercept('GET', `/api/*/teams/${team.id}/devices`).as('getDevices')
+                cy.intercept('GET', `/api/*/teams/${team.id}/devices*`).as('getDevices')
                 cy.get('[data-nav="team-devices"]').click()
                 return cy.wait('@getDevices')
             })
@@ -125,7 +125,7 @@ describe('FlowFuse - RBAC Member Contextual permissions', () => {
     })
     it('should not be able to access hosted instance actions belonging to applications of viewer role', () => {
         cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
-        cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+        cy.intercept('GET', '/api/*/projects/*/devices*').as('getDevices')
 
         // the user should have a viewer role in this application
         const applicationViewerRoleApp = instances.find(i => i.name === 'application-3-instance-1')
@@ -271,7 +271,7 @@ describe('FlowFuse - RBAC Member Contextual permissions', () => {
     })
     it('should be able to access hosted instance actions belonging to applications of member role', () => {
         cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
-        cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+        cy.intercept('GET', '/api/*/projects/*/devices*').as('getDevices')
 
         // the user should have a member role in this application
         const memberRoleApp = instances.find(i => i.name === 'application-4-instance-1')
@@ -416,7 +416,7 @@ describe('FlowFuse - RBAC Member Contextual permissions', () => {
     })
     it('should be able to access hosted instance actions belonging to applications of owner role', () => {
         cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
-        cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+        cy.intercept('GET', '/api/*/projects/*/devices*').as('getDevices')
 
         // the user should have the owner role in this application
         const ownerRoleApp = instances.find(i => i.name === 'application-5-instance-1')
@@ -649,7 +649,7 @@ describe('FlowFuse - RBAC Member Contextual permissions', () => {
         cy.get('[data-el="nav-breadcrumb"]').contains('application-5-instance-1-device')
     })
     it('should not have restricted remote instances listed in the instances page', () => {
-        cy.intercept('GET', '/api/*/teams/*/devices').as('getDevices')
+        cy.intercept('GET', '/api/*/teams/*/devices*').as('getDevices')
         cy.get('[data-nav="team-devices"]').click()
         cy.get('[data-el="page-name"]').contains('Remote Instances')
         cy.wait('@getDevices')
@@ -676,7 +676,7 @@ describe('FlowFuse - RBAC Member Contextual permissions', () => {
     })
     it('should not be able to access remote instance actions belonging to applications of viewer role', () => {
         cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
-        cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+        cy.intercept('GET', '/api/*/projects/*/devices*').as('getDevices')
         cy.intercept('POST', '/api/*/devices/*/logs*', {
             url: 'ws://dummy-url',
             username: 'mock-user',
@@ -754,7 +754,7 @@ describe('FlowFuse - RBAC Member Contextual permissions', () => {
     })
     it('should not be able to access remote instance actions belonging to applications of member role', () => {
         cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
-        cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+        cy.intercept('GET', '/api/*/projects/*/devices*').as('getDevices')
         cy.intercept('POST', '/api/*/devices/*/logs*', {
             url: 'ws://dummy-url',
             username: 'mock-user',
@@ -832,7 +832,7 @@ describe('FlowFuse - RBAC Member Contextual permissions', () => {
     })
     it('should not be able to access remote instance actions belonging to applications of owner role', () => {
         cy.intercept('GET', '/api/*/teams/1/applications').as('getApplications')
-        cy.intercept('GET', '/api/*/projects/*/devices').as('getDevices')
+        cy.intercept('GET', '/api/*/projects/*/devices*').as('getDevices')
         cy.intercept('POST', '/api/*/devices/*/logs*', {
             url: 'ws://dummy-url',
             username: 'mock-user',

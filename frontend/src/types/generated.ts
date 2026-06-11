@@ -279,6 +279,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                     event?: string | string[];
                     username?: string;
                 };
@@ -334,6 +338,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                     event?: string | string[];
                     username?: string;
                 };
@@ -1337,6 +1345,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path?: never;
@@ -1822,6 +1834,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path?: never;
@@ -2072,6 +2088,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                     event?: string | string[];
                     username?: string;
                 };
@@ -2134,6 +2154,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                     event?: string | string[];
                     username?: string;
                 };
@@ -2498,6 +2522,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path: {
@@ -2554,6 +2582,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path: {
@@ -2834,6 +2866,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path?: never;
@@ -3291,6 +3327,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path: {
@@ -3447,6 +3487,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                     event?: string | string[];
                     username?: string;
                 };
@@ -3509,6 +3553,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                     event?: string | string[];
                     username?: string;
                 };
@@ -3814,6 +3862,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path: {
@@ -3882,6 +3934,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                     event?: string | string[];
                     username?: string;
                 };
@@ -3944,6 +4000,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                     event?: string | string[];
                     username?: string;
                 };
@@ -4218,7 +4278,15 @@ export interface paths {
         /** Get a list of devices assigned to an instance */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    query?: string;
+                    cursor?: string;
+                    limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
+                };
                 header?: never;
                 path: {
                     instanceId: string;
@@ -4936,6 +5004,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                     filter?: string;
                 };
                 header?: never;
@@ -5149,6 +5221,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path?: never;
@@ -5360,6 +5436,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path?: never;
@@ -5948,6 +6028,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                     event?: string | string[];
                     username?: string;
                 };
@@ -6004,6 +6088,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                     event?: string | string[];
                     username?: string;
                 };
@@ -6338,6 +6426,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                     filter?: string;
                 };
                 header?: never;
@@ -7539,6 +7631,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path?: never;
@@ -7844,6 +7940,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path: {
@@ -8153,6 +8253,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path: {
@@ -8313,6 +8417,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path: {
@@ -9487,6 +9595,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path: {
@@ -9697,6 +9809,10 @@ export interface paths {
                     query?: string;
                     cursor?: string;
                     limit?: number;
+                    page?: number;
+                    sort?: string;
+                    dir?: "asc" | "desc";
+                    order?: "asc" | "desc";
                 };
                 header?: never;
                 path: {
@@ -10717,11 +10833,21 @@ export interface components {
             query?: string;
             cursor?: string;
             limit?: number;
+            page?: number;
+            sort?: string;
+            /** @enum {string} */
+            dir?: "asc" | "desc";
+            /** @enum {string} */
+            order?: "asc" | "desc";
         };
         /** PaginationMeta */
         PaginationMeta: {
             next_cursor?: string;
             previous_cursor?: string;
+            page?: number;
+            pageSize?: number;
+            total?: number;
+            pageCount?: number;
         };
         /** LinksMeta */
         LinksMeta: {

@@ -14,6 +14,7 @@ import FFSpinner from './components/Spinner.vue'
 import FFDataTable from './components/data-table/DataTable.vue'
 import FFDataTableCell from './components/data-table/DataTableCell.vue'
 import FFDataTableRow from './components/data-table/DataTableRow.vue'
+import FFPagination from './components/data-table/Pagination.vue'
 
 // Form Elements
 import FFCheckbox from './components/form/Checkbox.vue'
@@ -53,6 +54,7 @@ export default {
     FFDataTable,
     FFDataTableRow,
     FFDataTableCell,
+    FFPagination,
     // Form Elements
     FFTextInput,
     FFDropdown,

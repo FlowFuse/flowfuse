@@ -492,7 +492,7 @@ describe('FlowFuse - Application - DevOps Pipelines', () => {
             })
         }).as('getPipelines')
         cy.intercept('POST', '/api/v1/pipelines').as('createPipeline')
-        cy.intercept('GET', '/api/v1/applications/*/devices', function (req) {
+        cy.intercept('GET', '/api/v1/applications/*/devices*', function (req) {
             req.continue((res) => {
                 res.body.devices = res.body.devices.map((device) => {
                     device.mode = 'developer'
