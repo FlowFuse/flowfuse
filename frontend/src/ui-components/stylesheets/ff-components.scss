@@ -945,12 +945,12 @@ li.ff-kebab-item {
   gap: $ff-unit-md;
   flex-wrap: wrap;
   padding: $ff-unit-sm $ff-unit-md;
-  border: 1px solid $ff-grey-300;
+  border: 1px solid var(--ff-color-border-strong);
   border-top: 0;
   border-radius: 0 0 6px 6px;
-  background-color: white;
+  background-color: var(--ff-color-bg-app);
   font-size: 14px;
-  color: $ff-grey-700;
+  color: var(--ff-color-text-muted);
 
   &--page-size {
     display: flex;
@@ -983,7 +983,7 @@ li.ff-kebab-item {
     align-items: center;
     justify-content: center;
     min-width: 20px;
-    color: $ff-grey-500;
+    color: var(--ff-color-text-subtle);
   }
 }
 
