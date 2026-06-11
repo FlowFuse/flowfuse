@@ -12,6 +12,7 @@
             <form class="space-y-6 mt-4 mb-2">
                 <FormRow v-model="input.name" data-form="token-name" :error="errors.name">Name</FormRow>
                 <FormRow v-model="input.token" data-form="token-value">Token</FormRow>
+                <FormRow v-if="input.type === 'generic'" v-model="input.username" data-form="username">Username</FormRow>
             </form>
         </template>
     </ff-dialog>
@@ -21,11 +22,13 @@
 import { markRaw } from 'vue'
 
 import AzureInstructions from './components/CreateGitTokenDialog/AzureInstructions.vue'
+import GenericInstructions from './components/CreateGitTokenDialog/GenericInstructions.vue'
 import GitHubInstructions from './components/CreateGitTokenDialog/GitHubInstructions.vue'
 
 import teamApi from '@/api/team.js'
 
 import AzureIcon from '@/assets/icons/azure.svg'
+import GitIcon from '@/assets/icons/git.svg'
 import GitHubIcon from '@/assets/icons/github.svg'
 import FormRow from '@/components/FormRow.vue'
 import { CascadingSelector, OptionTileSelector } from '@/components/variant-selector/index.js'
@@ -51,6 +54,7 @@ export default {
                 this.input.name = ''
                 this.input.token = ''
                 this.input.type = 'github'
+                this.input.username = ''
                 this.$refs.dialog.show()
             }
         }
@@ -60,7 +64,8 @@ export default {
             input: {
                 name: '',
                 token: '',
-                type: 'github'
+                type: 'github',
+                username: ''
             },
             errors: {},
             providerTree: {
@@ -77,6 +82,11 @@ export default {
                         id: 'azure',
                         component: markRaw(AzureInstructions),
                         props: { label: 'Azure DevOps', icon: AzureIcon }
+                    },
+                    {
+                        id: 'generic',
+                        component: markRaw(GenericInstructions),
+                        props: { label: 'Other / Self-hosted', icon: GitIcon }
                     }
                 ]
             }
@@ -92,6 +102,7 @@ export default {
         'input.type' () {
             this.input.name = ''
             this.input.token = ''
+            this.input.username = ''
             this.errors = {}
         }
     },
@@ -101,7 +112,8 @@ export default {
                 name: this.input.name.trim(),
                 token: this.input.token,
                 team: this.team.id,
-                type: this.input.type
+                type: this.input.type,
+                username: this.input.username
             }
             this.$emit('token-creating')
             teamApi.createGitToken(opts.team, opts).then((response) => {

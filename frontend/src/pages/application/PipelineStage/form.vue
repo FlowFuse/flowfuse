@@ -659,18 +659,15 @@ export default {
         repoStageHasCredentialSecret () {
             return this.stage.gitRepo?.credentialSecret
         },
+        selectedGitTokenType () {
+            const tok = this.gitTokens.find(t => t.value === this.input.gitTokenId)
+            return tok?.type
+        },
         gitPlaceholder () {
-            if (this.input.gitTokenId) {
-                for (const i in this.gitTokens) {
-                    const tok = this.gitTokens[i]
-                    if (tok.value === this.input.gitTokenId) {
-                        if (tok.type === 'github') {
-                            return 'e.g. https://github.com/[org]/[repo]'
-                        } else if (tok.type === 'azure') {
-                            return 'e.g. https://dev.azure.com/[org]/_git/[repo]'
-                        }
-                    }
-                }
+            if (this.selectedGitTokenType === 'azure') {
+                return 'e.g. https://dev.azure.com/[org]/_git/[repo]'
+            } else if (this.selectedGitTokenType === 'generic') {
+                return 'e.g. https://git.example.com/org/repo.git'
             }
             return 'e.g. https://github.com/[org]/[repo]'
         }
@@ -688,6 +685,8 @@ export default {
         'input.url' (newUrl, oldUrl) {
             if (newUrl === '') {
                 this.errors.url = ''
+            } else if (this.selectedGitTokenType === 'generic') {
+                this.errors.url = /^https:\/\//i.test(newUrl) ? '' : 'Please enter a valid HTTPS repository URL'
             } else if (!/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(newUrl) && !/^https:\/\/dev\.azure\.com\/[^/]+\/_git\/[^/]+$/.test(newUrl)) {
                 this.errors.url = 'Please enter a valid GitHub or Azure DevOps repository URL'
             } else {
