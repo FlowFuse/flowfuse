@@ -21,7 +21,7 @@ module.exports = {
     finders: function (M) {
         return {
             static: {
-                getAndRemoveById: async (id) => {
+                getAndRemoveById: async (id, remove = true) => {
                     const cachedValue = await this.findOne({
                         where: { id }
                     })
@@ -32,7 +32,9 @@ module.exports = {
                             result = cachedValue.value
                         }
                         // These are single use - so always destroy
-                        await cachedValue.destroy()
+                        if (remove) {
+                            await cachedValue.destroy()
+                        }
                     }
                     return result
                 }
