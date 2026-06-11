@@ -85,10 +85,7 @@
                     "ts": "@typescript-eslint/parser"
                 },
                 "ecmaVersion": 2022,
-                "sourceType": "module",
-                "parser": {
-                    "ts": "@typescript-eslint/parser"
-                }
+                "sourceType": "module"
             },
             "rules": {
                 // plugin:vue
