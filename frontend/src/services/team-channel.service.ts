@@ -60,10 +60,12 @@ class TeamChannelService extends BaseService implements TeamChannelServiceI {
                 getCredentials: () => teamApi.getTeamCommsCreds(teamId, sessionId),
                 onMessage: (topic: string, message: Buffer) => this._onMqttMessage(topic, message),
                 onConnect: () => this._onMqttConnect(teamId, userId),
-                onClose: () => this._onMqttClose(),
-                onOffline: () => this._onMqttOffline(),
-                onError: (err: Error) => this._onMqttError(err),
-                onDisconnect: () => this._onMqttDisconnect()
+                // close/offline/disconnect/error: nothing to do — mqtt.service
+                // handles reconnect; terminal failures surface via this catch
+                onClose: () => {},
+                onOffline: () => {},
+                onDisconnect: () => {},
+                onError: () => {}
             })
             this.$connectedTeamId = teamId
         } catch {
@@ -98,27 +100,9 @@ class TeamChannelService extends BaseService implements TeamChannelServiceI {
                 `ff/v1/${teamId}/team/updated`,
                 `ff/v1/${teamId}/u/${userId}/membership`
             ], { qos: 1 })
-        } catch (err) {
+        } catch {
             // non-fatal — mqtt.service replays subscriptions on reconnect
-            this._onMqttError(err instanceof Error ? err : new Error(String(err)))
         }
-    }
-
-    protected _onMqttClose (): void {
-        // no-op — reconnect handled by mqtt.service
-    }
-
-    protected _onMqttOffline (): void {
-        // no-op — reconnect handled by mqtt.service
-    }
-
-    protected _onMqttDisconnect (): void {
-        // no-op — reconnect handled by mqtt.service
-    }
-
-    protected _onMqttError (err: Error): undefined {
-        // no-op — terminal failures handled by connect()'s catch; transients retried by mqtt.service
-        return err && undefined
     }
 
     protected _onMqttMessage (topic: string, message: Buffer | Uint8Array | string): void {
