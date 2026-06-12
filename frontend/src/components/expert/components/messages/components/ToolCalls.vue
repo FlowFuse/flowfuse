@@ -70,8 +70,8 @@ export default {
 
 <style scoped lang="scss">
 .ff-expert-tool-call {
-    background-color: $ff-grey-50;
-    border: 1px solid $ff-grey-200;
+    background-color: var(--ff-color-bg-surface);
+    border: 1px solid var(--ff-color-border);
     border-radius: 0.5rem 0.5rem 0.5rem 0;
     overflow: hidden;
     max-width: 90%;
@@ -82,18 +82,18 @@ export default {
     align-items: center;
     padding: 0.75rem 1rem;
     gap: 0.5rem;
-    background-color: white;
+    background-color: var(--ff-color-bg-app);
     cursor: pointer;
     user-select: none;
 
     &:hover {
-        background-color: $ff-grey-50;
+        background-color: var(--ff-color-bg-surface);
     }
 
     .ff-icon {
         width: 1rem;
         height: 1rem;
-        color: $ff-grey-500;
+        color: var(--ff-color-text-subtle);
         flex-shrink: 0;
         transition: transform 0.2s ease;
 
@@ -106,18 +106,18 @@ export default {
 .ff-expert-tool-call--count {
     font-size: 1rem;
     font-weight: 500;
-    color: $ff-grey-800;
+    color: var(--ff-color-text);
     flex: 1;
 }
 
 .ff-expert-tool-call--duration {
     font-size: 1rem;
-    color: $ff-grey-500;
+    color: var(--ff-color-text-subtle);
 }
 
 .ff-expert-tool-call--body {
     --item-height: 3rem;
-    border-top: 1px solid $ff-grey-200;
+    border-top: 1px solid var(--ff-color-border);
     padding: 0.75rem 1rem;
     display: flex;
     flex-direction: column;

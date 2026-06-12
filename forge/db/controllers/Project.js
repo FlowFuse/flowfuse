@@ -22,6 +22,24 @@ module.exports = {
         app.caches.createCache(inflightDeploys)
     },
 
+    getProjectPaginationOptions: function (app, request) {
+        const { page, limit, sort, dir } = request.query || {}
+        const pagination = {}
+        if (typeof page === 'number') {
+            const pageSize = limit || 25
+            pagination.page = page
+            pagination.limit = pageSize
+            pagination.offset = (page - 1) * pageSize
+        } else if (limit) {
+            pagination.limit = limit
+        }
+        if (sort) {
+            pagination.sort = sort
+            pagination.dir = dir || 'asc'
+        }
+        return pagination
+    },
+
     /**
      * Get the in-flight state of a project
      * @param {*} app

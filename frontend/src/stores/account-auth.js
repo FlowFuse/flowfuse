@@ -9,6 +9,7 @@ import getServicesOrchestrator from '@/services/service.orchestrator'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useCookieConsentStore } from '@/stores/cookie-consent'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
@@ -208,6 +209,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     useUxDrawersStore().$reset()
                     useUxStore().$reset()
                     useContextStore().$reset()
+                    useCookieConsentStore().reset()
                     useProductTablesStore().$reset()
                     useProductBrokersStore().$reset()
                     useProductAssistantStore().$reset()

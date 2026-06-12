@@ -10,6 +10,33 @@
         border-color: var(--color-gray-200, currentColor);
     }
 
+    body {
+        background-color: var(--ff-color-bg-app);
+        color: var(--ff-color-text);
+    }
+
+    /* WebKit fallback — modern browsers use color-scheme. */
+    * {
+        scrollbar-color: var(--ff-color-border-strong) transparent;
+    }
+    *::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    *::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    *::-webkit-scrollbar-thumb {
+        background-color: var(--ff-color-border-strong);
+        border-radius: 5px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+    }
+    *::-webkit-scrollbar-thumb:hover {
+        background-color: var(--ff-color-text-subtle);
+        background-clip: padding-box;
+    }
+
     /* .forge-block {
         @apply bg-white;
         @apply shadow-sm;
@@ -82,9 +109,9 @@
     }
 
     .forge-button-tertiary {
+        background-color: var(--ff-color-bg-app);
         @apply px-3;
         @apply py-1;
-        @apply bg-white;
         @apply border;
         @apply border-gray-300;
         @apply hover:bg-gray-100;
@@ -106,9 +133,9 @@
     }
 
     .forge-button-inline {
+        background-color: var(--ff-color-bg-app);
         @apply px-3;
         @apply py-1;
-        @apply bg-white;
         @apply border;
         @apply border-transparent;
         @apply hover:bg-gray-100;
@@ -130,9 +157,9 @@
     }
 
     .forge-button-inline-inactive {
+        background-color: var(--ff-color-bg-app);
         @apply px-3;
         @apply py-1;
-        @apply bg-white;
         @apply border;
         @apply border-transparent;
         @apply hover:bg-gray-100;
@@ -155,9 +182,9 @@
     }
 
     .forge-button-danger {
+        background-color: var(--ff-color-bg-app);
         @apply px-3;
         @apply py-1;
-        @apply bg-white;
         @apply border;
         @apply border-red-700;
         @apply hover:bg-red-700;
@@ -178,7 +205,7 @@
         @apply disabled:cursor-not-allowed;
         @apply disabled:border-gray-500;
         @apply disabled:text-gray-600;
-        @apply disabled:bg-white;
+        &:disabled { background-color: var(--ff-color-bg-app); }
     }
 
     .forge-button-small {
@@ -230,67 +257,62 @@
     }
     .forge-status-error,
     .forge-status-crashed {
-        @apply bg-red-100;
-        @apply border-red-400;
-        @apply text-red-600;
+        background-color: var(--ff-color-status-error-bg);
+        border-color: var(--ff-color-status-error-border);
+        color: var(--ff-color-status-error-text);
     }
     .forge-status-suspended {
-        @apply bg-white;
-        @apply border-gray-300;
-        @apply text-gray-600;
+        background-color: var(--ff-color-status-neutral-bg);
+        border-color: var(--ff-color-status-neutral-border);
+        color: var(--ff-color-status-neutral-text);
     }
     .forge-status-stopped {
-        @apply bg-gray-100;
-        @apply border-gray-300;
+        background-color: var(--ff-color-status-info-bg);
+        border-color: var(--ff-color-status-info-border);
+        color: var(--ff-color-status-info-text);
         @apply border-dashed;
-        @apply text-gray-700;
     }
     .forge-status-info {
-        @apply bg-gray-100;
-        @apply border-gray-300;
+        background-color: var(--ff-color-status-info-bg);
+        border-color: var(--ff-color-status-info-border);
+        color: var(--ff-color-status-info-text);
         @apply border-dashed;
-        @apply text-gray-800;
     }
-    .forge-status-starting {
-        @apply bg-green-100;
-        @apply border-green-300;
+    .forge-status-starting,
+    .forge-status-importing {
+        background-color: var(--ff-color-status-progress-bg);
+        border-color: var(--ff-color-status-progress-border);
+        color: var(--ff-color-status-success-text);
         @apply border-dashed;
-        @apply text-green-700;
     }
     .forge-status-safe {
-        @apply bg-yellow-200;
-        @apply border-yellow-400;
-        @apply text-yellow-600;
+        background-color: var(--ff-color-status-safe-bg);
+        border-color: var(--ff-color-status-safe-border);
+        color: var(--ff-color-status-safe-text);
     }
     .forge-status-warning {
-        @apply bg-yellow-400;
-        @apply border-yellow-700;
-        @apply text-yellow-900;
+        background-color: var(--ff-color-status-warning-bg);
+        border-color: var(--ff-color-status-warning-border);
+        color: var(--ff-color-status-warning-text);
     }
     .forge-status-success,
     .forge-status-connected,
     .forge-status-running {
-        @apply bg-green-200;
-        @apply border-green-400;
-        @apply text-green-700;
-    }
-    .forge-status-importing {
-        @apply bg-green-100;
-        @apply border-green-300;
-        @apply border-dashed;
-        @apply text-green-700;
+        background-color: var(--ff-color-status-success-bg);
+        border-color: var(--ff-color-status-success-border);
+        color: var(--ff-color-status-success-text);
     }
 
     .forge-minimal-status-error,
-    .forge-minimal-status-crashed{
-        @apply bg-red-600;
+    .forge-minimal-status-crashed {
+        background-color: var(--ff-color-status-error-dot);
     }
     .forge-minimal-status-stopped,
     .forge-minimal-status-suspended,
     .forge-minimal-status-suspending,
     .forge-minimal-status-info,
-    .forge-minimal-status-offline{
-        @apply bg-gray-300;
+    .forge-minimal-status-offline {
+        background-color: var(--ff-color-status-neutral-dot);
     }
     .forge-minimal-status-success,
     .forge-minimal-status-connected,
@@ -300,26 +322,25 @@
     .forge-minimal-status-safe,
     .forge-minimal-status-warning,
     .forge-minimal-status-starting,
-    .forge-minimal-status-info,
     .forge-minimal-status-pushing,
     .forge-minimal-status-pulling,
     .forge-minimal-status-loading,
     .forge-minimal-status-rollback,
     .forge-minimal-status-installing,
     .forge-minimal-status-updating,
-    .forge-minimal-status-restarting{
-        @apply bg-green-400;
+    .forge-minimal-status-restarting {
+        background-color: var(--ff-color-status-success-dot);
     }
 
     .forge-badge-devmode {
-        @apply bg-purple-100;
-        @apply border-purple-600;
-        @apply text-purple-700;
+        background-color: var(--ff-color-status-devmode-bg);
+        border-color: var(--ff-color-status-devmode-border);
+        color: var(--ff-color-status-devmode-text);
     }
     .forge-badge-fleetmode {
-        @apply bg-teal-100;
-        @apply border-teal-600;
-        @apply text-teal-700;
+        background-color: var(--ff-color-status-fleetmode-bg);
+        border-color: var(--ff-color-status-fleetmode-border);
+        color: var(--ff-color-status-fleetmode-text);
     }
 
     th {
@@ -375,18 +396,19 @@
         @apply opacity-60;
     }
 
-    /* Make sure forge-log-entry-level-* all appear in tailwind.config.js safelist */
+    /* Direct vars — low-shade text-* utilities resolve to surface tokens via the
+       Tailwind remap and would invert against the always-dark code-surface. */
     .forge-log-entry-level-system {
-        @apply text-blue-400;
+        color: var(--ff-color-log-system);
     }
     .forge-log-entry-level-info {
-        @apply text-gray-100;
+        color: var(--ff-color-log-info);
     }
     .forge-log-entry-level-warn {
-        @apply text-yellow-300;
+        color: var(--ff-color-log-warn);
     }
     .forge-log-entry-level-error {
-        @apply text-red-400;
+        color: var(--ff-color-log-error);
     }
 }
 
@@ -398,4 +420,10 @@
     .ff-layout--box--right .ff-layout--box--content {
         @apply rounded-none md:rounded-xl m-auto;
     }
+}
+
+/* Code / terminal surfaces — always-dark by design (both themes). */
+.ff-code-surface {
+    background-color: var(--ff-color-code-surface);
+    color: var(--ff-color-code-text);
 }

@@ -403,7 +403,8 @@ module.exports = {
                     let nodeRedVersion = '3.0.2' // default to older Node-RED
                     if (SemVer.satisfies(SemVer.coerce(this.agentVersion), '>=1.11.2')) {
                         // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
-                        nodeRedVersion = 'latest'
+                        // pinning to NR 4.1.x while we fix the device agent
+                        nodeRedVersion = '~4.1.11'
                     }
                     return nodeRedVersion
                 },
@@ -479,7 +480,13 @@ module.exports = {
                 } = {}) => {
                     // Pagination
                     const limit = Math.min(parseInt(pagination.limit) || 100, 100)
-                    if (pagination.cursor) {
+                    const pageNum = pagination.page ? parseInt(pagination.page) : null
+                    const usingOffset = pageNum && pageNum >= 1
+                    const offset = usingOffset ? (pageNum - 1) * limit : null
+                    if (usingOffset) {
+                        // Offset mode and cursor mode are mutually exclusive — drop any incoming cursor.
+                        delete pagination.cursor
+                    } else if (pagination.cursor) {
                         const cursors = pagination.cursor.split(',')
                         cursors[cursors.length - 1] = M.Device.decodeHashid(cursors[cursors.length - 1])
                         pagination.cursor = cursors.join(',')
@@ -535,6 +542,8 @@ module.exports = {
                                 }
                             } else if (key === 'instance') {
                                 order.unshift([M.Project, 'name', pagination.order[key] || 'ASC'])
+                            } else if (key === 'deviceGroup.name') {
+                                order.unshift([M.DeviceGroup, 'name', pagination.order[key] || 'ASC'])
                             } else if (key === 'state-priority') {
                                 order.unshift([literal(`
                                     CASE
@@ -627,18 +636,31 @@ module.exports = {
                     }
                     const statusOnlyIncludes = projectInclude.include?.where ? [projectInclude] : []
 
+                    const findAllOptions = {
+                        where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type'], {}, order),
+                        include: pagination.statusOnly ? statusOnlyIncludes : includes,
+                        order,
+                        limit: pagination.statusOnly ? null : limit
+                    }
+                    if (usingOffset && !pagination.statusOnly) {
+                        findAllOptions.offset = offset
+                    }
+                    // Mirror findAll's search/filter so total matches; strip cursor so we count the full match, not rows after it.
+                    const countWhere = buildPaginationSearchClause(
+                        { ...pagination, cursor: null },
+                        where,
+                        ['Device.name', 'Device.type'],
+                        {},
+                        order
+                    )
                     const [rows, count] = await Promise.all([
-                        this.findAll({
-                            where: buildPaginationSearchClause(pagination, where, ['Device.name', 'Device.type'], {}, order),
-                            include: pagination.statusOnly ? statusOnlyIncludes : includes,
-                            order,
-                            limit: pagination.statusOnly ? null : limit
-                        }),
-                        this.count({ where, include: statusOnlyIncludes })
+                        this.findAll(findAllOptions),
+                        this.count({ where: countWhere, include: statusOnlyIncludes })
                     ])
 
                     let nextCursors = []
-                    if (rows.length === limit && limit > 0) {
+                    // Cursor-based forward continuation only makes sense in cursor mode.
+                    if (!usingOffset && rows.length === limit && limit > 0) {
                         const lastRow = rows[rows.length - 1]
                         nextCursors = order.map((sortProps) => {
                             // Model, key, dir
@@ -666,10 +688,17 @@ module.exports = {
                         })
                     }
 
+                    const meta = {
+                        next_cursor: nextCursors.length > 0 ? nextCursors.join(',') : undefined
+                    }
+                    if (usingOffset) {
+                        meta.page = pageNum
+                        meta.pageSize = limit
+                        meta.total = count
+                        meta.pageCount = Math.max(1, Math.ceil(count / limit))
+                    }
                     return {
-                        meta: {
-                            next_cursor: nextCursors.length > 0 ? nextCursors.join(',') : undefined
-                        },
+                        meta,
                         count,
                         devices: rows
                     }

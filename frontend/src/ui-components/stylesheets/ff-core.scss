@@ -23,7 +23,7 @@ html {
 
 body {
     margin: 0;
-    color: $ff-grey-800;
+    color: var(--ff-color-text);
     position: relative;
     overflow: hidden;
 }
@@ -60,7 +60,7 @@ body {
 
 code {
     border-radius: $ff-unit-sm;
-    border: 1px solid $ff-grey-200;
+    border: 1px solid var(--ff-color-border);
     padding: $ff-unit-md;
 }
 
@@ -70,9 +70,9 @@ p code {
 
 .ff-description {
     font-size: $ff-funit-sm;
-    color: $ff-grey-400;
+    color: var(--ff-color-text-subtle);
 }
 
 hr {
-    color: $ff-grey-200;
+    color: var(--ff-color-border);
 }
