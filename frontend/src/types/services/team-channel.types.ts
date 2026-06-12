@@ -9,5 +9,4 @@ export interface TeamChannelServiceI extends AppService {
     disconnect(): Promise<void>
     destroy(): Promise<void>
     isConnected(): boolean
-    getSessionId(): string
 }

@@ -43,6 +43,26 @@ describe('account-auth store', () => {
             expect(store.loginInflight).toBe(false)
             expect(store.loginError).toBeNull()
             expect(store.redirectUrlAfterLogin).toBeNull()
+            expect(store.sessionId).toBeNull()
+        })
+    })
+
+    describe('getSessionId', () => {
+        it('mints a uuid on first call', () => {
+            const store = useAccountAuthStore()
+            expect(store.getSessionId()).toMatch(/^[0-9a-f-]{36}$/)
+        })
+
+        it('returns the same id on subsequent calls', () => {
+            const store = useAccountAuthStore()
+            expect(store.getSessionId()).toBe(store.getSessionId())
+        })
+
+        it('mints a fresh id after $reset (e.g. logout / new page-load)', () => {
+            const store = useAccountAuthStore()
+            const first = store.getSessionId()
+            store.$reset()
+            expect(store.getSessionId()).not.toBe(first)
         })
     })
 

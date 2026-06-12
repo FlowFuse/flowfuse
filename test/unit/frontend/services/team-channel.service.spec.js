@@ -5,7 +5,7 @@ const getTeamCommsCreds = vi.fn()
 const refreshTeam = vi.fn().mockResolvedValue(undefined)
 const refreshTeamMembership = vi.fn().mockResolvedValue(undefined)
 const useContextStore = vi.fn(() => ({ refreshTeam, refreshTeamMembership }))
-const useAccountAuthStore = vi.fn(() => ({ user: { id: 'user-hashid-1' } }))
+const useAccountAuthStore = vi.fn(() => ({ user: { id: 'user-hashid-1' }, getSessionId: () => 'session-test-id' }))
 
 vi.mock('@/api/team.js', () => ({
     default: { getTeamCommsCreds: (...args) => getTeamCommsCreds(...args) }
@@ -44,34 +44,13 @@ describe('TeamChannelService', async () => {
         refreshTeam.mockClear()
         refreshTeamMembership.mockClear()
         useContextStore.mockClear()
-        useAccountAuthStore.mockClear().mockReturnValue({ user: { id: 'user-hashid-1' } })
+        useAccountAuthStore.mockClear().mockReturnValue({ user: { id: 'user-hashid-1' }, getSessionId: () => 'session-test-id' })
         sessionStorage.clear()
         await destroyTeamChannelService()
     })
 
     afterEach(async () => {
         await destroyTeamChannelService()
-    })
-
-    describe('getSessionId', () => {
-        test('mints a uuid sessionId on first call', () => {
-            const { service } = createService()
-            const id = service.getSessionId()
-            expect(id).toMatch(/^[0-9a-f-]{36}$/)
-        })
-
-        test('returns the same sessionId on subsequent calls within the same instance', () => {
-            const { service } = createService()
-            const first = service.getSessionId()
-            const second = service.getSessionId()
-            expect(second).toBe(first)
-        })
-
-        test('does not persist to sessionStorage (so duplicated tabs get distinct ids)', () => {
-            const { service } = createService()
-            service.getSessionId()
-            expect(sessionStorage.getItem('ff-team-channel-session-id')).toBeNull()
-        })
     })
 
     describe('connect', () => {
@@ -137,7 +116,7 @@ describe('TeamChannelService', async () => {
             await service.connect({ id: 'team-1' })
             const opts = mqtt.createClient.mock.calls[0][1]
             await opts.getCredentials()
-            expect(getTeamCommsCreds).toHaveBeenCalledWith('team-1', service.getSessionId())
+            expect(getTeamCommsCreds).toHaveBeenCalledWith('team-1', 'session-test-id')
         })
 
         test('skips reconnect when already connected to the same team', async () => {
@@ -279,15 +258,12 @@ describe('TeamChannelService', async () => {
             expect(mqtt.destroyClient).not.toHaveBeenCalled()
         })
 
-        test('destroy disconnects and clears the in-memory sessionId', async () => {
+        test('destroy disconnects the active client', async () => {
             const { service, mqtt } = createService()
             mqtt.createClient.mockResolvedValue(undefined)
             await service.connect({ id: 'team-1' })
-            const sessionIdBefore = service.getSessionId()
             await service.destroy()
             expect(mqtt.destroyClient).toHaveBeenCalledWith('team:team-1')
-            // next caller mints a fresh id rather than reusing the destroyed one
-            expect(service.getSessionId()).not.toBe(sessionIdBefore)
         })
     })
 })

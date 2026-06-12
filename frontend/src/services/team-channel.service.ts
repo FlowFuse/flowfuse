@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from 'uuid'
-
 import { BaseService } from './service.contract'
 
 import teamApi from '@/api/team.js'
@@ -17,7 +15,6 @@ function connectionKey (teamId: string): string {
 }
 
 class TeamChannelService extends BaseService implements TeamChannelServiceI {
-    protected $sessionId: Maybe<string> = null
     protected $connectedTeamId: Maybe<string> = null
 
     constructor ({ app, router, services }: CreateServiceOptions) {
@@ -27,13 +24,6 @@ class TeamChannelService extends BaseService implements TeamChannelServiceI {
             router,
             services
         })
-    }
-
-    // Minted per page-load so duplicated tabs (which clone sessionStorage in
-    // most browsers) still get distinct credentials and don't kick each other.
-    getSessionId (): string {
-        if (!this.$sessionId) this.$sessionId = uuidv4()
-        return this.$sessionId
     }
 
     isConnected (): boolean {
@@ -53,7 +43,7 @@ class TeamChannelService extends BaseService implements TeamChannelServiceI {
         if (!mqtt) return
 
         const teamId = team.id
-        const sessionId = this.getSessionId()
+        const sessionId = authStore.getSessionId()
         const key = connectionKey(teamId)
 
         try {
@@ -90,7 +80,6 @@ class TeamChannelService extends BaseService implements TeamChannelServiceI {
 
     async destroy (): Promise<void> {
         await this.disconnect()
-        this.$sessionId = null
     }
 
     protected async _onMqttConnect (teamId: string, userId: string): Promise<void> {
