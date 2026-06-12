@@ -10,7 +10,7 @@ import type { CreateServiceOptions } from '@/types/services/service.types'
 import type { TeamChannelServiceI, TeamRef } from '@/types/services/team-channel.types'
 
 const MEMBERSHIP_TOPIC_REGEX = /^ff\/v1\/[^/]+\/u\/([^/]+)\/membership$/
-const TEAM_UPDATED_TOPIC_REGEX = /^ff\/v1\/[^/]+\/team\/updated$/
+const TEAM_UPDATED_TOPIC_REGEX = /^ff\/v1\/[^/]+\/t\/updated$/
 
 function connectionKey (teamId: string): string {
     return `team:${teamId}`
@@ -98,7 +98,7 @@ class TeamChannelService extends BaseService implements TeamChannelServiceI {
         if (!mqtt) return
         try {
             await mqtt.subscribe(connectionKey(teamId), [
-                `ff/v1/${teamId}/team/updated`,
+                `ff/v1/${teamId}/t/updated`,
                 `ff/v1/${teamId}/u/${userId}/membership`
             ], { qos: 1 })
         } catch {

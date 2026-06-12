@@ -329,8 +329,8 @@ module.exports = function (app) {
                 // - ff/v1/+/a/+/command
                 { topic: /^ff\/v1\/[^/]+\/a\/[^/]+\/command$/ },
                 // Team channel broadcasts to subscribed team members
-                // - ff/v1/<team>/team/updated
-                { topic: /^ff\/v1\/[^/]+\/team\/updated$/ },
+                // - ff/v1/<team>/t/updated
+                { topic: /^ff\/v1\/[^/]+\/t\/updated$/ },
                 // - ff/v1/<team>/u/<user>/membership
                 { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/membership$/ },
                 // ff/v1/platform/sync
@@ -393,8 +393,8 @@ module.exports = function (app) {
         // browser-side team channel (per-tab, per-team)
         teamFrontend: {
             sub: [
-                // - ff/v1/<team>/team/updated
-                { topic: /^ff\/v1\/([^/]+)\/team\/updated$/, verify: 'checkUserIsTeamMember' },
+                // - ff/v1/<team>/t/updated
+                { topic: /^ff\/v1\/([^/]+)\/t\/updated$/, verify: 'checkUserIsTeamMember' },
                 // - ff/v1/<team>/u/<user>/membership
                 { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkUserIsTeamMember' }
             ],

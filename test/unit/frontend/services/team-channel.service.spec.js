@@ -167,7 +167,7 @@ describe('TeamChannelService', async () => {
     })
 
     describe('subscribe on connect', () => {
-        test('subscribes to team/updated and membership topics with qos 1', async () => {
+        test('subscribes to t/updated and membership topics with qos 1', async () => {
             const { service, mqtt } = createService()
             let onConnect
             mqtt.createClient.mockImplementation(async (_key, opts) => {
@@ -177,7 +177,7 @@ describe('TeamChannelService', async () => {
             await onConnect()
             expect(mqtt.subscribe).toHaveBeenCalledWith(
                 'team:team-1',
-                ['ff/v1/team-1/team/updated', 'ff/v1/team-1/u/user-hashid-1/membership'],
+                ['ff/v1/team-1/t/updated', 'ff/v1/team-1/u/user-hashid-1/membership'],
                 { qos: 1 }
             )
         })
@@ -205,9 +205,9 @@ describe('TeamChannelService', async () => {
             return { service, mqtt, router, onMessage }
         }
 
-        test('team/updated triggers refreshTeam', async () => {
+        test('t/updated triggers refreshTeam', async () => {
             const { onMessage } = await connectAndCaptureOnMessage()
-            onMessage('ff/v1/team-1/team/updated', Buffer.from(JSON.stringify({})))
+            onMessage('ff/v1/team-1/t/updated', Buffer.from(JSON.stringify({})))
             expect(refreshTeam).toHaveBeenCalledTimes(1)
             expect(refreshTeamMembership).not.toHaveBeenCalled()
         })
@@ -251,7 +251,7 @@ describe('TeamChannelService', async () => {
 
         test('does not throw on malformed JSON payloads', async () => {
             const { onMessage } = await connectAndCaptureOnMessage()
-            expect(() => onMessage('ff/v1/team-1/team/updated', Buffer.from('not json'))).not.toThrow()
+            expect(() => onMessage('ff/v1/team-1/t/updated', Buffer.from('not json'))).not.toThrow()
             expect(refreshTeam).toHaveBeenCalledTimes(1)
         })
 

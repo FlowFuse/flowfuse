@@ -65,7 +65,7 @@ module.exports = fp(async function (app, _opts) {
                 notify: function (teamHash, reason, srcId) {
                     if (!teamHash) return
                     const msg = { reason: reason || null, srcId: srcId || null }
-                    client.publish(`ff/v1/${teamHash}/team/updated`, JSON.stringify(msg))
+                    client.publish(`ff/v1/${teamHash}/t/updated`, JSON.stringify(msg))
                 },
                 notifyMembership: function (teamHash, userHash, reason, srcId) {
                     if (!teamHash || !userHash) return

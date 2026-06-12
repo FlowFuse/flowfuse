@@ -1335,7 +1335,7 @@ describe('Broker Auth v2 API', async function () {
                 await TestObjects.ATeam.addUser(bob, { through: { role: Roles.Member } })
                 otherTeam = await factory.createTeam({ name: 'BTeam' })
                 teamFrontendUsername = `team-frontend:${TestObjects.alice.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
-                teamUpdatedTopic = `ff/v1/${TestObjects.ATeam.hashid}/team/updated`
+                teamUpdatedTopic = `ff/v1/${TestObjects.ATeam.hashid}/t/updated`
                 membershipTopic = `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/membership`
             })
 
@@ -1343,7 +1343,7 @@ describe('Broker Auth v2 API', async function () {
                 await app.close()
             })
 
-            it('allows a team member to subscribe to their team/updated topic', async function () {
+            it('allows a team member to subscribe to their t/updated topic', async function () {
                 await allowRead({
                     username: teamFrontendUsername,
                     topic: teamUpdatedTopic
@@ -1358,7 +1358,7 @@ describe('Broker Auth v2 API', async function () {
             it('denies subscribe when the topic team-hash mismatches the credential', async function () {
                 await denyRead({
                     username: teamFrontendUsername,
-                    topic: `ff/v1/${otherTeam.hashid}/team/updated`
+                    topic: `ff/v1/${otherTeam.hashid}/t/updated`
                 })
             })
             it('denies subscribe to another user\'s membership topic', async function () {
