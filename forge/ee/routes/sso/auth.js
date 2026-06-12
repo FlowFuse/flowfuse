@@ -62,9 +62,6 @@ module.exports = fp(async function (app, opts) {
                         provider: providerId,
                         redirectTo: decodeURIComponent(request.query.r || '/')
                     })
-                    opts.additionalAuthorizeParams = {
-                        login_hint: request.query.u
-                    }
                     done(null, opts)
                     return
                 } else {
