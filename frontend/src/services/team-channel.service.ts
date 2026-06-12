@@ -10,6 +10,7 @@ import type { CreateServiceOptions } from '@/types/services/service.types'
 import type { TeamChannelServiceI, TeamRef } from '@/types/services/team-channel.types'
 
 const MEMBERSHIP_TOPIC_REGEX = /^ff\/v1\/[^/]+\/u\/([^/]+)\/membership$/
+const TEAM_UPDATED_TOPIC_REGEX = /^ff\/v1\/[^/]+\/team\/updated$/
 
 function connectionKey (teamId: string): string {
     return `team:${teamId}`
@@ -116,14 +117,20 @@ class TeamChannelService extends BaseService implements TeamChannelServiceI {
             payload = {}
         }
 
-        const membershipMatch = MEMBERSHIP_TOPIC_REGEX.exec(topic)
-        if (membershipMatch) {
-            this._handleMembership(payload)
-            return
+        for (const { pattern, handle } of this._topicRoutes()) {
+            if (pattern.test(topic)) {
+                handle(payload)
+                return
+            }
         }
-        if (topic.endsWith('/team/updated')) {
-            this._handleTeamUpdated()
-        }
+    }
+
+    // topic pattern → handler; add a row per new sync-able entity
+    protected _topicRoutes (): Array<{ pattern: RegExp, handle: (payload: { reason?: string }) => void }> {
+        return [
+            { pattern: MEMBERSHIP_TOPIC_REGEX, handle: (payload) => this._handleMembership(payload) },
+            { pattern: TEAM_UPDATED_TOPIC_REGEX, handle: () => this._handleTeamUpdated() }
+        ]
     }
 
     protected _handleMembership (payload: { reason?: string }): void {
