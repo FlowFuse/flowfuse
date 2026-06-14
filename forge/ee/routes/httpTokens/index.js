@@ -58,7 +58,7 @@ module.exports = async function (app) {
             if (isExpertMcpToken({ scope: body.scope })) {
                 throw new Error('Cannot create Expert MCP Access Token via this route')
             }
-            const token = await app.db.controllers.AccessToken.createHTTPNodeToken(request.project, body.name, body.scope, body.expiresAt)
+            const token = await app.db.controllers.AccessToken.createHTTPNodeToken(request.project, body.name, [''], body.expiresAt)
             // token has already been sanitised via views.AccessToken.instanceHTTPTokenSummary
             await app.auditLog.Project.project.httpToken.created(request.session.User, null, request.project, body)
             reply.send(token || {})
