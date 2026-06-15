@@ -1,7 +1,7 @@
 ---
 navTitle: Upgrading the Node-RED version
 meta:
-   description: Upgrade the Node-RED version your self-hosted FlowFuse Instances run by creating a new Stack, using the move to Node-RED 5.0 as a worked example.
+   description: Upgrade the Node-RED version your self-hosted FlowFuse Instances run by creating a new Stack and moving Instances onto it.
    tags:
      - nodered
      - stack
@@ -17,8 +17,8 @@ through an in-editor or in-platform "update" button. The version of Node-RED an
 Instance runs is defined by its [Stack](../user/concepts.md#stack). To move to a
 new major version you add it as a new Stack, then point your Instances at it.
 
-This page uses the move to **Node-RED 5.0** as a worked example, but the same
-steps apply to any major Node-RED version upgrade.
+This page uses the move to **Node-RED 5.0** as an example, but the same steps
+apply to any major Node-RED version upgrade.
 
 ## Why there's no update button
 
@@ -67,13 +67,3 @@ Move the Instance onto the new Stack by following
 [Changing the Stack](../user/changestack.md): open the Instance's **Settings**
 tab and use **Change Instance Stack** to select the new Stack. The Instance
 restarts on the new Stack.
-
-## Good to know
-
-- You can switch an Instance back to its previous Stack from the same Settings
-  page, as long as the old Stack still exists.
-- Test the new version on a single Instance before moving production workloads
-  across.
-
-Questions? [Reach out to FlowFuse support](https://flowfuse.com/support/) - we're
-happy to help.
