@@ -90,7 +90,7 @@
         "dotenv": "^16.3.1",
         "echarts": "^5.6.0",
         "fastify": "^5.6.2",
-        "fastify-metrics": "^12.1.0",
+        "fastify-metrics": "^13.2.0",
         "fastify-plugin": "^5.1.0",
         "google-auth-library": "^10.1.0",
         "handlebars": "^4.7.7",
