@@ -144,7 +144,7 @@
         "babel-loader": "^10.1.1",
         "clean-webpack-plugin": "^4.0.0",
         "copy-webpack-plugin": "^14.0.0",
-        "cross-env": "^7.0.3",
+        "cross-env": "^10.1.0",
         "css-loader": "^7.1.2",
         "cypress": "^15.14.2",
         "cypress-mailpit": "^0.0.4",
