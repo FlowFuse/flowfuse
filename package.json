@@ -59,7 +59,7 @@
         "@aws-sdk/client-sesv2": "^3.916.0",
         "@aws-sdk/credential-provider-node": "^3.352.0",
         "@fastify/cookie": "^11.0.2",
-        "@fastify/csrf-protection": "^7.1.0",
+        "@fastify/csrf-protection": "^8.0.0",
         "@fastify/formbody": "^8.0.2",
         "@fastify/helmet": "^13.0.2",
         "@fastify/multipart": "^9.3.0",
