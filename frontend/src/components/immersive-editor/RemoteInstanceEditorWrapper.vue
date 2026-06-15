@@ -21,11 +21,17 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
+
 import LoadingScreenWrapper from './LoadingScreenWrapper.vue'
+
+import { useThemeStore } from '@/stores/theme'
+import { isInstanceOnNR5Plus } from '@/utils/instanceVersion'
 
 export default {
     name: 'RemoteInstanceEditorWrapper',
     components: { LoadingScreenWrapper },
+    inject: ['$services'],
     props: {
         device: {
             required: false,
@@ -43,6 +49,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useThemeStore, { themeMode: 'mode' }),
         isDeviceRunning () {
             return this.computedStatus === 'running'
         },
@@ -63,7 +70,13 @@ export default {
             }
         }
     },
+    watch: {
+        themeMode () {
+            this.$services.postMessage.broadcastTheme()
+        }
+    },
     mounted () {
+        window.addEventListener('message', this.eventListener)
         // Dispatch a synthetic mousemove every 25 minutes to keep PostHog's idle
         // session timer alive. PostHog resets its recording after ~30 minutes of
         // inactivity on the parent page — but the user may be actively working
@@ -77,7 +90,27 @@ export default {
         // Remove from DOM before unmount so rrweb doesn't try to access the
         // cross-origin contentWindow during teardown.
         if (this.$refs.iframe) {
+            this.$services.postMessage.unregisterEditorTarget(this.$refs.iframe.contentWindow)
             this.$refs.iframe.parentNode?.removeChild(this.$refs.iframe)
+        }
+    },
+    unmounted () {
+        window.removeEventListener('message', this.eventListener)
+    },
+    methods: {
+        eventListener (event) {
+            const editorOrigin = this.device?.editor?.url
+                ? new URL(this.device.editor.url, window.location.origin).origin
+                : null
+            if (event.origin !== editorOrigin) return
+            if (event.data?.type === 'load' || event.data?.type === 'request-theme') this.registerEditorForThemeSync()
+        },
+        registerEditorForThemeSync () {
+            if (!isInstanceOnNR5Plus(this.device)) return
+            this.$services.postMessage.registerEditorTarget({
+                target: this.$refs.iframe.contentWindow,
+                targetOrigin: this.device.editor.url
+            })
         }
     }
 }

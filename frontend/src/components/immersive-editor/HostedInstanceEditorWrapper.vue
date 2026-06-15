@@ -23,11 +23,13 @@
 </template>
 
 <script>
-import { mapActions } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
 import LoadingScreenWrapper from './LoadingScreenWrapper.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { useThemeStore } from '@/stores/theme'
+import { isInstanceOnNR5Plus } from '@/utils/instanceVersion'
 
 const States = {
     STOPPED: 'stopped',
@@ -60,6 +62,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useThemeStore, { themeMode: 'mode' }),
         isInstanceTransitioningStates () {
             const pendingState = (Object.hasOwnProperty.call(this.instance, 'pendingStateChange') && this.instance.pendingStateChange)
             const optimisticStateChange = (Object.hasOwnProperty.call(this.instance, 'optimisticStateChange') && this.instance.optimisticStateChange)
@@ -73,6 +76,11 @@ export default {
             ]
 
             return this.isInstanceTransitioningStates || unsafeStates.includes(this.instance.meta?.state)
+        }
+    },
+    watch: {
+        themeMode () {
+            this.$services.postMessage.broadcastTheme()
         }
     },
     mounted () {
@@ -91,6 +99,7 @@ export default {
         // Remove from DOM before unmount so rrweb doesn't try to access the
         // cross-origin contentWindow during teardown.
         if (this.$refs.iframe) {
+            this.$services.postMessage.unregisterEditorTarget(this.$refs.iframe.contentWindow)
             this.$refs.iframe.parentNode?.removeChild(this.$refs.iframe)
         }
     },
@@ -112,6 +121,10 @@ export default {
                 case 'load':
                     this.emitMessage('prevent-redirect', true)
                     this.$emit('iframe-loaded')
+                    this.registerEditorForThemeSync()
+                    break
+                case 'request-theme':
+                    this.registerEditorForThemeSync()
                     break
                 case 'navigate':
                     window.location.href = event.data.payload
@@ -135,6 +148,13 @@ export default {
                     type,
                     payload
                 },
+                target: this.$refs.iframe.contentWindow,
+                targetOrigin: this.instance.url
+            })
+        },
+        registerEditorForThemeSync () {
+            if (!isInstanceOnNR5Plus(this.instance)) return
+            this.$services.postMessage.registerEditorTarget({
                 target: this.$refs.iframe.contentWindow,
                 targetOrigin: this.instance.url
             })
