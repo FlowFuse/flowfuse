@@ -79,7 +79,7 @@ module.exports = async function (app) {
                     throw new Error('Cannot modify Expert MCP Access Token')
                 }
                 const body = request.body
-                const token = await app.db.controllers.AccessToken.updateHTTPNodeToken(request.project, request.params.id, body.scope, body.expiresAt)
+                const token = await app.db.controllers.AccessToken.updateHTTPNodeToken(request.project, request.params.id, [''], body.expiresAt)
                 const updates = new app.auditLog.formatters.UpdatesCollection()
                 updates.pushDifferences({ expiresAt: oldToken.expiresAt, scope: oldToken.scope.join(',') }, { expiresAt: body.expiresAt, scope: body.scope })
                 await app.auditLog.Project.project.httpToken.updated(request.session.User, null, request.project, updates)
