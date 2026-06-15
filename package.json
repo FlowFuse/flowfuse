@@ -112,7 +112,7 @@
         "posthog-node": "^5.33.2",
         "qrcode": "^1.5.3",
         "random-words": "~2.0.0",
-        "semver": "~7.6.0",
+        "semver": "~7.8.4",
         "sequelize": "^6.33.0",
         "sqlite3": "^6.0.1",
         "stripe": "^8.222.0",
