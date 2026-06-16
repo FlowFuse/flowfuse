@@ -47,6 +47,7 @@ Scheduled Maintenance feature.
    guides below. For Node-RED 5.0 on Docker or Kubernetes this is
    `flowfuse/node-red:2.31.2-5.0.x`; the full list of pre-built tags is on
    [Docker Hub](https://hub.docker.com/r/flowfuse/node-red/tags).
+   (tags are of the form [FlowFuse Version]-[Node-RED Version])
 4. Save the Stack. It is now available when you create or migrate Instances.
 
 For the details of how the Container Location is specified for each deployment
