@@ -139,7 +139,7 @@ describe('BrokerClient', function () {
             const team = { id: 11, hashid: 'teamHash' }
             const sessionId = 'tab-1234567890'
             const result = await BrokerClient.createClientForTeamFrontend(app, user, team, sessionId)
-            const expectedUsername = `team-frontend:${user.hashid}:${team.hashid}:${sessionId}`
+            const expectedUsername = `fe-team:${user.hashid}:${team.hashid}:${sessionId}`
             should(result).have.property('username', expectedUsername)
             should(result).have.property('password')
             result.password.should.match(/^ffbtf_/)
@@ -148,7 +148,7 @@ describe('BrokerClient', function () {
                 username: expectedUsername,
                 password: result.password,
                 ownerId: '' + user.id,
-                ownerType: 'team-frontend'
+                ownerType: 'fe-team'
             }).should.be.true()
         })
         it('should destroy existing client for same session before creating a new one', async function () {
@@ -159,7 +159,7 @@ describe('BrokerClient', function () {
             const team = { id: 11, hashid: 'teamHash' }
             const result = await BrokerClient.createClientForTeamFrontend(app, user, team, 'tab-1234567890')
             existingClient.destroy.called.should.be.true()
-            should(result).have.property('username', `team-frontend:${user.hashid}:${team.hashid}:tab-1234567890`)
+            should(result).have.property('username', `fe-team:${user.hashid}:${team.hashid}:tab-1234567890`)
         })
         it('should look up existing client scoped to the full username (including sessionId) so different tabs do not revoke each other', async function () {
             app.db.models.BrokerClient.findOne.resolves(null)
@@ -169,7 +169,7 @@ describe('BrokerClient', function () {
             await BrokerClient.createClientForTeamFrontend(app, user, team, 'tab-A')
             const findOneArgs = app.db.models.BrokerClient.findOne.firstCall.args[0]
             findOneArgs.should.have.property('where')
-            findOneArgs.where.should.have.property('username', `team-frontend:${user.hashid}:${team.hashid}:tab-A`)
+            findOneArgs.where.should.have.property('username', `fe-team:${user.hashid}:${team.hashid}:tab-A`)
         })
         it('should return null if app.comms is not available', async function () {
             app.comms = null

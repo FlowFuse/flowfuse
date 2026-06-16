@@ -1334,7 +1334,7 @@ describe('Broker Auth v2 API', async function () {
                 bob = await factory.createUser({ username: 'bob', name: 'Bob', email: 'bob@example.com', password: 'bbPassword1!' })
                 await TestObjects.ATeam.addUser(bob, { through: { role: Roles.Member } })
                 otherTeam = await factory.createTeam({ name: 'BTeam' })
-                teamFrontendUsername = `team-frontend:${TestObjects.alice.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
+                teamFrontendUsername = `fe-team:${TestObjects.alice.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
                 teamUpdatedTopic = `ff/v1/${TestObjects.ATeam.hashid}/t/updated`
                 membershipTopic = `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/membership`
             })
@@ -1370,13 +1370,13 @@ describe('Broker Auth v2 API', async function () {
             it('denies subscribe for a user who is not a member of the team', async function () {
                 const charlie = await factory.createUser({ username: 'charlie', name: 'Charlie', email: 'charlie@example.com', password: 'ccPassword1!' })
                 // charlie is not in ATeam; he holds a (theoretically) valid credential username
-                const charlieUsername = `team-frontend:${charlie.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
+                const charlieUsername = `fe-team:${charlie.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
                 await denyRead({
                     username: charlieUsername,
                     topic: teamUpdatedTopic
                 })
             })
-            it('denies team-frontend from publishing (read-only client)', async function () {
+            it('denies fe-team from publishing (read-only client)', async function () {
                 await denyWrite({
                     username: teamFrontendUsername,
                     topic: teamUpdatedTopic

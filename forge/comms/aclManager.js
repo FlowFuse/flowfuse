@@ -117,7 +117,7 @@ module.exports = function (app) {
         },
         checkUserIsTeamMember: async function (requestParts, usernameParts) {
             // requestParts = [ fullTopic , <teamHash> [, <userHash>] ]
-            // usernameParts = [ 'team-frontend', <userHash>, <teamHash>, <sessionId> ]
+            // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
             const topicTeamHash = requestParts[1]
             const usernameUserHash = usernameParts[1]
             const usernameTeamHash = usernameParts[2]
@@ -437,7 +437,7 @@ module.exports = function (app) {
             // - project:<teamid>:<projectid>
             // - device:<teamid>:<deviceid>
             // - frontend:<teamid>:<deviceid>
-            // - team-frontend:<userid>:<teamid>:<sessionid>
+            // - fe-team:<userid>:<teamid>:<sessionid>
             // - expert-client:<userid>:<sessionid>
             // - expert-agent:<userid>:<apiversion>
 
@@ -453,7 +453,7 @@ module.exports = function (app) {
                 aclList = ACLS.project[aclType]
             } else if (/^device:/.test(username)) {
                 aclList = ACLS.device[aclType]
-            } else if (/^team-frontend:/.test(username)) {
+            } else if (/^fe-team:/.test(username)) {
                 aclList = ACLS.teamFrontend[aclType]
             } else if (/^frontend:/.test(username)) {
                 aclList = ACLS.frontend[aclType]

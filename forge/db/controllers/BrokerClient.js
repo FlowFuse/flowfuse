@@ -10,7 +10,7 @@ module.exports = {
             attributes: ['username', 'password']
         })
         if (compareHash(password || '', user ? user.password : '')) {
-            if (username.startsWith('frontend:') || username.startsWith('expert-client:') || username.startsWith('team-frontend:')) {
+            if (username.startsWith('frontend:') || username.startsWith('expert-client:') || username.startsWith('fe-team:')) {
                 await user.destroy()
             }
             return true
@@ -184,7 +184,7 @@ module.exports = {
 
     createClientForTeamFrontend: async function (app, user, team, sessionId) {
         if (app.comms) {
-            const username = `team-frontend:${user.hashid}:${team.hashid}:${sessionId}`
+            const username = `fe-team:${user.hashid}:${team.hashid}:${sessionId}`
             const existingClient = await app.db.models.BrokerClient.findOne({
                 where: { username }
             })
@@ -196,7 +196,7 @@ module.exports = {
                 username,
                 password,
                 ownerId: '' + user.id,
-                ownerType: 'team-frontend'
+                ownerType: 'fe-team'
             })
             return {
                 url: app.config.broker.public_url || app.config.broker.url || null,

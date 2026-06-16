@@ -1565,7 +1565,7 @@ describe('Team API', function () {
             })
             response.statusCode.should.equal(200)
             const result = response.json()
-            result.should.have.property('username', `team-frontend:${TestObjects.bob.hashid}:${TestObjects.ATeam.hashid}:tab-1234567890`)
+            result.should.have.property('username', `fe-team:${TestObjects.bob.hashid}:${TestObjects.ATeam.hashid}:tab-1234567890`)
             result.should.have.property('password')
             result.password.should.match(/^ffbtf_/)
             result.should.have.property('url')
