@@ -15,6 +15,7 @@ import { useProductExpertSupportAgentStore } from './product-expert-support-agen
 import { useUxDrawersStore } from './ux-drawers.js'
 
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
+import getAppOrchestrator from '@/services/app.orchestrator'
 import {
     ERRORS_WITHOUT_CODES,
     FATAL_ERROR_CODES,
@@ -22,8 +23,6 @@ import {
     THROTTLED_ERROR_CODES,
     TRANSIENT_ERROR_CODES
 } from '@/services/mqtt.service'
-
-import getServicesOrchestrator from '@/services/service.orchestrator'
 
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
@@ -239,7 +238,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             return expertApi.chat(payload)
         },
         async sendMqttQuery ({ query } = {}) {
-            const servicesOrchestrator = getServicesOrchestrator()
+            const servicesOrchestrator = getAppOrchestrator()
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
             const mqttTopicHelper = useMqttExpertTopicHelper()
 
@@ -286,7 +285,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
         },
         async establishMqttComms () {
-            const servicesOrchestrator = getServicesOrchestrator()
+            const servicesOrchestrator = getAppOrchestrator()
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
 
             await mqttService.createClient(this.mqttConnectionKey, {
@@ -305,7 +304,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             // dismiss inFlight requests that don't match the existing sessionId or the inFlight message transactionId
             if (sessionId !== this.sessionId || inFlightRequest?.transactionId !== chatTransactionId) return
 
-            const servicesOrchestrator = getServicesOrchestrator()
+            const servicesOrchestrator = getAppOrchestrator()
             const assistantStore = useProductAssistantStore()
             const topicHelper = useMqttExpertTopicHelper()
 
@@ -385,7 +384,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.messages = []
 
             if (this.shouldUseMqtt) {
-                const servicesOrchestrator = getServicesOrchestrator()
+                const servicesOrchestrator = getAppOrchestrator()
                 const mqttService = servicesOrchestrator.$serviceInstances.mqtt
 
                 await mqttService.destroyClient(this.mqttConnectionKey)
@@ -661,7 +660,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 return this.handleMqttError(connack.reasonCode, connack.properties?.reasonString)
             }
 
-            const servicesOrchestrator = getServicesOrchestrator()
+            const servicesOrchestrator = getAppOrchestrator()
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
 
             // if the last message was an error, it means we just reconnected after a failure
@@ -735,7 +734,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             this.stopInflightChat()
             this._clearInFlightUpdates()
 
-            const servicesOrchestrator = getServicesOrchestrator()
+            const servicesOrchestrator = getAppOrchestrator()
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
 
             const rand = Math.floor(Math.random() * 3)
@@ -1022,7 +1021,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         stopInflightChat () {
             if (this.shouldUseMqtt) {
                 const inFlightRequest = this._inFlightRequests.values().next().value
-                const servicesOrchestrator = getServicesOrchestrator()
+                const servicesOrchestrator = getAppOrchestrator()
                 const mqttService = servicesOrchestrator.$serviceInstances.mqtt
 
                 const hasMqttClient = mqttService.hasClient(this.mqttConnectionKey) &&

@@ -15,6 +15,10 @@ export * from './generated.js'
 
 export * from './services/index.js'
 
+export * from './transport/transport.types.js'
+
+export * from './subscribers/subscriber.types.js'
+
 // ---------------------------------------------------------------------------
 // Roles
 // ---------------------------------------------------------------------------

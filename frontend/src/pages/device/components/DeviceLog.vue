@@ -27,7 +27,7 @@
 <script>
 import deviceApi from '../../../api/devices.js'
 
-import getServicesOrchestrator from '@/services/service.orchestrator'
+import getAppOrchestrator from '@/services/app.orchestrator'
 
 const HEARTBEAT_INTERVAL = 10000
 
@@ -75,7 +75,7 @@ export default {
     },
     methods: {
         getMqttService () {
-            return getServicesOrchestrator().$serviceInstances.mqtt
+            return getAppOrchestrator().$serviceInstances.mqtt
         },
         async connectMQTT () {
             const mqttService = this.getMqttService()

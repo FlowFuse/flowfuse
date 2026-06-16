@@ -20,9 +20,9 @@ vi.mock('@/api/user.js', () => ({
 }))
 
 const teamChannelDisconnect = vi.fn().mockResolvedValue(undefined)
-vi.mock('@/services/service.orchestrator', () => ({
+vi.mock('@/services/app.orchestrator', () => ({
     default: () => ({
-        $serviceInstances: { teamChannel: { disconnect: teamChannelDisconnect } }
+        $subscriberInstances: { teamChannel: { disconnect: teamChannelDisconnect } }
     })
 }))
 

@@ -3,15 +3,15 @@ import { defineStore } from 'pinia'
 import flowBlueprintsApi from '@/api/flowBlueprints.js'
 import teamApi from '@/api/team.js'
 import userApi from '@/api/user.js'
+import getAppOrchestrator from '@/services/app.orchestrator'
 import product from '@/services/product.js'
-import getServicesOrchestrator from '@/services/service.orchestrator'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
 function ensureTeamChannelConnected (team) {
     if (!team?.id) return
-    const teamChannel = getServicesOrchestrator().$serviceInstances.teamChannel
+    const teamChannel = getAppOrchestrator().$subscriberInstances.teamChannel
     teamChannel?.connect(team).catch(() => {})
 }
 
@@ -94,7 +94,7 @@ export const useAccountStore = defineStore('account', {
             if (team?.id) {
                 ensureTeamChannelConnected(team)
             } else {
-                getServicesOrchestrator().$serviceInstances.teamChannel?.disconnect().catch(() => {})
+                getAppOrchestrator().$subscriberInstances.teamChannel?.disconnect().catch(() => {})
             }
             this.pendingTeamChange = false
         },

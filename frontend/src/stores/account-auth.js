@@ -6,7 +6,7 @@ import settingsApi from '../api/settings.js'
 import teamApi from '../api/team.js'
 import userApi from '../api/user.js'
 
-import getServicesOrchestrator from '@/services/service.orchestrator'
+import getAppOrchestrator from '@/services/app.orchestrator'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
@@ -201,7 +201,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
             if (useAccountSettingsStore().settings['platform:sso:only']) {
                 logoutURL = useAccountSettingsStore().settings['platform:sso:only:logoutURL'] || '/'
             }
-            const teamChannel = getServicesOrchestrator().$serviceInstances.teamChannel
+            const teamChannel = getAppOrchestrator().$subscriberInstances.teamChannel
             const disconnect = teamChannel ? teamChannel.disconnect().catch(() => {}) : Promise.resolve()
             return disconnect
                 .then(() => userApi.logout())

@@ -1,3 +1,4 @@
+/* eslint-env browser */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -132,6 +133,45 @@ describe('context store', () => {
 
                 expect(teamApi.getTeamUserMembership).toHaveBeenCalledWith('team-1')
                 expect(store.teamMembership).toEqual(membership)
+            })
+        })
+
+        describe('onTeamChannelMembership', () => {
+            it('refreshes membership for a non-removal reason', async () => {
+                const store = useContextStore()
+                store.team = { id: 'team-1' }
+                teamApi.getTeamUserMembership.mockResolvedValue({ role: 30 })
+
+                await store.onTeamChannelMembership({ reason: 'role-changed' })
+
+                expect(teamApi.getTeamUserMembership).toHaveBeenCalledWith('team-1')
+            })
+
+            it('hard-reloads to / on removal when on a team route', async () => {
+                const assign = vi.fn()
+                Object.defineProperty(window, 'location', {
+                    writable: true,
+                    value: { pathname: '/team/abc/instances', assign }
+                })
+                const store = useContextStore()
+
+                await store.onTeamChannelMembership({ reason: 'removed' })
+
+                expect(assign).toHaveBeenCalledWith('/')
+                expect(teamApi.getTeamUserMembership).not.toHaveBeenCalled()
+            })
+
+            it('does not reload on removal when on a non-team route', async () => {
+                const assign = vi.fn()
+                Object.defineProperty(window, 'location', {
+                    writable: true,
+                    value: { pathname: '/account/settings', assign }
+                })
+                const store = useContextStore()
+
+                await store.onTeamChannelMembership({ reason: 'removed' })
+
+                expect(assign).not.toHaveBeenCalled()
             })
         })
     })
