@@ -965,7 +965,6 @@ module.exports = async function (app) {
                     const npmrcEntry = `${scope}:registry=${npmRegURL.toString()}\n` +
                           `//${npmRegURL.host}:_auth="${token}"\n`
                     if (settings.settings.palette.npmrc) {
-                        settings.settings.palette.npmrc += '\n' + npmrcEntry
                         if (!settings.settings.palette.npmrc.includes(npmrcEntry)) {
                             settings.settings.palette.npmrc += '\n' + npmrcEntry
                         }
