@@ -27,6 +27,8 @@ of an existing Stack* (see [Managing Stacks](../admin/introduction.md#managing-s
 Crossing a major Node-RED version is different: you create a new Stack that pins
 the new container, rather than upgrading the existing Stack in place. This keeps
 the two versions side by side so you can move Instances over at your own pace.
+It also ensures major version upgrades are not automatically applied by the 
+Scheduled Maintenance feature.
 
 ## Before you start
 
