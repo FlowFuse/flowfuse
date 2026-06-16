@@ -5,10 +5,6 @@ import { Maybe } from '@/types/common/types'
 import type { CreateSubscriberOptions, SubscriberInstances } from '@/types/subscribers/subscriber.types'
 import type { Transport } from '@/types/transport/transport.types'
 
-/**
- * Lightweight base for subscribers — mirrors BaseService, but injected with a
- * Transport instead of the raw service bag.
- */
 export abstract class BaseSubscriber<TTransport extends Transport = Transport> {
     protected $name: string
 
