@@ -98,16 +98,16 @@ export default {
     align-items: flex-start;
     gap: 0.5rem;
     padding: 0.75rem;
-    background-color: white;
-    border: 1px solid $ff-grey-200;
+    background-color: var(--ff-color-bg-app);
+    border: 1px solid var(--ff-color-border);
     border-radius: 0.5rem;
     text-decoration: none;
-    color: $ff-grey-900;
+    color: var(--ff-color-text-strong);
     transition: all 0.2s ease;
 
     &:hover {
-        border-color: $ff-indigo-300;
-        background-color: $ff-grey-50;
+        border-color: var(--ff-color-accent-light);
+        background-color: var(--ff-color-bg-surface);
     }
 }
 
@@ -130,7 +130,7 @@ export default {
 .resource-title {
     font-size: 0.875rem;
     font-weight: 500;
-    color: $ff-grey-900;
+    color: var(--ff-color-text-strong);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -144,7 +144,7 @@ export default {
 
 .resource-url {
     font-size: 0.75rem;
-    color: $ff-grey-500;
+    color: var(--ff-color-text-subtle);
     margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;

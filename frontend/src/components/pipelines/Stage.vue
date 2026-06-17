@@ -91,7 +91,7 @@
                 </div>
                 <div v-if="stage.stageType == StageType.GITREPO" class="ff-pipeline-stage-type">
                     <a class="flex gap-2 items-center" target="_blank" :href="gitRepoLink"> <!--`${stage.gitRepo.url}/tree/${stage.gitRepo.branch || 'main'}`"> -->
-                        <IconGit class="ff-icon ff-icon-lg" style="color: #e46133" />
+                        <IconGit class="ff-icon ff-icon-lg" style="color: var(--ff-color-icon-git)" />
                         <div>
                             <label class="flex items-center gap-2">Git Repository:</label>
                             <span>{{ stage.gitRepo?.url.replace("https://github.com/","").replace("https://dev.azure.com/","") }}</span>

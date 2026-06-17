@@ -229,8 +229,9 @@ module.exports = {
         }
 
         if (paginationOptions.sort) {
+            // Prefer `dir`; fall back to legacy `order` query param if a caller still sends it.
             paginationOptions.order = {
-                [paginationOptions.sort]: paginationOptions.order
+                [paginationOptions.sort]: paginationOptions.dir || paginationOptions.order
             }
             delete paginationOptions.sort
             delete paginationOptions.dir

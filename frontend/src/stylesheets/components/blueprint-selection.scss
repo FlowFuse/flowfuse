@@ -3,26 +3,26 @@
 
 .ff-blueprint-groups {
     h4 {
-        border-bottom: 1px solid $ff-grey-200;
+        border-bottom: 1px solid var(--ff-color-border);
     }
 }
 
 .ff-blueprint-tile {
-    border: 2px solid $ff-grey-300;
+    border: 2px solid var(--ff-color-border-strong);
     border-radius: $ff-unit-sm;
     display: flex;
     flex-direction: column;
-    --tile-background: #{$ff-blue-100};
-    --tile-foreground: #{$ff-blue-300};
+    --tile-background: var(--ff-color-status-info-surface);
+    --tile-foreground: var(--ff-palette-blue-300);
 }
 
 .ff-blueprint-tile-sm {
     display: inline-flex;
     flex-direction: row;
-    border: 1px solid $ff-grey-300;
+    border: 1px solid var(--ff-color-border-strong);
     border-radius: $ff-unit-sm;
-    --tile-background: #{$ff-blue-100};
-    --tile-foreground: #{$ff-blue-300};
+    --tile-background: var(--ff-color-status-info-surface);
+    --tile-foreground: var(--ff-palette-blue-300);
 }
 
 .ff-blueprint-tile--header {
@@ -85,11 +85,11 @@
 }
 
 .ff-blueprint-group--general {
-    --tile-background: #{$ff-blue-100};
-    --tile-foreground: #{$ff-blue-300};
+    --tile-background: var(--ff-color-status-info-surface);
+    --tile-foreground: var(--ff-palette-blue-300);
 }
 
 .ff-blueprint-group--manufacturing {
-    --tile-background: #{$ff-teal-100};
-    --tile-foreground: #{$ff-teal-400};
+    --tile-background: var(--ff-color-blueprint-tile-bg);
+    --tile-foreground: var(--ff-palette-teal-400);
 }

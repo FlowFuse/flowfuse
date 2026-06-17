@@ -56,7 +56,7 @@ export default {
 .rows-header {
     margin-bottom: 15px;
     padding-bottom: 15px;
-    border-bottom: 1px solid $ff-color--border;
+    border-bottom: 1px solid var(--ff-color-border);
 
     .toggle-collapse, .refresh-table {
         border: 1px solid transparent;

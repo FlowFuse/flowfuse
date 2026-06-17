@@ -307,7 +307,7 @@ export default {
         margin-bottom: 0;
     }
     .ff-accordion--content {
-        background-color: white;
+        background-color: var(--ff-color-bg-app);
     }
 }
 </style>

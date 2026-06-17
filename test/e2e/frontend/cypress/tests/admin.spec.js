@@ -97,7 +97,7 @@ describe('FlowFuse platform admin users', () => {
 
     it("can view devices from teams they're not a member of", () => {
         cy.intercept('GET', '/api/*/projects/*').as('getProject')
-        cy.intercept('GET', '/api/*/teams/*/devices').as('getDevices')
+        cy.intercept('GET', '/api/*/teams/*/devices*').as('getDevices')
         cy.intercept('GET', '/api/*/devices/*').as('getDevice')
 
         cy.visit('/admin/overview')

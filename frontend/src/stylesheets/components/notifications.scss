@@ -2,12 +2,12 @@
 
 .ff-notification-interview {
   max-width: 450px;
-  background-color: $ff-white;
-  box-shadow: -6px 6px 6px #00000040;
+  background-color: var(--ff-color-bg-app);
+  box-shadow: -6px 6px 6px rgba(0, 0, 0, 0.25);
   border-radius: 0 6px 6px 0;
   padding: 12px 9px 12px 18px;
-  border: 1px solid $ff-blue-700;
-  border-left: 8px solid $ff-blue-700;
+  border: 1px solid var(--ff-color-link);
+  border-left: 8px solid var(--ff-color-link);
 
   h3 {
     font-size: 1.1rem;
@@ -27,11 +27,11 @@
     font-size: 1rem;
 
     .ff-btn.ff-btn--primary {
-      background-color: $ff-blue-700;
-      border-color: $ff-blue-700;
+      background-color: var(--ff-color-link-hover);
+      border-color: var(--ff-color-link-hover);
 
       &:hover {
-        background-color: $ff-blue-800;
+        background-color: var(--ff-color-link-hover);
       }
     }
   }
@@ -49,8 +49,8 @@ $ff-notifications-drawer-side-padding: 6px;
   > .header {
     width: 100%;
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid $ff-grey-200;
-    background: white;
+    border-bottom: 1px solid var(--ff-color-border);
+    background: var(--ff-color-bg-app);
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -60,7 +60,7 @@ $ff-notifications-drawer-side-padding: 6px;
     .title {
       font-size: 1rem;
       font-weight: 600;
-      color: #374151;
+      color: var(--ff-color-text-muted);
       margin: 0;
       line-height: 1.5rem;
       flex: 1;
@@ -92,7 +92,7 @@ $ff-notifications-drawer-side-padding: 6px;
 
         &:hover {
           cursor: pointer;
-          background: $ff-grey-100;
+          background: var(--ff-color-bg-surface-raised);
         }
       }
     }
@@ -100,8 +100,8 @@ $ff-notifications-drawer-side-padding: 6px;
 
   > .controls {
     width: 100%;
-    border-bottom: 1px solid $ff-grey-300;
-    background: white;
+    border-bottom: 1px solid var(--ff-color-border-strong);
+    background: var(--ff-color-bg-app);
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -112,16 +112,16 @@ $ff-notifications-drawer-side-padding: 6px;
       padding: 10px 12px;
 
       .forge-badge {
-        background-color: $ff-grey-100;
+        background-color: var(--ff-color-bg-surface-raised);
         border-radius: 5px;
 
         &:hover {
           cursor: pointer;
-          background-color: $ff-grey-300
+          background-color: var(--ff-color-border-strong)
         }
 
         &.disabled {
-          color: $ff-grey-400;
+          color: var(--ff-color-text-subtle);
 
           &:hover {
             cursor: not-allowed;
@@ -134,19 +134,19 @@ $ff-notifications-drawer-side-padding: 6px;
   .messages-wrapper {
     flex: 1;
     width: 100%;
-    background-color: $ff-grey-100;
+    background-color: var(--ff-color-bg-surface-raised);
     overflow: auto;
-    $read: $ff-grey-400;
+    $read: var(--ff-palette-grey-400);
     $info: blue;
-    $warning: $ff-yellow-600;
-    $error: $ff-red-500;
+    $warning: var(--ff-palette-yellow-600);
+    $error: var(--ff-palette-red-500);
 
     .message-wrapper {
       display: flex;
       flex-direction: row;
-      color: $ff-grey-400;
-      background-color: $ff-white;
-      border-bottom: 1px solid $ff-grey-300;
+      color: var(--ff-color-text-subtle);
+      background-color: var(--ff-color-bg-app);
+      border-bottom: 1px solid var(--ff-color-border-strong);
       border-left: 3px solid rgba(0, 0, 0, 0);
       transition: ease-in-out .3s;
       cursor: pointer;
@@ -156,7 +156,7 @@ $ff-notifications-drawer-side-padding: 6px;
 
         .ff-notification-pill {
           background-color: $read;
-          color: white;
+          color: var(--ff-color-text-on-brand);
           padding: 2px 7px;
           border-radius: 6px;
           font-size: 0.65rem;
@@ -183,13 +183,13 @@ $ff-notifications-drawer-side-padding: 6px;
       }
 
       &:hover .title {
-        color: $ff-blue-500;
+        color: var(--ff-color-link);
       }
 
       &.unread {
         border-left: 3px solid $info;
-        border-left-color: $ff-blue-500;
-        color: $ff-grey-800;
+        border-left-color: var(--ff-color-link);
+        color: var(--ff-color-text);
 
         &.warning {
           border-left: 3px solid $warning;
@@ -258,7 +258,7 @@ $ff-notifications-drawer-side-padding: 6px;
         .footer {
           display: flex;
           text-align: right;
-          color: $ff-grey-400;
+          color: var(--ff-color-text-subtle);
           font-size: 80%;
           padding: 0 $ff-notifications-drawer-side-padding;
           justify-content: flex-end;
@@ -266,7 +266,7 @@ $ff-notifications-drawer-side-padding: 6px;
       }
 
       &:hover {
-        background-color: $ff-grey-100;
+        background-color: var(--ff-color-bg-surface-raised);
       }
     }
   }
@@ -277,9 +277,9 @@ $ff-notifications-drawer-side-padding: 6px;
     align-items: center;
     justify-content: center;
     text-align: center;
-    color: $ff-grey-400;
+    color: var(--ff-color-text-subtle);
     width: 100%;
-    background-color: $ff-grey-100;
+    background-color: var(--ff-color-bg-surface-raised);
   }
 
 }

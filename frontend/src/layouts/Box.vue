@@ -4,7 +4,8 @@
             <div v-if="!!$slots['splash-content']" class="ff-layout--box--left hidden md:flex">
                 <div class="ff-layout--box--content">
                     <div class="ff-logo">
-                        <img src="/ff-logo--wordmark--light.png">
+                        <img class="ff-logo--light" src="/ff-logo--wordmark--light.png">
+                        <img class="ff-logo--dark" src="/ff-logo--wordmark--dark.png">
                     </div>
                     <slot name="splash-content" />
                 </div>
@@ -12,7 +13,8 @@
             <div class="ff-layout--box--right">
                 <div class="ff-layout--box--content">
                     <div v-if="!$slots['splash-content']" class="ff-logo">
-                        <img src="/ff-logo--wordmark--light.png">
+                        <img class="ff-logo--light" src="/ff-logo--wordmark--light.png">
+                        <img class="ff-logo--dark" src="/ff-logo--wordmark--dark.png">
                     </div>
                     <slot />
                 </div>

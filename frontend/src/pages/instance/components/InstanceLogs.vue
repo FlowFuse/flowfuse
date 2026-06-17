@@ -9,7 +9,7 @@
         <div v-if="!instance.meta || instance.meta.state === 'suspended'" class="flex text-gray-500 justify-center italic mb-4 p-8">
             Logs unavailable
         </div>
-        <div v-else :class="showOfflineBanner ? 'forge-log-offline-background' : ''" class="w-full mx-auto text-xs border bg-gray-800 text-gray-200 rounded-sm p-2 font-mono">
+        <div v-else :class="showOfflineBanner ? 'forge-log-offline-background' : ''" class="w-full mx-auto text-xs border ff-code-surface rounded-sm p-2 font-mono">
             <div v-if="prevCursor" class="flex">
                 <a class="text-center w-full hover:text-blue-400 cursor-pointer pb-1" @click="loadPrevious">Load earlier...</a>
             </div>
@@ -222,10 +222,10 @@ export default {
 .forge-log-offline-background {
   background: repeating-linear-gradient(
       -45deg,
-      #363848,
-      #363848 10px,
-      rgba(31, 41, 55, 1) 10px,
-      rgba(31, 41, 55, 1) 20px
+      var(--ff-color-border-strong),
+      var(--ff-color-border-strong) 10px,
+      var(--ff-color-code-surface) 10px,
+      var(--ff-color-code-surface) 20px
   );
 }
 </style>

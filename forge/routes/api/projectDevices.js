@@ -21,6 +21,7 @@ module.exports = async function (app) {
         schema: {
             summary: 'Get a list of devices assigned to an instance',
             tags: ['Instances'],
+            query: { $ref: 'PaginationParams' },
             params: {
                 type: 'object',
                 properties: {

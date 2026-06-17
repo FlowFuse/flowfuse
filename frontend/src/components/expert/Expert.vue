@@ -213,7 +213,7 @@ export default {
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: white;
+    background: var(--ff-color-bg-app);
     overflow: hidden; // Prevent this container from scrolling
     position: relative;
 }
@@ -235,11 +235,11 @@ export default {
     }
 
     &::-webkit-scrollbar-thumb {
-        background-color: $ff-grey-300;
+        background-color: var(--ff-color-border-strong);
         border-radius: 4px;
 
         &:hover {
-            background-color: $ff-grey-400;
+            background-color: var(--ff-color-text-subtle);
         }
     }
 }
@@ -252,13 +252,13 @@ export default {
     height: 100%;
     text-align: center;
     padding: 2rem;
-    color: $ff-grey-600;
+    color: var(--ff-color-text-deep);
 
     .empty-state-icon {
         width: 4rem;
         height: 4rem;
         margin-bottom: 1rem;
-        color: $ff-indigo-400;
+        color: var(--ff-color-accent);
 
         svg {
             width: 100%;
@@ -269,7 +269,7 @@ export default {
     h3 {
         font-size: 1.5rem;
         font-weight: 600;
-        color: $ff-grey-900;
+        color: var(--ff-color-text-strong);
         margin: 0 0 0.5rem 0;
     }
 
