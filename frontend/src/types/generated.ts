@@ -2043,7 +2043,7 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": {
                         sessionId?: string;
