@@ -141,6 +141,18 @@ export const useContextStore = defineStore('context', {
         async refreshTeamMembership () {
             const teamMembership = await teamApi.getTeamUserMembership(this.team.id)
             this.teamMembership = teamMembership
+        },
+        async onTeamChannelMembership (payload) {
+            if (payload?.reason === 'removed') {
+                const path = window.location.pathname
+                if (typeof path === 'string' && path.startsWith('/team/')) {
+                    // Hard reload, not a router push: Home.vue would bounce back
+                    // to the still-cached removed team; a reload re-bootstraps clean.
+                    try { window.location.assign('/') } catch {}
+                }
+                return
+            }
+            await this.refreshTeamMembership()
         }
     },
     persist: [
