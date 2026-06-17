@@ -15,16 +15,16 @@ const periodSeconds: Record<string, number> = {
 function dateDiff (toStringDateOrNumber: DateInput, fromStringDateOrNumber: DateInput = new Date()): Record<string, number> {
     let to: DateInput = toStringDateOrNumber
     if (typeof to === 'string' || typeof to === 'number') {
-        if (!isNaN(to as number)) {
-            to = Number.parseInt(to as string)
+        if (!isNaN(Number(to))) {
+            to = Number.parseInt(String(to))
         }
         to = new Date(to)
     }
 
     let from: DateInput = fromStringDateOrNumber
     if (typeof from === 'string' || typeof from === 'number') {
-        if (!isNaN(from as number)) {
-            from = Number.parseInt(from as string)
+        if (!isNaN(Number(from))) {
+            from = Number.parseInt(String(from))
         }
         from = new Date(from)
     }

@@ -1,6 +1,6 @@
 import elapsedTime from './elapsedTime.js'
 
-import { Maybe } from '@/types/common/types.js'
+import { Maybe } from '@/types/common/types'
 
 export default function (dateString?: Maybe<string | number | Date>, shortenExtendedPeriods = false): string {
     if (!dateString) {

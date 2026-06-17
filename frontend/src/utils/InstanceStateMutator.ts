@@ -2,13 +2,14 @@ import type { Instance } from '@/types'
 import { Maybe } from '@/types/common/types'
 
 type MutableInstance = Instance & {
+    meta?: { state?: string } & Record<string, unknown>
     optimisticStateChange?: boolean
     pendingStateChange?: boolean
 }
 
 export class InstanceStateMutator {
     instance: MutableInstance
-    prevState?: unknown
+    prevState?: string
 
     constructor (instance: MutableInstance) {
         this.instance = instance

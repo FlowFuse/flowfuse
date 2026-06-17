@@ -37,11 +37,12 @@ function isSnapshot (snapshot: SnapshotLike): boolean {
     const hasProperty = (object: SnapshotLike, key: string): boolean => {
         return Object.prototype.hasOwnProperty.call(object, key)
     }
-    const checkProperty = (object: SnapshotLike, key: string, propertyType?: string, mustExist?: boolean): boolean => {
+    const checkProperty = (object: unknown, key: string, propertyType?: string, mustExist?: boolean): boolean => {
         if (!object) {
             throw new Error('Missing object')
         }
-        if (!hasProperty(object, key)) {
+        const record = object as SnapshotLike
+        if (!hasProperty(record, key)) {
             if (mustExist) {
                 throw new Error(`Missing required property: ${key}`)
             }
@@ -52,27 +53,27 @@ function isSnapshot (snapshot: SnapshotLike): boolean {
         if (propertyType) {
             switch (propertyType) {
             case 'array':
-                if (!Array.isArray(object[key])) {
+                if (!Array.isArray(record[key])) {
                     throw new Error(`Property ${key} must be an array`)
                 }
                 break
             case 'string':
-                if (typeof object[key] !== 'string') {
+                if (typeof record[key] !== 'string') {
                     throw new Error(`Property ${key} must be a string`)
                 }
                 break
             case 'object':
-                if (typeof object[key] !== 'object') {
+                if (typeof record[key] !== 'object') {
                     throw new Error(`Property ${key} must be an object`)
                 }
                 break
             case 'number':
-                if (typeof object[key] !== 'number') {
+                if (typeof record[key] !== 'number') {
                     throw new Error(`Property ${key} must be a number`)
                 }
                 break
             case 'boolean':
-                if (typeof object[key] !== 'boolean') {
+                if (typeof record[key] !== 'boolean') {
                     throw new Error(`Property ${key} must be a boolean`)
                 }
                 break
@@ -86,20 +87,20 @@ function isSnapshot (snapshot: SnapshotLike): boolean {
     // must haves
     checkProperty(snapshot, 'name', 'string', true)
     checkProperty(snapshot, 'flows', 'object', true)
-    checkProperty(snapshot.flows as SnapshotLike, 'flows', 'array', true)
+    checkProperty(snapshot.flows, 'flows', 'array', true)
     checkProperty(snapshot, 'settings', 'object', true)
 
     // optional (but check if they exist and are the right type if they do)
-    checkProperty(snapshot.settings as SnapshotLike, 'settings', 'object', false)
-    checkProperty(snapshot.settings as SnapshotLike, 'env', 'object', false)
-    checkProperty(snapshot.settings as SnapshotLike, 'modules', 'object', false)
+    checkProperty(snapshot.settings, 'settings', 'object', false)
+    checkProperty(snapshot.settings, 'env', 'object', false)
+    checkProperty(snapshot.settings, 'modules', 'object', false)
     checkProperty(snapshot, 'id', 'string', false)
     checkProperty(snapshot, 'description', 'string', false)
     checkProperty(snapshot, 'createdAt', 'string', false)
     checkProperty(snapshot, 'updatedAt', 'string', false)
     checkProperty(snapshot, 'user', 'object', false)
     checkProperty(snapshot, 'exportedBy', 'object', false)
-    checkProperty(snapshot.flows as SnapshotLike, 'credentials', 'object', false)
+    checkProperty(snapshot.flows, 'credentials', 'object', false)
     return true
 }
 
