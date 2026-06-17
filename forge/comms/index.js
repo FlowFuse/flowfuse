@@ -3,6 +3,7 @@ const fp = require('fastify-plugin')
 const ACLManager = require('./aclManager')
 const { CommsClient } = require('./commsClient')
 const { DeviceCommsHandler } = require('./devices')
+const { EditorSessionHandler } = require('./editorSessions')
 
 /**
  * This module represents the real-time comms component of the platform.
@@ -31,6 +32,9 @@ module.exports = fp(async function (app, _opts) {
         // Create the handler for any device-related messages
         const deviceCommsHandler = DeviceCommsHandler(app, client)
 
+        // Create the handler for editor session heartbeats
+        const editorSessionHandler = EditorSessionHandler(app, client)
+
         // Not in the current release, but when we handle Launcher status
         // via MQTT, it will arrive here. Compare to the status/device handler in `devices.js`
         // client.on('status/project', (status) => {
@@ -40,6 +44,7 @@ module.exports = fp(async function (app, _opts) {
         // Setup the platform API for the comms component
         app.decorate('comms', {
             devices: deviceCommsHandler,
+            editorSessions: editorSessionHandler,
             aclManager: ACLManager(app),
             platform: {
                 settings: {
@@ -73,6 +78,7 @@ module.exports = fp(async function (app, _opts) {
         app.addHook('onClose', async (_) => {
             app.log.info('Comms shutdown')
             await deviceCommsHandler.stopLogWatcher()
+            editorSessionHandler.stop()
             client.publish('ff/v1/platform/leader', JSON.stringify({ id: client.platformId, vote: -1 }))
             await client.disconnect()
         })

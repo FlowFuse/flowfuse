@@ -8,8 +8,10 @@
  */
 const { default: axios } = require('axios')
 const { v4: uuidv4 } = require('uuid')
+const { zodToJsonSchema } = require('zod-to-json-schema')
 
 const { filterAccessibleMCPServerFeatures } = require('../../../services/expert.js')
+const PlatformAutomations = require('../../lib/mcp/platformAutomations')
 
 /**
  * @param {import('../../forge.js').ForgeApplication} app
@@ -69,11 +71,13 @@ module.exports = async function (app) {
             }
             const isExpertAssistantEnabled = !!(app.config.features.enabled('expertAssistant') && request.team.getFeatureProperty('expertAssistant', true))
             const isExpertInsightsEnabled = !!(app.config.features.enabled('expertInsights') && request.team.getFeatureProperty('expertInsights', true))
-            if (!isExpertAssistantEnabled && !isExpertInsightsEnabled) {
+            const isExpertPlatformAutomationEnabled = !!(app.config.features.enabled('expertPlatformAutomation') && request.team.getFeatureProperty('expertPlatformAutomation', true))
+            if (!isExpertAssistantEnabled && !isExpertInsightsEnabled && !isExpertPlatformAutomationEnabled) {
                 return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
             request.isExpertAssistantEnabled = isExpertAssistantEnabled
             request.isExpertInsightsEnabled = isExpertInsightsEnabled
+            request.isExpertPlatformAutomationEnabled = isExpertPlatformAutomationEnabled
         }
     })
 
@@ -227,6 +231,16 @@ module.exports = async function (app) {
             context.selectedCapabilities = filteredAccessibleServers?.length > 0 ? filteredAccessibleServers : undefined
         }
 
+        // Inject platform automation tool definitions into the context so the
+        // expert agent can create DynamicStructuredTools that dispatch back via
+        // MQTT inflight → frontend → POST /api/v1/expert/platform-tool.
+        if (request.isExpertPlatformAutomationEnabled) {
+            const platformToolDefs = buildPlatformToolDefinitions(app, request.team, request.teamMembership)
+            if (platformToolDefs.length > 0) {
+                context.platformTools = platformToolDefs
+            }
+        }
+
         let query = request.body.query
         if (request.body.history) {
             query = ''
@@ -255,6 +269,60 @@ module.exports = async function (app) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
         }
     })
+    /**
+     * Execute a platform automation tool on behalf of the authenticated user.
+     * Tool names map to PlatformAutomations.supportedActions keys (e.g. 'list-teams').
+     */
+    app.post('/platform-tool', {
+        schema: {
+            hide: true,
+            body: {
+                type: 'object',
+                required: ['tool', 'arguments', 'context'],
+                properties: {
+                    tool: { type: 'string' },
+                    arguments: { type: 'object', additionalProperties: true },
+                    context: {
+                        type: 'object',
+                        properties: {
+                            teamId: { type: 'string', minLength: 1 }
+                        },
+                        required: ['teamId'],
+                        additionalProperties: true
+                    }
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const user = request.user // set by preHandler
+        if (!user) {
+            return reply.code(401).send({ error: 'Unauthorized' })
+        }
+
+        const { tool, arguments: args } = request.body
+
+        const platformAutomations = new PlatformAutomations()
+        platformAutomations.init(app)
+
+        if (!platformAutomations.hasAction(tool)) {
+            return reply.code(400).send({ error: `Unknown platform tool: ${tool}` })
+        }
+
+        try {
+            const result = await platformAutomations.invokeAction(tool, {
+                user,
+                params: args,
+                app,
+                headers: request.headers,
+                cookies: request.cookies
+            })
+            reply.send({ result })
+        } catch (err) {
+            app.log.error(`Expert platform tool ${tool} error: ${err.message}`)
+            reply.code(400).send({ error: err.message })
+        }
+    })
+
     /**
      * an endpoint to retrieve MCP features (prompts/resources/tools) for the users team
      */
@@ -289,6 +357,10 @@ module.exports = async function (app) {
                     type: 'object',
                     properties: {
                         transactionId: { type: 'string' },
+                        platformTools: {
+                            type: 'array',
+                            items: { type: 'object', additionalProperties: true }
+                        },
                         servers: {
                             type: 'array',
                             items: {
@@ -327,159 +399,293 @@ module.exports = async function (app) {
      * @param {import('fastify').FastifyReply} reply
      */
     async (request, reply) => {
-        if (!request.isExpertInsightsEnabled) {
+        // Platform tools are gated on expertPlatformAutomation; NR MCP servers on expertInsights.
+        // At least one must be enabled to access this endpoint.
+        if (!request.isExpertInsightsEnabled && !request.isExpertPlatformAutomationEnabled) {
             return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
 
         try {
-            // Premise:
-            // In order to get the MCP features (prompts/resources/tools) available to the user for their
-            // team / application RBACs, in order of computational cost, we need do the following:
-            // 1. Get the MCP servers registered for this team
-            // 2. For each MCP server
-            //    1. Ensure the instance is supposed to be running (i.e. state is 'running')
-            //    2. Get the application and check RBAC permits access
-            //    3. Ensure the instance is actually running (live state check)
-            //    5. For each running instance with MCP server, get/create access token as needed
-            //       based on the instance's node security settings
-            //    6. Call to backend expert service to get the MCP features for the accessible MCP servers
-            //    7. Filter the MCP features based on user RBACs (e.g. destructive tool access)
-            // 3. Return the filtered MCP features to the client
-
-            /** @type {MCPServerItem[]} */
-            const runningInstancesWithMCPServer = []
             const transactionId = request.headers['x-chat-transaction-id']
-            const mcpCapabilitiesUrl = `${app.expert.expertUrl.split('/').slice(0, -1).join('/')}/mcp/features`
+            let filteredServers = []
 
-            // Get the MCP servers registered for this team
-            const mcpServers = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
+            // NR instance MCP servers — only when insights is enabled
+            if (request.isExpertInsightsEnabled) {
+                // Premise:
+                // In order to get the MCP features (prompts/resources/tools) available to the user for their
+                // team / application RBACs, in order of computational cost, we need do the following:
+                // 1. Get the MCP servers registered for this team
+                // 2. For each MCP server
+                //    1. Ensure the instance is supposed to be running (i.e. state is 'running')
+                //    2. Get the application and check RBAC permits access
+                //    3. Ensure the instance is actually running (live state check)
+                //    5. For each running instance with MCP server, get/create access token as needed
+                //       based on the instance's node security settings
+                //    6. Call to backend expert service to get the MCP features for the accessible MCP servers
+                //    7. Filter the MCP features based on user RBACs (e.g. destructive tool access)
+                // 3. Return the filtered MCP features to the client
 
-            // Scan each MCP server and ensure the user has access to the associated application and that the instance is running
-            // then collect the MCP server info for the running instances MCP servers
-            // filter out any that the user doesn't have access to
-            const applicationCache = {}
-            for (const server of mcpServers) {
-                const { name, protocol, endpointRoute, TeamId, Project, Device, title, version, description } = server
-                if (TeamId !== request.team.id) {
-                    // shouldn't happen due to byTeam filter, but just in case
-                    continue
-                }
-                let instance, instanceId, instanceType
-                if (Device) {
-                    // instanceType = 'device'
-                    // instance = Device
-                    // instanceId = Device.hashid
-                    continue // Devices are not yet supported for MCP servers
-                } else if (Project) {
-                    instanceType = 'instance'
-                    instance = Project
-                    instanceId = Project.id
-                } else {
-                    continue
-                }
+                /** @type {MCPServerItem[]} */
+                const runningInstancesWithMCPServer = []
+                const mcpCapabilitiesUrl = `${app.expert.expertUrl.split('/').slice(0, -1).join('/')}/mcp/features`
 
-                // if instance is not expected to be running, skip it (avoids unnecessary timeouts)
-                if (instance?.state !== 'running') {
-                    continue
-                }
+                // Get the MCP servers registered for this team
+                const mcpServers = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
 
-                // Ensure instance has an associated application
-                if (!instance?.ApplicationId) {
-                    continue // e.g. skip devices without an application as they can't be validated for access
-                }
-
-                // Get the application from local cache or db (an application can appear multiple times if multiple instances are registered)
-                const applicationHashid = app.db.models.Application.encodeHashid(instance.ApplicationId)
-                if (!Object.hasOwnProperty.call(applicationCache, applicationHashid)) {
-                    applicationCache[applicationHashid] = await app.db.models.Application.byId(applicationHashid)
-                }
-                const application = applicationCache[applicationHashid]
-                if (!application) {
-                    continue // skip - application not found
-                }
-
-                // Now we have the application & know the instance is supposed to be running, check user actually
-                // has access before bothering to check instance live state or calling backend for MCP features!
-                if (!app.hasPermission(request.teamMembership, 'expert:insights:mcp:allow', { application })) {
-                    continue // user doesn't have access to this instance
-                }
-
-                // Now we have confirmed access is allowed, check instance is actually running before offering
-                // MCP features (querying a non-running instance would cause timeouts)
-                if (instance.liveState) {
-                    const liveState = await instance.liveState({ omitStorageFlows: true })
-                    if (liveState?.meta?.state !== 'running') {
+                // Scan each MCP server and ensure the user has access to the associated application and that the instance is running
+                // then collect the MCP server info for the running instances MCP servers
+                // filter out any that the user doesn't have access to
+                const applicationCache = {}
+                for (const server of mcpServers) {
+                    const { name, protocol, endpointRoute, TeamId, Project, Device, title, version, description } = server
+                    if (TeamId !== request.team.id) {
+                        // shouldn't happen due to byTeam filter, but just in case
                         continue
                     }
-                }
+                    let instance, instanceId, instanceType
+                    if (Device) {
+                        // instanceType = 'device'
+                        // instance = Device
+                        // instanceId = Device.hashid
+                        continue // Devices are not yet supported for MCP servers
+                    } else if (Project) {
+                        instanceType = 'instance'
+                        instance = Project
+                        instanceId = Project.id
+                    } else {
+                        continue
+                    }
 
-                // Check instance settings for node security. If FlowFuse auth is enabled, generate a short-lived (5 mins)
-                // auth token for the instance with a scope limited to MCP access and cache it in memory for subsequent requests
-                const mcpAccessToken = await app.expert.mcp.getOrCreateToken(instance, instanceType, instanceId, request.teamHttpSecurityFeature)
+                    // if instance is not expected to be running, skip it (avoids unnecessary timeouts)
+                    if (instance?.state !== 'running') {
+                        continue
+                    }
 
-                runningInstancesWithMCPServer.push({
-                    team: request.team.hashid,
-                    application: application.hashid,
-                    instance: instanceId,
-                    instanceType,
-                    instanceName: instance.name,
-                    instanceUrl: instance.url,
-                    mcpServerName: name,
-                    mcpEndpoint: endpointRoute,
-                    mcpProtocol: protocol,
-                    mcpAccessToken,
-                    title,
-                    version,
-                    description
-                })
-            }
+                    // Ensure instance has an associated application
+                    if (!instance?.ApplicationId) {
+                        continue // e.g. skip devices without an application as they can't be validated for access
+                    }
 
-            // if no running instances with MCP server, return early
-            if (runningInstancesWithMCPServer.length === 0) {
-                return reply.send({ servers: [], transactionId })
-            }
+                    // Get the application from local cache or db (an application can appear multiple times if multiple instances are registered)
+                    const applicationHashid = app.db.models.Application.encodeHashid(instance.ApplicationId)
+                    if (!Object.hasOwnProperty.call(applicationCache, applicationHashid)) {
+                        applicationCache[applicationHashid] = await app.db.models.Application.byId(applicationHashid)
+                    }
+                    const application = applicationCache[applicationHashid]
+                    if (!application) {
+                        continue // skip - application not found
+                    }
 
-            // Call to backend to request MCP capabilities from expert service
-            // For reference - this POST:
-            // * calls the backend expert service endpoint /mcp/features
-            // * it connects to each MCP server registered
-            // * retrieves the prompts/resources/tools
-            // * adds them to the response along with the MCP server info
-            const response = await axios.post(mcpCapabilitiesUrl, {
-                teamId: request.team.hashid,
-                servers: runningInstancesWithMCPServer
-            }, {
-                headers: {
-                    Origin: request.headers.origin,
-                    'X-Chat-Transaction-ID': transactionId,
-                    ...(app.expert.serviceToken ? { Authorization: `Bearer ${app.expert.serviceToken}` } : {})
-                },
-                timeout: app.expert.requestTimeout
-            })
+                    // Now we have the application & know the instance is supposed to be running, check user actually
+                    // has access before bothering to check instance live state or calling backend for MCP features!
+                    if (!app.hasPermission(request.teamMembership, 'expert:insights:mcp:allow', { application })) {
+                        continue // user doesn't have access to this instance
+                    }
 
-            if (response.data.transactionId !== transactionId) {
-                throw new Error('Transaction ID mismatch')
-            }
-            const mcpServersResponse = response.data.servers || []
-            const serverList = []
-            // load the associate application models so that we can filter features based on user access
-            for (const serverItem of mcpServersResponse) {
-                const application = applicationCache[serverItem.application]
-                if (application) {
-                    serverList.push({
-                        server: serverItem,
-                        application
+                    // Now we have confirmed access is allowed, check instance is actually running before offering
+                    // MCP features (querying a non-running instance would cause timeouts)
+                    if (instance.liveState) {
+                        const liveState = await instance.liveState({ omitStorageFlows: true })
+                        if (liveState?.meta?.state !== 'running') {
+                            continue
+                        }
+                    }
+
+                    // Check instance settings for node security. If FlowFuse auth is enabled, generate a short-lived (5 mins)
+                    // auth token for the instance with a scope limited to MCP access and cache it in memory for subsequent requests
+                    const mcpAccessToken = await app.expert.mcp.getOrCreateToken(instance, instanceType, instanceId, request.teamHttpSecurityFeature)
+
+                    runningInstancesWithMCPServer.push({
+                        team: request.team.hashid,
+                        application: application.hashid,
+                        instance: instanceId,
+                        instanceType,
+                        instanceName: instance.name,
+                        instanceUrl: instance.url,
+                        mcpServerName: name,
+                        mcpEndpoint: endpointRoute,
+                        mcpProtocol: protocol,
+                        mcpAccessToken,
+                        title,
+                        version,
+                        description
                     })
                 }
-            }
-            // now check tools/resources/prompts access per server based on team membership
-            response.data.servers = filterAccessibleMCPServerFeatures(app, serverList, request.team, request.teamMembership)
 
-            reply.send(response.data)
+                // Call to backend to request MCP capabilities from expert service (NR instances only)
+                if (runningInstancesWithMCPServer.length > 0) {
+                    try {
+                        const response = await axios.post(mcpCapabilitiesUrl, {
+                            teamId: request.team.hashid,
+                            servers: runningInstancesWithMCPServer
+                        }, {
+                            headers: {
+                                Origin: request.headers.origin,
+                                'X-Chat-Transaction-ID': transactionId,
+                                ...(app.expert.serviceToken ? { Authorization: `Bearer ${app.expert.serviceToken}` } : {})
+                            },
+                            timeout: app.expert.requestTimeout
+                        })
+
+                        if (response.data.transactionId !== transactionId) {
+                            throw new Error('Transaction ID mismatch')
+                        }
+                        const mcpServersResponse = response.data.servers || []
+                        const serverList = []
+                        // load the associate application models so that we can filter features based on user access
+                        for (const serverItem of mcpServersResponse) {
+                            const application = applicationCache[serverItem.application]
+                            if (application) {
+                                serverList.push({
+                                    server: serverItem,
+                                    application
+                                })
+                            }
+                        }
+                        // check tools/resources/prompts access per server based on team membership
+                        filteredServers = filterAccessibleMCPServerFeatures(app, serverList, request.team, request.teamMembership)
+                    } catch (mcpError) {
+                        app.log.warn(`Failed to fetch NR instance MCP features: ${mcpError.message}`)
+                    }
+                }
+            }
+
+            // Platform tools — gated on expertPlatformAutomation, independent of insights
+            let platformToolDefs = []
+            if (request.isExpertPlatformAutomationEnabled) {
+                const platformServer = buildPlatformMCPServer(app, request.team, request.teamMembership)
+                platformToolDefs = buildPlatformToolDefinitions(app, request.team, request.teamMembership)
+
+                if (platformServer) {
+                    filteredServers.push(platformServer)
+                }
+            }
+
+            reply.send({ servers: filteredServers, platformTools: platformToolDefs, transactionId })
         } catch (error) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
         }
     })
+}
+
+/**
+ * Build an array of platform tool definitions for injection into the expert
+ * chat context. Each entry contains enough information for the expert to
+ * create a DynamicStructuredTool that dispatches the call via MQTT inflight.
+ *
+ * Uses the same RBAC filtering as buildPlatformMCPServer so the expert only
+ * sees tools the user is allowed to execute.
+ *
+ * @param {import('../../forge.js').ForgeApplication} app
+ * @param {import('sequelize').Model} team
+ * @param {import('sequelize').Model} teamMembership
+ * @returns {Array<{name: string, description: string, inputSchema: object, annotations: object}>}
+ */
+function buildPlatformToolDefinitions (app, team, teamMembership) {
+    const defaultToolPermission = app.hasPermission(teamMembership, 'expert:insights:mcp:tool:allow')
+    if (!defaultToolPermission) {
+        return []
+    }
+
+    const allowToolWrite = app.hasPermission(teamMembership, 'expert:insights:mcp:tool:write')
+    const allowToolDestructive = app.hasPermission(teamMembership, 'expert:insights:mcp:tool:destructive')
+    const allowToolNonIdempotent = app.hasPermission(teamMembership, 'expert:insights:mcp:tool:non-idempotent')
+
+    const platformAutomations = new PlatformAutomations()
+    platformAutomations.init(app)
+
+    return Object.entries(platformAutomations.supportedActions)
+        .filter(([, def]) => {
+            const annotations = def.annotations || {}
+            const isReadonly = annotations.readOnlyHint === true
+            const isDestructive = annotations.destructiveHint !== false
+            const isIdempotent = annotations.idempotentHint === true
+            if (isReadonly && isDestructive) return false
+            const writeAccessRequired = isDestructive === true || isReadonly === false
+            if (writeAccessRequired) {
+                if (isDestructive === true && !allowToolDestructive) return false
+                if (isReadonly === false && !allowToolWrite) return false
+                if (isIdempotent === false && !allowToolNonIdempotent) return false
+            }
+            return true
+        })
+        .map(([name, def]) => ({
+            name,
+            description: def.description,
+            inputSchema: zodToJsonSchema(def.inputSchema, { target: 'openApi3' }),
+            annotations: def.annotations
+        }))
+}
+
+/**
+ * Build a virtual MCP server entry for FlowFuse platform automation tools.
+ * Applies the same RBAC tool-filtering logic as NR instance MCP servers, but
+ * without an application context (platform tools are team-scoped).
+ *
+ * @param {import('../../forge.js').ForgeApplication} app
+ * @param {import('sequelize').Model} team
+ * @param {import('sequelize').Model} teamMembership
+ * @returns {object|null}  A server-shaped object to append to the features response, or null if the user has no tool access.
+ */
+function buildPlatformMCPServer (app, team, teamMembership) {
+    // Gate: user must have general MCP tool access at the team level
+    const defaultToolPermission = app.hasPermission(teamMembership, 'expert:insights:mcp:tool:allow')
+    if (!defaultToolPermission) {
+        return null
+    }
+
+    const allowToolWrite = app.hasPermission(teamMembership, 'expert:insights:mcp:tool:write')
+    const allowToolDestructive = app.hasPermission(teamMembership, 'expert:insights:mcp:tool:destructive')
+    const allowToolNonIdempotent = app.hasPermission(teamMembership, 'expert:insights:mcp:tool:non-idempotent')
+
+    const platformAutomations = new PlatformAutomations()
+    platformAutomations.init(app)
+
+    const allTools = Object.entries(platformAutomations.supportedActions).map(([name, def]) => ({
+        name,
+        description: def.description,
+        annotations: def.annotations
+    }))
+
+    // Filter tools by RBAC (mirrors filterAccessibleMCPServerFeatures tool logic)
+    const tools = allTools.filter(tool => {
+        const annotations = tool.annotations || {}
+        const isReadonly = annotations.readOnlyHint === true
+        const isDestructive = annotations.destructiveHint !== false
+        const isIdempotent = annotations.idempotentHint === true
+
+        if (isReadonly && isDestructive) return false // invalid combination
+
+        const writeAccessRequired = isDestructive === true || isReadonly === false
+        if (writeAccessRequired) {
+            if (isDestructive === true && !allowToolDestructive) return false
+            if (isReadonly === false && !allowToolWrite) return false
+            if (isIdempotent === false && !allowToolNonIdempotent) return false
+        }
+
+        return true
+    })
+
+    if (tools.length === 0) {
+        return null
+    }
+
+    return {
+        team: team.hashid,
+        instance: 'platform',
+        instanceType: 'instance',
+        instanceName: 'FlowFuse Platform',
+        mcpServerName: 'platform',
+        mcpEndpoint: '/api/v1/mcp',
+        mcpProtocol: 'http',
+        title: 'FlowFuse Platform',
+        version: '1.0.0',
+        description: 'FlowFuse platform automation tools',
+        prompts: [],
+        resources: [],
+        resourceTemplates: [],
+        tools
+    }
 }
 
 /**

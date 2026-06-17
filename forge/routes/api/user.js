@@ -387,6 +387,175 @@ module.exports = async function (app) {
     })
 
     /**
+     * Get MCP Tokens
+     * /api/v1/user/mcp-tokens
+     */
+    app.get('/mcp-tokens', {
+        schema: {
+            summary: 'List users MCP Tokens',
+            tags: ['Tokens'],
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        count: { type: 'number' },
+                        tokens: { $ref: 'MCPTokenSummaryList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            const tokens = await app.db.models.AccessToken.getMCPTokens(request.session.User)
+            reply.send({
+                tokens: app.db.views.AccessToken.mcpTokenSummaryList(tokens),
+                count: tokens.length
+            })
+        } catch (err) {
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            reply.code(400).send(resp)
+        }
+    })
+
+    /**
+     * Create MCP Token
+     * /api/v1/user/mcp-tokens
+     */
+    app.post('/mcp-tokens', {
+        config: {
+            rateLimit: app.config.rate_limits ? { max: 5, timeWindow: 30000 } : false
+        },
+        schema: {
+            summary: 'Create user MCP Token',
+            tags: ['Tokens'],
+            body: {
+                type: 'object',
+                properties: {
+                    expiresAt: { type: 'number' },
+                    name: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'MCPToken'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const updates = new app.auditLog.formatters.UpdatesCollection()
+        try {
+            const body = request.body
+            const token = await app.db.controllers.AccessToken.createMCPToken(request.session.User, ['mcp:platform'], body.expiresAt, body.name)
+            updates.push('id', token.id)
+            updates.push('name', token.name)
+            if (token.expiresAt) {
+                updates.push('expiresAt', token.expiresAt)
+            }
+            await app.auditLog.User.user.pat.created(request.session.User, null, updates)
+            reply.send(token)
+        } catch (err) {
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            reply.code(400).send(resp)
+        }
+    })
+
+    /**
+     * Delete MCP Token
+     * /api/v1/user/mcp-tokens/:id
+     */
+    app.delete('/mcp-tokens/:id', {
+        schema: {
+            summary: 'Delete user MCP Token',
+            tags: ['Tokens'],
+            params: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string' }
+                }
+            },
+            response: {
+                204: {
+                    type: 'null',
+                    description: 'empty response'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            const token = await app.db.models.AccessToken.byId(request.params.id, 'user', request.session.User.id)
+            if (token) {
+                const updates = new app.auditLog.formatters.UpdatesCollection()
+                updates.push('id', request.params.id)
+                await app.auditLog.User.user.pat.deleted(request.session.User, null, updates)
+                await token.destroy()
+                reply.code(204).send()
+                return
+            }
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        } catch (err) {
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            reply.code(400).send(resp)
+        }
+    })
+
+    /**
+     * Update MCP Token
+     * /api/v1/user/mcp-tokens/:id
+     */
+    app.put('/mcp-tokens/:id', {
+        schema: {
+            summary: 'Update users MCP Token',
+            tags: ['Tokens'],
+            params: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    expiresAt: { type: 'number' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'MCPTokenSummary'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const updates = new app.auditLog.formatters.UpdatesCollection()
+        try {
+            const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'user', request.session.User.id)
+            if (oldToken) {
+                const body = request.body
+                const newToken = await app.db.controllers.AccessToken.updateMCPToken(request.session.User, request.params.id, ['mcp:platform'], body.expiresAt)
+                updates.pushDifferences(oldToken, newToken)
+                await app.auditLog.User.user.pat.updated(request.session.User, null, updates)
+                reply.send(app.db.views.AccessToken.mcpTokenSummary(newToken))
+                return
+            }
+            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        } catch (err) {
+            const resp = { code: 'unexpected_error', error: err.toString() }
+            reply.code(400).send(resp)
+        }
+    })
+
+    /**
      * Initialize expert chat
      */
     app.post('/expert-creds', {

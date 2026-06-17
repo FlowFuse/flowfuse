@@ -33,7 +33,6 @@ import UpdateBanner from './components/UpdateBanner.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
-import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -106,9 +105,7 @@ export default {
         agentMode: {
             immediate: true,
             async handler () {
-                if (this.isInsightsAgent) {
-                    await this.getCapabilities()
-                }
+                await this.fetchCapabilities()
                 this.addWelcomeMessageIfNeeded()
             }
         },
@@ -149,9 +146,9 @@ export default {
             'setAbortController',
             'resetSessionTimer',
             'addWelcomeMessageIfNeeded',
+            'fetchCapabilities',
             'stopInflightChat'
         ]),
-        ...mapActions(useProductExpertInsightsAgentStore, ['getCapabilities']),
         ...mapActions(useProductAssistantStore, ['reset']),
         handleStopGeneration () {
             if (this.abortController) {

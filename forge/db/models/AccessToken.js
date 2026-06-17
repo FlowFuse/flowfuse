@@ -116,6 +116,18 @@ module.exports = {
                     })
                     return tokens
                 },
+                getMCPTokens: async (user) => {
+                    const tokens = this.findAll({
+                        where: {
+                            ownerType: 'user',
+                            ownerId: '' + user.id,
+                            scope: { [Op.like]: '%mcp:platform%' }
+                        },
+                        order: [['id', 'ASC']],
+                        attributes: ['id', 'name', 'scope', 'expiresAt']
+                    })
+                    return tokens
+                },
                 getProjectHTTPTokens: async (project) => {
                     const tokens = this.findAll({
                         where: {

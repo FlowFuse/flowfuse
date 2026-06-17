@@ -68,6 +68,7 @@ import DashboardLink from '../components/DashboardLink.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
@@ -176,17 +177,25 @@ export default {
     watch: {
         instance (instance) {
             this.setInstance(instance)
+            if (instance?.id) {
+                this.startEditorHeartbeat(instance.id)
+            }
         }
     },
     mounted () {
         this.setIsImmersive(true)
+        if (this.instance?.id) {
+            this.startEditorHeartbeat(this.instance.id)
+        }
     },
     unmounted () {
+        this.stopEditorHeartbeat()
         this.clearInstance()
         this.setIsImmersive(false)
     },
     methods: {
         ...mapActions(useContextStore, ['setIsImmersive', 'setInstance', 'clearInstance']),
+        ...mapActions(useProductExpertStore, ['startEditorHeartbeat', 'stopEditorHeartbeat']),
         ...mapActions(useUxDrawersStore, ['toggleEditorImmersiveDrawer']),
         notifyDrawerState () {
             this.$refs.editorDrawer?.notifyDrawerState()

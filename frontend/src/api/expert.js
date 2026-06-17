@@ -48,7 +48,12 @@ const getCapabilities = async (payload) => {
     })
 }
 
+const callPlatformTool = async (tool, args, context = {}) => {
+    return client.post('/api/v1/expert/platform-tool', { tool, arguments: args, context })
+}
+
 export default {
     chat,
-    getCapabilities
+    getCapabilities,
+    callPlatformTool
 }

@@ -2,10 +2,12 @@ import { Cog8ToothIcon } from '@heroicons/vue/24/outline'
 
 import AccessRequest from './AccessRequest.vue'
 import AccessRequestEditor from './AccessRequestEditor.vue'
+import AccessRequestMCP from './AccessRequestMCP.vue'
 import AccountCreate from './Create.vue'
 import ForgotPassword from './ForgotPassword.vue'
 import PasswordReset from './PasswordReset.vue'
 import AccountSecurityChangePassword from './Security/ChangePassword.vue'
+import MCPAccessTokens from './Security/MCPTokens.vue'
 import AccountSecurityMFA from './Security/MultiFactorAuth.vue'
 import PersonalAccessTokens from './Security/Tokens.vue'
 import AccountSecurity from './Security.vue'
@@ -26,6 +28,13 @@ export default [
         // straight back to the editor without any additional actions.
         path: '/account/request/:id/editor',
         component: AccessRequestEditor,
+        meta: {
+            layout: 'modal'
+        }
+    },
+    {
+        path: '/account/request/:id/mcp',
+        component: AccessRequestMCP,
         meta: {
             layout: 'modal'
         }
@@ -82,7 +91,8 @@ export default [
                 children: [
                     { path: 'password', component: AccountSecurityChangePassword },
                     { path: 'mfa', component: AccountSecurityMFA },
-                    { path: 'tokens', component: PersonalAccessTokens }
+                    { path: 'tokens', component: PersonalAccessTokens },
+                    { path: 'mcp-tokens', component: MCPAccessTokens }
                 // { path: 'sessions', component: AccountSecuritySessions }
                 ]
             }

@@ -110,6 +110,7 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
     { output: 'isAiFeatureEnabled', platformKey: 'ai', teamKey: 'ai' },
     { output: 'isExpertAssistantFeatureEnabled', platformKey: 'expertAssistant', teamKey: 'expertAssistant', optOut: true, dependsOnPlatform: 'ai', dependsOnTeam: 'ai', dependsOnTeamOptOut: true },
     { output: 'isExpertInsightsFeatureEnabled', platformKey: 'expertInsights', teamKey: 'expertInsights', optOut: true, dependsOnPlatform: 'ai', dependsOnTeam: 'ai', dependsOnTeamOptOut: true },
+    { output: 'isExpertPlatformAutomationFeatureEnabled', platformKey: 'expertPlatformAutomation', teamKey: 'expertPlatformAutomation', optOut: true, dependsOnPlatform: 'ai', dependsOnTeam: 'ai', dependsOnTeamOptOut: true },
     {
         output: 'isGeneratedSnapshotDescriptionFeatureEnabled',
         platformKey: 'generatedSnapshotDescription',

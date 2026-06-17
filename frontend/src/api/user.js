@@ -230,6 +230,43 @@ const updatePersonalAccessToken = async (id, scope, expiresAt) => {
     return client.put('/api/v1/user/tokens/' + id, { scope, expiresAt })
 }
 
+/**
+ * Get a User's MCP Access Tokens
+ * See [routes/api/user.js](../../../forge/routes/api/user.js)
+ */
+const getMCPTokens = async () => {
+    return client.get('/api/v1/user/mcp-tokens').then(res => res.data)
+}
+
+/**
+ * Create new User MCP Access Token
+ * See [routes/api/user.js](../../../forge/routes/api/user.js)
+ * @param {string} name
+ * @param {number} expiresAt
+ */
+const createMCPToken = async (name, expiresAt) => {
+    return client.post('/api/v1/user/mcp-tokens', { name, expiresAt }).then(res => res.data)
+}
+
+/**
+ * Update User MCP Access Token
+ * See [routes/api/user.js](../../../forge/routes/api/user.js)
+ * @param {string} id
+ * @param {number} expiresAt
+ */
+const updateMCPToken = async (id, expiresAt) => {
+    return client.put('/api/v1/user/mcp-tokens/' + id, { expiresAt }).then(res => res.data)
+}
+
+/**
+ * Delete User MCP Access Token
+ * See [routes/api/user.js](../../../forge/routes/api/user.js)
+ * @param {string} id
+ */
+const deleteMCPToken = async (id) => {
+    return client.delete('/api/v1/user/mcp-tokens/' + id).then(res => {})
+}
+
 const enableMFA = async () => {
     return client.put('/api/v1/user/mfa', {}).then(res => res.data)
 }
@@ -268,6 +305,10 @@ export default {
     createPersonalAccessToken,
     deletePersonalAccessToken,
     updatePersonalAccessToken,
+    getMCPTokens,
+    createMCPToken,
+    updateMCPToken,
+    deleteMCPToken,
     enableMFA,
     verifyMFA,
     disableMFA,

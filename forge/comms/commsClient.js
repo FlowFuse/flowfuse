@@ -51,10 +51,33 @@ class CommsClient extends EventEmitter {
                 const ownerId = topicParts[4]
                 const messageType = topicParts[5]
                 if (ownerType === 'p') {
-                    this.emit('status/project', {
-                        id: ownerId,
-                        status: message.toString()
-                    })
+                    if (messageType === 'editor' && topicParts[6] === 'heartbeat') {
+                        try {
+                            const payload = JSON.parse(message.toString())
+                            const teamId = topicParts[2]
+                            if (payload.action === 'alive') {
+                                this.emit('editor/heartbeat', {
+                                    projectId: ownerId,
+                                    teamId,
+                                    sessionId: payload.sessionId,
+                                    userId: payload.userId,
+                                    timestamp: Date.now()
+                                })
+                            } else if (payload.action === 'leaving') {
+                                this.emit('editor/leaving', {
+                                    projectId: ownerId,
+                                    teamId
+                                })
+                            }
+                        } catch (_) {
+                            // ignore malformed payloads
+                        }
+                    } else {
+                        this.emit('status/project', {
+                            id: ownerId,
+                            status: message.toString()
+                        })
+                    }
                 } else if (ownerType === 'd') {
                     if (messageType === 'status') {
                         this.emit('status/device', {
@@ -123,6 +146,8 @@ class CommsClient extends EventEmitter {
                 'ff/v1/+/d/+/logs/heartbeat',
                 // Device response heartbeat
                 'ff/v1/+/d/+/resources/heartbeat',
+                // Editor session heartbeat
+                'ff/v1/+/p/+/editor/heartbeat',
                 // Platform sync messages
                 'ff/v1/platform/sync'
             ])

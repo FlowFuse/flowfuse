@@ -75,6 +75,7 @@
         "@headlessui/vue": "1.7.19",
         "@heroicons/vue": "2.1.5",
         "@levminer/speakeasy": "^1.4.2",
+        "@modelcontextprotocol/sdk": "~1.27.1",
         "@node-red/util": "^4.0.2",
         "@node-saml/passport-saml": "^5.0.0",
         "@redis/client": "^6.0.0",
@@ -125,6 +126,8 @@
         "vue-shepherd": "^3.0.0",
         "vue3-google-login": "^2.0.33",
         "yaml": "^2.3.1",
+        "zod": "^3.25.51",
+        "zod-to-json-schema": "^3.25.2",
         "zxcvbn": "^4.4.2"
     },
     "devDependencies": {

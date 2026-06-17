@@ -976,6 +976,172 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/user/mcp-tokens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List users MCP Tokens */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            count?: number;
+                            tokens?: components["schemas"]["MCPTokenSummaryList"];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create user MCP Token */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        expiresAt?: number;
+                        name?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MCPToken"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/mcp-tokens/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update users MCP Token */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        expiresAt?: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MCPTokenSummary"];
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Delete user MCP Token */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description empty response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/user/expert-creds": {
         parameters: {
             query?: never;
@@ -10185,6 +10351,18 @@ export interface components {
         } & components["schemas"]["PersonalAccessTokenSummary"];
         /** PersonalAccessTokenSummaryList */
         PersonalAccessTokenSummaryList: components["schemas"]["PersonalAccessTokenSummary"][];
+        /** MCPTokenSummary */
+        MCPTokenSummary: {
+            id: string;
+            name: string;
+            expiresAt: string | null;
+        };
+        /** MCPToken */
+        MCPToken: {
+            token: string;
+        } & components["schemas"]["MCPTokenSummary"];
+        /** MCPTokenSummaryList */
+        MCPTokenSummaryList: components["schemas"]["MCPTokenSummary"][];
         /** InstanceHTTPTokenSummary */
         InstanceHTTPTokenSummary: {
             id: string;
@@ -11008,6 +11186,9 @@ export type ProvisioningToken = components['schemas']['ProvisioningToken'];
 export type PersonalAccessTokenSummary = components['schemas']['PersonalAccessTokenSummary'];
 export type PersonalAccessToken = components['schemas']['PersonalAccessToken'];
 export type PersonalAccessTokenSummaryList = components['schemas']['PersonalAccessTokenSummaryList'];
+export type McpTokenSummary = components['schemas']['MCPTokenSummary'];
+export type McpToken = components['schemas']['MCPToken'];
+export type McpTokenSummaryList = components['schemas']['MCPTokenSummaryList'];
 export type InstanceHttpTokenSummary = components['schemas']['InstanceHTTPTokenSummary'];
 export type InstanceHttpToken = components['schemas']['InstanceHTTPToken'];
 export type InstanceHttpTokenSummaryList = components['schemas']['InstanceHTTPTokenSummaryList'];

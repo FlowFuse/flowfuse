@@ -8,9 +8,12 @@
  */
 module.exports = function (app) {
     const expertRbacToolCheck = async (teamMembership, application, toolName) => {
-        const applicationHash = typeof application === 'object' ? application.hashid : application
+        const applicationHash = (application && typeof application === 'object') ? application.hashid : application
         if (toolName === 'expert:status-message') {
             return true
+        }
+        if (toolName.startsWith('platform:')) {
+            return app.hasPermission(teamMembership, 'expert:insights:mcp:tool:allow')
         }
         // TODO: Understand all automations and which permissions they should require.
         // For now, basic starter automations are added here, any not matching this list will require project:flows:edit permission
@@ -230,14 +233,15 @@ module.exports = function (app) {
                         throw ValidationError('user is not a member of the team that owns this project')
                     }
 
-                    // check expert assistant feature is enabled for the team (support agent uses MQTT)
+                    // check expert feature is enabled for the team (support agent uses MQTT)
                     if (acl.isClient) {
                         const team = await app.db.models.Team.byId(teamId)
                         if (team) {
                             await team.ensureTeamTypeExists()
                             const isAiEnabled = !!(app.config.features.enabled('ai') && team.getFeatureProperty('ai', true))
                             const isExpertAssistantEnabled = !!(app.config.features.enabled('expertAssistant') && team.getFeatureProperty('expertAssistant', true))
-                            if (!isAiEnabled || !isExpertAssistantEnabled) {
+                            const isExpertPlatformAutomationEnabled = !!(app.config.features.enabled('expertPlatformAutomation') && team.getFeatureProperty('expertPlatformAutomation', true))
+                            if (!isAiEnabled || (!isExpertAssistantEnabled && !isExpertPlatformAutomationEnabled)) {
                                 throw ValidationError('expert assistant feature is not enabled for this team')
                             }
                         }
@@ -285,10 +289,15 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/logs\/heartbeat$/ },
                 // ff/v1/<team>/d/<device>/resources/heartbeat
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/resources\/heartbeat$/ },
+                // ff/v1/<team>/p/<project>/editor/heartbeat
+                { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/editor\/heartbeat$/ },
                 // ff/v1/platform/sync
                 { topic: /^ff\/v1\/platform\/sync$/ },
                 // ff/v1/platform/leader
-                { topic: /^ff\/v1\/platform\/leader$/ }
+                { topic: /^ff\/v1\/platform\/leader$/ },
+                // Receive MCP dispatch inflight responses from the user's browser
+                // - ff/v1/mcp/<userid>/<sessionid>/<entityType>/<entityId>/support/inflight/<inflightType>/response
+                { topic: /^ff\/v1\/mcp\/[^/]+\/[^/]+\/[^/]+\/[^/]+\/support\/inflight\/[^/]+\/response$/ }
             ],
             pub: [
                 // Send commands to project launchers
@@ -306,7 +315,10 @@ module.exports = function (app) {
                 // ff/v1/platform/sync
                 { topic: /^ff\/v1\/platform\/sync$/ },
                 // ff/v1/platform/leader
-                { topic: /^ff\/v1\/platform\/leader$/ }
+                { topic: /^ff\/v1\/platform\/leader$/ },
+                // Send MCP dispatch inflight requests to the user's browser
+                // - ff/v1/mcp/<userid>/<sessionid>/<entityType>/<entityId>/support/inflight/<inflightType>/request
+                { topic: /^ff\/v1\/mcp\/[^/]+\/[^/]+\/[^/]+\/[^/]+\/support\/inflight\/[^/]+\/request$/ }
             ]
         },
         project: {
@@ -357,7 +369,9 @@ module.exports = function (app) {
                 // - ff/v1/<team>/d/<device/logs/heartbeat
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/logs\/heartbeat$/, verify: 'checkDeviceIsAssigned' },
                 // - ff/v1/<team>/d/<device/resources/heartbeat
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources\/heartbeat$/, verify: 'checkDeviceIsAssigned' }
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources\/heartbeat$/, verify: 'checkDeviceIsAssigned' },
+                // - ff/v1/<team>/p/<project>/editor/heartbeat
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/editor\/heartbeat$/, verify: 'checkTeamId' }
             ]
         },
         // frontend client (user)
@@ -367,14 +381,20 @@ module.exports = function (app) {
                 // topic captures, 0 = full topic, 1 = userid, 2 = sessionid, 3 = entity type (a|p|d|t), 4 = entity id, 5 = inflight type (only for inflight topics)
                 // example topic: ff/v1/expert/user123/session123/p/abc-123-456-789/support/chat/response
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { entity: true }, isClient: true, isSub: true },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { entity: true, inflightType: true }, isClient: true, isSub: true }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { entity: true, inflightType: true }, isClient: true, isSub: true },
+                // MCP dispatch inflight requests (from forge platform to user's browser)
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { entity: true, inflightType: true }, isClient: true, isSub: true }
             ],
             pub: [
                 // topic: ff/v1/expert/<userid>/<sessionid>/<a|p|d|t>/<appid|projid|devid|teamid>/support/chat/request
                 // topic captures, 0 = full topic, 1 = userid, 2 = sessionid, 3 = entity type (a|p|d|t), 4 = entity id, 5 = inflight type (only for inflight topics)
                 // example topic: ff/v1/expert/user123/session123/p/abc-111-222-333/support/chat/request
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', isClient: true, isPub: true },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', isClient: true, isPub: true }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', isClient: true, isPub: true },
+                // MCP dispatch inflight responses (from user's browser back to forge platform)
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', isClient: true, isPub: true },
+                // - ff/v1/<team>/p/<project>/editor/heartbeat
+                { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/editor\/heartbeat$/ }
             ]
         },
         // backend client (agent)

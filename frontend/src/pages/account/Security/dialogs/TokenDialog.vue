@@ -16,8 +16,6 @@
 </template>
 
 <script>
-import userApi from '../../../../api/user.js'
-
 import FormRow from '../../../../components/FormRow.vue'
 
 export default {
@@ -25,7 +23,7 @@ export default {
     components: {
         FormRow
     },
-    emits: ['token-created', 'token-updated'],
+    emits: ['token-create', 'token-update'],
     setup () {
         return {
             showCreate () {
@@ -49,7 +47,7 @@ export default {
                     this.input.expires = false
                 } else {
                     this.input.expires = true
-                    this.input.expiresAt = row.expiresAt.split('T')[0] // `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`
+                    this.input.expiresAt = row.expiresAt.split('T')[0]
                 }
                 this.edit = true
                 this.$refs.dialog.show()
@@ -93,42 +91,35 @@ export default {
         }
     },
     methods: {
-        confirm: async function () {
+        confirm () {
             if (!this.edit) {
                 let array = []
                 if (this.input.scope) {
                     array = Object.keys(this.input.scope).map(k => k)
                 }
-                const request = {
+                const data = {
                     name: this.input.name,
                     scope: array.join(',')
                 }
                 if (this.input.expires) {
-                    request.expiresAt = Date.parse(this.input.expiresAt)
+                    data.expiresAt = Date.parse(this.input.expiresAt)
                 }
-                const token = await userApi.createPersonalAccessToken(request.name, request.scope, request.expiresAt)
-                this.$emit('token-created', token)
+                this.$emit('token-create', data)
             } else {
                 let array = []
                 if (this.input.scope) {
                     array = Object.keys(this.input.scope)?.map(k => k)
                 }
-                const request = {
+                const data = {
                     id: this.input.id,
                     scope: array.join(',')
                 }
                 if (this.input.expires) {
-                    request.expiresAt = Date.parse(this.input.expiresAt)
+                    data.expiresAt = Date.parse(this.input.expiresAt)
                 } else {
-                    request.expiresAt = undefined
+                    data.expiresAt = undefined
                 }
-
-                try {
-                    await userApi.updatePersonalAccessToken(request.id, request.scope, request.expiresAt)
-                } catch (err) {
-                    console.error(err)
-                }
-                this.$emit('token-updated')
+                this.$emit('token-update', data)
             }
         }
     }

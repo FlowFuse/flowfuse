@@ -88,7 +88,15 @@ module.exports = async function (app) {
         } catch (err) {
             return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
         }
-        if (client_id !== 'ff-plugin') {
+        if (client_id === 'mcp-agent') {
+            const isLocalhost = /^(localhost|127\.0\.0\.1)$/.test(redirectURI.hostname)
+            if (!isLocalhost) {
+                return badRequest(reply, 'invalid_request', 'Invalid redirect_uri: only localhost callbacks are supported for MCP agents')
+            }
+            if (scope !== 'mcp:platform') {
+                return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'. Only 'mcp:platform' is supported for MCP agents", state)
+            }
+        } else if (client_id !== 'ff-plugin') {
             // Check client_id is valid. Note - no client_secret provided at this point
             const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id)
             if (!authClient) {
@@ -159,6 +167,10 @@ module.exports = async function (app) {
             reply.redirect(`${app.config.base_url}/account/request/${requestId}/editor`)
             return
         }
+        if (client_id === 'mcp-agent') {
+            reply.redirect(`${app.config.base_url}/account/request/${requestId}/mcp`)
+            return
+        }
         // Redirect to login page with requestId in url - to bounce to an approve page
         reply.redirect(`${app.config.base_url}/account/request/${requestId}`)
     })
@@ -176,7 +188,9 @@ module.exports = async function (app) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session) {
-                if (requestObject.client_id === 'ff-plugin') {
+                if (requestObject.client_id === 'mcp-agent') {
+                    // MCP agent — no ownership checks needed
+                } else if (requestObject.client_id === 'ff-plugin') {
                     // This is the FlowFuse Node-RED plugin.
                 } else {
                     const authClient = await app.db.controllers.AuthClient.getAuthClient(requestObject.client_id)
@@ -342,6 +356,24 @@ module.exports = async function (app) {
                 return
             }
 
+            if (client_id === 'mcp-agent') {
+                const tokenName = `OAuth MCP Agent - ${new Date().toISOString()}`
+                const accessToken = await app.db.controllers.AccessToken.createMCPToken(
+                    requestObject.userId,
+                    ['mcp:platform'],
+                    new Date(Date.now() + (1000 * 60 * 60 * 24 * 90)),
+                    tokenName
+                )
+                reply.send({
+                    access_token: accessToken.token,
+                    token_type: 'bearer',
+                    expires_in: Math.floor((new Date(accessToken.expiresAt).getTime() - Date.now()) / 1000),
+                    scope: 'mcp:platform',
+                    state: requestObject.state
+                })
+                return
+            }
+
             if (client_id !== 'ff-plugin') {
                 const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
                 if (!authClient) {
@@ -444,7 +476,7 @@ module.exports = async function (app) {
                 badRequest(reply, 'invalid_request', 'Invalid refresh_token')
                 return
             }
-            if (client_id !== 'ff-plugin') {
+            if (client_id !== 'ff-plugin' && client_id !== 'mcp-agent') {
                 const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
                 if (!authClient) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')

@@ -1,8 +1,8 @@
 <template>
     <TokenManager
-        hero="Access Tokens"
-        info="A list of access tokens that can be used to interact with the platform API."
-        token-prefix="ffpat_"
+        hero="MCP Access Tokens"
+        info="A list of MCP access tokens that can be used to connect AI assistants and tools to the platform via the Model Context Protocol."
+        token-prefix="ffmcp_"
         :fetch-tokens="fetchTokens"
         :create-token="createToken"
         :update-token="updateToken"
@@ -16,22 +16,22 @@ import userApi from '../../../api/user.js'
 import TokenManager from './components/TokenManager.vue'
 
 export default {
-    name: 'PersonalAccessTokens',
+    name: 'MCPAccessTokens',
     components: {
         TokenManager
     },
     methods: {
         fetchTokens () {
-            return userApi.getPersonalAccessTokens()
+            return userApi.getMCPTokens()
         },
         createToken (data) {
-            return userApi.createPersonalAccessToken(data.name, data.scope, data.expiresAt)
+            return userApi.createMCPToken(data.name, data.expiresAt)
         },
         updateToken (id, data) {
-            return userApi.updatePersonalAccessToken(id, data.scope, data.expiresAt)
+            return userApi.updateMCPToken(id, data.expiresAt)
         },
         deleteToken (id) {
-            return userApi.deletePersonalAccessToken(id)
+            return userApi.deleteMCPToken(id)
         }
     }
 }

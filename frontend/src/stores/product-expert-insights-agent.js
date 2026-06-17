@@ -45,6 +45,7 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
             const team = useContextStore().team
             const data = await expertApi.getCapabilities({ context: { teamId: team.id } })
             this.capabilityServers = data.servers || []
+            return data
         }
     }
 })

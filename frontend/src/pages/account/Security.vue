@@ -25,7 +25,8 @@ export default {
         sideNavigation () {
             const navigation = [
                 { name: 'Password', path: '/account/security/password' },
-                { name: 'Tokens', path: '/account/security/tokens' }
+                { name: 'Tokens', path: '/account/security/tokens' },
+                { name: 'MCP Tokens', path: '/account/security/mcp-tokens' }
                 // { name: "Sessions", path: "/account/security/sessions" }
             ]
             if (this.features.mfa) {
