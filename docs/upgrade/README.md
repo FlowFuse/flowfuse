@@ -25,6 +25,9 @@ Details of how to upgrade can be found for each deployment model:
 - [Docker](../install/docker/README.md#upgrade)
 - [Kubernetes](../install/kubernetes/README.md#upgrade)
 
+To upgrade the version of Node-RED your Instances run (for example, moving to
+Node-RED 5.0), see [Upgrading the Node-RED version](./nodered-version.md).
+
 ### Upgrading to 2.6.0
 
 #### Required AWS EKS configuration change
