@@ -3,6 +3,8 @@ module.exports = async function (app) {
 
     app.addHook('preHandler', app.verifySession)
     app.addHook('preHandler', async (request, reply) => {
+        // This route is either under `/projects/:projectId/httpTokens' or '/devices/:deviceId/httpTokens'
+        // The preHandler needs to handle both cases.
         if (request.params.projectId !== undefined) {
             if (request.params.projectId) {
                 try {
@@ -34,12 +36,40 @@ module.exports = async function (app) {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             }
         }
+        if (request.params.deviceId !== undefined) {
+            if (request.params.deviceId) {
+                try {
+                    request.device = await app.db.models.Device.byId(request.params.deviceId)
+                    if (!request.device) {
+                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                        return
+                    }
+                    await request.device.Team.ensureTeamTypeExists()
+                    if (!request.device.Team.getFeatureProperty('teamHttpSecurity', false)) {
+                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                        return // eslint-disable-line no-useless-return
+                    }
+                    if (request.session.User) {
+                        request.teamMembership = await request.session.User.getTeamMembership(request.device.Team.id)
+                        if (!request.teamMembership && !request.session.User.admin) {
+                            reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                            return // eslint-disable-line no-useless-return
+                        }
+                    } else if (request.session.ownerId !== request.params.deviceId) {
+                        // AccessToken being used - but not owned by this device
+                        reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                        return // eslint-disable-line no-useless-return
+                    }
+                } catch (err) {
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                }
+            } else {
+                reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+            }
+        }
     })
 
-    app.get('/', {
-        preHandler: app.needsPermission('project:edit')
-    }, async (request, reply) => {
-        const tokens = await app.db.models.AccessToken.getProjectHTTPTokens(request.project)
+    function getTokens (request, reply, tokens) {
         // exclude FF-Expert auto generated HTTP MCP tokens from listing
         const withoutExpertMcpTokens = tokens.filter(token => !isExpertMcpToken(token))
         const tokensView = app.db.views.AccessToken.instanceHTTPTokenSummaryList(withoutExpertMcpTokens)
@@ -47,9 +77,21 @@ module.exports = async function (app) {
             tokens: tokensView,
             count: tokens.length
         })
+    }
+    app.get('/projects/:projectId/httpTokens', {
+        preHandler: app.needsPermission('project:edit')
+    }, async (request, reply) => {
+        const tokens = await app.db.models.AccessToken.getProjectHTTPTokens(request.project)
+        getTokens(request, reply, tokens)
+    })
+    app.get('/devices/:deviceId/httpTokens', {
+        preHandler: app.needsPermission('device:edit')
+    }, async (request, reply) => {
+        const tokens = await app.db.models.AccessToken.getDeviceHTTPTokens(request.device)
+        getTokens(request, reply, tokens)
     })
 
-    app.post('/', {
+    app.post('/projects/:projectId/httpTokens', {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
         try {
@@ -68,7 +110,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.put('/:id', {
+    app.put('/projects/:projectId/httpTokens/:id', {
         preHandler: app.needsPermission('project:edit', true)
     }, async (request, reply) => {
         try {
@@ -93,7 +135,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.delete('/:id', {
+    app.delete('/projects/:projectId/httpTokens/:id', {
         preHandler: app.needsPermission('project:edit')
     }, async (request, reply) => {
         try {
