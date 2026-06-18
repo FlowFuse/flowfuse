@@ -14,12 +14,28 @@ const latestProjectState = 'project-latestProjectState'
 
 const inflightDeploys = 'project-inflightDeploys'
 
+const lastPublishedProjectState = 'project-lastPublishedProjectState'
+
 module.exports = {
 
     init (app) {
         app.caches.createCache(inflightProjectState)
         app.caches.createCache(latestProjectState)
         app.caches.createCache(inflightDeploys)
+        app.caches.createCache(lastPublishedProjectState)
+    },
+
+    // NOLEY TODO: this has issues with restarting states
+    publishLiveState: async function (app, project) {
+        if (!app.comms || !project?.TeamId) return
+        const inflight = await this.getInflightState(app, project)
+        const latest = await this.getLatestProjectState(app, project.id)
+        const effective = inflight ?? (project.state === 'suspended' ? 'suspended' : (latest ?? project.state))
+        if (!effective) return
+        const cache = app.caches.getCache(lastPublishedProjectState)
+        if (await cache.get(project.id) === effective) return
+        await cache.set(project.id, effective)
+        app.comms.team.notifyInstanceStatus(app.db.models.Team.encodeHashid(project.TeamId), project.id, effective)
     },
 
     getProjectPaginationOptions: function (app, request) {
@@ -58,6 +74,7 @@ module.exports = {
      */
     setInflightState: async function (app, project, state) {
         await app.caches.getCache(inflightProjectState).set(project.id, state)
+        await this.publishLiveState(app, project)
     },
 
     /**
@@ -87,6 +104,7 @@ module.exports = {
     clearInflightState: async function (app, project) {
         await app.caches.getCache(inflightProjectState).del(project.id)
         await app.caches.getCache(inflightDeploys).del(project.id)
+        await this.publishLiveState(app, project)
     },
 
     /**
@@ -809,6 +827,12 @@ module.exports = {
             await this.clearLatestProjectState(app, projectId)
         } else {
             await this.setLatestProjectState(app, projectId, state)
+        }
+        if (app.comms) {
+            const project = await app.db.models.Project.byId(projectId, { barebone: true })
+            if (project) {
+                await this.publishLiveState(app, project)
+            }
         }
     }
 }

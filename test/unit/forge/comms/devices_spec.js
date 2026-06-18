@@ -1,6 +1,8 @@
 const sleep = require('util').promisify(setTimeout)
 
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+
 const setup = require('../routes/setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -215,6 +217,36 @@ describe('DeviceCommsHandler', function () {
             payload.should.have.property('command', 'update')
             payload.should.have.property('project', null)
             payload.should.have.property('snapshot', null)
+        })
+
+        it('forwards a team status notification only when the device state changes', async function () {
+            const device = await app.factory.createDevice({ name: 'status-forward-device' }, TestObjects.ATeam)
+            const notifySpy = sinon.spy(app.comms.team, 'notifyDeviceStatus')
+            try {
+                // establish a known baseline regardless of the factory default state
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'stopped' }) })
+                await sleep(100)
+                notifySpy.resetHistory()
+
+                // state changes -> notifies with { teamHash, deviceHashid, state }
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
+                await sleep(100)
+                notifySpy.calledOnce.should.be.true()
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'running'])
+
+                // same state again -> no further notification
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
+                await sleep(100)
+                notifySpy.calledOnce.should.be.true()
+
+                // state changes again -> notifies again
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'stopped' }) })
+                await sleep(100)
+                notifySpy.calledTwice.should.be.true()
+                notifySpy.secondCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'stopped'])
+            } finally {
+                notifySpy.restore()
+            }
         })
     })
 

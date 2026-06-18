@@ -3,11 +3,14 @@ import { BaseSubscriber } from './subscriber.contract'
 import teamApi from '@/api/team.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
+import { useLiveStatusStore } from '@/stores/live-status'
 import { Maybe } from '@/types/common/types'
 import type { CreateSubscriberOptions, TeamChannelSubscriberI, TeamRef } from '@/types/subscribers/subscriber.types'
 
 const MEMBERSHIP_TOPIC_REGEX = /^ff\/v1\/[^/]+\/u\/([^/]+)\/membership$/
 const TEAM_UPDATED_TOPIC_REGEX = /^ff\/v1\/[^/]+\/t\/updated$/
+const DEVICE_STATUS_UPDATED_TOPIC_REGEX = /^ff\/v1\/[^/]+\/d\/[^/]+\/status$/
+const INSTANCE_STATUS_UPDATED_TOPIC_REGEX = /^ff\/v1\/[^/]+\/p\/[^/]+\/status$/
 
 function connectionKey (teamId: string): string {
     return `team:${teamId}`
@@ -73,6 +76,7 @@ class TeamChannelSubscriber extends BaseSubscriber implements TeamChannelSubscri
         if (!transport) return
         try {
             await transport.disconnect(key)
+            useLiveStatusStore().clear()
         } catch {
             // ignore teardown failures
         }
@@ -88,8 +92,12 @@ class TeamChannelSubscriber extends BaseSubscriber implements TeamChannelSubscri
         try {
             await transport.subscribe(connectionKey(teamId), [
                 `ff/v1/${teamId}/t/updated`,
-                `ff/v1/${teamId}/u/${userId}/membership`
+                `ff/v1/${teamId}/u/${userId}/membership`,
+                `ff/v1/${teamId}/p/+/status`,
+                `ff/v1/${teamId}/d/+/status`
             ], { qos: 1 })
+
+            useLiveStatusStore().setLive(true)
         } catch {
             // non-fatal — the transport replays subscriptions on reconnect
         }
@@ -116,11 +124,27 @@ class TeamChannelSubscriber extends BaseSubscriber implements TeamChannelSubscri
 
     // topic pattern → store action; the store owns interpretation (what a
     // reason means, what to refresh). Add a row per new sync-able entity.
-    protected _topicRoutes (): Array<{ pattern: RegExp, handle: (payload: { reason?: string }) => void }> {
+    protected _topicRoutes (): Array<{ pattern: RegExp, handle: (payload: { reason?: string, id?: string, meta?: { state?: string } }) => void }> {
         return [
             { pattern: MEMBERSHIP_TOPIC_REGEX, handle: (payload) => this._onMembership(payload) },
-            { pattern: TEAM_UPDATED_TOPIC_REGEX, handle: () => this._onTeamUpdated() }
+            { pattern: TEAM_UPDATED_TOPIC_REGEX, handle: () => this._onTeamUpdated() },
+            { pattern: DEVICE_STATUS_UPDATED_TOPIC_REGEX, handle: (payload) => this._onDeviceStatus(payload) },
+            { pattern: INSTANCE_STATUS_UPDATED_TOPIC_REGEX, handle: (payload) => this._onInstanceStatus(payload) }
         ]
+    }
+
+    protected _onInstanceStatus (payload: { id?: string, meta?: { state?: string } }): void {
+        if (!payload?.id || !payload.meta?.state) return
+        try {
+            useLiveStatusStore().setInstanceStatus(payload.id, payload.meta.state)
+        } catch {}
+    }
+
+    protected _onDeviceStatus (payload: { id?: string, meta?: { state?: string } }): void {
+        if (!payload?.id || !payload.meta?.state) return
+        try {
+            useLiveStatusStore().setDeviceStatus(payload.id, payload.meta.state)
+        } catch {}
     }
 
     protected _onMembership (payload: { reason?: string }): void {

@@ -1376,6 +1376,42 @@ describe('Broker Auth v2 API', async function () {
                     topic: teamUpdatedTopic
                 })
             })
+            it('allows a team member to subscribe to the team instance-status wildcard', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/status`
+                })
+            })
+            it('allows a team member to subscribe to the team device-status wildcard', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/d/+/status`
+                })
+            })
+            it('denies subscribe to another team\'s status wildcard', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/p/+/status`
+                })
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/d/+/status`
+                })
+            })
+            it('denies status subscribe for a user who is not a member of the team', async function () {
+                const dave = await factory.createUser({ username: 'dave', name: 'Dave', email: 'dave@example.com', password: 'ddPassword1!' })
+                const daveUsername = `fe-team:${dave.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
+                await denyRead({
+                    username: daveUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/status`
+                })
+            })
+            it('denies fe-team from publishing to status (read-only client)', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/status`
+                })
+            })
             it('denies fe-team from publishing (read-only client)', async function () {
                 await denyWrite({
                     username: teamFrontendUsername,

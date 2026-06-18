@@ -1,6 +1,8 @@
 const crypto = require('crypto')
 
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+
 const { encryptCreds, decryptCreds } = require('../../../../lib/credentials')
 const setup = require('../setup')
 // const FF_UTIL = require('flowforge-test-utils')
@@ -524,6 +526,45 @@ describe('Project controller', function () {
             await app.db.controllers.Project.updateLatestProjectState('project-id', 'stopped')
             tempResult = await app.db.controllers.Project.getLatestProjectState('project-id')
             should(tempResult).equal('stopped')
+        })
+
+        it('broadcasts a launcher-reported state change to the team channel, only on change', async function () {
+            const notifySpy = sinon.spy(app.comms.team, 'notifyInstanceStatus')
+            const team = await app.db.models.Team.create({ name: 'Cache Status Team', TeamTypeId: 1 })
+            const instance = await app.db.models.Project.create({ name: 'cache-status-p1', type: '', url: '', state: 'running', TeamId: team.id })
+            notifySpy.resetHistory() // ignore the create-time save
+            try {
+                // running -> stopped is a change
+                await app.db.controllers.Project.updateLatestProjectState(instance.id, 'stopped')
+                notifySpy.calledOnce.should.be.true()
+                notifySpy.firstCall.args.should.eql([app.db.models.Team.encodeHashid(team.id), instance.id, 'stopped'])
+
+                // same state again -> no further notification
+                await app.db.controllers.Project.updateLatestProjectState(instance.id, 'stopped')
+                notifySpy.calledOnce.should.be.true()
+            } finally {
+                notifySpy.restore()
+            }
+        })
+
+        it('broadcasts inflight transition states, then reverts when cleared', async function () {
+            const notifySpy = sinon.spy(app.comms.team, 'notifyInstanceStatus')
+            const team = await app.db.models.Team.create({ name: 'Inflight Status Team', TeamTypeId: 1 })
+            const instance = await app.db.models.Project.create({ name: 'inflight-status-p1', type: '', url: '', state: 'running', TeamId: team.id })
+            const teamHash = app.db.models.Team.encodeHashid(team.id)
+            notifySpy.resetHistory() // ignore the create-time save
+            try {
+                // inflight wins over the db/latest state
+                await app.db.controllers.Project.setInflightState(instance, 'starting')
+                notifySpy.calledWith(teamHash, instance.id, 'starting').should.be.true()
+
+                // clearing reverts to the effective db state (running)
+                notifySpy.resetHistory()
+                await app.db.controllers.Project.clearInflightState(instance)
+                notifySpy.calledWith(teamHash, instance.id, 'running').should.be.true()
+            } finally {
+                notifySpy.restore()
+            }
         })
     })
 })
