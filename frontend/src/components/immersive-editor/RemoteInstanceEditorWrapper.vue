@@ -26,6 +26,7 @@ import LoadingScreenWrapper from './LoadingScreenWrapper.vue'
 export default {
     name: 'RemoteInstanceEditorWrapper',
     components: { LoadingScreenWrapper },
+    inject: ['$services'],
     props: {
         device: {
             required: false,
@@ -61,9 +62,20 @@ export default {
             default:
                 return this.device.status
             }
+        },
+        editorOrigin () {
+            if (!this.device?.editor?.url) {
+                return null
+            }
+            try {
+                return new URL(this.device.editor.url, window.location.origin).origin
+            } catch (e) {
+                return null
+            }
         }
     },
     mounted () {
+        window.addEventListener('message', this.eventListener)
         // Dispatch a synthetic mousemove every 25 minutes to keep PostHog's idle
         // session timer alive. PostHog resets its recording after ~30 minutes of
         // inactivity on the parent page — but the user may be actively working
@@ -73,11 +85,40 @@ export default {
         }, 25 * 60 * 1000)
     },
     beforeUnmount () {
+        window.removeEventListener('message', this.eventListener)
         clearInterval(this.posthogKeepAliveInterval)
         // Remove from DOM before unmount so rrweb doesn't try to access the
         // cross-origin contentWindow during teardown.
         if (this.$refs.iframe) {
             this.$refs.iframe.parentNode?.removeChild(this.$refs.iframe)
+        }
+    },
+    methods: {
+        eventListener (event) {
+            if (!this.editorOrigin || event.origin !== this.editorOrigin) {
+                return
+            }
+            switch (event.data?.type) {
+            case 'load':
+                this.emitMessage('prevent-redirect', true)
+                break
+            case 'navigate':
+                window.location.href = event.data.payload
+                break
+            case 'logout':
+                this.$router.push({ name: 'device-overview', params: { id: this.device.id } })
+                break
+            default:
+            }
+        },
+        emitMessage (type, payload = {}) {
+            if (this.$refs.iframe?.contentWindow && this.editorOrigin) {
+                this.$services.postMessage.sendMessage({
+                    message: { type, payload },
+                    target: this.$refs.iframe.contentWindow,
+                    targetOrigin: this.editorOrigin
+                })
+            }
         }
     }
 }
