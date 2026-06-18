@@ -106,7 +106,9 @@ export default {
                 window.location.href = event.data.payload
                 break
             case 'logout':
-                this.$router.push({ name: 'device-overview', params: { id: this.device.id } })
+                if (this.device) {
+                    this.$router.push({ name: 'device-overview', params: { id: this.device.id } })
+                }
                 break
             default:
             }
