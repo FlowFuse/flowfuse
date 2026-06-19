@@ -50,6 +50,9 @@ export default {
 .ff-option-tile-selector {
     .ff-option-tile {
         transition: border-color ease-in-out .3s;
+        img {
+            filter: invert(var(--ff-invert-icon));
+        }
     }
 }
 </style>
