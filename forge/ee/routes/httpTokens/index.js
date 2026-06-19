@@ -69,6 +69,8 @@ module.exports = async function (app) {
         }
     })
 
+    // #region GET /httpTokens
+
     function getTokens (request, reply, tokens) {
         // exclude FF-Expert auto generated HTTP MCP tokens from listing
         const withoutExpertMcpTokens = tokens.filter(token => !isExpertMcpToken(token))
@@ -91,40 +93,64 @@ module.exports = async function (app) {
         getTokens(request, reply, tokens)
     })
 
-    app.post('/projects/:projectId/httpTokens', {
-        preHandler: app.needsPermission('project:edit')
-    }, async (request, reply) => {
+    // #region POST /httpTokens
+
+    async function createToken (request, reply) {
         try {
             const body = request.body
             // Prevent creation of Expert MCP Access Tokens via this route
             if (isExpertMcpToken({ scope: body.scope })) {
                 throw new Error('Cannot create Expert MCP Access Token via this route')
             }
-            const token = await app.db.controllers.AccessToken.createHTTPNodeToken(request.project, body.name, [''], body.expiresAt)
-            // token has already been sanitised via views.AccessToken.instanceHTTPTokenSummary
-            await app.auditLog.Project.project.httpToken.created(request.session.User, null, request.project, body)
+            const token = await app.db.controllers.AccessToken.createHTTPNodeToken(request.project || request.device, body.name, [''], body.expiresAt)
+            if (request.project) {
+                await app.auditLog.Project.project.httpToken.created(request.session.User, null, request.project, body)
+            } else if (request.device) {
+                await app.auditLog.Device.device.httpToken.created(request.session.User, null, request.device, body)
+            }
             reply.send(token || {})
         } catch (err) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
         }
+    }
+    app.post('/projects/:projectId/httpTokens', {
+        preHandler: app.needsPermission('project:edit')
+    }, async (request, reply) => {
+        return createToken(request, reply)
+    })
+    app.post('/devices/:deviceId/httpTokens', {
+        preHandler: app.needsPermission('device:edit')
+    }, async (request, reply) => {
+        return createToken(request, reply)
     })
 
-    app.put('/projects/:projectId/httpTokens/:id', {
-        preHandler: app.needsPermission('project:edit', true)
-    }, async (request, reply) => {
+    // #region PUT /httpTokens/:id
+
+    async function updateToken (request, reply) {
         try {
-            const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'http', request.project.id)
+            const owner = request.project || request.device
+            // Ensure id is a string as the AccessToken.ownerId is stored as a string in the database
+            const ownerId = '' + owner.id
+            let ownerType = 'http'
+            if (request.device) {
+                ownerType = 'http:device'
+            }
+            const oldToken = await app.db.models.AccessToken.byId(request.params.id, ownerType, ownerId)
             if (oldToken) {
                 // Prevent modification of Expert MCP Access Tokens via this route
                 if (isExpertMcpToken(oldToken)) {
                     throw new Error('Cannot modify Expert MCP Access Token')
                 }
                 const body = request.body
-                const token = await app.db.controllers.AccessToken.updateHTTPNodeToken(request.project, request.params.id, [''], body.expiresAt)
+                const token = await app.db.controllers.AccessToken.updateHTTPNodeToken(owner, request.params.id, [''], body.expiresAt)
                 const updates = new app.auditLog.formatters.UpdatesCollection()
                 updates.pushDifferences({ expiresAt: oldToken.expiresAt, scope: oldToken.scope.join(',') }, { expiresAt: body.expiresAt, scope: body.scope })
-                await app.auditLog.Project.project.httpToken.updated(request.session.User, null, request.project, updates)
+                if (request.project) {
+                    await app.auditLog.Project.project.httpToken.updated(request.session.User, null, request.project, updates)
+                } else if (request.device) {
+                    await app.auditLog.Device.device.httpToken.updated(request.session.User, null, request.device, updates)
+                }
                 reply.send(app.db.views.AccessToken.instanceHTTPTokenSummary(token))
                 return
             }
@@ -133,16 +159,40 @@ module.exports = async function (app) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
         }
+    }
+
+    app.put('/projects/:projectId/httpTokens/:id', {
+        preHandler: app.needsPermission('project:edit', true)
+    }, async (request, reply) => {
+        return updateToken(request, reply)
     })
 
-    app.delete('/projects/:projectId/httpTokens/:id', {
-        preHandler: app.needsPermission('project:edit')
+    app.put('/devices/:deviceId/httpTokens/:id', {
+        preHandler: app.needsPermission('device:edit', true)
     }, async (request, reply) => {
+        return updateToken(request, reply)
+    })
+
+    // #region DELETE /httpTokens/:id
+
+    async function deleteToken (request, reply) {
         try {
-            const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'http', request.project.id)
+            const owner = request.project || request.device
+            // Ensure id is a string as the AccessToken.ownerId is stored as a string in the database
+            const ownerId = '' + owner.id
+            let ownerType = 'http'
+            if (request.device) {
+                ownerType = 'http:device'
+            }
+
+            const oldToken = await app.db.models.AccessToken.byId(request.params.id, ownerType, ownerId)
             if (oldToken) {
                 await oldToken.destroy()
-                await app.auditLog.Project.project.httpToken.deleted(request.session.User, null, request.project, { name: oldToken.name })
+                if (request.project) {
+                    await app.auditLog.Project.project.httpToken.deleted(request.session.User, null, request.project, { name: oldToken.name })
+                } else if (request.device) {
+                    await app.auditLog.Device.device.httpToken.deleted(request.session.User, null, request.device, { name: oldToken.name })
+                }
                 reply.code(201).send()
                 return
             }
@@ -151,7 +201,20 @@ module.exports = async function (app) {
             const resp = { code: 'unexpected_error', error: err.toString() }
             reply.code(400).send(resp)
         }
+    }
+
+    app.delete('/projects/:projectId/httpTokens/:id', {
+        preHandler: app.needsPermission('project:edit')
+    }, async (request, reply) => {
+        return deleteToken(request, reply)
     })
+    app.delete('/devices/:deviceId/httpTokens/:id', {
+        preHandler: app.needsPermission('device:edit')
+    }, async (request, reply) => {
+        return deleteToken(request, reply)
+    })
+
+    // #region Utility functions
 
     function isExpertMcpToken (token) {
         if (!token || !token.scope) {
