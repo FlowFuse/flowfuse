@@ -148,7 +148,7 @@
         "css-loader": "^7.1.2",
         "cypress": "^15.14.2",
         "cypress-mailpit": "^0.0.4",
-        "dotenv-webpack": "^8.0.1",
+        "dotenv-webpack": "^9.0.0",
         "eslint": "^8.48.0",
         "eslint-config-standard": "^17.1.0",
         "eslint-plugin-cypress": "2.15.1",
