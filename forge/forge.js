@@ -1,6 +1,7 @@
 const cookie = require('@fastify/cookie')
 const csrf = require('@fastify/csrf-protection')
 const helmet = require('@fastify/helmet')
+const { fastifyRequestContext } = require('@fastify/request-context')
 const Sentry = require('@sentry/node')
 const fastify = require('fastify')
 
@@ -211,6 +212,9 @@ module.exports = async (options = {}) => {
             secret: server.settings.get('cookieSecret')
         })
         await server.register(csrf, { cookieOpts: { _signed: true, _httpOnly: true } })
+
+        // Request Context: per-request store
+        await server.register(fastifyRequestContext)
 
         let contentSecurityPolicy = false
         if (runtimeConfig.content_security_policy?.enabled) {
