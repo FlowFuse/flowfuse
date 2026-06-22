@@ -509,6 +509,8 @@ module.exports = async function (app) {
         // allow lowercase usernames for npm when publishing nodes to Team Library
         if (request.session.ownerType === 'npm' && request.session.scope.includes('team:packages:manage')) {
             sesOwnerId = sesOwnerId.toLowerCase()
+        } else if (request.session.ownerType === 'http:device') {
+            sesOwnerId = app.db.models.Device.encodeHashid(sesOwnerId)
         }
         if (request.params.ownerType === request.session.ownerType && request.params.ownerId === sesOwnerId) {
             let response
