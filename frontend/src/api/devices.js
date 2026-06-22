@@ -246,6 +246,31 @@ const getDeviceEditorProxy = async (editorUrl) => {
     return client.get(editorUrl)
 }
 
+const getHTTPTokens = async (deviceId) => {
+    return client.get(`/api/v1/devices/${deviceId}/httpTokens`).then(res => res.data)
+}
+
+const createHTTPToken = async (deviceId, name, scope, expiresAt) => {
+    const data = {
+        name,
+        scope,
+        expiresAt
+    }
+    return client.post(`/api/v1/devices/${deviceId}/httpTokens`, data).then(res => res.data)
+}
+
+const updateHTTPToken = async (deviceId, tokenId, scope, expiresAt) => {
+    const data = {
+        scope,
+        expiresAt
+    }
+    return client.put(`/api/v1/devices/${deviceId}/httpTokens/${tokenId}`, data).then(res => res.data)
+}
+
+const deleteHTTPToken = async (deviceId, tokenId) => {
+    return client.delete(`/api/v1/devices/${deviceId}/httpTokens/${tokenId}`)
+}
+
 export default {
     create,
     getDevice,
@@ -271,5 +296,9 @@ export default {
     restartDevice,
     startDevice,
     generateSnapshotDescription,
-    getDeviceEditorProxy
+    getDeviceEditorProxy,
+    getHTTPTokens,
+    createHTTPToken,
+    updateHTTPToken,
+    deleteHTTPToken
 }

@@ -13,34 +13,84 @@
             :device="device"
             :team="team"
         />
+        <div v-if="!!settings.features.httpBearerTokens && editable.settings.httpNodeAuth_type === 'flowforge-user'">
+            <FormHeading>HTTP Node Bearer Tokens</FormHeading>
+            <div v-if="hasTeamLevelTokenPermission">
+                <div v-if="deviceSupportsTokens">
+                    <ff-data-table
+                        data-el="tokens-table"
+                        :rows="tokens" :columns="columns" :show-search="true" search-placeholder="Search Tokens..."
+                        :show-load-more="false"
+                    >
+                        <template #actions>
+                            <ff-button data-action="new-token" @click="newToken()">
+                                <template #icon-left>
+                                    <PlusSmallIcon />
+                                </template>
+                                Add Token
+                            </ff-button>
+                        </template>
+                        <template #context-menu="{row}">
+                            <ff-kebab-item data-action="edit-token" label="Edit" @click="editToken(row)" />
+                            <ff-kebab-item data-action="delete-token" label="Delete" @click="deleteToken(row)" />
+                        </template>
+                        <template v-if="tokens.length === 0" #table>
+                            <div class="ff-no-data ff-no-data-large">
+                                You don't have any tokens yet
+                            </div>
+                        </template>
+                    </ff-data-table>
+                </div>
+                <div v-else class="ff-description italic mb-2">
+                    HTTP Token support requires Device Agent v4.0 or later.
+                </div>
+            </div>
+        </div>
+
         <div v-if="hasPermission('device:edit-env')" class="space-x-4 whitespace-nowrap">
             <div v-if="!securityOptionsSupported" class="ff-description italic mb-2">
-                These options require Device Agent v3.1 or later to take effect.
+                These options require Device Agent v3.1 or later.
             </div>
             <ff-button data-el="submit" size="small" :disabled="!unsavedChanges || editable.hasErrors" @click="saveSettings()">
                 Save Settings
             </ff-button>
         </div>
     </form>
+    <TokenDialog ref="tokenDialog" data-el="http-token-diag" :device="device" @token-created="newTokenDone" @token-updated="getTokens" />
+    <TokenCreated ref="tokenCreated" />
 </template>
 
 <script>
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
+
 import { mapState } from 'pinia'
 import semver from 'semver'
+import { markRaw } from 'vue'
 
 import deviceApi from '../../../api/devices.js'
+import FormHeading from '../../../components/FormHeading.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import Alerts from '../../../services/alerts.js'
+import TokenCreated from '../../account/Security/dialogs/TokenCreated.vue'
+
+import ExpiryCell from '../../account/components/ExpiryCell.vue'
 
 import TemplateSettingsSecurity from '../../admin/Template/sections/Security.vue'
 
+import TokenDialog from './dialogs/TokenDialog.vue'
+
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'DeviceSettingsSecurity',
     components: {
-        TemplateSettingsSecurity
+        FormHeading,
+        PlusSmallIcon,
+        TemplateSettingsSecurity,
+        TokenDialog,
+        TokenCreated
     },
     props: {
         device: { type: Object, default: null }
@@ -87,10 +137,23 @@ export default {
                 localAuth_enabled: false,
                 localAuth_user: '',
                 localAuth_pass: ''
-            }
+            },
+            tokens: [],
+            columns: [
+                { label: 'Name', key: 'name', sortable: true },
+                // { label: 'Scope', key: 'scope' },
+                {
+                    label: 'Expires',
+                    key: 'expiresAt',
+                    component: {
+                        is: markRaw(ExpiryCell)
+                    }
+                }
+            ]
         }
     },
     computed: {
+        ...mapState(useAccountSettingsStore, ['featuresCheck', 'settings']),
         ...mapState(useContextStore, ['team']),
         securityOptionsSupported () {
             if (!this.device.agentVersion) {
@@ -99,6 +162,18 @@ export default {
                 return false
             }
             return semver.gte(this.device.agentVersion, '3.1.0')
+        },
+        hasTeamLevelTokenPermission () {
+            // The server checks device:edit at the team level (not application level),
+            // so we must match that here to avoid silent 403s
+            return this.hasPermission('device:edit')
+        },
+        deviceSupportsTokens () {
+            if (!this.device.agentVersion) {
+                return false
+            }
+            // return true
+            return semver.gte(this.device.agentVersion, '4.0.0')
         },
         unsavedChanges () {
             if (this.editable.settings.httpNodeAuth_type !== this.original.httpNodeAuth_type) {
@@ -138,6 +213,13 @@ export default {
                 this.validate()
             },
             deep: true
+        },
+        'editable.settings.httpNodeAuth_type': {
+            handler (v) {
+                if (v === 'flowforge-user' && this.hasTeamLevelTokenPermission) {
+                    this.getTokens()
+                }
+            }
         }
     },
     mounted () {
@@ -146,6 +228,9 @@ export default {
         }
 
         this.getSettings()
+        if (this.featuresCheck.isHTTPBearerTokensFeatureEnabled && this.hasTeamLevelTokenPermission) {
+            this.getTokens()
+        }
     },
     methods: {
         validate: function () {
@@ -222,6 +307,24 @@ export default {
             await deviceApi.updateSettings(this.device.id, settings)
             this.$emit('device-updated')
             Alerts.emit('Device settings successfully updated. NOTE: changes will be applied once the device restarts.', 'confirmation', 6000)
+        },
+        async getTokens () {
+            const response = await deviceApi.getHTTPTokens(this.device.id)
+            this.tokens = response.tokens
+        },
+        newToken () {
+            this.$refs.tokenDialog.showCreate()
+        },
+        newTokenDone (token) {
+            this.$refs.tokenCreated.showToken(token)
+            this.getTokens()
+        },
+        editToken (row) {
+            this.$refs.tokenDialog.showEdit(row)
+        },
+        deleteToken: async function (row) {
+            await deviceApi.deleteHTTPToken(this.device.id, row.id)
+            this.getTokens()
         }
     }
 }
