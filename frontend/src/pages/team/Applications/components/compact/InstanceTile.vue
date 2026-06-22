@@ -82,7 +82,7 @@
             </ff-kebab-menu>
         </div>
     </div>
-    <InstanceStatusPolling :instance="localInstance" @instance-updated="instanceUpdated" />
+    <InstanceStatusPolling v-if="!statusChannelLive" :instance="localInstance" @instance-updated="instanceUpdated" />
 </template>
 
 <script>
@@ -103,6 +103,7 @@ import InstanceMinimalStatusBadge from '../../../../instance/components/Instance
 import InstanceStatusBadge from '../../../../instance/components/InstanceStatusBadge.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
+import { useLiveStatusStore } from '@/stores/live-status'
 
 export default {
     name: 'InstanceTile',
@@ -144,6 +145,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountAuthStore, ['isAdminUser']),
+        ...mapState(useLiveStatusStore, { liveInstanceStatuses: 'instanceStatuses', statusChannelLive: 'live' }),
         isInstanceRunning () {
             return this.localInstance.meta?.state === 'running'
         },
@@ -166,9 +168,19 @@ export default {
     watch: {
         instance (newValue) {
             this.instanceUpdated(newValue)
-        }
+        },
+        liveInstanceStatuses: { handler: 'applyLiveStatus', deep: true }
     },
     methods: {
+        applyLiveStatus () {
+            const state = this.liveInstanceStatuses[this.localInstance?.id]
+            if (!state || this.localInstance?.meta?.state === state) return
+            this.localInstance = {
+                ...this.localInstance,
+                status: state,
+                meta: { ...(this.localInstance.meta || {}), state }
+            }
+        },
         navigateToInstance () {
             this.$router.push({ name: 'Instance', params: { id: this.localInstance.id } })
         },

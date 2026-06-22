@@ -25,7 +25,9 @@
                 @instance-delete="instanceShowConfirmDelete"
             />
 
-            <InstanceStatusPolling v-for="instance in instancesArray" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
+            <template v-if="!statusChannelLive">
+                <InstanceStatusPolling v-for="instance in instancesArray" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
+            </template>
         </div>
     </main>
 </template>
@@ -45,6 +47,7 @@ import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicatio
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useLiveStatusStore } from '@/stores/live-status'
 
 export default {
     name: 'ApplicationPage',
@@ -62,6 +65,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useLiveStatusStore, { liveInstanceStatuses: 'instanceStatuses', statusChannelLive: 'live' }),
         navigation () {
             const routes = [
                 {
@@ -133,6 +137,22 @@ export default {
         '$route.params': {
             handler: 'updateApplication',
             immediate: true
+        },
+        liveInstanceStatuses: { handler: 'applyLiveStatus', deep: true }
+    },
+    methods: {
+        applyLiveStatus () {
+            for (const id of this.applicationInstances.keys()) {
+                const state = this.liveInstanceStatuses[id]
+                if (!state) continue
+                const row = this.applicationInstances.get(id)
+                if (row?.status === state && row?.meta?.state === state) continue
+                this.applicationInstances.set(id, {
+                    ...row,
+                    status: state,
+                    meta: { ...(row?.meta || {}), state }
+                })
+            }
         }
     }
 }
