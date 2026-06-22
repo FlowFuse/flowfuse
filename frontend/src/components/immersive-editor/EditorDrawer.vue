@@ -119,7 +119,7 @@ import { storeToRefs } from 'pinia'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
-import getServiceOrchestrator from '../../services/service.orchestrator'
+import getAppOrchestrator from '../../services/app.orchestrator'
 import ResizeBar from '../ResizeBar.vue'
 
 import EditorDrawerSettings from './EditorDrawerSettings.vue'
@@ -200,7 +200,7 @@ function notifyDrawerState () {
     if (!iframe) return
 
     const targetOrigin = props.entity.url || window.location.origin
-    const serviceOrchestrator = getServiceOrchestrator()
+    const serviceOrchestrator = getAppOrchestrator()
     serviceOrchestrator.$serviceInstances.postMessage.sendMessage({
         message: {
             type: 'drawer-state',

@@ -68,6 +68,16 @@ export default {
             default:
                 return this.device.status
             }
+        },
+        editorOrigin () {
+            if (!this.device?.editor?.url) {
+                return null
+            }
+            try {
+                return new URL(this.device.editor.url, window.location.origin).origin
+            } catch (e) {
+                return null
+            }
         }
     },
     watch: {
@@ -86,6 +96,7 @@ export default {
         }, 25 * 60 * 1000)
     },
     beforeUnmount () {
+        window.removeEventListener('message', this.eventListener)
         clearInterval(this.posthogKeepAliveInterval)
         // Remove from DOM before unmount so rrweb doesn't try to access the
         // cross-origin contentWindow during teardown.
@@ -94,23 +105,45 @@ export default {
             this.$refs.iframe.parentNode?.removeChild(this.$refs.iframe)
         }
     },
-    unmounted () {
-        window.removeEventListener('message', this.eventListener)
-    },
     methods: {
         eventListener (event) {
-            const editorOrigin = this.device?.editor?.url
-                ? new URL(this.device.editor.url, window.location.origin).origin
-                : null
-            if (event.origin !== editorOrigin) return
-            if (event.data?.type === 'load' || event.data?.type === 'request-theme') this.registerEditorForThemeSync()
+            if (!this.editorOrigin || event.origin !== this.editorOrigin) {
+                return
+            }
+            switch (event.data?.type) {
+            case 'load':
+                this.emitMessage('prevent-redirect', true)
+                this.registerEditorForThemeSync()
+                break
+            case 'request-theme':
+                this.registerEditorForThemeSync()
+                break
+            case 'navigate':
+                window.location.href = event.data.payload
+                break
+            case 'logout':
+                if (this.device) {
+                    this.$router.push({ name: 'device-overview', params: { id: this.device.id } })
+                }
+                break
+            default:
+            }
         },
         registerEditorForThemeSync () {
             if (!isInstanceOnNR5Plus(this.device)) return
             this.$services.postMessage.registerEditorTarget({
                 target: this.$refs.iframe.contentWindow,
-                targetOrigin: this.device.editor.url
+                targetOrigin: this.editorOrigin
             })
+        },
+        emitMessage (type, payload = {}) {
+            if (this.$refs.iframe?.contentWindow && this.editorOrigin) {
+                this.$services.postMessage.sendMessage({
+                    message: { type, payload },
+                    target: this.$refs.iframe.contentWindow,
+                    targetOrigin: this.editorOrigin
+                })
+            }
         }
     }
 }

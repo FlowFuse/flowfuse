@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken')
 const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 
@@ -1541,6 +1542,34 @@ describe('Device API', async function () {
 @flowfuse-nodes:registry=https://localhost:1234/
 //localhost:1234:_auth="${newToken}"
 `)
+            })
+            describe('Extra Cataglogues from Certified Nodes Token', function () {
+                before(async function () {
+                    const authToken = Buffer.from('platform:verySecret').toString('base64')
+                    const jwtCertifiedToken = jwt.sign({
+                        token: authToken,
+                        catalogues: ['https://example.com/cat1.json', 'https://example.com/cat2.json']
+                    }, '', { algorithm: 'none' })
+                    await app.settings.set('platform:ff-npm-registry:token', jwtCertifiedToken)
+                })
+                it('include extra catalogues from Certified Node Token', async function () {
+                    await setTeamFlags(true, true)
+                    const device = await createDevice({ name: 'CertifiedNodes', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                    const newToken = Buffer.from(`platform/${TestObjects.ATeam.hashid}:verySecret`).toString('base64')
+                    const liveSettings = await getLiveSettings(device)
+                    liveSettings.palette.should.have.property('catalogues')
+                    liveSettings.palette.catalogues.should.containEql('https://localhost/cert-nodes-catalogue.json')
+                    liveSettings.palette.catalogues.should.containEql('https://localhost/ff-nodes-catalogue.json')
+                    liveSettings.palette.catalogues.should.containEql('https://example.com/cat1.json')
+                    liveSettings.palette.catalogues.should.containEql('https://example.com/cat2.json')
+                    liveSettings.palette.should.have.property('npmrc')
+                    liveSettings.palette.npmrc.should.equal(`@flowfuse-certified-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="${newToken}"
+
+@flowfuse-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="${newToken}"
+`)
+                })
             })
         })
 

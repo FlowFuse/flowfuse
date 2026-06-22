@@ -1,6 +1,6 @@
 import { expect } from 'vitest'
 
-import elapsedTime from '../../../../frontend/src/utils/elapsedTime.js'
+import elapsedTime from '../../../../frontend/src/utils/elapsedTime.ts'
 
 describe('elapsedTime', () => {
     test('reports the number of years, months, days between more than one day apart', () => {

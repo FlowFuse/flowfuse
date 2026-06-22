@@ -11,7 +11,7 @@ updates:
       interval: "weekly"
     cooldown:
       default-days: 1
-    open-pull-requests-limit: 30
+    open-pull-requests-limit: 50
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

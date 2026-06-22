@@ -1,4 +1,6 @@
-function isSnapshot (snapshot) {
+type SnapshotLike = Record<string, unknown>
+
+function isSnapshot (snapshot: SnapshotLike): boolean {
     // Ideally, we would use a JSON schema to validate the snapshot, but to minimise imports, we'll do it manually
     // const schema = {
     //     $schema: 'http://json-schema.org/draft-04/schema#',
@@ -32,14 +34,15 @@ function isSnapshot (snapshot) {
     //     required: ['id', 'name', 'description', 'flows', 'settings']
     // }
 
-    const hasProperty = (object, key) => {
+    const hasProperty = (object: SnapshotLike, key: string): boolean => {
         return Object.prototype.hasOwnProperty.call(object, key)
     }
-    const checkProperty = (object, key, propertyType, mustExist) => {
+    const checkProperty = (object: unknown, key: string, propertyType?: string, mustExist?: boolean): boolean => {
         if (!object) {
             throw new Error('Missing object')
         }
-        if (!hasProperty(object, key)) {
+        const record = object as SnapshotLike
+        if (!hasProperty(record, key)) {
             if (mustExist) {
                 throw new Error(`Missing required property: ${key}`)
             }
@@ -50,27 +53,27 @@ function isSnapshot (snapshot) {
         if (propertyType) {
             switch (propertyType) {
             case 'array':
-                if (!Array.isArray(object[key])) {
+                if (!Array.isArray(record[key])) {
                     throw new Error(`Property ${key} must be an array`)
                 }
                 break
             case 'string':
-                if (typeof object[key] !== 'string') {
+                if (typeof record[key] !== 'string') {
                     throw new Error(`Property ${key} must be a string`)
                 }
                 break
             case 'object':
-                if (typeof object[key] !== 'object') {
+                if (typeof record[key] !== 'object') {
                     throw new Error(`Property ${key} must be an object`)
                 }
                 break
             case 'number':
-                if (typeof object[key] !== 'number') {
+                if (typeof record[key] !== 'number') {
                     throw new Error(`Property ${key} must be a number`)
                 }
                 break
             case 'boolean':
-                if (typeof object[key] !== 'boolean') {
+                if (typeof record[key] !== 'boolean') {
                     throw new Error(`Property ${key} must be a boolean`)
                 }
                 break
@@ -102,8 +105,8 @@ function isSnapshot (snapshot) {
 }
 
 const AUTO_SNAPSHOT_PREFIX = 'Auto Snapshot' // Any changes to the format should be reflected in forge/db/controllers/ProjectSnapshot.js
-const nameRegex = (prefix) => new RegExp(`^${prefix} - \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$`)
-const isAutoSnapshot = (snapshot) => nameRegex(AUTO_SNAPSHOT_PREFIX).test(snapshot.name)
+const nameRegex = (prefix: string): RegExp => new RegExp(`^${prefix} - \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$`)
+const isAutoSnapshot = (snapshot: SnapshotLike): boolean => nameRegex(AUTO_SNAPSHOT_PREFIX).test(snapshot.name as string)
 
 export {
     isSnapshot,

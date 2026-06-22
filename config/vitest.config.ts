@@ -15,7 +15,7 @@ export default defineConfig({
     test: {
         globals: true,
         environment: 'jsdom',
-        exclude: [...configDefaults.exclude, 'coverage/*'],
+        exclude: [...configDefaults.exclude, 'coverage/*', '**/cypress/**', '**/dist/**'],
         coverage: {
             provider: 'istanbul',
             reportsDirectory: 'coverage/reports/frontend',

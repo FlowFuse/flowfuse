@@ -24,7 +24,11 @@ describe.skip('FlowFuse - RBAC Dashboard Contextual permissions', () => {
                 instances = response.body.projects
             })
             .then(() => {
-                cy.intercept('GET', `/api/*/teams/${team.id}/devices*`).as('getDevices')
+                cy.intercept({
+                    method: 'GET',
+                    pathname: `/api/v1/teams/${team.id}/devices`,
+                    query: { page: '1' }
+                }).as('getDevices')
                 cy.get('[data-nav="team-devices"]').click()
                 return cy.wait('@getDevices')
             })
