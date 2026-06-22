@@ -2,23 +2,11 @@
     <section class="editor-wrapper">
         <LoadingScreenWrapper
             v-if="shouldDisplayLoadingScreen"
-            :state="instance.meta?.state"
+            :state="loadingScreen.state"
+            :label="loadingScreen.label"
             :optimisticStateChange="instance.optimisticStateChange"
             :pendingStateChange="instance.pendingStateChange"
-        />
-
-        <LoadingScreenWrapper
-            v-else-if="isEditorDisabled"
-            state="editor-disabled"
-            label="Editor Disabled"
-            data-el="editor-disabled-empty-state"
-        />
-
-        <LoadingScreenWrapper
-            v-else-if="awaitingEditorRestart"
-            state="restart-required"
-            label="Restart Required"
-            data-el="editor-restart-required-empty-state"
+            :data-el="loadingScreen.dataEl"
         />
 
         <iframe
@@ -81,7 +69,7 @@ export default {
 
             return pendingState || optimisticStateChange
         },
-        shouldDisplayLoadingScreen () {
+        isInstanceLoading () {
             const unsafeStates = [
                 ...Object.values(States).filter(state => ![States.RUNNING, States.SAFE].includes(state)),
                 ...['suspending', 'suspended']
@@ -91,6 +79,21 @@ export default {
         },
         isEditorDisabled () {
             return !!this.instance.settings?.disableEditor
+        },
+        shouldDisplayLoadingScreen () {
+            return this.isInstanceLoading || this.isEditorDisabled || this.awaitingEditorRestart
+        },
+        loadingScreen () {
+            if (this.isInstanceLoading) {
+                return { state: this.instance.meta?.state, label: null, dataEl: null }
+            }
+            if (this.isEditorDisabled) {
+                return { state: 'editor-disabled', label: 'Editor Disabled', dataEl: 'editor-disabled-empty-state' }
+            }
+            if (this.awaitingEditorRestart) {
+                return { state: 'restart-required', label: 'Restart Required', dataEl: 'editor-restart-required-empty-state' }
+            }
+            return { state: this.instance.meta?.state, label: null, dataEl: null }
         }
     },
     watch: {
@@ -103,7 +106,7 @@ export default {
                 this.awaitingEditorRestart = false
             }
         },
-        shouldDisplayLoadingScreen (isLoading) {
+        isInstanceLoading (isLoading) {
             if (this.awaitingEditorRestart && isLoading) {
                 this.awaitingEditorRestart = false
             }
