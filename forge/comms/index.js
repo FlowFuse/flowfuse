@@ -72,11 +72,11 @@ module.exports = fp(async function (app, _opts) {
                     const msg = { reason: reason || null, srcId: srcId || null }
                     client.publish(`ff/v1/${teamHash}/u/${userHash}/membership`, JSON.stringify(msg))
                 },
-                notifyDeviceStatus: function (teamHash, id, state) {
+                notifyDeviceState: function (teamHash, id, state) {
                     if (!teamHash || !id) return
                     client.publish(`ff/v1/${teamHash}/d/${id}/state`, JSON.stringify({ id, meta: { state } }))
                 },
-                notifyInstanceStatus: function (teamHash, id, state) {
+                notifyInstanceState: function (teamHash, id, state) {
                     if (!teamHash || !id) return
                     client.publish(`ff/v1/${teamHash}/p/${id}/state`, JSON.stringify({ id, meta: { state } }))
                 }

@@ -535,7 +535,7 @@ describe('Project controller', function () {
         })
 
         it('broadcasts a launcher-reported state change to the team channel, only on change', async function () {
-            const notifySpy = sinon.spy(app.comms.team, 'notifyInstanceStatus')
+            const notifySpy = sinon.spy(app.comms.team, 'notifyInstanceState')
             const team = await app.db.models.Team.create({ name: 'Cache Status Team', TeamTypeId: 1 })
             const instance = await app.db.models.Project.create({ name: 'cache-status-p1', type: '', url: '', state: 'running', TeamId: team.id })
             notifySpy.resetHistory() // ignore the create-time save
@@ -554,7 +554,7 @@ describe('Project controller', function () {
         })
 
         it('broadcasts inflight transition states, then reverts when cleared', async function () {
-            const notifySpy = sinon.spy(app.comms.team, 'notifyInstanceStatus')
+            const notifySpy = sinon.spy(app.comms.team, 'notifyInstanceState')
             const team = await app.db.models.Team.create({ name: 'Inflight Status Team', TeamTypeId: 1 })
             const instance = await app.db.models.Project.create({ name: 'inflight-status-p1', type: '', url: '', state: 'running', TeamId: team.id })
             const teamHash = app.db.models.Team.encodeHashid(team.id)
@@ -574,7 +574,7 @@ describe('Project controller', function () {
         })
 
         it('serializes concurrent publishLiveState so a state is broadcast once', async function () {
-            const notifySpy = sinon.spy(app.comms.team, 'notifyInstanceStatus')
+            const notifySpy = sinon.spy(app.comms.team, 'notifyInstanceState')
             const team = await app.db.models.Team.create({ name: 'Serialize Status Team', TeamTypeId: 1 })
             const instance = await app.db.models.Project.create({ name: 'serialize-status-p1', type: '', url: '', state: 'running', TeamId: team.id })
             notifySpy.resetHistory() // ignore the create-time save (cached 'running')

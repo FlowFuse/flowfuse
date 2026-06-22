@@ -221,7 +221,7 @@ describe('DeviceCommsHandler', function () {
 
         it('forwards a team status notification only when the device state changes', async function () {
             const device = await app.factory.createDevice({ name: 'status-forward-device' }, TestObjects.ATeam)
-            const notifySpy = sinon.spy(app.comms.team, 'notifyDeviceStatus')
+            const notifySpy = sinon.spy(app.comms.team, 'notifyDeviceState')
             try {
                 // establish a known baseline regardless of the factory default state
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'stopped' }) })

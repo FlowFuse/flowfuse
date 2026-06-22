@@ -678,7 +678,7 @@ describe('Project model', function () {
             app = await setup()
         })
         beforeEach(function () {
-            notifySpy = sinon.spy(app.comms.team, 'notifyInstanceStatus')
+            notifySpy = sinon.spy(app.comms.team, 'notifyInstanceState')
         })
         afterEach(function () {
             notifySpy.restore()

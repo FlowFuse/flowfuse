@@ -439,7 +439,7 @@ export default {
             useAccountStore().setTeam(this.device.team.slug)
         },
         deviceRefresh: async function () {
-            if (this.pollTimer.running) {
+            if (this.pollTimer?.running) {
                 // If the poll timer is running, we don't need to manually refresh the device
                 return
             }

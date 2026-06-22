@@ -43,14 +43,18 @@ module.exports = {
     },
 
     _publishLiveStateUnlocked: async function (app, project) {
-        const inflight = await this.getInflightState(app, project)
-        const latest = await this.getLatestProjectState(app, project.id)
-        const effective = inflight ?? (project.state === 'suspended' ? 'suspended' : (latest ?? project.state))
-        if (!effective) return
-        const cache = app.caches.getCache(lastPublishedProjectState)
-        if (await cache.get(project.id) === effective) return
-        await cache.set(project.id, effective)
-        app.comms.team.notifyInstanceStatus(app.db.models.Team.encodeHashid(project.TeamId), project.id, effective)
+        try {
+            const inflight = await this.getInflightState(app, project)
+            const latest = await this.getLatestProjectState(app, project.id)
+            const effective = inflight ?? (project.state === 'suspended' ? 'suspended' : (latest ?? project.state))
+            if (!effective) return
+            const cache = app.caches.getCache(lastPublishedProjectState)
+            if (await cache.get(project.id) === effective) return
+            await cache.set(project.id, effective)
+            app.comms.team.notifyInstanceState(app.db.models.Team.encodeHashid(project.TeamId), project.id, effective)
+        } catch (err) {
+            app.log.warn(`Failed to broadcast live state for ${project.id}: ${err.toString()}`)
+        }
     },
 
     getProjectPaginationOptions: function (app, request) {

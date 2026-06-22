@@ -132,7 +132,7 @@ class DeviceCommsHandler {
                 }
 
                 if (payload.state !== previousState) {
-                    this.app.comms.team.notifyDeviceStatus(teamId, status.id, payload.state)
+                    this.app.comms.team.notifyDeviceState(teamId, status.id, payload.state)
                 }
 
                 // If the status state===unknown, the device is waiting for confirmation

@@ -140,7 +140,7 @@ module.exports = function (app) {
                 return false
             }
         },
-        checkTeamStatusSub: async function (requestParts, usernameParts) {
+        checkTeamStateSub: async function (requestParts, usernameParts) {
             // requestParts = [ fullTopic , <teamHash> , <entityId|'+'> ]
             // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
             // team-wide status wildcard: gate on team membership only. requestParts[2]
@@ -425,9 +425,9 @@ module.exports = function (app) {
                 // - ff/v1/<team>/u/<user>/membership
                 { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkUserIsTeamMember' },
                 // - ff/v1/<team>/p/+/state
-                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/state$/, verify: 'checkTeamStatusSub' },
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/state$/, verify: 'checkTeamStateSub' },
                 // - ff/v1/<team>/d/+/state
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/state$/, verify: 'checkTeamStatusSub' }
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/state$/, verify: 'checkTeamStateSub' }
             ],
             pub: []
         },
