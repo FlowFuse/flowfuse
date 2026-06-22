@@ -53,7 +53,8 @@ module.exports = {
             get () {
                 return this.ownerType === 'application'
             }
-        }
+        },
+        nodejsVersion: { type: DataTypes.STRING, allowNull: true }
     },
     associations: function (M) {
         this.belongsTo(M.Application)
@@ -404,7 +405,13 @@ module.exports = {
                     if (SemVer.satisfies(SemVer.coerce(this.agentVersion), '>=1.11.2')) {
                         // 1.11.2 includes fix for ESM loading of GOT, so lets use 'latest' as before
                         // pinning to NR 4.1.x while we fix the device agent
-                        nodeRedVersion = '~4.1.11'
+                        if (this.nodejsVersion) {
+                            if (SemVer.satisfies(SemVer.coerce(this.nodejsVersion), '>=22.9.0')) {
+                                nodeRedVersion = 'latest'
+                            }
+                        } else {
+                            nodeRedVersion = '~4.1.11'
+                        }
                     }
                     return nodeRedVersion
                 },
