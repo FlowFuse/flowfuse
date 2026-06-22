@@ -9,7 +9,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const { VueLoaderPlugin } = require('vue-loader')
 const { DefinePlugin } = require('webpack')
 
-require('dotenv').config()
+require('dotenv').config({ quiet: true })
 
 function getPath (file) {
     return path.resolve(__dirname, '..', file)
