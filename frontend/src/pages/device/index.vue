@@ -169,6 +169,7 @@ import DeviceModeBadge from './components/DeviceModeBadge.vue'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useLiveStatusStore } from '@/stores/live-status'
 
 import { useUxStore } from '@/stores/ux.js'
 
@@ -227,6 +228,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useLiveStatusStore, { liveDeviceStatuses: 'deviceStatuses', statusChannelLive: 'live' }),
         actionsButtonKind () {
             switch (true) {
             case this.neverConnected:
@@ -363,7 +365,17 @@ export default {
         }
     },
     watch: {
-        device: 'deviceChanged'
+        device: 'deviceChanged',
+        liveDeviceStatuses: { handler: 'applyLiveStatus', deep: true },
+        statusChannelLive (live) {
+            if (live) {
+                this.pollTimer?.stop()
+            } else if (this.pollTimer) {
+                this.pollTimer.start()
+            } else {
+                this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
+            }
+        }
     },
     async mounted () {
         this.mounted = true
@@ -380,6 +392,11 @@ export default {
     methods: {
         ...mapActions(useUxStore, ['validateUserAction']),
         ...mapActions(useContextStore, { setContextualDevice: 'setDevice' }),
+        applyLiveStatus () {
+            const state = this.liveDeviceStatuses[this.device?.id]
+            if (!state || this.device?.status === state) return
+            this.device = { ...this.device, status: state }
+        },
         pollTimerElapsed: async function () {
             // Only refresh device via the timer if we are on the overview page, developer mode page
             // the device status is empty or the device is in a transition state
@@ -410,7 +427,7 @@ export default {
                     return this.$router.push({ name: 'Home' })
                 }
             }
-            if (!this.pollTimer) {
+            if (!this.pollTimer && !this.statusChannelLive) {
                 this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
             }
 
