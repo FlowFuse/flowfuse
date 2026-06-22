@@ -178,7 +178,7 @@
         "should": "^13.2.3",
         "should-sinon": "^0.0.6",
         "sinon": "^22.0.0",
-        "style-loader": "^3.3.3",
+        "style-loader": "^4.0.0",
         "tailwindcss": "^4.2.4",
         "ts-loader": "^9.5.7",
         "typescript": "^5.9.3",
