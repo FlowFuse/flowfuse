@@ -16,6 +16,8 @@ const inflightDeploys = 'project-inflightDeploys'
 
 const lastPublishedProjectState = 'project-lastPublishedProjectState'
 
+const publishLocks = new Map()
+
 module.exports = {
 
     init (app) {
@@ -25,9 +27,22 @@ module.exports = {
         app.caches.createCache(lastPublishedProjectState)
     },
 
-    // NOLEY TODO: this has issues with restarting states
+    // serialized per project so concurrent callers can't intermix and strand a stale state
     publishLiveState: async function (app, project) {
         if (!app.comms || !project?.TeamId) return
+        const key = project.id
+        const previous = publishLocks.get(key) ?? Promise.resolve()
+        const current = previous.catch(() => {}).then(() => this._publishLiveStateUnlocked(app, project))
+        const tracked = current.finally(() => {
+            if (publishLocks.get(key) === tracked) {
+                publishLocks.delete(key)
+            }
+        })
+        publishLocks.set(key, tracked)
+        return tracked
+    },
+
+    _publishLiveStateUnlocked: async function (app, project) {
         const inflight = await this.getInflightState(app, project)
         const latest = await this.getLatestProjectState(app, project.id)
         const effective = inflight ?? (project.state === 'suspended' ? 'suspended' : (latest ?? project.state))

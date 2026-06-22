@@ -14,7 +14,8 @@ describe('Project controller', function () {
     before(async function () {
         app = await setup({
             limits: {
-                instances: 50
+                instances: 50,
+                teams: 50
             }
         })
     })
@@ -562,6 +563,28 @@ describe('Project controller', function () {
                 notifySpy.resetHistory()
                 await app.db.controllers.Project.clearInflightState(instance)
                 notifySpy.calledWith(teamHash, instance.id, 'running').should.be.true()
+            } finally {
+                notifySpy.restore()
+            }
+        })
+
+        it('serializes concurrent publishLiveState so a state is broadcast once', async function () {
+            const notifySpy = sinon.spy(app.comms.team, 'notifyInstanceStatus')
+            const team = await app.db.models.Team.create({ name: 'Serialize Status Team', TeamTypeId: 1 })
+            const instance = await app.db.models.Project.create({ name: 'serialize-status-p1', type: '', url: '', state: 'running', TeamId: team.id })
+            notifySpy.resetHistory() // ignore the create-time save (cached 'running')
+            try {
+                // make the effective state 'stopped' without publishing it
+                await app.db.controllers.Project.setLatestProjectState(instance.id, 'stopped')
+                // two concurrent publishes: without serialization both read the stale
+                // 'running' cache and broadcast 'stopped' twice; serialized, the second
+                // sees the first's write and skips
+                await Promise.all([
+                    app.db.controllers.Project.publishLiveState(instance),
+                    app.db.controllers.Project.publishLiveState(instance)
+                ])
+                notifySpy.calledOnce.should.be.true()
+                notifySpy.firstCall.args.should.eql([app.db.models.Team.encodeHashid(team.id), instance.id, 'stopped'])
             } finally {
                 notifySpy.restore()
             }
