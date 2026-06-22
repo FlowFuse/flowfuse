@@ -107,7 +107,19 @@ module.exports = {
                 async targetSet (actionedBy, error, device, snapshot) {
                     await log('device.snapshot.target-set', actionedBy, device?.id, generateBody({ error, device, snapshot }))
                 }
+            },
+            httpToken: {
+                async created (actionedBy, error, device, token) {
+                    await log('device.httpToken.created', actionedBy, device?.id, generateBody({ error, device, token }))
+                },
+                async updated (actionedBy, error, device, updates) {
+                    await log('device.httpToken.updated', actionedBy, device?.id, generateBody({ error, device, updates }))
+                },
+                async deleted (actionedBy, error, device, token) {
+                    await log('device.httpToken.deleted', actionedBy, device?.id, generateBody({ error, device, token }))
+                }
             }
+
         }
 
         const log = async (event, actionedBy, deviceId, body) => {
