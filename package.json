@@ -64,7 +64,7 @@
         "@fastify/helmet": "^13.0.2",
         "@fastify/multipart": "^9.3.0",
         "@fastify/passport": "^3.0.2",
-        "@fastify/rate-limit": "^10.3.0",
+        "@fastify/rate-limit": "^11.0.0",
         "@fastify/routes": "^6.0.2",
         "@fastify/static": "^9.1.2",
         "@fastify/swagger": "^9.6.1",
