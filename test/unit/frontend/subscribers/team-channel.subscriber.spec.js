@@ -155,7 +155,7 @@ describe('TeamChannelSubscriber', async () => {
     })
 
     describe('subscribe on connect', () => {
-        test('subscribes to t/updated, membership and the status wildcards with qos 1', async () => {
+        test('subscribes to t/updated, membership and the state wildcards with qos 1', async () => {
             const { subscriber, transport } = createSubscriber()
             let onConnect
             transport.connect.mockImplementation(async (_key, opts) => {
@@ -168,8 +168,8 @@ describe('TeamChannelSubscriber', async () => {
                 [
                     'ff/v1/team-1/t/updated',
                     'ff/v1/team-1/u/user-hashid-1/membership',
-                    'ff/v1/team-1/p/+/status',
-                    'ff/v1/team-1/d/+/status'
+                    'ff/v1/team-1/p/+/state',
+                    'ff/v1/team-1/d/+/state'
                 ],
                 { qos: 1 }
             )
@@ -254,24 +254,24 @@ describe('TeamChannelSubscriber', async () => {
             expect(onTeamChannelMembership).not.toHaveBeenCalled()
         })
 
-        test('instance status routes id + state into setInstanceStatus', async () => {
+        test('instance state routes id + state into setInstanceStatus', async () => {
             const { onMessage } = await connectAndCaptureOnMessage()
-            onMessage('ff/v1/team-1/p/inst-1/status', Buffer.from(JSON.stringify({ id: 'inst-1', meta: { state: 'running' } })))
+            onMessage('ff/v1/team-1/p/inst-1/state', Buffer.from(JSON.stringify({ id: 'inst-1', meta: { state: 'running' } })))
             expect(setInstanceStatus).toHaveBeenCalledWith('inst-1', 'running')
             expect(setDeviceStatus).not.toHaveBeenCalled()
         })
 
-        test('device status routes id + state into setDeviceStatus', async () => {
+        test('device state routes id + state into setDeviceStatus', async () => {
             const { onMessage } = await connectAndCaptureOnMessage()
-            onMessage('ff/v1/team-1/d/dev-1/status', Buffer.from(JSON.stringify({ id: 'dev-1', meta: { state: 'stopped' } })))
+            onMessage('ff/v1/team-1/d/dev-1/state', Buffer.from(JSON.stringify({ id: 'dev-1', meta: { state: 'stopped' } })))
             expect(setDeviceStatus).toHaveBeenCalledWith('dev-1', 'stopped')
             expect(setInstanceStatus).not.toHaveBeenCalled()
         })
 
-        test('ignores a status message missing id or state', async () => {
+        test('ignores a state message missing id or state', async () => {
             const { onMessage } = await connectAndCaptureOnMessage()
-            onMessage('ff/v1/team-1/p/inst-1/status', Buffer.from(JSON.stringify({ id: 'inst-1' })))
-            onMessage('ff/v1/team-1/d/dev-1/status', Buffer.from(JSON.stringify({ meta: { state: 'running' } })))
+            onMessage('ff/v1/team-1/p/inst-1/state', Buffer.from(JSON.stringify({ id: 'inst-1' })))
+            onMessage('ff/v1/team-1/d/dev-1/state', Buffer.from(JSON.stringify({ meta: { state: 'running' } })))
             expect(setInstanceStatus).not.toHaveBeenCalled()
             expect(setDeviceStatus).not.toHaveBeenCalled()
         })

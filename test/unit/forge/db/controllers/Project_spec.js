@@ -511,21 +511,26 @@ describe('Project controller', function () {
         })
 
         it('should update non-definitive project states while removing definitive ones', async () => {
-            app.db.controllers.Project.setLatestProjectState('project-id', 'status')
+            // updateLatestProjectState loads the project (to broadcast), so use a real id like the launcher does
+            const team = await app.db.models.Team.create({ name: 'Latest State Team', TeamTypeId: 1 })
+            const instance = await app.db.models.Project.create({ name: 'latest-state-p1', type: '', url: '', state: 'running', TeamId: team.id })
+            const id = instance.id
 
-            let tempResult = await app.db.controllers.Project.getLatestProjectState('project-id')
+            app.db.controllers.Project.setLatestProjectState(id, 'status')
+
+            let tempResult = await app.db.controllers.Project.getLatestProjectState(id)
             should(tempResult).equal('status')
 
-            await app.db.controllers.Project.updateLatestProjectState('project-id', 'running')
-            tempResult = await app.db.controllers.Project.getLatestProjectState('project-id')
+            await app.db.controllers.Project.updateLatestProjectState(id, 'running')
+            tempResult = await app.db.controllers.Project.getLatestProjectState(id)
             should(tempResult).be.undefined()
 
-            await app.db.controllers.Project.updateLatestProjectState('project-id', 'status')
-            tempResult = await app.db.controllers.Project.getLatestProjectState('project-id')
+            await app.db.controllers.Project.updateLatestProjectState(id, 'status')
+            tempResult = await app.db.controllers.Project.getLatestProjectState(id)
             should(tempResult).equal('status')
 
-            await app.db.controllers.Project.updateLatestProjectState('project-id', 'stopped')
-            tempResult = await app.db.controllers.Project.getLatestProjectState('project-id')
+            await app.db.controllers.Project.updateLatestProjectState(id, 'stopped')
+            tempResult = await app.db.controllers.Project.getLatestProjectState(id)
             should(tempResult).equal('stopped')
         })
 

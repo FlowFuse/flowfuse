@@ -356,9 +356,10 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/[^/]+\/t\/updated$/ },
                 // - ff/v1/<team>/u/<user>/membership
                 { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/membership$/ },
-                // - ff/v1/<team>/p/<instance>/status
-                { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/status$/ },
-                // TODO NOLEY: devices here too
+                // - ff/v1/<team>/p/<instance>/state
+                { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/state$/ },
+                // - ff/v1/<team>/d/<device>/state
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/state$/ },
                 // ff/v1/platform/sync
                 { topic: /^ff\/v1\/platform\/sync$/ },
                 // ff/v1/platform/leader
@@ -423,10 +424,10 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/t\/updated$/, verify: 'checkUserIsTeamMember' },
                 // - ff/v1/<team>/u/<user>/membership
                 { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkUserIsTeamMember' },
-                // - ff/v1/<team>/p/+/status
-                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/status$/, verify: 'checkTeamStatusSub' },
-                // - ff/v1/<team>/d/+/status
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/status$/, verify: 'checkTeamStatusSub' }
+                // - ff/v1/<team>/p/+/state
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/state$/, verify: 'checkTeamStatusSub' },
+                // - ff/v1/<team>/d/+/state
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/state$/, verify: 'checkTeamStatusSub' }
             ],
             pub: []
         },

@@ -74,11 +74,11 @@ module.exports = fp(async function (app, _opts) {
                 },
                 notifyDeviceStatus: function (teamHash, id, state) {
                     if (!teamHash || !id) return
-                    client.publish(`ff/v1/${teamHash}/d/${id}/status`, JSON.stringify({ id, meta: { state } }))
+                    client.publish(`ff/v1/${teamHash}/d/${id}/state`, JSON.stringify({ id, meta: { state } }))
                 },
                 notifyInstanceStatus: function (teamHash, id, state) {
                     if (!teamHash || !id) return
-                    client.publish(`ff/v1/${teamHash}/p/${id}/status`, JSON.stringify({ id, meta: { state } }))
+                    client.publish(`ff/v1/${teamHash}/p/${id}/state`, JSON.stringify({ id, meta: { state } }))
                 }
             }
         })

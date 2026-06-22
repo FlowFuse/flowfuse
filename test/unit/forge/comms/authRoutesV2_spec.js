@@ -1376,40 +1376,40 @@ describe('Broker Auth v2 API', async function () {
                     topic: teamUpdatedTopic
                 })
             })
-            it('allows a team member to subscribe to the team instance-status wildcard', async function () {
+            it('allows a team member to subscribe to the team instance-state wildcard', async function () {
                 await allowRead({
                     username: teamFrontendUsername,
-                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/status`
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/state`
                 })
             })
-            it('allows a team member to subscribe to the team device-status wildcard', async function () {
+            it('allows a team member to subscribe to the team device-state wildcard', async function () {
                 await allowRead({
                     username: teamFrontendUsername,
-                    topic: `ff/v1/${TestObjects.ATeam.hashid}/d/+/status`
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/d/+/state`
                 })
             })
-            it('denies subscribe to another team\'s status wildcard', async function () {
+            it('denies subscribe to another team\'s state wildcard', async function () {
                 await denyRead({
                     username: teamFrontendUsername,
-                    topic: `ff/v1/${otherTeam.hashid}/p/+/status`
+                    topic: `ff/v1/${otherTeam.hashid}/p/+/state`
                 })
                 await denyRead({
                     username: teamFrontendUsername,
-                    topic: `ff/v1/${otherTeam.hashid}/d/+/status`
+                    topic: `ff/v1/${otherTeam.hashid}/d/+/state`
                 })
             })
-            it('denies status subscribe for a user who is not a member of the team', async function () {
+            it('denies state subscribe for a user who is not a member of the team', async function () {
                 const dave = await factory.createUser({ username: 'dave', name: 'Dave', email: 'dave@example.com', password: 'ddPassword1!' })
                 const daveUsername = `fe-team:${dave.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
                 await denyRead({
                     username: daveUsername,
-                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/status`
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/state`
                 })
             })
-            it('denies fe-team from publishing to status (read-only client)', async function () {
+            it('denies fe-team from publishing to state (read-only client)', async function () {
                 await denyWrite({
                     username: teamFrontendUsername,
-                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/status`
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/state`
                 })
             })
             it('denies fe-team from publishing (read-only client)', async function () {
@@ -1426,6 +1426,16 @@ describe('Broker Auth v2 API', async function () {
                 await allowWrite({
                     username: 'forge_platform',
                     topic: membershipTopic
+                })
+            })
+            it('allows forge_platform to publish the reshaped instance/device state topics', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/an-instance/state`
+                })
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/d/a-device/state`
                 })
             })
             it('denies subscribe when the credential\'s team hash does not resolve to a team', async function () {

@@ -9,8 +9,8 @@ import type { CreateSubscriberOptions, TeamChannelSubscriberI, TeamRef } from '@
 
 const MEMBERSHIP_TOPIC_REGEX = /^ff\/v1\/[^/]+\/u\/([^/]+)\/membership$/
 const TEAM_UPDATED_TOPIC_REGEX = /^ff\/v1\/[^/]+\/t\/updated$/
-const DEVICE_STATUS_UPDATED_TOPIC_REGEX = /^ff\/v1\/[^/]+\/d\/[^/]+\/status$/
-const INSTANCE_STATUS_UPDATED_TOPIC_REGEX = /^ff\/v1\/[^/]+\/p\/[^/]+\/status$/
+const DEVICE_STATE_TOPIC_REGEX = /^ff\/v1\/[^/]+\/d\/[^/]+\/state$/
+const INSTANCE_STATE_TOPIC_REGEX = /^ff\/v1\/[^/]+\/p\/[^/]+\/state$/
 
 function connectionKey (teamId: string): string {
     return `team:${teamId}`
@@ -93,8 +93,8 @@ class TeamChannelSubscriber extends BaseSubscriber implements TeamChannelSubscri
             await transport.subscribe(connectionKey(teamId), [
                 `ff/v1/${teamId}/t/updated`,
                 `ff/v1/${teamId}/u/${userId}/membership`,
-                `ff/v1/${teamId}/p/+/status`,
-                `ff/v1/${teamId}/d/+/status`
+                `ff/v1/${teamId}/p/+/state`,
+                `ff/v1/${teamId}/d/+/state`
             ], { qos: 1 })
 
             useLiveStatusStore().setLive(true)
@@ -128,8 +128,8 @@ class TeamChannelSubscriber extends BaseSubscriber implements TeamChannelSubscri
         return [
             { pattern: MEMBERSHIP_TOPIC_REGEX, handle: (payload) => this._onMembership(payload) },
             { pattern: TEAM_UPDATED_TOPIC_REGEX, handle: () => this._onTeamUpdated() },
-            { pattern: DEVICE_STATUS_UPDATED_TOPIC_REGEX, handle: (payload) => this._onDeviceStatus(payload) },
-            { pattern: INSTANCE_STATUS_UPDATED_TOPIC_REGEX, handle: (payload) => this._onInstanceStatus(payload) }
+            { pattern: DEVICE_STATE_TOPIC_REGEX, handle: (payload) => this._onDeviceStatus(payload) },
+            { pattern: INSTANCE_STATE_TOPIC_REGEX, handle: (payload) => this._onInstanceStatus(payload) }
         ]
     }
 
