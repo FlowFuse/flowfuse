@@ -668,13 +668,14 @@ describe('Project model', function () {
     })
 
     describe('Status change broadcast (afterSave hook)', function () {
-        let app
         let notifySpy
         before(async function () {
+            await app.close()
             app = await setup({ limits: { instances: 20 } })
         })
         after(async function () {
             await app.close()
+            app = await setup()
         })
         beforeEach(function () {
             notifySpy = sinon.spy(app.comms.team, 'notifyInstanceStatus')
