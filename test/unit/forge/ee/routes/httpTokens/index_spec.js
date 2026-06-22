@@ -277,7 +277,7 @@ describe('NR HTTP Bearer Tokens', function () {
         body.tokens[0].name.should.equal('other')
     })
 
-    it('non-team owner cannot modify/delete token', async function () {
+    it('non-team owner cannot modify/delete token - instance', async function () {
         await login('bob', 'bbPassword')
 
         const response = await app.inject({
@@ -303,7 +303,7 @@ describe('NR HTTP Bearer Tokens', function () {
         })
         modifyResponse1.statusCode.should.equal(403)
 
-        // Verify bob (team-member) cannot modify
+        // Verify bob (team-member) cannot delete
         const deleteResponse = await app.inject({
             method: 'DELETE',
             url: `/api/v1/projects/${TestObjects.project.id}/httpTokens/${token.id}`,
@@ -311,8 +311,42 @@ describe('NR HTTP Bearer Tokens', function () {
         })
         deleteResponse.statusCode.should.equal(403)
     })
+    it('non-team owner cannot modify/delete token - device', async function () {
+        await login('bob', 'bbPassword')
 
-    it('cannot modify/delete token across-teams', async function () {
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/devices/${TestObjects.device.hashid}/httpTokens`,
+            payload: {
+                name: 'foo-device',
+                scope: ''
+            },
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        response.statusCode.should.equal(200)
+        const token = await response.json()
+
+        // Verify bob (team-member) cannot modify
+        const modifyResponse1 = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/devices/${TestObjects.device.hashid}/httpTokens/${token.id}`,
+            payload: {
+                name: 'foo'
+            },
+            cookies: { sid: TestObjects.tokens.bob }
+        })
+        modifyResponse1.statusCode.should.equal(403)
+
+        // Verify bob (team-member) cannot delete
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/devices/${TestObjects.device.hashid}/httpTokens/${token.id}`,
+            cookies: { sid: TestObjects.tokens.bob }
+        })
+        deleteResponse.statusCode.should.equal(403)
+    })
+
+    it('cannot modify/delete token across-teams - instance', async function () {
         // Create a new instance
         const instanceResponse = await app.inject({
             method: 'POST',
@@ -356,6 +390,52 @@ describe('NR HTTP Bearer Tokens', function () {
         const deleteResponse = await app.inject({
             method: 'DELETE',
             url: `/api/v1/projects/${instance2.id}/httpTokens/${token.id}`,
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        deleteResponse.statusCode.should.equal(404)
+    })
+    it('cannot modify/delete token across-teams - device', async function () {
+        // Create a new instance
+        const deviceResponse = await app.inject({
+            method: 'POST',
+            url: '/api/v1/devices',
+            body: {
+                name: 'test-device-1',
+                type: 'test-type',
+                team: TestObjects.BTeam.hashid
+            },
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        const device2 = deviceResponse.json()
+
+        // Create token for instance 1
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/devices/${TestObjects.device.hashid}/httpTokens`,
+            payload: {
+                name: 'foo-device',
+                scope: ''
+            },
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        response.statusCode.should.equal(200)
+        const token = await response.json()
+
+        // Verify cannot modify when referenced under instance2
+        const modifyResponse1 = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/devices/${device2.id}/httpTokens/${token.id}`,
+            payload: {
+                name: 'foo'
+            },
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        modifyResponse1.statusCode.should.equal(404)
+
+        // Verify cannot delete when referenced under instance2
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/devices/${device2.id}/httpTokens/${token.id}`,
             cookies: { sid: TestObjects.tokens.alice }
         })
         deleteResponse.statusCode.should.equal(404)
