@@ -45,13 +45,16 @@ module.exports = {
                 }
             }
         },
-        name: { type: DataTypes.STRING }
+        name: { type: DataTypes.STRING },
+        readOnly: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false },
+        adminOptIn: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false }
     },
     associations: function (M) {
         this.belongsTo(M.Team, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.Project, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.User, { foreignKey: 'ownerId', constraints: false })
+        this.hasMany(M.AccessTokenTeamScope)
     },
     finders: function (M) {
         return {
@@ -112,7 +115,14 @@ module.exports = {
                             name: { [Op.ne]: null }
                         },
                         order: [['id', 'ASC']],
-                        attributes: ['id', 'name', 'scope', 'expiresAt']
+                        attributes: ['id', 'name', 'scope', 'expiresAt', 'readOnly', 'adminOptIn'],
+                        include: [{
+                            model: M.AccessTokenTeamScope,
+                            include: [{
+                                model: M.Team,
+                                attributes: ['id', 'name']
+                            }]
+                        }]
                     })
                     return tokens
                 },
