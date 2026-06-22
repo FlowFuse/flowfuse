@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { CheckCircleIcon, EyeIcon, XCircleIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, EyeIcon, XCircleIcon } from '@heroicons/vue/24/outline'
 import { defineComponent } from 'vue'
 
 import { capitalize } from '../../../../../../composables/strings/String.js'
@@ -93,7 +93,7 @@ export default {
                             }
                         },
                         template: `
-                            <div class="p-4 border border-indigo-100 bg-indigo-50 rounded-md shadow-sm overflow-auto text-indigo-600" style="max-height: 70vh;">
+                            <div class="p-4 border border-indigo-100 bg-indigo-50 rounded-md shadow-xs overflow-auto text-indigo-600" style="max-height: 70vh;">
                                 <object-properties :properties="properties"/>
                             </div>`
                     })
@@ -111,19 +111,19 @@ export default {
 .suggestion {
     .content {
         .format {
-            color: $ff-indigo-500;
+            color: var(--ff-color-focus);
         }
     }
 
     .actions {
         .preview {
-            color: $ff-grey-500
+            color: var(--ff-color-text-subtle)
         }
         .accept {
-            color: $ff-green-500
+            color: var(--ff-color-success)
         }
         .reject {
-            color: $ff-red-500
+            color: var(--ff-color-danger)
         }
     }
 }

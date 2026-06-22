@@ -9,13 +9,13 @@
         <div class="content-wrapper">
             <div class="search-wrapper">
                 <ff-button class="close-button" size="small" kind="secondary">
-                    <XIcon class="ff-icon-sm" @click="deFocusSearch" />
+                    <XMarkIcon class="ff-icon-sm" @click="deFocusSearch" />
                 </ff-button>
 
                 <div class="input-wrapper">
                     <transition name="primary-fade" mode="out-in">
                         <SpinnerIcon v-if="loading" class="ff-icon-sm search" />
-                        <SearchIcon v-else class="ff-icon-sm search" />
+                        <MagnifyingGlassIcon v-else class="ff-icon-sm search" />
                     </transition>
 
                     <SearchTrigger @interacted="focusSearch" />
@@ -29,7 +29,7 @@
                         placeholder="Search your team (CTRL + K)"
                     >
                     <transition name="fade" mode="out-in">
-                        <XIcon v-if="query.length && isFocused" class="ff-icon-sm close cursor-pointer" @click="resetSearch" />
+                        <XMarkIcon v-if="query.length && isFocused" class="ff-icon-sm close cursor-pointer" @click="resetSearch" />
                     </transition>
                 </div>
             </div>
@@ -38,7 +38,7 @@
                 <result-section
                     v-if="resApplication.length > 0"
                     title="Applications"
-                    :icon="TemplateIcon"
+                    :icon="RectangleGroupIcon"
                     :results="resApplication"
                     :query="query"
                     result-type="application"
@@ -46,7 +46,7 @@
                     @result-selected="handleSelectedResult"
                 >
                     <template #result-icon>
-                        <TemplateIcon class="ff-icon-sm" />
+                        <RectangleGroupIcon class="ff-icon-sm" />
                     </template>
                     <template #result-actions="{item}">
                         <span class="result-badge">
@@ -54,7 +54,7 @@
                             <span class="truncate">{{ item.instanceCount }}</span>
                         </span>
                         <span class="result-badge">
-                            <ChipIcon class="ff-icon-sm" />
+                            <CpuChipIcon class="ff-icon-sm" />
                             <span class="truncate">{{ item.deviceCount }}</span>
                         </span>
                         <span class="result-badge">
@@ -91,7 +91,7 @@
 
                 <result-section
                     v-if="resDevices.length > 0"
-                    title="Devices" :icon="ChipIcon"
+                    title="Devices" :icon="CpuChipIcon"
                     :results="resDevices"
                     :query="query"
                     result-type="device"
@@ -108,7 +108,7 @@
 </template>
 
 <script>
-import { ChipIcon, ClockIcon, SearchIcon, TemplateIcon, XIcon } from '@heroicons/vue/outline'
+import { ClockIcon, CpuChipIcon, MagnifyingGlassIcon, RectangleGroupIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 
@@ -130,12 +130,12 @@ export default {
         SearchTrigger,
         InstanceStatusBadge,
         ResultSection,
-        SearchIcon,
+        MagnifyingGlassIcon,
         SpinnerIcon,
-        XIcon,
-        TemplateIcon,
+        XMarkIcon,
+        RectangleGroupIcon,
         ProjectsIcon,
-        ChipIcon,
+        CpuChipIcon,
         ClockIcon,
         PipelinesIcon
     },
@@ -162,8 +162,8 @@ export default {
             return this.results.length > 0
         },
         ProjectsIcon,
-        TemplateIcon,
-        ChipIcon
+        RectangleGroupIcon,
+        CpuChipIcon
     },
     watch: {
         query (newVal, oldVal) {
@@ -311,7 +311,7 @@ export default {
             .mobile-search {
                 display: none;
                 cursor: pointer;
-                color: $ff-white;
+                color: var(--ff-color-text-on-brand);
                 min-width: 20px;
                 min-height: 20px;
             }
@@ -329,7 +329,7 @@ export default {
 
                 .ff-icon-sm.close,
                 .ff-icon-sm.search {
-                    color: $ff-grey-400;
+                    color: var(--ff-color-text-subtle);
                     position: absolute;
                     z-index: 1;
                     top: 8px;
@@ -346,8 +346,8 @@ export default {
                 input {
                     color: transparent;
                     padding: 6px 27px;
-                    background: $ff-grey-50;
-                    border-color: $ff-color--border;
+                    background: var(--ff-color-bg-surface);
+                    border-color: var(--ff-color-border);
                     width: 100%;
                     line-height: 20px;
                     height: 34px;
@@ -361,7 +361,7 @@ export default {
         }
 
         .results-wrapper {
-            background: $ff-white;
+            background: var(--ff-color-bg-app);
             min-width: 100%;
             z-index: 120;
             padding: 5px 5px 15px 5px;
@@ -374,10 +374,10 @@ export default {
                 justify-content: center;
                 align-items: center;
                 gap: 5px;
-                border: 1px solid $ff-indigo-700;
-                color: $ff-indigo-700;
+                border: 1px solid var(--ff-color-accent-hover);
+                color: var(--ff-color-accent-hover);
                 border-radius: 5px;
-                background: $ff-white;
+                background: var(--ff-color-bg-app);
             }
         }
     }
@@ -386,7 +386,7 @@ export default {
         .content-wrapper {
             position: fixed;
             width: 60vw;
-            background: white;
+            background: var(--ff-color-bg-app);
             top: 15px;
             left: 20vw;
             z-index: 120;
@@ -397,13 +397,13 @@ export default {
                 .input-wrapper {
                     .ff-icon-sm.search,
                     .ff-icon-sm.close {
-                        color: $ff-grey-500;
+                        color: var(--ff-color-text-subtle);
                     }
 
                     input {
-                        color: $ff-grey-500;
+                        color: var(--ff-color-text-subtle);
                         flex: 1;
-                        background: white;
+                        background: var(--ff-color-bg-app);
                         display: none;
                         width: 100%;
 
@@ -540,7 +540,7 @@ export default {
                     }
                     .icon {
                         .forge-badge {
-                            background: $ff-white;
+                            background: var(--ff-color-bg-app);
                         }
                     }
                 }

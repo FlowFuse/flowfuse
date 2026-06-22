@@ -35,7 +35,7 @@
             </div>
         </div>
 
-        <table class="w-full max-w-2xl table-fixed text-sm rounded overflow-hidden">
+        <table class="w-full max-w-2xl table-fixed text-sm rounded-sm overflow-hidden">
             <thead>
                 <tr class="font-medium">
                     <td class="border bg-gray-100 p-2 w-auto">Module</td>
@@ -73,7 +73,7 @@
                                     <div v-if="!readOnly && item.local && item.editing" class="flex items-center pt-1">
                                         <ff-button kind="tertiary" size="small" @click="cancelEditModule(itemIdx)">
                                             <template #icon>
-                                                <XIcon />
+                                                <XMarkIcon />
                                             </template>
                                         </ff-button>
                                     </div>
@@ -108,7 +108,7 @@
                         <ff-button kind="primary" size="small" @click="showAddModule()">
                             Add module
                             <template #icon>
-                                <PlusSmIcon />
+                                <PlusSmallIcon />
                             </template>
                         </ff-button>
                     </td>
@@ -134,7 +134,7 @@
                             </ff-button>
                             <ff-button kind="secondary" size="small" @click="cancelAddModule()">
                                 <template #icon>
-                                    <XIcon />
+                                    <XMarkIcon />
                                 </template>
                             </ff-button>
                         </div>
@@ -148,7 +148,8 @@
 
 <script>
 
-import { CheckIcon, LockClosedIcon, PencilIcon, PlusSmIcon, TrashIcon, XIcon } from '@heroicons/vue/outline'
+import { CheckIcon, LockClosedIcon, PencilIcon, PlusSmallIcon, TrashIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import validate from 'validate-npm-package-name'
 
 import { BUILT_IN_MODULES } from '../../../../../../forge/lib/builtInModules.js'
 
@@ -164,9 +165,9 @@ export default {
         ChangeIndicator,
         TrashIcon,
         PencilIcon,
-        PlusSmIcon,
+        PlusSmallIcon,
         LockClosedIcon,
-        XIcon,
+        XMarkIcon,
         CheckIcon
     },
     props: {
@@ -275,9 +276,9 @@ export default {
     methods: {
         validateModuleName (name) {
             if (name.startsWith('@flowfuse-')) {
-                return /^@flowfuse-[a-zA-Z0-9-._~]*\/[a-z0-9-~][a-z0-9-._~]*$/.test(name)
+                return validate(name).validForOldPackages
             } else {
-                return /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(name) && !BUILT_IN_MODULES.includes(name)
+                return validate(name).validForOldPackages && !BUILT_IN_MODULES.includes(name)
             }
         },
         validateModuleVersion (version) {

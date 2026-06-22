@@ -2,6 +2,7 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'User',
         type: 'object',
+        // additionalProperties omitted — interacts poorly with allOf.
         allOf: [{ $ref: 'UserSummary' }],
         properties: {
             email: { type: 'string' },
@@ -14,7 +15,8 @@ module.exports = function (app) {
             password_expired: { type: 'boolean' },
             pendingEmailChange: { type: 'boolean' },
             SSOGroups: { type: 'array' }
-        }
+        },
+        required: ['email_verified']
     })
     function userProfile (user) {
         const result = userSummary(user)
@@ -52,7 +54,9 @@ module.exports = function (app) {
             admin: { type: 'boolean' },
             createdAt: { type: 'string' },
             suspended: { type: 'boolean' }
-        }
+        },
+        // Composed via `allOf` elsewhere — keep open.
+        required: ['id', 'username', 'name', 'avatar', 'admin', 'createdAt', 'suspended']
     })
     function userSummary (user) {
         const result = {
@@ -80,12 +84,14 @@ module.exports = function (app) {
         $id: 'TeamMemberList',
         type: 'array',
         items: {
+            type: 'object',
             allOf: [{ $ref: 'UserSummary' }],
             properties: {
                 role: { type: 'number' },
                 permissions: { $ref: 'TeamMemberPermissions' },
                 ssoManaged: { type: 'boolean' }
-            }
+            },
+            required: ['role', 'permissions']
         }
     })
     function teamMemberList (users) {

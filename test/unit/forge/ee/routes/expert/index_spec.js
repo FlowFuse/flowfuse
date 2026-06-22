@@ -16,6 +16,9 @@ describe('Expert API', function () {
             license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg',
             expert: {
                 enabled: true,
+                insights: {
+                    enabled: true
+                },
                 service: {
                     url: 'http://localhost:9999',
                     token: 'test-token',
@@ -47,6 +50,20 @@ describe('Expert API', function () {
         defaultTeamTypeProperties.features[featureName] = enabled
         app.defaultTeamType.properties = defaultTeamTypeProperties
         await app.defaultTeamType.save()
+    }
+
+    // Create a real MCP registration row for an instance so that the /chat route's trusted-registry
+    // re-resolution finds it. TeamId is derived from the instance (no need to stub byTeam).
+    async function createMcpRegistration (app, instance, { name, endpointRoute = '/mcp', protocol = 'http', nodeId } = {}) {
+        return app.db.models.MCPRegistration.create({
+            name,
+            protocol,
+            targetType: 'instance',
+            targetId: '' + instance.id,
+            nodeId: nodeId || `mcp:node:${name}`,
+            endpointRoute,
+            TeamId: instance.TeamId
+        })
     }
 
     afterEach(async function () {
@@ -94,6 +111,8 @@ describe('Expert API', function () {
         afterEach(async function () {
             // clear the expert MCP access token cache
             await app.expert.mcp.clearTokenCache()
+            // remove any MCP registrations created during tests
+            await app.db.models.MCPRegistration.destroy({ where: {} })
             // delete all extra users, applications, instances created during tests
             await app.db.models.Project.destroy({ where: { name: ['alice2-instance', 'bob2-instance', 'chris2-instance'] } })
             await app.db.models.Application.destroy({ where: { name: ['application-alice', 'application-bob', 'application-chris'] } })
@@ -105,6 +124,12 @@ describe('Expert API', function () {
         })
 
         describe('Chat Endpoint', function () {
+            beforeEach(async function () {
+                // register an MCP server for the default instance so the /chat trusted-registry
+                // re-resolution recognises selectedCapabilities that reference it (mcpServerName 'mcp-server-1')
+                await createMcpRegistration(app, instance, { name: 'mcp-server-1', endpointRoute: '/mcp1' })
+            })
+
             it('should return 401 for missing session', async function () {
                 const response = await app.inject({
                     method: 'POST',
@@ -263,6 +288,12 @@ describe('Expert API', function () {
                     app.projectType,
                     { start: true }
                 )
+
+                // register a (trusted) MCP server for each instance so the /chat route's registry
+                // re-resolution recognises the selectedCapabilities referencing them
+                await createMcpRegistration(app, instanceAlice2, { name: 'alice2' })
+                await createMcpRegistration(app, instanceBob2, { name: 'bob2' })
+                await createMcpRegistration(app, instanceChris2, { name: 'chris2' })
 
                 const buildMcpServerFeaturesResponse = (name, applicationHashid, instance, instanceType) => ({
                     team: team.hashid,
@@ -651,6 +682,153 @@ describe('Expert API', function () {
                     scheme: 'Bearer',
                     scope: ['ff-expert:mcp', 'instance']
                 })
+            })
+
+            it('should NOT attach a cached token when the claimed application does not own the selected instance', async function () {
+                // A cached MCP token must not be attached unless the selected instance genuinely belongs to the claimed application
+                const token = bobToken // bob is a team owner (so passes the claimed-application permission check)
+                await setFeatureForTeam(app, 'teamHttpSecurity', true)
+
+                // Create a "victim" application + instance in the SAME team but a DIFFERENT application
+                // than the one the attacker will claim access to.
+                const victimApplication = await app.factory.createApplication({ name: 'application-chris' }, team)
+                const victimInstance = await app.factory.createInstance(
+                    { name: 'chris2-instance' },
+                    victimApplication,
+                    app.stack,
+                    app.template,
+                    app.projectType,
+                    { start: false }
+                )
+
+                // Register the victim instance's MCP server (under the attacker-chosen name) so the
+                // capability survives the trusted-registry re-resolution and the test specifically
+                // exercises the instance/application OWNERSHIP check rather than the registry-miss path.
+                await createMcpRegistration(app, victimInstance, { name: 'attacker-controlled' })
+
+                // The victim instance uses FlowFuse http auth, so a real Bearer token would be minted/cached
+                sinon.stub(app.db.models.ProjectSettings, 'findOne').callsFake(async (options) => {
+                    if (options.where.ProjectId === victimInstance.id && options.where.key === 'settings') {
+                        return { value: { httpNodeAuth: { type: 'flowforge-user' } } }
+                    }
+                    return this.wrappedMethod.apply(this, arguments)
+                })
+
+                // Pre-populate the token cache for the victim instance (simulates a legitimate prior use)
+                const victimToken = await app.expert.mcp.getOrCreateToken(victimInstance, 'instance', victimInstance.id, true)
+                should.exist(victimToken)
+                should.exist(await app.expert.mcp.getCachedToken(victimInstance.id)) // confirm it is cached
+
+                // capture what gets forwarded to the expert backend
+                let capturedPostData = null
+                sinon.stub(axios, 'post').callsFake((url, data) => {
+                    capturedPostData = data
+                    return Promise.resolve({ data: { transactionId: 'abc', context: {} } })
+                })
+
+                // Attacker claims the application they DO have access to (`application`), but references
+                // the victim instance (which belongs to `victimApplication`).
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/chat',
+                    cookies: { sid: token },
+                    headers: { 'x-chat-transaction-id': 'abc' },
+                    payload: {
+                        context: {
+                            teamId: team.hashid,
+                            query: 'use the selected MCP resource',
+                            selectedCapabilities: [
+                                {
+                                    team: team.hashid,
+                                    application: application.hashid, // claimed application (attacker has access)
+                                    instance: victimInstance.id, // victim instance (belongs to a different application)
+                                    instanceType: 'instance',
+                                    instanceName: 'target-instance',
+                                    mcpServerName: 'attacker-controlled',
+                                    mcpServerUrl: 'https://attacker.example/mcp',
+                                    mcpProtocol: 'http',
+                                    prompts: [],
+                                    resources: [{ name: 'leak', uri: 'resource://leak' }],
+                                    resourceTemplates: [],
+                                    tools: []
+                                }
+                            ]
+                        }
+                    }
+                })
+                response.statusCode.should.equal(200)
+
+                // The mismatched capability must be dropped entirely - no cached token leaked downstream
+                capturedPostData.should.be.an.Object()
+                should(capturedPostData.context.selectedCapabilities).be.undefined()
+
+                await app.db.models.Project.destroy({ where: { id: victimInstance.id } })
+                await app.db.models.Application.destroy({ where: { id: victimApplication.id } })
+            })
+
+            it('should overwrite client-supplied transport fields with trusted registry values', async function () {
+                const token = bobToken // team owner
+
+                const warnSpy = sinon.spy(app.log, 'warn')
+                let capturedPostData = null
+                sinon.stub(axios, 'post').callsFake((url, data) => {
+                    capturedPostData = data
+                    return Promise.resolve({ data: { transactionId: 'abc', context: {} } })
+                })
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/chat',
+                    cookies: { sid: token },
+                    headers: { 'x-chat-transaction-id': 'abc' },
+                    payload: {
+                        context: {
+                            teamId: team.hashid,
+                            query: 'use the selected MCP resource',
+                            selectedCapabilities: [
+                                {
+                                    team: team.hashid,
+                                    application: application.hashid,
+                                    instance: instance.id,
+                                    instanceType: 'instance',
+                                    instanceName: 'spoofed-name',
+                                    mcpServerName: 'mcp-server-1', // matches the registration created in beforeEach
+                                    mcpServerUrl: 'https://attacker.example/mcp', // client provided - must be dropped
+                                    instanceUrl: 'https://attacker.example', // client provided - must be overwritten
+                                    mcpEndpoint: '/evil', // client provided - must be overwritten
+                                    mcpProtocol: 'sse', // client provided - must be overwritten
+                                    prompts: [],
+                                    resources: [{ name: 'res', uri: 'resource://res' }],
+                                    resourceTemplates: [],
+                                    tools: []
+                                }
+                            ]
+                        }
+                    }
+                })
+                response.statusCode.should.equal(200)
+
+                capturedPostData.should.be.an.Object()
+                const forwarded = capturedPostData.context.selectedCapabilities
+                forwarded.should.be.an.Array().and.have.length(1)
+                // the client-supplied URL must never be forwarded; the agent rebuilds it from trusted parts
+                forwarded[0].should.not.have.property('mcpServerUrl')
+                // transport/identity fields re-resolved from the trusted registry + instance
+                forwarded[0].should.have.property('instanceUrl', instance.url)
+                forwarded[0].should.have.property('mcpEndpoint', '/mcp1')
+                forwarded[0].should.have.property('mcpProtocol', 'http')
+                forwarded[0].should.have.property('mcpServerName', 'mcp-server-1')
+                forwarded[0].should.have.property('instanceName', instance.name)
+                forwarded[0].should.have.property('team', team.hashid)
+                forwarded[0].should.have.property('application', application.hashid)
+
+                // the mismatch between client-supplied and trusted transport fields should be logged (audit signal)
+                warnSpy.called.should.be.true()
+                const warnMessage = warnSpy.getCalls().map(c => c.args[0]).find(m => typeof m === 'string' && m.includes('transport fields'))
+                should.exist(warnMessage)
+                warnMessage.should.match(/instanceUrl/)
+                warnMessage.should.match(/mcpEndpoint/)
+                warnMessage.should.match(/mcpProtocol/)
             })
 
             it('should clear cached MCP server access token when project setting httpNodeAuth is changed', async function () {

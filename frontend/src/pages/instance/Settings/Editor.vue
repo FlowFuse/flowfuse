@@ -12,6 +12,7 @@ import { useRouter } from 'vue-router'
 import InstanceApi from '../../../api/instances.js'
 import usePermissions from '../../../composables/Permissions.js'
 import Dialog from '../../../services/dialog.js'
+import { isInstanceOnNR5Plus } from '../../../utils/instanceVersion'
 import TemplateSettingsEditor from '../../admin/Template/sections/Editor.vue'
 import {
     getObjectValue,
@@ -141,6 +142,16 @@ export default {
                         this.original.settings[field] = projectSettingsValue
                     }
                 })
+                // On NR5+ the runtime gate renders forge-light/forge-dark as `forge`.
+                // Normalize editable + original together so the dropdown matches without
+                // tripping the "changed" indicator. Lazy DB migration on next save.
+                if (isInstanceOnNR5Plus(this.project)) {
+                    const storedTheme = this.editable.settings.theme
+                    if (storedTheme === 'forge-light' || storedTheme === 'forge-dark') {
+                        this.editable.settings.theme = 'forge'
+                        this.original.settings.theme = 'forge'
+                    }
+                }
             }
         },
         async saveSettings () {

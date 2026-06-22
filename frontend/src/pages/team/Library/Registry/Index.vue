@@ -13,7 +13,7 @@
                         @click="loadRegistry"
                     >
                         <template #icon-left>
-                            <RefreshIcon />
+                            <ArrowPathIcon />
                         </template>
                         Refresh
                     </ff-button>
@@ -23,7 +23,7 @@
                         @click="publish"
                     >
                         <template #icon-left>
-                            <ArrowCircleUpIcon />
+                            <ArrowUpCircleIcon />
                         </template>
                         Publish
                     </ff-button>
@@ -56,7 +56,7 @@
                     @click="loadRegistry"
                 >
                     <template #icon-left>
-                        <RefreshIcon />
+                        <ArrowPathIcon />
                     </template>
                     Refresh
                 </ff-button>
@@ -67,7 +67,7 @@
                     @click="publish"
                 >
                     <template #icon-left>
-                        <ArrowCircleUpIcon />
+                        <ArrowUpCircleIcon />
                     </template>
                     Publish
                 </ff-button>
@@ -85,7 +85,7 @@
 </template>
 
 <script>
-import { ArrowCircleUpIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { ArrowPathIcon, ArrowUpCircleIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import TeamAPI from '../../../../api/team.js'
@@ -105,12 +105,12 @@ import { useContextStore } from '@/stores/context.js'
 export default {
     name: 'NodeRegistry',
     components: {
-        ArrowCircleUpIcon,
+        ArrowUpCircleIcon,
         EmptyState,
         SectionTopMenu,
         PublishNodeDialog,
         RegistryEntry,
-        RefreshIcon,
+        ArrowPathIcon,
         FeatureUnavailable,
         FeatureUnavailableToTeam
     },

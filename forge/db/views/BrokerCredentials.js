@@ -12,9 +12,32 @@ module.exports = function (app) {
             ssl: { type: 'boolean' },
             verifySSL: { type: 'boolean' },
             clientId: { type: 'string' },
-            topicPrefix: { type: 'array', items: { type: 'string' } }
+            state: { type: 'string' },
+            topicPrefix: { type: 'array', items: { type: 'string' } },
+            // status / credentials / settings are added by /:brokerId and /credentials handlers, not by the list/create view.
+            status: { type: 'object', additionalProperties: true },
+            credentials: { type: 'object', additionalProperties: true },
+            settings: { type: 'object', additionalProperties: true }
         },
-        additionalProperties: true
+        required: ['id', 'name', 'host', 'port', 'protocol', 'protocolVersion', 'ssl', 'verifySSL', 'clientId', 'state', 'topicPrefix'],
+        additionalProperties: false
+    })
+    // Writable subset for POST/PUT bodies — `id` and `state` are server-set.
+    app.addSchema({
+        $id: 'MQTTBrokerInput',
+        type: 'object',
+        properties: {
+            name: { type: 'string' },
+            host: { type: 'string' },
+            port: { type: 'number' },
+            protocol: { type: 'string' },
+            protocolVersion: { type: 'number' },
+            ssl: { type: 'boolean' },
+            verifySSL: { type: 'boolean' },
+            clientId: { type: 'string' },
+            topicPrefix: { type: 'array', items: { type: 'string' } },
+            credentials: { type: 'object', additionalProperties: true }
+        }
     })
     return {
         clean: function (cred) {

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import SemVer from 'semver'
 
-import getServicesOrchestrator from '@/services/service.orchestrator'
+import getAppOrchestrator from '@/services/app.orchestrator'
 import { useContextStore } from '@/stores/context.js'
 
 const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep
@@ -114,7 +114,7 @@ const ALL_CONTEXT_OPTIONS = [
         value: 'visible-debug-logs',
         name: 'Debug Logs',
         label: 'Add Debug Logs (all visible)',
-        menuIcon: 'ViewListIcon',
+        menuIcon: 'Bars4Icon',
         showAsChip: false,
         onSelectAction: 'requestDebugLogContextVisibleEntries'
     },
@@ -122,7 +122,7 @@ const ALL_CONTEXT_OPTIONS = [
         value: 'visible-debug-errors',
         name: 'Error Logs',
         label: 'Add Debug Logs (errors only)',
-        menuIcon: 'ViewListIcon',
+        menuIcon: 'Bars4Icon',
         showAsChip: false,
         onSelectAction: 'requestDebugLogContextVisibleErrorEntries'
     }
@@ -157,11 +157,20 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         // debugLog getter which gates the feature flag. Use this.debugLogEntries
         // internally; external consumers should read this.debugLog (the getter).
         debugLogEntries: [],
-        editorState: { ...buildInitialEditorState() }
+        editorState: { ...buildInitialEditorState() },
+        pendingRequests: new Map() // key is transactionId, value is { resolve, reject, timeout, timestamp, type, action, params }
     }),
     getters: {
-        immersiveInstance: () => useContextStore().instance,
-        immersiveDevice: () => useContextStore().device,
+        isImmersiveInstance: () => {
+            const contextStore = useContextStore()
+
+            return contextStore.instance && contextStore.isImmersive
+        },
+        isImmersiveDevice: () => {
+            const contextStore = useContextStore()
+
+            return contextStore.device && contextStore.isImmersive
+        },
         hasUserSelection: (state) => state.selectedNodes.length > 0,
         hasContextSelection: (state) => state.selectedContext.length > 0,
         hasDebugLogsSelected () {
@@ -260,6 +269,19 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                 return
             }
 
+            const payloadData = payload.data || {}
+            if (payloadData.correlationId && payloadData.type === 'invoke-action') {
+                const { correlationId } = payloadData
+                const inflight = this.pendingRequests.get(correlationId)
+                if (inflight) {
+                    // console.debug('Received response for in-flight request:', { correlationId, originalRequest: inflight.postMessagePayload, response: payloadData })
+                    inflight.resolve(payloadData)
+                    this.pendingRequests.delete(correlationId)
+                } else {
+                    console.warn('Received response with correlationId that does not match any in-flight requests. Ignoring.', { correlationId, response: payloadData })
+                }
+            }
+
             switch (true) {
             case payload.data.type === 'assistant-ready':
                 this.version = payload.data.version
@@ -297,11 +319,14 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                 return this.removeDebugLogContext(payload.data.debugLog)
             case payload.data.type === 'debug-log-context-clear':
                 return this.resetDebugLogContext()
-            case payload.data.type === 'nr-assistant/workspace:change':
+            case payload.data.type === 'nr-assistant/workspace:change': {
                 if (payload.data.tab?.label) {
-                    document.title = `Node-RED: ${payload.data.tab.label} - FlowFuse`
+                    const instanceName = useContextStore().instance?.name
+                    const suffix = instanceName ? ` - ${instanceName} - FlowFuse` : ' - FlowFuse'
+                    document.title = `Node-RED: ${payload.data.tab.label}${suffix}`
                 }
                 break
+            }
             default:
                 // do nothing
             }
@@ -447,6 +472,53 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                 params
             })
         },
+        async invokeActionAwaitResponse ({ action, params, sessionId, transactionId, chatTransactionId }, timeout = 5000) {
+            // create a promise that will resolve when we receive a response with the matching sessionId and transactionId, or reject after a timeout
+            const pending = {
+                resolve: null,
+                reject: null,
+                resolved: false,
+                rejected: false,
+                timeout: null,
+                timestamp: Date.now(),
+                type: 'invoke-action',
+                action,
+                params,
+                sessionId,
+                transactionId,
+                chatTransactionId
+            }
+            const promise = new Promise((resolve, reject) => {
+                pending.resolve = (payload) => {
+                    clearTimeout(pending.timeout)
+                    this.pendingRequests.delete(pending.transactionId)
+                    if (pending.resolved) return
+                    if (pending.rejected) return
+                    pending.resolved = true
+                    resolve(payload)
+                }
+                pending.reject = (error) => {
+                    clearTimeout(pending.timeout)
+                    this.pendingRequests.delete(pending.transactionId)
+                    if (pending.resolved) return
+                    if (pending.rejected) return
+                    pending.rejected = true
+                    reject(error)
+                }
+                pending.timeout = setTimeout(() => {
+                    pending.reject(new Error('Node-RED command timed out'))
+                }, timeout)
+            })
+            const correlationId = `${sessionId}:${chatTransactionId}:${transactionId}`
+            this.pendingRequests.set(correlationId, pending)
+            this.sendMessage({
+                type: 'invoke-action',
+                action,
+                params,
+                correlationId // post Message Correlation Id
+            })
+            return promise
+        },
         async sendFlowsToImport (flowsJson) {
             return this.sendMessage({
                 type: 'invoke-action',
@@ -477,7 +549,8 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             })
         },
         sendMessage (payload) {
-            const orchestrator = getServicesOrchestrator()
+            const orchestrator = getAppOrchestrator()
+            const contextStore = useContextStore()
 
             orchestrator.$serviceInstances.postMessage.sendMessage({
                 message: {
@@ -485,7 +558,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                     ...this.scope
                 },
                 target: window.frames['immersive-editor-iframe'],
-                targetOrigin: this.immersiveInstance?.url
+                targetOrigin: (contextStore.instance || contextStore.device)?.url
             })
         }
     }

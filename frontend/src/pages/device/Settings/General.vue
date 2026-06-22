@@ -33,13 +33,13 @@
         </FormHeading>
 
         <div ref="updateStack" class="flex flex-col space-y-4 max-w-2xl lg:flex-row lg:items-center lg:space-y-0">
-            <div class="flex-grow">
+            <div class="grow">
                 <p class="max-w-sm">
                     Changing the Remote Instance Node-RED Version requires the remote instance to be restarted.
                     The flows will not be running while this happens.
                 </p>
             </div>
-            <div class="min-w-fit flex-shrink-0 flex-col gap-5">
+            <div class="min-w-fit shrink-0 flex-col gap-5">
                 <ff-button
                     data-action="change-stack"
                     kind="secondary"
@@ -232,8 +232,8 @@ export default {
             availableNrVersions: [
                 '3.1.15',
                 '4.0.9',
-                '4.1.4',
-                '4.1.5'
+                '4.1.10',
+                '4.1.11'
 
             ]
         }

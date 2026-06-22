@@ -5,7 +5,8 @@ module.exports = {
             id: result.hashid,
             topic: result.topic,
             metadata: result.metadata || { },
-            inferredSchema: result.inferredSchema ? JSON.parse(result.inferredSchema) : undefined
+            inferredSchema: result.inferredSchema ? JSON.parse(result.inferredSchema) : undefined,
+            timestamp: Date.parse(result.updatedAt)
         }
         return cleaned
     },

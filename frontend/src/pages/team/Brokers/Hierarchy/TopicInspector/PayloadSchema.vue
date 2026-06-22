@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import { LightBulbIcon, XCircleIcon } from '@heroicons/vue/outline'
+import { LightBulbIcon, XCircleIcon } from '@heroicons/vue/24/outline'
 
 import CodeBracketSquareIcon from '../../../../../components/icons/CodeBracketSquare.js'
 import MainTitle from '../components/MainTitle.vue'
@@ -85,10 +85,10 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    background: $ff-white;
+    background: var(--ff-color-bg-app);
     padding: 10px;
     border-radius: 6px;
-    border: 1px solid $ff-grey-200;
+    border: 1px solid var(--ff-color-border);
     overflow: auto;
 }
 </style>

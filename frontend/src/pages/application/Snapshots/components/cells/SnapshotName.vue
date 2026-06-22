@@ -10,7 +10,7 @@
                         Description
                     </summary>
                     <div
-                        class="whitespace-pre-line absolute border drop-shadow-md rounded bg-white p-2 z-10"
+                        class="whitespace-pre-line absolute border drop-shadow-md rounded-sm bg-white p-2 z-10"
                         style="max-width: 300px;"
                     >
                         {{ description }}
@@ -25,7 +25,7 @@
 </template>
 
 <script>
-import { ClockIcon } from '@heroicons/vue/outline'
+import { ClockIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'SnapshotName',

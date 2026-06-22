@@ -70,7 +70,7 @@ jobs:
     steps:
       - name: Generate a token
         id: generate_token
-        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ secrets.GH_BOT_APP_ID }}
           private-key: ${{ secrets.GH_BOT_APP_KEY }}
@@ -97,7 +97,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.driver_k8s_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.76.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@publish_node_package/v1'
     with:
       package_name: driver-k8s
       publish_package: true
@@ -114,7 +114,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_project_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.76.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@publish_node_package/v1'
     with:
       package_name: nr-project-nodes
       publish_package: true
@@ -131,7 +131,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_file_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.76.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@publish_node_package/v1'
     with:
       package_name: nr-file-nodes
       publish_package: true
@@ -148,7 +148,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_assistant_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.76.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@publish_node_package/v1'
     with:
       package_name: nr-assistant
       publish_package: true
@@ -165,7 +165,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_tables_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.76.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@publish_node_package/v1'
     with:
       package_name: nr-tables-nodes
       publish_package: true
@@ -182,7 +182,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_subflow_export_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.76.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@publish_node_package/v1'
     with:
       package_name: nr-subflow-export
       publish_package: true
@@ -199,7 +199,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       inputs.nr_mqtt_nodes_branch != 'main'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.76.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@publish_node_package/v1'
     with:
       package_name: nr-mqtt-nodes
       publish_package: true
@@ -229,7 +229,7 @@ jobs:
       needs.publish_nr_tables_nodes.result == 'success' || 
       needs.publish_nr_mqtt_nodes.result == 'success' || 
       needs.publish_nr_subflow_export.result == 'success'
-    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@v0.76.0'
+    uses: 'flowfuse/github-actions-workflows/.github/workflows/publish_node_package.yml@publish_node_package/v1'
     with:
       package_name: flowfuse-nr-launcher
       publish_package: true
@@ -255,7 +255,7 @@ jobs:
       needs.validate-user.outputs.is_org_member == 'true' &&
       github.event_name == 'workflow_dispatch' &&
       (always() && needs.publish_nr_launcher.result == 'success')
-    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@v0.76.0
+    uses: flowfuse/github-actions-workflows/.github/workflows/build_container_image.yml@build_container_image/v1
     with:
       image_name: 'node-red'
       dockerfile_path: Dockerfile
@@ -295,11 +295,11 @@ jobs:
           echo "timestamp=$(date +%s)" >> $GITHUB_ENV
 
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
   
       - name: Configure AWS credentials for ECR interaction
         id: aws-config
-        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_ECR_PUSH_ROLE }}
           role-session-name: GithubActionsRoleSession
@@ -309,12 +309,12 @@ jobs:
       
       - name: Login to AWS ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@19d944daaa35f0fa1d3f7f8af1d3f2e5de25c5b7 # v2.1.4
+        uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
         with:
           mask-password: true
 
       - name: Login to GHCR
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -348,30 +348,34 @@ jobs:
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Set variables
         run: | 
           echo "tagged_image=${{ env.IMAGE_NAME }}:pr-${{ env.PR_NUMBER}}" >> $GITHUB_ENV
 
       - name: Setup QEMU
-        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+        uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
   
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
 
       - name: Set build-args if branch is not main
         id: set-build-args
         run: |
-          if [ "${{ inputs.driver_k8s_branch }}" != "" ]; then
-            echo "BUILD_ARGS=KUBERNETES_DRIVER_TAG=pre-staging-${{ inputs.driver_k8s_branch }}" >> $GITHUB_ENV
-          else
-            echo "BUILD_ARGS=" >> $GITHUB_ENV
-          fi
+          {
+            echo "BUILD_ARGS<<EOF"
+            # CACHEBUST forces a fresh fetch of the device-cache script (helm main branch)
+            echo "CACHEBUST=${{ github.run_id }}-${{ github.run_attempt }}"
+            if [ "${{ inputs.driver_k8s_branch }}" != "" ]; then
+              echo "KUBERNETES_DRIVER_TAG=pre-staging-${{ inputs.driver_k8s_branch }}"
+            fi
+            echo "EOF"
+          } >> $GITHUB_ENV
   
       - name: Build container image
         id: build
-        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: .
           file: "./ci/Dockerfile"
@@ -412,7 +416,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Set variables
         run: | 
@@ -438,7 +442,7 @@ jobs:
 
       - name: Configure AWS credentials for ECR interaction
         id: aws-config
-        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_ECR_PUSH_ROLE }}
           role-session-name: GithubActionsRoleSession
@@ -448,7 +452,7 @@ jobs:
         
       - name: Login to AWS ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@19d944daaa35f0fa1d3f7f8af1d3f2e5de25c5b7 # v2.1.4
+        uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
         with:
           mask-password: true
 
@@ -458,7 +462,7 @@ jobs:
           docker push ${{ steps.aws-config.outputs.aws-account-id }}.dkr.ecr.eu-west-1.amazonaws.com/flowforge/${{ env.tagged_image }}-${{ env.timestamp }}
 
       - name: Configure AWS credentials for EKS interaction
-        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_EKS_DEPLOY_ROLE }}
           role-session-name: GithubActionsRoleSessio
@@ -470,12 +474,12 @@ jobs:
           aws eks update-kubeconfig --region eu-west-1 --name ${{ secrets.EKS_CLUSTER_NAME }}
 
       - name: Install 1Password CLI
-        uses: 1password/install-cli-action@8d006a0d0a4fd505af7f7ce589e7f768385ff5e4 # v3.0.0
+        uses: 1password/install-cli-action@a5215d3a7f75c1629216c465ea9ab3ab399c4b71 # v4.0.0
         with:
           version: 2.25.0
 
       - name: Check out FlowFuse/helm repository (to access latest helm chart)
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           repository: 'FlowFuse/helm'
           ref: 'main'
@@ -580,76 +584,176 @@ jobs:
       PR_NUMBER: ${{ github.event.number == '' && inputs.pr_number || github.event.number }}
 
     steps:
-    - name: Map users  
-      id: map-actor-to-slack
-      uses: icalia-actions/map-github-actor@e568d1dd6023e406a1db36db4e1e0b92d9dd7824 # v0.0.2
-      with:
-        actor-map: ${{ vars.SLACK_GITHUB_USERS_MAP }}
-        default-mapping: C067BD0377F
+      # Builds the recipient list (PR author + requested reviewers, or github.actor on workflow_dispatch)
+      # and resolves each GitHub username to a Slack user ID by scanning workspace profiles and picking the value of custom profile field (GitHub).
+      # Outputs `recipients` as JSON: [{ slack_id, github, role }, ...]. Unresolved users are skipped with a warning.
+      - name: Resolve Slack users for recipients
+        id: resolve
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
+          SLACK_GITHUB_FIELD_ID: "Xf0A2BPU8U77"
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          REQUESTED_REVIEWERS: ${{ toJSON(github.event.pull_request.requested_reviewers) }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          EVENT_NAME: ${{ github.event_name }}
+        with:
+          script: |
+            const token = process.env.SLACK_BOT_TOKEN;
+            const fieldId = process.env.SLACK_GITHUB_FIELD_ID;
 
-    - name: Post to a Slack channel
-      id: slack
-      uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # v3.0.2
-      with:
-        method: 'chat.postMessage'
-        token: ${{ secrets.SLACK_GHBOT_TOKEN }}
-        payload: |
-          {
-            "channel": "C067BD0377F",
-            "blocks": [
-              {
-                "type": "header",
-                "text": {
-                  "type": "plain_text",
-                  "text": "Pull Request ${{ env.PR_NUMBER }} pre-staging deployment",
-                  "emoji": true
+            // Build recipient list with roles, deduped (first-added role wins: Author > Reviewer > Pusher).
+            // Bot accounts (e.g. dependabot[bot]) are skipped — they have no Slack profile.
+            const recipients = [];
+            const seen = new Set();
+            const add = (login, role) => {
+              if (!login) return;
+              if (login.endsWith('[bot]')) return;
+              const key = login.toLowerCase();
+              if (seen.has(key)) return;
+              seen.add(key);
+              recipients.push({ github: key, role });
+            };
+
+            if (process.env.EVENT_NAME === 'workflow_dispatch') {
+              add(process.env.GITHUB_ACTOR, 'Trigger');
+            } else {
+              add(process.env.PR_AUTHOR, 'Author');
+              const reviewers = JSON.parse(process.env.REQUESTED_REVIEWERS || '[]');
+              for (const r of reviewers) add(r.login, 'Reviewer');
+              add(process.env.GITHUB_ACTOR, 'Pusher');
+            }
+
+            if (recipients.length === 0) {
+              core.warning('No recipients to notify');
+              core.setOutput('recipients', '[]');
+              return;
+            }
+
+            // Build Slack username -> ID map by scanning workspace profiles
+            const targets = new Set(recipients.map(r => r.github));
+            const resolved = new Map();
+            let cursor;
+            outer: do {
+              const params = new URLSearchParams({ limit: '200' });
+              if (cursor) params.set('cursor', cursor);
+              const res = await fetch(`https://slack.com/api/users.list?${params}`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              const data = await res.json();
+              if (!data.ok) return core.setFailed(`Slack users.list error: ${data.error}`);
+              for (const member of data.members) {
+                if (member.deleted || member.is_bot) continue;
+                const profileRes = await fetch(`https://slack.com/api/users.profile.get?user=${member.id}`, {
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                const profileData = await profileRes.json();
+                if (!profileData.ok) continue;
+                const ghField = profileData.profile?.fields?.[fieldId]?.value;
+                if (!ghField) continue;
+                const ghLower = ghField.toLowerCase();
+                if (targets.has(ghLower)) {
+                  resolved.set(ghLower, member.id);
+                  if (resolved.size === targets.size) break outer;
                 }
-              },
-              {
-                "type": "section",
-                "fields": [
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Status:*\n${{ needs.deploy.result == 'success' && ':white_check_mark: Success' || ':x: Failure '}}"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": ${{ toJson(env.PR_TEXT) }}
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
-                  }
-                ]
-              },
-              {
-                "type": "section",
-                "fields": [
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Author:*\n<@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Commit SHA:*\n<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}|${{ github.event.pull_request.head.sha }}>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Deployed to:*\n<https://${{ env.PR_NUMBER }}.flowfuse.dev|https://${{ env.PR_NUMBER }}.flowfuse.dev>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Logs:*\n<https://${{ env.GRAFANA_URL }}/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22editorMode%22:%22code%22,%22expr%22:%22%7Bnamespace%3D%5C%22pr-${{ env.PR_NUMBER }}%5C%22%7D%20%7C%3D%20%60%60%20%7C%20json%22,%22queryType%22:%22range%22%7D%5D,%22range%22:%7B%22from%22:%22now-30m%22,%22to%22:%22now%22%7D%7D|View>"
-                  }
-                ]
               }
-            ]
-          }
-      env:
-        PR_TEXT: |
-          *Pull Request:*
-          <https://github.com/FlowFuse/flowfuse/pull/${{ env.PR_NUMBER }}|${{ github.event.pull_request.title }}>
-        GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
+              cursor = data.response_metadata?.next_cursor;
+            } while (cursor);
+
+            const output = [];
+            for (const r of recipients) {
+              const slack_id = resolved.get(r.github);
+              if (slack_id) {
+                output.push({ slack_id, github: r.github, role: r.role });
+              } else {
+                core.warning(`No Slack user found with GitHub username: ${r.github} (role: ${r.role})`);
+              }
+            }
+            core.info(`Resolved ${output.length}/${recipients.length} recipients`);
+            core.setOutput('recipients', JSON.stringify(output));
+
+      # Sends one DM per resolved recipient via Slack chat.postMessage.
+      # Same message content for everyone, with a *Role:* field indicating Author / Reviewer / Trigger.
+      # Step fails only if all sends fail; partial failures are logged as warnings.
+      - name: Send Slack notifications
+        if: steps.resolve.outputs.recipients != '' && steps.resolve.outputs.recipients != '[]'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
+          RECIPIENTS: ${{ steps.resolve.outputs.recipients }}
+          PR_NUMBER: ${{ env.PR_NUMBER }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          SERVER_URL: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
+        with:
+          script: |
+            const token = process.env.SLACK_BOT_TOKEN;
+            const recipients = JSON.parse(process.env.RECIPIENTS);
+            const prNumber = process.env.PR_NUMBER;
+            const prTitle = process.env.PR_TITLE || `#${prNumber}`;
+            const prAuthor = process.env.PR_AUTHOR || 'n/a';
+            const deployResult = process.env.DEPLOY_RESULT;
+            const commitSha = process.env.COMMIT_SHA;
+            const serverUrl = process.env.SERVER_URL;
+            const repository = process.env.REPOSITORY;
+            const runId = process.env.RUN_ID;
+            const grafanaUrl = process.env.GRAFANA_URL;
+
+            const statusText = deployResult === 'success' ? ':white_check_mark: Success' : ':x: Failure ';
+            const logsUrl = `https://${grafanaUrl}/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22editorMode%22:%22code%22,%22expr%22:%22%7Bnamespace%3D%5C%22pr-${prNumber}%5C%22%7D%20%7C%3D%20%60%60%20%7C%20json%22,%22queryType%22:%22range%22%7D%5D,%22range%22:%7B%22from%22:%22now-30m%22,%22to%22:%22now%22%7D%7D`;
+
+            let failures = 0;
+            for (const r of recipients) {
+              const blocks = [
+                {
+                  type: 'header',
+                  text: { type: 'plain_text', text: `Pull Request ${prNumber} pre-staging deployment`, emoji: true }
+                },
+                {
+                  type: 'section',
+                  fields: [
+                    { type: 'mrkdwn', text: `*Status:*\n${statusText}` },
+                    { type: 'mrkdwn', text: `*Role:*\n${r.role}` },
+                    { type: 'mrkdwn', text: `*Pull Request:*\n<https://github.com/FlowFuse/flowfuse/pull/${prNumber}|${prTitle}>` },
+                    { type: 'mrkdwn', text: `*Workflow run:*\n<${serverUrl}/${repository}/actions/runs/${runId}|View>` }
+                  ]
+                },
+                {
+                  type: 'section',
+                  fields: [
+                    { type: 'mrkdwn', text: `*Author:*\n${prAuthor}` },
+                    { type: 'mrkdwn', text: `*Commit SHA:*\n<${serverUrl}/${repository}/commit/${commitSha}|${commitSha}>` },
+                    { type: 'mrkdwn', text: `*Deployed to:*\n<https://${prNumber}.flowfuse.dev|https://${prNumber}.flowfuse.dev>` },
+                    { type: 'mrkdwn', text: `*Logs:*\n<${logsUrl}|View>` }
+                  ]
+                }
+              ];
+
+              const res = await fetch('https://slack.com/api/chat.postMessage', {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json; charset=utf-8'
+                },
+                body: JSON.stringify({ channel: r.slack_id, blocks })
+              });
+              const data = await res.json();
+              if (!data.ok) {
+                core.warning(`Slack chat.postMessage failed for ${r.github} (${r.slack_id}): ${data.error}`);
+                failures++;
+              } else {
+                core.info(`Notified ${r.github} (${r.role}) at ${r.slack_id}`);
+              }
+            }
+
+            if (failures > 0 && failures === recipients.length) {
+              core.setFailed(`All ${failures} Slack notifications failed`);
+            }
 
 
   destroy:
@@ -669,7 +773,7 @@ jobs:
       id-token: write
     steps:
       - name: Configure AWS credentials for EKS interaction
-        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.AWS_EKS_DEPLOY_ROLE }}
           role-session-name: GithubActionsRoleSession

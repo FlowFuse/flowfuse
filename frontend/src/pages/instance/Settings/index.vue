@@ -18,7 +18,7 @@
         </div>
         <div class="flex-1 flex flex-col sm:flex-row overflow-auto" data-el="instance-settings">
             <SectionSideMenu :options="navigation" />
-            <div class="flex-grow flex-1 flex flex-col overflow-auto">
+            <div class="grow flex-1 flex flex-col overflow-auto">
                 <router-view v-slot="{ Component }">
                     <component
                         :is="Component"

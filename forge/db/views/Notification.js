@@ -8,7 +8,9 @@ module.exports = function (app) {
             createdAt: { type: 'string' },
             read: { type: 'boolean' },
             data: { type: 'object', additionalProperties: true }
-        }
+        },
+        required: ['id', 'type', 'createdAt', 'read', 'data'],
+        additionalProperties: false
     })
     app.addSchema({
         $id: 'NotificationList',

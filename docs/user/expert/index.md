@@ -8,15 +8,25 @@ FlowFuse Expert is the AI built into FlowFuse and the Node-RED editor. It is not
 
 **FlowFuse Expert is automatically installed and available in all hosted and remote instances running within or connected to FlowFuse**, no manual installation or configuration required. For self-hosted Enterprise customers, FlowFuse Expert can be enabled on request. [Contact us](https://flowfuse.com/contact-us/) to get it set up on your infrastructure.
 
+## Managing AI Features
+
+**Team owners** can enable or disable all AI features for their team from the team settings page. When disabled, the Expert chat panel with all AI feature will get removed for that team. Running instances need to be restarted for the change to take full effect.
+
+**Self-Hosted Enterprise admins** have two additional controls:
+- Disable AI across the entire platform via the `ai.enabled` [configuration option](/docs/install/configuration/#ai-configuration). This overrides all team-level settings.
+- Configure which AI features are available on a per-team-type basis from the Admin Panel. See [Managing Team Types](/docs/admin/introduction/#managing-team-types) for details.
+
 ## What FlowFuse Expert Can Do
 
 FlowFuse Expert works in two distinct ways inside your environment.
 
 ### Chat Interface
 
-The Chat Interface is a conversational AI panel built into the FlowFuse Platform and accessible directly within the Node-RED editor. You can ask questions, get help building and debugging flows, query live operational data via MCP, and explore your environment using context-aware tools.
+The Chat Interface is a conversational AI panel built into the FlowFuse Platform and accessible directly within the Node-RED editor. With agentic flow building enabled, you can describe what you want to build and Expert will build it on your canvas for you. It can also answer questions, debug flows, and query live operational data via MCP.
 
-The Chat Interface supports two modes - **Support** for flow-building assistance, and **Insights** for querying live data via MCP tools and resources.
+The Chat Interface supports two modes:
+- **Support**: flow-building assistance, including asking questions, debugging, and building flows on the canvas
+- **Insights**: query live operational data via MCP tools and resources exposed by your own MCP servers
 
 [Learn more about the Chat Interface](/docs/user/expert/chat/)
 

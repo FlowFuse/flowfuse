@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header>
                 <template #breadcrumbs>
-                    <div class="flex-grow">
+                    <div class="grow">
                         <div class="text-gray-800 text-xl">
                             <router-link class="ff-link font-bold" :to="{name: 'admin-users'}">Users</router-link>
                             <ChevronRightIcon class="ff-icon" />
@@ -37,7 +37,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/20/solid'
 
 import usersApi from '../../../api/users.js'
 

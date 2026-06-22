@@ -108,6 +108,13 @@ module.exports = {
             instance: {
                 projectCount: async function () {
                     return await M.Project.count({ where: { ProjectStackId: this.id } })
+                },
+                findLatestStack: async function () {
+                    if (this.replacedBy) {
+                        return (await M.ProjectStack.byId(this.replacedBy)).findLatestStack()
+                    } else {
+                        return this
+                    }
                 }
             }
         }

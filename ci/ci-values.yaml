@@ -43,6 +43,9 @@ forge:
           database: postgres
           ssl: false
 
+broker:
+  replicas: 1
+
 postgresql:
   persistence:
     enabled: false

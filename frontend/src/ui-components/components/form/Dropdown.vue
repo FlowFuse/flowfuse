@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { ChevronDownIcon } from '@heroicons/vue/solid'
+import { ChevronDownIcon } from '@heroicons/vue/20/solid'
 
 export default {
     name: 'ff-dropdown',

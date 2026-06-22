@@ -33,11 +33,11 @@
                     <template v-if="!readOnly">
                         <input id="fileUpload" ref="fileUpload" type="file" accept=".env, text/plain, *" class="hidden" hidden>
                         <ff-button kind="secondary" data-action="import-env" @click="importEnv">
-                            <template #icon><DocumentDownloadIcon /></template>
+                            <template #icon><DocumentArrowDownIcon /></template>
                             <span class="hidden sm:flex pl-1">Import .env</span>
                         </ff-button>
                         <ff-button kind="primary" accesskey="a" data-el="add-variable" @click="addVarHandler">
-                            <template #icon><PlusSmIcon /></template>
+                            <template #icon><PlusSmallIcon /></template>
                             <span class="hidden sm:flex pl-1">Add variable</span>
                         </ff-button>
                     </template>
@@ -52,7 +52,7 @@
                 </template>
                 <template #rows>
                     <ff-data-table-row v-for="(item) in filteredRows" :key="item.index" :data-row="'row-' + item.name">
-                        <td class="ff-data-table--cell !pl-1 !pr-0 !py-1 border min-w-max max-w-sm align-top">
+                        <td class="ff-data-table--cell pl-1! pr-0! py-1! border min-w-max max-w-sm align-top">
                             <template v-if="(!readOnly && (editTemplate || item.policy === undefined))">
                                 <FormRow
                                     v-model="item.name"
@@ -75,7 +75,7 @@
                                 data-el="var-name"
                             />
                         </td>
-                        <td class="ff-data-table--cell !p-1 border w-3/5 max-w-xl" :class="{'align-middle':item.encrypted, 'align-top': !item.hidden}">
+                        <td class="ff-data-table--cell p-1! border w-3/5 max-w-xl" :class="{'align-middle':item.encrypted, 'align-top': !item.hidden}">
                             <div v-if="!item.encrypted" class="w-full">
                                 <template v-if="(!readOnly && (editTemplate || item.policy === undefined || item.policy))">
                                     <textarea
@@ -101,7 +101,7 @@
                             </div>
                             <div v-else class="pt-1 text-gray-400"><LockClosedIcon class="inline w-4" /> encrypted</div>
                         </td>
-                        <td class="ff-data-table--cell !p-1 border w-16 align-top">
+                        <td class="ff-data-table--cell p-1! border w-16 align-top">
                             <div v-if="(!readOnly && (editTemplate|| item.policy === undefined))" class="flex justify-center mt-1 items-center gap-3">
                                 <ff-button kind="tertiary" size="small" data-el="remove" @click="removeEnv(item.index)">
                                     <template #icon>
@@ -117,7 +117,7 @@
                                         @click="setEnvHidden(item.index)"
                                     >
                                         <template #icon>
-                                            <EyeOffIcon v-if="item.hidden" />
+                                            <EyeSlashIcon v-if="item.hidden" />
                                             <EyeIcon v-else />
                                         </template>
                                     </ff-button>
@@ -130,7 +130,7 @@
                                         class="mx-2 disabled"
                                         data-el="visibility"
                                     >
-                                        <EyeOffIcon class="ff-icon-sm color-grey" />
+                                        <EyeSlashIcon class="ff-icon-sm color-grey" />
                                     </span>
                                     <ff-button
                                         v-else
@@ -139,7 +139,7 @@
                                         @click="setEnvHidden(item.index)"
                                     >
                                         <template #icon>
-                                            <EyeOffIcon v-if="item.hidden" />
+                                            <EyeSlashIcon v-if="item.hidden" />
                                             <EyeIcon v-else />
                                         </template>
                                     </ff-button>
@@ -150,13 +150,13 @@
                                 v-ff-tooltip:left="'This setting has been deprecated'"
                                 class="flex justify-center mt-1"
                             >
-                                <ExclamationIcon class="inline text-yellow-700 w-4" />
+                                <ExclamationTriangleIcon class="inline text-yellow-700 w-4" />
                             </div>
                             <div v-else-if="(item.platform === true)" class="flex justify-center mt-2">
                                 <LockClosedIcon class="inline w-4" />
                             </div>
                         </td>
-                        <td v-if="!readOnly && editTemplate" class="ff-data-table--cell !p-1 align-top">
+                        <td v-if="!readOnly && editTemplate" class="ff-data-table--cell p-1! align-top">
                             <LockSetting v-model="item.policy" :editTemplate="editTemplate" />
                         </td>
                     </ff-data-table-row>
@@ -167,7 +167,7 @@
 </template>
 
 <script>
-import { DocumentDownloadIcon, ExclamationIcon, EyeIcon, EyeOffIcon, InformationCircleIcon, LockClosedIcon, PlusSmIcon, TrashIcon } from '@heroicons/vue/outline'
+import { DocumentArrowDownIcon, ExclamationTriangleIcon, EyeIcon, EyeSlashIcon, InformationCircleIcon, LockClosedIcon, PlusSmallIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
 import FormHeading from '../../../../components/FormHeading.vue'
 import FormRow from '../../../../components/FormRow.vue'
@@ -184,14 +184,14 @@ export default {
         FormHeading,
         LockSetting,
         ChangeIndicator,
-        DocumentDownloadIcon,
+        DocumentArrowDownIcon,
         TrashIcon,
-        PlusSmIcon,
+        PlusSmallIcon,
         LockClosedIcon,
-        ExclamationIcon,
+        ExclamationTriangleIcon,
         InformationCircleIcon,
         EyeIcon,
-        EyeOffIcon,
+        EyeSlashIcon,
         TextCopier
     },
     props: {
@@ -427,7 +427,7 @@ export default {
     resize: vertical;
     max-height: 10rem; /* 160px approx ~8 lines, after which user will need to scroll */
     /* Below styles emulate the text control in a form row */
-    border: 1px solid #D1D5DB;
+    border: 1px solid var(--ff-color-border-strong);
     border-radius: 6px;
     /* height: 32px; */
     padding: 6px;
@@ -436,8 +436,8 @@ export default {
     display: flex;
     gap: 0px;
     align-items: center;
-    background-color: white;
-    border-color: #D1D5DB;
+    background-color: var(--ff-color-bg-app);
+    border-color: var(--ff-color-border-strong);
 }
 .ff-data-table--cell .env-cell-uneditable {
     max-height: 10rem; /* 160px approx ~8 lines, after which user will need to scroll */
@@ -457,7 +457,7 @@ export default {
 .ff-environment {
     .ff-input.ff-text-input {
         input:disabled {
-            color: $ff-grey-600
+            color: var(--ff-color-text-deep)
         }
     }
 }

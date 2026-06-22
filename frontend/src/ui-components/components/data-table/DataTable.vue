@@ -7,7 +7,7 @@
                 data-form="search" :placeholder="searchPlaceholder"
             >
                 <template #icon>
-                    <SearchIcon />
+                    <MagnifyingGlassIcon />
                 </template>
             </ff-text-input>
 
@@ -38,14 +38,14 @@
                                         <!-- eslint-disable-next-line vue/no-v-html -->
                                         <span v-if="col.html" :class="col.tableLabelClass ?? ''" v-html="col.html"> </span>
                                         <span v-else :class="col.tableLabelClass ?? ''">{{ col.label }}</span>
-                                        <SwitchVerticalIcon v-if="col.sortable && col.key !== sort.key"
-                                                            class="ff-icon ff-icon-sm"
+                                        <ArrowsUpDownIcon v-if="col.sortable && col.key !== sort.key"
+                                                          class="ff-icon ff-icon-sm"
                                         />
-                                        <SortAscendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'asc'"
+                                        <BarsArrowUpIcon v-if="col.sortable && col.key === sort.key && sort.order === 'asc'"
+                                                         class="ff-icon ff-icon-sm icon-sorted"
+                                        />
+                                        <BarsArrowDownIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'"
                                                            class="ff-icon ff-icon-sm icon-sorted"
-                                        />
-                                        <SortDescendingIcon v-if="col.sortable && col.key === sort.key && sort.order === 'desc'"
-                                                            class="ff-icon ff-icon-sm icon-sorted"
                                         />
                                     </div>
                                 </ff-data-table-cell>
@@ -120,6 +120,15 @@
         <div v-if="showLoadMore" class="ff-loadmore">
             <span data-action="load-more" @click="$emit('load-more')">Load More...</span>
         </div>
+        <ff-pagination
+            v-if="pagination"
+            :page="pagination.page"
+            :page-size="pagination.pageSize"
+            :total="pagination.total"
+            :page-size-options="pagination.pageSizeOptions || [10, 25, 50, 100]"
+            @update:page="$emit('update:page', $event)"
+            @update:page-size="$emit('update:page-size', $event)"
+        />
     </div>
 </template>
 
@@ -127,12 +136,12 @@
 
 // icons
 import {
+    ArrowsUpDownIcon,
+    BarsArrowDownIcon,
+    BarsArrowUpIcon,
     ChevronRightIcon,
-    SearchIcon,
-    SortAscendingIcon,
-    SortDescendingIcon,
-    SwitchVerticalIcon
-} from '@heroicons/vue/outline'
+    MagnifyingGlassIcon
+} from '@heroicons/vue/24/outline'
 
 import { slugify } from '../../../composables/strings/String.js'
 
@@ -192,10 +201,10 @@ export default {
     name: 'ff-data-table',
     components: {
         FfDataTableRow,
-        SearchIcon,
-        SwitchVerticalIcon,
-        SortAscendingIcon,
-        SortDescendingIcon,
+        MagnifyingGlassIcon,
+        ArrowsUpDownIcon,
+        BarsArrowUpIcon,
+        BarsArrowDownIcon,
         ChevronRightIcon
     },
     props: {
@@ -276,9 +285,13 @@ export default {
         collapsibleRow: {
             type: Object,
             default: null
+        },
+        pagination: {
+            type: Object,
+            default: null
         }
     },
-    emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked'],
+    emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked', 'update:page', 'update:page-size'],
     setup () {
         return { slugify }
     },

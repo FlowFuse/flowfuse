@@ -12,7 +12,7 @@
             >
                 More Info
             </ff-button>
-            <SearchIcon v-if="altPreviewButton" class="ff-icon alt-preview" @click.stop.prevent="preview" />
+            <MagnifyingGlassIcon v-if="altPreviewButton" class="ff-icon alt-preview" @click.stop.prevent="preview" />
         </div>
         <div class="ff-blueprint-tile--info">
             <label>{{ blueprint.name }}</label>
@@ -61,8 +61,9 @@
 </template>
 
 <script>
-import { CheckCircleIcon, PlusIcon } from '@heroicons/vue/outline'
-import { SearchIcon } from '@heroicons/vue/solid'
+import { MagnifyingGlassIcon } from '@heroicons/vue/20/solid'
+import { CheckCircleIcon, PlusIcon } from '@heroicons/vue/24/outline'
+
 import { mapState } from 'pinia'
 import { defineAsyncComponent } from 'vue'
 
@@ -70,10 +71,17 @@ import ProjectIcon from '../../components/icons/Projects.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import product from '../../services/product.js'
 import FfDialog from '../../ui-components/components/DialogBox.vue'
+import { HEROICONS_V1_TO_V2_PASCAL_CASE } from '../../utils/heroicons-v1-aliases'
 import FormRow from '../FormRow.vue'
 import AssetDetailDialog from '../dialogs/AssetDetailDialog.vue'
 
 import { useContextStore } from '@/stores/context.js'
+
+let outlineIconsPromise = null
+function loadOutlineIcons () {
+    outlineIconsPromise ??= import('@heroicons/vue/24/outline')
+    return outlineIconsPromise
+}
 
 export default {
     name: 'BlueprintTile',
@@ -83,7 +91,7 @@ export default {
         AssetDetailDialog,
         CheckCircleIcon,
         ProjectIcon,
-        SearchIcon,
+        MagnifyingGlassIcon,
         PlusIcon
     },
     props: {
@@ -155,18 +163,17 @@ export default {
                 }
             }
 
-            // Convert kebab-case to pascalCase used for import
-            const camelCase = iconName.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
+            // Convert kebab-case to pascalCase used for icon lookup
+            const camelCase = iconName.replace(/-([a-z0-9])/g, (g) => g[1].toUpperCase())
             const pascalCase = camelCase.charAt(0).toUpperCase() + camelCase.slice(1)
             const importName = `${pascalCase}Icon`
 
             return defineAsyncComponent(async () => {
-                let icon
-                try {
-                    icon = await import(`@heroicons/vue/outline/${importName}.js`)
-                } catch (err) {
-                    console.warn(`Did not recognise icon name "${iconName}" (imported as "${importName}")`)
-                    icon = PlusIcon
+                const icons = await loadOutlineIcons()
+                const icon = icons[importName] ?? icons[HEROICONS_V1_TO_V2_PASCAL_CASE[importName]]
+                if (!icon) {
+                    console.warn(`Did not recognise icon name "${iconName}" (looked up as "${importName}")`)
+                    return PlusIcon
                 }
                 return icon
             })
@@ -195,13 +202,13 @@ export default {
 
 <style lang="scss">
 .ff-blueprint-tile {
-    background-color: $ff-white;
+    background-color: var(--ff-color-bg-app);
     width: 250px;
     border-width: 2px;
 
     &.active {
         border-width: 2px;
-        border-color: $ff-blue-600;
+        border-color: var(--ff-color-link);
         transition: border-color .3s;
     }
 
@@ -225,7 +232,7 @@ export default {
                 opacity: .7;
                 &:hover {
                     cursor: zoom-in;
-                    color: $ff-blue-600;
+                    color: var(--ff-color-link);
                 }
             }
         }
@@ -261,7 +268,7 @@ export default {
     }
     &.interactive:hover {
         border-width: 2px;
-        border-color: $ff-blue-600;
+        border-color: var(--ff-color-link);
         .ff-blueprint-tile--header {
             .ff-icon:not(.alt-preview) {
                 transform: scale(10);

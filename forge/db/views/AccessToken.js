@@ -2,6 +2,7 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'ProvisioningTokenSummary',
         type: 'object',
+        // Composed via `allOf` elsewhere — keep open.
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
@@ -10,7 +11,8 @@ module.exports = function (app) {
             instance: { type: 'string', nullable: true },
             expiresAt: { type: 'string', nullable: true },
             targetSnapshot: { type: 'string', nullable: true }
-        }
+        },
+        required: ['id', 'name', 'team', 'expiresAt']
     })
     app.addSchema({
         $id: 'ProvisioningToken',
@@ -18,7 +20,8 @@ module.exports = function (app) {
         allOf: [{ $ref: 'ProvisioningTokenSummary' }],
         properties: {
             token: { type: 'string' }
-        }
+        },
+        required: ['token']
     })
     async function provisioningTokenSummary (token) {
         // build a tokenSummary object from the token
@@ -55,12 +58,14 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'PersonalAccessTokenSummary',
         type: 'object',
+        // Composed via `allOf` elsewhere — keep open.
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
             // scope: { type: 'string', nullable: true },
             expiresAt: { type: 'string', nullable: true }
-        }
+        },
+        required: ['id', 'name', 'expiresAt']
     })
     app.addSchema({
         $id: 'PersonalAccessToken',
@@ -68,14 +73,15 @@ module.exports = function (app) {
         allOf: [{ $ref: 'PersonalAccessTokenSummary' }],
         properties: {
             token: { type: 'string' }
-        }
+        },
+        required: ['token']
     })
 
     function personalAccessTokenSummary (token) {
         const tokenSummary = {
             id: token.hashid,
             name: token.name,
-            expiresAt: token.expiresAt
+            expiresAt: token.expiresAt ?? null
         }
         return tokenSummary
     }
@@ -93,12 +99,14 @@ module.exports = function (app) {
     app.addSchema({
         $id: 'InstanceHTTPTokenSummary',
         type: 'object',
+        // Composed via `allOf` elsewhere — keep open.
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
             // scope: { type: 'string', nullable: true },
             expiresAt: { type: 'string', nullable: true }
-        }
+        },
+        required: ['id', 'name', 'expiresAt']
     })
     app.addSchema({
         $id: 'InstanceHTTPToken',
@@ -106,14 +114,15 @@ module.exports = function (app) {
         allOf: [{ $ref: 'InstanceHTTPTokenSummary' }],
         properties: {
             token: { type: 'string' }
-        }
+        },
+        required: ['token']
     })
 
     function instanceHTTPTokenSummary (token) {
         const tokenSummary = {
             id: token.hashid,
             name: token.name,
-            expiresAt: token.expiresAt
+            expiresAt: token.expiresAt ?? null
         }
         return tokenSummary
     }

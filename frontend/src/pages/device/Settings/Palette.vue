@@ -10,27 +10,27 @@
             <div class="w-full flex flex-col sm:flex-row">
                 <div class="w-full sm:mr-8 space-y-2">
                     <div class="w-full flex items-center">
-                        <div class="flex-grow" :class="{'opacity-20': !defaultEnabled}">{{ defaultCatalogue }}</div>
+                        <div class="grow" :class="{'opacity-20': !defaultEnabled}">{{ defaultCatalogue }}</div>
                         <!-- Default is enabled, allow for removal -->
                         <ff-button v-if="!defaultEnabled" v-ff-tooltip:left="'Restore Default Catalogue'" kind="tertiary" size="small" @click="addDefault()">
                             <template #icon><UndoIcon /></template>
                         </ff-button>
                         <!-- Default is disabled, allow for restoration -->
                         <ff-button v-else kind="tertiary" size="small" :disabled="readOnly" @click="removeURL(defaultCatalogue)">
-                            <template #icon><XIcon /></template>
+                            <template #icon><XMarkIcon /></template>
                         </ff-button>
                     </div>
                     <div v-for="(u, index) in thirdPartyUrls" :key="index" class="w-full flex items-center">
-                        <div class="flex-grow">{{ u }}</div>
+                        <div class="grow">{{ u }}</div>
                         <ff-button kind="tertiary" size="small" :disabled="readOnly" @click="removeURL(u)">
-                            <template #icon><XIcon /></template>
+                            <template #icon><XMarkIcon /></template>
                         </ff-button>
                     </div>
                     <FormRow v-model="url" class="w-full sm:mr-8" :error="error" containerClass="none" appendClass="ml-2 relative">
                         <template #append>
                             <ff-button kind="secondary" size="small" @click="addURL()">
                                 <template #icon>
-                                    <PlusSmIcon />
+                                    <PlusSmallIcon />
                                 </template>
                             </ff-button>
                         </template>
@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import { PlusSmIcon, XIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
 import deviceApi from '../../../api/devices.js'
 import FormHeading from '../../../components/FormHeading.vue'
@@ -72,9 +72,9 @@ export default {
     components: {
         FormHeading,
         FormRow,
-        PlusSmIcon,
+        PlusSmallIcon,
         UndoIcon,
-        XIcon
+        XMarkIcon
     },
     props: {
         device: {

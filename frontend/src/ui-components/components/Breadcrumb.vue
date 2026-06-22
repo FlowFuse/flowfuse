@@ -16,7 +16,7 @@
 
 <script>
 
-import { ChevronRightIcon } from '@heroicons/vue/solid'
+import { ChevronRightIcon } from '@heroicons/vue/20/solid'
 export default {
     name: 'ff-nav-breadcrumb',
     components: {

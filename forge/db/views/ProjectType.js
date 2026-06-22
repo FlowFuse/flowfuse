@@ -5,7 +5,9 @@ module.exports = function (app) {
         properties: {
             id: { type: 'string' },
             name: { type: 'string' }
-        }
+        },
+        required: ['id', 'name'],
+        additionalProperties: false
     })
     function projectTypeSummary (projectType) {
         if (projectType.toJSON) {
@@ -30,8 +32,9 @@ module.exports = function (app) {
             defaultStack: { type: 'string', nullable: true },
             instanceCount: { type: 'number' },
             stackCount: { type: 'number' }
-
-        }
+        },
+        required: ['id', 'name', 'active', 'description', 'order', 'properties', 'createdAt', 'defaultStack'],
+        additionalProperties: false
     })
     function projectType (projectType, includeCount) {
         if (projectType) {

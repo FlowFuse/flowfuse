@@ -42,7 +42,7 @@ module.exports = {
                         include: [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'avatar', 'links', 'TeamTypeId', 'suspended']
                             }
                         ]
                     })
@@ -56,7 +56,7 @@ module.exports = {
                     const includes = [
                         {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId'],
+                            attributes: ['hashid', 'id', 'name', 'slug', 'avatar', 'links', 'TeamTypeId', 'suspended'],
                             where: { id }
                         }
                     ]
@@ -65,7 +65,7 @@ module.exports = {
                         const include = {
                             model: M.Project,
                             as: 'Instances',
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url', 'state'],
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url', 'state', 'createdAt', 'updatedAt'],
                             include: [
                                 // Need for project URL calculation (depends on httpAdminRoot)
                                 {

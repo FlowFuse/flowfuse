@@ -1,15 +1,15 @@
 <template>
     <div id="ff-app" class="flex flex-col" :class="{'hidden-left-drawer': hiddenLeftDrawer}">
         <template v-if="offline">
-            <main class="ff-bg-dark flex-grow flex flex-col">
-                <div class="w-full max-w-screen-2xl mx-auto my-2 sm:my-8 flex-grow flex flex-col">
+            <main class="ff-bg-dark grow flex flex-col">
+                <div class="w-full max-w-(--breakpoint-2xl) mx-auto my-2 sm:my-8 grow flex flex-col">
                     <Offline />
                 </div>
             </main>
         </template>
         <template v-else-if="appLoader">
-            <main class="ff-bg-dark flex-grow flex flex-col">
-                <div class="w-full mx-auto flex-grow flex flex-col">
+            <main class="ff-bg-dark grow flex flex-col">
+                <div class="w-full mx-auto grow flex flex-col">
                     <Loading color="white" />
                 </div>
             </main>
@@ -58,12 +58,14 @@
         <template v-else>
             <Login />
         </template>
+        <CookieConsent />
     </div>
 </template>
 
 <script>
 import { mapActions, mapState } from 'pinia'
 
+import CookieConsent from './components/CookieConsent.vue'
 import Loading from './components/Loading.vue'
 import Offline from './components/Offline.vue'
 import LicenseBanner from './components/banners/LicenseBanner.vue'
@@ -80,13 +82,16 @@ import UnverifiedEmail from './pages/UnverifiedEmail.vue'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useCookieConsentStore } from '@/stores/cookie-consent'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
+import { computePageTitle, isEditorRoute } from '@/utils/page-title'
 
 export default {
     name: 'App',
     components: {
+        CookieConsent,
         EducationModal,
         Login,
         PasswordExpired,
@@ -105,6 +110,10 @@ export default {
         ...mapState(useAccountAuthStore, ['user']),
         ...mapState(useUxLoadingStore, ['appLoader', 'offline']),
         ...mapState(useAccountSettingsStore, ['settings']),
+        ...mapState(useContextStore, ['instance', 'device']),
+        pageTitleSignal () {
+            return [this.instance?.id, this.instance?.name, this.device?.id, this.device?.name, this.$route.name]
+        },
         loginRequired () {
             return this.$route.meta.requiresLogin !== false
         },
@@ -143,9 +152,18 @@ export default {
             handler (to) {
                 this.updateRoute(to)
             }
+        },
+        pageTitleSignal: {
+            immediate: true,
+            handler () {
+                if (isEditorRoute(this.$route)) return
+                const title = computePageTitle(this.$route, { instance: this.instance, device: this.device })
+                if (title) document.title = title
+            }
         }
     },
     mounted () {
+        useCookieConsentStore().applyDecision()
         useAccountAuthStore().checkState()
         useProductBrokersStore().checkFlags()
         useAccountSettingsStore().loadPosthogFlags()

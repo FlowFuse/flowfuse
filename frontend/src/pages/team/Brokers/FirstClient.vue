@@ -17,7 +17,7 @@
                     @click="createClient()"
                 >
                     <template #icon-left>
-                        <PlusSmIcon />
+                        <PlusSmallIcon />
                     </template>
                     Create Client
                 </ff-button>
@@ -36,7 +36,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 
 import EmptyState from '../../../components/EmptyState.vue'
 import usePermissions from '../../../composables/Permissions.js'
@@ -47,7 +47,7 @@ export default {
     name: 'FirstClient',
     components: {
         EmptyState,
-        PlusSmIcon,
+        PlusSmallIcon,
         ClientDialog
     },
     setup () {

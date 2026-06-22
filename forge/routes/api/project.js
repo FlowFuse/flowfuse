@@ -1,5 +1,6 @@
 const { KEY_SETTINGS, KEY_HEALTH_CHECK_INTERVAL, KEY_DISABLE_AUTO_SAFE_MODE, KEY_SHARED_ASSETS } = require('../../db/models/ProjectSettings')
 const { exportEnvVarObject } = require('../../db/utils')
+const { decodeCertifiedNodesToken } = require('../../lib/npm')
 const { Roles } = require('../../lib/roles')
 
 const ProjectActions = require('./projectActions')
@@ -372,7 +373,7 @@ module.exports = async function (app) {
             await app.auditLog.Project.project.imported(request.session.User.id, null, request.project, sourceProject)
 
             // Early return, status is loaded async
-            reply.code(200).send({})
+            reply.code(200).send(await app.db.views.Project.project(targetProject, { includeSettings: false }))
 
             exportProjectToExistingProject(sourceProject, targetProject, options) // runs async
 
@@ -434,7 +435,7 @@ module.exports = async function (app) {
                     // hidden env vars are received as empty strings so we'll replace the empty string with the previous value,
                     // allowing them to be overwritten when needed
                     if (Object.prototype.hasOwnProperty.call(env, 'hidden') && env.hidden && !env.value.length) {
-                        const previousValue = currentProjectSettings.env.find(e => e.name === env.name)
+                        const previousValue = currentProjectSettings.env?.find(e => e.name === env.name)
                         if (!previousValue) {
                             // this is a hidden env var with no value provided and no instance-level value. This
                             // means it has come from the template and we should not add it to the instance
@@ -528,7 +529,7 @@ module.exports = async function (app) {
             if (changesToProjectDefinition) {
                 // Early return and complete the rest async
                 await app.db.controllers.Project.setInflightState(request.project, 'starting') // TODO: better inflight state needed
-                reply.code(200).send({})
+                reply.code(200).send(await app.db.views.Project.project(request.project, { includeSettings: false }))
                 repliedEarly = true
 
                 const suspendOptions = {
@@ -849,9 +850,10 @@ module.exports = async function (app) {
 
         await request.project.Team.ensureTeamTypeExists()
         const team = request.project.Team
-        const assistantInlineCompletionsFeatureEnabled = !!(app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
+        const isAiEnabled = !!(app.config.features.enabled('ai') && team.getFeatureProperty('ai', true))
+        const assistantInlineCompletionsFeatureEnabled = !!(isAiEnabled && app.config.features.enabled('assistantInlineCompletions') && team.getFeatureProperty('assistantInlineCompletions', false))
         settings.assistant = {
-            enabled: app.config.assistant?.enabled || false,
+            enabled: isAiEnabled && (app.config.assistant?.enabled || false),
             requestTimeout: app.config.assistant?.requestTimeout || 60000,
             mcp: { enabled: true }, // default to enabled
             completions: {
@@ -934,14 +936,20 @@ module.exports = async function (app) {
         const ffNodesEnabledForTeam = team.getFeatureProperty('ffNodes', false)
         if (platformNPMEnabled && (certifiedNodesEnabledForTeam || ffNodesEnabledForTeam)) {
             try {
-                const token = app.settings.get('platform:ff-npm-registry:token')
+                // modify token with team hash id
+                const { token, catalogues } = decodeCertifiedNodesToken(app.settings.get('platform:ff-npm-registry:token'), team.hashid)
+                // const token = updateCertifiedNodesToken(app.settings.get('platform:ff-npm-registry:token'), team.hashid)
                 const npmRegURL = new URL(app.config['ff-npm-registry']?.url || 'https://registry.flowfuse.com/')
                 const certNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.certifiedNodes || 'https://ff-certified-nodes.flowfuse.cloud/catalogue.json'
                 const ffNodesCatalogue = app.config['ff-npm-registry']?.catalogue?.ffNodes || 'https://ff-certified-nodes.flowfuse.cloud/ff-catalogue.json'
+                let teamFFCertifiedExtra = team.getProperty('certifiedNodesCatalogues', null)
+                if ((teamFFCertifiedExtra && teamFFCertifiedExtra.length === 0) || !teamFFCertifiedExtra) {
+                    teamFFCertifiedExtra = catalogues
+                }
 
                 // Handle FF Exclusive Nodes
 
-                if (certNodesCatalogue || ffNodesCatalogue) {
+                if (certNodesCatalogue || ffNodesCatalogue || teamFFCertifiedExtra) {
                     // At least one is configured - so initialise the settings
                     settings.settings.palette = settings.settings.palette || {}
                     settings.settings.palette.catalogue = settings.settings.palette.catalogue || []
@@ -957,7 +965,9 @@ module.exports = async function (app) {
                     const npmrcEntry = `${scope}:registry=${npmRegURL.toString()}\n` +
                           `//${npmRegURL.host}:_auth="${token}"\n`
                     if (settings.settings.palette.npmrc) {
-                        settings.settings.palette.npmrc += '\n' + npmrcEntry
+                        if (!settings.settings.palette.npmrc.includes(npmrcEntry)) {
+                            settings.settings.palette.npmrc += '\n' + npmrcEntry
+                        }
                     } else {
                         settings.settings.palette.npmrc = npmrcEntry
                     }
@@ -967,6 +977,11 @@ module.exports = async function (app) {
                 }
                 if (ffNodesEnabledForTeam && ffNodesCatalogue) {
                     updateSettingsForCatalogue('@flowfuse-nodes', ffNodesCatalogue)
+                }
+                if (teamFFCertifiedExtra) {
+                    for (const cat of teamFFCertifiedExtra) {
+                        updateSettingsForCatalogue('@flowfuse-certified-nodes', cat)
+                    }
                 }
             } catch (err) {
                 app.log.error('Failed to configure platform npm registry for project', err)
@@ -1463,10 +1478,17 @@ module.exports = async function (app) {
                 await request.project.Team.ensureTeamTypeExists()
                 const tier = app.license.get('tier')
                 const isEnterprise = tier === 'enterprise'
-                const hasFeature = request.project.Team.getFeatureProperty('generatedSnapshotDescription', false)
+                const isAiEnabled = !!(app.config.features.enabled('ai') && request.project.Team.getFeatureProperty('ai', true))
+                const hasPlatformFeature = !!app.config.features.enabled('generatedSnapshotDescription')
+                const hasTeamFeature = request.project.Team.getFeatureProperty('generatedSnapshotDescription', false)
 
-                if (!isEnterprise || !hasFeature) {
+                if (!isEnterprise || !isAiEnabled || !hasPlatformFeature || !hasTeamFeature) {
                     return reply.code(404).send({ code: 'not_found' })
+                }
+
+                const isAssistantConfigured = app.config.assistant?.enabled === true && !!app.config.assistant?.service?.url
+                if (!isAssistantConfigured) {
+                    return reply.code(400).send({ code: 'assistant_not_configured', error: 'Assistant service is not configured' })
                 }
             }
         ],

@@ -3,7 +3,7 @@
         <h4 class="section-title">
             <streamable-content v-model="packagesTitle" :should-stream="shouldStream" />
         </h4>
-        <div v-if="!shouldStream || packagesTitle.streamed" class="packages-grid">
+        <div v-if="!shouldStream || packagesTitle.streamed" class="packages-list">
             <PackageResourceCard
                 v-for="(node, index) in visibleItems" :key="index"
                 :nodePackage="node"
@@ -69,14 +69,14 @@ export default {
 .section-title {
     font-size: 1rem; // text-base
     font-weight: 500; // font-medium
-    color: #111827; // text-gray-900
+    color: var(--ff-color-text-strong); // text-gray-900
     margin: 0 0 0.75rem 0; // mb-3
 }
 
 .guide-packages {
-    .packages-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    .packages-list {
+        display: flex;
+        flex-direction: column;
         gap: 0.5rem;
     }
 }

@@ -13,9 +13,13 @@ module.exports = {
                     properties: {
                         wanted: { type: 'string' },
                         current: { type: 'string', nullable: true }
-                    }
+                    },
+                    required: ['current'],
+                    additionalProperties: false
                 }
-            }
+            },
+            required: ['name', 'version'],
+            additionalProperties: false
         })
         app.addSchema({
             $id: 'dependant',
@@ -35,7 +39,9 @@ module.exports = {
                 ownerId: { type: 'string', nullable: true },
                 dependencies: { type: 'array', items: { $ref: 'dependency' } },
                 state: { type: 'string', nullable: true }
-            }
+            },
+            required: ['id', 'name', 'type', 'dependencies', 'state'],
+            additionalProperties: false
         })
     },
 

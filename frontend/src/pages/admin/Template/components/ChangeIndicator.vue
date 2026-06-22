@@ -2,7 +2,7 @@
     <div v-if="value" class="flex"><SparklesIcon class="w-4" /></div>
 </template>
 <script>
-import { SparklesIcon } from '@heroicons/vue/outline'
+import { SparklesIcon } from '@heroicons/vue/24/outline'
 export default {
     name: 'ChangeIndicator',
     components: {

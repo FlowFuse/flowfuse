@@ -24,7 +24,7 @@
                     :disabled="!featureEnabled || !hasPermission('application:device-group:create', {application: application})"
                     @click="showCreateDeviceGroupDialog"
                 >
-                    <template #icon-left><PlusSmIcon /></template>
+                    <template #icon-left><PlusSmallIcon /></template>
                     Add Device Group
                 </ff-button>
             </template>
@@ -45,7 +45,7 @@
                 data-action="create-device-group" :disabled="!featureEnabled"
                 @click="showCreateDeviceGroupDialog"
             >
-                <template #icon-left><PlusSmIcon /></template>
+                <template #icon-left><PlusSmallIcon /></template>
                 Add Device Group
             </ff-button>
         </template>
@@ -57,7 +57,7 @@
                 <p>Enter the name and description of the Device Group to create.</p>
             </slot>
             <div class="flex gap-4 mt-4">
-                <div class="flex-grow">
+                <div class="grow">
                     <FormRow v-model="input.name" :error="!input.name ? 'required' : ''" data-form="name">Name</FormRow>
                     <FormRow v-model="input.description" data-form="name">Description</FormRow>
                 </div>
@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
 
@@ -94,7 +94,7 @@ export default {
     components: {
         EmptyState,
         FormRow,
-        PlusSmIcon,
+        PlusSmallIcon,
         SectionTopMenu
     },
     beforeRouteLeave () {

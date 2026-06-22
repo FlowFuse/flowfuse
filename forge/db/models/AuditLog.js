@@ -280,7 +280,7 @@ module.exports = {
                     const addApplicationScope = async (teamId, applicationId = null, includeInstances = false, includeApplicationDevices = false, includeInstanceDevices = false) => {
                         let applicationIds = []
                         if (applicationId) {
-                            const _application = (await M.Application.findOne({ where: { id: applicationId }, attributes: ['id', 'hashid', 'name', 'TeamId'] }))
+                            const _application = (await M.Application.findOne({ where: { id: applicationId }, attributes: ['id', 'hashid', 'name', 'description', 'links', 'TeamId'] }))
                             applicationMap.set(applicationId.toString(), _application)
                             applicationIds = [applicationId]
                             filters.push({
@@ -289,7 +289,7 @@ module.exports = {
                             })
                         } else {
                             const clause = { TeamId: teamId }
-                            const _applications = (await M.Application.findAll({ where: clause, attributes: ['id', 'hashid', 'name', 'TeamId'] }))
+                            const _applications = (await M.Application.findAll({ where: clause, attributes: ['id', 'hashid', 'name', 'description', 'links', 'TeamId'] }))
                             _applications.forEach(a => applicationMap.set(a.id?.toString(), a))
                             applicationIds = _applications.map(a => a.id?.toString()).filter(a => !!a)
                             filters.push({
@@ -316,7 +316,7 @@ module.exports = {
                         let instanceIds = []
                         if (instanceId) {
                             if (Array.isArray(instanceId)) {
-                                const _instances = (await M.Project.findAll({ where: { id: { [Op.in]: instanceId } }, attributes: ['id', 'name', 'ApplicationId', 'TeamId', 'state'] }))
+                                const _instances = (await M.Project.findAll({ where: { id: { [Op.in]: instanceId } }, attributes: ['id', 'hashid', 'name', 'links', 'createdAt', 'updatedAt', 'ApplicationId', 'TeamId', 'state'] }))
                                 _instances.forEach(i => instanceMap.set(i.id, i))
                                 instanceIds.push(...instanceId)
                                 filters.push({
@@ -324,7 +324,7 @@ module.exports = {
                                     entityId: { [Op.in]: instanceId }
                                 })
                             } else {
-                                const _instance = (await M.Project.findOne({ where: { id: instanceId }, attributes: ['id', 'hashid', 'name', 'ApplicationId', 'TeamId', 'state'] }))
+                                const _instance = (await M.Project.findOne({ where: { id: instanceId }, attributes: ['id', 'hashid', 'name', 'links', 'createdAt', 'updatedAt', 'ApplicationId', 'TeamId', 'state'] }))
                                 instanceMap.set(instanceId.toString(), _instance)
                                 instanceIds.push(instanceId)
                                 filters.push({
@@ -341,7 +341,7 @@ module.exports = {
                                     clause.ApplicationId = applicationId.toString()
                                 }
                             }
-                            const _instances = (await M.Project.findAll({ where: clause, attributes: ['id', 'name', 'ApplicationId', 'TeamId', 'state'] }))
+                            const _instances = (await M.Project.findAll({ where: clause, attributes: ['id', 'hashid', 'name', 'links', 'createdAt', 'updatedAt', 'ApplicationId', 'TeamId', 'state'] }))
                             _instances.forEach(i => instanceMap.set(i.id?.toString(), i))
                             instanceIds = _instances.map(p => p.id?.toString()).filter(p => !!p)
                             filters.push({
@@ -369,7 +369,7 @@ module.exports = {
                                 clause.ApplicationId = applicationId
                             }
                         }
-                        const _devices = (await M.Device.findAll({ where: clause, attributes: ['id', 'hashid', 'name', 'type', 'ApplicationId', 'ProjectId', 'TeamId', 'ownerType', 'mode', 'lastSeenAt', 'state'] }))
+                        const _devices = (await M.Device.findAll({ where: clause, attributes: ['id', 'hashid', 'name', 'type', 'links', 'ApplicationId', 'ProjectId', 'TeamId', 'ownerType', 'mode', 'lastSeenAt', 'state'] }))
                         _devices.forEach(d => deviceMap.set(d.id?.toString(), d))
                         const deviceIds = _devices.map(d => d.id?.toString()).filter(d => !!d)
                         filters.push({

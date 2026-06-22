@@ -2,10 +2,10 @@
     <div ref="drawer" class="ff-expert-drawer" data-el="expert-drawer" tabindex="-1">
         <div class="header">
             <div class="flex items-center gap-1.5">
-                <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 flex-shrink-0">
+                <img src="/ff-minimal-red.svg" alt="FlowFuse" class="w-5 h-5 shrink-0">
                 <h2 class="title">Expert</h2>
             </div>
-            <div v-if="isInsightsModeEnabled" class="agent-mode">
+            <div v-if="isInsightsModeEnabled && isAssistantModeEnabled" class="agent-mode">
                 <toggle-button-group
                     v-model="agentModeWrapper"
                     :buttons="agentModeButtons"
@@ -31,7 +31,7 @@
                     data-el="expert-drawer-close-button"
                     @click="closeDrawer"
                 >
-                    <XIcon class="ff-icon" />
+                    <XMarkIcon class="ff-icon" />
                 </button>
             </div>
         </div>
@@ -40,7 +40,7 @@
 </template>
 
 <script>
-import { LockClosedIcon, LockOpenIcon, XIcon } from '@heroicons/vue/solid'
+import { LockClosedIcon, LockOpenIcon, XMarkIcon } from '@heroicons/vue/20/solid'
 
 import { mapActions, mapState } from 'pinia'
 
@@ -56,7 +56,7 @@ export default {
     components: {
         ToggleButtonGroup,
         ExpertPanel,
-        XIcon,
+        XMarkIcon,
         LockClosedIcon,
         LockOpenIcon
     },
@@ -64,15 +64,18 @@ export default {
     computed: {
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useProductExpertStore, ['agentMode']),
-        ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         agentModeButtons () {
             return [
                 { title: 'Support', value: 'support-agent' },
                 { title: 'Insights', value: 'insights-agent' }
             ]
         },
+        isAssistantModeEnabled () {
+            return !!this.featuresCheck?.isExpertAssistantFeatureEnabled
+        },
         isInsightsModeEnabled () {
-            return !!this.features.expertInsights
+            return !!this.featuresCheck?.isExpertInsightsFeatureEnabled
         },
         isPinned () {
             return this.rightDrawer.fixed
@@ -118,8 +121,8 @@ export default {
 
     .header {
         padding: 1rem 1.5rem;
-        background: linear-gradient(white, white) padding-box,
-                    linear-gradient(90deg, $ff-red-600, #5048e5, $ff-red-600, #5048e5, $ff-red-600) border-box;
+        background: linear-gradient(var(--ff-color-bg-app), var(--ff-color-bg-app)) padding-box,
+                    linear-gradient(90deg, var(--ff-palette-red-600), var(--ff-palette-indigo-600), var(--ff-palette-red-600), var(--ff-palette-indigo-600), var(--ff-palette-red-600)) border-box;
         border: none;
         border-bottom: 1px solid transparent;
         background-size: 200% 100%;
@@ -167,7 +170,7 @@ export default {
             font-size: 1rem;
             font-weight: 700; // font-bold
             line-height: 20px;
-            color: #1f2937; // text-gray-800
+            color: var(--ff-color-text); // text-gray-800
             margin: 0;
         }
 
@@ -193,20 +196,20 @@ export default {
 
                 &:hover {
                     cursor: pointer;
-                    background: $ff-grey-100;
+                    background: var(--ff-color-bg-surface-raised);
                 }
 
                 &:focus-visible {
-                    outline: 2px solid $ff-indigo-700;
+                    outline: 2px solid var(--ff-color-accent-hover);
                     outline-offset: 1px;
                 }
 
                 &.pin-button.is-pinned {
-                    background: $ff-indigo-800;
-                    color: white;
+                    background: var(--ff-color-accent-strong);
+                    color: var(--ff-color-text-on-brand);
 
                     &:hover {
-                        background: $ff-indigo-900;
+                        background: var(--ff-color-expert-drawer-bg);
                     }
                 }
             }

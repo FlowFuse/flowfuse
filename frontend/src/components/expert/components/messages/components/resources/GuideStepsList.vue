@@ -55,7 +55,7 @@ export default {
 .section-title {
     font-size: 1rem; // text-base
     font-weight: 500; // font-medium
-    color: #111827; // text-gray-900
+    color: var(--ff-color-text-strong); // text-gray-900
     margin: 0 0 0.75rem 0; // mb-3
 }
 
@@ -83,8 +83,8 @@ export default {
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: $ff-indigo-600;
-        color: white;
+        background-color: var(--ff-color-accent);
+        color: var(--ff-color-text-on-brand);
         font-size: 0.875rem; // text-sm
         border-radius: 50%; // rounded-full
         margin-right: 0.75rem; // mr-3
@@ -97,13 +97,13 @@ export default {
         .step-title {
             font-size: 1rem;
             font-weight: 500;
-            color: $ff-grey-900;
+            color: var(--ff-color-text-strong);
             margin: 0 0 0.25rem 0;
         }
 
         .step-detail {
             font-size: 0.875rem;
-            color: $ff-grey-600;
+            color: var(--ff-color-text-deep);
             margin: 0.25rem 0 0 0;
             line-height: 1.5;
         }

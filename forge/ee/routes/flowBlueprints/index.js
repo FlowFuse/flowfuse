@@ -127,7 +127,7 @@ module.exports = async function (app) {
             tags: ['Flow Blueprints'],
             body: {
                 type: 'object',
-                allOf: [{ $ref: 'FlowBlueprint' }],
+                allOf: [{ $ref: 'FlowBlueprintInput' }],
                 required: ['name']
             },
             response: {
@@ -182,7 +182,7 @@ module.exports = async function (app) {
                 }
             },
             body: {
-                $ref: 'FlowBlueprint'
+                $ref: 'FlowBlueprintInput'
             },
             response: {
                 200: {
@@ -319,7 +319,17 @@ module.exports = async function (app) {
             tags: ['Flow Blueprints'],
             body: {
                 type: 'object',
-                allOf: [{ $ref: 'FlowBlueprintExport' }]
+                properties: {
+                    blueprints: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            additionalProperties: true
+                        }
+                    },
+                    count: { type: 'integer' }
+                },
+                required: ['blueprints']
             },
             response: {
                 201: {

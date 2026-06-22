@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { AdjustmentsIcon, BadgeCheckIcon, CameraIcon, DotsHorizontalIcon, DownloadIcon, PlusIcon, RefreshIcon } from '@heroicons/vue/outline'
+import { AdjustmentsVerticalIcon, ArrowDownTrayIcon, ArrowPathIcon, CameraIcon, CheckBadgeIcon, EllipsisHorizontalIcon, PlusIcon } from '@heroicons/vue/24/outline'
 
 import PipelinesIcon from '../../icons/Pipelines.js'
 import ProjectsIcon from '../../icons/Projects.js'
@@ -60,7 +60,7 @@ export default {
                 // by its data payload (i.e. if the event has a data.sourceProject attr, we know it's from a devops pipeline)
                 if (Object.prototype.hasOwnProperty.call(this.event.data, 'sourceProject')) {
                     return PipelinesIcon
-                } else return DownloadIcon
+                } else return ArrowDownTrayIcon
             case 'project.snapshot.rolled-back':
                 return UndoIcon
             case 'device.pipeline.deployed':
@@ -74,15 +74,15 @@ export default {
                 return CameraIcon
             case 'project.settings.updated':
             case 'device.settings.updated':
-                return AdjustmentsIcon
+                return AdjustmentsVerticalIcon
             case 'device.restarted':
-                return RefreshIcon
+                return ArrowPathIcon
             case 'project.created':
                 return PlusIcon
             case 'device.snapshot.target-set':
-                return BadgeCheckIcon
+                return CheckBadgeIcon
             case 'load-more':
-                return DotsHorizontalIcon
+                return EllipsisHorizontalIcon
             default:
                 return null
             }
@@ -158,17 +158,17 @@ export default {
     .icon-wrapper {
         min-width: 34px;
         min-height: 35px;
-        border: 2px solid $ff-blue-800;
+        border: 2px solid var(--ff-color-timeline-marker-border);
         border-radius: 50%;
         padding: 5px;
-        background: #fff;
+        background: var(--ff-color-timeline-marker-bg);
         position: relative;
         z-index: 10;
-        color: $ff-blue-800;
+        color: var(--ff-color-link-hover);
     }
 
     .connector {
-        border: 1px solid $ff-blue-800;
+        border: 1px solid var(--ff-color-toggle-group-active-border);
         position: absolute;
         left: 47%;  // compensates for border width
         z-index: 5;
@@ -183,7 +183,7 @@ export default {
                 left: 80%;
                 height: 50px;
                 border-style: dashed;
-                border-color: $ff-grey-500;
+                border-color: var(--ff-color-border-strong);
             }
         }
 
@@ -196,7 +196,7 @@ export default {
                 left: 83%;
                 height: 50px;
                 border-style: dashed;
-                border-color: $ff-grey-500;
+                border-color: var(--ff-color-border-strong);
             }
         }
 
@@ -214,7 +214,7 @@ export default {
         .connector {
             &.top, &.bottom {
                 left: 65%;
-                border-color: $ff-grey-500;
+                border-color: var(--ff-color-border-strong);
                 border-style: dashed;
             }
         }

@@ -54,7 +54,7 @@
 
 <script>
 import { ListboxOption } from '@headlessui/vue'
-import { GlobeAltIcon } from '@heroicons/vue/outline'
+import { GlobeAltIcon } from '@heroicons/vue/24/outline'
 
 import ProjectIcon from '../../components/icons/Projects.js'
 import { removeSlashes } from '../../composables/strings/String.js'
@@ -166,19 +166,19 @@ export default {
   }
 
   .ff-options {
-    border: 1px solid $ff-grey-200 !important;
+    border: 1px solid var(--ff-color-border) !important;
 
     .ff-option {
-      background: white !important;
+      background: var(--ff-color-bg-app) !important;
       border: none !important;
 
       &[disabled="true"] {
-        color: $ff-grey-600;
+        color: var(--ff-color-text-deep);
         cursor: not-allowed;
       }
 
       &:hover {
-        background-color: $ff-grey-200 !important;
+        background-color: var(--ff-color-bg-emphasis) !important;
       }
     }
   }

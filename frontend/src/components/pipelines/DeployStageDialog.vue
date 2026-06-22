@@ -325,9 +325,9 @@ export default {
 
     .error-banner {
         padding: 9px;
-        background-color: $ff-red-50;
-        border: 1px solid $ff-red-300;
+        background-color: var(--ff-color-status-error-bg);
+        border: 1px solid var(--ff-color-status-error-border);
         border-radius: 3px;
-        color: $ff-red-600;
+        color: var(--ff-color-danger-strong);
     }
 </style>

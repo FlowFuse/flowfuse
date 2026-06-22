@@ -2,7 +2,7 @@
     <button
         title="Toggle drawer"
         class="drawer-trigger"
-        :class="{ 'hidden': isHidden }"
+        :class="{ 'hidden': isHidden, 'nr5-plus': isNr5Plus }"
         :aria-label="isHidden ? 'Open drawer' : 'Close drawer'"
         :aria-expanded="!isHidden"
         type="button"
@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'DrawerTrigger',
@@ -23,6 +23,10 @@ export default {
     },
     props: {
         isHidden: {
+            type: Boolean,
+            default: false
+        },
+        isNr5Plus: {
             type: Boolean,
             default: false
         }
@@ -42,14 +46,28 @@ export default {
     .ff-layout--immersive--fullscreen & {
         top: 10px;
     }
+
+    &.nr5-plus {
+        top: 63px;
+        padding: 8px;
+
+        .ff-btn--icon {
+            display: none;
+        }
+
+        .ff-layout--immersive--fullscreen & {
+            top: 4px;
+        }
+    }
+
     left: 0;
     z-index: 100;
     padding: 8px 2px 8px 8px;
 
     /* Colors - matching original drawer trigger */
-    color: $ff-grey-400;
-    background: $ff-white;
-    border: 1px solid $ff-grey-400;
+    color: var(--ff-color-text-subtle);
+    background: var(--ff-color-bg-app);
+    border: 1px solid var(--ff-color-border-strong);
     border-left: none;
 
     /* Reset button styles */
@@ -68,7 +86,7 @@ export default {
     }
 
     .ff-btn--icon {
-        color: $ff-grey-400;
+        color: var(--ff-color-text-subtle);
         width: 20px;
         height: 20px;
     }

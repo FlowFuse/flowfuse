@@ -10,7 +10,7 @@
                     v-model="searchTerm" class="ff-data-table--search max-w-2xl w-full col-span-3 relative"
                     data-form="search" placeholder="Search applications"
                 >
-                    <template #icon><SearchIcon /></template>
+                    <template #icon><MagnifyingGlassIcon /></template>
                     <template #icon-right>
                         <x-icon
                             v-if="searchTerm.length"
@@ -108,7 +108,7 @@
 </template>
 
 <script>
-import { SearchIcon, XIcon } from '@heroicons/vue/outline'
+import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
 
 import usePermissions from '../../../../composables/Permissions.js'
 
@@ -119,7 +119,7 @@ import IconNodeRedSolid from '../../../icons/NodeRedSolid.js'
 
 export default {
     name: 'ApplicationStep',
-    components: { FormRow, IconDeviceSolid, IconNodeRedSolid, SearchIcon, XIcon },
+    components: { FormRow, IconDeviceSolid, IconNodeRedSolid, MagnifyingGlassIcon },
     props: {
         slug: {
             required: true,
@@ -251,18 +251,18 @@ export default {
 .ff-select-application-step {
     .app-tile {
         padding: 12px;
-        border: 2px solid $ff-grey-300;
+        border: 2px solid var(--ff-color-border-strong);
         width: 100%;
         border-radius: 6px;
         cursor: pointer;
         transition: ease-in-out .3s;
 
         &:hover {
-            border-color: $ff-indigo-400;
+            border-color: var(--ff-color-accent);
         }
 
         &.selected {
-            border-color: $ff-indigo-600;
+            border-color: var(--ff-color-accent);
         }
 
         .header {
@@ -271,13 +271,13 @@ export default {
             }
 
             .counters {
-                color: $ff-grey-400;
+                color: var(--ff-color-text-subtle);
                 font-size: $ff-funit-xs;
             }
         }
 
         .description {
-            color: $ff-grey-400;
+            color: var(--ff-color-text-subtle);
             font-size: $ff-funit-sm;
         }
     }

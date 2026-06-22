@@ -127,7 +127,9 @@ module.exports = fp(async function (app, opts) {
         type: 'object',
         properties: {
             status: { type: 'string' }
-        }
+        },
+        required: ['status'],
+        additionalProperties: false
     })
     app.addSchema({
         $id: 'APIError',
@@ -137,7 +139,10 @@ module.exports = fp(async function (app, opts) {
             error: { type: 'string' },
             message: { type: 'string' },
             errors: { type: 'array', items: { type: 'object', additionalProperties: true } }
-        }
+        },
+        // Error-response shape is historically loose — handlers send varying subsets.
+        // Handlers attach context-specific extras.
+        additionalProperties: true
     })
     app.addSchema({
         $id: 'PaginationParams',
@@ -145,7 +150,11 @@ module.exports = fp(async function (app, opts) {
         properties: {
             query: { type: 'string' },
             cursor: { type: 'string' },
-            limit: { type: 'number' }
+            limit: { type: 'number' },
+            page: { type: 'number', minimum: 1 },
+            sort: { type: 'string' },
+            dir: { type: 'string', enum: ['asc', 'desc'] },
+            order: { type: 'string', enum: ['asc', 'desc'] }
         }
     })
 
@@ -154,14 +163,20 @@ module.exports = fp(async function (app, opts) {
         type: 'object',
         properties: {
             next_cursor: { type: 'string' },
-            previous_cursor: { type: 'string' }
+            previous_cursor: { type: 'string' },
+            page: { type: 'number' },
+            pageSize: { type: 'number' },
+            total: { type: 'number' },
+            pageCount: { type: 'number' }
         }
     })
     app.addSchema({
         $id: 'LinksMeta',
         type: 'object',
+        // Models extend links with their own keys.
         properties: {
             self: { type: 'string' }
-        }
+        },
+        additionalProperties: true
     })
 }, { name: 'app.routes.api-docs' })

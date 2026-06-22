@@ -23,7 +23,7 @@
                             data-form="search"
                             placeholder="Search Clients..."
                         >
-                            <template #icon><SearchIcon /></template>
+                            <template #icon><MagnifyingGlassIcon /></template>
                         </ff-text-input>
                         <ff-button
                             v-if="hasPermission('broker:clients:create')"
@@ -33,7 +33,7 @@
                             @click="createClient()"
                         >
                             <template #icon-left>
-                                <PlusSmIcon />
+                                <PlusSmallIcon />
                             </template>
                             Create Client
                         </ff-button>
@@ -78,7 +78,7 @@
                                 @click="createClient()"
                             >
                                 <template #icon-left>
-                                    <PlusSmIcon />
+                                    <PlusSmallIcon />
                                 </template>
                                 Create Client
                             </ff-button>
@@ -93,7 +93,7 @@
 </template>
 
 <script>
-import { PlusSmIcon, RssIcon, SearchIcon } from '@heroicons/vue/outline'
+import { MagnifyingGlassIcon, PlusSmallIcon, RssIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
 import brokerApi from '../../../../api/broker.js'
@@ -119,8 +119,8 @@ export default {
     components: {
         FeatureUnavailableToTeam,
         BrokerClient,
-        SearchIcon,
-        PlusSmIcon,
+        MagnifyingGlassIcon,
+        PlusSmallIcon,
         RssIcon,
         EmptyState,
         ClientDialog
@@ -209,14 +209,14 @@ export default {
 <style lang="scss">
 
     .clients-wrapper {
-        border: 1px solid $ff-grey-300;
+        border: 1px solid var(--ff-color-border-strong);
         border-radius: 5px;
         overflow: hidden;
 
         .header {
-            background: $ff-grey-100;
+            background: var(--ff-color-bg-surface-raised);
             padding: 10px;
-            border-bottom: 1px solid $ff-grey-300;
+            border-bottom: 1px solid var(--ff-color-border-strong);
 
             span {
                 &.username {
@@ -226,10 +226,10 @@ export default {
         }
 
         .clients-list {
-            background: $ff-white;
+            background: var(--ff-color-bg-app);
 
             .client {
-                border-bottom: 1px solid $ff-grey-300;
+                border-bottom: 1px solid var(--ff-color-border-strong);
 
                 &:last-of-type {
                     border-bottom: none;

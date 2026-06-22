@@ -16,7 +16,7 @@
             <template #actions>
                 <ff-button :to="{name: 'admin-users-create'}">
                     <template #icon-left>
-                        <UserAddIcon />
+                        <UserPlusIcon />
                     </template>
                     Create New User
                 </ff-button>
@@ -31,7 +31,7 @@
 
 <script>
 
-import { UserAddIcon } from '@heroicons/vue/outline'
+import { UserPlusIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
@@ -46,7 +46,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 export default {
     name: 'AdminUsers',
     components: {
-        UserAddIcon,
+        UserPlusIcon,
         AdminUserEditDialog
     },
     data () {
@@ -56,7 +56,7 @@ export default {
             loading: false,
             nextCursor: null,
             columns: [
-                { label: 'User', class: ['flex-grow'], key: 'name', component: { is: markRaw(UserCell) }, sortable: true },
+                { label: 'User', class: ['grow'], key: 'name', component: { is: markRaw(UserCell) }, sortable: true },
                 { label: 'Password Expired', class: ['w-32', 'text-center'], key: 'password_expired', sortable: true },
                 { label: 'Email Verified', class: ['w-32', 'text-center'], key: 'email_verified', sortable: true },
                 { label: 'SSO', class: ['w-32', 'text-center'], key: 'sso_enabled', sortable: true },

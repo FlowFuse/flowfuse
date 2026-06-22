@@ -433,7 +433,7 @@ module.exports = {
                     return this.findAll({
                         include: {
                             model: M.Team,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended'],
+                            attributes: ['hashid', 'id', 'name', 'slug', 'avatar', 'links', 'TeamTypeId', 'suspended'],
                             include: [
                                 {
                                     model: M.TeamMember,
@@ -452,11 +452,11 @@ module.exports = {
                         : [
                             {
                                 model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended', 'properties']
+                                attributes: ['hashid', 'id', 'name', 'slug', 'avatar', 'links', 'TeamTypeId', 'suspended', 'properties']
                             },
                             {
                                 model: M.Application,
-                                attributes: ['hashid', 'id', 'name', 'links']
+                                attributes: ['hashid', 'id', 'name', 'description', 'links']
                             },
                             {
                                 model: M.ProjectType,
@@ -511,7 +511,7 @@ module.exports = {
                         {
                             model: M.Application,
                             where: { id: applicationId },
-                            attributes: ['hashid', 'id', 'name', 'links']
+                            attributes: ['hashid', 'id', 'name', 'description', 'links']
                         },
                         {
                             model: M.ProjectType,
@@ -552,15 +552,23 @@ module.exports = {
                     })
                 },
                 byTeam: async (teamIdOrHash, {
+                    pagination = null,
                     query = null,
                     instanceId = null,
                     includeAssociations = true,
                     includeSettings = false,
                     includeMeta = false,
-                    limit = null,
                     orderByMostRecentFlows = false,
                     excludeApplications = null
                 } = {}) => {
+                    const {
+                        page = null,
+                        limit = null,
+                        offset = null,
+                        sort = null,
+                        dir = 'asc'
+                    } = pagination || {}
+                    const withTotal = page !== null
                     let teamId = teamIdOrHash
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
@@ -569,13 +577,13 @@ module.exports = {
                         {
                             model: M.Team,
                             where: { id: teamId },
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId']
+                            attributes: ['hashid', 'id', 'name', 'slug', 'avatar', 'links', 'TeamTypeId', 'suspended']
                         }
                     ]
                     if (includeAssociations) {
                         include.push({
                             model: M.Application,
-                            attributes: ['hashid', 'id', 'name', 'links']
+                            attributes: ['hashid', 'id', 'name', 'description', 'links']
                         },
                         {
                             model: M.ProjectType,
@@ -613,8 +621,31 @@ module.exports = {
                     if (limit !== null) {
                         queryObject.limit = limit
                     }
+                    if (offset !== null) {
+                        queryObject.offset = offset
+                    }
 
-                    if (includeMeta && orderByMostRecentFlows) {
+                    const direction = String(dir).toLowerCase() === 'desc' ? 'DESC' : 'ASC'
+                    if (sort) {
+                        const sortMap = {
+                            name: ['name'],
+                            createdAt: ['createdAt'],
+                            updatedAt: ['updatedAt'],
+                            'application.name': [{ model: M.Application }, 'name'],
+                            flowLastUpdatedAt: [{ model: M.StorageFlow }, 'updatedAt']
+                        }
+                        const mapped = sortMap[sort]
+                        if (mapped) {
+                            // flowLastUpdatedAt needs the StorageFlow include — only valid with includeMeta
+                            if (sort === 'flowLastUpdatedAt' && !includeMeta) {
+                                // fall through to default ordering below
+                            } else {
+                                queryObject.order = [[...mapped, `${direction}${sort === 'flowLastUpdatedAt' ? ' NULLS LAST' : ''}`]]
+                            }
+                        }
+                    }
+
+                    if (!queryObject.order && includeMeta && orderByMostRecentFlows) {
                         queryObject.order = [
                             [literal(`
                                 CASE
@@ -647,6 +678,18 @@ module.exports = {
                         }
                     }
 
+                    if (withTotal) {
+                        const countInclude = [{
+                            model: M.Team,
+                            where: { id: teamId },
+                            attributes: []
+                        }]
+                        const [rows, total] = await Promise.all([
+                            this.findAll(queryObject),
+                            this.count({ where: queryObject.where, include: countInclude, distinct: true, col: 'id' })
+                        ])
+                        return { rows, total }
+                    }
                     return this.findAll(queryObject)
                 },
                 getProjectTeamId: async (id) => {
@@ -674,7 +717,7 @@ module.exports = {
                             },
                             {
                                 model: M.Application,
-                                attributes: ['hashid', 'id', 'name', 'links']
+                                attributes: ['hashid', 'id', 'name', 'description', 'links']
                             },
                             {
                                 model: M.ProjectSettings,

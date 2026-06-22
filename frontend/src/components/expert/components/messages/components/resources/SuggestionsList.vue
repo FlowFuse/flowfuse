@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { InformationCircleIcon } from '@heroicons/vue/solid'
+import { InformationCircleIcon } from '@heroicons/vue/20/solid'
 
 import useStreamingList from '../../../../../../composables/StreamingListHelper.js'
 
@@ -70,10 +70,10 @@ export default {
         display: flex;
         align-items: center;
         gap: 5px;
-        color: $ff-grey-600;
+        color: var(--ff-color-text-deep);
 
         .ff-icon {
-            color: $ff-grey-500;
+            color: var(--ff-color-text-subtle);
         }
     }
 

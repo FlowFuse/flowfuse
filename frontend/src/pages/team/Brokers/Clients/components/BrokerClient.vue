@@ -21,7 +21,7 @@
                 class="edit hover:cursor-pointer"
                 data-action="nav-to-client-owner"
             >
-                <ChipIcon
+                <CpuChipIcon
                     v-if="client.owner?.instanceType === 'device'"
                     v-ff-tooltip:left="`Client is linked to Device '${client.owner.name || client.owner.id}'`"
                     class="ff-icon-sm"
@@ -31,7 +31,7 @@
                 <ProjectsIcon
                     v-else-if="client.owner?.instanceType === 'instance'"
                     v-ff-tooltip:left="`Client is linked to Instance '${client.owner.name || client.owner.id}'`"
-                    class="!ml-0 ff-icon-sm"
+                    class="ml-0! ff-icon-sm"
                     @click.prevent.stop="$router.push({ name: 'Instance', params: { id:client.owner.id } })"
                 />
             </span>
@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import { ChipIcon, PencilIcon, TrashIcon } from '@heroicons/vue/outline'
+import { CpuChipIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 
@@ -81,7 +81,7 @@ export default {
     name: 'BrokerClient',
     components: {
         BrokerAclRule,
-        ChipIcon,
+        CpuChipIcon,
         ProjectsIcon,
         TextCopier,
         PencilIcon,
@@ -197,19 +197,19 @@ export default {
             }
 
             .edit:hover {
-                color: $ff-grey-700;
+                color: var(--ff-color-text-muted);
             }
             .delete:hover {
-                color: $ff-red-700;
+                color: var(--ff-color-danger-darker);
             }
         }
     }
 
     .ff-accordion--content {
-        background: $ff-grey-100;
+        background: var(--ff-color-bg-surface-raised);
         .acl-list {
             .acl-wrapper {
-                border-bottom: 1px solid $ff-grey-200;
+                border-bottom: 1px solid var(--ff-color-border);
                 padding: 15px 10px;
                 gap: 10px;
                 font-size: 80%;

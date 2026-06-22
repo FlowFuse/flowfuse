@@ -60,6 +60,20 @@ module.exports = async function (app) {
             const teamType = await request.team.getTeamType()
             const teamHttpSecurityFeature = !!teamType.properties.features?.teamHttpSecurity
             request.teamHttpSecurityFeature = teamHttpSecurityFeature
+
+            // Check AI and expert feature flags at platform and team level
+            await request.team.ensureTeamTypeExists()
+            const isAiEnabled = !!(app.config.features.enabled('ai') && request.team.getFeatureProperty('ai', true))
+            if (!isAiEnabled) {
+                return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
+            }
+            const isExpertAssistantEnabled = !!(app.config.features.enabled('expertAssistant') && request.team.getFeatureProperty('expertAssistant', true))
+            const isExpertInsightsEnabled = !!(app.config.features.enabled('expertInsights') && request.team.getFeatureProperty('expertInsights', true))
+            if (!isExpertAssistantEnabled && !isExpertInsightsEnabled) {
+                return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
+            }
+            request.isExpertAssistantEnabled = isExpertAssistantEnabled
+            request.isExpertInsightsEnabled = isExpertInsightsEnabled
         }
     })
 
@@ -104,7 +118,6 @@ module.exports = async function (app) {
         const selectedCapabilities = context.selectedCapabilities
         if (selectedCapabilities && Array.isArray(selectedCapabilities) && selectedCapabilities.length > 0) {
             const applicationCache = {}
-            const instanceCache = {}
             const mcpServersList = []
 
             // Premise:
@@ -112,8 +125,9 @@ module.exports = async function (app) {
             // in order of computational cost, we need to:
             // 1. filter out any MCP servers the user does not have access to at all (application level)
             // 2. filter out any MCP server features (prompts/resources/tools) the user does not have access to (feature level)
-            // 3. for the remaining MCP servers, load (and cache) the instance and get/create access token as needed
-            //    based on the instance's node security settings
+            // 3. re-resolve the remaining MCP servers against the team's trusted MCP registry, verify
+            //    instance/application ownership, and get/create access tokens as needed based on the
+            //    instance's node security settings
 
             // first pass - get associated applications for the MCP servers selected by user
             for (const server of selectedCapabilities || []) {
@@ -132,42 +146,82 @@ module.exports = async function (app) {
             // second pass - filter features per MCP server based on user access to features (e.g. a tool with the destructive hint requires extra permission than a read-only tool)
             const accessibleServers = filterAccessibleMCPServerFeatures(app, mcpServersList, request.team, request.teamMembership)
 
-            // final pass - now that we have list of accessible servers, apply access tokens as needed
-            for (const server of accessibleServers) {
-                const instanceId = server.instance
-                const instanceType = server.instanceType
-                const application = applicationCache[server.application]
-                if (!application || !instanceId || !instanceType) { continue }
+            // Build the team's trusted MCP registry. This is the source of truth for which MCP servers
+            // exist and their transport details (instance, endpoint, protocol). The client-supplied
+            // transport fields (e.g. mcpServerUrl, instanceUrl, mcpEndpoint) are NEVER trusted - they
+            // are re-resolved from here so a user cannot point a minted access token at an arbitrary
+            // URL, nor attach a token for an instance they have not been authorised against.
+            // (mirrors the /mcp/features route)
+            const registrations = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
+            const trustedRegistrations = new Map()
+            for (const reg of registrations) {
+                if (reg.targetType !== 'instance' || !reg.Project) {
+                    continue
+                } // devices are not yet supported for MCP servers
+                trustedRegistrations.set(`${reg.Project.id}::${reg.name}`, reg)
+            }
 
-                // short cut - if the token cache has an entry, use it (avoid loading the instance model)
-                server.mcpAccessToken = await app.expert.mcp.getCachedToken(instanceId)
-                if (server.mcpAccessToken) {
+            // final pass - re-resolve each accessible server against the trusted registry, verify
+            // instance/application ownership, then apply access tokens as needed
+            for (const server of accessibleServers) {
+                const application = applicationCache[server.application]
+                if (!application || !server.instance) {
+                    server._invalid = true // flag the server as invalid to be filtered out later
                     continue
                 }
 
-                // load instance from local cache or db (an instance can appear multiple times if multiple MCP servers are registered)
-                if (!Object.hasOwnProperty.call(instanceCache, instanceId)) {
-                    switch (instanceType) {
-                    case 'instance':
-                        instanceCache[instanceId] = await app.db.models.Project.byId(instanceId)
-                        break
-                    case 'device':
-                        instanceCache[instanceId] = await app.db.models.Device.byId(instanceId)
-                        break
-                    default:
-                        continue
-                    }
+                // re-resolve against the trusted registry - drops any selection that is not a
+                // registered MCP server for this team
+                const registration = trustedRegistrations.get(`${server.instance}::${server.mcpServerName}`)
+                const instance = registration?.Project
+                if (!instance) {
+                    server._invalid = true
+                    continue
                 }
 
-                const instance = instanceCache[instanceId]
-                if (instance) {
-                    // sanity check - ensure instance is linked to application
-                    if (instance.ApplicationId !== application.id) {
-                        server._invalid = true // flag the server as invalid to be filtered out later
-                        continue
-                    }
-                    server.mcpAccessToken = await app.expert.mcp.getOrCreateToken(instance, instanceType, instanceId, request.teamHttpSecurityFeature)
+                // SECURITY: the registered instance must belong to the claimed application (the user was
+                // only permission-checked against the claimed application in the second pass). This
+                // ownership check MUST happen BEFORE reading or minting any access token, because the
+                // token cache is keyed by instanceId alone.
+                if (instance.ApplicationId !== application.id) {
+                    server._invalid = true
+                    continue
                 }
+
+                const instanceType = registration.targetType // trusted instance type ('instance')
+
+                // Tamper detection (audit signal only - we overwrite with trusted values regardless).
+                // A well-behaved client echoes back the transport details we issued via /mcp/features,
+                // so any disagreement indicates either a stale client or tampering. We log it rather
+                // than reject, to avoid failing legitimate requests in a race condition. mcpServerUrl is
+                // not compared - FlowFuse never issues it as an authoritative field (the agent builds
+                // it client-side), so it is simply dropped below.
+                const tamperedFields = []
+                if (server.instanceUrl !== undefined && server.instanceUrl !== instance.url) { tamperedFields.push('instanceUrl') }
+                if (server.mcpEndpoint !== undefined && server.mcpEndpoint !== registration.endpointRoute) { tamperedFields.push('mcpEndpoint') }
+                if (server.mcpProtocol !== undefined && server.mcpProtocol !== registration.protocol) { tamperedFields.push('mcpProtocol') }
+                if (tamperedFields.length > 0) {
+                    app.log.warn(`Expert chat: correcting client-supplied MCP transport fields [${tamperedFields.join(', ')}] that did not match the trusted registry (user=${request.user.hashid}, team=${request.team.hashid}, instance=${instance.id})`)
+                }
+
+                // Overwrite all transport/identity fields with trusted values - never trust the client's
+                // copy. The agent rebuilds mcpServerUrl from instanceUrl + mcpEndpoint, as it does for
+                // the /mcp/features response.
+                server.team = request.team.hashid
+                server.application = application.hashid
+                server.instanceType = instanceType
+                server.instanceName = instance.name
+                server.instanceUrl = instance.url
+                server.mcpServerName = registration.name
+                server.mcpEndpoint = registration.endpointRoute
+                server.mcpProtocol = registration.protocol
+                server.title = registration.title
+                server.version = registration.version
+                server.description = registration.description
+                delete server.mcpServerUrl
+
+                // ownership verified - safe to read/create the cached access token for this instance
+                server.mcpAccessToken = await app.expert.mcp.getOrCreateToken(instance, instanceType, instance.id, request.teamHttpSecurityFeature)
             }
             const filteredAccessibleServers = accessibleServers.filter(s => !s._invalid)
             context.selectedCapabilities = filteredAccessibleServers?.length > 0 ? filteredAccessibleServers : undefined
@@ -229,6 +283,8 @@ module.exports = async function (app) {
                 required: ['context']
             },
             response: {
+                // Kept open: fast-json-stringify strips undeclared fields, but Ajv
+                // response-validation runs before that — locking would reject stripped fields.
                 200: {
                     type: 'object',
                     properties: {
@@ -254,12 +310,10 @@ module.exports = async function (app) {
                                     version: { type: 'string' },
                                     description: { type: 'string' }
                                 },
-                                required: ['instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol'],
-                                additionalProperties: false
+                                required: ['instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol']
                             }
                         }
-                    },
-                    additionalProperties: false
+                    }
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -273,6 +327,10 @@ module.exports = async function (app) {
      * @param {import('fastify').FastifyReply} reply
      */
     async (request, reply) => {
+        if (!request.isExpertInsightsEnabled) {
+            return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+
         try {
             // Premise:
             // In order to get the MCP features (prompts/resources/tools) available to the user for their

@@ -132,6 +132,7 @@
                         <FormRow v-model="input.options.groupAdmin" type="checkbox">Manage Admin roles using group assertions</FormRow>
                         <FormRow v-if="input.options.groupAdmin" v-model="input.options.groupAdminName" :error="groupAdminNameError" class="pl-4">Admin Users SAML Group name</FormRow>
                     </div>
+                    <FormRow v-if="input.type === 'saml'" v-model="input.options.sendIdpHint" type="checkbox">Send hostname as hint to IDP (KeyCloak only)</FormRow>
                     <FormRow v-model="input.options.provisionNewUsers" type="checkbox">Allow Provisioning of New Users on first login</FormRow>
                     <FormRow v-model="input.options.sessionExpiry" :error="sessionExpiryError" type="number">
                         Custom Session Expiry (hours)
@@ -151,7 +152,7 @@
 </template>
 
 <script>
-import { ChevronLeftIcon } from '@heroicons/vue/solid'
+import { ChevronLeftIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
 
 import ssoApi from '../../../../api/sso.js'
@@ -188,7 +189,8 @@ export default {
                     groupMapping: false,
                     groupAdminName: '',
                     groupPrefixLength: 0,
-                    groupSuffixLength: 0
+                    groupSuffixLength: 0,
+                    sendIdpHint: false
                 }
             },
             errors: {},
@@ -318,6 +320,7 @@ export default {
                     if (!opts.options.tls) {
                         delete opts.options.tls
                         delete opts.options.tlsVerifyServer
+                        delete opts.options.sendIdpHint
                     }
                     // if (opts.options.provisionNewUsers) {
                     //     delete opts.options.provisionNewUsers
@@ -354,7 +357,8 @@ export default {
                     groupAdminName: 'ff-admins',
                     groupAssertionName: 'ff-roles',
                     groupPrefixLength: 0,
-                    groupSuffixLength: 0
+                    groupSuffixLength: 0,
+                    sendIdpHint: false
                 }
             } else {
                 this.loading = true
@@ -386,6 +390,7 @@ export default {
                 this.input.options.groupAssertionName = this.input.options.groupAssertionName || 'ff-roles'
                 // groupTeams is stored as an array - convert to multi-line string for the edit form
                 this.input.options.groupTeams = (this.input.options.groupTeams || []).join('\n')
+                this.input.options.sendIdpHint = this.input.options.sendIdpHint ?? false
             } else {
                 // eslint-disable-next-line no-template-curly-in-string
                 this.input.options.userFilter = this.input.options.userFilter || '(uid=${username})'

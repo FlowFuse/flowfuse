@@ -5,7 +5,7 @@
                 <template #tools>
                     <ff-button data-action="create-type" @click="showCreateInstanceTypeDialog">
                         <template #icon-right>
-                            <PlusSmIcon />
+                            <PlusSmallIcon />
                         </template>
                         Create instance type
                     </ff-button>
@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { markRaw } from 'vue'
 
 import instanceTypesApi from '../../../api/instanceTypes.js'
@@ -64,7 +64,7 @@ export default {
     name: 'AdminInstanceTypes',
     components: {
         SectionTopMenu,
-        PlusSmIcon,
+        PlusSmallIcon,
         InstanceTypeEditDialog
     },
     data () {

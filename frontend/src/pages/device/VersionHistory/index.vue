@@ -35,7 +35,7 @@
                     :disabled="busy || isOwnedByAnInstance || isUnassigned"
                     @click="showImportSnapshotDialog"
                 >
-                    <template #icon-left><UploadIcon /></template>
+                    <template #icon-left><ArrowUpTrayIcon /></template>
                     <span class="hidden sm:inline upload-snapshot-text">Upload Snapshot</span>
                 </ff-button>
                 <ff-button
@@ -47,7 +47,7 @@
                     :disabled="!canCreateSnapshot"
                     @click="showCreateSnapshotDialog"
                 >
-                    <template #icon-left><PlusSmIcon /></template>
+                    <template #icon-left><PlusSmallIcon /></template>
                     <span class="hidden sm:inline create-snapshot-text">Create Snapshot</span>
                 </ff-button>
             </section>
@@ -95,7 +95,7 @@
 </template>
 
 <script>
-import { PlusSmIcon, UploadIcon } from '@heroicons/vue/outline'
+import { ArrowUpTrayIcon, PlusSmallIcon } from '@heroicons/vue/24/outline'
 
 import SectionTopMenu from '../../../components/SectionTopMenu.vue'
 import SnapshotImportDialog from '../../../components/dialogs/SnapshotImportDialog.vue'
@@ -112,8 +112,8 @@ export default {
         ToggleButtonGroup,
         SnapshotImportDialog,
         SnapshotCreateDialog,
-        PlusSmIcon,
-        UploadIcon,
+        PlusSmallIcon,
+        ArrowUpTrayIcon,
         SectionTopMenu
     },
     inheritAttrs: false,

@@ -2,12 +2,12 @@
     <section class="flex gap-5 flex-col md:flex-row mb-5 md:mb-0">
         <div class="ff-instance-info">
             <FormHeading>Instances</FormHeading>
-            <table class="table-fixed w-full border border-separate rounded">
+            <table class="table-fixed w-full border border-separate rounded-sm">
                 <tbody>
                     <tr>
                         <td class="align-top pt-3"><FormHeading><ProjectsIcon />Hosted Instances</FormHeading></td>
                         <td>
-                            <table class="border-none w-full hosted-instances-usage !p-0">
+                            <table class="border-none w-full hosted-instances-usage p-0!">
                                 <tbody>
                                     <tr v-for="instance in usedInstancesByType" :key="instance.type.id">
                                         <td class="font-medium">{{ instance.type.name }}</td>
@@ -23,7 +23,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td><FormHeading><ChipIcon />Remote Instances</FormHeading></td>
+                        <td><FormHeading><CpuChipIcon />Remote Instances</FormHeading></td>
                         <td class="text-right">
                             <usage-value
                                 :used="team.deviceCount"
@@ -37,7 +37,7 @@
 
         <div class="ff-instance-info w-full md:w-auto">
             <FormHeading>Team</FormHeading>
-            <table class="table-fixed w-full border border-separate rounded">
+            <table class="table-fixed w-full border border-separate rounded-sm">
                 <tbody>
                     <tr class="border-b">
                         <td class="font-medium flex items-center gap-2"><UsersIcon class="ff-icon ff-icon-md" /> Users</td>
@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import { ChipIcon, IdentificationIcon, RssIcon, UsersIcon } from '@heroicons/vue/outline'
+import { CpuChipIcon, IdentificationIcon, RssIcon, UsersIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
 import instanceTypesApi from '../../../../api/instanceTypes.js'
@@ -82,7 +82,7 @@ export default {
     components: {
         FormHeading,
         UsageValue,
-        ChipIcon,
+        CpuChipIcon,
         UsersIcon,
         ProjectsIcon,
         RssIcon,

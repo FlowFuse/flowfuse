@@ -31,12 +31,14 @@ describe('Assistant API', async function () {
         const mergedConfig = Object.assign({}, defaultConfig, config)
         const _app = await setup(mergedConfig)
         _app.comms = null // skip all the broker stuff
+        _app.config.features.register('ai', true, true)
         _app.config.features.register('tables', tablesFeatureEnabled, tablesFeatureEnabled)
         _app.config.features.register('assistantInlineCompletions', assistantInlineCompletionsFeatureEnabled, assistantInlineCompletionsFeatureEnabled)
-        // Enable tables feature for default team type
+        // Enable tables and ai features for default team type
         const defaultTeamType = await _app.db.models.TeamType.findOne({ where: { name: 'starter' } })
         const defaultTeamTypeProperties = defaultTeamType.properties
         defaultTeamTypeProperties.features.tables = true
+        defaultTeamTypeProperties.features.ai = true
         defaultTeamType.properties = defaultTeamTypeProperties
         await defaultTeamType.save()
         return _app
@@ -446,6 +448,28 @@ describe('Assistant API', async function () {
                         payload: { prompt: 'select all rows from test', transactionId: '555' }
                     })
                     response.statusCode.should.equal(404)
+                })
+                it('returns 404 when ai platform flag is disabled', async function () {
+                    app.config.features.register('ai', false, true)
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    response.statusCode.should.equal(404)
+                    app.config.features.register('ai', true, true)
+                })
+                it('returns 404 when ai team flag is disabled', async function () {
+                    await enableTeamTypeFeatureFlag(app, false, 'ai')
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/assistant/${serviceName}`,
+                        headers: { authorization: 'Bearer ' + TestObjects.tokens.device },
+                        payload: { prompt: 'select all rows from test', transactionId: '555' }
+                    })
+                    response.statusCode.should.equal(404)
+                    await enableTeamTypeFeatureFlag(app, true, 'ai')
                 })
                 it('does not allow other contrib nodes', async function () {
                     const serviceName = 'fim/' + encodeURIComponent('@third-party/contrib-node') + '/node-type'

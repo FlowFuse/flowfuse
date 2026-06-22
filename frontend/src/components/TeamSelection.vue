@@ -41,7 +41,7 @@ import {
     ListboxButton,
     ListboxOption
 } from '@headlessui/vue'
-import { PlusIcon, UserAddIcon } from '@heroicons/vue/solid'
+import { PlusIcon, UserPlusIcon } from '@heroicons/vue/20/solid'
 import { mapState } from 'pinia'
 
 import usePermissions from '../composables/Permissions.js'
@@ -62,7 +62,7 @@ export default {
     },
     setup () {
         const { hasPermission } = usePermissions()
-        return { PlusIcon, UserAddIcon, hasPermission }
+        return { PlusIcon, UserPlusIcon, hasPermission }
     },
     computed: {
         ...mapState(useContextStore, ['team']),
@@ -75,7 +75,7 @@ export default {
                 }),
                 (
                     this.team && this.hasPermission('team:user:invite')
-                        ? { label: 'Invite Members', value: 'invite-members', icon: UserAddIcon }
+                        ? { label: 'Invite Members', value: 'invite-members', icon: UserPlusIcon }
                         : undefined
                 ),
                 (
@@ -147,7 +147,7 @@ export default {
             }
             .icon {
                 svg {
-                    color: $ff-grey-800;
+                    color: var(--ff-color-text);
                     width: 80%;
                     padding-left: 10px;
                 }
@@ -156,9 +156,9 @@ export default {
     }
 }
 .ff-options .ff-team-selection-option {
-    border-color: $ff-color--border;
-    color: $ff-grey-800;
-    border-bottom: 1px solid $ff-color--border;
+    border-color: var(--ff-color-border);
+    color: var(--ff-color-text);
+    border-bottom: 1px solid var(--ff-color-border);
     display: flex;
     align-items: center;
 
@@ -170,7 +170,7 @@ export default {
         width: 100%;
 
         &.selected {
-            background: $ff-grey-200;
+            background: var(--ff-color-bg-emphasis);
         }
 
         .ff-icon {

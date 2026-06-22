@@ -1,15 +1,17 @@
 <template>
     <message-bubble type="human">
-        {{ content }}
+        <streamable-content :string="content" :rich-content="true" :should-stream="false" />
     </message-bubble>
 </template>
 
 <script>
 import MessageBubble from './components/MessageBubble.vue'
 
+import StreamableContent from '@/components/expert/components/messages/components/resources/StreamableContent.vue'
+
 export default {
     name: 'HumanMessage',
-    components: { MessageBubble },
+    components: { StreamableContent, MessageBubble },
     props: {
         content: {
             required: true,

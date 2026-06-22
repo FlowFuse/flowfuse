@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon } from '@heroicons/vue/24/outline'
 
 import ExternalClient from '../../api/external.js'
 import { pluralize } from '../../composables/strings/String.js'
@@ -122,12 +122,12 @@ export default {
 
 <style lang="scss">
 .dependency-item {
-    border: 1px solid $ff-grey-300;
+    border: 1px solid var(--ff-color-border-strong);
     margin-bottom: 12px;
 
     .dependency-header {
         cursor: pointer;
-        background: $ff-grey-100;
+        background: var(--ff-color-bg-surface-raised);
         display: flex;
         padding: 6px 9px;
         align-items: center;
@@ -145,7 +145,7 @@ export default {
             }
 
             p {
-                color: $ff-grey-500;
+                color: var(--ff-color-text-subtle);
                 font-weight: 400;
                 font-size: 80%;
             }
@@ -164,7 +164,7 @@ export default {
         }
 
         &.open {
-            border-bottom: 1px solid $ff-grey-300;
+            border-bottom: 1px solid var(--ff-color-border-strong);
 
             .ff-toggle {
                 transform: rotate(90deg);

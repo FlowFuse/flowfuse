@@ -408,7 +408,9 @@ module.exports = async function (app) {
                 options
             )
 
-            reply.send(await app.db.views.PipelineStage.stage(stage))
+            // Controller's stage.reload() drops includes, so re-hydrate for the view.
+            const hydratedStage = await app.db.models.PipelineStage.byId(stage.id)
+            reply.send(await app.db.views.PipelineStage.stage(hydratedStage))
         } catch (error) {
             if (error instanceof ValidationError) {
                 if (error.errors[0]) {

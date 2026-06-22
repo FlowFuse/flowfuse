@@ -12,11 +12,12 @@
 </template>
 
 <script>
-import useStreamingList from '../../../../composables/StreamingListHelper.js'
-import { slugify } from '../../../../composables/strings/String.js'
-
 import AnswerWrapper from './components/AnswerWrapper.vue'
+
 import ToolCalls from './components/ToolCalls.vue'
+
+import useStreamingList from '@/composables/StreamingListHelper.js'
+import { slugify } from '@/composables/strings/String.js'
 
 export default {
     name: 'AiMessage',

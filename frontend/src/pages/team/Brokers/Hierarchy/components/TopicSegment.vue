@@ -22,7 +22,7 @@
                             class="separator cursor-help"
                             title="This topic is also able to receive events"
                         >
-                            <ArchiveIcon class="ff-icon-sm" />
+                            <ArchiveBoxIcon class="ff-icon-sm" />
                         </span>
                     </span>
                     <span v-if="hasChildren" class="font-normal opacity-50 text-xs">{{ topicsCounterLabel }}</span>
@@ -49,14 +49,14 @@
 </template>
 
 <script>
-import { ArchiveIcon } from '@heroicons/vue/outline'
-import { ChevronRightIcon } from '@heroicons/vue/solid'
+import { ChevronRightIcon } from '@heroicons/vue/20/solid'
+import { ArchiveBoxIcon } from '@heroicons/vue/24/outline'
 import { ref } from 'vue'
 
 import TextCopier from '../../../../../components/TextCopier.vue'
 export default {
     name: 'TopicSegment',
-    components: { TextCopier, ChevronRightIcon, ArchiveIcon },
+    components: { TextCopier, ChevronRightIcon, ArchiveBoxIcon },
     props: {
         segment: {
             required: true,
@@ -191,15 +191,15 @@ export default {
         margin: 5px 0 0;
         transition: ease .15s;
         &:hover {
-            color: $ff-indigo-700;
+            color: var(--ff-color-accent-hover);
 
             cursor: pointer;
         }
 
         .diagram {
             .connector-elbow {
-                border-left: 2px solid  $ff-indigo-300;
-                border-bottom: 2px solid  $ff-indigo-300;
+                border-left: 2px solid var(--ff-color-accent-light);
+                border-bottom: 2px solid var(--ff-color-accent-light);
                 border-bottom-left-radius: 7px;
                 display: inline-block;
                 position: absolute;
@@ -210,7 +210,7 @@ export default {
             }
             .connector-trunk {
                 width: 1px;
-                border-left: 2px solid $ff-indigo-300;
+                border-left: 2px solid var(--ff-color-accent-light);
                 display: inline-block;
                 position: absolute;
                 height: 5000px;
@@ -233,7 +233,7 @@ export default {
                 gap: 3px;
 
                 .highlight {
-                    background-color: $ff-indigo-100;
+                    background-color: var(--ff-color-accent-surface);
                 }
             }
 
@@ -245,7 +245,7 @@ export default {
             &:hover {
                 .ff-text-copier {
                     display: inline-block;
-                    color: $ff-grey-400;
+                    color: var(--ff-color-text-subtle);
                 }
             }
         }
@@ -256,14 +256,14 @@ export default {
     }
     &.selected > {
         .segment {
-            background: $ff-indigo-50;
+            background: var(--ff-color-accent-surface);
         }
     }
     &.open > {
         .segment {
             .content {
                 .title {
-                    color: $ff-indigo-700;
+                    color: var(--ff-color-accent-hover);
                 }
 
                 .chevron {
@@ -277,12 +277,12 @@ export default {
         .segment {
             .content {
                 .title {
-                    color: $ff-grey-600;
+                    color: var(--ff-color-text-deep);
                     font-size: 90%;
                     font-weight: 300;
 
                     .separator {
-                        color: $ff-black;
+                        color: var(--ff-color-text);
                         font-weight: bold;
                     }
                 }

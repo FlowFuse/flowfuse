@@ -31,7 +31,7 @@ export default {
             type: Boolean
         }
     },
-    emits: ['update:modelValue', 'click'],
+    emits: ['update:modelValue', 'click', 'change'],
     computed: {
         model: {
             get () {
@@ -53,6 +53,7 @@ export default {
             if (!this.disabled) {
                 if (this.mode === 'sync') {
                     this.model = !this.model
+                    this.$emit('change', this.model)
                 } else if (this.mode === 'async') {
                     this.$emit('click')
                 } else {

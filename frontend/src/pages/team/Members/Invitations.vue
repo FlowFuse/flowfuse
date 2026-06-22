@@ -14,7 +14,7 @@
                         @click="resendInvite(row)"
                     >
                         <template #icon>
-                            <RefreshIcon />
+                            <ArrowPathIcon />
                         </template>
                     </ff-button>
                     <ff-button kind="tertiary" class="ff-btn-xs ff-btn--tertiary-danger" data-action="remove-invite" @click="removeInvite(row)">
@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { RefreshIcon, TrashIcon } from '@heroicons/vue/outline'
+import { ArrowPathIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 import { markRaw } from 'vue'
@@ -47,7 +47,7 @@ import { useContextStore } from '@/stores/context.js'
 
 export default {
     name: 'MemberInviteTable',
-    components: { TrashIcon, RefreshIcon },
+    components: { TrashIcon, ArrowPathIcon },
     props: {
         inviteCount: {
             type: Number,
@@ -65,7 +65,7 @@ export default {
             loading: false,
             invitations: [],
             inviteColumns: [
-                { label: 'User', class: ['flex-grow'], component: { is: markRaw(InviteUserCell), map: { user: 'invitee' } }, key: 'invitee' },
+                { label: 'User', class: ['grow'], component: { is: markRaw(InviteUserCell), map: { user: 'invitee' } }, key: 'invitee' },
                 { label: 'Role', class: ['w-40'], key: 'roleName' },
                 { label: 'Expires In', class: ['w-40'], key: 'expires' }
             ]

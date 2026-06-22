@@ -69,7 +69,7 @@
                         :buttonClass="`ff-btn ff-btn-icon ${ actionsButtonKind }`"
                         :options="actionsDropdownOptions"
                     >
-                        <CogIcon class="ff-btn--icon ff-btn--icon-left" />
+                        <Cog8ToothIcon class="ff-btn--icon ff-btn--icon-left" />
                         Actions
                     </DropdownMenu>
                 </div>
@@ -95,7 +95,7 @@
                         <div class="flex text-center">
                             <img class="h-16 w-16" src="../../images/pictograms/cloud_teal.png">
                         </div>
-                        <div class="flex-grow m-4">
+                        <div class="grow m-4">
                             <div class="w-full">
                                 <div class="h-1 w-full bg-teal-200 overflow-hidden">
                                     <div kind="secondary" class="progress w-full h-full bg-teal-800 left-right" />
@@ -135,7 +135,7 @@
 
 <script>
 
-import { CogIcon } from '@heroicons/vue/solid/index.js'
+import { Cog8ToothIcon } from '@heroicons/vue/20/solid/index.js'
 import { mapActions, mapState } from 'pinia'
 import semver from 'semver'
 
@@ -188,7 +188,7 @@ const deviceTransitionStates = [
 export default {
     name: 'DevicePage',
     components: {
-        CogIcon,
+        Cog8ToothIcon,
         DeviceEditorLink,
         FinishSetupButton,
         DeveloperModeToggle,
@@ -313,7 +313,7 @@ export default {
                     label: 'Node-RED Logs',
                     to: { name: 'device-logs' },
                     tag: 'device-logs'
-                    // icon: TerminalIcon
+                    // icon: CommandLineIcon
                 },
                 {
                     label: 'Performance',
@@ -368,6 +368,10 @@ export default {
     async mounted () {
         this.mounted = true
         await this.loadDevice()
+        this.setContextualDevice(this.device)
+    },
+    beforeUnmount () {
+        this.setContextualDevice(null)
     },
     unmounted () {
         this.pollTimer?.stop()
@@ -375,6 +379,7 @@ export default {
     },
     methods: {
         ...mapActions(useUxStore, ['validateUserAction']),
+        ...mapActions(useContextStore, { setContextualDevice: 'setDevice' }),
         pollTimerElapsed: async function () {
             // Only refresh device via the timer if we are on the overview page, developer mode page
             // the device status is empty or the device is in a transition state

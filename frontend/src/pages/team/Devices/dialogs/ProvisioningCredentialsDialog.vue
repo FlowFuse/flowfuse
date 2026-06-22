@@ -6,12 +6,12 @@
                     To auto provision your Remote Instance on the platform, use the following
                     configuration. Make a note of it as this is the only time you will see it.
                 </p>
-                <pre class="overflow-auto text-sm p-4 border rounded bg-gray-800 text-gray-200">{{ credentials }}</pre>
+                <pre class="overflow-auto text-sm p-4 border rounded-sm ff-code-surface">{{ credentials }}</pre>
             </form>
         </template>
         <template #actions>
             <ff-button v-if="!!clipboardSupported" kind="secondary" @click="copy()">Copy to Clipboard</ff-button>
-            <ff-button kind="secondary" @click="downloadCredentials()"><template #icon-left><DocumentDownloadIcon /></template>Download device.yml</ff-button>
+            <ff-button kind="secondary" @click="downloadCredentials()"><template #icon-left><DocumentArrowDownIcon /></template>Download device.yml</ff-button>
             <ff-button class="ml-4" @click="close()">Done</ff-button>
         </template>
     </ff-dialog>
@@ -19,7 +19,7 @@
 
 <script>
 
-import { DocumentDownloadIcon } from '@heroicons/vue/outline'
+import { DocumentArrowDownIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import { downloadData } from '../../../../composables/Download.js'
@@ -31,7 +31,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 export default {
     name: 'ProvisioningCredentialsDialog',
     components: {
-        DocumentDownloadIcon
+        DocumentArrowDownIcon
     },
     mixins: [clipboardMixin],
     props: ['team'],

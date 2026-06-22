@@ -58,6 +58,18 @@ const deleteStatsAccessToken = async () => {
     })
 }
 
+const generateExpertAgentCreds = async () => {
+    return client.post('/api/v1/admin/expert-agent-creds', {}).then(res => {
+        return res.data
+    })
+}
+
+const deleteExpertAgentCreds = async () => {
+    return client.delete('/api/v1/admin/expert-agent-creds').then(res => {
+        return res.data
+    })
+}
+
 const getAnnouncementNotifications = async () => {
     return client.get('/api/v1/admin/announcements')
         .then(res => {
@@ -84,6 +96,8 @@ export default {
     getPlatformAuditLog,
     generateStatsAccessToken,
     deleteStatsAccessToken,
+    generateExpertAgentCreds,
+    deleteExpertAgentCreds,
     getAnnouncementNotifications,
     sendAnnouncementNotification
 }

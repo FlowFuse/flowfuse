@@ -7,7 +7,7 @@
                     {{ pipeline.name }}
                 </label>
                 <div v-if="hasPermission('pipeline:edit', { application })" v-ff-tooltip:right="'Edit Pipeline Name'">
-                    <PencilAltIcon v-if="!editing.name" class="ml-4 ff-icon ff-clickable" @click="edit" />
+                    <PencilSquareIcon v-if="!editing.name" class="ml-4 ff-icon ff-clickable" @click="edit" />
                 </div>
             </div>
             <div v-if="hasPermission('pipeline:delete', { application })" class="flex gap-2">
@@ -36,7 +36,7 @@
                 <Transition name="fade">
                     <ChevronRightIcon
                         v-if="$index <= pipeline.stages.length - 2 || ($index == pipeline.stages.length - 1 && addStageAvailable)"
-                        class="ff-icon mt-4 flex-shrink-0"
+                        class="ff-icon mt-4 shrink-0"
                         :class="{
                             'animate-deploying': nextStageDeploying($index),
                             'ff-disabled': !nextStageAvailable(stage, $index)
@@ -56,7 +56,7 @@
 </template>
 
 <script>
-import { ChevronRightIcon, PencilAltIcon, TrashIcon } from '@heroicons/vue/outline'
+import { ChevronRightIcon, PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
 import { mapState } from 'pinia'
 
@@ -77,7 +77,7 @@ export default {
     name: 'PipelineRow',
     components: {
         ChevronRightIcon,
-        PencilAltIcon,
+        PencilSquareIcon,
         TrashIcon,
         PipelineStage
     },

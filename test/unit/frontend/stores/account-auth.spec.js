@@ -19,6 +19,13 @@ vi.mock('@/api/user.js', () => ({
     }
 }))
 
+const teamChannelDisconnect = vi.fn().mockResolvedValue(undefined)
+vi.mock('@/services/app.orchestrator', () => ({
+    default: () => ({
+        $subscriberInstances: { teamChannel: { disconnect: teamChannelDisconnect } }
+    })
+}))
+
 // imported after mocks so vi.mock hoisting resolves correctly
 const { useAccountAuthStore } = await import('@/stores/account-auth.js')
 const userApi = (await import('@/api/user.js')).default
@@ -36,6 +43,26 @@ describe('account-auth store', () => {
             expect(store.loginInflight).toBe(false)
             expect(store.loginError).toBeNull()
             expect(store.redirectUrlAfterLogin).toBeNull()
+            expect(store.sessionId).toBeNull()
+        })
+    })
+
+    describe('getSessionId', () => {
+        it('mints a uuid on first call', () => {
+            const store = useAccountAuthStore()
+            expect(store.getSessionId()).toMatch(/^[0-9a-f-]{36}$/)
+        })
+
+        it('returns the same id on subsequent calls', () => {
+            const store = useAccountAuthStore()
+            expect(store.getSessionId()).toBe(store.getSessionId())
+        })
+
+        it('mints a fresh id after $reset (e.g. logout / new page-load)', () => {
+            const store = useAccountAuthStore()
+            const first = store.getSessionId()
+            store.$reset()
+            expect(store.getSessionId()).not.toBe(first)
         })
     })
 
@@ -135,6 +162,37 @@ describe('account-auth store', () => {
             const store = useAccountAuthStore()
             userApi.getUser.mockRejectedValue(new Error('network error'))
             await expect(store.checkIfAuthenticated()).rejects.toThrow('network error')
+        })
+    })
+
+    describe('logout', () => {
+        beforeEach(async () => {
+            // Avoid the redirect at the end of logout()
+            Object.defineProperty(window, 'location', {
+                writable: true,
+                value: { ...window.location, assign: vi.fn() }
+            })
+            userApi.logout.mockResolvedValue(undefined)
+            // logout() reads platform:sso:only from settings — seed an empty object
+            const { useAccountSettingsStore } = await import('@/stores/account-settings.js')
+            useAccountSettingsStore().setSettings({})
+        })
+
+        it('disconnects the team channel before calling userApi.logout', async () => {
+            const store = useAccountAuthStore()
+            store.user = { id: '1' }
+            const order = []
+            teamChannelDisconnect.mockImplementation(async () => { order.push('disconnect') })
+            userApi.logout.mockImplementation(async () => { order.push('logout') })
+            await store.logout()
+            expect(order).toEqual(['disconnect', 'logout'])
+        })
+
+        it('tolerates a missing team-channel service', async () => {
+            const store = useAccountAuthStore()
+            store.user = { id: '1' }
+            teamChannelDisconnect.mockRejectedValueOnce(new Error('boom'))
+            await expect(store.logout()).resolves.toBeUndefined()
         })
     })
 

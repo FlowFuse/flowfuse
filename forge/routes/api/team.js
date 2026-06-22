@@ -136,8 +136,9 @@ module.exports = async function (app) {
                 }
             },
             response: {
+                // Dashboard roles get TeamSummary; everyone else gets Team.
                 200: {
-                    $ref: 'Team'
+                    anyOf: [{ $ref: 'Team' }, { $ref: 'TeamSummary' }]
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -166,7 +167,7 @@ module.exports = async function (app) {
             },
             response: {
                 200: {
-                    $ref: 'Team'
+                    anyOf: [{ $ref: 'Team' }, { $ref: 'TeamSummary' }]
                 },
                 '4xx': {
                     $ref: 'APIError'
@@ -364,30 +365,32 @@ module.exports = async function (app) {
      */
     app.get('/:teamId/projects', {
         preHandler: app.needsPermission('team:projects:list'),
-        query: {
-            type: 'object',
-            properties: {
-                limit: {
-                    type: 'number',
-                    nullable: true
-                },
-                includeMeta: {
-                    type: 'boolean',
-                    nullable: true,
-                    default: false
-                },
-                orderByMostRecentFlows: {
-                    type: 'boolean',
-                    nullable: true,
-                    default: false
-                }
+        schema: {
+            query: {
+                allOf: [
+                    { $ref: 'PaginationParams' },
+                    {
+                        type: 'object',
+                        properties: {
+                            sort: {
+                                type: 'string',
+                                enum: ['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']
+                            },
+                            includeMeta: { type: 'boolean', default: false },
+                            orderByMostRecentFlows: { type: 'boolean', default: false }
+                        }
+                    }
+                ]
             }
         }
     }, async (request, reply) => {
         const includeMeta = request.query.includeMeta
+        const pagination = app.db.controllers.Project.getProjectPaginationOptions(request)
+
         const options = {
             includeSettings: true,
-            limit: request.query.limit,
+            pagination,
+            query: request.query.query?.trim() || null,
             includeMeta,
             orderByMostRecentFlows: request.query.orderByMostRecentFlows
         }
@@ -405,7 +408,10 @@ module.exports = async function (app) {
             }
         }
 
-        const projects = await app.db.models.Project.byTeam(request.params.teamId, options)
+        const queryResult = await app.db.models.Project.byTeam(request.params.teamId, options)
+        const paginated = pagination.page != null
+        const projects = paginated ? queryResult.rows : queryResult
+        const total = paginated ? queryResult.total : null
 
         if (projects) {
             let result = await app.db.views.Project.instancesList(projects, {
@@ -419,10 +425,19 @@ module.exports = async function (app) {
                     return { id: e.id, name: e.name }
                 })
             }
-            reply.send({
-                count: result.length,
+            const response = {
+                count: paginated ? total : result.length,
                 projects: result
-            })
+            }
+            if (paginated) {
+                response.meta = {
+                    page: pagination.page,
+                    pageSize: pagination.limit,
+                    total,
+                    pageCount: Math.max(1, Math.ceil(total / pagination.limit))
+                }
+            }
+            reply.send(response)
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
         }
@@ -760,7 +775,8 @@ module.exports = async function (app) {
                     slug: { type: 'string' },
                     type: { type: 'string' },
                     suspended: { type: 'boolean' },
-                    properties: { type: 'object' }
+                    properties: { type: 'object' },
+                    features: { type: 'object' }
                 }
             },
             response: {
@@ -840,6 +856,7 @@ module.exports = async function (app) {
                         }
                         teamAuditFunc(request.session.User, null, request.team)
                         platformAuditFunc(request.session.User, null, request.team)
+                        app.comms?.team?.notify(request.team.hashid, request.body.suspended ? 'suspended' : 'unsuspended')
                         reply.send(app.db.views.Team.team(request.team))
                         return
                     } catch (err) {
@@ -857,6 +874,22 @@ module.exports = async function (app) {
                     reply.send(app.db.views.Team.team(request.team))
                     return
                 }
+            } else if (Object.hasOwn(request.body, 'features')) {
+                // Team owners can update feature overrides (e.g. opt out of AI)
+                const allowedFeatures = ['ai']
+                const requestedFeatures = request.body.features || {}
+                const currentProperties = typeof request.team.properties === 'string' ? JSON.parse(request.team.properties) : (request.team.properties || {})
+                currentProperties.features = currentProperties.features || {}
+
+                updates = new app.auditLog.formatters.UpdatesCollection()
+                for (const key of allowedFeatures) {
+                    if (Object.hasOwn(requestedFeatures, key)) {
+                        updates.push(`features.${key}`, currentProperties.features[key], requestedFeatures[key])
+                        currentProperties.features[key] = requestedFeatures[key]
+                    }
+                }
+                request.team.properties = currentProperties
+                await request.team.save()
             } else if (Object.hasOwn(request.body, 'properties')) {
                 if (!request.session.User.admin) {
                     reply.code(403).send({ code: 'forbidden', error: 'Team properties can only be updated by admins' })
@@ -893,6 +926,7 @@ module.exports = async function (app) {
             // Only log if something changes
             if (updates.length > 0) {
                 auditLogFunc(request.session.User, null, request.team, updates)
+                app.comms?.team?.notify(request.team.hashid, 'updated')
             }
             reply.send(app.db.views.Team.team(request.team))
         } catch (err) {
@@ -911,6 +945,63 @@ module.exports = async function (app) {
             }
             reply.code(400).send(response)
         }
+    })
+
+    /**
+     * Issue MQTT/WS credentials for the team-level browser channel.
+     * @name /api/v1/teams/:teamId/comms-credentials
+     */
+    app.post('/:teamId/comms-credentials', {
+        preHandler: app.needsPermission('team:read'),
+        schema: {
+            summary: 'Issue team-channel broker credentials for the current user/session',
+            tags: ['Teams'],
+            params: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string' }
+                }
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    sessionId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        url: { type: 'string' },
+                        username: { type: 'string' },
+                        password: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        if (!app.comms) {
+            reply.code(503).send({ code: 'comms_unavailable', error: 'Broker not configured' })
+            return
+        }
+        const sessionId = request.body?.sessionId
+        if (!sessionId || typeof sessionId !== 'string' || sessionId.length < 8) {
+            reply.code(400).send({ code: 'invalid_request', error: 'sessionId is required' })
+            return
+        }
+        const creds = await app.db.controllers.BrokerClient.createClientForTeamFrontend(
+            request.session.User,
+            request.team,
+            sessionId
+        )
+        if (!creds) {
+            reply.code(503).send({ code: 'comms_unavailable', error: 'Broker not configured' })
+            return
+        }
+        reply.send(creds)
     })
 
     /**

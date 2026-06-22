@@ -5,7 +5,7 @@
             v-ff-tooltip:left="'Target snapshot has not yet been deployed to this device.'"
             class="flex items-center space-x-2 text-gray-500 italic"
         >
-            <ExclamationIcon
+            <ExclamationTriangleIcon
                 v-if="updateNeeded"
                 class="text-yellow-600 w-4"
             />
@@ -27,12 +27,12 @@
 </template>
 
 <script>
-import { CheckCircleIcon, ExclamationIcon } from '@heroicons/vue/outline'
+import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'SnapshotCell',
     components: {
-        ExclamationIcon,
+        ExclamationTriangleIcon,
         CheckCircleIcon
     },
     inheritAttrs: false,

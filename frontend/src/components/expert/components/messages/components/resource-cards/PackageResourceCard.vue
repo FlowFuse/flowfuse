@@ -12,15 +12,17 @@
             @error="handleImageError"
         >
         <div class="package-info">
-            <div class="package-name">
-                <streamable-content v-model="streamablePackageName" :should-stream="shouldStream" />
-            </div>
-            <div class="package-url">
-                <streamable-content
-                    v-if="!shouldStream || streamablePackageName.streamed"
-                    v-model="streamablePackageUrl"
-                    :should-stream="shouldStream"
-                />
+            <div class="package-text">
+                <div class="package-name" :title="packageName">
+                    <streamable-content v-model="streamablePackageName" :should-stream="shouldStream" />
+                </div>
+                <div class="package-url">
+                    <streamable-content
+                        v-if="!shouldStream || streamablePackageName.streamed"
+                        v-model="streamablePackageUrl"
+                        :should-stream="shouldStream"
+                    />
+                </div>
             </div>
             <div class="package-actions">
                 <template v-if="canManagePalette && !isCorePackage">
@@ -155,21 +157,20 @@ export default {
 
 <style scoped lang="scss">
 .package-card {
-    position: relative;
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
     padding: 0.75rem;
-    background-color: white;
-    border: 1px solid $ff-grey-200;
+    background-color: var(--ff-color-bg-app);
+    border: 1px solid var(--ff-color-border);
     border-radius: 0.5rem;
     text-decoration: none;
-    color: $ff-grey-900;
+    color: var(--ff-color-text-strong);
     transition: all 0.2s ease;
 
     &:hover {
-        border-color: $ff-indigo-300;
-        background-color: $ff-grey-50;
+        border-color: var(--ff-color-accent-light);
+        background-color: var(--ff-color-bg-surface);
     }
 }
 
@@ -186,32 +187,50 @@ export default {
     flex: 1;
     min-width: 0;
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    align-items: center;
+    gap: 0.5rem;
 }
+
+.package-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
 .package-actions {
-    position: absolute;
-    top: 8px;
-    right: 8px;
+    flex-shrink: 0;
 }
 
 .package-name {
-    padding-right: 3rem;
     font-size: 0.875rem;
     font-weight: 500;
     font-family: monospace;
-    color: $ff-grey-900;
+    color: var(--ff-color-text-strong);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    :deep(.streamable-content) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 .package-url {
     font-size: 0.75rem;
-    color: $ff-grey-500;
+    color: var(--ff-color-text-subtle);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     margin: 0;
+
+    :deep(.streamable-content) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 </style>

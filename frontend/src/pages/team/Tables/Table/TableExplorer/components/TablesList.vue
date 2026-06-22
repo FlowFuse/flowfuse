@@ -7,7 +7,7 @@
                 data-form="search"
                 placeholder="Search Tables"
             >
-                <template #icon><SearchIcon /></template>
+                <template #icon><MagnifyingGlassIcon /></template>
             </ff-text-input>
             <button class="ff-btn ff-btn--secondary transition-fade--color" type="button" @click.stop="onCreateTable">
                 <span class="ff-btn--icon">
@@ -25,8 +25,8 @@
                 @click="updateTableSelection(table.name)"
             >
                 <span class="icon-toggle">
-                    <TableIcon class="ff-icon ff-icon-sm" />
-                    <PencilAltIcon class="ff-icon ff-icon-sm edit" @click="showSchema(table)" />
+                    <TableCellsIcon class="ff-icon ff-icon-sm" />
+                    <PencilSquareIcon class="ff-icon ff-icon-sm edit" @click="showSchema(table)" />
                 </span>
                 <span class="truncate">{{ table.name }}</span>
             </li>
@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { PencilAltIcon, PlusIcon, SearchIcon, TableIcon } from '@heroicons/vue/outline'
+import { MagnifyingGlassIcon, PencilSquareIcon, PlusIcon, TableCellsIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 import { defineComponent, markRaw } from 'vue'
 
@@ -56,7 +56,7 @@ import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default defineComponent({
     name: 'TablesList',
-    components: { SearchIcon, TableIcon, PlusIcon, PencilAltIcon },
+    components: { MagnifyingGlassIcon, TableCellsIcon, PlusIcon, PencilSquareIcon },
     emits: ['select-table'],
     data () {
         return {
@@ -109,7 +109,7 @@ export default defineComponent({
     min-width: 250px;
 
     .header {
-        border-bottom: 1px solid $ff-color--border;
+        border-bottom: 1px solid var(--ff-color-border);
         padding-bottom: 15px;
         margin-bottom: 15px;
 
@@ -128,8 +128,8 @@ export default defineComponent({
             cursor: pointer;
 
             &:hover, &.active {
-                color: $ff-indigo-500;
-                background-color: $ff-grey-100;
+                color: var(--ff-color-focus);
+                background-color: var(--ff-color-bg-surface-raised);
             }
 
             &:hover {
@@ -167,12 +167,12 @@ export default defineComponent({
         flex-direction: column;
         text-align: center;
         justify-content: center;
-        color: $ff-grey-400;
+        color: var(--ff-color-text-subtle);
         line-height: 1.6;
 
         .cta {
             cursor: pointer;
-            color: $ff-indigo-500;
+            color: var(--ff-color-focus);
         }
     }
 }

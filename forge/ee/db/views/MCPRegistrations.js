@@ -18,12 +18,14 @@ module.exports = {
                 title: { type: 'string' },
                 version: { type: 'string' },
                 description: { type: 'string' }
-            }
+            },
+            required: ['id', 'name', 'protocol', 'targetType', 'targetId', 'nodeId', 'endpointRoute', 'teamId', 'title', 'version', 'description'],
+            additionalProperties: false
         })
         app.addSchema({
             $id: 'MCPRegistrationSummaryList',
             type: 'array',
-            servers: { $ref: 'MCPRegistrationSummary' }
+            items: { $ref: 'MCPRegistrationSummary' }
         })
     },
 

@@ -1,7 +1,7 @@
 <template>
     <div class="notice flex gap-4 items-center">
         <div class="icon-wrapper text-center">
-            <ExclamationIcon class="ff-icon ff-icon-lg text-yellow-500" />
+            <ExclamationTriangleIcon class="ff-icon ff-icon-lg text-yellow-500" />
         </div>
         <div class="content-wrapper">
             <slot>
@@ -15,11 +15,11 @@
 </template>
 
 <script>
-import { ExclamationIcon } from '@heroicons/vue/outline'
+import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'NoticeBanner',
-    components: { ExclamationIcon },
+    components: { ExclamationTriangleIcon },
     props: {
         text: {
             type: String,
@@ -37,8 +37,8 @@ export default {
 
 <style scoped lang="scss">
 .notice {
-    border: 1px solid $ff-yellow-100;
-    background-color: $ff-yellow-10;
+    border: 1px solid var(--ff-color-status-warning-border);
+    background-color: var(--ff-color-status-warning-bg);
     border-radius: $ff-unit-sm;
     padding: $ff-unit-md;
 

@@ -10,10 +10,12 @@ import { useProductExpertStore } from './product-expert.js'
 export const useContextStore = defineStore('context', {
     state: () => ({
         route: null,
+        application: null,
         instance: null,
         device: null,
         team: null,
-        teamMembership: null
+        teamMembership: null,
+        isImmersive: false
     }),
     getters: {
         isFreeTeamType (state) {
@@ -69,8 +71,8 @@ export const useContextStore = defineStore('context', {
                 ? state.route.params?.id
                 : null
             const scope =
-                state.route.fullPath.includes('/instance/') &&
-                state.route.fullPath.includes('editor')
+                (state.route.fullPath.startsWith('/instance/') || state.route.fullPath.startsWith('/device/')) &&
+                state.route.fullPath.includes('/editor')
                     ? 'immersive'
                     : 'ff-app'
 
@@ -112,6 +114,8 @@ export const useContextStore = defineStore('context', {
         updateRoute (route) { this.route = route },
         setInstance (instance) { this.instance = instance },
         setDevice (device) { this.device = device },
+        setApplication (application) { this.application = application },
+        setIsImmersive (isImmersive) { this.isImmersive = isImmersive },
         clearInstance () { this.instance = null },
         setTeam (team) {
             this.team = team
@@ -137,6 +141,18 @@ export const useContextStore = defineStore('context', {
         async refreshTeamMembership () {
             const teamMembership = await teamApi.getTeamUserMembership(this.team.id)
             this.teamMembership = teamMembership
+        },
+        async onTeamChannelMembership (payload) {
+            if (payload?.reason === 'removed') {
+                const path = window.location.pathname
+                if (typeof path === 'string' && path.startsWith('/team/')) {
+                    // Hard reload, not a router push: Home.vue would bounce back
+                    // to the still-cached removed team; a reload re-bootstraps clean.
+                    try { window.location.assign('/') } catch {}
+                }
+                return
+            }
+            await this.refreshTeamMembership()
         }
     },
     persist: [

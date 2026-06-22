@@ -5,6 +5,7 @@ module.exports = function (app) {
         properties: {
             id: { type: 'string' },
             name: { type: 'string' },
+            deployToDevices: { type: 'boolean' },
             instances: { $ref: 'InstanceSummaryList' },
             devices: {
                 type: 'array',
@@ -32,11 +33,15 @@ module.exports = function (app) {
                     status: { type: 'string' },
                     statusMessage: { type: 'string' },
                     credentialSecret: { type: 'boolean' }
-                }
+                },
+                required: ['gitTokenId', 'url', 'branch', 'pullBranch', 'pushPath', 'pullPath', 'lastPushAt', 'lastPullAt', 'status', 'statusMessage', 'credentialSecret'],
+                additionalProperties: false
             },
             action: { type: 'string', enum: Object.values(app.db.models.PipelineStage.SNAPSHOT_ACTIONS) },
             NextStageId: { type: 'string' }
-        }
+        },
+        required: ['id', 'name', 'action', 'deployToDevices'],
+        additionalProperties: false
     })
 
     async function stage (stage) {
@@ -45,7 +50,8 @@ module.exports = function (app) {
             id: result.hashid,
             name: result.name,
             action: result.action,
-            deployToDevices: result.deployToDevices
+            // Column is nullable — coerce to bool so the schema-declared type holds.
+            deployToDevices: !!result.deployToDevices
         }
 
         if (stage.Instances?.length > 0) {
@@ -91,7 +97,7 @@ module.exports = function (app) {
         $id: 'PipelineStageList',
         type: 'array',
         items: {
-            ref: 'PipelineStage'
+            $ref: 'PipelineStage'
         }
     })
 

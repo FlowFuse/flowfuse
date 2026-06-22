@@ -1,14 +1,14 @@
 <template>
     <div class="notifications-button-wrapper">
         <button class="notifications-button" data-el="notifications-button" data-click-exclude="right-drawer" @click="onClick">
-            <MailIcon />
+            <EnvelopeIcon />
             <ff-notification-pill v-if="hasNotifications" data-el="notification-pill" class="ml-3" :count="notificationsCount" />
         </button>
     </div>
 </template>
 
 <script>
-import { MailIcon } from '@heroicons/vue/outline'
+import { EnvelopeIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
 
@@ -19,7 +19,7 @@ import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 export default {
     name: 'NotificationsButton',
-    components: { MailIcon },
+    components: { EnvelopeIcon },
     computed: {
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useAccountStore, ['hasNotifications', 'unreadNotificationsCount']),
@@ -44,7 +44,7 @@ export default {
 .notifications-button-wrapper {
 
   .notifications-button {
-    color: $ff-grey-800;
+    color: var(--ff-color-text);
     display: flex;
     align-items: center;
     flex: 1;
@@ -69,7 +69,7 @@ export default {
     &:hover {
       svg {
         will-change: transform ;
-        color: $ff-indigo-600;
+        color: var(--ff-color-accent);
         transform: scale(1.25) translateZ(0); /* Using slight adjustments to whole values */
         backface-visibility: hidden;
         perspective: 1000px;
@@ -85,7 +85,7 @@ export default {
       position: absolute;
       font-size: 0.65rem;
       padding: 0 7px;
-      background-color: $ff-red-500;
+      background-color: var(--ff-color-danger);
     }
   }
 }

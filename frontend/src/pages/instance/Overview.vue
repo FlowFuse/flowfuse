@@ -3,9 +3,9 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <div class="ff-instance-info">
-                    <FormHeading><TemplateIcon />Info</FormHeading>
+                    <FormHeading><RectangleGroupIcon />Info</FormHeading>
 
-                    <table class="table-fixed w-full border border-separate rounded">
+                    <table class="table-fixed w-full border border-separate rounded-sm">
                         <tbody>
                             <tr class="border-b">
                                 <td class="w-48 font-medium">Direct URL</td>
@@ -19,7 +19,7 @@
                                             :disabled="!editorAvailable"
                                             @click="openUrl"
                                         >
-                                            <ExternalLinkIcon class="ff-icon" />
+                                            <ArrowTopRightOnSquareIcon class="ff-icon" />
                                         </button>
                                     </div>
                                 </td>
@@ -125,7 +125,7 @@
                             <tr class="border-b">
                                 <td class="w-48 font-medium">Type</td>
                                 <td class="flex items-center">
-                                    <div class="py-2 flex-grow">{{ instance.projectType?.name || 'none' }} / {{ instance.stack?.label || instance.stack?.name || 'none' }}</div>
+                                    <div class="py-2 grow">{{ instance.projectType?.name || 'none' }} / {{ instance.stack?.label || instance.stack?.name || 'none' }}</div>
                                     <div v-if="instance.stack?.replacedBy">
                                         <ff-button size="small" to="./settings/general?highlight=updateStack">Update</ff-button>
                                     </div>
@@ -154,7 +154,7 @@
                 </div>
             </div>
             <div class="ff-instance-info" data-el="recent-activity">
-                <FormHeading><TrendingUpIcon />Recent Activity</FormHeading>
+                <FormHeading><ArrowTrendingUpIcon />Recent Activity</FormHeading>
                 <AuditLog :entries="auditLog" :loading="loading" :showLoadMore="false" :disableAccordion="true" :disableAssociations="true" />
                 <div v-if="!loading" class="pt-4 pb-4 text-center">
                     <router-link to="./audit-log" class="forge-button-secondary">More...</router-link>
@@ -165,7 +165,7 @@
 </template>
 
 <script>
-import { ArrowRightIcon, ExternalLinkIcon, ServerIcon, TemplateIcon, TrendingUpIcon } from '@heroicons/vue/outline'
+import { ArrowRightIcon, ArrowTopRightOnSquareIcon, ArrowTrendingUpIcon, RectangleGroupIcon, ServerIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import InstanceApi from '../../api/instances.js'
@@ -185,14 +185,14 @@ export default {
     components: {
         AuditLog,
         ArrowRightIcon,
-        ExternalLinkIcon,
+        ArrowTopRightOnSquareIcon,
         FormHeading,
         InstanceStatusBadge,
         ServerIcon,
         StatusBadge,
-        TemplateIcon,
+        RectangleGroupIcon,
         TextCopier,
-        TrendingUpIcon
+        ArrowTrendingUpIcon
     },
     inheritAttrs: false,
     props: {
@@ -242,9 +242,11 @@ export default {
     watch: {
         instance: {
             handler: function (instance) {
-                if (instance) {
+                if (instance?.id) {
                     this.loadLogs()
-                    this.getUpdateSchedule(instance.id)
+                    if (this.features?.autoStackUpdate) {
+                        this.getUpdateSchedule(instance.id)
+                    }
                 }
             },
             immediate: true
@@ -273,12 +275,11 @@ export default {
         },
         getUpdateSchedule: async function (instanceId) {
             try {
-                await InstanceApi.getUpdateSchedule(instanceId)
-                this.autoStackUpgrade = true
-                return
+                const list = await InstanceApi.getUpdateSchedule(instanceId)
+                this.autoStackUpgrade = list.length > 0
             } catch (error) {
+                this.autoStackUpgrade = false
             }
-            this.autoStackUpgrade = false
         }
     }
 }
@@ -325,7 +326,7 @@ export default {
     background: transparent;
     border-radius: 4px;
     cursor: pointer;
-    color: $ff-color--action;
+    color: var(--ff-color-accent-text);
     transition: color 0.15s ease, background-color 0.15s ease;
 
     .ff-icon {
@@ -339,17 +340,17 @@ export default {
     }
 
     &:hover {
-      background-color: $ff-color--highlight;
-      color: $ff-white;
+      background-color: var(--ff-color-accent);
+      color: var(--ff-color-text-on-brand);
     }
 
     &:disabled {
       cursor: not-allowed;
-      color: $ff-grey-300;
+      color: var(--ff-color-text-disabled);
 
       &:hover {
         background-color: transparent;
-        color: $ff-grey-300;
+        color: var(--ff-color-text-disabled);
       }
     }
   }
@@ -367,7 +368,7 @@ export default {
 }
 
 // Type field - ellipse from LEFT to show stack name
-.ff-instance-info table tr td.flex .flex-grow {
+.ff-instance-info table tr td.flex .grow {
   direction: rtl;
   text-align: left;
   overflow: hidden;

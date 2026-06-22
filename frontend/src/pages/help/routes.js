@@ -1,4 +1,4 @@
-import { SupportIcon } from '@heroicons/vue/outline'
+import { LifebuoyIcon } from '@heroicons/vue/24/outline'
 
 export default [
     {
@@ -8,6 +8,6 @@ export default [
         profileLink: true,
         profileMenuIndex: 60,
         name: 'Documentation',
-        icon: SupportIcon
+        icon: LifebuoyIcon
     }
 ]

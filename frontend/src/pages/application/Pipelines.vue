@@ -32,7 +32,7 @@
                 :disabled="!featureEnabled"
             >
                 <template #icon-left>
-                    <PlusSmIcon />
+                    <PlusSmallIcon />
                 </template>
                 Add Pipeline
             </ff-button>
@@ -88,7 +88,7 @@
                 :disabled="!featureEnabled"
                 data-action="pipeline-add"
             >
-                <template #icon-left><PlusSmIcon /></template>
+                <template #icon-left><PlusSmallIcon /></template>
                 Add Pipeline
             </ff-button>
         </template>
@@ -96,7 +96,7 @@
 </template>
 
 <script>
-import { PlusSmIcon } from '@heroicons/vue/outline'
+import { PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import ApplicationAPI from '../../api/application.js'
@@ -116,7 +116,7 @@ export default {
     name: 'ApplicationPipelines',
     components: {
         SectionTopMenu,
-        PlusSmIcon,
+        PlusSmallIcon,
         PipelineRow,
         EmptyState
     },

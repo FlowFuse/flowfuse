@@ -115,6 +115,31 @@ module.exports = function (app) {
                 return false
             }
         },
+        checkUserIsTeamMember: async function (requestParts, usernameParts) {
+            // requestParts = [ fullTopic , <teamHash> [, <userHash>] ]
+            // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
+            const topicTeamHash = requestParts[1]
+            const usernameUserHash = usernameParts[1]
+            const usernameTeamHash = usernameParts[2]
+            if (topicTeamHash !== usernameTeamHash) {
+                return false
+            }
+            // membership topic: user capture must match the credential's user
+            if (requestParts[2] !== undefined && requestParts[2] !== usernameUserHash) {
+                return false
+            }
+            try {
+                const team = await app.db.models.Team.byId(usernameTeamHash)
+                if (!team) return false
+                const user = await app.db.models.User.byId(usernameUserHash)
+                if (!user) return false
+                const membership = await app.db.models.TeamMember.getTeamMembership(user.id, team.id, false)
+                return !!membership
+            } catch (error) {
+                app.log.error('Unexpected error during team-channel ACL check', { requestParts, usernameParts, error })
+                return false
+            }
+        },
         checkExpertTopic: async function (topicParts, usernameParts, acl) {
             // topicParts = [ fullTopic , <userid>, <sessionid>, <entityType>, <entityId> [, <inflightType>] ]
             // usernameParts = [ 'expert-client' | 'expert-agent', <userid> [, <sessionid>] ]
@@ -230,6 +255,19 @@ module.exports = function (app) {
                         throw ValidationError('user is not a member of the team that owns this project')
                     }
 
+                    // check expert assistant feature is enabled for the team (support agent uses MQTT)
+                    if (acl.isClient) {
+                        const team = await app.db.models.Team.byId(teamId)
+                        if (team) {
+                            await team.ensureTeamTypeExists()
+                            const isAiEnabled = !!(app.config.features.enabled('ai') && team.getFeatureProperty('ai', true))
+                            const isExpertAssistantEnabled = !!(app.config.features.enabled('expertAssistant') && team.getFeatureProperty('expertAssistant', true))
+                            if (!isAiEnabled || !isExpertAssistantEnabled) {
+                                throw ValidationError('expert assistant feature is not enabled for this team')
+                            }
+                        }
+                    }
+
                     // if this is an inflight channel messages we must validate the user has appropriate RBAC permission
                     if (isInflight) {
                         const result = await expertRbacToolCheck(teamMembership, applicationHash, inflightType)
@@ -290,6 +328,11 @@ module.exports = function (app) {
                 // Send commands to all application-assigned devices
                 // - ff/v1/+/a/+/command
                 { topic: /^ff\/v1\/[^/]+\/a\/[^/]+\/command$/ },
+                // Team channel broadcasts to subscribed team members
+                // - ff/v1/<team>/t/updated
+                { topic: /^ff\/v1\/[^/]+\/t\/updated$/ },
+                // - ff/v1/<team>/u/<user>/membership
+                { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/membership$/ },
                 // ff/v1/platform/sync
                 { topic: /^ff\/v1\/platform\/sync$/ },
                 // ff/v1/platform/leader
@@ -347,6 +390,16 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources\/heartbeat$/, verify: 'checkDeviceIsAssigned' }
             ]
         },
+        // browser-side team channel (per-tab, per-team)
+        teamFrontend: {
+            sub: [
+                // - ff/v1/<team>/t/updated
+                { topic: /^ff\/v1\/([^/]+)\/t\/updated$/, verify: 'checkUserIsTeamMember' },
+                // - ff/v1/<team>/u/<user>/membership
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkUserIsTeamMember' }
+            ],
+            pub: []
+        },
         // frontend client (user)
         expertClient: {
             sub: [
@@ -384,6 +437,7 @@ module.exports = function (app) {
             // - project:<teamid>:<projectid>
             // - device:<teamid>:<deviceid>
             // - frontend:<teamid>:<deviceid>
+            // - fe-team:<userid>:<teamid>:<sessionid>
             // - expert-client:<userid>:<sessionid>
             // - expert-agent:<userid>:<apiversion>
 
@@ -399,6 +453,8 @@ module.exports = function (app) {
                 aclList = ACLS.project[aclType]
             } else if (/^device:/.test(username)) {
                 aclList = ACLS.device[aclType]
+            } else if (/^fe-team:/.test(username)) {
+                aclList = ACLS.teamFrontend[aclType]
             } else if (/^frontend:/.test(username)) {
                 aclList = ACLS.frontend[aclType]
             } else if (/^expert-agent:/.test(username)) {

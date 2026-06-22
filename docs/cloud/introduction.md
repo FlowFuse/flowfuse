@@ -20,16 +20,16 @@ meta:
 FlowFuse Cloud is a hosted service allowing users to sign-up and start creating Node-RED instances without having to install and manage their own instance of FlowFuse.
 The [Concepts](/docs/user/concepts.md) remain the same, but we run the platform for you.
 
-## 14-day Free Trial
+## 30-day Free Trial
 
-When users sign-up to FlowFuse Cloud they get a 14-day free trial of the platform.
+When users sign-up to FlowFuse Cloud they get a 30-day free trial of the platform.
 This is a great way to start using FlowFuse and discover a lot of the value it provides.
 
 Users can end their trial by heading to the Billing page of their team and 
 setting up their payment information. This includes the option to pick which
 plan you want to upgrade the team to.
 
-Otherwise, at the end of the 14-day trial period, any instances created in the team
+Otherwise, at the end of the 30-day trial period, any instances created in the team
 will be suspended. This means they will no longer be running and the
 editor will not be accessible. Users will need to add their Billing details at which
 point they will be able to restart their suspended Node-RED instances.

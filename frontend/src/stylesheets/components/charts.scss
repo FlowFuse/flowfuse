@@ -2,9 +2,9 @@
 
 .ff-chart {
     padding: 8px 18px;
-    border: 1px solid $ff-grey-300;
+    border: 1px solid var(--ff-color-border-strong);
     border-radius: 6px;
-    background-color: white;
+    background-color: var(--ff-color-bg-app);
     h3 {
         margin: 0;
     }
@@ -46,30 +46,30 @@
             cursor: pointer;
         }
         &--error {
-            --bar-bg: #{$ff-red-200};
-            --bar-border: #{$ff-red-300};
-            --text-color: #{$ff-red-600};
+            --bar-bg: var(--ff-color-status-error-bg);
+            --bar-border: var(--ff-color-status-error-border);
+            --text-color: var(--ff-color-status-error-text);
         }
         &--never,
         &--stopped {
-            --bar-bg: #{$ff-grey-200};
-            --bar-border: #{$ff-grey-300};
-            --text-color: #{$ff-grey-600};
+            --bar-bg: var(--ff-color-bg-emphasis);
+            --bar-border: var(--ff-color-border-strong);
+            --text-color: var(--ff-color-text-deep);
         }
         &--offline {
-            --bar-bg: #{$ff-grey-50};
-            --bar-border: #{$ff-grey-300};
-            --text-color: #{$ff-grey-600};
+            --bar-bg: var(--ff-color-bg-surface-raised);
+            --bar-border: var(--ff-color-border-strong);
+            --text-color: var(--ff-color-text-deep);
         }
         &--safe {
-            --bar-bg: #{$ff-yellow-200};
-            --bar-border: #{$ff-yellow-300};
-            --text-color: #{$ff-yellow-600};
+            --bar-bg: var(--ff-color-status-safe-bg);
+            --bar-border: var(--ff-color-status-safe-border);
+            --text-color: var(--ff-color-status-safe-text);
         }
         &--running {
-            --bar-bg: #{$ff-green-200};
-            --bar-border: #{$ff-green-300};
-            --text-color: #{$ff-green-600};
+            --bar-bg: var(--ff-color-status-success-bg);
+            --bar-border: var(--ff-color-status-success-border);
+            --text-color: var(--ff-color-status-success-text);
         }
         &.ghost {
             opacity: 0.15;
