@@ -160,7 +160,7 @@
         "file-loader": "^6.2.0",
         "html-link-extractor": "^1.0.5",
         "html-webpack-plugin": "^5.5.3",
-        "jsdom": "^25.0.1",
+        "jsdom": "^29.1.1",
         "mini-css-extract-plugin": "^2.7.6",
         "mocha": "^11.7.5",
         "mocha-cli": "^1.0.1",
