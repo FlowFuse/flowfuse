@@ -156,7 +156,7 @@
         "eslint-plugin-n": "^16.0.2",
         "eslint-plugin-no-only-tests": "^3.1.0",
         "eslint-plugin-promise": "^6.1.1",
-        "eslint-plugin-vue": "^9.19.2",
+        "eslint-plugin-vue": "^10.9.2",
         "file-loader": "^6.2.0",
         "html-link-extractor": "^1.0.5",
         "html-webpack-plugin": "^5.5.3",
