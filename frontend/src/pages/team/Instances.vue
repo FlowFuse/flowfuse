@@ -32,10 +32,10 @@
             <div class="banner-wrapper">
                 <FeatureUnavailableToTeam v-if="!instancesAvailable" />
             </div>
-            <ff-loading v-if="loading && !instancesMap.size" message="Loading Instances..." />
+            <ff-loading v-if="loading && !instancesMap.size && searchTerm === null" message="Loading Instances..." />
             <template v-else-if="instancesAvailable">
                 <ff-data-table
-                    v-if="instances.length > 0 || searchTerm"
+                    v-if="instances.length > 0 || searchTerm !== null"
                     data-el="instances-table" :columns="columns" :rows="instances" :show-search="true"
                     search-placeholder="Search Instances..."
                     :initialSortKey="sort.key" :initialSortOrder="sort.order"
@@ -224,7 +224,7 @@ export default {
             page: 1,
             pageSize: 25,
             totalRows: 0,
-            searchTerm: '',
+            searchTerm: null,
             sort: {
                 key: 'flowLastUpdatedAt',
                 order: 'desc'
