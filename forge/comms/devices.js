@@ -8,7 +8,6 @@ const { v4: uuidv4 } = require('uuid')
 
 const noop = () => {}
 const DEFAULT_TIMEOUT = 10000
-const DEVICE_TRANSIENT_STATES = ['stopped', 'offline', 'unknown']
 
 // declare command and response monitor types (and freeze them)
 const CommandMonitorTemplate = {
@@ -124,7 +123,7 @@ class DeviceCommsHandler {
             try {
                 const previousState = device.state
                 const payload = JSON.parse(status.status)
-                if (previousState === 'restarting' && DEVICE_TRANSIENT_STATES.includes(payload?.state)) {
+                if (previousState === 'restarting' && payload?.state === 'stopped') {
                     payload.state = 'restarting'
                 }
                 await this.app.db.controllers.Device.updateState(device, payload)

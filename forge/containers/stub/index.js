@@ -119,8 +119,12 @@ module.exports = {
             } else {
                 const startTime = project.name === 'stub-slow-start' ? 6000 : module.exports.START_DELAY
                 return new Promise((resolve, reject) => {
-                    setTimeout(() => {
+                    setTimeout(async () => {
                         list[project.id].state = 'running'
+                        // mirror a real launcher reporting its settled state so inflight clears via the confirm path
+                        try {
+                            await this._app.db.controllers.Project.updateLatestProjectState(project.id, 'running')
+                        } catch (err) {}
                         resolve()
                     }, startTime)
                 })

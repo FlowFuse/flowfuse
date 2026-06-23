@@ -853,16 +853,14 @@ module.exports = {
         } else {
             await this.setLatestProjectState(app, projectId, state)
         }
-        if (app.comms) {
-            const project = await app.db.models.Project.byId(projectId, { barebone: true })
-            if (project) {
-                const inflight = await this.getInflightState(app, project)
-                const isTransition = inflight === 'starting' || inflight === 'restarting'
-                if (isTransition && ['running', 'safe', 'crashed'].includes(state)) {
-                    await this.clearInflightState(app, project)
-                } else {
-                    await this.publishLiveState(app, project)
-                }
+        const project = await app.db.models.Project.byId(projectId, { barebone: true })
+        if (project) {
+            const inflight = await this.getInflightState(app, project)
+            const isTransition = inflight === 'starting' || inflight === 'restarting'
+            if (isTransition && ['running', 'safe', 'crashed'].includes(state)) {
+                await this.clearInflightState(app, project)
+            } else if (app.comms) {
+                await this.publishLiveState(app, project)
             }
         }
     }

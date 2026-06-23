@@ -72,7 +72,7 @@ module.exports = async function (app) {
                 await request.project.save()
                 await app.containers.startFlows(request.project)
                 await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                scheduleInflightTimeout(app, request.project, 'starting')
+                await app.db.controllers.Project.clearInflightState(request.project)
             }
             reply.send({ status: 'okay' })
         } catch (err) {
@@ -264,10 +264,13 @@ module.exports = async function (app) {
             }
             await app.db.controllers.Project.setInflightState(request.project, 'rollback')
             await app.db.controllers.Project.importProjectSnapshot(request.project, snapshot)
-            await app.db.controllers.Project.clearInflightState(request.project)
             await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, null, request.project, snapshot)
             if (restartProject) {
+                await app.db.controllers.Project.setInflightState(request.project, 'restarting')
                 await app.containers.restartFlows(request.project)
+                scheduleInflightTimeout(app, request.project, 'restarting')
+            } else {
+                await app.db.controllers.Project.clearInflightState(request.project)
             }
             reply.send({ status: 'okay' })
         } catch (err) {
