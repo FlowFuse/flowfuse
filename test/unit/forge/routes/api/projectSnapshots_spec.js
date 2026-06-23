@@ -959,6 +959,26 @@ describe('Project Snapshots API', function () {
 
             await app.db.controllers.Project.clearInflightState(app.project)
         })
+
+        it('does not bounce (no restarting mask) when rolling back a non-running instance', async function () {
+            const snapResponse = await createSnapshot(app.project.id, 'rollback-no-bounce-snapshot', TestObjects.tokens.alice)
+            snapResponse.statusCode.should.equal(200)
+            const snapshot = snapResponse.json()
+
+            app.project.state = 'suspended'
+            await app.project.save()
+
+            const rollbackResponse = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${app.project.id}/actions/rollback`,
+                payload: { snapshot: snapshot.id },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            rollbackResponse.statusCode.should.equal(200)
+
+            // not running -> no restart bounce -> the inflight mask is cleared after import
+            should(await app.db.controllers.Project.getInflightState(app.project)).be.undefined()
+        })
     })
 
     describe('Get snapshot information', function () {
