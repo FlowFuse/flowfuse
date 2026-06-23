@@ -16,7 +16,7 @@ describe('MCP Platform Tools Server', function () {
 
             TestObjects.alicePAT = await app.db.controllers.AccessToken.createPersonalAccessToken(
                 app.user,
-                null,
+                '',
                 null,
                 'alice-pat'
             )
@@ -143,7 +143,7 @@ describe('MCP Platform Tools Server', function () {
 
             TestObjects.alicePAT = await app.db.controllers.AccessToken.createPersonalAccessToken(
                 app.user,
-                null,
+                '',
                 null,
                 'alice-pat'
             )
