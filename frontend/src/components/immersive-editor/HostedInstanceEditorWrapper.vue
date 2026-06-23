@@ -2,9 +2,11 @@
     <section class="editor-wrapper">
         <LoadingScreenWrapper
             v-if="shouldDisplayLoadingScreen"
-            :state="instance.meta?.state"
+            :state="loadingScreen.state"
+            :label="loadingScreen.label"
             :optimisticStateChange="instance.optimisticStateChange"
             :pendingStateChange="instance.pendingStateChange"
+            :data-el="loadingScreen.dataEl"
         />
 
         <iframe
@@ -58,7 +60,8 @@ export default {
     emits: ['iframe-loaded', 'toggle-drawer', 'request-drawer-state'],
     data () {
         return {
-            posthogKeepAliveInterval: null
+            posthogKeepAliveInterval: null,
+            awaitingEditorRestart: false
         }
     },
     computed: {
@@ -69,13 +72,47 @@ export default {
 
             return pendingState || optimisticStateChange
         },
-        shouldDisplayLoadingScreen () {
+        isInstanceLoading () {
             const unsafeStates = [
                 ...Object.values(States).filter(state => ![States.RUNNING, States.SAFE].includes(state)),
                 ...['suspending', 'suspended']
             ]
 
             return this.isInstanceTransitioningStates || unsafeStates.includes(this.instance.meta?.state)
+        },
+        isEditorDisabled () {
+            return !!this.instance.settings?.disableEditor
+        },
+        shouldDisplayLoadingScreen () {
+            return this.isInstanceLoading || this.isEditorDisabled || this.awaitingEditorRestart
+        },
+        loadingScreen () {
+            if (this.isInstanceLoading) {
+                return { state: this.instance.meta?.state, label: null, dataEl: null }
+            }
+            if (this.isEditorDisabled) {
+                return { state: 'editor-disabled', label: 'Editor Disabled', dataEl: 'editor-disabled-empty-state' }
+            }
+            if (this.awaitingEditorRestart) {
+                return { state: 'restart-required', label: 'Restart Required', dataEl: 'editor-restart-required-empty-state' }
+            }
+            return { state: this.instance.meta?.state, label: null, dataEl: null }
+        }
+    },
+    watch: {
+        isEditorDisabled (newVal, oldVal) {
+            // Running Node-RED keeps the old (disabled) config until restart,
+            // so suppress the iframe to avoid leaking "Cannot GET /".
+            if (oldVal === true && newVal === false) {
+                this.awaitingEditorRestart = true
+            } else if (newVal === true) {
+                this.awaitingEditorRestart = false
+            }
+        },
+        isInstanceLoading (isLoading) {
+            if (this.awaitingEditorRestart && isLoading) {
+                this.awaitingEditorRestart = false
+            }
         }
     },
     watch: {

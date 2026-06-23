@@ -25,9 +25,9 @@ import GitHubInstructions from './components/CreateGitTokenDialog/GitHubInstruct
 
 import teamApi from '@/api/team.js'
 
-import AzureIcon from '@/assets/icons/azure.svg'
-import GitHubIcon from '@/assets/icons/github.svg'
 import FormRow from '@/components/FormRow.vue'
+import AzureIcon from '@/components/icons/Azure.js'
+import GitHubIcon from '@/components/icons/GitHub.js'
 import { CascadingSelector, OptionTileSelector } from '@/components/variant-selector/index.js'
 import alerts from '@/services/alerts.js'
 
@@ -71,12 +71,12 @@ export default {
                     {
                         id: 'github',
                         component: markRaw(GitHubInstructions),
-                        props: { label: 'GitHub', icon: GitHubIcon }
+                        props: { label: 'GitHub', icon: markRaw(GitHubIcon) }
                     },
                     {
                         id: 'azure',
                         component: markRaw(AzureInstructions),
-                        props: { label: 'Azure DevOps', icon: AzureIcon }
+                        props: { label: 'Azure DevOps', icon: markRaw(AzureIcon) }
                     }
                 ]
             }
