@@ -150,7 +150,9 @@ export default {
                 this.applicationInstances.set(id, {
                     ...row,
                     status: state,
-                    meta: { ...(row?.meta || {}), state }
+                    meta: { ...(row?.meta || {}), state },
+                    optimisticStateChange: false,
+                    pendingStateChange: false
                 })
             }
         }

@@ -178,7 +178,9 @@ export default {
             this.localInstance = {
                 ...this.localInstance,
                 status: state,
-                meta: { ...(this.localInstance.meta || {}), state }
+                meta: { ...(this.localInstance.meta || {}), state },
+                optimisticStateChange: false,
+                pendingStateChange: false
             }
         },
         navigateToInstance () {

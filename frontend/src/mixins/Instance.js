@@ -50,7 +50,9 @@ export default {
             this.instance = {
                 ...this.instance,
                 status: state,
-                meta: { ...(this.instance.meta || {}), state }
+                meta: { ...(this.instance.meta || {}), state },
+                optimisticStateChange: false,
+                pendingStateChange: false
             }
         },
         showConfirmDeleteDialog () {

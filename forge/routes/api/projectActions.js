@@ -8,6 +8,15 @@
  * @namespace project
  * @memberof forge.routes.api
  */
+
+// backstop if the launcher never reports a definitive outcome
+const INFLIGHT_TIMEOUT = 60000
+function scheduleInflightTimeout (app, project, state) {
+    setTimeout(() => {
+        app.db.controllers.Project.clearInflightStateIfStill(project, state).catch(() => {})
+    }, INFLIGHT_TIMEOUT).unref()
+}
+
 module.exports = async function (app) {
     app.post('/start', {
         preHandler: app.needsPermission('project:change-status'),
@@ -49,9 +58,9 @@ module.exports = async function (app) {
                 await request.project.save()
                 await app.db.controllers.Project.setInflightState(request.project, 'starting')
                 const startResult = await app.containers.start(request.project)
+                scheduleInflightTimeout(app, request.project, 'starting')
                 startResult.started.then(async () => {
                     await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                    await app.db.controllers.Project.clearInflightState(request.project)
                     return true
                 }).catch(err => {
                     app.log.info(`failed to start project ${request.project.id}`)
@@ -63,7 +72,7 @@ module.exports = async function (app) {
                 await request.project.save()
                 await app.containers.startFlows(request.project)
                 await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                await app.db.controllers.Project.clearInflightState(request.project)
+                scheduleInflightTimeout(app, request.project, 'starting')
             }
             reply.send({ status: 'okay' })
         } catch (err) {
@@ -154,7 +163,7 @@ module.exports = async function (app) {
             await request.project.save()
             await app.containers.restartFlows(request.project)
             await app.auditLog.Project.project.restarted(request.session.User, null, request.project)
-            await app.db.controllers.Project.clearInflightState(request.project)
+            scheduleInflightTimeout(app, request.project, 'restarting')
             reply.send({ status: 'okay' })
         } catch (err) {
             await app.db.controllers.Project.clearInflightState(request.project)

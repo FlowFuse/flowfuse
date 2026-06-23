@@ -126,6 +126,12 @@ module.exports = {
         await this.publishLiveState(app, project)
     },
 
+    clearInflightStateIfStill: async function (app, project, expectedState) {
+        if (await this.getInflightState(app, project) === expectedState) {
+            await this.clearInflightState(app, project)
+        }
+    },
+
     /**
      * Get the settings object that should be passed to nr-launcher so it can
      * start Node-RED with the proper project configuration.
@@ -850,7 +856,13 @@ module.exports = {
         if (app.comms) {
             const project = await app.db.models.Project.byId(projectId, { barebone: true })
             if (project) {
-                await this.publishLiveState(app, project)
+                const inflight = await this.getInflightState(app, project)
+                const isTransition = inflight === 'starting' || inflight === 'restarting'
+                if (isTransition && ['running', 'safe', 'crashed'].includes(state)) {
+                    await this.clearInflightState(app, project)
+                } else {
+                    await this.publishLiveState(app, project)
+                }
             }
         }
     }

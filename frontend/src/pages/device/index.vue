@@ -395,7 +395,7 @@ export default {
         applyLiveStatus () {
             const state = this.liveDeviceStatuses[this.device?.id]
             if (!state || this.device?.status === state) return
-            this.device = { ...this.device, status: state }
+            this.device = { ...this.device, status: state, optimisticStateChange: false, pendingStateChange: false }
         },
         pollTimerElapsed: async function () {
             // Only refresh device via the timer if we are on the overview page, developer mode page

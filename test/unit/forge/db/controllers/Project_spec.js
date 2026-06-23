@@ -594,5 +594,45 @@ describe('Project controller', function () {
                 notifySpy.restore()
             }
         })
+
+        // start/restart hold a transition mask; the launcher reports definitive states only
+        async function makeInstance (name) {
+            const team = await app.db.models.Team.create({ name, TeamTypeId: 1 })
+            return app.db.models.Project.create({ name: `${name}-p`, type: '', url: '', state: 'running', TeamId: team.id })
+        }
+
+        for (const inflight of ['starting', 'restarting']) {
+            for (const outcome of ['running', 'safe', 'crashed']) {
+                it(`clears a ${inflight} mask when the launcher reports ${outcome}`, async function () {
+                    const instance = await makeInstance(`${inflight}-${outcome}`)
+                    await app.db.controllers.Project.setInflightState(instance, inflight)
+                    await app.db.controllers.Project.updateLatestProjectState(instance.id, outcome)
+                    should(await app.db.controllers.Project.getInflightState(instance)).be.undefined()
+                })
+            }
+
+            it(`keeps the ${inflight} mask on a transient stopped`, async function () {
+                const instance = await makeInstance(`${inflight}-stopped`)
+                await app.db.controllers.Project.setInflightState(instance, inflight)
+                await app.db.controllers.Project.updateLatestProjectState(instance.id, 'stopped')
+                should(await app.db.controllers.Project.getInflightState(instance)).equal(inflight)
+            })
+        }
+
+        it('does not clear a non-transition inflight (e.g. suspending) on a running report', async function () {
+            const instance = await makeInstance('suspending-running')
+            await app.db.controllers.Project.setInflightState(instance, 'suspending')
+            await app.db.controllers.Project.updateLatestProjectState(instance.id, 'running')
+            should(await app.db.controllers.Project.getInflightState(instance)).equal('suspending')
+        })
+
+        it('clearInflightStateIfStill only clears when the state still matches', async function () {
+            const instance = await makeInstance('if-still')
+            await app.db.controllers.Project.setInflightState(instance, 'suspending')
+            await app.db.controllers.Project.clearInflightStateIfStill(instance, 'restarting')
+            should(await app.db.controllers.Project.getInflightState(instance)).equal('suspending')
+            await app.db.controllers.Project.clearInflightStateIfStill(instance, 'suspending')
+            should(await app.db.controllers.Project.getInflightState(instance)).be.undefined()
+        })
     })
 })

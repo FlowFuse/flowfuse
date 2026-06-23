@@ -1,6 +1,8 @@
 import type { Instance } from '@/types'
 import { Maybe } from '@/types/common/types'
 
+export const SETTLED_STATES = ['running', 'stopped', 'suspended', 'safe', 'crashed']
+
 type MutableInstance = Instance & {
     meta?: { state?: string } & Record<string, unknown>
     optimisticStateChange?: boolean
@@ -28,6 +30,9 @@ export class InstanceStateMutator {
 
     // load latest state from the server
     setStateAsPendingFromServer (newState: Maybe<string> = null) {
+        if (!newState && SETTLED_STATES.includes(this.instance.meta?.state)) {
+            return
+        }
         this.instance.optimisticStateChange = false
         this.instance.pendingStateChange = true
 
