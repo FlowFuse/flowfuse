@@ -936,6 +936,29 @@ describe('Project Snapshots API', function () {
             rolledBackSettings.env.should.have.property('one', 'a')
             rolledBackSettings.env.should.have.property('two', 'b')
         })
+
+        it('holds a restarting mask through the bounce when rolling back a running instance', async function () {
+            const snapResponse = await createSnapshot(app.project.id, 'rollback-mask-snapshot', TestObjects.tokens.alice)
+            snapResponse.statusCode.should.equal(200)
+            const snapshot = snapResponse.json()
+
+            app.project.state = 'running'
+            await app.project.save()
+
+            const rollbackResponse = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${app.project.id}/actions/rollback`,
+                payload: { snapshot: snapshot.id },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            rollbackResponse.statusCode.should.equal(200)
+
+            // the post-import bounce is masked as 'restarting' (cleared later by the launcher's running
+            // confirm), so live status reads running -> rollback -> restarting -> running with no stopped flash
+            ;(await app.db.controllers.Project.getInflightState(app.project)).should.equal('restarting')
+
+            await app.db.controllers.Project.clearInflightState(app.project)
+        })
     })
 
     describe('Get snapshot information', function () {

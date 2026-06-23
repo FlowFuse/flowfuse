@@ -60,7 +60,11 @@ module.exports = async function (app) {
                 const startResult = await app.containers.start(request.project)
                 scheduleInflightTimeout(app, request.project, 'starting')
                 startResult.started.then(async () => {
-                    await app.auditLog.Project.project.started(request.session.User, null, request.project)
+                    if (request.project.state === 'suspended') {
+                        await app.db.controllers.Project.clearInflightState(request.project)
+                    } else {
+                        await app.auditLog.Project.project.started(request.session.User, null, request.project)
+                    }
                     return true
                 }).catch(err => {
                     app.log.info(`failed to start project ${request.project.id}`)
