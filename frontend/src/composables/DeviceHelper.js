@@ -7,21 +7,13 @@ import deviceApi from '../api/devices.js'
 import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import { DeviceStateMutator } from '../utils/DeviceStateMutator.js'
+import { isTransitionState } from '../utils/stateTransitions.js'
 import { createPollTimer } from '../utils/timers.js'
 
 import { useContextStore } from '@/stores/context.js'
 
 // constants
 const POLL_TIME = 5000
-const deviceTransitionStates = [
-    'loading',
-    'installing',
-    'starting',
-    'stopping',
-    'restarting',
-    'suspending',
-    'importing'
-]
 
 export function useDeviceHelper () {
     const $router = useRouter()
@@ -33,7 +25,7 @@ export function useDeviceHelper () {
     // duplicated functionality because the pollTimer is not reactive
     const isPolling = ref(false)
 
-    const isInTransitionState = computed(() => deviceTransitionStates.includes(device.value.status))
+    const isInTransitionState = computed(() => isTransitionState(device.value.status))
 
     const agentSupportsDeviceAccess = computed(() =>
         device.value?.agentVersion && semver.gte(device.value?.agentVersion, '0.8.0')

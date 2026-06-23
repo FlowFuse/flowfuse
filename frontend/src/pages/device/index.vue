@@ -154,6 +154,7 @@ import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 
 import { DeviceStateMutator } from '../../utils/DeviceStateMutator.js'
+import { isTransitionState } from '../../utils/stateTransitions.js'
 import { createPollTimer } from '../../utils/timers.js'
 
 import DeviceAssignApplicationDialog from '../team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
@@ -175,16 +176,6 @@ import { useUxStore } from '@/stores/ux.js'
 
 // constants
 const POLL_TIME = 5000
-
-const deviceTransitionStates = [
-    'loading',
-    'installing',
-    'starting',
-    'stopping',
-    'restarting',
-    'suspending',
-    'importing'
-]
 
 export default {
     name: 'DevicePage',
@@ -408,7 +399,7 @@ export default {
                     await this.loadDevice()
                 } else if (typeof this.device?.status === 'undefined') {
                     await this.loadDevice()
-                } else if (deviceTransitionStates.includes(this.device?.status)) {
+                } else if (isTransitionState(this.device?.status)) {
                     await this.loadDevice()
                 }
             } catch (err) {

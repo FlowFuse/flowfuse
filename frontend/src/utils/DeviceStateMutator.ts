@@ -1,4 +1,4 @@
-import { SETTLED_STATES } from './InstanceStateMutator.js'
+import { isTransitionState } from './stateTransitions.js'
 
 import type { Device } from '@/types'
 import { Maybe } from '@/types/common/types'
@@ -29,7 +29,7 @@ export class DeviceStateMutator {
 
     // load latest state from the server
     setStateAsPendingFromServer (newState: Maybe<string> = null) {
-        if (!newState && SETTLED_STATES.includes(this.device.status)) {
+        if (!newState && !isTransitionState(this.device.status)) {
             return
         }
         this.device.optimisticStateChange = false

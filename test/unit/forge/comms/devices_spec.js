@@ -248,6 +248,47 @@ describe('DeviceCommsHandler', function () {
                 notifySpy.restore()
             }
         })
+
+        it('masks a transient stopped while restarting but surfaces settled states', async function () {
+            const device = await app.factory.createDevice({ name: 'restart-mask-device' }, TestObjects.ATeam)
+            const notifySpy = sinon.spy(app.comms.team, 'notifyDeviceState')
+            const setRestarting = async () => { device.state = 'restarting'; await device.save() }
+            try {
+                await setRestarting()
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'stopped' }) })
+                await sleep(100)
+                notifySpy.called.should.be.false()
+                await device.reload()
+                device.state.should.equal('restarting')
+
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
+                await sleep(100)
+                notifySpy.calledOnce.should.be.true()
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'running'])
+                await device.reload()
+                device.state.should.equal('running')
+
+                await setRestarting()
+                notifySpy.resetHistory()
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'crashed' }) })
+                await sleep(100)
+                notifySpy.calledOnce.should.be.true()
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'crashed'])
+                await device.reload()
+                device.state.should.equal('crashed')
+
+                await setRestarting()
+                notifySpy.resetHistory()
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'warning' }) })
+                await sleep(100)
+                notifySpy.calledOnce.should.be.true()
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'warning'])
+                await device.reload()
+                device.state.should.equal('warning')
+            } finally {
+                notifySpy.restore()
+            }
+        })
     })
 
     describe('sendCommandAwaitReply', async function () {

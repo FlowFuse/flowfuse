@@ -1,7 +1,7 @@
+import { isTransitionState } from './stateTransitions.js'
+
 import type { Instance } from '@/types'
 import { Maybe } from '@/types/common/types'
-
-export const SETTLED_STATES = ['running', 'stopped', 'suspended', 'safe', 'crashed']
 
 type MutableInstance = Instance & {
     meta?: { state?: string } & Record<string, unknown>
@@ -30,7 +30,7 @@ export class InstanceStateMutator {
 
     // load latest state from the server
     setStateAsPendingFromServer (newState: Maybe<string> = null) {
-        if (!newState && SETTLED_STATES.includes(this.instance.meta?.state)) {
+        if (!newState && !isTransitionState(this.instance.meta?.state)) {
             return
         }
         this.instance.optimisticStateChange = false
