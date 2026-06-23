@@ -113,9 +113,7 @@ export default {
             if (this.awaitingEditorRestart && isLoading) {
                 this.awaitingEditorRestart = false
             }
-        }
-    },
-    watch: {
+        },
         themeMode () {
             this.$services.postMessage.broadcastTheme()
         }
