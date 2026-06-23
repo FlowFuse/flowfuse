@@ -67,7 +67,14 @@ module.exports = async function (app) {
         await server.connect(transport)
 
         // Hand off response handling to the MCP transport.
-        // reply.hijack() tells Fastify we're managing the response directly.
+        // reply.hijack() tells Fastify we're managing the response directly,
+        // which means Fastify plugins (including CORS) won't set headers.
+        // Set CORS headers manually on the raw response before hijacking.
+        const origin = request.headers.origin
+        if (origin) {
+            reply.raw.setHeader('Access-Control-Allow-Origin', origin)
+            reply.raw.setHeader('Access-Control-Allow-Credentials', 'true')
+        }
         reply.hijack()
 
         // The MCP SDK's transport uses @hono/node-server internally, which sets
