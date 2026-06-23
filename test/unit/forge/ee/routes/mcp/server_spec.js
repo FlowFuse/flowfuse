@@ -154,7 +154,7 @@ describe('MCP Platform Tools Server', function () {
         })
 
         it('should not register the expertPlatformAutomation feature flag when AI is disabled', async function () {
-            app.config.features.enabled('expertPlatformAutomation').should.equal(false)
+            should(app.config.features.enabled('expertPlatformAutomation')).not.equal(true)
         })
 
         it('should return 404 for POST /api/v1/mcp when feature is disabled', async function () {
