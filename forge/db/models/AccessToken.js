@@ -136,6 +136,17 @@ module.exports = {
                         attributes: ['id', 'name', 'scope', 'expiresAt']
                     })
                     return tokens
+                },
+                getDeviceHTTPTokens: async (device) => {
+                    const tokens = this.findAll({
+                        where: {
+                            ownerType: 'http:device',
+                            ownerId: '' + device.id
+                        },
+                        order: [['id', 'ASC']],
+                        attributes: ['id', 'name', 'scope', 'expiresAt']
+                    })
+                    return tokens
                 }
             },
             instance: {

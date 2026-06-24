@@ -2,6 +2,7 @@ import { BaseService } from './service.contract'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
+import { useThemeStore } from '@/stores/theme'
 import { Maybe } from '@/types/common/types'
 import type { PostMessageServiceI } from '@/types/services/post-message.types'
 import type { CreateServiceOptions } from '@/types/services/service.types'
@@ -56,12 +57,16 @@ const allowedOrigins = ['https://flowfuse.com', 'https://app.flowfuse.com', 'htt
 
 type SendMessagePayload = { message: object, target?: WindowProxy, targetOrigin?: string }
 
+const mapThemeToNR = (mode: string): string => (mode === 'system' ? 'auto' : mode)
+
 /**
  * Messaging Service - Handles postMessage communication
  * @class
  */
 class PostMessageService extends BaseService implements PostMessageServiceI {
     protected $onMessage: ((event: MessageEvent<PostMessagePayload>) => Promise<void>) | null = null
+
+    protected $editorTarget: { target: WindowProxy, targetOrigin: string } | null = null
 
     constructor ({ app, router, services }: CreateServiceOptions) {
         super({ name: 'postMessage', app, router, services })
@@ -113,6 +118,7 @@ class PostMessageService extends BaseService implements PostMessageServiceI {
             window.removeEventListener('message', this.$onMessage)
             this.$onMessage = null
         }
+        this.$editorTarget = null
     }
 
     async handleFlowFuseExpertMessage (event: MessageEvent<PostMessagePayload>) {
@@ -190,6 +196,25 @@ class PostMessageService extends BaseService implements PostMessageServiceI {
                 console.warn('Cannot determine opener window origin - message not sent')
             }
         }
+    }
+
+    registerEditorTarget ({ target, targetOrigin }: { target: WindowProxy, targetOrigin: string }) {
+        if (!target) return
+        this.$editorTarget = { target, targetOrigin }
+        this.broadcastTheme()
+    }
+
+    unregisterEditorTarget (target: WindowProxy) {
+        if (this.$editorTarget?.target === target) this.$editorTarget = null
+    }
+
+    broadcastTheme () {
+        if (!this.$editorTarget) return
+        this.sendMessage({
+            message: { type: 'set-theme', payload: { theme: mapThemeToNR(useThemeStore().mode) } },
+            target: this.$editorTarget.target,
+            targetOrigin: this.$editorTarget.targetOrigin
+        })
     }
 
     /**

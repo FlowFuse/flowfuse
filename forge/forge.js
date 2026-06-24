@@ -22,7 +22,7 @@ const routes = require('./routes')
 const settings = require('./settings')
 const { finishSetup } = require('./setup')
 
-require('dotenv').config()
+require('dotenv').config({ quiet: true })
 
 async function createAdminAccessToken (server, userId) {
     const { token } = await server.db.controllers.AccessToken.createPersonalAccessToken(userId, '', null, 'Admin Access Token')

@@ -38,9 +38,9 @@ import ScriptInstallContent from './components/DeviceCredentialsDialog/ScriptIns
 
 import deviceApi from '@/api/devices.js'
 
-import LinuxIcon from '@/assets/icons/linux.svg'
-import MacOSIcon from '@/assets/icons/macos.svg'
-import WindowsIcon from '@/assets/icons/windows.svg'
+import LinuxIcon from '@/components/icons/Linux.js'
+import MacOSIcon from '@/components/icons/MacOS.js'
+import WindowsIcon from '@/components/icons/Windows.js'
 
 import { CascadingSelector, OptionTileSelector, TabSelector } from '@/components/variant-selector/index.js'
 
@@ -99,9 +99,9 @@ export default {
                         component: markRaw(OptionTileSelector),
                         props: { label: 'One-Line Install', title: 'Install & Run Device Agent' },
                         children: [
-                            { id: 'windows', component: markRaw(ScriptInstallContent), props: { label: 'Windows', icon: WindowsIcon, device: this.device, os: 'windows' } },
-                            { id: 'macos', component: markRaw(ScriptInstallContent), props: { label: 'MacOS', icon: MacOSIcon, device: this.device, os: 'macos' } },
-                            { id: 'linux', component: markRaw(ScriptInstallContent), props: { label: 'Linux', icon: LinuxIcon, device: this.device, os: 'linux' } }
+                            { id: 'windows', component: markRaw(ScriptInstallContent), props: { label: 'Windows', icon: markRaw(WindowsIcon), device: this.device, os: 'windows' } },
+                            { id: 'macos', component: markRaw(ScriptInstallContent), props: { label: 'MacOS', icon: markRaw(MacOSIcon), device: this.device, os: 'macos' } },
+                            { id: 'linux', component: markRaw(ScriptInstallContent), props: { label: 'Linux', icon: markRaw(LinuxIcon), device: this.device, os: 'linux' } }
                         ]
                     },
                     {
@@ -109,9 +109,9 @@ export default {
                         component: markRaw(OptionTileSelector),
                         props: { label: 'Install via NPM', title: 'Install Device Agent' },
                         children: [
-                            { id: 'windows', component: markRaw(NpmInstallContent), props: { label: 'Windows', icon: WindowsIcon, device: this.device, os: 'windows' } },
-                            { id: 'macos', component: markRaw(NpmInstallContent), props: { label: 'MacOS', icon: MacOSIcon, device: this.device, os: 'macos' } },
-                            { id: 'linux', component: markRaw(NpmInstallContent), props: { label: 'Linux', icon: LinuxIcon, device: this.device, os: 'linux' } }
+                            { id: 'windows', component: markRaw(NpmInstallContent), props: { label: 'Windows', icon: markRaw(WindowsIcon), device: this.device, os: 'windows' } },
+                            { id: 'macos', component: markRaw(NpmInstallContent), props: { label: 'MacOS', icon: markRaw(MacOSIcon), device: this.device, os: 'macos' } },
+                            { id: 'linux', component: markRaw(NpmInstallContent), props: { label: 'Linux', icon: markRaw(LinuxIcon), device: this.device, os: 'linux' } }
                         ]
                     }
                 ]

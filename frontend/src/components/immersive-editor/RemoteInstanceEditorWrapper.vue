@@ -21,11 +21,17 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
+
 import LoadingScreenWrapper from './LoadingScreenWrapper.vue'
+
+import { useThemeStore } from '@/stores/theme'
+import { isInstanceOnNR5Plus } from '@/utils/instanceVersion'
 
 export default {
     name: 'RemoteInstanceEditorWrapper',
     components: { LoadingScreenWrapper },
+    inject: ['$services'],
     props: {
         device: {
             required: false,
@@ -43,6 +49,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useThemeStore, { themeMode: 'mode' }),
         isDeviceRunning () {
             return this.computedStatus === 'running'
         },
@@ -61,9 +68,25 @@ export default {
             default:
                 return this.device.status
             }
+        },
+        editorOrigin () {
+            if (!this.device?.editor?.url) {
+                return null
+            }
+            try {
+                return new URL(this.device.editor.url, window.location.origin).origin
+            } catch (e) {
+                return null
+            }
+        }
+    },
+    watch: {
+        themeMode () {
+            this.$services.postMessage.broadcastTheme()
         }
     },
     mounted () {
+        window.addEventListener('message', this.eventListener)
         // Dispatch a synthetic mousemove every 25 minutes to keep PostHog's idle
         // session timer alive. PostHog resets its recording after ~30 minutes of
         // inactivity on the parent page — but the user may be actively working
@@ -73,11 +96,54 @@ export default {
         }, 25 * 60 * 1000)
     },
     beforeUnmount () {
+        window.removeEventListener('message', this.eventListener)
         clearInterval(this.posthogKeepAliveInterval)
         // Remove from DOM before unmount so rrweb doesn't try to access the
         // cross-origin contentWindow during teardown.
         if (this.$refs.iframe) {
+            this.$services.postMessage.unregisterEditorTarget(this.$refs.iframe.contentWindow)
             this.$refs.iframe.parentNode?.removeChild(this.$refs.iframe)
+        }
+    },
+    methods: {
+        eventListener (event) {
+            if (!this.editorOrigin || event.origin !== this.editorOrigin) {
+                return
+            }
+            switch (event.data?.type) {
+            case 'load':
+                this.emitMessage('prevent-redirect', true)
+                this.registerEditorForThemeSync()
+                break
+            case 'request-theme':
+                this.registerEditorForThemeSync()
+                break
+            case 'navigate':
+                window.location.href = event.data.payload
+                break
+            case 'logout':
+                if (this.device) {
+                    this.$router.push({ name: 'device-overview', params: { id: this.device.id } })
+                }
+                break
+            default:
+            }
+        },
+        registerEditorForThemeSync () {
+            if (!isInstanceOnNR5Plus(this.device)) return
+            this.$services.postMessage.registerEditorTarget({
+                target: this.$refs.iframe.contentWindow,
+                targetOrigin: this.editorOrigin
+            })
+        },
+        emitMessage (type, payload = {}) {
+            if (this.$refs.iframe?.contentWindow && this.editorOrigin) {
+                this.$services.postMessage.sendMessage({
+                    message: { type, payload },
+                    target: this.$refs.iframe.contentWindow,
+                    targetOrigin: this.editorOrigin
+                })
+            }
         }
     }
 }
