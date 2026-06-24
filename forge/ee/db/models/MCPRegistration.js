@@ -99,6 +99,16 @@ module.exports = {
                             nodeId
                         }
                     })
+                },
+                byId: async (idOrHash, { includeAssociations = false } = {}) => {
+                    let id = idOrHash
+                    if (typeof idOrHash === 'string') {
+                        id = M.MCPRegistration.decodeHashid(idOrHash)
+                    }
+                    const where = { id }
+                    return this.findOne({
+                        where
+                    })
                 }
             }
         }
