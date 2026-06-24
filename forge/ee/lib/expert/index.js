@@ -51,8 +51,14 @@ module.exports = fp(async function (app, _opts) {
         let mcpAccessToken = await readCachedMcpAccessToken(instanceId)
 
         if (!mcpAccessToken) {
-            const instanceSettings = await instance.getSetting('settings')
-            const httpNodeAuth = instanceSettings?.httpNodeAuth
+            let httpNodeAuth
+            if (instanceType === 'instance') {
+                const instanceSettings = await instance.getSetting('settings')
+                httpNodeAuth = instanceSettings?.httpNodeAuth
+            } else if (instanceType === 'device') {
+                const deviceSettings = await instance.getSetting('security')
+                httpNodeAuth = deviceSettings?.httpNodeAuth
+            }
             const tokenName = 'FlowFuse Expert MCP Access Token'
             const scope = ['ff-expert:mcp', instanceType]
             if (httpNodeAuth?.type === 'flowforge-user' && teamHttpSecurityFeatureEnabled) {
