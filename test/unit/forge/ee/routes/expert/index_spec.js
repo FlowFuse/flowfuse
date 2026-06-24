@@ -596,7 +596,7 @@ describe('Expert API', function () {
                 capturedPostData.context.selectedCapabilities[0].mcpAccessToken.should.deepEqual({ token: null, scheme: '', scope: ['ff-expert:mcp', 'instance'] })
             })
 
-            it('should generate an access token for MCP server access when feature teamHttpSecurity is enabled', async function () {
+            it('should generate an access token for MCP server access for an instance when feature teamHttpSecurity is enabled', async function () {
                 const token = bobToken
                 await setFeatureForTeam(app, 'teamHttpSecurity', true)
                 // Stub MCP registration to return 1 online instance
@@ -687,6 +687,111 @@ describe('Expert API', function () {
                     token: cachedToken.token,
                     scheme: 'Bearer',
                     scope: ['ff-expert:mcp', 'instance']
+                })
+            })
+
+            it('should generate an access token for MCP server access for a device when feature teamHttpSecurity is enabled', async function () {
+                const token = bobToken
+                await setFeatureForTeam(app, 'teamHttpSecurity', true)
+
+                // register a (trusted) MCP server for the device so the /chat registry re-resolution recognises it
+                const deviceRegistration = await app.db.models.MCPRegistration.create({
+                    name: 'mcp-device-1',
+                    protocol: 'http',
+                    targetType: 'device',
+                    targetId: '' + device.id,
+                    nodeId: 'mcp:node:device-1',
+                    endpointRoute: '/mcp',
+                    TeamId: team.id
+                })
+
+                // a device's httpNodeAuth lives in DeviceSettings under the 'security' key (not ProjectSettings 'settings')
+                sinon.stub(app.db.models.DeviceSettings, 'findOne').callsFake(async (options) => {
+                    if (options.where.DeviceId === device.id && options.where.key === 'security') {
+                        return { value: { httpNodeAuth: { type: 'flowforge-user' } } }
+                    }
+                    return this.wrappedMethod.apply(this, arguments)
+                })
+
+                // fake the axios post response - capture post data and return resolved promise
+                let capturedPostData = null
+                sinon.stub(axios, 'post').callsFake((url, data) => {
+                    capturedPostData = data
+                    return Promise.resolve({
+                        data: {
+                            transactionId: 'abc',
+                            context: { }
+                        }
+                    })
+                })
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/expert/chat',
+                    cookies: { sid: token },
+                    headers: { 'x-chat-transaction-id': 'abc' },
+                    payload: {
+                        context: {
+                            teamId: team.hashid,
+                            query: 'test',
+                            selectedCapabilities: [
+                                {
+                                    team: team.hashid,
+                                    application: application.hashid,
+                                    instance: device.hashid, // device hashid - re-resolved against the trusted registry
+                                    instanceType: 'device',
+                                    instanceName: device.name,
+                                    mcpServer: deviceRegistration.hashid,
+                                    mcpServerName: 'mcp-device-1',
+                                    mcpServerUrl: 'http://device-url/mcp',
+                                    mcpProtocol: 'http',
+                                    prompts: [{}],
+                                    resources: [{}],
+                                    resourceTemplates: [{}],
+                                    tools: [{}],
+                                    title: 'the device title',
+                                    version: '1.0.0-beta',
+                                    description: 'the device description'
+                                }
+                            ]
+                        }
+                    }
+                })
+                response.statusCode.should.equal(200)
+
+                // read AccessToken from DB and check it is valid - a device token has ownerType 'http:device'
+                const tokens = await app.db.models.AccessToken.findAll({ where: { ownerType: 'http:device', ownerId: '' + device.id } })
+                tokens.should.be.an.Array()
+                tokens.should.have.length(1)
+                const dbToken = /* get newest token */ tokens.reduce((a, b) => (a.createdAt > b.createdAt ? a : b))
+                dbToken.should.have.property('scope').which.is.an.Array().and.have.length(2)
+                dbToken.scope.should.containEql('ff-expert:mcp')
+                dbToken.scope.should.containEql('device')
+                dbToken.should.have.property('ownerType', 'http:device')
+                dbToken.should.have.property('ownerId', '' + device.id)
+                dbToken.should.have.property('expiresAt').which.is.a.Date()
+                const fiveMinsFromNow = Date.now() + (5 * 60 * 1000)
+                dbToken.expiresAt.getTime().should.be.approximately(fiveMinsFromNow, 2000) // check expiry (with grace period)
+
+                // get the cached token and check it matches DB token (cache is keyed by the device id)
+                const cachedToken = await app.expert.mcp.getCachedToken(device.id)
+                should.exist(cachedToken)
+                cachedToken.should.have.property('token').and.be.a.String()
+                cachedToken.should.have.property('scheme', 'Bearer')
+                cachedToken.should.have.property('scope').which.is.an.Array().and.have.length(2)
+                cachedToken.scope.should.containEql('ff-expert:mcp')
+                cachedToken.scope.should.containEql('device')
+
+                // db token should be a hash of the cached token
+                const hash = sha256(cachedToken.token)
+                hash.should.equal(dbToken.token)
+
+                // Now assert the axios post payload (captured async)
+                capturedPostData.should.be.an.Object()
+                capturedPostData.context.selectedCapabilities[0].should.have.property('mcpAccessToken').and.be.an.Object()
+                capturedPostData.context.selectedCapabilities[0].mcpAccessToken.should.deepEqual({
+                    token: cachedToken.token,
+                    scheme: 'Bearer',
+                    scope: ['ff-expert:mcp', 'device']
                 })
             })
 
@@ -1608,6 +1713,119 @@ describe('Expert API', function () {
                 captured.mcpServers[0].mcpAccessToken.should.have.property('scope').and.be.an.Array().and.have.length(2)
                 captured.mcpServers[0].mcpAccessToken.scope.should.containEql('ff-expert:mcp')
                 captured.mcpServers[0].mcpAccessToken.scope.should.containEql('instance')
+            })
+
+            // Build a byTeam stub registration whose target is a remote instance (device). The MCP
+            // features for devices are fetched over MQTT via deviceComms.sendCommandAwaitReply rather
+            // than the launcher admin API used for hosted instances.
+            const buildDeviceRegistration = (agentVersion = '3.9.1') => ({
+                id: 1,
+                hashid: 'mcpregdev001',
+                name: 'mcp-server-device',
+                protocol: 'http',
+                targetType: 'device',
+                targetId: '999',
+                nodeId: 'mcp:node:1',
+                endpointRoute: '/mcp',
+                TeamId: team.id,
+                Device: {
+                    hashid: 'devicehash001',
+                    id: 999,
+                    name: 'device-1',
+                    url: 'http://device-1',
+                    state: 'running',
+                    ApplicationId: application.id,
+                    agentVersion,
+                    getSetting: sinon.stub().resolves({}) // no special settings
+                },
+                title: 'Device MCP Server',
+                version: '1.0.0-beta',
+                description: 'Device MCP Server'
+            })
+
+            it('should get mcp features for a device via deviceComms (MQTT proxy)', async function () {
+                const token = bobToken
+                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([buildDeviceRegistration('3.9.1')])
+
+                // wire up a fake device comms MQTT proxy that answers the live-state and feature requests
+                const sendCommandAwaitReply = sinon.stub().callsFake(async (teamHashid, deviceHashid, command, payload) => {
+                    if (command === 'get-liveState') {
+                        return { state: 'running' }
+                    }
+                    if (command === 'mcp:get-features') {
+                        return payload.mcpEndPoints.map(spec => ({ spec, features: { prompts: [{}], resources: [{}], resourceTemplates: [{}], tools: [{}] } }))
+                    }
+                    return {}
+                })
+                app.comms = { devices: { sendCommandAwaitReply } }
+                // the launcher admin API (used for hosted instances) must NOT be used for devices
+                const getFeatures = sinon.stub(app.containers, 'getMCPFeatures')
+
+                try {
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/expert/mcp/features',
+                        cookies: { sid: token },
+                        headers: { 'x-chat-transaction-id': 'abc' },
+                        payload: { context: { teamId: team.hashid } }
+                    })
+                    response.statusCode.should.equal(200)
+
+                    // hosted-instance path must not be used for a device
+                    getFeatures.called.should.be.false()
+
+                    // device live-state checked via the MQTT proxy (team hashid + device hashid)
+                    sendCommandAwaitReply.calledWith(team.hashid, 'devicehash001', 'get-liveState').should.be.true()
+
+                    // device features fetched via the MQTT proxy, carrying the per-server specs (incl. minted token)
+                    const featuresCall = sendCommandAwaitReply.getCalls().find(c => c.args[2] === 'mcp:get-features')
+                    should.exist(featuresCall)
+                    featuresCall.args[0].should.equal(team.hashid)
+                    featuresCall.args[1].should.equal('devicehash001')
+                    featuresCall.args[3].should.have.property('mcpEndPoints').which.is.an.Array().and.has.length(1)
+                    featuresCall.args[3].mcpEndPoints[0].should.have.property('mcpServer', 'mcpregdev001')
+                    featuresCall.args[3].mcpEndPoints[0].should.have.property('mcpAccessToken').and.be.an.Object()
+
+                    const result = response.json()
+                    result.should.have.property('servers').which.is.an.Array().and.has.length(1)
+                    result.servers[0].should.have.property('instanceType', 'device')
+                    result.servers[0].should.have.property('instance', 'devicehash001')
+                    result.servers[0].should.have.property('mcpServer', 'mcpregdev001')
+                } finally {
+                    app.comms = null
+                }
+            })
+
+            it('should report a device whose agent version is too old as incompatible', async function () {
+                const token = bobToken
+                // agent version older than MIN_REMOTE_INSTANCE_AGENT_VERSION (3.9.1)
+                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([buildDeviceRegistration('3.0.0')])
+
+                const sendCommandAwaitReply = sinon.stub().resolves({ state: 'running' })
+                app.comms = { devices: { sendCommandAwaitReply } }
+
+                try {
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/expert/mcp/features',
+                        cookies: { sid: token },
+                        headers: { 'x-chat-transaction-id': 'abc' },
+                        payload: { context: { teamId: team.hashid } }
+                    })
+                    response.statusCode.should.equal(200)
+
+                    const result = response.json()
+                    result.should.have.property('servers').which.is.an.Array().and.has.length(0)
+                    result.should.have.property('incompatibleServers').which.is.an.Array().and.has.length(1)
+                    result.incompatibleServers[0].should.have.property('instance', 'devicehash001')
+                    result.incompatibleServers[0].should.have.property('instanceType', 'device')
+                    result.incompatibleServers[0].should.have.property('currentVersion', '3.0.0')
+                    result.incompatibleServers[0].should.have.property('minimumSupportedVersion', '3.9.1')
+                    // the version gate happens before any MQTT round-trip - no live-state or feature request should be made
+                    sendCommandAwaitReply.called.should.be.false()
+                } finally {
+                    app.comms = null
+                }
             })
         })
     })
