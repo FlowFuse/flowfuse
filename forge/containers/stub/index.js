@@ -222,6 +222,15 @@ module.exports = {
      */
     restartFlows: async (project, options) => {
         this._app.log.info(`[stub driver] Restarting flows ${project.id}`)
+        // mirror a real launcher reporting running shortly after the bounce, so the restarting mask clears
+        setTimeout(async () => {
+            if (list[project.id]) {
+                list[project.id].state = 'running'
+            }
+            try {
+                await this._app.db.controllers.Project.updateLatestProjectState(project.id, 'running')
+            } catch (err) {}
+        }, module.exports.START_DELAY)
     },
 
     /**
