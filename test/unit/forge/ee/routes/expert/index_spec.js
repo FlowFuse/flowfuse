@@ -124,10 +124,12 @@ describe('Expert API', function () {
         })
 
         describe('Chat Endpoint', function () {
+            /** The MCP registration created for the default instance in beforeEach */
+            let defaultMcpRegistration
             beforeEach(async function () {
                 // register an MCP server for the default instance so the /chat trusted-registry
-                // re-resolution recognises selectedCapabilities that reference it (mcpServerName 'mcp-server-1')
-                await createMcpRegistration(app, instance, { name: 'mcp-server-1', endpointRoute: '/mcp1' })
+                // re-resolution recognises selectedCapabilities that reference it (mcpServer hashid)
+                defaultMcpRegistration = await createMcpRegistration(app, instance, { name: 'mcp-server-1', endpointRoute: '/mcp1' })
             })
 
             it('should return 401 for missing session', async function () {
@@ -291,17 +293,18 @@ describe('Expert API', function () {
 
                 // register a (trusted) MCP server for each instance so the /chat route's registry
                 // re-resolution recognises the selectedCapabilities referencing them
-                await createMcpRegistration(app, instanceAlice2, { name: 'alice2' })
-                await createMcpRegistration(app, instanceBob2, { name: 'bob2' })
-                await createMcpRegistration(app, instanceChris2, { name: 'chris2' })
+                const regAlice2 = await createMcpRegistration(app, instanceAlice2, { name: 'alice2' })
+                const regBob2 = await createMcpRegistration(app, instanceBob2, { name: 'bob2' })
+                const regChris2 = await createMcpRegistration(app, instanceChris2, { name: 'chris2' })
 
-                const buildMcpServerFeaturesResponse = (name, applicationHashid, instance, instanceType) => ({
+                const buildMcpServerFeaturesResponse = (name, applicationHashid, instance, instanceType, mcpServer) => ({
                     team: team.hashid,
                     application: applicationHashid,
                     instance: instanceType === 'instance' ? instance.id : instance.hashid,
                     instanceType,
                     instanceName: instance.name,
                     mcpProtocol: 'http',
+                    mcpServer, // the MCP registration hashid - re-resolved against the trusted registry
                     mcpServerName: name,
                     mcpServerUrl: `http://${name}/mcp`,
                     prompts: [],
@@ -364,9 +367,9 @@ describe('Expert API', function () {
                         pageName: 'instance-editor-expert',
                         scope: 'immersive',
                         selectedCapabilities: [
-                            buildMcpServerFeaturesResponse('alice2', applicationAlice2.hashid, instanceAlice2, 'instance'), // an mcp server on alice2 instance
-                            buildMcpServerFeaturesResponse('bob2', applicationBob2.hashid, instanceBob2, 'instance'), // an mcp server on bob2 instance
-                            buildMcpServerFeaturesResponse('chris2', applicationChris2.hashid, instanceChris2, 'instance') // an mcp server on chris2 instance
+                            buildMcpServerFeaturesResponse('alice2', applicationAlice2.hashid, instanceAlice2, 'instance', regAlice2.hashid), // an mcp server on alice2 instance
+                            buildMcpServerFeaturesResponse('bob2', applicationBob2.hashid, instanceBob2, 'instance', regBob2.hashid), // an mcp server on bob2 instance
+                            buildMcpServerFeaturesResponse('chris2', applicationChris2.hashid, instanceChris2, 'instance', regChris2.hashid) // an mcp server on chris2 instance
                         ]
                     }
                 })
@@ -503,6 +506,7 @@ describe('Expert API', function () {
                                     instance: instance.id,
                                     instanceType: 'instance',
                                     instanceName: instance.name,
+                                    mcpServer: defaultMcpRegistration.hashid,
                                     mcpServerName: 'mcp-server-1',
                                     mcpServerUrl: 'http://instance-url/mcp1',
                                     mcpProtocol: 'http',
@@ -563,6 +567,7 @@ describe('Expert API', function () {
                                     instance: instance.id,
                                     instanceType: 'instance',
                                     instanceName: instance.name,
+                                    mcpServer: defaultMcpRegistration.hashid,
                                     mcpServerName: 'mcp-server-1',
                                     mcpServerUrl: 'http://instance-url/mcp1',
                                     mcpProtocol: 'http',
@@ -630,6 +635,7 @@ describe('Expert API', function () {
                                     instance: instance.id,
                                     instanceType: 'instance',
                                     instanceName: instance.name,
+                                    mcpServer: defaultMcpRegistration.hashid,
                                     mcpServerName: 'mcp-server-1',
                                     mcpServerUrl: 'http://instance-url/mcp1',
                                     mcpProtocol: 'http',
@@ -704,7 +710,7 @@ describe('Expert API', function () {
                 // Register the victim instance's MCP server (under the attacker-chosen name) so the
                 // capability survives the trusted-registry re-resolution and the test specifically
                 // exercises the instance/application OWNERSHIP check rather than the registry-miss path.
-                await createMcpRegistration(app, victimInstance, { name: 'attacker-controlled' })
+                const victimRegistration = await createMcpRegistration(app, victimInstance, { name: 'attacker-controlled' })
 
                 // The victim instance uses FlowFuse http auth, so a real Bearer token would be minted/cached
                 sinon.stub(app.db.models.ProjectSettings, 'findOne').callsFake(async (options) => {
@@ -744,6 +750,7 @@ describe('Expert API', function () {
                                     instance: victimInstance.id, // victim instance (belongs to a different application)
                                     instanceType: 'instance',
                                     instanceName: 'target-instance',
+                                    mcpServer: victimRegistration.hashid, // resolves in the trusted registry, but fails the ownership check
                                     mcpServerName: 'attacker-controlled',
                                     mcpServerUrl: 'https://attacker.example/mcp',
                                     mcpProtocol: 'http',
@@ -769,7 +776,6 @@ describe('Expert API', function () {
             it('should overwrite client-supplied transport fields with trusted registry values', async function () {
                 const token = bobToken // team owner
 
-                const warnSpy = sinon.spy(app.log, 'warn')
                 let capturedPostData = null
                 sinon.stub(axios, 'post').callsFake((url, data) => {
                     capturedPostData = data
@@ -792,7 +798,8 @@ describe('Expert API', function () {
                                     instance: instance.id,
                                     instanceType: 'instance',
                                     instanceName: 'spoofed-name',
-                                    mcpServerName: 'mcp-server-1', // matches the registration created in beforeEach
+                                    mcpServer: defaultMcpRegistration.hashid, // matches the registration created in beforeEach
+                                    mcpServerName: 'mcp-server-1',
                                     mcpServerUrl: 'https://attacker.example/mcp', // client provided - must be dropped
                                     instanceUrl: 'https://attacker.example', // client provided - must be overwritten
                                     mcpEndpoint: '/evil', // client provided - must be overwritten
@@ -821,14 +828,8 @@ describe('Expert API', function () {
                 forwarded[0].should.have.property('instanceName', instance.name)
                 forwarded[0].should.have.property('team', team.hashid)
                 forwarded[0].should.have.property('application', application.hashid)
-
-                // the mismatch between client-supplied and trusted transport fields should be logged (audit signal)
-                warnSpy.called.should.be.true()
-                const warnMessage = warnSpy.getCalls().map(c => c.args[0]).find(m => typeof m === 'string' && m.includes('transport fields'))
-                should.exist(warnMessage)
-                warnMessage.should.match(/instanceUrl/)
-                warnMessage.should.match(/mcpEndpoint/)
-                warnMessage.should.match(/mcpProtocol/)
+                // mcpServer is re-resolved to (and forwarded as) the trusted registration hashid
+                forwarded[0].should.have.property('mcpServer', defaultMcpRegistration.hashid)
             })
 
             it('should clear cached MCP server access token when project setting httpNodeAuth is changed', async function () {
@@ -864,12 +865,16 @@ describe('Expert API', function () {
         })
 
         describe('MCP features Endpoint', function () {
-            let mockMcpRegistration1, mockMcpResponseServer1
+            let mockMcpRegistration1
             beforeEach(async function () {
                 await setFeatureForTeam(app, 'teamHttpSecurity', true)
+                // The MCP features endpoint now gates on the instance launcher version - the default
+                // instance must advertise a launcher new enough to support MCP features.
+                instance.versions = { launcher: { current: '2.31.4' } }
                 // create an common reusable MCP registration
                 mockMcpRegistration1 = {
                     id: 1,
+                    hashid: 'mcpreg00001',
                     name: 'mcp-server-1',
                     protocol: 'http',
                     targetType: 'instance',
@@ -883,25 +888,21 @@ describe('Expert API', function () {
                     description: 'the description 1'
 
                 }
-                mockMcpResponseServer1 = {
-                    team: team.hashid,
-                    application: application.hashid,
-                    instance: instance.id,
-                    instanceType: 'instance',
-                    instanceName: instance.name,
-                    mcpServerName: 'mcp-server-1',
-                    mcpServerUrl: 'http://instance-url/mcp1',
-                    prompts: [{}],
-                    resources: [{}],
-                    resourceTemplates: [{}],
-                    tools: [{}],
-                    mcpProtocol: 'http',
-                    title: 'the title 1',
-                    version: '1.0.0-beta',
-                    description: 'the description 1',
-                    notInSchema: 'should not cause error or be included in response due to swagger schema'
-                }
             })
+
+            // Stub app.containers.getMCPFeatures to behave like the launcher admin API: echo each
+            // requested server spec back (the spec carries ownership/transport details + the minted
+            // mcpAccessToken) and attach the supplied MCP feature set. Returns a handle whose
+            // `mcpServers` field captures the specs the route passed in (one entry per registration).
+            function stubGetMCPFeatures (features = { prompts: [{}], resources: [{}], resourceTemplates: [{}], tools: [{}] }) {
+                const captured = { mcpServers: null, calls: [] }
+                sinon.stub(app.containers, 'getMCPFeatures').callsFake(async (inst, mcpServers) => {
+                    captured.mcpServers = mcpServers
+                    captured.calls.push({ instance: inst, mcpServers })
+                    return mcpServers.map(spec => ({ spec, features: typeof features === 'function' ? features(spec) : features }))
+                })
+                return captured
+            }
 
             it('should return 401 for instance token', async function () {
                 const token = instanceToken
@@ -976,7 +977,7 @@ describe('Expert API', function () {
             it('should return early with status 200 and empty servers array when there are no MCP registrations', async function () {
                 const token = bobToken
                 sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([])
-                const post = sinon.stub(axios, 'post') // should not be called
+                const getFeatures = sinon.stub(app.containers, 'getMCPFeatures') // should not be called
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/expert/mcp/features',
@@ -986,8 +987,8 @@ describe('Expert API', function () {
                 })
                 response.statusCode.should.equal(200)
                 const json = response.json()
-                json.should.deepEqual({ servers: [], transactionId: 'abc' })
-                post.called.should.be.false()
+                json.should.deepEqual({ servers: [], incompatibleServers: [], transactionId: 'abc' })
+                getFeatures.called.should.be.false()
             })
 
             it('should get mcp features for team member', async function () {
@@ -997,6 +998,7 @@ describe('Expert API', function () {
                 sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([
                     {
                         id: 1,
+                        hashid: 'mcpreg00001',
                         name: 'mcp-server-1',
                         protocol: 'http',
                         targetType: 'instance',
@@ -1050,36 +1052,34 @@ describe('Expert API', function () {
                         title: 'the title 3',
                         version: '3.0.0-beta',
                         description: 'the description 3'
+                    }, {
+                        id: 4, // should be excluded due to being old launcher version
+                        name: 'mcp-server-4',
+                        protocol: 'http',
+                        targetType: 'instance',
+                        targetId: 'acbd-1234',
+                        nodeId: 'mcp:node:1',
+                        endpointRoute: '/mcp2',
+                        TeamId: team.id,
+                        Project: {
+                            id: 'dddd4444',
+                            name: 'old-instance',
+                            ApplicationId: application.id,
+                            state: 'running',
+                            liveState: () => ({ meta: { state: 'running' } }),
+                            getSetting: sinon.stub().resolves({}), // no special settings
+                            versions: { launcher: { current: '2.0.0' } } // old launcher version
+                        },
+                        title: 'the title 4',
+                        version: '4.0.0-beta',
+                        description: 'the description 4'
                     }
                 ])
                 // fake online status by stubbing liveState
                 sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
 
-                sinon.stub(axios, 'post').resolves({
-                    data: {
-                        transactionId: 'abc',
-                        servers: [
-                            {
-                                team: team.hashid,
-                                application: application.hashid,
-                                instance: instance.id,
-                                instanceType: 'instance',
-                                instanceName: instance.name,
-                                mcpServerName: 'mcp-server-1',
-                                mcpServerUrl: 'http://instance-url/mcp1',
-                                prompts: [{}],
-                                resources: [{}],
-                                resourceTemplates: [{}],
-                                tools: [{}],
-                                mcpProtocol: 'http',
-                                title: 'the title 1',
-                                version: '1.0.0-beta',
-                                description: 'the description 1',
-                                notInSchema: 'should not cause error or be included in response due to swagger schema'
-                            }
-                        ]
-                    }
-                })
+                // the launcher (via app.containers.getMCPFeatures) returns the MCP features per instance
+                const captured = stubGetMCPFeatures()
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/expert/mcp/features',
@@ -1089,22 +1089,22 @@ describe('Expert API', function () {
                 })
                 response.statusCode.should.equal(200)
 
-                // check that the post data to expert service was correct
-                const axiosPost = axios.post.getCall(0).args[1]
-                axiosPost.should.have.property('teamId', team.hashid)
-                axiosPost.should.have.property('servers').which.is.an.Array().and.has.length(1)
-                // since only 1 instance was correct and online, get index 0 and check its properties
-                const reg = axiosPost.servers[0]
-                reg.should.only.have.keys('team', 'application', 'instance', 'instanceType', 'instanceName', 'instanceUrl', 'mcpAccessToken', 'mcpServerName', 'mcpEndpoint', 'mcpProtocol', 'title', 'version', 'description')
+                // only the single online, correct-team instance should have been queried
+                app.containers.getMCPFeatures.calledOnce.should.be.true()
+                // check the per-server spec passed to the launcher was correct
+                captured.mcpServers.should.be.an.Array().and.has.length(1)
+                const reg = captured.mcpServers[0]
                 reg.should.have.property('team', team.hashid)
                 reg.should.have.property('application', application.hashid)
                 reg.should.have.property('instance', instance.id)
                 reg.should.have.property('instanceType', 'instance')
                 reg.should.have.property('instanceName', instance.name)
                 reg.should.have.property('instanceUrl', instance.url)
+                reg.should.have.property('mcpServer', 'mcpreg00001')
                 reg.should.have.property('mcpServerName', 'mcp-server-1')
                 reg.should.have.property('mcpEndpoint', '/mcp1')
                 reg.should.have.property('mcpProtocol', 'http')
+                reg.should.have.property('mcpAccessToken')
                 reg.should.have.property('title', 'the title 1')
                 reg.should.have.property('version', '1.0.0-beta')
                 reg.should.have.property('description', 'the description 1')
@@ -1113,24 +1113,29 @@ describe('Expert API', function () {
                 const result = response.json()
                 result.should.have.property('transactionId', 'abc')
                 result.should.have.property('servers').which.is.an.Array().and.has.length(1)
-                result.servers[0].should.only.have.keys('team', 'application', 'instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol', 'mcpServerUrl', 'title', 'version', 'description')
+                result.servers[0].should.only.have.keys('team', 'application', 'instance', 'instanceType', 'instanceName', 'mcpServer', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'title', 'version', 'description')
                 result.servers[0].should.have.property('team', team.hashid)
                 result.servers[0].should.have.property('application', application.hashid)
                 result.servers[0].should.have.property('instance', instance.id)
                 result.servers[0].should.have.property('instanceType', 'instance')
                 result.servers[0].should.have.property('instanceName', instance.name)
+                result.servers[0].should.have.property('mcpServer', 'mcpreg00001')
                 result.servers[0].should.have.property('mcpServerName', 'mcp-server-1')
                 result.servers[0].should.have.property('title', 'the title 1')
                 result.servers[0].should.have.property('version', '1.0.0-beta')
                 result.servers[0].should.have.property('description', 'the description 1')
+                // should not contain the transport fields (instanceUrl, mcpEndpoint, mcpProtocol) since those are not needed by the expert backend
+                result.should.not.have.property('instanceUrl')
+                result.should.not.have.property('mcpEndpoint')
+                result.should.not.have.property('mcpProtocol')
             })
 
-            it('should return 500 if transactionId mismatches', async function () {
+            it('should report instances whose launcher version is too old as incompatible', async function () {
                 const token = bobToken
-                sinon.stub(axios, 'post').resolves({ data: { transactionId: 'wrong' } })
-                // fake 1 registration to avoid early return
+                // a single registration whose instance launcher is older than the minimum supported version
                 sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([{
                     id: 1,
+                    hashid: 'mcpreg00001',
                     name: 'mcp-server-1',
                     protocol: 'http',
                     targetType: 'instance',
@@ -1140,16 +1145,30 @@ describe('Expert API', function () {
                     TeamId: team.id,
                     Project: instance
                 }])
-                sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
+                // launcher version below MIN_HOSTED_INSTANCE_LAUNCHER_VERSION (2.31.4)
+                instance.versions = { launcher: { current: '2.0.0' } }
+                const liveState = sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
+                const getFeatures = sinon.stub(app.containers, 'getMCPFeatures')
 
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/expert/mcp/features',
                     cookies: { sid: token },
-                    headers: { 'x-chat-transaction-id': 'right' },
+                    headers: { 'x-chat-transaction-id': 'abc' },
                     payload: { context: { teamId: team.hashid } }
                 })
-                response.statusCode.should.equal(500)
+                response.statusCode.should.equal(200)
+
+                const result = response.json()
+                result.should.have.property('servers').which.is.an.Array().and.has.length(0)
+                result.should.have.property('incompatibleServers').which.is.an.Array().and.has.length(1)
+                result.incompatibleServers[0].should.have.property('instance', instance.id)
+                result.incompatibleServers[0].should.have.property('instanceType', 'instance')
+                result.incompatibleServers[0].should.have.property('currentVersion', '2.0.0')
+                result.incompatibleServers[0].should.have.property('minimumSupportedVersion', '2.31.4')
+                // an incompatible instance must never be queried for features (or have its live state checked past the version gate)
+                getFeatures.called.should.be.false()
+                liveState.called.should.be.false()
             })
 
             it('should only get permitted mcp features when granular RBACs is enabled', async function () {
@@ -1207,6 +1226,7 @@ describe('Expert API', function () {
                 sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([
                     {
                         id: 1,
+                        hashid: 'mcpreg-alice',
                         name: 'mcp-server-alice',
                         protocol: 'http',
                         targetType: 'instance',
@@ -1219,6 +1239,7 @@ describe('Expert API', function () {
                             name: 'alice',
                             state: 'running',
                             ApplicationId: applicationAlice2.id,
+                            versions: { launcher: { current: '2.31.4' } },
                             liveState: () => ({ meta: { state: 'running' } }),
                             getSetting: sinon.stub().resolves({}) // no special settings
                         },
@@ -1227,7 +1248,8 @@ describe('Expert API', function () {
                         description: 'Alices MCP Server'
 
                     }, {
-                        id: 2, // should be excluded since it is offline
+                        id: 2,
+                        hashid: 'mcpreg-bob',
                         name: 'mcp-server-bob',
                         protocol: 'http',
                         targetType: 'instance',
@@ -1240,6 +1262,7 @@ describe('Expert API', function () {
                             name: 'bob',
                             state: 'running',
                             ApplicationId: applicationBob2.id,
+                            versions: { launcher: { current: '2.31.4' } },
                             liveState: () => ({ meta: { state: 'running' } }),
                             getSetting: sinon.stub().resolves({}) // no special settings
                         },
@@ -1248,7 +1271,8 @@ describe('Expert API', function () {
                         description: 'Bobs MCP Server'
 
                     }, {
-                        id: 3, // should be excluded since it is for other team
+                        id: 3,
+                        hashid: 'mcpreg-chris',
                         name: 'mcp-server-chris',
                         protocol: 'http',
                         targetType: 'instance',
@@ -1261,6 +1285,7 @@ describe('Expert API', function () {
                             name: 'chris',
                             state: 'running',
                             ApplicationId: applicationChris2.id,
+                            versions: { launcher: { current: '2.31.4' } },
                             liveState: () => ({ meta: { state: 'running' } }),
                             getSetting: sinon.stub().resolves({}) // no special settings
                         },
@@ -1270,76 +1295,51 @@ describe('Expert API', function () {
                     }
                 ])
 
-                const buildMcpServerFeaturesResponse = (name, applicationHashid) => ({
-                    team: team.hashid,
-                    application: applicationHashid,
-                    instance: name,
-                    instanceType: 'instance',
-                    instanceName: name,
-                    mcpServerName: name,
-                    mcpServerUrl: `http://${name}/mcp`,
-                    prompts: [],
-                    resources: [],
-                    resourceTemplates: [],
-                    tools: [
-                        {
-                            name: 'destructive_tool',
-                            annotations: {
-                                destructiveHint: true,
-                                readOnlyHint: false,
-                                openWorldHint: false,
-                                idempotentHint: false
-                            }
-                        },
-                        {
-                            name: 'write_tool',
-                            annotations: {
-                                destructiveHint: false,
-                                readOnlyHint: false,
-                                openWorldHint: false,
-                                idempotentHint: false
-                            }
-                        },
-                        {
-                            name: 'read_tool',
-                            annotations: {
-                                destructiveHint: false,
-                                readOnlyHint: true,
-                                openWorldHint: false,
-                                idempotentHint: false
-                            }
-                        },
-                        {
-                            name: 'openworld_tool',
-                            description: 'An openworld tool',
-                            type: 'tool',
-                            annotations: {
-                                destructiveHint: false,
-                                readOnlyHint: false,
-                                openWorldHint: true,
-                                idempotentHint: false
-                            }
+                // every instance's MCP server advertises the same four tools; the route applies
+                // per-application RBAC filtering to each based on the requesting user's permissions
+                const toolSet = [
+                    {
+                        name: 'destructive_tool',
+                        annotations: {
+                            destructiveHint: true,
+                            readOnlyHint: false,
+                            openWorldHint: false,
+                            idempotentHint: false
                         }
-                    ],
-                    mcpProtocol: 'http',
-                    title: `${name} MCP Server`,
-                    version: '1.0.0-beta',
-                    description: `${name} MCP Server`
-                })
+                    },
+                    {
+                        name: 'write_tool',
+                        annotations: {
+                            destructiveHint: false,
+                            readOnlyHint: false,
+                            openWorldHint: false,
+                            idempotentHint: false
+                        }
+                    },
+                    {
+                        name: 'read_tool',
+                        annotations: {
+                            destructiveHint: false,
+                            readOnlyHint: true,
+                            openWorldHint: false,
+                            idempotentHint: false
+                        }
+                    },
+                    {
+                        name: 'openworld_tool',
+                        description: 'An openworld tool',
+                        type: 'tool',
+                        annotations: {
+                            destructiveHint: false,
+                            readOnlyHint: false,
+                            openWorldHint: true,
+                            idempotentHint: false
+                        }
+                    }
+                ]
 
-                // Stub axios to return servers
-                sinon.stub(axios, 'post').callsFake((url, data) => {
-                    return Promise.resolve({
-                        data: {
-                            transactionId: 'right',
-                            servers: [
-                                { ...buildMcpServerFeaturesResponse('alice', applicationAlice2.hashid) },
-                                { ...buildMcpServerFeaturesResponse('bob', applicationBob2.hashid) },
-                                { ...buildMcpServerFeaturesResponse('chris', applicationChris2.hashid) }
-                            ]
-                        }
-                    })
-                })
+                // Stub the launcher feature fetch to return the toolset for every requested server
+                stubGetMCPFeatures({ prompts: [], resources: [], resourceTemplates: [], tools: toolSet })
 
                 // Helper function to check that the returned tools match expected tool names
                 const checkTools = (serverResult, expectedToolNames) => {
@@ -1409,17 +1409,8 @@ describe('Expert API', function () {
                 sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
                 sinon.stub(instance, 'getSetting').resolves({ httpNodeAuth: { type: 'flowforge-user' } })
 
-                // fake the axios post response - capture post data and return resolved promise
-                let capturedPostData = null
-                sinon.stub(axios, 'post').callsFake((url, data) => {
-                    capturedPostData = data
-                    return Promise.resolve({
-                        data: {
-                            transactionId: 'abc',
-                            servers: [mockMcpResponseServer1]
-                        }
-                    })
-                })
+                // capture the per-server specs the route hands to the launcher feature fetch
+                const captured = stubGetMCPFeatures()
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/expert/mcp/features',
@@ -1434,10 +1425,10 @@ describe('Expert API', function () {
                 tokens.should.be.an.Array()
                 tokens.should.have.length(0)
 
-                // Now assert the axios post payload (captured async)
-                capturedPostData.should.be.an.Object()
-                capturedPostData.servers[0].should.have.property('mcpAccessToken').and.be.an.Object()
-                capturedPostData.servers[0].mcpAccessToken.should.deepEqual({ token: null, scheme: '', scope: ['ff-expert:mcp', 'instance'] })
+                // Now assert the per-server spec passed to the launcher feature fetch
+                captured.mcpServers.should.be.an.Array().and.have.length(1)
+                captured.mcpServers[0].should.have.property('mcpAccessToken').and.be.an.Object()
+                captured.mcpServers[0].mcpAccessToken.should.deepEqual({ token: null, scheme: '', scope: ['ff-expert:mcp', 'instance'] })
             })
 
             it('should not generate an access token for MCP server when instance setting httpNodeAuth is not set', async function () {
@@ -1447,17 +1438,8 @@ describe('Expert API', function () {
                 sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([mockMcpRegistration1])
                 sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
                 sinon.stub(instance, 'getSetting').resolves({}) // no httpNodeAuth settings
-                // fake the axios post response - capture post data and return resolved promise
-                let capturedPostData = null
-                sinon.stub(axios, 'post').callsFake((url, data) => {
-                    capturedPostData = data
-                    return Promise.resolve({
-                        data: {
-                            transactionId: 'abc',
-                            servers: [mockMcpResponseServer1]
-                        }
-                    })
-                })
+                // capture the per-server specs the route hands to the launcher feature fetch
+                const captured = stubGetMCPFeatures()
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/expert/mcp/features',
@@ -1471,10 +1453,10 @@ describe('Expert API', function () {
                 const tokens = await app.db.models.AccessToken.findAll({ where: { ownerType: 'http', ownerId: instance.id } })
                 tokens.should.be.an.Array()
                 tokens.should.have.length(0)
-                // Now assert the axios post payload (captured async)
-                capturedPostData.should.be.an.Object()
-                capturedPostData.servers[0].should.have.property('mcpAccessToken').and.be.an.Object()
-                capturedPostData.servers[0].mcpAccessToken.should.deepEqual({ token: null, scheme: '', scope: ['ff-expert:mcp', 'instance'] })
+                // Now assert the per-server spec passed to the launcher feature fetch
+                captured.mcpServers.should.be.an.Array().and.have.length(1)
+                captured.mcpServers[0].should.have.property('mcpAccessToken').and.be.an.Object()
+                captured.mcpServers[0].mcpAccessToken.should.deepEqual({ token: null, scheme: '', scope: ['ff-expert:mcp', 'instance'] })
             })
 
             it('should generate an access token for MCP server access when feature teamHttpSecurity is enabled', async function () {
@@ -1484,17 +1466,8 @@ describe('Expert API', function () {
                 sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
                 sinon.stub(instance, 'getSetting').resolves({ httpNodeAuth: { type: 'flowforge-user' } })
 
-                // fake the axios post response - capture post data and return resolved promise
-                let capturedPostData = null
-                sinon.stub(axios, 'post').callsFake((url, data) => {
-                    capturedPostData = data
-                    return Promise.resolve({
-                        data: {
-                            transactionId: 'abc',
-                            servers: [mockMcpResponseServer1]
-                        }
-                    })
-                })
+                // capture the per-server specs the route hands to the launcher feature fetch
+                const captured = stubGetMCPFeatures()
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/expert/mcp/features',
@@ -1531,10 +1504,10 @@ describe('Expert API', function () {
                 const hash = sha256(cachedToken.token)
                 hash.should.equal(dbToken.token)
 
-                // Now assert the axios post payload (captured async)
-                capturedPostData.should.be.an.Object()
-                capturedPostData.servers[0].should.have.property('mcpAccessToken').and.be.an.Object()
-                capturedPostData.servers[0].mcpAccessToken.should.deepEqual({
+                // Now assert the per-server spec passed to the launcher feature fetch
+                captured.mcpServers.should.be.an.Array().and.have.length(1)
+                captured.mcpServers[0].should.have.property('mcpAccessToken').and.be.an.Object()
+                captured.mcpServers[0].mcpAccessToken.should.deepEqual({
                     token: cachedToken.token,
                     scheme: 'Bearer',
                     scope: ['ff-expert:mcp', 'instance']
@@ -1549,15 +1522,8 @@ describe('Expert API', function () {
                 sinon.stub(instance, 'getSetting').resolves({ httpNodeAuth: { type: 'flowforge-user' } })
                 const createHTTPNodeTokenSpy = sinon.spy(app.db.controllers.AccessToken, 'createHTTPNodeToken')
 
-                // fake the axios post response - check that the access token is included in the post data
-                sinon.stub(axios, 'post').callsFake((url, data) => {
-                    return Promise.resolve({
-                        data: {
-                            transactionId: 'abc',
-                            servers: [mockMcpResponseServer1]
-                        }
-                    })
-                })
+                // stub the launcher feature fetch - the minted access token is included in the spec it receives
+                stubGetMCPFeatures()
                 const response1 = await app.inject({
                     method: 'POST',
                     url: '/api/v1/expert/mcp/features',
@@ -1621,17 +1587,8 @@ describe('Expert API', function () {
                 sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
                 sinon.stub(instance, 'getSetting').resolves({ httpNodeAuth: { type: 'basic', user: 'nodeUser', pass: 'nodePass' } })
 
-                // fake the axios post response - capture post data and return resolved promise
-                let capturedPostData = null
-                sinon.stub(axios, 'post').callsFake((url, data) => {
-                    capturedPostData = data
-                    return Promise.resolve({
-                        data: {
-                            transactionId: 'abc',
-                            servers: [mockMcpResponseServer1]
-                        }
-                    })
-                })
+                // capture the per-server specs the route hands to the launcher feature fetch
+                const captured = stubGetMCPFeatures()
                 const response = await app.inject({
                     method: 'POST',
                     url: '/api/v1/expert/mcp/features',
@@ -1640,19 +1597,17 @@ describe('Expert API', function () {
                     payload: { context: { teamId: team.hashid } }
                 })
                 response.statusCode.should.equal(200)
-                // Now assert the axios post payload (captured async)
-                capturedPostData.should.be.an.Object()
-                capturedPostData.should.have.property('servers').which.is.an.Array()
-                capturedPostData.servers[0].should.have.property('mcpAccessToken')
-                capturedPostData.servers[0].mcpAccessToken.should.be.an.Object()
+                // Now assert the per-server spec passed to the launcher feature fetch
+                captured.mcpServers.should.be.an.Array().and.have.length(1)
+                captured.mcpServers[0].should.have.property('mcpAccessToken').and.be.an.Object()
                 // For now, there no support for basic auth. The password is not available.
                 // Instead, we send an empty token with scheme 'Basic' to permit the backend to
                 // ignore basic auth entries (they are still sent so that they can be returned and listed for user awareness)
-                capturedPostData.servers[0].mcpAccessToken.should.have.property('token', '')
-                capturedPostData.servers[0].mcpAccessToken.should.have.property('scheme', 'Basic')
-                capturedPostData.servers[0].mcpAccessToken.should.have.property('scope').and.be.an.Array().and.have.length(2)
-                capturedPostData.servers[0].mcpAccessToken.scope.should.containEql('ff-expert:mcp')
-                capturedPostData.servers[0].mcpAccessToken.scope.should.containEql('instance')
+                captured.mcpServers[0].mcpAccessToken.should.have.property('token', '')
+                captured.mcpServers[0].mcpAccessToken.should.have.property('scheme', 'Basic')
+                captured.mcpServers[0].mcpAccessToken.should.have.property('scope').and.be.an.Array().and.have.length(2)
+                captured.mcpServers[0].mcpAccessToken.scope.should.containEql('ff-expert:mcp')
+                captured.mcpServers[0].mcpAccessToken.scope.should.containEql('instance')
             })
         })
     })
