@@ -126,12 +126,6 @@ module.exports = {
         await this.publishLiveState(app, project)
     },
 
-    clearInflightStateIfStill: async function (app, project, expectedState) {
-        if (await this.getInflightState(app, project) === expectedState) {
-            await this.clearInflightState(app, project)
-        }
-    },
-
     /**
      * Get the settings object that should be passed to nr-launcher so it can
      * start Node-RED with the proper project configuration.

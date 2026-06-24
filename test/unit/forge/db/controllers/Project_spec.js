@@ -625,14 +625,5 @@ describe('Project controller', function () {
             await app.db.controllers.Project.updateLatestProjectState(instance.id, 'running')
             should(await app.db.controllers.Project.getInflightState(instance)).equal('suspending')
         })
-
-        it('clearInflightStateIfStill only clears when the state still matches', async function () {
-            const instance = await makeInstance('if-still')
-            await app.db.controllers.Project.setInflightState(instance, 'suspending')
-            await app.db.controllers.Project.clearInflightStateIfStill(instance, 'restarting')
-            should(await app.db.controllers.Project.getInflightState(instance)).equal('suspending')
-            await app.db.controllers.Project.clearInflightStateIfStill(instance, 'suspending')
-            should(await app.db.controllers.Project.getInflightState(instance)).be.undefined()
-        })
     })
 })
