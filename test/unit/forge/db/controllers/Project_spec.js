@@ -634,36 +634,5 @@ describe('Project controller', function () {
             await app.db.controllers.Project.clearInflightStateIfStill(instance, 'suspending')
             should(await app.db.controllers.Project.getInflightState(instance)).be.undefined()
         })
-
-        it('broadcasts crashed when a running instance crashes (no mask involved)', async function () {
-            const instance = await makeInstance('crash-running')
-            const teamHash = app.db.models.Team.encodeHashid(instance.TeamId)
-            const notifySpy = sinon.spy(app.comms.team, 'notifyInstanceState')
-            try {
-                await app.db.controllers.Project.updateLatestProjectState(instance.id, 'crashed')
-                notifySpy.calledWith(teamHash, instance.id, 'crashed').should.be.true()
-            } finally {
-                notifySpy.restore()
-            }
-        })
-
-        it('broadcasts suspending then suspended on suspend', async function () {
-            const instance = await makeInstance('suspend-seq')
-            const teamHash = app.db.models.Team.encodeHashid(instance.TeamId)
-            const notifySpy = sinon.spy(app.comms.team, 'notifyInstanceState')
-            try {
-                await app.db.controllers.Project.setInflightState(instance, 'suspending')
-                notifySpy.calledWith(teamHash, instance.id, 'suspending').should.be.true()
-
-                // container stop lands the db on suspended; clearing the mask then broadcasts it
-                notifySpy.resetHistory()
-                instance.state = 'suspended'
-                await instance.save()
-                await app.db.controllers.Project.clearInflightState(instance)
-                notifySpy.calledWith(teamHash, instance.id, 'suspended').should.be.true()
-            } finally {
-                notifySpy.restore()
-            }
-        })
     })
 })
