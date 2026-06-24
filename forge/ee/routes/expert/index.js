@@ -434,7 +434,7 @@ module.exports = async function (app) {
                     if (instanceType === 'instance' && instance) {
                         // Check that instance launcher supports the required features before attempting to get the live state.
                         if (!instance.versions?.launcher?.current || semver.lt(instance.versions.launcher.current, MIN_HOSTED_INSTANCE_LAUNCHER_VERSION)) {
-                            incompatibleServers.push({ instance: instanceId, instanceType, instanceName: instance.name, currentVersion: instance.versions.launcher, minimumSupportedVersion: MIN_HOSTED_INSTANCE_LAUNCHER_VERSION })
+                            incompatibleServers.push({ instance: instanceId, instanceType, instanceName: instance.name, currentVersion: instance.versions?.launcher?.current, minimumSupportedVersion: MIN_HOSTED_INSTANCE_LAUNCHER_VERSION })
                             continue // skip - launcher version too old to support MCP features via the admin API
                         }
                         // Next check that the instance is actually running before calling MCP features (querying a non-running instance would cause timeouts)
