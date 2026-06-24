@@ -81,11 +81,11 @@
                 "commonjs": false
             },
             "parserOptions": {
-                "ecmaVersion": 2022,
-                "sourceType": "module",
                 "parser": {
                     "ts": "@typescript-eslint/parser"
-                }
+                },
+                "ecmaVersion": 2022,
+                "sourceType": "module"
             },
             "rules": {
                 // plugin:vue

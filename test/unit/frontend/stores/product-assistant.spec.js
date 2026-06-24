@@ -13,7 +13,7 @@ vi.mock('@/services/post-message.service.js', () => ({
     })
 }))
 
-vi.mock('@/services/service.orchestrator.js', () => ({
+vi.mock('@/services/app.orchestrator.js', () => ({
     default: () => ({
         $serviceInstances: {
             postMessage: {

@@ -115,6 +115,31 @@ module.exports = function (app) {
                 return false
             }
         },
+        checkUserIsTeamMember: async function (requestParts, usernameParts) {
+            // requestParts = [ fullTopic , <teamHash> [, <userHash>] ]
+            // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
+            const topicTeamHash = requestParts[1]
+            const usernameUserHash = usernameParts[1]
+            const usernameTeamHash = usernameParts[2]
+            if (topicTeamHash !== usernameTeamHash) {
+                return false
+            }
+            // membership topic: user capture must match the credential's user
+            if (requestParts[2] !== undefined && requestParts[2] !== usernameUserHash) {
+                return false
+            }
+            try {
+                const team = await app.db.models.Team.byId(usernameTeamHash)
+                if (!team) return false
+                const user = await app.db.models.User.byId(usernameUserHash)
+                if (!user) return false
+                const membership = await app.db.models.TeamMember.getTeamMembership(user.id, team.id, false)
+                return !!membership
+            } catch (error) {
+                app.log.error('Unexpected error during team-channel ACL check', { requestParts, usernameParts, error })
+                return false
+            }
+        },
         checkExpertPlatformTopic: async function (topicParts, usernameParts, acl) {
             // topicParts = [ fullTopic , <userid>, <sessionid>, <command> ]
             // usernameParts = [ 'forge_platform' | 'expert-agent', <userid> [, <sessionid>] ]
@@ -380,6 +405,11 @@ module.exports = function (app) {
                 // Send commands to all application-assigned devices
                 // - ff/v1/+/a/+/command
                 { topic: /^ff\/v1\/[^/]+\/a\/[^/]+\/command$/ },
+                // Team channel broadcasts to subscribed team members
+                // - ff/v1/<team>/t/updated
+                { topic: /^ff\/v1\/[^/]+\/t\/updated$/ },
+                // - ff/v1/<team>/u/<user>/membership
+                { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/membership$/ },
                 // ff/v1/platform/sync
                 { topic: /^ff\/v1\/platform\/sync$/ },
                 // ff/v1/platform/leader
@@ -439,6 +469,16 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources\/heartbeat$/, verify: 'checkDeviceIsAssigned' }
             ]
         },
+        // browser-side team channel (per-tab, per-team)
+        teamFrontend: {
+            sub: [
+                // - ff/v1/<team>/t/updated
+                { topic: /^ff\/v1\/([^/]+)\/t\/updated$/, verify: 'checkUserIsTeamMember' },
+                // - ff/v1/<team>/u/<user>/membership
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkUserIsTeamMember' }
+            ],
+            pub: []
+        },
         // frontend client (user)
         expertClient: {
             sub: [
@@ -480,6 +520,7 @@ module.exports = function (app) {
             // - project:<teamid>:<projectid>
             // - device:<teamid>:<deviceid>
             // - frontend:<teamid>:<deviceid>
+            // - fe-team:<userid>:<teamid>:<sessionid>
             // - expert-client:<userid>:<sessionid>
             // - expert-agent:<userid>:<apiversion>
 
@@ -495,6 +536,8 @@ module.exports = function (app) {
                 aclList = ACLS.project[aclType]
             } else if (/^device:/.test(username)) {
                 aclList = ACLS.device[aclType]
+            } else if (/^fe-team:/.test(username)) {
+                aclList = ACLS.teamFrontend[aclType]
             } else if (/^frontend:/.test(username)) {
                 aclList = ACLS.frontend[aclType]
             } else if (/^expert-agent:/.test(username)) {

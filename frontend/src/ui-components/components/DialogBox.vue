@@ -8,7 +8,7 @@
             v-bind="$attrs"
         >
             <div class="ff-dialog-box" :class="boxClass">
-                <div class="ff-dialog-header" :class="{ 'ff-dialog-header--light': headerVariant === 'light' }" data-sentry-unmask>
+                <div class="ff-dialog-header" :class="{ 'ff-dialog-header--light': headerVariant === 'light' }">
                     <slot name="header">
                         {{ header }}
                         <span v-if="subHeader" class="ff-dialog-subheader">{{ subHeader }}</span>

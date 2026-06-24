@@ -78,7 +78,7 @@ export default {
                 this.hasMore = true
             }
             return teamAPI.getInstances(this.team.id, {
-                limit,
+                pagination: { limit },
                 includeMeta: true,
                 orderByMostRecentFlows: true
             })

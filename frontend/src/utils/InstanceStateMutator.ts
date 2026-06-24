@@ -1,13 +1,22 @@
+import type { Instance } from '@/types'
+import { Maybe } from '@/types/common/types'
+
+type MutableInstance = Instance & {
+    meta?: { state?: string } & Record<string, unknown>
+    optimisticStateChange?: boolean
+    pendingStateChange?: boolean
+}
+
 export class InstanceStateMutator {
-    constructor (instance) {
+    instance: MutableInstance
+    prevState?: string
+
+    constructor (instance: MutableInstance) {
         this.instance = instance
     }
 
-    /**
-     * assume server has processed state change
-     * @param {*} newstate
-     */
-    setStateOptimistically (newState) {
+    // assume the server has processed the state change
+    setStateOptimistically (newState?: string) {
         this.instance.optimisticStateChange = true
         this.instance.pendingStateChange = false
 
@@ -17,11 +26,8 @@ export class InstanceStateMutator {
         }
     }
 
-    /**
-     * Load latest state from server
-     * @param {*} newState
-    */
-    setStateAsPendingFromServer (newState = null) {
+    // load latest state from the server
+    setStateAsPendingFromServer (newState: Maybe<string> = null) {
         this.instance.optimisticStateChange = false
         this.instance.pendingStateChange = true
 
@@ -31,18 +37,13 @@ export class InstanceStateMutator {
         }
     }
 
-    /**
-     * Return instance to original state
-     * @param {*} prevState
-     */
+    // return the instance to its original state
     restoreState () {
         this.clearState()
         this.instance.meta.state = this.prevState
     }
 
-    /**
-     * Clear all state flags
-     */
+    // clear all state flags
     clearState () {
         this.instance.optimisticStateChange = false
         this.instance.pendingStateChange = false
