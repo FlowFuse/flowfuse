@@ -1,7 +1,7 @@
 /**
  * Stores MCP endpoints for a Team
  */
-const { DataTypes, literal } = require('sequelize')
+const { DataTypes, literal, Op } = require('sequelize')
 
 module.exports = {
     name: 'MCPRegistration',
@@ -48,11 +48,21 @@ module.exports = {
             static: {
                 byTeam: async (teamIdOrHash, {
                     includeTeam = false,
-                    includeInstance = false
+                    includeInstance = false,
+                    filterId = null
                 } = {}) => {
                     let teamId = teamIdOrHash
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
+                    }
+                    const where = { TeamId: teamId }
+                    if (filterId) {
+                        // accept an array of registration ids (numeric or hashid) to filter by
+                        const idList = (Array.isArray(filterId) ? filterId : [filterId])
+                            .map(id => typeof id === 'string' ? M.MCPRegistration.decodeHashid(id) : id)
+                            .flat()
+                            .filter(id => !!id)
+                        where.id = { [Op.in]: idList }
                     }
                     const include = []
                     if (includeTeam) {
@@ -61,13 +71,13 @@ module.exports = {
                     if (includeInstance) {
                         include.push({
                             model: M.Project,
-                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url', 'ApplicationId', 'state'],
+                            attributes: ['hashid', 'id', 'name', 'slug', 'links', 'url', 'ApplicationId', 'state', 'versions'],
                             required: false,
                             on: instanceOwnershipJoin
                         })
                         include.push({
                             model: M.Device,
-                            attributes: ['hashid', 'id', 'name', 'type', 'ApplicationId', 'state'],
+                            attributes: ['hashid', 'id', 'name', 'type', 'ApplicationId', 'state', 'agentVersion'],
                             required: false,
                             on: deviceOwnershipJoin,
                             include: {
@@ -77,7 +87,7 @@ module.exports = {
                         })
                     }
                     return this.findAll({
-                        where: { TeamId: teamId },
+                        where,
                         include
                     })
                 },
