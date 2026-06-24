@@ -172,7 +172,6 @@ export default {
             if (!this.device.agentVersion) {
                 return false
             }
-            // return true
             return semver.gte(this.device.agentVersion, '4.0.0')
         },
         unsavedChanges () {
