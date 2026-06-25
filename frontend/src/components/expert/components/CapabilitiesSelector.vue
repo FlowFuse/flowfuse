@@ -7,7 +7,7 @@
             return-model
             multiple
             label-key="name"
-            :value-key="['instance', 'mcpServerUrl']"
+            :value-key="['mcpServer']"
             placeholder="Resources"
             open-above
             :options-min-width="280"
@@ -17,11 +17,11 @@
                 <ListboxOption
                     v-for="option in options"
                     v-slot="{ active, selected }"
-                    :key="option.mcpServerName"
+                    :key="option.mcpServer"
                     as="template"
                     :value="option"
                     class="ff-option ff-team-selection-option"
-                    :data-option="option.mcpServerName"
+                    :data-option="option.mcpServer"
                     :title="getResourceTooltip(option)"
                 >
                     <li style="min-width: 300px;">

@@ -140,6 +140,81 @@ module.exports = function (app) {
                 return false
             }
         },
+        checkExpertPlatformTopic: async function (topicParts, usernameParts, acl) {
+            // topicParts = [ fullTopic , <userid>, <sessionid>, <command> ]
+            // usernameParts = [ 'forge_platform' | 'expert-agent', <userid> [, <sessionid>] ]
+
+            const ValidationError = function (message) {
+                const error = new Error(message)
+                error.name = 'ACLValidationError'
+                return error
+            }
+
+            try {
+                const [, userId, sessionId, command] = topicParts
+                if (!userId || !sessionId || !command) {
+                    throw ValidationError('invalid topic format')
+                }
+
+                if (command === '+') {
+                    if (!acl.allowWildcard?.command) {
+                        throw ValidationError('invalid command wildcard')
+                    }
+                } else {
+                    // validate command format is [forge:<command>]|[insights:<command>]
+                    const commandParts = command.split(':', 2)
+                    if (commandParts.length !== 2) {
+                        throw ValidationError('invalid command format')
+                    }
+                    const [commandAgent, commandName] = commandParts
+                    switch (commandAgent) {
+                    // case 'forge':
+                    //     if (['mcp-get-features', 'mcp-call-tool'].indexOf(commandName) === -1) {
+                    //         throw ValidationError('invalid platform command for platform api')
+                    //     }
+                    //     break
+                    case 'insights':
+                        if (['mcp-call-tool', 'mcp-read-resource'].includes(commandName) === false) {
+                            throw ValidationError('invalid platform command for insights')
+                        }
+                        break
+                    default:
+                        throw ValidationError('invalid platform command')
+                    }
+                }
+
+                // at minimum, ensure session is present and either a wildcard or 8 or more chars
+                if (sessionId === '+') {
+                    if (!acl.allowWildcard?.session) {
+                        throw ValidationError('invalid session wildcard')
+                    }
+                } else if (sessionId.length < 8) {
+                    throw ValidationError('invalid session id')
+                }
+
+                if (userId === '+') {
+                    if (!acl.allowWildcard?.user) {
+                        throw ValidationError('invalid user wildcard')
+                    }
+                } else {
+                    const user = await app.db.models.User.byId(userId)
+                    if (!user || user.suspended) {
+                        throw ValidationError('invalid user')
+                    }
+                    // TODO: consider checking if the user has permission to operate on this channel here or in the command handler.
+                    // For now, we just check the user exists and is not suspended.
+                }
+
+                return true
+            } catch (err) {
+                if (err.name === 'ACLValidationError') {
+                    app.log.warn(`ACL validation error for expert platform topic: ${err.message}`)
+                } else {
+                    app.log.error(`Unexpected error during ACL validation for expert platform topic: ${err.message}`)
+                }
+            }
+            return false
+        },
         checkExpertTopic: async function (topicParts, usernameParts, acl) {
             // topicParts = [ fullTopic , <userid>, <sessionid>, <entityType>, <entityId> [, <inflightType>] ]
             // usernameParts = [ 'expert-client' | 'expert-agent', <userid> [, <sessionid>] ]
@@ -313,7 +388,9 @@ module.exports = function (app) {
                 // ff/v1/platform/sync
                 { topic: /^ff\/v1\/platform\/sync$/ },
                 // ff/v1/platform/leader
-                { topic: /^ff\/v1\/platform\/leader$/ }
+                { topic: /^ff\/v1\/platform\/leader$/ },
+                // platform can listen for Expert Agent requests
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' }
             ],
             pub: [
                 // Send commands to project launchers
@@ -336,7 +413,9 @@ module.exports = function (app) {
                 // ff/v1/platform/sync
                 { topic: /^ff\/v1\/platform\/sync$/ },
                 // ff/v1/platform/leader
-                { topic: /^ff\/v1\/platform\/leader$/ }
+                { topic: /^ff\/v1\/platform\/leader$/ },
+                // platform can respond to Expert Agent requests
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' }
             ]
         },
         project: {
@@ -420,12 +499,16 @@ module.exports = function (app) {
         // backend client (agent)
         expertAgent: {
             sub: [
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { user: true, session: true, entity: true }, isAgent: true, isSub: true },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { user: true, session: true, entity: true, inflightType: true }, isAgent: true, isSub: true }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { user: true, session: true, entity: true }, isAgent: true, isSub: true, agent: 'support' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { user: true, session: true, entity: true, inflightType: true }, isAgent: true, isSub: true, agent: 'support' },
+                // Expert agent can listen for platform responses
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isAgent: true, isSub: true, agent: 'platform' }
             ],
             pub: [
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', isAgent: true, isPub: true },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', isAgent: true, isPub: true, agent: 'support' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'support' },
+                // Expert agent can respond to platform requests
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' }
             ]
         }
     }
