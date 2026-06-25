@@ -838,24 +838,21 @@ module.exports = {
     /**
      * Updates the latest project state for the specified app and project based on the given state.
      *
-     * @param {String|Number} projectId - The project id related to the driver state update.
+     * @param {Object} project - The project the driver is reporting state for (callers already have it loaded).
      * @param {string} state - The new state to update, can be 'running', 'stopped', or other valid states.
      */
-    updateLatestProjectState: async function (app, projectId, state) {
+    updateLatestProjectState: async function (app, project, state) {
         if (['running'].includes(state)) {
-            await this.clearLatestProjectState(app, projectId)
+            await this.clearLatestProjectState(app, project.id)
         } else {
-            await this.setLatestProjectState(app, projectId, state)
+            await this.setLatestProjectState(app, project.id, state)
         }
-        const project = await app.db.models.Project.byId(projectId, { barebone: true })
-        if (project) {
-            const inflight = await this.getInflightState(app, project)
-            const isTransition = inflight === 'starting' || inflight === 'restarting'
-            if (isTransition && ['running', 'safe', 'crashed'].includes(state)) {
-                await this.clearInflightState(app, project)
-            } else if (app.comms) {
-                await this.publishLiveState(app, project)
-            }
+        const inflight = await this.getInflightState(app, project)
+        const isTransition = inflight === 'starting' || inflight === 'restarting'
+        if (isTransition && ['running', 'safe', 'crashed'].includes(state)) {
+            await this.clearInflightState(app, project)
+        } else if (app.comms) {
+            await this.publishLiveState(app, project)
         }
     }
 }

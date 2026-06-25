@@ -511,7 +511,7 @@ describe('Project controller', function () {
         })
 
         it('should update non-definitive project states while removing definitive ones', async () => {
-            // updateLatestProjectState loads the project (to broadcast), so use a real id like the launcher does
+            // updateLatestProjectState takes the project the caller already has (the route passes request.project)
             const team = await app.db.models.Team.create({ name: 'Latest State Team', TeamTypeId: 1 })
             const instance = await app.db.models.Project.create({ name: 'latest-state-p1', type: '', url: '', state: 'running', TeamId: team.id })
             const id = instance.id
@@ -521,15 +521,15 @@ describe('Project controller', function () {
             let tempResult = await app.db.controllers.Project.getLatestProjectState(id)
             should(tempResult).equal('status')
 
-            await app.db.controllers.Project.updateLatestProjectState(id, 'running')
+            await app.db.controllers.Project.updateLatestProjectState(instance, 'running')
             tempResult = await app.db.controllers.Project.getLatestProjectState(id)
             should(tempResult).be.undefined()
 
-            await app.db.controllers.Project.updateLatestProjectState(id, 'status')
+            await app.db.controllers.Project.updateLatestProjectState(instance, 'status')
             tempResult = await app.db.controllers.Project.getLatestProjectState(id)
             should(tempResult).equal('status')
 
-            await app.db.controllers.Project.updateLatestProjectState(id, 'stopped')
+            await app.db.controllers.Project.updateLatestProjectState(instance, 'stopped')
             tempResult = await app.db.controllers.Project.getLatestProjectState(id)
             should(tempResult).equal('stopped')
         })
@@ -541,12 +541,12 @@ describe('Project controller', function () {
             notifySpy.resetHistory() // ignore the create-time save
             try {
                 // running -> stopped is a change
-                await app.db.controllers.Project.updateLatestProjectState(instance.id, 'stopped')
+                await app.db.controllers.Project.updateLatestProjectState(instance, 'stopped')
                 notifySpy.calledOnce.should.be.true()
                 notifySpy.firstCall.args.should.eql([app.db.models.Team.encodeHashid(team.id), instance.id, 'stopped'])
 
                 // same state again -> no further notification
-                await app.db.controllers.Project.updateLatestProjectState(instance.id, 'stopped')
+                await app.db.controllers.Project.updateLatestProjectState(instance, 'stopped')
                 notifySpy.calledOnce.should.be.true()
             } finally {
                 notifySpy.restore()
@@ -606,7 +606,7 @@ describe('Project controller', function () {
                 it(`clears a ${inflight} mask when the launcher reports ${outcome}`, async function () {
                     const instance = await makeInstance(`${inflight}-${outcome}`)
                     await app.db.controllers.Project.setInflightState(instance, inflight)
-                    await app.db.controllers.Project.updateLatestProjectState(instance.id, outcome)
+                    await app.db.controllers.Project.updateLatestProjectState(instance, outcome)
                     should(await app.db.controllers.Project.getInflightState(instance)).be.undefined()
                 })
             }
@@ -614,7 +614,7 @@ describe('Project controller', function () {
             it(`keeps the ${inflight} mask on a transient stopped`, async function () {
                 const instance = await makeInstance(`${inflight}-stopped`)
                 await app.db.controllers.Project.setInflightState(instance, inflight)
-                await app.db.controllers.Project.updateLatestProjectState(instance.id, 'stopped')
+                await app.db.controllers.Project.updateLatestProjectState(instance, 'stopped')
                 should(await app.db.controllers.Project.getInflightState(instance)).equal(inflight)
             })
         }
@@ -622,7 +622,7 @@ describe('Project controller', function () {
         it('does not clear a non-transition inflight (e.g. suspending) on a running report', async function () {
             const instance = await makeInstance('suspending-running')
             await app.db.controllers.Project.setInflightState(instance, 'suspending')
-            await app.db.controllers.Project.updateLatestProjectState(instance.id, 'running')
+            await app.db.controllers.Project.updateLatestProjectState(instance, 'running')
             should(await app.db.controllers.Project.getInflightState(instance)).equal('suspending')
         })
     })

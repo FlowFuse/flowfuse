@@ -123,7 +123,7 @@ module.exports = {
                         list[project.id].state = 'running'
                         // mirror a real launcher reporting its settled state so inflight clears via the confirm path
                         try {
-                            await this._app.db.controllers.Project.updateLatestProjectState(project.id, 'running')
+                            await this._app.db.controllers.Project.updateLatestProjectState(project, 'running')
                         } catch (err) {}
                         resolve()
                     }, startTime)
@@ -228,7 +228,7 @@ module.exports = {
                 list[project.id].state = 'running'
             }
             try {
-                await this._app.db.controllers.Project.updateLatestProjectState(project.id, 'running')
+                await this._app.db.controllers.Project.updateLatestProjectState(project, 'running')
             } catch (err) {}
         }, module.exports.START_DELAY)
     },
