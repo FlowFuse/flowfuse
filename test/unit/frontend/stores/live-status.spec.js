@@ -16,11 +16,10 @@ describe('live-status store', () => {
     })
 
     describe('setInstanceStatus / setDeviceStatus', () => {
-        it('records instance status and exposes it via map and getter', () => {
+        it('records instance status in the map', () => {
             const store = useLiveStatusStore()
             store.setInstanceStatus('inst-1', 'running')
             expect(store.instanceStatuses['inst-1']).toBe('running')
-            expect(store.getInstanceStatus('inst-1')).toBe('running')
         })
 
         it('records device status independently of instance status', () => {
@@ -28,7 +27,6 @@ describe('live-status store', () => {
             store.setInstanceStatus('inst-1', 'running')
             store.setDeviceStatus('dev-1', 'stopped')
             expect(store.deviceStatuses['dev-1']).toBe('stopped')
-            expect(store.getDeviceStatus('dev-1')).toBe('stopped')
             // the two maps don't bleed into each other
             expect(store.instanceStatuses['dev-1']).toBeUndefined()
             expect(store.deviceStatuses['inst-1']).toBeUndefined()
@@ -41,10 +39,10 @@ describe('live-status store', () => {
             expect(store.instanceStatuses['inst-1']).toBe('suspended')
         })
 
-        it('returns undefined for an unknown id', () => {
+        it('leaves an unknown id undefined', () => {
             const store = useLiveStatusStore()
-            expect(store.getInstanceStatus('nope')).toBeUndefined()
-            expect(store.getDeviceStatus('nope')).toBeUndefined()
+            expect(store.instanceStatuses.nope).toBeUndefined()
+            expect(store.deviceStatuses.nope).toBeUndefined()
         })
     })
 
@@ -70,7 +68,6 @@ describe('live-status store', () => {
             expect(store.instanceStatuses).toEqual({})
             expect(store.deviceStatuses).toEqual({})
             expect(store.live).toBe(false)
-            expect(store.getInstanceStatus('inst-1')).toBeUndefined()
         })
     })
 })

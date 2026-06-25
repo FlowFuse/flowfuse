@@ -1,13 +1,10 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 export const useLiveStatusStore = defineStore('live-status', () => {
     const instanceStatuses = ref<Record<string, string>>({})
     const deviceStatuses = ref<Record<string, string>>({})
     const live = ref(false)
-
-    const getInstanceStatus = computed(() => (id: string) => instanceStatuses.value[id])
-    const getDeviceStatus = computed(() => (id: string) => deviceStatuses.value[id])
 
     function setInstanceStatus (id: string, state: string): void {
         instanceStatuses.value[id] = state
@@ -27,5 +24,5 @@ export const useLiveStatusStore = defineStore('live-status', () => {
         live.value = false
     }
 
-    return { instanceStatuses, deviceStatuses, live, getInstanceStatus, getDeviceStatus, setDeviceStatus, setInstanceStatus, setLive, clear }
+    return { instanceStatuses, deviceStatuses, live, setDeviceStatus, setInstanceStatus, setLive, clear }
 })
