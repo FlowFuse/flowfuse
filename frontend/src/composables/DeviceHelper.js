@@ -7,8 +7,9 @@ import deviceApi from '../api/devices.js'
 import Alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import { DeviceStateMutator } from '../utils/DeviceStateMutator.js'
-import { isTransitionState } from '../utils/stateTransitions.js'
 import { createPollTimer } from '../utils/timers.js'
+
+import { useInstanceStates } from './InstanceStates.js'
 
 import { useContextStore } from '@/stores/context.js'
 
@@ -17,6 +18,7 @@ const POLL_TIME = 5000
 
 export function useDeviceHelper () {
     const $router = useRouter()
+    const { isTransitionState } = useInstanceStates()
 
     let deviceStateMutator = null
     const device = ref(null)

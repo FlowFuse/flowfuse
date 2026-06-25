@@ -146,6 +146,7 @@ import SectionNavigationHeader from '../../components/SectionNavigationHeader.vu
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import { useInstanceStates } from '../../composables/InstanceStates.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 import deviceActionsMixin from '../../mixins/DeviceActions.js'
@@ -155,7 +156,6 @@ import Dialog from '../../services/dialog.js'
 
 import { DeviceStateMutator } from '../../utils/DeviceStateMutator.js'
 import { applyLiveState } from '../../utils/applyLiveState.js'
-import { isTransitionState } from '../../utils/stateTransitions.js'
 import { createPollTimer } from '../../utils/timers.js'
 
 import DeviceAssignApplicationDialog from '../team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
@@ -200,8 +200,9 @@ export default {
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
         const { navigateTo, openInANewTab } = useNavigationHelper()
+        const { isTransitionState } = useInstanceStates()
 
-        return { hasPermission, isVisitingAdmin, navigateTo, openInANewTab }
+        return { hasPermission, isVisitingAdmin, navigateTo, openInANewTab, isTransitionState }
     },
     data: function () {
         return {
@@ -400,7 +401,7 @@ export default {
                     await this.loadDevice()
                 } else if (typeof this.device?.status === 'undefined') {
                     await this.loadDevice()
-                } else if (isTransitionState(this.device?.status)) {
+                } else if (this.isTransitionState(this.device?.status)) {
                     await this.loadDevice()
                 }
             } catch (err) {

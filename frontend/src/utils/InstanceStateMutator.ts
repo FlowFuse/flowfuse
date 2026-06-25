@@ -1,4 +1,4 @@
-import { isTransitionState } from './stateTransitions.js'
+import { useInstanceStates } from '../composables/InstanceStates.js'
 
 import type { Instance } from '@/types'
 import { Maybe } from '@/types/common/types'
@@ -30,6 +30,7 @@ export class InstanceStateMutator {
 
     // load latest state from the server
     setStateAsPendingFromServer (newState: Maybe<string> = null) {
+        const { isTransitionState } = useInstanceStates()
         if (!newState && !isTransitionState(this.instance.meta?.state)) {
             return
         }

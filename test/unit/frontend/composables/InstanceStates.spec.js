@@ -1,10 +1,12 @@
 import { describe, expect, test } from 'vitest'
 
-import { TRANSITION_STATES, isTransitionState } from '../../../../frontend/src/utils/stateTransitions.ts'
+import { useInstanceStates } from '../../../../frontend/src/composables/InstanceStates.js'
 
-describe('isTransitionState', () => {
+describe('useInstanceStates().isTransitionState', () => {
+    const { isTransitionState, transitionStates } = useInstanceStates()
+
     test('true for every transition state', () => {
-        for (const state of TRANSITION_STATES) {
+        for (const state of transitionStates) {
             expect(isTransitionState(state)).toBe(true)
         }
     })
