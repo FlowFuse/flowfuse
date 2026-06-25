@@ -122,7 +122,7 @@
         "vue": "^3.4.5",
         "vue-echarts": "^7.0.3",
         "vue-router": "^4.2.5",
-        "vue-shepherd": "^3.0.0",
+        "vue-shepherd": "^6.0.0",
         "vue3-google-login": "^2.0.33",
         "yaml": "^2.3.1",
         "zxcvbn": "^4.4.2"
