@@ -154,6 +154,7 @@ import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 
 import { DeviceStateMutator } from '../../utils/DeviceStateMutator.js'
+import { applyLiveState } from '../../utils/applyLiveState.js'
 import { isTransitionState } from '../../utils/stateTransitions.js'
 import { createPollTimer } from '../../utils/timers.js'
 
@@ -386,7 +387,7 @@ export default {
         applyLiveStatus () {
             const state = this.liveDeviceStatuses[this.device?.id]
             if (!state || this.device?.status === state) return
-            this.device = { ...this.device, status: state, optimisticStateChange: false, pendingStateChange: false }
+            this.device = applyLiveState(this.device, state, { device: true, clearFlags: true })
         },
         pollTimerElapsed: async function () {
             // Only refresh device via the timer if we are on the overview page, developer mode page

@@ -6,6 +6,7 @@ import usePermissions from '../composables/Permissions.js'
 import alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import { InstanceStateMutator } from '../utils/InstanceStateMutator.js'
+import { applyLiveState } from '../utils/applyLiveState.js'
 
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
@@ -47,13 +48,7 @@ export default {
         applyLiveStatus () {
             const state = this.liveInstanceStatuses[this.instance?.id]
             if (!state || this.instance?.meta?.state === state) return
-            this.instance = {
-                ...this.instance,
-                status: state,
-                meta: { ...(this.instance.meta || {}), state },
-                optimisticStateChange: false,
-                pendingStateChange: false
-            }
+            this.instance = applyLiveState(this.instance, state, { clearFlags: true })
         },
         showConfirmDeleteDialog () {
             this.$refs.confirmInstanceDeleteDialog.show(this.instance)

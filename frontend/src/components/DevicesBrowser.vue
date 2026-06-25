@@ -377,6 +377,7 @@ import FfPopover from '../ui-components/components/Popover.vue'
 import PopoverItem from '../ui-components/components/PopoverItem.vue'
 import FfCheckbox from '../ui-components/components/form/Checkbox.vue'
 
+import { applyLiveState } from '../utils/applyLiveState.js'
 import { debounce } from '../utils/eventHandling.js'
 import { createPollTimer } from '../utils/timers.js'
 
@@ -636,11 +637,11 @@ export default {
                 if (!state) continue
                 const statusObj = this.allDeviceStatuses.get(id)
                 if (statusObj.status !== state) {
-                    this.allDeviceStatuses.set(id, { ...statusObj, status: state })
+                    this.allDeviceStatuses.set(id, applyLiveState(statusObj, state, { device: true }))
                 }
                 const device = this.devices.get(id)
                 if (device && device.status !== state) {
-                    this.devices.set(id, { ...device, status: state })
+                    this.devices.set(id, applyLiveState(device, state, { device: true }))
                 }
             }
         },

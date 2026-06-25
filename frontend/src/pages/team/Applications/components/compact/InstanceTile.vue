@@ -97,6 +97,7 @@ import instanceActionsMixin from '../../../../../mixins/InstanceActions.js'
 
 import FfKebabMenu from '../../../../../ui-components/components/kebab-menu/KebabMenu.vue'
 import { InstanceStateMutator } from '../../../../../utils/InstanceStateMutator.js'
+import { applyLiveState } from '../../../../../utils/applyLiveState.js'
 import DashboardLink from '../../../../instance/components/DashboardLink.vue'
 import InstanceEditorLink from '../../../../instance/components/EditorLink.vue'
 import InstanceMinimalStatusBadge from '../../../../instance/components/InstanceMinimalStatusBadge.vue'
@@ -175,13 +176,7 @@ export default {
         applyLiveStatus () {
             const state = this.liveInstanceStatuses[this.localInstance?.id]
             if (!state || this.localInstance?.meta?.state === state) return
-            this.localInstance = {
-                ...this.localInstance,
-                status: state,
-                meta: { ...(this.localInstance.meta || {}), state },
-                optimisticStateChange: false,
-                pendingStateChange: false
-            }
+            this.localInstance = applyLiveState(this.localInstance, state, { clearFlags: true })
         },
         navigateToInstance () {
             this.$router.push({ name: 'Instance', params: { id: this.localInstance.id } })

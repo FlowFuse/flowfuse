@@ -178,6 +178,7 @@ import usePermissions from '../../composables/Permissions.js'
 import instanceActionsMixin from '../../mixins/InstanceActions.js'
 import Alerts from '../../services/alerts.js'
 import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
+import { applyLiveState } from '../../utils/applyLiveState.js'
 import { debounce } from '../../utils/eventHandling.js'
 import ApplicationLink from '../application/components/cells/ApplicationLink.vue'
 import DeploymentName from '../application/components/cells/DeploymentName.vue'
@@ -356,13 +357,9 @@ export default {
                 const row = this.instancesMap.get(id)
                 if (row.status === state && row.meta?.state === state) continue
                 this.instancesMap.set(id, {
-                    ...row,
-                    status: state,
-                    meta: { ...(row.meta || {}), state },
+                    ...applyLiveState(row, state, { clearFlags: true }),
                     running: this.isRunningState(state),
-                    notSuspended: state !== 'suspended',
-                    pendingStateChange: false,
-                    optimisticStateChange: false
+                    notSuspended: state !== 'suspended'
                 })
             }
         },

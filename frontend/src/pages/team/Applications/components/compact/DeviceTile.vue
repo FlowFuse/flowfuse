@@ -58,6 +58,7 @@ import usePermissions from '../../../../../composables/Permissions.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
 import FfKebabMenu from '../../../../../ui-components/components/kebab-menu/KebabMenu.vue'
+import { applyLiveState } from '../../../../../utils/applyLiveState.js'
 import DaysSince from '../../../../application/Snapshots/components/cells/DaysSince.vue'
 import InstanceMinimalStatusBadge from '../../../../instance/components/InstanceMinimalStatusBadge.vue'
 
@@ -115,7 +116,7 @@ export default {
         applyLiveStatus () {
             const state = this.liveDeviceStatuses[this.localDevice?.id]
             if (!state || this.localDevice?.status === state) return
-            this.localDevice = { ...this.localDevice, status: state }
+            this.localDevice = applyLiveState(this.localDevice, state, { device: true })
         },
         shouldDisplayKebabMenu () {
             return this.hasPermission('device:edit') ||

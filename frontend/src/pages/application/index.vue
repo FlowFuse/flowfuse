@@ -40,6 +40,7 @@ import usePermissions from '../../composables/Permissions.js'
 
 import applicationMixin from '../../mixins/Application.js'
 import instanceActionsMixin from '../../mixins/InstanceActions.js'
+import { applyLiveState } from '../../utils/applyLiveState.js'
 
 import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
@@ -147,13 +148,7 @@ export default {
                 if (!state) continue
                 const row = this.applicationInstances.get(id)
                 if (row?.status === state && row?.meta?.state === state) continue
-                this.applicationInstances.set(id, {
-                    ...row,
-                    status: state,
-                    meta: { ...(row?.meta || {}), state },
-                    optimisticStateChange: false,
-                    pendingStateChange: false
-                })
+                this.applicationInstances.set(id, applyLiveState(row, state, { clearFlags: true }))
             }
         }
     }
