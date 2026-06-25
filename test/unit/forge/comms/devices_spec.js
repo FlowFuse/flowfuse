@@ -249,7 +249,7 @@ describe('DeviceCommsHandler', function () {
             }
         })
 
-        it('masks a transient stopped while restarting but surfaces settled states', async function () {
+        it('suppresses the transient stopped broadcast while restarting, but still records the state', async function () {
             const device = await app.factory.createDevice({ name: 'restart-mask-device' }, TestObjects.ATeam)
             const notifySpy = sinon.spy(app.comms.team, 'notifyDeviceState')
             const setRestarting = async () => { device.state = 'restarting'; await device.save() }
@@ -257,9 +257,11 @@ describe('DeviceCommsHandler', function () {
                 await setRestarting()
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'stopped' }) })
                 await sleep(100)
+                // no UI broadcast (avoids the restarting → stopped flash)...
                 notifySpy.called.should.be.false()
                 await device.reload()
-                device.state.should.equal('restarting')
+                // ...but the real state is still persisted, so a genuinely-stopped device self-corrects
+                device.state.should.equal('stopped')
 
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
                 await sleep(100)

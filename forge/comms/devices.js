@@ -123,9 +123,6 @@ class DeviceCommsHandler {
             try {
                 const previousState = device.state
                 const payload = JSON.parse(status.status)
-                if (previousState === 'restarting' && payload?.state === 'stopped') {
-                    payload.state = 'restarting'
-                }
                 await this.app.db.controllers.Device.updateState(device, payload)
 
                 if (payload === null) {
@@ -134,7 +131,8 @@ class DeviceCommsHandler {
                     return
                 }
 
-                if (payload.state !== previousState) {
+                const maskTransientStop = previousState === 'restarting' && payload.state === 'stopped'
+                if (!maskTransientStop && payload.state !== previousState) {
                     this.app.comms.team.notifyDeviceState(teamId, status.id, payload.state)
                 }
 
