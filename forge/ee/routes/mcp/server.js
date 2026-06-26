@@ -1,7 +1,7 @@
 const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js')
 const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js')
 
-const { loadToolDefinitions, registerTools } = require('./toolLoader')
+const { loadToolDefinitions, registerTools } = require('../../lib/mcp/toolLoader')
 
 // Load tool definitions once at startup
 const toolDefinitions = loadToolDefinitions()
