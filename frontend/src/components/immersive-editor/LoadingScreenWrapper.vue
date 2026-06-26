@@ -7,7 +7,7 @@
                     :animationData="animationData"
                     :loop="shouldLoop"
                 />
-                <label class="status-text">{{ state }} Instance...</label>
+                <label class="status-text">{{ statusText }}</label>
             </div>
             <InstanceStatusBadge
                 v-else
@@ -40,6 +40,11 @@ export default {
             required: false,
             type: Boolean,
             default: false
+        },
+        label: {
+            required: false,
+            type: String,
+            default: null
         }
     },
     data () {
@@ -56,6 +61,9 @@ export default {
         }
     },
     computed: {
+        statusText () {
+            return this.label ?? `${this.state} Instance...`
+        },
         computedState () {
             if (this.replacedAnimations[this.state]) {
                 return this.replacedAnimations[this.state]
