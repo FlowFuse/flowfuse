@@ -13,6 +13,9 @@ export interface PostMessageServiceI extends AppService {
         target?: Window
         targetOrigin?: string
     }): void
+    registerEditorTarget(args: { target: Window, targetOrigin: string }): void
+    unregisterEditorTarget(target: Window): void
+    broadcastTheme(): void
     getWindowOrigin(targetWindow: Window): string | null
     isWindowOriginAllowed(origin: string): boolean
 }
