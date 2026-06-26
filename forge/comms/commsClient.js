@@ -95,24 +95,7 @@ class CommsClient extends EventEmitter {
                         const data = payload.data || {}
                         const { kind, mcpServer, toolDefinition, resourceDefinition, resourceTemplateDefinition } = payload.meta || {}
                         const responseTopic = `ff/v1/expert/${userId}/${sessionId}/${channel}/${channelCommand}/response`
-
-                        /** Callback for failed MCP request. Publishes a structured error back to the agent. */
-                        const onError = (content, code, error) => {
-                            const data = {
-                                code: code || error?.code || 'MCP_ERROR',
-                                content: `Error: ${content}`,
-                                isError: true
-                            }
-                            if (error) {
-                                data.type = error?.name || error?.constructor?.name || 'Error'
-                                data.message = error?.message || error?.toString()
-                            }
-                            this.client.publish(responseTopic, JSON.stringify(data), mqttOptions)
-                        }
-                        /** Callback for successful MCP request. Publishes the result back to the agent. */
-                        const onSuccess = (result) => {
-                            this.client.publish(responseTopic, JSON.stringify(result), mqttOptions)
-                        }
+                        const { onSuccess, onError } = this.createMqttCallbacks(responseTopic, mqttOptions)
 
                         // check that the mcpServer contains the required fields to process the request
                         if (!mcpServer || !['instance', 'device'].includes(mcpServer.instanceType) || !mcpServer.instance || !mcpServer.mcpServer) {
@@ -154,24 +137,7 @@ class CommsClient extends EventEmitter {
                         const responseTopic = `ff/v1/expert/${userId}/${sessionId}/forge/${channelCommand}/response`
                         const command = supportedPlatformAutomationCommands[channelCommand]
                         const data = payload.data || {}
-
-                        /** Callback for a failed MCP request. Publishes a structured error back to the agent. */
-                        const onError = (content, code, error) => {
-                            const data = {
-                                code: code || error?.code || 'MCP_ERROR',
-                                content: `Error: ${content}`,
-                                isError: true
-                            }
-                            if (error) {
-                                data.type = error?.name || error?.constructor?.name || 'Error'
-                                data.message = error?.message || error?.toString()
-                            }
-                            this.client.publish(responseTopic, JSON.stringify(data), mqttOptions)
-                        }
-                        /** Callback for a successful MCP request. Publishes the result back to the agent. */
-                        const onSuccess = (result) => {
-                            this.client.publish(responseTopic, JSON.stringify(result), mqttOptions)
-                        }
+                        const { onSuccess, onError } = this.createMqttCallbacks(responseTopic, mqttOptions)
 
                         this.emit(
                             'request/platform-automation:forge', // event name
@@ -263,6 +229,29 @@ class CommsClient extends EventEmitter {
                 'ff/v1/expert/+/+/platform/+/request'
             ])
         }
+    }
+
+    /**
+     * Creates onSuccess/onError callbacks that publish results back to the agent
+     * over the given MQTT response topic.
+     */
+    createMqttCallbacks (responseTopic, mqttOptions) {
+        const onError = (content, code, error) => {
+            const data = {
+                code: code || error?.code || 'MCP_ERROR',
+                content: `Error: ${content}`,
+                isError: true
+            }
+            if (error) {
+                data.type = error?.name || error?.constructor?.name || 'Error'
+                data.message = error?.message || error?.toString()
+            }
+            this.client.publish(responseTopic, JSON.stringify(data), mqttOptions)
+        }
+        const onSuccess = (result) => {
+            this.client.publish(responseTopic, JSON.stringify(result), mqttOptions)
+        }
+        return { onSuccess, onError }
     }
 
     /**
