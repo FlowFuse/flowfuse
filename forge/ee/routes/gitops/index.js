@@ -50,8 +50,8 @@ module.exports = async function (app) {
                 token: body.token,
                 TeamId: request.team.id,
                 type: body.type || 'github',
-                username: body.username || '',
-                caCertificate: body.caCertificate || ''
+                username: body.username || null,
+                caCertificate: body.caCertificate || null
             })
             // TODO: audit log
             // await app.auditLog.Project.project.httpToken.created(request.session.User, null, request.project, body)

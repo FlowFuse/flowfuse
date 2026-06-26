@@ -722,14 +722,15 @@ export default {
     methods: {
         validateGitUrl () {
             const url = this.input.url
+            const type = this.selectedGitTokenType
             if (url === '') {
                 this.errors.url = ''
-            } else if (this.selectedGitTokenType === 'generic') {
-                this.errors.url = /^https:\/\//i.test(url) ? '' : 'Please enter a valid HTTPS repository URL'
-            } else if (!/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(url) && !/^https:\/\/dev\.azure\.com\/[^/]+\/_git\/[^/]+$/.test(url)) {
-                this.errors.url = 'Please enter a valid GitHub or Azure DevOps repository URL'
+            } else if (type === 'github' || type === 'azure') {
+                this.errors.url = (/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(url) || /^https:\/\/dev\.azure\.com\/[^/]+\/_git\/[^/]+$/.test(url))
+                    ? ''
+                    : 'Please enter a valid GitHub or Azure DevOps repository URL'
             } else {
-                this.errors.url = ''
+                this.errors.url = /^https:\/\//i.test(url) ? '' : 'Please enter a valid HTTPS repository URL'
             }
         },
         async submit () {
