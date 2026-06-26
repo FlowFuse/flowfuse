@@ -1,13 +1,13 @@
 // /**
-//  * This module provides the handler for automation events
+//  * This module provides the handler for platform automation events
 //  */
 
 /**
- * AutomationForgeHandler
- * @class AutomationForgeHandler
+ * AutomationPlatformHandler
+ * @class AutomationPlatformHandler
  * @memberof forge.comms
  */
-class AutomationForgeHandler {
+class AutomationPlatformHandler {
     /**
      * @param {import('../forge').ForgeApplication} app Fastify app
      * @param {import('./commsClient').CommsClient} client Comms Client
@@ -110,5 +110,5 @@ class AutomationForgeHandler {
 }
 
 module.exports = {
-    AutomationForgeHandler: (app, client) => new AutomationForgeHandler(app, client)
+    AutomationPlatformHandler: (app, client) => new AutomationPlatformHandler(app, client)
 }
