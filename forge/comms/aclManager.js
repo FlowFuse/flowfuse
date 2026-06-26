@@ -168,11 +168,11 @@ module.exports = function (app) {
                     }
                     const [commandAgent, commandName] = commandParts
                     switch (commandAgent) {
-                    // case 'forge':
-                    //     if (['mcp-get-features', 'mcp-call-tool'].indexOf(commandName) === -1) {
-                    //         throw ValidationError('invalid platform command for platform api')
-                    //     }
-                    //     break
+                    case 'automation':
+                        if (['mcp-get-features', 'mcp-call-tool'].indexOf(commandName) === -1) {
+                            throw ValidationError('invalid platform command for platform api')
+                        }
+                        break
                     case 'insights':
                         if (['mcp-call-tool', 'mcp-read-resource'].includes(commandName) === false) {
                             throw ValidationError('invalid platform command for insights')
