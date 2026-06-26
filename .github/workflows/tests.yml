@@ -292,15 +292,48 @@ jobs:
           SLACK_GITHUB_FIELD_ID: "Xf0A2BPU8U77"
           CHANNEL_ID: "C067BD0377F"
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          ACTOR: ${{ github.actor }}
           EVENT_NAME: ${{ github.event_name }}
         with:
           script: |
             const token = process.env.SLACK_BOT_TOKEN;
             const fieldId = process.env.SLACK_GITHUB_FIELD_ID;
 
-            // Push to main - notify the channel directly.
+            // Resolve a GitHub login -> Slack user ID by scanning workspace profiles and
+            // matching the custom profile field (GitHub). Returns undefined if not found.
+            async function resolveSlackId(login) {
+              const target = login.toLowerCase();
+              let cursor;
+              do {
+                const params = new URLSearchParams({ limit: '200' });
+                if (cursor) params.set('cursor', cursor);
+                const res = await fetch(`https://slack.com/api/users.list?${params}`, {
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!data.ok) { core.setFailed(`Slack users.list error: ${data.error}`); return; }
+                for (const member of data.members) {
+                  if (member.deleted || member.is_bot) continue;
+                  const profileRes = await fetch(`https://slack.com/api/users.profile.get?user=${member.id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                  });
+                  const profileData = await profileRes.json();
+                  if (!profileData.ok) continue;
+                  const ghField = profileData.profile?.fields?.[fieldId]?.value;
+                  if (!ghField) continue;
+                  if (ghField.toLowerCase() === target) return member.id;
+                }
+                cursor = data.response_metadata?.next_cursor;
+              } while (cursor);
+              return undefined;
+            }
+
+            // Push to main - notify the channel, mentioning the actor who pushed.
             if (process.env.EVENT_NAME !== 'pull_request') {
-              core.setOutput('recipients', JSON.stringify([{ slack_id: process.env.CHANNEL_ID, role: 'Channel' }]));
+              const actor = process.env.ACTOR;
+              const mention = actor ? await resolveSlackId(actor) : undefined;
+              if (!mention) core.warning(`No Slack user found with GitHub username: ${actor}`);
+              core.setOutput('recipients', JSON.stringify([{ slack_id: process.env.CHANNEL_ID, role: 'Channel', mention: mention || null }]));
               return;
             }
 
@@ -311,38 +344,13 @@ jobs:
               return;
             }
 
-            // Resolve the author's GitHub login - Slack user ID via workspace profile scan.
-            const target = author.toLowerCase();
-            let slackId;
-            let cursor;
-            outer: do {
-              const params = new URLSearchParams({ limit: '200' });
-              if (cursor) params.set('cursor', cursor);
-              const res = await fetch(`https://slack.com/api/users.list?${params}`, {
-                headers: { Authorization: `Bearer ${token}` }
-              });
-              const data = await res.json();
-              if (!data.ok) return core.setFailed(`Slack users.list error: ${data.error}`);
-              for (const member of data.members) {
-                if (member.deleted || member.is_bot) continue;
-                const profileRes = await fetch(`https://slack.com/api/users.profile.get?user=${member.id}`, {
-                  headers: { Authorization: `Bearer ${token}` }
-                });
-                const profileData = await profileRes.json();
-                if (!profileData.ok) continue;
-                const ghField = profileData.profile?.fields?.[fieldId]?.value;
-                if (!ghField) continue;
-                if (ghField.toLowerCase() === target) { slackId = member.id; break outer; }
-              }
-              cursor = data.response_metadata?.next_cursor;
-            } while (cursor);
-
+            const slackId = await resolveSlackId(author);
             if (!slackId) {
               core.warning(`No Slack user found with GitHub username: ${author}`);
               core.setOutput('recipients', '[]');
               return;
             }
-            core.setOutput('recipients', JSON.stringify([{ slack_id: slackId, github: target, role: 'Author' }]));
+            core.setOutput('recipients', JSON.stringify([{ slack_id: slackId, github: author.toLowerCase(), role: 'Author' }]));
 
       # Sends the failure notification to each recipient (DM to the PR author, or the channel
       # on main). chat.postMessage accepts a user ID or a channel ID as `channel`.
@@ -384,24 +392,26 @@ jobs:
               ? `*Branch:* ${refName}`
               : `*Pull request:* <${serverUrl}/${repository}/pull/${prNumber}|${prNumber}>`;
 
-            const blocks = [
-              { type: 'header', text: { type: 'plain_text', text: `:x: ${headerText}`, emoji: true } },
-              { type: 'divider' },
-              { type: 'rich_text', elements: [ { type: 'rich_text_section', elements: [
-                { type: 'emoji', name: summaryIcon },
-                { type: 'text', text: summaryText, style: { bold: true } }
-              ] } ] },
-              { type: 'divider' },
-              { type: 'section', fields: [
-                { type: 'mrkdwn', text: `*Author:* ${actor}` },
-                { type: 'mrkdwn', text: `<${serverUrl}/${repository}/actions/runs/${runId}|View failed workflow>` },
-                { type: 'mrkdwn', text: `*Last commit:* <${serverUrl}/${repository}/commit/${commitSha}|${commitSha}>` },
-                { type: 'mrkdwn', text: refLink }
-              ] }
-            ];
-
             let failures = 0;
             for (const r of recipients) {
+              // Channel posts mention the actor's Slack ID (a real ping) if resolved;
+              // otherwise (and for DMs) show the plain GitHub login.
+              const authorText = r.mention ? `<@${r.mention}>` : actor;
+              const blocks = [
+                { type: 'header', text: { type: 'plain_text', text: `:x: ${headerText}`, emoji: true } },
+                { type: 'divider' },
+                { type: 'rich_text', elements: [ { type: 'rich_text_section', elements: [
+                  { type: 'emoji', name: summaryIcon },
+                  { type: 'text', text: summaryText, style: { bold: true } }
+                ] } ] },
+                { type: 'divider' },
+                { type: 'section', fields: [
+                  { type: 'mrkdwn', text: `*Author:* ${authorText}` },
+                  { type: 'mrkdwn', text: `<${serverUrl}/${repository}/actions/runs/${runId}|View failed workflow>` },
+                  { type: 'mrkdwn', text: `*Last commit:* <${serverUrl}/${repository}/commit/${commitSha}|${commitSha}>` },
+                  { type: 'mrkdwn', text: refLink }
+                ] }
+              ];
               const res = await fetch('https://slack.com/api/chat.postMessage', {
                 method: 'POST',
                 headers: {
