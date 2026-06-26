@@ -144,7 +144,7 @@
                         Choose Git Token
                     </template>
                     <template #description>
-                        This token is used to authenticate with the GitHub or Azure DevOps API. To manage your tokens, go to <strong>Team Settings -> Integrations</strong>.
+                        This token is used to authenticate with your Git provider. To manage your tokens, go to <strong>Team Settings -> Integrations</strong>.
                     </template>
                 </FormRow>
                 <FormRow
@@ -158,7 +158,7 @@
                         Repository URL
                     </template>
                     <template #description>
-                        Only GitHub and Azure hosted repositories are currently supported.
+                        Supports GitHub, Azure DevOps, and any HTTPS Git server (GitLab, Bitbucket, self-hosted).
                     </template>
                 </FormRow>
                 <FormRow
