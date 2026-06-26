@@ -43,7 +43,7 @@ module.exports = fp(async function (app, _opts) {
 
         // Setup the platform API for the comms component
         app.decorate('comms', {
-            automationForge: automationForgeHandler,
+            automationPlatform: automationForgeHandler,
             // automationUi: instanceCommsHandler,
             devices: deviceCommsHandler,
             instances: instanceCommsHandler,
