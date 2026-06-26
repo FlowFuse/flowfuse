@@ -340,7 +340,52 @@ export const useProductExpertStore = defineStore('product-expert', {
                     }
                 })
                 break
+            case parsedTopic.inflightType === 'automation-ui:mcp-get-features': {
+                // handle UI MCP features request
+                try {
+                    const automationsService = servicesOrchestrator.$serviceInstances.automations
+                    const tools = automationsService.getToolDefinitions()
+
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                        qos: 2,
+                        topic: responseTopic,
+                        payload: JSON.stringify({ tools }),
+                        correlationData: transactionId,
+                        userProperties: {
+                            sessionId,
+                            transactionId: chatTransactionId,
+                            origin: window.origin || window.location.origin
+                        }
+                    })
+                } catch (e) {
+                    this._onMqttError(e)
+                }
+                break
+            }
+            case parsedTopic.inflightType === 'automation-ui:mcp-call-tool': {
+                // handle UI MCP tool invocation request
+                try {
+                    const automationsService = servicesOrchestrator.$serviceInstances.automations
+                    const result = await automationsService.dispatch(payload.toolName, payload.args)
+
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                        qos: 2,
+                        topic: responseTopic,
+                        payload: JSON.stringify(result),
+                        correlationData: transactionId,
+                        userProperties: {
+                            sessionId,
+                            transactionId: chatTransactionId,
+                            origin: window.origin || window.location.origin
+                        }
+                    })
+                } catch (e) {
+                    this._onMqttError(e)
+                }
+                break
+            }
             case parsedTopic.inflightType.startsWith('automation:'):
+                // passes automation requests to the Assistant
                 try {
                     const result = await assistantStore.invokeActionAwaitResponse({
                         action: `automation/${parsedTopic.inflightType.replace('automation:', '')}`,
