@@ -12,8 +12,4 @@ describe('Currency', () => {
     test('that a non-numerical value returns itself', () => {
         expect(Currency.methods.formatCurrency('not a number')).toBe('not a number')
     })
-    // TEMP: deliberate failure to validate CI Slack notification — revert before merge
-    test('intentionally failing test', () => {
-        expect(Currency.methods.formatCurrency(1000)).toBe('£0.00')
-    })
 })
