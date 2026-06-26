@@ -1,10 +1,10 @@
-const { exec } = require('node:child_process')
+const { execFile } = require('node:child_process')
 const { existsSync } = require('node:fs')
 const fs = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
 const { promisify } = require('node:util')
-const execPromised = promisify(exec)
+const execFilePromised = promisify(execFile)
 
 const { encryptValue, decryptValue } = require('../../../../db/utils')
 
@@ -49,10 +49,10 @@ module.exports.init = async function (app) {
             await cloneRepository(url, branch, workingDir, gitEnv)
 
             // 4. set username/email
-            await execPromised('git config user.email "no-reply@flowfuse.com"', { cwd: workingDir, env: gitEnv })
-            await execPromised('git config user.name "FlowFuse"', { cwd: workingDir, env: gitEnv })
+            await execFilePromised('git', ['config', 'user.email', 'no-reply@flowfuse.com'], { cwd: workingDir, env: gitEnv })
+            await execFilePromised('git', ['config', 'user.name', 'FlowFuse'], { cwd: workingDir, env: gitEnv })
             // For local dev - disable gpg signing in case its set in global config
-            await execPromised('git config commit.gpgsign false', { cwd: workingDir, env: gitEnv })
+            await execFilePromised('git', ['config', 'commit.gpgsign', 'false'], { cwd: workingDir, env: gitEnv })
 
             // 5. export snapshot
             const exportOptions = {
@@ -72,14 +72,15 @@ module.exports.init = async function (app) {
             await fs.writeFile(snapshotFile, JSON.stringify(snapshotExport, null, 4))
 
             // 6. stage file
-            await execPromised(`git add "${snapshotFile}"`, { cwd: workingDir, env: gitEnv })
+            await execFilePromised('git', ['add', snapshotFile], { cwd: workingDir, env: gitEnv })
 
             // 7. commit
-            await execPromised(`git commit -m "Update snapshot\n\nSnapshot updated by FlowFuse Pipeline '${options.pipeline.name.replace(/"/g, '')}', triggered by ${options.user.username.replace(/"/g, '')}"`, { cwd: workingDir, env: gitEnv })
+            const commitMessage = `Update snapshot\n\nSnapshot updated by FlowFuse Pipeline '${options.pipeline.name}', triggered by ${options.user.username}`
+            await execFilePromised('git', ['commit', '-m', commitMessage], { cwd: workingDir, env: gitEnv })
 
             try {
                 // 8. push
-                await execPromised('git push', { cwd: workingDir, env: gitEnv })
+                await execFilePromised('git', ['push'], { cwd: workingDir, env: gitEnv })
             } catch (err) {
                 const output = err.stdout + err.stderr
                 if (/unable to access/.test(output)) {

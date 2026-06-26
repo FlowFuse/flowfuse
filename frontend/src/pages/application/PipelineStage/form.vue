@@ -682,16 +682,11 @@ export default {
             // If not, reset to the stages original action (if available)
             this.input.action = this.stage?.action && this.actionOptions.some((option) => option.value === this.stage.action) ? this.stage.action : null
         },
-        'input.url' (newUrl, oldUrl) {
-            if (newUrl === '') {
-                this.errors.url = ''
-            } else if (this.selectedGitTokenType === 'generic') {
-                this.errors.url = /^https:\/\//i.test(newUrl) ? '' : 'Please enter a valid HTTPS repository URL'
-            } else if (!/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(newUrl) && !/^https:\/\/dev\.azure\.com\/[^/]+\/_git\/[^/]+$/.test(newUrl)) {
-                this.errors.url = 'Please enter a valid GitHub or Azure DevOps repository URL'
-            } else {
-                this.errors.url = ''
-            }
+        'input.url' () {
+            this.validateGitUrl()
+        },
+        'input.gitTokenId' () {
+            this.validateGitUrl()
         },
         'input.pushPath' (newPushPath, oldPushPath) {
             if (newPushPath === '' && this.isFirstStage) {
@@ -725,6 +720,18 @@ export default {
         this.original.deviceGroupId = this.input.deviceGroupId
     },
     methods: {
+        validateGitUrl () {
+            const url = this.input.url
+            if (url === '') {
+                this.errors.url = ''
+            } else if (this.selectedGitTokenType === 'generic') {
+                this.errors.url = /^https:\/\//i.test(url) ? '' : 'Please enter a valid HTTPS repository URL'
+            } else if (!/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(url) && !/^https:\/\/dev\.azure\.com\/[^/]+\/_git\/[^/]+$/.test(url)) {
+                this.errors.url = 'Please enter a valid GitHub or Azure DevOps repository URL'
+            } else {
+                this.errors.url = ''
+            }
+        },
         async submit () {
             this.loading.creating = !this.isEdit
             this.loading.updating = this.isEdit
