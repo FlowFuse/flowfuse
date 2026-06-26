@@ -21,7 +21,12 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
+
 import LoadingScreenWrapper from './LoadingScreenWrapper.vue'
+
+import { useThemeStore } from '@/stores/theme'
+import { isInstanceOnNR5Plus } from '@/utils/instanceVersion'
 
 export default {
     name: 'RemoteInstanceEditorWrapper',
@@ -44,6 +49,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useThemeStore, { themeMode: 'mode' }),
         isDeviceRunning () {
             return this.computedStatus === 'running'
         },
@@ -74,6 +80,11 @@ export default {
             }
         }
     },
+    watch: {
+        themeMode () {
+            this.$services.postMessage.broadcastTheme()
+        }
+    },
     mounted () {
         window.addEventListener('message', this.eventListener)
         // Dispatch a synthetic mousemove every 25 minutes to keep PostHog's idle
@@ -90,6 +101,7 @@ export default {
         // Remove from DOM before unmount so rrweb doesn't try to access the
         // cross-origin contentWindow during teardown.
         if (this.$refs.iframe) {
+            this.$services.postMessage.unregisterEditorTarget(this.$refs.iframe.contentWindow)
             this.$refs.iframe.parentNode?.removeChild(this.$refs.iframe)
         }
     },
@@ -101,6 +113,10 @@ export default {
             switch (event.data?.type) {
             case 'load':
                 this.emitMessage('prevent-redirect', true)
+                this.registerEditorForThemeSync()
+                break
+            case 'request-theme':
+                this.registerEditorForThemeSync()
                 break
             case 'navigate':
                 window.location.href = event.data.payload
@@ -112,6 +128,13 @@ export default {
                 break
             default:
             }
+        },
+        registerEditorForThemeSync () {
+            if (!isInstanceOnNR5Plus(this.device)) return
+            this.$services.postMessage.registerEditorTarget({
+                target: this.$refs.iframe.contentWindow,
+                targetOrigin: this.editorOrigin
+            })
         },
         emitMessage (type, payload = {}) {
             if (this.$refs.iframe?.contentWindow && this.editorOrigin) {

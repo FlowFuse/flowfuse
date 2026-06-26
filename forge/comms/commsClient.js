@@ -25,6 +25,7 @@ class CommsClient extends EventEmitter {
                 username: 'forge_platform',
                 password: await this.app.settings.get('commsToken'),
                 reconnectPeriod: 5000,
+                protocolVersion: 5,
                 will: {
                     topic: 'ff/v1/platform/leader',
                     payload: JSON.stringify({ id: this.platformId, vote: -1 })
