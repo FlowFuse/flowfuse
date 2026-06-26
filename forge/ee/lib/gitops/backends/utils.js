@@ -2,9 +2,9 @@ const { exec } = require('node:child_process')
 const { promisify } = require('node:util')
 const execPromised = promisify(exec)
 
-async function cloneRepository (url, branch, workingDir) {
+async function cloneRepository (url, branch, workingDir, env) {
     try {
-        await execPromised(`git clone -b ${branch} --depth 1 --single-branch ${url.toString()} .`, { cwd: workingDir })
+        await execPromised(`git clone -b ${branch} --depth 1 --single-branch ${url.toString()} .`, { cwd: workingDir, env })
     } catch (err) {
         const output = err.stdout + err.stderr
         // Token does not have access to clone the repo

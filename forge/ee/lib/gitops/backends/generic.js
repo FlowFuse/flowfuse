@@ -26,6 +26,7 @@ module.exports.init = async function (app) {
      */
     async function pushToRepository (repoOptions, snapshot, options) {
         let workingDir
+        let caFile
         try {
             const branch = repoOptions.branch || 'main'
             if (!/^https:\/\//i.test(repoOptions.url)) {
@@ -37,14 +38,21 @@ module.exports.init = async function (app) {
 
             workingDir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowfuse-git-repo-'))
 
+            let gitEnv = process.env
+            if (repoOptions.caCertificate) {
+                caFile = `${workingDir}-ca.pem`
+                await fs.writeFile(caFile, repoOptions.caCertificate)
+                gitEnv = { ...process.env, GIT_SSL_CAINFO: caFile }
+            }
+
             // 3. clone repo
-            await cloneRepository(url, branch, workingDir)
+            await cloneRepository(url, branch, workingDir, gitEnv)
 
             // 4. set username/email
-            await execPromised('git config user.email "no-reply@flowfuse.com"', { cwd: workingDir })
-            await execPromised('git config user.name "FlowFuse"', { cwd: workingDir })
+            await execPromised('git config user.email "no-reply@flowfuse.com"', { cwd: workingDir, env: gitEnv })
+            await execPromised('git config user.name "FlowFuse"', { cwd: workingDir, env: gitEnv })
             // For local dev - disable gpg signing in case its set in global config
-            await execPromised('git config commit.gpgsign false', { cwd: workingDir })
+            await execPromised('git config commit.gpgsign false', { cwd: workingDir, env: gitEnv })
 
             // 5. export snapshot
             const exportOptions = {
@@ -64,14 +72,14 @@ module.exports.init = async function (app) {
             await fs.writeFile(snapshotFile, JSON.stringify(snapshotExport, null, 4))
 
             // 6. stage file
-            await execPromised(`git add "${snapshotFile}"`, { cwd: workingDir })
+            await execPromised(`git add "${snapshotFile}"`, { cwd: workingDir, env: gitEnv })
 
             // 7. commit
-            await execPromised(`git commit -m "Update snapshot\n\nSnapshot updated by FlowFuse Pipeline '${options.pipeline.name.replace(/"/g, '')}', triggered by ${options.user.username.replace(/"/g, '')}"`, { cwd: workingDir })
+            await execPromised(`git commit -m "Update snapshot\n\nSnapshot updated by FlowFuse Pipeline '${options.pipeline.name.replace(/"/g, '')}', triggered by ${options.user.username.replace(/"/g, '')}"`, { cwd: workingDir, env: gitEnv })
 
             try {
                 // 8. push
-                await execPromised('git push', { cwd: workingDir })
+                await execPromised('git push', { cwd: workingDir, env: gitEnv })
             } catch (err) {
                 const output = err.stdout + err.stderr
                 if (/unable to access/.test(output)) {
@@ -96,6 +104,11 @@ module.exports.init = async function (app) {
                     await fs.rm(workingDir, { recursive: true, force: true })
                 } catch (err) {}
             }
+            if (caFile) {
+                try {
+                    await fs.rm(caFile, { force: true })
+                } catch (err) {}
+            }
         }
     }
 
@@ -109,6 +122,7 @@ module.exports.init = async function (app) {
      */
     async function pullFromRepository (repoOptions) {
         let workingDir
+        let caFile
         try {
             const branch = repoOptions.branch || 'main'
             if (!/^https:\/\//i.test(repoOptions.url)) {
@@ -120,8 +134,15 @@ module.exports.init = async function (app) {
 
             workingDir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowfuse-git-repo-'))
 
+            let gitEnv = process.env
+            if (repoOptions.caCertificate) {
+                caFile = `${workingDir}-ca.pem`
+                await fs.writeFile(caFile, repoOptions.caCertificate)
+                gitEnv = { ...process.env, GIT_SSL_CAINFO: caFile }
+            }
+
             // 3. clone repo
-            await cloneRepository(url, branch, workingDir)
+            await cloneRepository(url, branch, workingDir, gitEnv)
 
             const snapshotFile = path.join(workingDir, repoOptions.path || 'snapshot.json').replace(/"/g, '')
 
@@ -157,6 +178,11 @@ module.exports.init = async function (app) {
             if (workingDir) {
                 try {
                     await fs.rm(workingDir, { recursive: true, force: true })
+                } catch (err) {}
+            }
+            if (caFile) {
+                try {
+                    await fs.rm(caFile, { force: true })
                 } catch (err) {}
             }
         }

@@ -13,6 +13,11 @@
                 <FormRow v-model="input.name" data-form="token-name" :error="errors.name">Name</FormRow>
                 <FormRow v-model="input.token" data-form="token-value">Token</FormRow>
                 <FormRow v-if="input.type === 'generic'" v-model="input.username" data-form="username">Username</FormRow>
+                <FormRow v-if="input.type === 'generic'" data-form="ca-certificate">
+                    CA Certificate (optional)
+                    <template #description>Only needed for self-hosted servers that use a private certificate authority.</template>
+                    <template #input><textarea v-model="input.caCertificate" class="font-mono w-full" rows="6" placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----" /></template>
+                </FormRow>
             </form>
         </template>
     </ff-dialog>
@@ -55,6 +60,7 @@ export default {
                 this.input.token = ''
                 this.input.type = 'github'
                 this.input.username = ''
+                this.input.caCertificate = ''
                 this.$refs.dialog.show()
             }
         }
@@ -65,7 +71,8 @@ export default {
                 name: '',
                 token: '',
                 type: 'github',
-                username: ''
+                username: '',
+                caCertificate: ''
             },
             errors: {},
             providerTree: {
@@ -103,6 +110,7 @@ export default {
             this.input.name = ''
             this.input.token = ''
             this.input.username = ''
+            this.input.caCertificate = ''
             this.errors = {}
         }
     },
@@ -113,7 +121,8 @@ export default {
                 token: this.input.token,
                 team: this.team.id,
                 type: this.input.type,
-                username: this.input.username
+                username: this.input.username,
+                caCertificate: this.input.caCertificate
             }
             this.$emit('token-creating')
             teamApi.createGitToken(opts.team, opts).then((response) => {
