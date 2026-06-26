@@ -1,13 +1,21 @@
+import type { Device } from '@/types'
+import { Maybe } from '@/types/common/types'
+
+type MutableDevice = Device & {
+    optimisticStateChange?: boolean
+    pendingStateChange?: boolean
+}
+
 export class DeviceStateMutator {
-    constructor (device) {
+    device: MutableDevice
+    prevState?: string
+
+    constructor (device: MutableDevice) {
         this.device = device
     }
 
-    /**
-     * assume server has processed state change
-     * @param {*} newstate
-     */
-    setStateOptimistically (newState) {
+    // assume the server has processed the state change
+    setStateOptimistically (newState?: string) {
         this.device.optimisticStateChange = true
         this.device.pendingStateChange = false
 
@@ -17,11 +25,8 @@ export class DeviceStateMutator {
         }
     }
 
-    /**
-     * Load latest state from server
-     * @param {*} newState
-    */
-    setStateAsPendingFromServer (newState = null) {
+    // load latest state from the server
+    setStateAsPendingFromServer (newState: Maybe<string> = null) {
         this.device.optimisticStateChange = false
         this.device.pendingStateChange = true
 
@@ -31,18 +36,13 @@ export class DeviceStateMutator {
         }
     }
 
-    /**
-     * Return instance to original state
-     * @param {*} prevState
-     */
+    // return the device to its original state
     restoreState () {
         this.clearState()
         this.device.status = this.prevState
     }
 
-    /**
-     * Clear all state flags
-     */
+    // clear all state flags
     clearState () {
         this.device.optimisticStateChange = false
         this.device.pendingStateChange = false

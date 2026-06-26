@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken')
 const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 
@@ -766,7 +767,7 @@ describe('Device API', async function () {
                 result.should.have.property('modules').and.be.an.Object()
                 result.modules.should.have.property('node-red', '3.0.2')
             })
-            it('agent >= v1.11.2 is instructed to use Node-RED@latest', async function () {
+            it('agent >= v1.11.2 is instructed to use Node-RED@4.1.11 if NodeJS version unknown', async function () {
                 const agentVersion = '1.11.2' // min agent version required for NR 3.1 (as this agent handles ESM issue)
                 const device = await createDevice({ name: 'Ad1a', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
                 // assign the new device to application
@@ -791,6 +792,35 @@ describe('Device API', async function () {
                 result.should.have.property('name', 'Starter Snapshot')
                 result.should.have.property('modules').and.be.an.Object()
                 result.modules.should.have.property('node-red', '~4.1.11')
+            })
+            it('agent >= v1.11.2 is instructed to use Node-RED@latest if NodeJS >=22.9.0', async function () {
+                const agentVersion = '1.11.2' // min agent version required for NR 3.1 (as this agent handles ESM issue)
+                const device = await createDevice({ name: 'Ad1b', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice, agentVersion })
+                const dbDevice = await app.db.models.Device.byId(device.id)
+                dbDevice.nodejsVersion = 'v24.0.0'
+                await dbDevice.save()
+                // assign the new device to application
+                await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/devices/${device.id}`,
+                    body: {
+                        application: TestObjects.Application1.hashid
+                    },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                // get the snapshot for this device
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/devices/${device.id}/live/snapshot`,
+                    headers: {
+                        authorization: `Bearer ${device.credentials.token}`
+                    }
+                })
+                const result = response.json()
+                result.should.have.property('id')
+                result.should.have.property('name', 'Starter Snapshot')
+                result.should.have.property('modules').and.be.an.Object()
+                result.modules.should.have.property('node-red', 'latest')
             })
             it('snapshot uploaded without node-red dependency is always delivered to a device with the node-red:version', async function () {
                 const agentVersion = '1.11.2' // min agent version required for NR 3.1 (as this agent handles ESM issue)
@@ -1541,6 +1571,34 @@ describe('Device API', async function () {
 @flowfuse-nodes:registry=https://localhost:1234/
 //localhost:1234:_auth="${newToken}"
 `)
+            })
+            describe('Extra Cataglogues from Certified Nodes Token', function () {
+                before(async function () {
+                    const authToken = Buffer.from('platform:verySecret').toString('base64')
+                    const jwtCertifiedToken = jwt.sign({
+                        token: authToken,
+                        catalogues: ['https://example.com/cat1.json', 'https://example.com/cat2.json']
+                    }, '', { algorithm: 'none' })
+                    await app.settings.set('platform:ff-npm-registry:token', jwtCertifiedToken)
+                })
+                it('include extra catalogues from Certified Node Token', async function () {
+                    await setTeamFlags(true, true)
+                    const device = await createDevice({ name: 'CertifiedNodes', type: '', team: TestObjects.ATeam.hashid, as: TestObjects.tokens.alice })
+                    const newToken = Buffer.from(`platform/${TestObjects.ATeam.hashid}:verySecret`).toString('base64')
+                    const liveSettings = await getLiveSettings(device)
+                    liveSettings.palette.should.have.property('catalogues')
+                    liveSettings.palette.catalogues.should.containEql('https://localhost/cert-nodes-catalogue.json')
+                    liveSettings.palette.catalogues.should.containEql('https://localhost/ff-nodes-catalogue.json')
+                    liveSettings.palette.catalogues.should.containEql('https://example.com/cat1.json')
+                    liveSettings.palette.catalogues.should.containEql('https://example.com/cat2.json')
+                    liveSettings.palette.should.have.property('npmrc')
+                    liveSettings.palette.npmrc.should.equal(`@flowfuse-certified-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="${newToken}"
+
+@flowfuse-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="${newToken}"
+`)
+                })
             })
         })
 

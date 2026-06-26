@@ -1,4 +1,5 @@
-import { watch } from 'vue'
+import { type WatchStopHandle, watch } from 'vue'
+import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -7,12 +8,12 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
  * A 'beforeEnter' router function that ensures the user has a particular permission
  * or they are an admin
  */
-export default function (scope) {
-    return function (to, from, next) {
+export default function (scope: string) {
+    return function (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
         const authStore = useAccountAuthStore()
         const settingsStore = useAccountSettingsStore()
-        let settingsWatcher
-        let userWatcher
+        let settingsWatcher: WatchStopHandle | undefined
+        let userWatcher: WatchStopHandle | undefined
 
         function proceed () {
             if (settingsWatcher) {
@@ -42,7 +43,7 @@ export default function (scope) {
             if (!settingsStore.settings) {
                 settingsWatcher = watch(
                     () => settingsStore.settings,
-                    (_) => { proceed() }
+                    () => { proceed() }
                 )
             } else {
                 proceed()

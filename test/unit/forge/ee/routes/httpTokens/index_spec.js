@@ -23,6 +23,7 @@ describe('NR HTTP Bearer Tokens', function () {
         app.defaultTeamType.properties = defaultTeamTypeProperties
         await app.defaultTeamType.save()
 
+        TestObjects.alice = await app.db.models.User.byUsername('alice')
         TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
         await TestObjects.BTeam.addUser(TestObjects.alice, { through: { role: Roles.Owner } })
         await app.factory.createSubscription(TestObjects.BTeam)
@@ -33,7 +34,6 @@ describe('NR HTTP Bearer Tokens', function () {
             email: 'bob@example.com',
             password: 'bbPassword'
         })
-
         await TestObjects.BTeam.addUser(userBob, { through: { role: Roles.Member } })
 
         TestObjects.application = await app.db.models.Application.create({
@@ -56,6 +56,20 @@ describe('NR HTTP Bearer Tokens', function () {
             cookies: { sid: TestObjects.tokens.alice }
         })
         TestObjects.project = await app.db.models.Project.byId(JSON.parse(response.body).id)
+
+        // Create a new device
+        const deviceResponse = await app.inject({
+            method: 'POST',
+            url: '/api/v1/devices',
+            body: {
+                name: 'test-device-1',
+                type: 'test-type',
+                team: TestObjects.BTeam.hashid
+            },
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        TestObjects.device = await app.db.models.Device.byId(JSON.parse(deviceResponse.body).id)
+
         // Ensure the project is started
         await sleep(START_DELAY)
     })
@@ -77,7 +91,7 @@ describe('NR HTTP Bearer Tokens', function () {
         TestObjects.tokens[username] = response.cookies[0].value
     }
 
-    it('create HTTP token', async function () {
+    it('create HTTP token - instance', async function () {
         const response = await app.inject({
             method: 'POST',
             url: `/api/v1/projects/${TestObjects.project.id}/httpTokens`,
@@ -145,6 +159,74 @@ describe('NR HTTP Bearer Tokens', function () {
         authFailResponse.statusCode.should.equal(401)
     })
 
+    it('create HTTP token - device', async function () {
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/devices/${TestObjects.device.hashid}/httpTokens`,
+            payload: {
+                name: 'foo-device',
+                scope: ''
+            },
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        response.statusCode.should.equal(200)
+        const body = await response.json()
+
+        body.should.have.property('token')
+        body.should.have.property('id')
+        ;(typeof body.id).should.equal('string')
+        const token = body.token
+
+        const authResponse = await app.inject({
+            method: 'GET',
+            url: `/account/check/http:device/${TestObjects.device.hashid}`,
+            headers: {
+                authorization: `Bearer ${token}`
+            }
+        })
+        authResponse.statusCode.should.equal(200)
+
+        let authFailResponse = await app.inject({
+            method: 'GET',
+            url: `/account/check/http:device/${TestObjects.device.hashid}`,
+            headers: {
+                authorization: 'Bearer foo'
+            }
+        })
+        authFailResponse.statusCode.should.equal(401)
+
+        const dayAfterTomorrow = Date.now() + (48 * 60 * 60 * 10000)
+        const modifyResponse = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/devices/${TestObjects.device.hashid}/httpTokens/${body.id}`,
+            payload: {
+                scope: '',
+                expiresAt: dayAfterTomorrow
+            },
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        modifyResponse.statusCode.should.equal(200)
+        const modifiedToken = modifyResponse.json()
+        modifiedToken.should.not.have.property('token')
+        modifiedToken.should.have.property('expiresAt', new Date(dayAfterTomorrow).toISOString())
+
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/devices/${TestObjects.device.hashid}/httpTokens/${body.id}`,
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        deleteResponse.statusCode.should.equal(201)
+
+        authFailResponse = await app.inject({
+            method: 'GET',
+            url: `/account/check/http:device/${TestObjects.device.hashid}`,
+            headers: {
+                authorization: `Bearer ${token}`
+            }
+        })
+        authFailResponse.statusCode.should.equal(401)
+    })
+
     it('cannot create Expert MCP HTTP token via API', async function () {
         const response = await app.inject({
             method: 'POST',
@@ -195,7 +277,7 @@ describe('NR HTTP Bearer Tokens', function () {
         body.tokens[0].name.should.equal('other')
     })
 
-    it('non-team owner cannot modify/delete token', async function () {
+    it('non-team owner cannot modify/delete token - instance', async function () {
         await login('bob', 'bbPassword')
 
         const response = await app.inject({
@@ -221,7 +303,7 @@ describe('NR HTTP Bearer Tokens', function () {
         })
         modifyResponse1.statusCode.should.equal(403)
 
-        // Verify bob (team-member) cannot modify
+        // Verify bob (team-member) cannot delete
         const deleteResponse = await app.inject({
             method: 'DELETE',
             url: `/api/v1/projects/${TestObjects.project.id}/httpTokens/${token.id}`,
@@ -229,8 +311,42 @@ describe('NR HTTP Bearer Tokens', function () {
         })
         deleteResponse.statusCode.should.equal(403)
     })
+    it('non-team owner cannot modify/delete token - device', async function () {
+        await login('bob', 'bbPassword')
 
-    it('cannot modify/delete token across-teams', async function () {
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/devices/${TestObjects.device.hashid}/httpTokens`,
+            payload: {
+                name: 'foo-device',
+                scope: ''
+            },
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        response.statusCode.should.equal(200)
+        const token = await response.json()
+
+        // Verify bob (team-member) cannot modify
+        const modifyResponse1 = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/devices/${TestObjects.device.hashid}/httpTokens/${token.id}`,
+            payload: {
+                name: 'foo'
+            },
+            cookies: { sid: TestObjects.tokens.bob }
+        })
+        modifyResponse1.statusCode.should.equal(403)
+
+        // Verify bob (team-member) cannot delete
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/devices/${TestObjects.device.hashid}/httpTokens/${token.id}`,
+            cookies: { sid: TestObjects.tokens.bob }
+        })
+        deleteResponse.statusCode.should.equal(403)
+    })
+
+    it('cannot modify/delete token across-teams - instance', async function () {
         // Create a new instance
         const instanceResponse = await app.inject({
             method: 'POST',
@@ -274,6 +390,52 @@ describe('NR HTTP Bearer Tokens', function () {
         const deleteResponse = await app.inject({
             method: 'DELETE',
             url: `/api/v1/projects/${instance2.id}/httpTokens/${token.id}`,
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        deleteResponse.statusCode.should.equal(404)
+    })
+    it('cannot modify/delete token across-teams - device', async function () {
+        // Create a new instance
+        const deviceResponse = await app.inject({
+            method: 'POST',
+            url: '/api/v1/devices',
+            body: {
+                name: 'test-device-1',
+                type: 'test-type',
+                team: TestObjects.BTeam.hashid
+            },
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        const device2 = deviceResponse.json()
+
+        // Create token for instance 1
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/devices/${TestObjects.device.hashid}/httpTokens`,
+            payload: {
+                name: 'foo-device',
+                scope: ''
+            },
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        response.statusCode.should.equal(200)
+        const token = await response.json()
+
+        // Verify cannot modify when referenced under instance2
+        const modifyResponse1 = await app.inject({
+            method: 'PUT',
+            url: `/api/v1/devices/${device2.id}/httpTokens/${token.id}`,
+            payload: {
+                name: 'foo'
+            },
+            cookies: { sid: TestObjects.tokens.alice }
+        })
+        modifyResponse1.statusCode.should.equal(404)
+
+        // Verify cannot delete when referenced under instance2
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/devices/${device2.id}/httpTokens/${token.id}`,
             cookies: { sid: TestObjects.tokens.alice }
         })
         deleteResponse.statusCode.should.equal(404)

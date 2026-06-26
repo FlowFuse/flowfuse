@@ -9,7 +9,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const { VueLoaderPlugin } = require('vue-loader')
 const { DefinePlugin } = require('webpack')
 
-require('dotenv').config()
+require('dotenv').config({ quiet: true })
 
 function getPath (file) {
     return path.resolve(__dirname, '..', file)
@@ -191,6 +191,11 @@ module.exports = function (env, argv) {
         },
         resolve: {
             extensions: ['.ts', '.js', '.vue', '.json'],
+            // Resolve `.js` import specifiers to `.ts` files so converting a
+            // module to TypeScript doesn't require touching its importers.
+            extensionAlias: {
+                '.js': ['.ts', '.js']
+            },
             alias: {
                 // Use vue with the runtime compiler (needed for template strings)
                 // To-do: Remove use of template strings, https://github.com/FlowFuse/flowfuse/issues/3290

@@ -40,7 +40,38 @@ export function useMarkdownHelper () {
                     highlighted = hljs.highlightAuto(text).value
                 }
                 const langLabel = language ? `<span class="ff-code-block--lang">${language}</span>` : ''
-                return `<div class="ff-code-block"><div class="ff-code-block--header">${langLabel}<button class="ff-code-block--copy">${ICON_DUPLICATE}</button></div><pre><code class="hljs">${highlighted.replace(/\n/g, '&#10;')}</code></pre></div>`
+                return `<div class="ff-code-block"><div class="ff-code-block--header"><button class="ff-code-block--copy">${ICON_DUPLICATE}</button>${langLabel}</div><pre><code class="hljs">${highlighted.replace(/\n/g, '&#10;')}</code></pre></div>`
+            },
+            checkbox ({ checked }) {
+                return `<span class="ff-checkbox${checked ? ' ff-checkbox--checked' : ''}">${checked ? '&#x2611;' : '&#x2610;'}</span>`
+            },
+            list (token) {
+                const type = token.ordered ? 'ol' : 'ul'
+                const startAttr = (token.ordered && token.start !== 1) ? ` start="${token.start}"` : ''
+                const hasTask = token.items.some(i => i.task)
+                const cls = hasTask ? ' class="ff-task-list"' : ''
+                let body = ''
+                for (const item of token.items) {
+                    body += this.listitem(item)
+                }
+                return `<${type}${startAttr}${cls}>\n${body}</${type}>\n`
+            },
+            table (token) {
+                let headerCells = ''
+                for (const cell of token.header) {
+                    headerCells += this.tablecell(cell)
+                }
+                const headerRow = this.tablerow({ text: headerCells })
+                let body = ''
+                for (const row of token.rows) {
+                    let rowCells = ''
+                    for (const cell of row) {
+                        rowCells += this.tablecell(cell)
+                    }
+                    body += this.tablerow({ text: rowCells })
+                }
+                if (body) body = `<tbody>${body}</tbody>`
+                return `<div class="ff-table-block"><div class="ff-table-block--header"><button class="ff-table-block--copy">${ICON_DUPLICATE}</button></div><table><thead>${headerRow}</thead>${body}</table></div>`
             }
         }
     })

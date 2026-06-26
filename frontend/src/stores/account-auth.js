@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia'
+import { v4 as uuidv4 } from 'uuid'
 import { nextTick } from 'vue'
 
 import settingsApi from '../api/settings.js'
 import teamApi from '../api/team.js'
 import userApi from '../api/user.js'
 
+import getAppOrchestrator from '@/services/app.orchestrator'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
@@ -27,12 +29,18 @@ export const useAccountAuthStore = defineStore('account-auth', {
         user: null,
         loginInflight: false,
         loginError: null,
-        redirectUrlAfterLogin: null
+        redirectUrlAfterLogin: null,
+        sessionId: null
     }),
     getters: {
         isAdminUser: (state) => !!state.user?.admin
     },
     actions: {
+        // In-memory, per page-load — duplicate tabs each mint their own
+        getSessionId () {
+            if (!this.sessionId) this.sessionId = uuidv4()
+            return this.sessionId
+        },
         login (user) {
             this.user = user
             this.loginInflight = false
@@ -193,7 +201,10 @@ export const useAccountAuthStore = defineStore('account-auth', {
             if (useAccountSettingsStore().settings['platform:sso:only']) {
                 logoutURL = useAccountSettingsStore().settings['platform:sso:only:logoutURL'] || '/'
             }
-            return userApi.logout()
+            const teamChannel = getAppOrchestrator().$subscriberInstances.teamChannel
+            const disconnect = teamChannel ? teamChannel.disconnect().catch(() => {}) : Promise.resolve()
+            return disconnect
+                .then(() => userApi.logout())
                 .then(() => {
                     useAccountAuthStore().$reset()
                     useAccountStore().$reset()
