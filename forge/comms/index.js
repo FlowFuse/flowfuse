@@ -1,10 +1,10 @@
 const fp = require('fastify-plugin')
 
 const ACLManager = require('./aclManager')
-const { AutomationPlatformHandler } = require('./automationPlatform.js')
 const { CommsClient } = require('./commsClient')
 const { DeviceCommsHandler } = require('./devices')
 const { InstanceCommsHandler } = require('./instances')
+const { PlatformAutomationHandler } = require('./platformAutomation.js')
 
 /**
  * This module represents the real-time comms component of the platform.
@@ -33,7 +33,7 @@ module.exports = fp(async function (app, _opts) {
         // Create the handler for any device-related messages
         const deviceCommsHandler = DeviceCommsHandler(app, client)
         const instanceCommsHandler = InstanceCommsHandler(app, client)
-        const automationPlatformHandler = AutomationPlatformHandler(app, client)
+        const platformAutomationHandler = PlatformAutomationHandler(app, client)
 
         // Not in the current release, but when we handle Launcher status
         // via MQTT, it will arrive here. Compare to the status/device handler in `devices.js`
@@ -43,10 +43,10 @@ module.exports = fp(async function (app, _opts) {
 
         // Setup the platform API for the comms component
         app.decorate('comms', {
-            automationPlatform: automationPlatformHandler,
             devices: deviceCommsHandler,
             instances: instanceCommsHandler,
             aclManager: ACLManager(app),
+            platformAutomation: platformAutomationHandler,
             platform: {
                 settings: {
                     sync: function (key) {

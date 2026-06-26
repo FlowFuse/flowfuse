@@ -3,11 +3,11 @@
 //  */
 
 /**
- * AutomationPlatformHandler
- * @class AutomationPlatformHandler
+ * PlatformAutomationHandler
+ * @class PlatformAutomationHandler
  * @memberof forge.comms
  */
-class AutomationPlatformHandler {
+class PlatformAutomationHandler {
     /**
      * @param {import('../forge').ForgeApplication} app Fastify app
      * @param {import('./commsClient').CommsClient} client Comms Client
@@ -110,5 +110,5 @@ class AutomationPlatformHandler {
 }
 
 module.exports = {
-    AutomationPlatformHandler: (app, client) => new AutomationPlatformHandler(app, client)
+    PlatformAutomationHandler: (app, client) => new PlatformAutomationHandler(app, client)
 }
