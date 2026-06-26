@@ -279,93 +279,146 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Map users  
-      id: map-actor-to-slack
-      uses: icalia-actions/map-github-actor@e568d1dd6023e406a1db36db4e1e0b92d9dd7824 # v0.0.2
-      with:
-        actor-map: ${{ vars.SLACK_GITHUB_USERS_MAP }}
-        default-mapping: C067BD0377F
+      # On pull_request failure: resolve the PR author's Slack ID by scanning Slack
+      # profiles and matching the custom profile field (GitHub). Bot authors are skipped
+      # silently; an unresolved author logs a warning and no notification is sent.
+      # On push to main: target the gh-pipelines channel directly.
+      # Outputs `recipients` as JSON: [{ slack_id, github?, role }].
+      - name: Resolve Slack recipients
+        id: resolve
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
+          SLACK_GITHUB_FIELD_ID: "Xf0A2BPU8U77"
+          CHANNEL_ID: "C067BD0377F"
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          EVENT_NAME: ${{ github.event_name }}
+        with:
+          script: |
+            const token = process.env.SLACK_BOT_TOKEN;
+            const fieldId = process.env.SLACK_GITHUB_FIELD_ID;
 
-    - name: Generate payload variables
-      run: |
-        if [[ "${{ github.ref_name }}" == 'main' || "${{ github.ref_name }}" == 'maintenance' ]] ; then
-          echo "HEADER_MESSAGE=Tests failed against ${{ github.ref_name }} branch" >> $GITHUB_ENV
-          echo "SUMMARY_ICON=no_entry" >> $GITHUB_ENV
-          echo "SUMMARY_MESSAGE= Deployment to FFC environments will not happen until this issue is resolved." >> $GITHUB_ENV
-          echo "LAST_COMMIT_SHA=${{ github.sha}}" >> $GITHUB_ENV
-          echo "PR_LINK=*Branch:* ${{ github.ref_name }}" >> $GITHUB_ENV
-        else
-          echo "HEADER_MESSAGE=Tests failed against ${{ github.event.number }} pull request" >> $GITHUB_ENV
-          echo "SUMMARY_ICON=warning" >> $GITHUB_ENV
-          echo "SUMMARY_MESSAGE= Please resolve the problem before merging your changes into the main branch." >> $GITHUB_ENV
-          echo "LAST_COMMIT_SHA=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
-          echo "PR_LINK=*Pull request:* <https://github.com/FlowFuse/flowfuse/pull/${{ github.event.pull_request.number }}|${{ github.event.pull_request.number }}>" >> $GITHUB_ENV
-        fi
+            // Push to main - notify the channel directly.
+            if (process.env.EVENT_NAME !== 'pull_request') {
+              core.setOutput('recipients', JSON.stringify([{ slack_id: process.env.CHANNEL_ID, role: 'Channel' }]));
+              return;
+            }
 
-    - name: Send notification
-      uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
-      with:
-        method: chat.postMessage
-        token: ${{ secrets.SLACK_GHBOT_TOKEN }}
-        payload: |
-          {
-            "channel": "C067BD0377F",
-            "blocks": [
-              {
-                "type": "header",
-                "text": {
-                  "type": "plain_text",
-                  "text": ":x: ${{ env.HEADER_MESSAGE }}",
-                  "emoji": true
-                }
-              },
-              {
-                "type": "divider"
-              },
-              {
-                "type": "rich_text",
-                "elements": [
-                  {
-                    "type": "rich_text_section",
-                    "elements": [
-                      {
-                        "type": "emoji",
-                        "name": "${{ env.SUMMARY_ICON }}"
-                      },
-                      {
-                        "type": "text",
-                        "text": " ${{ env.SUMMARY_MESSAGE }}",
-                        "style": {
-                          "bold": true
-                        }
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "divider"
-              },
-              {
-                "type": "section",
-                "fields": [
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Author:* <@${{ steps.map-actor-to-slack.outputs.actor-mapping }}>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View failed workflow>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Last commit:* <${{ github.server_url }}/${{ github.repository }}/commit/${{ env.LAST_COMMIT_SHA }}|${{ env.LAST_COMMIT_SHA }}>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "${{ env.PR_LINK }}"
-                  }
-                ]
+            // Pull request - notify the author. Bot authors have no Slack profile: skip silently.
+            const author = process.env.PR_AUTHOR;
+            if (!author || author.endsWith('[bot]')) {
+              core.setOutput('recipients', '[]');
+              return;
+            }
+
+            // Resolve the author's GitHub login - Slack user ID via workspace profile scan.
+            const target = author.toLowerCase();
+            let slackId;
+            let cursor;
+            outer: do {
+              const params = new URLSearchParams({ limit: '200' });
+              if (cursor) params.set('cursor', cursor);
+              const res = await fetch(`https://slack.com/api/users.list?${params}`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              const data = await res.json();
+              if (!data.ok) return core.setFailed(`Slack users.list error: ${data.error}`);
+              for (const member of data.members) {
+                if (member.deleted || member.is_bot) continue;
+                const profileRes = await fetch(`https://slack.com/api/users.profile.get?user=${member.id}`, {
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                const profileData = await profileRes.json();
+                if (!profileData.ok) continue;
+                const ghField = profileData.profile?.fields?.[fieldId]?.value;
+                if (!ghField) continue;
+                if (ghField.toLowerCase() === target) { slackId = member.id; break outer; }
               }
-            ]
-          }
+              cursor = data.response_metadata?.next_cursor;
+            } while (cursor);
+
+            if (!slackId) {
+              core.warning(`No Slack user found with GitHub username: ${author}`);
+              core.setOutput('recipients', '[]');
+              return;
+            }
+            core.setOutput('recipients', JSON.stringify([{ slack_id: slackId, github: target, role: 'Author' }]));
+
+      # Sends the failure notification to each recipient (DM to the PR author, or the channel
+      # on main). chat.postMessage accepts a user ID or a channel ID as `channel`.
+      - name: Send Slack notification
+        if: steps.resolve.outputs.recipients != '' && steps.resolve.outputs.recipients != '[]'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_GHBOT_TOKEN }}
+          RECIPIENTS: ${{ steps.resolve.outputs.recipients }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          ACTOR: ${{ github.actor }}
+          SERVER_URL: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        with:
+          script: |
+            const token = process.env.SLACK_BOT_TOKEN;
+            const recipients = JSON.parse(process.env.RECIPIENTS);
+            const isBranch = process.env.EVENT_NAME !== 'pull_request';
+            const refName = process.env.REF_NAME;
+            const prNumber = process.env.PR_NUMBER;
+            const commitSha = process.env.COMMIT_SHA;
+            const actor = process.env.ACTOR;
+            const serverUrl = process.env.SERVER_URL;
+            const repository = process.env.REPOSITORY;
+            const runId = process.env.RUN_ID;
+
+            const headerText = isBranch
+              ? `Tests failed against ${refName} branch`
+              : `Tests failed against ${prNumber} pull request`;
+            const summaryIcon = isBranch ? 'no_entry' : 'warning';
+            const summaryText = isBranch
+              ? ' Deployment to FFC environments will not happen until this issue is resolved.'
+              : ' Please resolve the problem before merging your changes into the main branch.';
+            const refLink = isBranch
+              ? `*Branch:* ${refName}`
+              : `*Pull request:* <${serverUrl}/${repository}/pull/${prNumber}|${prNumber}>`;
+
+            const blocks = [
+              { type: 'header', text: { type: 'plain_text', text: `:x: ${headerText}`, emoji: true } },
+              { type: 'divider' },
+              { type: 'rich_text', elements: [ { type: 'rich_text_section', elements: [
+                { type: 'emoji', name: summaryIcon },
+                { type: 'text', text: summaryText, style: { bold: true } }
+              ] } ] },
+              { type: 'divider' },
+              { type: 'section', fields: [
+                { type: 'mrkdwn', text: `*Author:* ${actor}` },
+                { type: 'mrkdwn', text: `<${serverUrl}/${repository}/actions/runs/${runId}|View failed workflow>` },
+                { type: 'mrkdwn', text: `*Last commit:* <${serverUrl}/${repository}/commit/${commitSha}|${commitSha}>` },
+                { type: 'mrkdwn', text: refLink }
+              ] }
+            ];
+
+            let failures = 0;
+            for (const r of recipients) {
+              const res = await fetch('https://slack.com/api/chat.postMessage', {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json; charset=utf-8'
+                },
+                body: JSON.stringify({ channel: r.slack_id, blocks })
+              });
+              const data = await res.json();
+              if (!data.ok) {
+                core.warning(`Slack chat.postMessage failed for ${r.slack_id}: ${data.error}`);
+                failures++;
+              } else {
+                core.info(`Notified ${r.slack_id} (${r.role})`);
+              }
+            }
+
+            if (failures > 0 && failures === recipients.length) {
+              core.setFailed(`All ${failures} Slack notifications failed`);
+            }
