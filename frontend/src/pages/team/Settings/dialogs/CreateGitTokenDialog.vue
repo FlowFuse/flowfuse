@@ -71,7 +71,7 @@ export default {
             providerTree: {
                 id: 'root',
                 component: markRaw(OptionTileSelector),
-                props: { columns: 2 },
+                props: { columns: 3 },
                 children: [
                     {
                         id: 'github',
@@ -86,7 +86,7 @@ export default {
                     {
                         id: 'generic',
                         component: markRaw(GenericInstructions),
-                        props: { label: 'Other / Self-hosted', icon: markRaw(GitIcon) }
+                        props: { label: 'Other', icon: markRaw(GitIcon) }
                     }
                 ]
             }

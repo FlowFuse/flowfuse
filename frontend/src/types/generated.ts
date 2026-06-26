@@ -10939,10 +10939,10 @@ export interface components {
                 pullBranch: string;
                 pushPath: string;
                 pullPath: string;
-                lastPushAt: string;
-                lastPullAt: string;
-                status: string;
-                statusMessage: string;
+                lastPushAt: string | null;
+                lastPullAt: string | null;
+                status: string | null;
+                statusMessage: string | null;
                 credentialSecret: boolean;
             };
             /** @enum {string} */
