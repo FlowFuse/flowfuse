@@ -159,7 +159,7 @@ describe('MCP Platform Tools Server', function () {
                 toolsResponse.should.have.property('result')
                 toolsResponse.result.should.have.property('tools')
                 toolsResponse.result.tools.should.be.an.Array()
-                toolsResponse.result.tools.length.should.equal(22)
+                toolsResponse.result.tools.length.should.equal(23)
 
                 const listTeams = toolsResponse.result.tools.find(t => t.name === 'platform_list_teams')
                 listTeams.should.be.an.Object()

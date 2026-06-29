@@ -76,14 +76,14 @@ module.exports = [
     },
     {
         name: 'platform_create_hosted_instance',
-        description: 'FlowFuse platform automation tool: Create a new hosted Node-RED instance in an application. The hosted instance starts automatically after creation. Use platform_list_hosted_instance_types, platform_list_stacks, and platform_list_blueprints to discover valid values for the required parameters.',
+        description: 'FlowFuse platform automation tool: Create a new hosted Node-RED instance in an application. The hosted instance starts automatically after creation. Use platform_list_hosted_instance_types, platform_list_stacks, and platform_list_blueprints to discover valid values for the required parameters. For the template, call platform_list_templates: if only one template exists, use it automatically without asking the user. If multiple exist, ask the user which one to use.',
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             name: z.string().describe('Name for the new hosted instance'),
             applicationId: z.string().describe('The ID or hashid of the application'),
             projectType: z.string().describe('The ID of the hosted instance type (use platform_list_hosted_instance_types to find valid values)'),
             stack: z.string().describe('The ID of the stack (use platform_list_stacks to find valid values)'),
-            template: z.string().describe('The ID of the template'),
+            template: z.string().describe('The ID of the template. Call platform_list_templates to get available templates. If only one exists, use it automatically. If multiple exist, ask the user which one to use.'),
             flowBlueprintId: z.string().optional().describe('Optional blueprint ID to initialize the hosted instance with starter flows')
         },
         handler: async (args, { inject }) => {
