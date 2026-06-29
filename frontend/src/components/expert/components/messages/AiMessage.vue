@@ -1,18 +1,23 @@
 <template>
     <div class="flex flex-col gap-3">
         <tool-calls v-if="toolCalls" :message="toolCalls" />
-        <answer-wrapper
+        <error-boundary
             v-for="(fAnswer, key) in visibleItems"
             :key="slugify(`${fAnswer.kind}-${fAnswer.title}-${fAnswer.summary}-${fAnswer._uuid}`)"
-            :message-uuid="_uuid"
-            :answer="fAnswer"
-            @streaming-complete="setSubItemStreamedState(key)"
-        />
+            @failed="setSubItemStreamedState(key)"
+        >
+            <answer-wrapper
+                :message-uuid="_uuid"
+                :answer="fAnswer"
+                @streaming-complete="setSubItemStreamedState(key)"
+            />
+        </error-boundary>
     </div>
 </template>
 
 <script>
 import AnswerWrapper from './components/AnswerWrapper.vue'
+import ErrorBoundary from './components/ErrorBoundary.vue'
 
 import ToolCalls from './components/ToolCalls.vue'
 
@@ -21,7 +26,7 @@ import { slugify } from '@/composables/strings/String.js'
 
 export default {
     name: 'AiMessage',
-    components: { ToolCalls, AnswerWrapper },
+    components: { ToolCalls, AnswerWrapper, ErrorBoundary },
     props: {
         query: {
             type: String,
