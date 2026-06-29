@@ -2,6 +2,8 @@
 //  * This module provides the handler for platform automation events
 //  */
 
+const { default: z } = require('zod')
+
 /**
  * PlatformAutomationHandler
  * @class PlatformAutomationHandler
@@ -16,6 +18,7 @@ class PlatformAutomationHandler {
         this.app = app
         this.client = client
 
+        /** Tool definitions without the handler functions - for sending across the wire to the agent for tool discovery */
         this._wireToolDefinitions = null
         this._fullToolDefinitions = null
 
@@ -33,7 +36,7 @@ class PlatformAutomationHandler {
             this._wireToolDefinitions = this._fullToolDefinitions.map(({ name, description, inputSchema, annotations }) => ({
                 name,
                 description,
-                inputSchema,
+                inputSchema: inputSchema && z.toJSONSchema(z.object(inputSchema)),
                 annotations
             }))
         }
@@ -59,7 +62,7 @@ class PlatformAutomationHandler {
         this.client.on('request/platform-automation:forge', this.eventHandler)
     }
 
-    eventHandler = async ({ userId, command, data } = {}, onSuccess, onError) => {
+    eventHandler = async ({ userId, command, data, meta } = {}, onSuccess, onError) => {
         try {
             let result = {}
 
@@ -68,8 +71,11 @@ class PlatformAutomationHandler {
                 result = { tools: this.getToolDefinitions() }
                 break
             case 'mcp-call-tool': {
-                const toolName = data?.toolName
-                const args = data?.args || {}
+                const toolName = data?.name
+                const args = data?.input || {}
+
+                // TODO: Probably sensible to verify that toolDefinition matches the tool to ensure no tampering has occurred
+                const { toolDefinition } = meta || {}
 
                 const tool = this.findTool(toolName)
                 if (!tool) {
@@ -79,7 +85,8 @@ class PlatformAutomationHandler {
                     )
                 }
 
-                const { token } = await this.app.expert.mcp.getOrCreatePlatformToken(userId)
+                const user = await this.app.db.models.User.byId(userId)
+                const { token } = await this.app.expert.mcp.getOrCreatePlatformToken(user)
                 const inject = (opts) => this.app.inject({
                     ...opts,
                     headers: {

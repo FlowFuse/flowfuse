@@ -57,13 +57,12 @@ function formatResponse (response) {
     const body = response.json()
     if (response.statusCode >= 400) {
         return {
-            content: [{ type: 'text', text: JSON.stringify(body) }],
+            content: body,
+            code: response.statusCode,
             isError: true
         }
     }
-    return {
-        content: [{ type: 'text', text: JSON.stringify(body, null, 2) }]
-    }
+    return body
 }
 
-module.exports = { loadToolDefinitions, registerTools }
+module.exports = { formatResponse, loadToolDefinitions, registerTools }

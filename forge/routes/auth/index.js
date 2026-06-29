@@ -111,7 +111,7 @@ async function init (app, opts) {
                         await accessToken.destroy()
                     }
                     if (accessToken.ownerType === 'user') {
-                        request.session.User = await app.db.models.User.findOne({ where: { id: parseInt(accessToken.ownerId) } })
+                        request.session.User = await app.db.models.User.findOne({ where: { id: +accessToken.ownerId } })
                         // Unlike a cookie based session, we'll allow user tokens to continue
                         // working if password has expired or email isn't verified
                         // TODO: validate this choice

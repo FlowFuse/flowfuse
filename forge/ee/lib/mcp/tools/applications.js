@@ -2,19 +2,21 @@ const { z } = require('zod')
 
 module.exports = [
     {
-        name: 'platform.list-applications',
-        description: 'List all applications in a team.',
+        name: 'platform_list_applications',
+        // TODO: Lets standardise ALL tool names and descriptions to stick with either "instances" and "devices" OR "hosted instances" and "remote instances".
+        // One thing to bear in mind we will be adding a 3rd type "device-lite" :D
+        description: 'FlowFuse platform automation tool. Lists all applications in a team but does not return hosted instances or remote device instances. Call platform_get_application to get details of a specific application. Call platform_get_device to get details of a specific remote instance or platform_get_instance to get details of a specific hosted instance',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             teamId: z.string().describe('The ID or hashid of the team')
         },
         handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/applications` })
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/applications?includeInstances=false&includeApplicationDevices=false` })
             return response
         }
     },
     {
-        name: 'platform.get-application',
+        name: 'platform_get_application',
         description: 'Get details of a specific application, including its instances and devices.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {

@@ -14,7 +14,7 @@ module.exports = [
         }
     },
     {
-        name: 'platform.get-instance',
+        name: 'platform_get_instance',
         description: 'Get details of a specific instance, including its current state, URL, and settings.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {

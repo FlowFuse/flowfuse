@@ -366,7 +366,8 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // handle UI MCP tool invocation request
                 try {
                     const automationsService = servicesOrchestrator.$serviceInstances.automations
-                    const result = await automationsService.dispatch(payload.toolName, payload.args)
+                    const { name, input } = payload?.data || {}
+                    const result = await automationsService.dispatch(name, input)
 
                     await mqttService.publishMessage(this.mqttConnectionKey, {
                         qos: 2,

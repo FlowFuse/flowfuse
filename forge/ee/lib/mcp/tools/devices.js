@@ -14,7 +14,7 @@ module.exports = [
         }
     },
     {
-        name: 'platform.get-device',
+        name: 'platform_get_device',
         description: 'Get details of a specific device, including its status, assigned application, and target snapshot.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {

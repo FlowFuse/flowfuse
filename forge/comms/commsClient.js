@@ -76,8 +76,8 @@ class CommsClient extends EventEmitter {
                         'insights:mcp-read-resource': 'mcp:read-resource'
                     }
                     const supportedPlatformAutomationCommands = {
-                        'automation-platform:mcp-get-features': 'mcp-get-features',
-                        'automation-platform:mcp-call-tool': 'mcp-call-tool'
+                        'automation:mcp-get-features': 'mcp-get-features',
+                        'automation:mcp-call-tool': 'mcp-call-tool'
                     }
 
                     if (supportedInsightsCommands[channelCommand] && direction === 'request') {
@@ -134,7 +134,7 @@ class CommsClient extends EventEmitter {
                         )
                     } else if (supportedPlatformAutomationCommands[channelCommand] && direction === 'request') {
                         // channel command is either 'mcp-get-features' or 'mcp-call-tool'
-                        const responseTopic = `ff/v1/expert/${userId}/${sessionId}/automation-platform/${channelCommand}/response`
+                        const responseTopic = `ff/v1/expert/${userId}/${sessionId}/platform/${channelCommand}/response`
                         const command = supportedPlatformAutomationCommands[channelCommand]
                         const data = payload.data || {}
                         const { onSuccess, onError } = this.createMqttCallbacks(responseTopic, mqttOptions)
@@ -144,7 +144,8 @@ class CommsClient extends EventEmitter {
                             {
                                 userId, // ID of user making the request
                                 command, // command,
-                                data // payload data
+                                data, // payload data
+                                meta: payload.meta
                             },
                             onSuccess, // success callback
                             onError // failure callback

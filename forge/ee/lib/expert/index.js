@@ -105,16 +105,17 @@ module.exports = fp(async function (app, _opts) {
         return readCachedMcpAccessToken(instanceId)
     }
 
-    async function getOrCreateMcpPlatformToken (userId) {
-        const cacheKey = `platform:${userId}`
+    async function getOrCreateMcpPlatformToken (user) {
+        const cacheKey = `platform:${user.hashid}`
         const cached = await readCachedMcpAccessToken(cacheKey)
         if (cached) {
             return cached
         }
 
         const expiresAt = new Date(Date.now() + TOKEN_TTL)
+        // TODO: change to a new method explicitly for Expert Automations
         const { token } = await app.db.controllers.AccessToken.createTokenForUser(
-            userId,
+            user,
             expiresAt,
             [EXPERT_MCP_PLATFORM_SCOPE]
         )
