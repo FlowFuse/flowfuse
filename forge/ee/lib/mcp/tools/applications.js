@@ -5,7 +5,7 @@ module.exports = [
         name: 'platform_list_applications',
         // TODO: Lets standardise ALL tool names and descriptions to stick with either "instances" and "devices" OR "hosted instances" and "remote instances".
         // One thing to bear in mind we will be adding a 3rd type "device-lite" :D
-        description: 'FlowFuse platform automation tool. Lists all applications in a team but does not return hosted instances or remote device instances. Call platform_get_application to get details of a specific application. Call platform_get_device to get details of a specific remote instance or platform_get_instance to get details of a specific hosted instance',
+        description: 'FlowFuse platform automation tool: Lists all applications in a team but does not return hosted instances or remote instances. Call platform_get_application to get details of a specific application. Call platform_get_remote_instance to get details of a specific remote instance or platform_get_hosted_instance to get details of a specific hosted instance.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             teamId: z.string().describe('The ID or hashid of the team')
@@ -17,7 +17,7 @@ module.exports = [
     },
     {
         name: 'platform_get_application',
-        description: 'Get details of a specific application, including its instances and devices.',
+        description: 'FlowFuse platform automation tool: Get details of a specific application, including its hosted instances and remote instances.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             applicationId: z.string().describe('The ID or hashid of the application')
@@ -29,7 +29,7 @@ module.exports = [
     },
     {
         name: 'platform_create_application',
-        description: 'Create a new application in a team.',
+        description: 'FlowFuse platform automation tool: Create a new application in a team.',
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             name: z.string().describe('Name for the new application'),
