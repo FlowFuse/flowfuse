@@ -161,13 +161,13 @@ describe('MCP Platform Tools Server', function () {
                 toolsResponse.result.tools.should.be.an.Array()
                 toolsResponse.result.tools.length.should.equal(22)
 
-                const listTeams = toolsResponse.result.tools.find(t => t.name === 'platform.list-teams')
+                const listTeams = toolsResponse.result.tools.find(t => t.name === 'platform_list_teams')
                 listTeams.should.be.an.Object()
                 listTeams.should.have.property('description')
                 listTeams.annotations.readOnlyHint.should.equal(true)
                 listTeams.annotations.destructiveHint.should.equal(false)
 
-                const getTeam = toolsResponse.result.tools.find(t => t.name === 'platform.get-team')
+                const getTeam = toolsResponse.result.tools.find(t => t.name === 'platform_get_team')
                 getTeam.should.be.an.Object()
                 getTeam.should.have.property('inputSchema')
             })
@@ -185,7 +185,7 @@ describe('MCP Platform Tools Server', function () {
                     },
                     payload: [
                         { jsonrpc: '2.0', method: 'notifications/initialized' },
-                        { jsonrpc: '2.0', method: 'tools/call', id: 2, params: { name: 'platform.list-teams', arguments: {} } }
+                        { jsonrpc: '2.0', method: 'tools/call', id: 2, params: { name: 'platform_list_teams', arguments: {} } }
                     ]
                 })
                 const parsed = parseSSEResponse(response)
@@ -214,7 +214,7 @@ describe('MCP Platform Tools Server', function () {
                     },
                     payload: [
                         { jsonrpc: '2.0', method: 'notifications/initialized' },
-                        { jsonrpc: '2.0', method: 'tools/call', id: 2, params: { name: 'platform.get-team', arguments: { teamId } } }
+                        { jsonrpc: '2.0', method: 'tools/call', id: 2, params: { name: 'platform_get_team', arguments: { teamId } } }
                     ]
                 })
                 const parsed = parseSSEResponse(response)
@@ -237,7 +237,7 @@ describe('MCP Platform Tools Server', function () {
                     },
                     payload: [
                         { jsonrpc: '2.0', method: 'notifications/initialized' },
-                        { jsonrpc: '2.0', method: 'tools/call', id: 2, params: { name: 'platform.get-team', arguments: { teamId: 'nonexistent' } } }
+                        { jsonrpc: '2.0', method: 'tools/call', id: 2, params: { name: 'platform_get_team', arguments: { teamId: 'nonexistent' } } }
                     ]
                 })
                 const parsed = parseSSEResponse(response)

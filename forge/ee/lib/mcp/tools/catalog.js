@@ -1,6 +1,6 @@
 module.exports = [
     {
-        name: 'platform.list-instance-types',
+        name: 'platform_list_instance_types',
         description: 'List all available instance types. Use this to find valid projectType values when creating an instance.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {},
@@ -10,7 +10,7 @@ module.exports = [
         }
     },
     {
-        name: 'platform.list-stacks',
+        name: 'platform_list_stacks',
         description: 'List all available stacks (Node-RED versions). Use this to find valid stack values when creating an instance.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {},
@@ -20,7 +20,7 @@ module.exports = [
         }
     },
     {
-        name: 'platform.list-blueprints',
+        name: 'platform_list_blueprints',
         description: 'List all available flow blueprints. Blueprints provide starter flows that can be used when creating a new instance.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {},

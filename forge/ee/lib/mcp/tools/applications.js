@@ -28,7 +28,7 @@ module.exports = [
         }
     },
     {
-        name: 'platform.create-application',
+        name: 'platform_create_application',
         description: 'Create a new application in a team.',
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {

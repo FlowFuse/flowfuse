@@ -2,7 +2,7 @@ const { z } = require('zod')
 
 module.exports = [
     {
-        name: 'platform.open-editor',
+        name: 'platform_open_editor',
         description: 'Get the URL to open the Node-RED editor for an instance. Returns a URL the user can open in their browser.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -21,7 +21,7 @@ module.exports = [
         }
     },
     {
-        name: 'platform.open-instance',
+        name: 'platform_open_instance',
         description: 'Get the URL to open the instance dashboard in the FlowFuse platform. Returns a URL the user can open in their browser.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {

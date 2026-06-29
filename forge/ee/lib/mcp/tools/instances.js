@@ -2,7 +2,7 @@ const { z } = require('zod')
 
 module.exports = [
     {
-        name: 'platform.list-instances',
+        name: 'platform_list_instances',
         description: 'List all instances in an application.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -26,7 +26,7 @@ module.exports = [
         }
     },
     {
-        name: 'platform.get-instance-status',
+        name: 'platform_get_instance_status',
         description: 'Get the live runtime status of an instance (running, stopped, suspended, starting, etc).',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -38,7 +38,7 @@ module.exports = [
         }
     },
     {
-        name: 'platform.get-instance-logs',
+        name: 'platform_get_instance_logs',
         description: 'Get runtime logs for an instance. Useful for debugging after restarts or failures.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -63,7 +63,7 @@ module.exports = [
         }
     },
     {
-        name: 'platform.check-name-availability',
+        name: 'platform_check_name_availability',
         description: 'Check if an instance name is available.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -75,14 +75,14 @@ module.exports = [
         }
     },
     {
-        name: 'platform.create-instance',
-        description: 'Create a new Node-RED instance in an application. The instance starts automatically after creation. Use platform.list-instance-types, platform.list-stacks, and platform.list-blueprints to discover valid values for the required parameters.',
+        name: 'platform_create_instance',
+        description: 'Create a new Node-RED instance in an application. The instance starts automatically after creation. Use platform_list_instance_types, platform_list_stacks, and platform_list_blueprints to discover valid values for the required parameters.',
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             name: z.string().describe('Name for the new instance'),
             applicationId: z.string().describe('The ID or hashid of the application'),
-            projectType: z.string().describe('The ID of the instance type (use platform.list-instance-types to find valid values)'),
-            stack: z.string().describe('The ID of the stack (use platform.list-stacks to find valid values)'),
+            projectType: z.string().describe('The ID of the instance type (use platform_list_instance_types to find valid values)'),
+            stack: z.string().describe('The ID of the stack (use platform_list_stacks to find valid values)'),
             template: z.string().describe('The ID of the template'),
             flowBlueprintId: z.string().optional().describe('Optional blueprint ID to initialize the instance with starter flows')
         },

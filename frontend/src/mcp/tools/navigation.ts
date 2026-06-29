@@ -2,8 +2,8 @@ import type { McpToolDefinition } from '@/types'
 
 const tools: McpToolDefinition[] = [
     {
-        name: 'ui.navigate',
-        description: 'Navigate the user\'s browser to a specific page. Takes a route name and optional params. Use ui.list-routes to discover valid route names and their required parameters.',
+        name: 'ui_navigate',
+        description: 'Navigate the user\'s browser to a specific page. Takes a route name and optional params. Use ui_list_routes to discover valid route names and their required parameters.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             type: 'object',

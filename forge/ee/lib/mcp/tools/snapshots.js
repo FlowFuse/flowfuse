@@ -2,7 +2,7 @@ const { z } = require('zod')
 
 module.exports = [
     {
-        name: 'platform.list-snapshots',
+        name: 'platform_list_snapshots',
         description: 'List all snapshots for an instance.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -14,7 +14,7 @@ module.exports = [
         }
     },
     {
-        name: 'platform.create-snapshot',
+        name: 'platform_create_snapshot',
         description: 'Create a snapshot of an instance, capturing its current flows, settings, and credentials.',
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {

@@ -2,7 +2,7 @@ const { z } = require('zod')
 
 module.exports = [
     {
-        name: 'platform.list-teams',
+        name: 'platform_list_teams',
         description: 'List all teams the authenticated user belongs to. Returns team names, slugs, IDs, and membership roles.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {},
@@ -12,7 +12,7 @@ module.exports = [
         }
     },
     {
-        name: 'platform.get-team',
+        name: 'platform_get_team',
         description: 'Get details of a specific team by its ID, including team type, member count, and instance counts.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {

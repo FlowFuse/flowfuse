@@ -2,7 +2,7 @@ const { z } = require('zod')
 
 module.exports = [
     {
-        name: 'platform.list-devices',
+        name: 'platform_list_devices',
         description: 'List all devices in a team.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -26,7 +26,7 @@ module.exports = [
         }
     },
     {
-        name: 'platform.list-device-snapshots',
+        name: 'platform_list_device_snapshots',
         description: 'List all snapshots for an application-owned device.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -38,7 +38,7 @@ module.exports = [
         }
     },
     {
-        name: 'platform.create-device-snapshot',
+        name: 'platform_create_device_snapshot',
         description: 'Create a snapshot from an application-owned device, capturing its current state.',
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
