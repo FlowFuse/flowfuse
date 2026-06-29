@@ -30,8 +30,15 @@ export const useProductExpertStore = defineStore('product-expert', {
         loadingVariant: SUPPORT_AGENT,
         shouldWakeUpAssistant: false,
         questionCadence: 'all', // 'all' = ask every clarifying question at once, 'one' = one at a time
+        planMode: false,
         inFlightUpdates: [],
         pendingInput: '',
+        // Incremented to ask the chat composer to focus an empty input for a plan-change
+        // request (the plan card's "Request changes" action). The composer watches it.
+        planChangeRequest: 0,
+        // Incremented to ask the chat composer to clear itself (e.g. a plan was loaded via
+        // "Edit manually" then approved/rejected without sending). The composer watches it.
+        composerReset: 0,
         _seenTransactionIds: new Map()
     }),
     getters: {
@@ -181,7 +188,18 @@ export const useProductExpertStore = defineStore('product-expert', {
         setPendingInput (text) {
             this.pendingInput = text
         },
-        async handleQuery ({ query }) {
+        requestPlanChange () {
+            // Signal the chat composer to focus an empty input so the user can describe
+            // a change to a proposed plan. Bumping a counter lets the composer react each
+            // time, including repeated requests.
+            this.planChangeRequest++
+        },
+        resetComposer () {
+            // Signal the chat composer to clear its input. Bumping a counter lets the
+            // composer react each time, including repeated resets.
+            this.composerReset++
+        },
+        async handleQuery ({ query, contextOverrides }) {
             const agentStore = this._agentStore
 
             // Auto-initialize session ID if not set
@@ -200,7 +218,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.abortController = markRaw(new AbortController())
 
             try {
-                return await this.sendQuery({ query })
+                return await this.sendQuery({ query, contextOverrides })
             } catch (error) {
                 if (error.name === 'AbortError' || error.name === 'CanceledError') {
                     // User canceled request
@@ -217,20 +235,21 @@ export const useProductExpertStore = defineStore('product-expert', {
                 agentStore.abortController = null
             }
         },
-        sendQuery ({ query }) {
+        sendQuery ({ query, contextOverrides }) {
             if (this.shouldUseMqtt) {
-                return this.sendMqttQuery({ query })
+                return this.sendMqttQuery({ query, contextOverrides })
             } else {
-                return this.sendHttpQuery({ query })
+                return this.sendHttpQuery({ query, contextOverrides })
             }
         },
-        async sendHttpQuery ({ query }) {
+        async sendHttpQuery ({ query, contextOverrides }) {
             const agentStore = this._agentStore
             const payload = {
                 query,
                 context: {
                     ...useContextStore().expert,
-                    agent: this.agentMode
+                    agent: this.agentMode,
+                    ...(contextOverrides || {})
                 },
                 sessionId: agentStore.sessionId,
                 abortController: agentStore.abortController
@@ -242,7 +261,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             return expertApi.chat(payload)
         },
-        async sendMqttQuery ({ query } = {}) {
+        async sendMqttQuery ({ query, contextOverrides } = {}) {
             const servicesOrchestrator = getAppOrchestrator()
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
             const mqttTopicHelper = useMqttExpertTopicHelper()
@@ -511,6 +530,9 @@ export const useProductExpertStore = defineStore('product-expert', {
         setQuestionCadence (cadence) {
             if (!['all', 'one'].includes(cadence)) return
             this.questionCadence = cadence
+        },
+        setPlanMode (enabled) {
+            this.planMode = !!enabled
         },
         /**
          * Adds a system message to the application's message store.
@@ -1076,7 +1098,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     persist: {
-        pick: ['shouldWakeUpAssistant', 'questionCadence'],
+        pick: ['shouldWakeUpAssistant', 'questionCadence', 'planMode'],
         storage: localStorage
     }
 })

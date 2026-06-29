@@ -16,6 +16,20 @@
                 Start over
             </button>
             <div class="right-buttons">
+                <default-chip
+                    v-if="!isInsightsAgent"
+                    class="plan-mode-chip"
+                    text="Plan mode"
+                    :modelValue="planMode"
+                    :disabled="isWaitingForResponse"
+                    title="Plan mode: the Expert proposes a plan before making any changes, and acts only once you approve it."
+                    data-el="expert-plan-mode-toggle"
+                    @toggle="setPlanMode(!planMode)"
+                >
+                    <template #icon>
+                        <ff-toggle-switch :modelValue="planMode" tabindex="-1" />
+                    </template>
+                </default-chip>
                 <capabilities-selector v-if="isInsightsAgent" />
                 <ff-kebab-menu
                     v-else
@@ -88,6 +102,7 @@ import ResizeBar from '../../ResizeBar.vue'
 import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
 
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
+import DefaultChip from './chips/DefaultChip.vue'
 import ContextSelector from './context-selection/index.vue'
 
 import { useResizingHelper } from '@/composables/ResizingHelper.js'
@@ -101,6 +116,7 @@ export default {
     components: {
         CapabilitiesSelector,
         ContextSelector,
+        DefaultChip,
         ResizeBar,
         ToggleButtonGroup
     },
@@ -133,7 +149,9 @@ export default {
             inputText: '',
             includeSelection: true,
             isTextareaFocused: false,
-            // true after we grow the composer to fit loaded content (e.g. an edited question),
+            // true after "Request changes" on a plan, until the user types or sends; drives the hint placeholder
+            requestingPlanChange: false,
+            // true after we grow the composer to fit loaded content (e.g. an edited plan),
             // so we can collapse it back to the default height once the message is sent
             composerAutoGrown: false
         }
@@ -152,7 +170,10 @@ export default {
             'hasMessages',
             'isWaitingForResponse',
             'pendingInput',
-            'questionCadence'
+            'planChangeRequest',
+            'composerReset',
+            'questionCadence',
+            'planMode'
         ]),
         questionCadenceButtons () {
             return [
@@ -183,6 +204,9 @@ export default {
             if (this.isInsightsAgent && !this.hasSelectedCapabilities) {
                 return 'Select a resource to get started'
             }
+            if (this.requestingPlanChange) {
+                return 'Describe a change to the plan, or paste an edited version'
+            }
             return this.isInsightsAgent
                 ? 'Tell us what you want to know about'
                 : 'Tell us what you need help with'
@@ -195,14 +219,40 @@ export default {
         pendingInput (text) {
             if (text) {
                 this.inputText = text
+                this.requestingPlanChange = false
                 this.setPendingInput('')
                 this.$nextTick(() => {
                     this.$refs.textarea.focus()
-                    // Grow the composer so loaded content (e.g. an edited question) is readable,
+                    // Grow the composer so loaded content (e.g. an edited plan) is readable,
                     // instead of being crammed into the default-height box. The CSS max-height
                     // (40vh) caps it; short content stays near the minimum.
                     this.growComposerToContent()
                 })
+            }
+        },
+        planChangeRequest () {
+            // The plan card's "Request changes" action: focus an empty composer and show
+            // the change hint, so the user can describe a change in their own words.
+            this.inputText = ''
+            this.requestingPlanChange = true
+            this.$nextTick(() => {
+                this.$refs.textarea.focus()
+            })
+        },
+        composerReset () {
+            // A plan was loaded into the composer (via "Edit manually") then approved or
+            // rejected without sending; clear the stale text and collapse the grown box.
+            this.inputText = ''
+            this.requestingPlanChange = false
+            if (this.composerAutoGrown) {
+                this.setHeight(180)
+                this.composerAutoGrown = false
+            }
+        },
+        inputText (value) {
+            // Clear the plan-change hint once the user starts typing their own text.
+            if (value && this.requestingPlanChange) {
+                this.requestingPlanChange = false
             }
         }
     },
@@ -216,7 +266,7 @@ export default {
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
-        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'handleMessageResponse', 'setPendingInput', 'setQuestionCadence']),
+        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'handleMessageResponse', 'setPendingInput', 'setQuestionCadence', 'setPlanMode']),
         async handleSend () {
             if (!this.canSend) return
 
@@ -239,6 +289,7 @@ export default {
                 .catch(e => e)
 
             this.inputText = ''
+            this.requestingPlanChange = false
             // Collapse the composer back to its default height if we had grown it
             // (180 matches the CSS min-height of .ff-expert-input).
             if (this.composerAutoGrown) {
@@ -323,6 +374,42 @@ export default {
     display: flex;
     gap: 0.5rem;
     align-items: center;
+}
+
+// Reuses the shared DefaultChip for its bg, border, active state and theming; the only
+// styling here is sizing the toggle switch in the #icon slot, since the switch has no size
+// prop. It is a visual indicator only (pointer-events disabled); the chip handles the click.
+.plan-mode-chip {
+    // DefaultChip's separator is a warning-yellow in the inactive state (intended for the
+    // Selection chip); neutralise it here for both states so it reads as a plain divider.
+    :deep(.separator),
+    &.active :deep(.separator) {
+        background: var(--ff-color-border);
+    }
+
+    // DefaultChip's .text padding is asymmetric (less on the left) AND the chip adds a 5px
+    // flex gap between the text box and the divider, so the label sits left of centre.
+    // Equalise the padding and subtract the gap from the right so "Plan mode" has the same
+    // visual space on both sides of the divider cell.
+    :deep(.text) {
+        padding-left: 0.5rem;
+        padding-right: calc(0.5rem - 5px);
+    }
+
+    :deep(.ff-toggle-switch) {
+        --ff-toggle-width: 30px;
+        --ff-toggle-translate: 12px;
+        height: 18px;
+        pointer-events: none;
+        flex-shrink: 0;
+    }
+
+    :deep(.ff-toggle-switch-button) {
+        height: 14px;
+        width: 14px;
+        left: 2px;
+        bottom: 2px;
+    }
 }
 
 button {

@@ -1,5 +1,5 @@
 <template>
-    <div class="chip" :class="{active: modelValue}" :title="title" @click="$emit('toggle')">
+    <div class="chip" :class="{active: modelValue, disabled}" :title="title" @click="onClick">
         <div class="text">
             <slot name="text">
                 <span>{{ text }}</span>
@@ -9,8 +9,10 @@
         <span class="separator" />
 
         <div class="icon-wrapper">
-            <XMarkIcon v-if="modelValue" class="ff-icon ff-icon-sm" />
-            <PlusIcon v-else class="ff-icon ff-icon-sm" />
+            <slot name="icon" :active="modelValue">
+                <XMarkIcon v-if="modelValue" class="ff-icon ff-icon-sm" />
+                <PlusIcon v-else class="ff-icon ff-icon-sm" />
+            </slot>
         </div>
     </div>
 </template>
@@ -41,11 +43,20 @@ export default {
             type: String,
             required: false,
             default: ''
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     emits: ['toggle'],
     methods: {
-        pluralize
+        pluralize,
+        onClick () {
+            if (this.disabled) return
+            this.$emit('toggle')
+        }
     }
 }
 </script>
@@ -61,6 +72,11 @@ export default {
     cursor: pointer;
     transition: 0.3s ease-in-out;
     white-space: nowrap;
+
+    &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 
     &.active {
         background: var(--ff-color-accent-surface);
