@@ -29,7 +29,9 @@ export const useProductExpertStore = defineStore('product-expert', {
         agentMode: SUPPORT_AGENT, // support-agent or insights-agent
         loadingVariant: SUPPORT_AGENT,
         shouldWakeUpAssistant: false,
+        questionCadence: 'all', // 'all' = ask every clarifying question at once, 'one' = one at a time
         inFlightUpdates: [],
+        pendingInput: '',
         _seenTransactionIds: new Map()
     }),
     getters: {
@@ -175,6 +177,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                     .then(() => this.hydrateClient())
                     .then(() => { this.loadingVariant = this.agentMode })
             }
+        },
+        setPendingInput (text) {
+            this.pendingInput = text
         },
         async handleQuery ({ query }) {
             const agentStore = this._agentStore
@@ -498,6 +503,14 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (![INSIGHTS_AGENT, SUPPORT_AGENT].includes(mode)) return
             this.agentMode = mode
             this.loadingVariant = mode
+        },
+        /**
+         * Sets how clarifying questions are asked: all at once or one at a time.
+         * @param {'all' | 'one'} cadence
+         */
+        setQuestionCadence (cadence) {
+            if (!['all', 'one'].includes(cadence)) return
+            this.questionCadence = cadence
         },
         /**
          * Adds a system message to the application's message store.
@@ -1063,7 +1076,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     persist: {
-        pick: ['shouldWakeUpAssistant'],
+        pick: ['shouldWakeUpAssistant', 'questionCadence'],
         storage: localStorage
     }
 })
