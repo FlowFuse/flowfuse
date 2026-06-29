@@ -421,8 +421,8 @@ module.exports = async function (app) {
             // the instance's launcher/agent version is new enough to support MCP features.
             const instancesWithMCPServers = []
             const incompatibleServers = []
-            const MIN_HOSTED_INSTANCE_LAUNCHER_VERSION = '2.31.4'
-            const MIN_REMOTE_INSTANCE_AGENT_VERSION = '3.9.1'
+            const MIN_HOSTED_INSTANCE_LAUNCHER_VERSION = '2.32.0'
+            const MIN_REMOTE_INSTANCE_AGENT_VERSION = '4.0.0'
 
             for (const instanceId of Object.keys(instanceGroups)) {
                 try {
