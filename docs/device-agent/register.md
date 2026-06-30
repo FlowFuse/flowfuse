@@ -73,19 +73,19 @@ This approach provides you with a single "Provisioning Token" for all of your Re
    * Select an **Application** if you want the device to be automatically assigned to an application.
 6. Click **Create**
 
-![Screenshot of a FlowFuse Remote Instance Provisioning Token](./images/create-provisioning-token.png){data-zoomable}
+![Screenshot of a FlowFuse Remote Instance Provisioning Token](./images/create-provisioning-token.png)
 
 Once the Provisioning Token has been created, you will be shown the 
 **Device Provisioning Configuration** dialog:
 
-![Screenshot of a FlowFuse Remote Instance Provisioning Token](./images/provisioning-token.png){data-zoomable}
+![Screenshot of a FlowFuse Remote Instance Provisioning Token](./images/provisioning-token.png)
 
 **IMPORTANT:** This is the only time the platform will show you
 this information. Make sure to take a copy or use the **Download**
 button to save the configuration file locally.
 
 Once the token is created, it will be shown in the list of tokens on the **Provisioning** tab.
-![Screenshot of FlowFuse Remote Instance Provisioning Tokens](./images/provisioning-tokens.png){data-zoomable}
+![Screenshot of FlowFuse Remote Instance Provisioning Tokens](./images/provisioning-tokens.png)
 
 ## Connecting your Hardware
 
@@ -342,7 +342,7 @@ This option can be used to enable local login for the Node-RED editor.  This opt
 
 It can be configured under the Remote Instance's Settings
 
-![Local Auth settings for Remote Instance](./images/device-local-access.png){data-zoomable}
+![Local Auth settings for Remote Instance](./images/device-local-access.png)
 _Local Auth settings for Remote Instance_
 
 Or by adding the following to the `device.yml` file
