@@ -306,7 +306,7 @@ export default {
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
-        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'handleMessageResponse', 'setPendingInput', 'setQuestionCadence', 'setPlanMode', 'fetchToolCatalog']),
+        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'setPendingInput', 'setQuestionCadence', 'setPlanMode', 'fetchToolCatalog']),
         openSettings () {
             this.$refs.settingsDialog.show()
         },
@@ -320,10 +320,9 @@ export default {
                 this.togglePinWithWidth()
             }
 
-            // Call Vuex action to handle API logic
+            // handleQuery renders the reply itself (see the store); the composer only needs
+            // to refocus the input once the turn is on its way.
             this.handleQuery({ query: message })
-                // Handle UI-specific processing if successful
-                .then((result) => this.handleMessageResponse(result))
                 .then(() => {
                     this.$nextTick(() => {
                         this.$refs.textarea.focus()
