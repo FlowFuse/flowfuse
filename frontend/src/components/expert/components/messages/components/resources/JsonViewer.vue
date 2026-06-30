@@ -43,30 +43,13 @@
 // or reveals the content at any time; defaultCollapsed seeds its initial state.
 const LONG_LINE_THRESHOLD = 50
 
-// Stringify that never throws — falls back to a circular-safe pass, then to a
-// plain coercion, so a malformed/circular/BigInt payload can never break the
-// surrounding card.
+// Stringify that never throws — if the payload can't be serialised for any
+// reason, show a plain error instead of breaking the surrounding card.
 function safeStringify (value) {
     try {
         return JSON.stringify(value, null, 2)
     } catch (err) {
-        try {
-            const seen = new WeakSet()
-            return JSON.stringify(value, (key, val) => {
-                if (typeof val === 'bigint') return `${val}n`
-                if (val !== null && typeof val === 'object') {
-                    if (seen.has(val)) return '[Circular]'
-                    seen.add(val)
-                }
-                return val
-            }, 2)
-        } catch (innerErr) {
-            try {
-                return String(value)
-            } catch (coerceErr) {
-                return '[unrenderable value]'
-            }
-        }
+        return 'Could not display the payload.'
     }
 }
 
