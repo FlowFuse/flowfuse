@@ -6,7 +6,13 @@
                 {{ classLabel }}
             </span>
         </div>
-        <json-viewer v-if="hasParams" :value="params" class="tool-approval-payload" />
+        <json-viewer
+            v-if="hasParams"
+            :value="params"
+            collapsible
+            :default-collapsed="payloadCollapsed"
+            class="tool-approval-payload"
+        />
 
         <div v-if="status === 'pending'" class="tool-approval-actions">
             <ff-button kind="primary" size="small" :disabled="disabled || decided" @click="decide('approve')">
@@ -73,6 +79,12 @@ export default {
         },
         hasParams () {
             return Object.keys(this.params || {}).length > 0
+        },
+        // Collapse the payload once the call is allowed, always-allowed or denied
+        // (locally or via the round-tripped status); the header toggle stays live
+        // so the user can re-expand it at any time.
+        payloadCollapsed () {
+            return this.decided || this.status !== 'pending'
         }
     },
     mounted () {

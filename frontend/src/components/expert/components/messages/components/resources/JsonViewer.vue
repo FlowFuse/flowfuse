@@ -1,9 +1,20 @@
 <template>
     <div class="json-viewer">
-        <div v-if="label || hasLongLines" class="json-viewer__header">
-            <span v-if="label" class="json-viewer__label">{{ label }}</span>
+        <div v-if="showHeader" class="json-viewer__header">
             <ff-button
-                v-if="hasLongLines"
+                v-if="collapsible"
+                kind="tertiary"
+                size="small"
+                class="json-viewer__collapse-toggle"
+                :title="collapsed ? 'Expand' : 'Collapse'"
+                @click="collapsed = !collapsed"
+            >
+                <span class="json-viewer__caret">{{ collapsed ? '▸' : '▾' }}</span>
+                {{ label || 'Payload' }}
+            </ff-button>
+            <span v-else-if="label" class="json-viewer__label">{{ label }}</span>
+            <ff-button
+                v-if="hasLongLines && !collapsed"
                 :kind="wrapped ? 'secondary' : 'tertiary'"
                 size="small"
                 class="json-viewer__wrap-toggle"
@@ -13,7 +24,11 @@
                 Wrap
             </ff-button>
         </div>
-        <div class="json-viewer__scroll" :class="{ 'json-viewer__scroll--wrap': wrapped }">
+        <div
+            v-show="!collapsed"
+            class="json-viewer__scroll"
+            :class="{ 'json-viewer__scroll--wrap': wrapped }"
+        >
             <pre class="json-viewer__content">{{ text }}</pre>
         </div>
     </div>
@@ -24,8 +39,36 @@
 // of the snapshot comparison diff panel (SnapshotDiffChangePanel) without its
 // two-sided diff machinery — used for read-only payloads such as the tool
 // approval card's call parameters. The wrap toggle only appears when a line is
-// long enough to overflow horizontally.
+// long enough to overflow horizontally. When collapsible, a header toggle hides
+// or reveals the content at any time; defaultCollapsed seeds its initial state.
 const LONG_LINE_THRESHOLD = 50
+
+// Stringify that never throws — falls back to a circular-safe pass, then to a
+// plain coercion, so a malformed/circular/BigInt payload can never break the
+// surrounding card.
+function safeStringify (value) {
+    try {
+        return JSON.stringify(value, null, 2)
+    } catch (err) {
+        try {
+            const seen = new WeakSet()
+            return JSON.stringify(value, (key, val) => {
+                if (typeof val === 'bigint') return `${val}n`
+                if (val !== null && typeof val === 'object') {
+                    if (seen.has(val)) return '[Circular]'
+                    seen.add(val)
+                }
+                return val
+            }, 2)
+        } catch (innerErr) {
+            try {
+                return String(value)
+            } catch (coerceErr) {
+                return '[unrenderable value]'
+            }
+        }
+    }
+}
 
 export default {
     name: 'JsonViewer',
@@ -37,22 +80,43 @@ export default {
         label: {
             type: String,
             default: null
+        },
+        collapsible: {
+            type: Boolean,
+            default: false
+        },
+        defaultCollapsed: {
+            type: Boolean,
+            default: false
         }
     },
     data () {
-        return { wrapped: false }
+        return {
+            wrapped: false,
+            collapsed: this.defaultCollapsed
+        }
     },
     computed: {
         // Prettified JSON for objects/arrays, plain string for scalars — the same
-        // stringify the snapshot diff panel uses.
+        // stringify the snapshot diff panel uses, made crash-proof.
         text () {
             const v = this.value
             if (v === undefined || v === null) return ''
-            if (typeof v === 'object') return JSON.stringify(v, null, 2)
+            if (typeof v === 'object') return safeStringify(v)
             return String(v)
         },
         hasLongLines () {
             return this.text.split('\n').some(line => line.length > LONG_LINE_THRESHOLD)
+        },
+        showHeader () {
+            return this.collapsible || !!this.label || this.hasLongLines
+        }
+    },
+    watch: {
+        // Let the parent drive collapse on a state change (e.g. a tool decision)
+        // while still leaving the header toggle live for manual expand/collapse.
+        defaultCollapsed (val) {
+            this.collapsed = val
         }
     }
 }
@@ -79,6 +143,16 @@ export default {
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--ff-color-text-subtle);
+}
+
+.json-viewer__collapse-toggle {
+    font-weight: 600;
+    color: var(--ff-color-text-subtle);
+}
+
+.json-viewer__caret {
+    display: inline-block;
+    margin-right: 2px;
 }
 
 .json-viewer__wrap-toggle {
