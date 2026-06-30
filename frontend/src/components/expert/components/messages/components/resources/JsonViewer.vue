@@ -9,7 +9,12 @@
                 :title="collapsed ? 'Expand' : 'Collapse'"
                 @click="collapsed = !collapsed"
             >
-                <span class="json-viewer__caret">{{ collapsed ? '▸' : '▾' }}</span>
+                <template #icon-left>
+                    <ChevronRightIcon
+                        class="json-viewer__caret"
+                        :class="{ 'json-viewer__caret--open': !collapsed }"
+                    />
+                </template>
                 {{ label || 'Payload' }}
             </ff-button>
             <span v-else-if="label" class="json-viewer__label">{{ label }}</span>
@@ -41,6 +46,8 @@
 // approval card's call parameters. The wrap toggle only appears when a line is
 // long enough to overflow horizontally. When collapsible, a header toggle hides
 // or reveals the content at any time; defaultCollapsed seeds its initial state.
+import { ChevronRightIcon } from '@heroicons/vue/20/solid'
+
 const LONG_LINE_THRESHOLD = 50
 
 // Stringify that never throws — if the payload can't be serialised for any
@@ -55,6 +62,7 @@ function safeStringify (value) {
 
 export default {
     name: 'JsonViewer',
+    components: { ChevronRightIcon },
     props: {
         value: {
             type: [Object, Array, String, Number, Boolean],
@@ -134,8 +142,13 @@ export default {
 }
 
 .json-viewer__caret {
-    display: inline-block;
-    margin-right: 2px;
+    width: 1rem;
+    height: 1rem;
+    transition: transform 0.2s ease;
+
+    &--open {
+        transform: rotate(90deg);
+    }
 }
 
 .json-viewer__wrap-toggle {
