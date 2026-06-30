@@ -1,6 +1,8 @@
 const sleep = require('util').promisify(setTimeout)
 
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+
 const setup = require('../routes/setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -215,6 +217,79 @@ describe('DeviceCommsHandler', function () {
             payload.should.have.property('command', 'update')
             payload.should.have.property('project', null)
             payload.should.have.property('snapshot', null)
+        })
+
+        it('forwards a team status notification only when the device state changes', async function () {
+            const device = await app.factory.createDevice({ name: 'status-forward-device' }, TestObjects.ATeam)
+            const notifySpy = sinon.spy(app.comms.team, 'notifyDeviceState')
+            try {
+                // establish a known baseline regardless of the factory default state
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'stopped' }) })
+                await sleep(100)
+                notifySpy.resetHistory()
+
+                // state changes -> notifies with { teamHash, deviceHashid, state }
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
+                await sleep(100)
+                notifySpy.calledOnce.should.be.true()
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'running'])
+
+                // same state again -> no further notification
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
+                await sleep(100)
+                notifySpy.calledOnce.should.be.true()
+
+                // state changes again -> notifies again
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'stopped' }) })
+                await sleep(100)
+                notifySpy.calledTwice.should.be.true()
+                notifySpy.secondCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'stopped'])
+            } finally {
+                notifySpy.restore()
+            }
+        })
+
+        it('suppresses the transient stopped broadcast while restarting, but still records the state', async function () {
+            const device = await app.factory.createDevice({ name: 'restart-mask-device' }, TestObjects.ATeam)
+            const notifySpy = sinon.spy(app.comms.team, 'notifyDeviceState')
+            const setRestarting = async () => { device.state = 'restarting'; await device.save() }
+            try {
+                await setRestarting()
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'stopped' }) })
+                await sleep(100)
+                // no UI broadcast (avoids the restarting → stopped flash)...
+                notifySpy.called.should.be.false()
+                await device.reload()
+                // ...but the real state is still persisted, so a genuinely-stopped device self-corrects
+                device.state.should.equal('stopped')
+
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
+                await sleep(100)
+                notifySpy.calledOnce.should.be.true()
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'running'])
+                await device.reload()
+                device.state.should.equal('running')
+
+                await setRestarting()
+                notifySpy.resetHistory()
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'crashed' }) })
+                await sleep(100)
+                notifySpy.calledOnce.should.be.true()
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'crashed'])
+                await device.reload()
+                device.state.should.equal('crashed')
+
+                await setRestarting()
+                notifySpy.resetHistory()
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'warning' }) })
+                await sleep(100)
+                notifySpy.calledOnce.should.be.true()
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'warning'])
+                await device.reload()
+                device.state.should.equal('warning')
+            } finally {
+                notifySpy.restore()
+            }
         })
     })
 

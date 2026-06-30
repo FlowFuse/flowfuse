@@ -8,6 +8,7 @@
  * @namespace project
  * @memberof forge.routes.api
  */
+
 module.exports = async function (app) {
     app.post('/start', {
         preHandler: app.needsPermission('project:change-status'),
@@ -50,8 +51,11 @@ module.exports = async function (app) {
                 await app.db.controllers.Project.setInflightState(request.project, 'starting')
                 const startResult = await app.containers.start(request.project)
                 startResult.started.then(async () => {
-                    await app.auditLog.Project.project.started(request.session.User, null, request.project)
-                    await app.db.controllers.Project.clearInflightState(request.project)
+                    if (request.project.state === 'suspended') {
+                        await app.db.controllers.Project.clearInflightState(request.project)
+                    } else {
+                        await app.auditLog.Project.project.started(request.session.User, null, request.project)
+                    }
                     return true
                 }).catch(err => {
                     app.log.info(`failed to start project ${request.project.id}`)
@@ -154,7 +158,6 @@ module.exports = async function (app) {
             await request.project.save()
             await app.containers.restartFlows(request.project)
             await app.auditLog.Project.project.restarted(request.session.User, null, request.project)
-            await app.db.controllers.Project.clearInflightState(request.project)
             reply.send({ status: 'okay' })
         } catch (err) {
             await app.db.controllers.Project.clearInflightState(request.project)
@@ -255,10 +258,12 @@ module.exports = async function (app) {
             }
             await app.db.controllers.Project.setInflightState(request.project, 'rollback')
             await app.db.controllers.Project.importProjectSnapshot(request.project, snapshot)
-            await app.db.controllers.Project.clearInflightState(request.project)
             await app.auditLog.Project.project.snapshot.rolledBack(request.session.User, null, request.project, snapshot)
             if (restartProject) {
+                await app.db.controllers.Project.setInflightState(request.project, 'restarting')
                 await app.containers.restartFlows(request.project)
+            } else {
+                await app.db.controllers.Project.clearInflightState(request.project)
             }
             reply.send({ status: 'okay' })
         } catch (err) {
