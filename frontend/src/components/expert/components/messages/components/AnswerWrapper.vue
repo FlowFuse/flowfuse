@@ -2,106 +2,96 @@
     <message-bubble ref="messageBubble" type="ai">
         <answer-badge v-if="!isChatAnswer && !isQuestionsAnswer && !isPlanAnswer" :kind="answer.kind" />
 
-        <error-boundary v-if="shouldShowRichContent" @failed="onComponentComplete('rich-content')">
-            <rich-content
-                :content="answer.content"
-                :message-uuid="messageUuid"
-                :answer-uuid="answer._uuid"
-                :should-stream="shouldStream"
-                class="mb-3"
-                @streaming-complete="onComponentComplete('rich-content')"
-            />
-        </error-boundary>
+        <rich-content
+            v-if="shouldShowRichContent"
+            :content="answer.content"
+            :message-uuid="messageUuid"
+            :answer-uuid="answer._uuid"
+            :should-stream="shouldStream"
+            class="mb-3"
+            @streaming-complete="onComponentComplete('rich-content')"
+        />
 
-        <error-boundary v-if="shouldShowGuideHeader" @failed="onComponentComplete('guide-header')">
-            <guide-header
-                :title="answer.title"
-                :summary="answer.summary"
-                :should-stream="shouldStream"
-                class="mt-3"
-                @streaming-complete="onComponentComplete('guide-header')"
-            />
-        </error-boundary>
+        <guide-header
+            v-if="shouldShowGuideHeader"
+            :title="answer.title"
+            :summary="answer.summary"
+            :should-stream="shouldStream"
+            class="mt-3"
+            @streaming-complete="onComponentComplete('guide-header')"
+        />
 
-        <error-boundary v-if="shouldShowGuideStepList" @failed="onComponentComplete('guide-steps-list')">
-            <guide-steps-list
-                :steps="answer.steps"
-                :should-stream="shouldStream"
-                class="mb-3"
-                @streaming-complete="onComponentComplete('guide-steps-list')"
-            />
-        </error-boundary>
+        <guide-steps-list
+            v-if="shouldShowGuideStepList"
+            :steps="answer.steps"
+            :should-stream="shouldStream"
+            class="mb-3"
+            @streaming-complete="onComponentComplete('guide-steps-list')"
+        />
 
-        <error-boundary v-if="shouldShowResourcesList" @failed="onComponentComplete('resources-list')">
-            <resources-list
-                :resources="answer.resources"
-                :should-stream="shouldStream"
-                class="mb-3"
-                @streaming-complete="onComponentComplete('resources-list')"
-            />
-        </error-boundary>
+        <resources-list
+            v-if="shouldShowResourcesList"
+            :resources="answer.resources"
+            :should-stream="shouldStream"
+            class="mb-3"
+            @streaming-complete="onComponentComplete('resources-list')"
+        />
 
-        <error-boundary v-if="shouldShowFlowsList" @failed="onComponentComplete('flows-list')">
-            <flows-list
-                :flows="answer.flows"
-                :should-stream="shouldStream"
-                class="mb-3"
-                @streaming-complete="onComponentComplete('flows-list')"
-            />
-        </error-boundary>
+        <flows-list
+            v-if="shouldShowFlowsList"
+            :flows="answer.flows"
+            :should-stream="shouldStream"
+            class="mb-3"
+            @streaming-complete="onComponentComplete('flows-list')"
+        />
 
-        <error-boundary v-if="shouldShowPackagesList" @failed="onComponentComplete('packages-list')">
-            <packages-list
-                :packages="answer.nodePackages"
-                :should-stream="shouldStream"
-                class="mb-3"
-                @streaming-complete="onComponentComplete('packages-list')"
-            />
-        </error-boundary>
+        <packages-list
+            v-if="shouldShowPackagesList"
+            :packages="answer.nodePackages"
+            :should-stream="shouldStream"
+            class="mb-3"
+            @streaming-complete="onComponentComplete('packages-list')"
+        />
 
-        <error-boundary v-if="shouldShowIssuesList" @failed="onComponentComplete('issues-list')">
-            <issues-list
-                :issues="answer.issues"
-                :should-stream="shouldStream"
-                @streaming-complete="onComponentComplete('issues-list')"
-            />
-        </error-boundary>
+        <issues-list
+            v-if="shouldShowIssuesList"
+            :issues="answer.issues"
+            :should-stream="shouldStream"
+            @streaming-complete="onComponentComplete('issues-list')"
+        />
 
-        <error-boundary v-if="shouldShowSuggestionsList" @failed="onComponentComplete('suggestions-list')">
-            <suggestions-list
-                :suggestions="answer.suggestions"
-                :should-stream="shouldStream"
-                @streaming-complete="onComponentComplete('suggestions-list')"
-            />
-        </error-boundary>
+        <suggestions-list
+            v-if="shouldShowSuggestionsList"
+            :suggestions="answer.suggestions"
+            :should-stream="shouldStream"
+            @streaming-complete="onComponentComplete('suggestions-list')"
+        />
 
-        <error-boundary v-if="shouldShowQuestionsList" @failed="onComponentComplete('questions-list')">
-            <questions-list
-                :questions="answer.questions"
-                :disabled="interactionDisabled"
-                :should-stream="shouldStream"
-                class="mb-3"
-                @select="onQuestionsSubmit"
-                @edit="onQuestionsEdit"
-                @streaming-complete="onComponentComplete('questions-list')"
-            />
-        </error-boundary>
+        <questions-list
+            v-if="shouldShowQuestionsList"
+            :questions="answer.questions"
+            :disabled="interactionDisabled"
+            :should-stream="shouldStream"
+            class="mb-3"
+            @select="onQuestionsSubmit"
+            @edit="onQuestionsEdit"
+            @streaming-complete="onComponentComplete('questions-list')"
+        />
 
-        <error-boundary v-if="shouldShowPlanList" @failed="onComponentComplete('plan-list')">
-            <plan-card
-                :plan="answer.content"
-                :message-uuid="messageUuid"
-                :answer-uuid="answer._uuid"
-                :disabled="interactionDisabled"
-                :should-stream="shouldStream"
-                class="mb-3"
-                @approve="onPlanApprove"
-                @edit-manual="onPlanEditManual"
-                @request-changes="onPlanRequestChanges"
-                @reject="onPlanReject"
-                @streaming-complete="onComponentComplete('plan-list')"
-            />
-        </error-boundary>
+        <plan-card
+            v-if="shouldShowPlanList"
+            :plan="answer.content"
+            :message-uuid="messageUuid"
+            :answer-uuid="answer._uuid"
+            :disabled="interactionDisabled"
+            :should-stream="shouldStream"
+            class="mb-3"
+            @approve="onPlanApprove"
+            @edit-manual="onPlanEditManual"
+            @request-changes="onPlanRequestChanges"
+            @reject="onPlanReject"
+            @streaming-complete="onComponentComplete('plan-list')"
+        />
     </message-bubble>
 </template>
 
@@ -112,7 +102,6 @@ import { mapActions, mapState } from 'pinia'
 import useTimerHelper from '../../../../../composables/TimerHelper.js'
 
 import AnswerBadge from './AnswerBadge.vue'
-import ErrorBoundary from './ErrorBoundary.vue'
 import GuideHeader from './GuideHeader.vue'
 import MessageBubble from './MessageBubble.vue'
 import FlowsList from './resources/FlowsList.vue'
@@ -137,7 +126,6 @@ export default {
         PlanCard,
         FlowsList,
         AnswerBadge,
-        ErrorBoundary,
         ResourcesList,
         QuestionsList,
         GuideStepsList,

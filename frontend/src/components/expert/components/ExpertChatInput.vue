@@ -1,9 +1,9 @@
 <template>
-    <div ref="resizeTarget" class="ff-expert-input" :style="{height: heightStyle}">
+    <div ref="resizeTarget" class="ff-expert-input" :style="containerStyle">
         <resize-bar
             :is-resizing="isInputResizing"
             direction="horizontal"
-            @mousedown="startResize"
+            @mousedown="onStartResize"
         />
         <!-- Action buttons row -->
         <div class="action-buttons">
@@ -34,26 +34,17 @@
                     </template>
                 </default-chip>
                 <capabilities-selector v-if="isInsightsAgent" />
-                <ff-kebab-menu
+                <button
                     v-else
-                    class="expert-settings-menu"
+                    type="button"
+                    class="btn-settings"
                     data-el="expert-settings-menu"
-                    :menu-items-attrs="{ class: 'expert-settings-options' }"
+                    aria-label="Expert settings"
+                    title="Expert settings"
+                    @click="openSettings"
                 >
-                    <li class="expert-settings-menu__group">
-                        <span class="expert-settings-menu__heading">Follow-up questions</span>
-                        <p class="expert-settings-menu__description">
-                            When a request needs more detail, choose how the Expert asks for it.
-                        </p>
-                        <toggle-button-group
-                            v-model="questionCadenceWrapper"
-                            :buttons="questionCadenceButtons"
-                            :usesLinks="false"
-                            :visually-hide-title="true"
-                            data-el="expert-question-cadence"
-                        />
-                    </li>
-                </ff-kebab-menu>
+                    <Cog8ToothIcon class="btn-settings__icon" />
+                </button>
             </div>
         </div>
         <div class="input-wrapper" :class="{ 'focused': isTextareaFocused }">
@@ -95,14 +86,36 @@
                 </div>
             </div>
         </div>
+
+        <ff-dialog
+            ref="settingsDialog"
+            header="Expert settings"
+            confirm-label="Done"
+            :can-be-canceled="false"
+            data-el="expert-settings-dialog"
+        >
+            <div class="expert-settings">
+                <div class="expert-settings__group">
+                    <FormHeading>Follow-up questions</FormHeading>
+                    <p>When a request needs more detail, choose how the Expert asks for it.</p>
+                    <ff-radio-group
+                        v-model="questionCadenceWrapper"
+                        orientation="vertical"
+                        :options="questionCadenceOptions"
+                        data-el="expert-question-cadence"
+                    />
+                </div>
+            </div>
+        </ff-dialog>
     </div>
 </template>
 
 <script>
+import { Cog8ToothIcon } from '@heroicons/vue/20/solid'
 import { mapActions, mapState } from 'pinia'
 
+import FormHeading from '../../FormHeading.vue'
 import ResizeBar from '../../ResizeBar.vue'
-import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
 
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
 import DefaultChip from './chips/DefaultChip.vue'
@@ -118,10 +131,11 @@ export default {
     name: 'ExpertChatInput',
     components: {
         CapabilitiesSelector,
+        Cog8ToothIcon,
         ContextSelector,
         DefaultChip,
-        ResizeBar,
-        ToggleButtonGroup
+        FormHeading,
+        ResizeBar
     },
     inject: {
         togglePinWithWidth: {
@@ -154,9 +168,9 @@ export default {
             isTextareaFocused: false,
             // true after "Request changes" on a plan, until the user types or sends; drives the hint placeholder
             requestingPlanChange: false,
-            // true after we grow the composer to fit loaded content (e.g. an edited plan),
-            // so we can collapse it back to the default height once the message is sent
-            composerAutoGrown: false
+            // The composer auto-sizes to its content via CSS (see .chat-input field-sizing).
+            // Only once the user drag-resizes do we pin it to an explicit height.
+            userResized: false
         }
     },
     computed: {
@@ -178,10 +192,10 @@ export default {
             'questionCadence',
             'planMode'
         ]),
-        questionCadenceButtons () {
+        questionCadenceOptions () {
             return [
-                { title: 'All at once', value: 'all' },
-                { title: 'One at a time', value: 'one' }
+                { label: 'All at once', value: 'all', description: 'Asks every open question together in a single turn.' },
+                { label: 'One at a time', value: 'one', description: 'Asks one question, then follows up based on your answer.' }
             ]
         },
         questionCadenceWrapper: {
@@ -216,6 +230,11 @@ export default {
         },
         isImmersive () {
             return this.isImmersiveDevice || this.isImmersiveInstance
+        },
+        containerStyle () {
+            // Until the user drag-resizes, let the composer size itself to its content (capped by
+            // the CSS max-height). Once they drag, pin it to the chosen height.
+            return this.userResized ? { height: this.heightStyle } : {}
         }
     },
     watch: {
@@ -238,10 +257,8 @@ export default {
                 this.setPendingInput('')
                 this.$nextTick(() => {
                     this.$refs.textarea.focus()
-                    // Grow the composer so loaded content (e.g. an edited plan) is readable,
-                    // instead of being crammed into the default-height box. The CSS max-height
-                    // (40vh) caps it; short content stays near the minimum.
-                    this.growComposerToContent()
+                    // No manual sizing needed: the textarea auto-grows to fit the loaded content
+                    // (e.g. an edited question or plan) via CSS, capped by its max-height.
                 })
             }
         },
@@ -256,13 +273,10 @@ export default {
         },
         composerReset () {
             // A plan was loaded into the composer (via "Edit manually") then approved or
-            // rejected without sending; clear the stale text and collapse the grown box.
+            // rejected without sending; clear the stale text. The composer auto-collapses to
+            // fit its (now empty) content via CSS, so no manual height reset is needed.
             this.inputText = ''
             this.requestingPlanChange = false
-            if (this.composerAutoGrown) {
-                this.setHeight(180)
-                this.composerAutoGrown = false
-            }
         },
         inputText (value) {
             // Clear the plan-change hint once the user starts typing their own text.
@@ -282,6 +296,9 @@ export default {
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
         ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'handleMessageResponse', 'setPendingInput', 'setQuestionCadence', 'setPlanMode']),
+        openSettings () {
+            this.$refs.settingsDialog.show()
+        },
         async handleSend () {
             if (!this.canSend) return
 
@@ -305,38 +322,15 @@ export default {
 
             this.inputText = ''
             this.requestingPlanChange = false
-            // Collapse the composer back to its default height if we had grown it
-            // (180 matches the CSS min-height of .ff-expert-input).
-            if (this.composerAutoGrown) {
-                this.setHeight(180)
-                this.composerAutoGrown = false
-            }
         },
-        growComposerToContent () {
-            const textarea = this.$refs.textarea
+        onStartResize (event) {
+            // Seed the drag from the composer's current rendered height (it may have auto-grown to
+            // fit its content) so the resize continues smoothly from where it is, then hand off to
+            // the resize helper. From here on the chosen height wins over the content auto-size.
             const container = this.$refs.resizeTarget
-            if (!textarea || !container) return
-            // Height of everything in the composer that isn't the textarea — the action-buttons
-            // row, the Send/context row, the container's padding, gaps and border. Only the
-            // textarea flex-grows, so this difference is invariant to the current height. Measure
-            // it at runtime (before collapsing the textarea below) rather than hard-coding it, so
-            // it stays correct if those rows change.
-            const chromeHeight = container.offsetHeight - textarea.clientHeight
-            // The textarea has flex: 1, so it stretches to fill the container. scrollHeight is
-            // floored at the element's client height, so reading it while stretched returns the
-            // current (possibly already-grown) box height rather than the text's true height —
-            // which would ratchet the composer taller on every call. Briefly take the textarea
-            // out of the flex stretch and collapse it so scrollHeight reflects only the content,
-            // then restore the inline styles.
-            const prevFlex = textarea.style.flex
-            const prevHeight = textarea.style.height
-            textarea.style.flex = '0 0 auto'
-            textarea.style.height = '0px'
-            const contentHeight = textarea.scrollHeight
-            textarea.style.flex = prevFlex
-            textarea.style.height = prevHeight
-            this.setHeight(contentHeight + chromeHeight)
-            this.composerAutoGrown = true
+            if (container) this.setHeight(container.offsetHeight)
+            this.userResized = true
+            this.startResize(event)
         },
         handleStop () {
             this.$emit('stop')
@@ -488,6 +482,26 @@ button {
     }
 }
 
+.btn-settings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    border-radius: 5px;
+    background-color: transparent;
+    color: var(--ff-color-text-subtle);
+
+    &:hover:not(:disabled) {
+        background-color: var(--ff-color-bg-surface); // gray-50
+        color: var(--ff-color-text-strong);
+    }
+
+    &__icon {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
 .input-wrapper {
     flex: 1;
     display: flex;
@@ -501,7 +515,12 @@ button {
     }
 
     .chat-input {
-        flex: 1;
+        // field-sizing lets the textarea grow with its content (typed or loaded, e.g. an edited
+        // question) up to the composer's max-height, where it scrolls — no JS measuring needed.
+        // flex-basis auto so it sizes to that content but still fills the box when it's taller
+        // (an empty composer, or after a drag-resize).
+        field-sizing: content;
+        flex: 1 1 auto;
         width: 100%;
         padding: 1rem; // p-4
         box-sizing: border-box;
@@ -545,40 +564,19 @@ button {
 </style>
 
 <!--
-  Unscoped: the kebab options are teleported to <body>, so scoped selectors cannot reach them.
-  .ff-kebab-options is transparent by design (the surface normally comes from .ff-kebab-item
-  rows); this menu hosts a control instead of items, so it paints the surface itself using the
-  same theme variables, keeping light/dark support without bespoke colours.
+  Unscoped: ff-dialog teleports its content to <body>, so keep these selectors global rather
+  than relying on scoped data attributes reaching the teleported subtree.
 -->
 <style lang="scss">
-.expert-settings-options {
-    background-color: var(--ff-color-bg-app);
-    min-width: 16rem;
+.expert-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 18rem;
 
-    .expert-settings-menu__group {
+    &__group {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
-        padding: 0.75rem;
-
-        + .expert-settings-menu__group {
-            border-top: 1px solid var(--ff-color-border);
-        }
-    }
-
-    .expert-settings-menu__heading {
-        font-size: 0.6875rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        opacity: 0.7;
-    }
-
-    .expert-settings-menu__description {
-        margin: 0;
-        font-size: 0.75rem;
-        line-height: 1.4;
-        opacity: 0.7;
     }
 }
 </style>
