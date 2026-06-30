@@ -601,10 +601,10 @@ export const useProductExpertStore = defineStore('product-expert', {
             // Check every 30 seconds if we've reached the warning/expiration threshold
             const timer = setInterval(() => {
                 const elapsed = Date.now() - agentStore.sessionStartTime
-                const warningThreshold = 25 * 60 * 1000 // 25 minutes
-                const expirationThreshold = 28 * 60 * 1000 // 28 minutes
+                const warningThreshold = 27 * 60 * 1000 // 27 minutes
+                const expirationThreshold = 30 * 60 * 1000 // 30 minutes
 
-                // Show 25-minute warning
+                // Show 27-minute warning
                 if (elapsed >= warningThreshold && !agentStore.sessionWarningShown) {
                     agentStore.sessionWarningShown = true
                     this.addSystemMessage({
