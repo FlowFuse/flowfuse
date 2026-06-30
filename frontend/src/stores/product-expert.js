@@ -330,8 +330,10 @@ export const useProductExpertStore = defineStore('product-expert', {
             // any chat, and we must not open (or keep open) the broker connection on mount.
             // The agent replies with a curated, friendly catalog (raw tool identifiers
             // never reach the browser) plus a `hash` we store to detect later drift.
+            // Fetched whenever the Expert panel mounts, not only in the editor: the
+            // permissions UI lists every tool everywhere. Flow-building tools are simply
+            // shown as usable only from an instance editor (gated in the settings UI).
             const assistantStore = useProductAssistantStore()
-            if (!assistantStore.isImmersiveInstance && !assistantStore.isImmersiveDevice) return
 
             const teamId = useContextStore().expert?.teamId
             if (!teamId) return

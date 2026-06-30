@@ -105,10 +105,10 @@
                         data-el="expert-question-cadence"
                     />
                 </div>
-                <div v-if="isImmersive" class="expert-settings__group">
+                <div class="expert-settings__group">
                     <FormHeading>Tool permissions</FormHeading>
-                    <p>Choose which flow-building actions the Expert can run, and which need your approval.</p>
-                    <tool-permissions-settings />
+                    <p>Choose which actions the Expert can run, and which need your approval.</p>
+                    <tool-permissions-settings :in-editor="isImmersive" />
                 </div>
             </div>
         </ff-dialog>
@@ -255,11 +255,6 @@ export default {
                 if (!immersive && this.planMode) {
                     this.setPlanMode(false)
                 }
-                // Flow-building tools only exist in immersive — fetch their catalog so the
-                // tool-permissions settings can render and the policy can be sent to the agent.
-                if (immersive) {
-                    this.fetchToolCatalog()
-                }
             }
         },
         pendingInput (text) {
@@ -304,6 +299,10 @@ export default {
             minHeight: 120,
             maxViewportMarginY: 80
         })
+        // Fetch the tool catalog as soon as the Expert panel mounts (not only in the
+        // editor) so the permissions settings can render everywhere. Flow-building
+        // tools are still only usable from an instance editor (see isImmersive below).
+        this.fetchToolCatalog()
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),

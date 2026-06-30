@@ -1,7 +1,17 @@
 <template>
     <div class="tool-permissions" data-el="expert-tool-permissions">
         <section class="tool-permissions__section">
-            <FormHeading>Default permission by action type</FormHeading>
+            <FormHeading>Flow Building Tools</FormHeading>
+            <p class="tool-permissions__intro">
+                Set a default for each action type, then override individual tools below.
+            </p>
+            <p v-if="!inEditor" class="tool-permissions__notice">
+                Flow-building tools run in an instance editor. Open one to let the Expert use them; you can still set their permissions here.
+            </p>
+            <p v-if="!canUseWriteTools" class="tool-permissions__notice">
+                Your role is read-only, so the Expert can use read-only tools but cannot run actions that change flows.
+            </p>
+
             <ff-data-table :columns="defaultColumns" :show-search="false">
                 <template #rows>
                     <ff-data-table-row v-for="cls in classDefaults" :key="cls.key">
@@ -24,19 +34,8 @@
                     </ff-data-table-row>
                 </template>
             </ff-data-table>
-        </section>
 
-        <p v-if="!canUseWriteTools" class="tool-permissions__notice">
-            Your role is read-only, so the Expert can use read-only tools but cannot run actions that change flows.
-        </p>
-
-        <!-- TODO(platform-tools): once Steve's platform-tool work is merged into the agent,
-             the catalog will also carry platform UI / platform tools. Add sibling sections
-             (Platform UI, Platform Tools) alongside this one, each its own table. Until then
-             only flow-building tools exist, so a single section is rendered. -->
-        <section class="tool-permissions__section">
-            <FormHeading>Flow Building Tools</FormHeading>
-            <ff-data-table v-if="toolCatalog.length" :columns="toolColumns" :show-search="false">
+            <ff-data-table v-if="resolvedTools.length" :columns="toolColumns" :show-search="false">
                 <template #rows>
                     <ff-data-table-row v-for="tool in resolvedTools" :key="tool.familyKey">
                         <ff-data-table-cell>
@@ -72,6 +71,17 @@
             </ff-data-table>
             <p v-else class="tool-permissions__empty">No flow-building tools available yet.</p>
         </section>
+
+        <!-- TODO(platform-tools): once Steve's platform-tool work is merged into the agent,
+             FlowFuse platform tools arrive in the same catalog. Render them here exactly like
+             the Flow Building Tools section above: a defaults data-table for this group plus the
+             per-tool data-table, filtering the catalog with groupOf(entry) === TOOL_GROUPS.PLATFORM.
+             See groupOf / the toolDefaults TODO in stores/product-assistant.js for namespacing the
+             defaults by group at the same time. -->
+        <section class="tool-permissions__section">
+            <FormHeading>FlowFuse Platform Tools</FormHeading>
+            <p class="tool-permissions__empty">Available soon — added once FlowFuse platform tools ship.</p>
+        </section>
     </div>
 </template>
 
@@ -85,7 +95,7 @@ import { Roles } from '../../../utils/roles.js'
 import FormHeading from '../../FormHeading.vue'
 
 import { useContextStore } from '@/stores/context.js'
-import { classOf, useProductAssistantStore } from '@/stores/product-assistant.js'
+import { TOOL_GROUPS, classOf, groupOf, useProductAssistantStore } from '@/stores/product-assistant.js'
 
 const CLASS_ORDER = ['read', 'write', 'delete']
 const CLASS_LABELS = { read: 'Read', write: 'Write', delete: 'Delete' }
@@ -97,6 +107,15 @@ const NR_ASSISTANT = 'nr‑assistant'
 export default {
     name: 'ToolPermissionsSettings',
     components: { FfListbox, FormHeading },
+    props: {
+        // Whether the user is in an instance editor, where flow-building tools can
+        // actually run. Outside it the tools are still listed (and configurable) but
+        // shown as usable only once an editor is open.
+        inEditor: {
+            type: Boolean,
+            default: false
+        }
+    },
     computed: {
         ...mapState(useProductAssistantStore, ['toolCatalog', 'toolDefaults', 'toolPolicyFor', 'toolAvailabilityFor']),
         ...mapState(useContextStore, ['teamMembership']),
@@ -137,6 +156,9 @@ export default {
             // list is sorted read -> write -> delete so the table reads scope-first.
             const families = new Map()
             for (const entry of this.toolCatalog) {
+                // Only flow-building tools belong in this section; platform tools (once
+                // they exist) render in their own section (see groupOf / the TODO above).
+                if (groupOf(entry) !== TOOL_GROUPS.FLOW_BUILDING) continue
                 const displayName = this.displayName(entry)
                 const cls = classOf(entry)
                 const familyKey = `${cls}::${displayName}`
@@ -259,6 +281,13 @@ export default {
 .tool-permissions__section {
     display: flex;
     flex-direction: column;
+    gap: 0.625rem;
+}
+
+.tool-permissions__intro {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--ff-color-text-subtle);
 }
 
 .tool-permissions__cell {
