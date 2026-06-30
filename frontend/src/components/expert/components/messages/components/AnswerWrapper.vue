@@ -1,6 +1,6 @@
 <template>
     <message-bubble ref="messageBubble" type="ai">
-        <answer-badge v-if="!isChatAnswer && !isQuestionsAnswer && !isPlanAnswer" :kind="answer.kind" />
+        <answer-badge v-if="!isChatAnswer && !isQuestionsAnswer && !isPlanAnswer && !hasToolApproval" :kind="answer.kind" />
 
         <rich-content
             v-if="shouldShowRichContent"

@@ -14,19 +14,19 @@
         </dl>
 
         <div v-if="status === 'pending'" class="tool-approval-actions">
-            <ff-button kind="primary" size="small" :disabled="disabled" @click="$emit('approve')">
+            <ff-button kind="primary" size="small" :disabled="disabled || decided" @click="decide('approve')">
                 Allow
             </ff-button>
             <ff-button
                 kind="secondary"
                 size="small"
-                :disabled="disabled"
+                :disabled="disabled || decided"
                 title="Always allow this tool without asking again"
-                @click="$emit('allow-always')"
+                @click="decide('allow-always')"
             >
                 Always allow
             </ff-button>
-            <ff-button kind="tertiary" size="small" :disabled="disabled" @click="$emit('deny')">
+            <ff-button kind="tertiary" size="small" :disabled="disabled || decided" @click="decide('deny')">
                 Deny
             </ff-button>
         </div>
@@ -62,9 +62,16 @@ export default {
         }
     },
     emits: ['approve', 'allow-always', 'deny', 'streaming-complete'],
+    data () {
+        return {
+            // Optimistically disables the buttons the moment a choice is made, so the
+            // card cannot be clicked twice while the decision round-trips to the agent.
+            decided: false
+        }
+    },
     computed: {
         classLabel () {
-            return { read: 'Read only', write: 'Makes changes', delete: 'Deletes' }[this.toolClass] || 'Makes changes'
+            return { read: 'Read', write: 'Write', delete: 'Delete' }[this.toolClass] || 'Write'
         },
         paramEntries () {
             const params = this.params || {}
@@ -79,6 +86,13 @@ export default {
         // Interactive card, not streamed text — signal completion so the
         // AnswerWrapper streaming order can advance.
         this.$nextTick(() => this.$emit('streaming-complete'))
+    },
+    methods: {
+        decide (action) {
+            if (this.disabled || this.decided) return
+            this.decided = true
+            this.$emit(action)
+        }
     }
 }
 </script>
