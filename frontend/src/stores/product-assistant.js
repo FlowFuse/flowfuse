@@ -6,6 +6,27 @@ import { useContextStore } from '@/stores/context.js'
 
 const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep
 
+// --- Expert tool permissions (human-in-the-loop, #421) -----------------------
+// Pending tool-approval resolvers, keyed by approval id. Kept at module scope
+// (not in store state) so the Map and the Promise resolvers it holds are never
+// wrapped in a reactive proxy, which would break their internals.
+const pendingToolApprovals = new Map()
+
+const TOOL_POLICIES = ['allow', 'ask', 'deny']
+const isToolPolicy = (p) => TOOL_POLICIES.includes(p)
+const TOOL_CLASSES = ['read', 'write', 'delete']
+// Fail-safe default when a class has no configured default: read allows, the rest ask.
+const fallbackForToolClass = (cls) => (cls === 'read' ? 'allow' : 'ask')
+
+// Derive a tool's permission class from its catalog entry. Read tools view only;
+// delete tools are destructive writes; everything else that changes flows is write.
+export const classOf = (entry) => {
+    if (!entry) return 'write'
+    if (entry.toolClass === 'read') return 'read'
+    if (entry.toolClass === 'delete' || entry.destructive === true) return 'delete'
+    return 'write'
+}
+
 const eventsRegistry = {
     'editor:open': {
         nodeRedEvent: 'editor:open', // this is the Node-RED event
@@ -158,7 +179,13 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         // internally; external consumers should read this.debugLog (the getter).
         debugLogEntries: [],
         editorState: { ...buildInitialEditorState() },
-        pendingRequests: new Map() // key is transactionId, value is { resolve, reject, timeout, timestamp, type, action, params }
+        pendingRequests: new Map(), // key is transactionId, value is { resolve, reject, timeout, timestamp, type, action, params }
+        // Expert tool permissions (HITL, #421). The catalog + hash are refreshed from
+        // the agent; defaults + preferences are the user's choices (persisted below).
+        toolCatalog: [],
+        toolCatalogHash: null,
+        toolDefaults: { read: 'allow', write: 'ask', delete: 'ask' },
+        toolPreferences: {}
     }),
     getters: {
         isImmersiveInstance: () => {
@@ -260,6 +287,64 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             // NOTE: this is achieved via dynamic event registration for 'flows:loaded' and 'runtime-state' events,
             // which requires nr-assistant version 0.10.1 or later.
             return state.editorState?.flowsLoaded || state.editorState?.runtimeState?.state === 'start'
+        },
+        // --- Expert tool permissions (HITL, #421) ---
+        /** The standing default for a tool class ('read'|'write'|'delete'). */
+        defaultForToolClass: (state) => (cls) => {
+            const d = state.toolDefaults?.[cls]
+            return isToolPolicy(d) ? d : fallbackForToolClass(cls)
+        },
+        /**
+         * Effective policy for a catalog key. An explicit per-tool preference always
+         * wins; otherwise the standing default for the tool's class applies.
+         */
+        toolPolicyFor: (state) => (key) => {
+            const explicit = state.toolPreferences[key]
+            if (isToolPolicy(explicit)) return explicit
+            const entry = state.toolCatalog.find(t => t.key === key)
+            const cls = classOf(entry)
+            const d = state.toolDefaults?.[cls]
+            return isToolPolicy(d) ? d : fallbackForToolClass(cls)
+        },
+        /**
+         * The resolved permission map sent to the agent in the chat context:
+         * { defaults, tools: { [key]: 'allow'|'ask'|'deny' } }.
+         */
+        resolvedToolPermissions: (state) => {
+            const defaults = {}
+            for (const cls of TOOL_CLASSES) {
+                defaults[cls] = isToolPolicy(state.toolDefaults?.[cls]) ? state.toolDefaults[cls] : fallbackForToolClass(cls)
+            }
+            const tools = {}
+            for (const t of state.toolCatalog) {
+                const explicit = state.toolPreferences[t.key]
+                tools[t.key] = isToolPolicy(explicit) ? explicit : defaults[classOf(t)]
+            }
+            return { defaults, tools }
+        },
+        /**
+         * Availability of a tool against the instance's installed nr-assistant version
+         * (from `_meta.assistantMinVersion` / `assistantMaxVersion` on each entry).
+         * Returns { status: 'available'|'requires-update'|'deprecated', deprecated, requiredVersion }.
+         * - requires-update: instance is below the tool's min version (update to enable).
+         * - deprecated: instance is past the tool's max version (a newer variant supersedes it).
+         * - available + deprecated flag: in range, but a max is set so an update will supersede it.
+         */
+        toolAvailabilityFor: (state) => (entry) => {
+            const version = state.version
+            const min = entry?.minVersion || null
+            const max = entry?.maxVersion || null
+            if (!version || !SemVer.valid(version)) {
+                // Without a known instance version we can't gate — treat as usable.
+                return { status: 'available', deprecated: !!max, requiredVersion: min }
+            }
+            if (min && SemVer.valid(min) && SemVer.lt(version, min)) {
+                return { status: 'requires-update', deprecated: false, requiredVersion: min }
+            }
+            if (max && SemVer.valid(max) && SemVer.gt(version, max)) {
+                return { status: 'deprecated', deprecated: true, requiredVersion: null }
+            }
+            return { status: 'available', deprecated: !!max, requiredVersion: null }
         }
     },
     actions: {
@@ -548,6 +633,52 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                 }
             })
         },
+        // --- Expert tool permissions (HITL, #421) ---
+        setToolCatalog (catalog, hash) {
+            this.toolCatalog = Array.isArray(catalog) ? catalog : []
+            if (hash !== undefined) {
+                this.toolCatalogHash = hash || null
+            }
+        },
+        setToolClassDefault (cls, policy) {
+            if (!TOOL_CLASSES.includes(cls) || !isToolPolicy(policy)) return
+            this.toolDefaults = { ...this.toolDefaults, [cls]: policy }
+        },
+        setToolPreference (key, policy) {
+            if (!isToolPolicy(policy)) return
+            this.toolPreferences = { ...this.toolPreferences, [key]: policy }
+        },
+        clearToolPreference (key) {
+            if (!(key in this.toolPreferences)) return
+            const next = { ...this.toolPreferences }
+            delete next[key]
+            this.toolPreferences = next
+        },
+        // Pending approvals (module-level map; see note at top of file).
+        registerPendingApproval (id, resolve, meta = {}) {
+            pendingToolApprovals.set(id, { resolve, meta })
+        },
+        getPendingApproval (id) {
+            return pendingToolApprovals.get(id) || null
+        },
+        resolvePendingApproval (id, approved) {
+            const entry = pendingToolApprovals.get(id)
+            if (!entry) return false
+            pendingToolApprovals.delete(id)
+            entry.resolve(!!approved)
+            return true
+        },
+        hasPendingApprovals () {
+            return pendingToolApprovals.size > 0
+        },
+        // Resolve every open approval as denied — used when the user stops the chat so
+        // the agent's approval wait unblocks instead of hanging on an abandoned prompt.
+        rejectAllPendingApprovals () {
+            for (const entry of pendingToolApprovals.values()) {
+                entry.resolve(false)
+            }
+            pendingToolApprovals.clear()
+        },
         sendMessage (payload) {
             const orchestrator = getAppOrchestrator()
             const contextStore = useContextStore()
@@ -561,5 +692,11 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                 targetOrigin: (contextStore.instance || contextStore.device)?.url
             })
         }
+    },
+    // Only the user's HITL tool-permission choices persist across sessions; the
+    // catalog/hash and all editor/session state are re-derived each session.
+    persist: {
+        pick: ['toolDefaults', 'toolPreferences'],
+        storage: localStorage
     }
 })

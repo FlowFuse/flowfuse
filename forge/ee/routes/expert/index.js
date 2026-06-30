@@ -43,8 +43,10 @@ module.exports = async function (app) {
                     error: 'unauthorized'
                 })
             }
-            // Ensure users team access is valid
-            const teamId = request.body.context?.teamId // `context.teamId` is the hash provided in the body context by the client
+            // Ensure users team access is valid. `teamId` is the team hash provided by the
+            // client — in the body context for POST routes (/chat, /mcp/features) or as a
+            // query param for GET routes (/mcp/tools, which has no body).
+            const teamId = request.body?.context?.teamId || request.query?.teamId
             if (!teamId) {
                 return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
@@ -476,6 +478,66 @@ module.exports = async function (app) {
             response.data.servers = filterAccessibleMCPServerFeatures(app, serverList, request.team, request.teamMembership)
 
             reply.send(response.data)
+        } catch (error) {
+            reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
+        }
+    })
+
+    /**
+     * Retrieve the curated tool catalog for the Expert's human-in-the-loop permissions UI
+     * (#421). The MCP server(s) are static/global (not per-team registered), so unlike
+     * /mcp/features this is a thin read-only proxy: it forwards to the agent service's
+     * /mcp/tools endpoint, which returns friendly catalog entries only (raw MCP identifiers
+     * never leave the backend) plus a `hash` fingerprint of the catalog. Team access +
+     * feature gating are enforced by the shared preHandler above; read/write classification
+     * on each entry is what the client uses to decide which tools a role may enable.
+     */
+    app.get('/mcp/tools', {
+        schema: {
+            hide: true, // dont show in swagger
+            querystring: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string', minLength: 10 }
+                },
+                required: ['teamId']
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        catalog: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                additionalProperties: true
+                            }
+                        },
+                        hash: {
+                            type: ['string', 'null']
+                        }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    },
+    async (request, reply) => {
+        if (!request.isExpertAssistantEnabled) {
+            return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+        try {
+            const toolsUrl = `${app.expert.expertUrl.split('/').slice(0, -1).join('/')}/mcp/tools`
+            const response = await axios.get(toolsUrl, {
+                headers: {
+                    Origin: request.headers.origin,
+                    ...(app.expert.serviceToken ? { Authorization: `Bearer ${app.expert.serviceToken}` } : {})
+                },
+                timeout: app.expert.requestTimeout
+            })
+            reply.send({ catalog: response.data?.catalog || [], hash: response.data?.hash || null })
         } catch (error) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
         }

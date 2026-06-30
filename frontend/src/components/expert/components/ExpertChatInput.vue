@@ -105,6 +105,11 @@
                         data-el="expert-question-cadence"
                     />
                 </div>
+                <div v-if="isImmersive" class="expert-settings__group">
+                    <FormHeading>Tool permissions</FormHeading>
+                    <p>Choose which flow-building actions the Expert can run, and which need your approval.</p>
+                    <tool-permissions-settings />
+                </div>
             </div>
         </ff-dialog>
     </div>
@@ -118,6 +123,7 @@ import FormHeading from '../../FormHeading.vue'
 import ResizeBar from '../../ResizeBar.vue'
 
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
+import ToolPermissionsSettings from './ToolPermissionsSettings.vue'
 import DefaultChip from './chips/DefaultChip.vue'
 import ContextSelector from './context-selection/index.vue'
 
@@ -135,7 +141,8 @@ export default {
         ContextSelector,
         DefaultChip,
         FormHeading,
-        ResizeBar
+        ResizeBar,
+        ToolPermissionsSettings
     },
     inject: {
         togglePinWithWidth: {
@@ -248,6 +255,11 @@ export default {
                 if (!immersive && this.planMode) {
                     this.setPlanMode(false)
                 }
+                // Flow-building tools only exist in immersive — fetch their catalog so the
+                // tool-permissions settings can render and the policy can be sent to the agent.
+                if (immersive) {
+                    this.fetchToolCatalog()
+                }
             }
         },
         pendingInput (text) {
@@ -295,7 +307,7 @@ export default {
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
-        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'handleMessageResponse', 'setPendingInput', 'setQuestionCadence', 'setPlanMode']),
+        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'handleMessageResponse', 'setPendingInput', 'setQuestionCadence', 'setPlanMode', 'fetchToolCatalog']),
         openSettings () {
             this.$refs.settingsDialog.show()
         },

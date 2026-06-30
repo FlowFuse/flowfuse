@@ -92,6 +92,19 @@
             @reject="onPlanReject"
             @streaming-complete="onComponentComplete('plan-list')"
         />
+
+        <tool-approval-card
+            v-if="shouldShowToolApproval"
+            :name="answer.name"
+            :summary="answer.summary"
+            :tool-class="answer.toolClass"
+            :params="answer.params"
+            :status="answer.status"
+            @approve="onToolApprove"
+            @allow-always="onToolAllowAlways"
+            @deny="onToolDeny"
+            @streaming-complete="onComponentComplete('tool-approval-card')"
+        />
     </message-bubble>
 </template>
 
@@ -113,6 +126,7 @@ import QuestionsList from './resources/QuestionsList.vue'
 import ResourcesList from './resources/ResourcesList.vue'
 import RichContent from './resources/RichContent.vue'
 import SuggestionsList from './resources/SuggestionsList.vue'
+import ToolApprovalCard from './resources/ToolApprovalCard.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
@@ -131,7 +145,8 @@ export default {
         GuideStepsList,
         MessageBubble,
         GuideHeader,
-        IssuesList
+        IssuesList,
+        ToolApprovalCard
     },
     props: {
         answer: {
@@ -201,6 +216,9 @@ export default {
         },
         hasPlan () {
             return this.isPlanAnswer && typeof this.answer.content === 'string' && this.answer.content.length > 0
+        },
+        hasToolApproval () {
+            return this.answer.kind === 'tool-approval' && !!this.answer.id
         },
         isChatAnswer () {
             return !Object.hasOwnProperty.call(this.answer, 'kind') || this.answer.kind === 'chat'
@@ -285,6 +303,13 @@ export default {
             if (this.componentStreamingOrder.indexOf(key) === 0) return true
             return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
         },
+        shouldShowToolApproval () {
+            const key = 'tool-approval-card'
+            if (!this.componentStreamingOrder.includes(key)) return false
+            if (!this.hasToolApproval) return false
+            if (this.componentStreamingOrder.indexOf(key) === 0) return true
+            return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
+        },
         shouldStream () {
             return !this.answer._streamed
         }
@@ -320,7 +345,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'requestPlanChange', 'resetComposer', 'setPlanMode']),
+        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'requestPlanChange', 'resetComposer', 'setPlanMode', 'resolveToolApproval']),
         buildStreamingOrder () {
             // order matters
             // this is where the decision of the streaming order of components is decided
@@ -335,6 +360,7 @@ export default {
             if (this.hasSuggestions) this.componentStreamingOrder.push('suggestions-list')
             if (this.hasQuestions) this.componentStreamingOrder.push('questions-list')
             if (this.hasPlan) this.componentStreamingOrder.push('plan-list')
+            if (this.hasToolApproval) this.componentStreamingOrder.push('tool-approval-card')
         },
         async onComponentComplete (key) {
             if (!this.shouldStream) await this.waitFor(200)
@@ -372,6 +398,15 @@ export default {
             // Drop any plan text loaded into the composer via "Edit manually".
             this.resetComposer()
             this.handleQuery({ query: 'I do not want to proceed with this plan.' })
+        },
+        onToolApprove () {
+            this.resolveToolApproval({ id: this.answer.id, approved: true, always: false })
+        },
+        onToolAllowAlways () {
+            this.resolveToolApproval({ id: this.answer.id, approved: true, always: true })
+        },
+        onToolDeny () {
+            this.resolveToolApproval({ id: this.answer.id, approved: false, always: false })
         },
         handleClick (e) {
             const target = e.target

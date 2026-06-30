@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
 
 import teamApi from '../api/team.js'
+import { hasAMinimumTeamRoleOf } from '../composables/Permissions.js'
 import product from '../services/product.js'
+import { Roles } from '../utils/roles.js'
 
 import { useAccountAuthStore } from './account-auth.js'
 import { useProductAssistantStore } from './product-assistant.js'
@@ -110,7 +112,12 @@ export const useContextStore = defineStore('context', {
                 selectedNodes,
                 scope,
                 questionCadence: useProductExpertStore().questionCadence,
-                planMode: useProductExpertStore().planMode
+                planMode: useProductExpertStore().planMode,
+                // Human-in-the-loop tool permissions (#421). The agent gates each
+                // flow-building tool call against this map; canUseWriteTools drives
+                // role inheritance (fail-closed) for write/delete tools.
+                toolPermissions: assistantStore.resolvedToolPermissions,
+                canUseWriteTools: hasAMinimumTeamRoleOf(Roles.Member, state.teamMembership)
             }
         }
     },
