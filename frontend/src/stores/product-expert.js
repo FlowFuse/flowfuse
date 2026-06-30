@@ -471,7 +471,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                     id,
                     toolKey: payload.tool,
                     name: payload.name,
-                    summary: payload.summary,
                     toolClass: payload.toolClass,
                     params: payload.params,
                     status: 'pending'

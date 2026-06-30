@@ -6,7 +6,6 @@
                 {{ classLabel }}
             </span>
         </div>
-        <p v-if="summary" class="tool-approval-summary">{{ summary }}</p>
         <dl v-if="paramEntries.length" class="tool-approval-params">
             <template v-for="entry in paramEntries" :key="entry.key">
                 <dt>{{ entry.key }}</dt>
@@ -44,10 +43,6 @@ export default {
         name: {
             type: String,
             default: 'this tool'
-        },
-        summary: {
-            type: String,
-            default: ''
         },
         toolClass: {
             type: String,
@@ -116,10 +111,6 @@ export default {
     &.tag-read { background: var(--ff-color-bg-emphasis); color: var(--ff-color-text-subtle); }
     &.tag-write { background: var(--ff-color-status-info-bg); color: var(--ff-color-status-info-text); }
     &.tag-delete { background: var(--ff-color-status-error-bg); color: var(--ff-color-status-error-text); }
-}
-
-.tool-approval-summary {
-    margin: 0;
 }
 
 .tool-approval-params {

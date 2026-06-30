@@ -96,7 +96,6 @@
         <tool-approval-card
             v-if="shouldShowToolApproval"
             :name="answer.name"
-            :summary="answer.summary"
             :tool-class="answer.toolClass"
             :params="answer.params"
             :status="answer.status"

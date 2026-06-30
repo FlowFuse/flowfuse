@@ -1,23 +1,29 @@
 <template>
     <div class="tool-permissions" data-el="expert-tool-permissions">
         <section class="tool-permissions__section">
-            <span class="tool-permissions__section-title">Default permission by action type</span>
-            <ul class="tool-permissions__rows">
-                <li v-for="cls in classDefaults" :key="cls.key" class="tool-permissions__row">
-                    <div class="tool-permissions__label">
-                        <span class="tool-permissions__label-title">{{ cls.label }}</span>
-                        <span class="tool-permissions__label-hint">{{ cls.hint }}</span>
-                    </div>
-                    <ff-listbox
-                        class="tool-permissions__control"
-                        selector="expert-tool-permission"
-                        :model-value="toolDefaults[cls.key]"
-                        :options="policyOptions"
-                        :options-min-width="140"
-                        @update:model-value="(value) => setToolClassDefault(cls.key, value)"
-                    />
-                </li>
-            </ul>
+            <FormHeading>Default permission by action type</FormHeading>
+            <ff-data-table :columns="defaultColumns" :show-search="false">
+                <template #rows>
+                    <ff-data-table-row v-for="cls in classDefaults" :key="cls.key">
+                        <ff-data-table-cell>
+                            <div class="tool-permissions__cell">
+                                <span class="tool-permissions__title">{{ cls.label }}</span>
+                                <span class="tool-permissions__hint">{{ cls.hint }}</span>
+                            </div>
+                        </ff-data-table-cell>
+                        <ff-data-table-cell class="permission-col">
+                            <ff-listbox
+                                class="tool-permissions__control"
+                                selector="expert-tool-permission"
+                                :model-value="toolDefaults[cls.key]"
+                                :options="policyOptions"
+                                :options-min-width="140"
+                                @update:model-value="(value) => setToolClassDefault(cls.key, value)"
+                            />
+                        </ff-data-table-cell>
+                    </ff-data-table-row>
+                </template>
+            </ff-data-table>
         </section>
 
         <p v-if="!canUseWriteTools" class="tool-permissions__notice">
@@ -25,25 +31,28 @@
         </p>
 
         <!-- TODO(platform-tools): once Steve's platform-tool work is merged into the agent,
-             the catalog will also carry platform UI / platform tools. Group `groupedTools`
-             by tool target into sibling sections (Platform UI, Platform Tools, Flow Building
-             Tools), each keeping the read/write/delete scope grouping below. Until then only
-             flow-building tools exist, so a single section is rendered. -->
+             the catalog will also carry platform UI / platform tools. Add sibling sections
+             (Platform UI, Platform Tools) alongside this one, each its own table. Until then
+             only flow-building tools exist, so a single section is rendered. -->
         <section class="tool-permissions__section">
-            <span class="tool-permissions__section-title">Flow Building Tools</span>
-            <template v-if="toolCatalog.length">
-                <div v-for="group in groupedTools" :key="group.key" class="tool-permissions__group">
-                    <span class="tool-permissions__group-title">{{ group.label }}</span>
-                    <ul class="tool-permissions__rows">
-                        <li v-for="tool in group.tools" :key="tool.familyKey" class="tool-permissions__row">
-                            <div class="tool-permissions__label">
-                                <span class="tool-permissions__tool-name">{{ tool.displayName }}</span>
+            <FormHeading>Flow Building Tools</FormHeading>
+            <ff-data-table v-if="toolCatalog.length" :columns="toolColumns" :show-search="false">
+                <template #rows>
+                    <ff-data-table-row v-for="tool in resolvedTools" :key="tool.familyKey">
+                        <ff-data-table-cell>
+                            <div class="tool-permissions__cell">
+                                <span class="tool-permissions__title">{{ tool.displayName }}</span>
                                 <span
                                     v-if="tool.statusHint"
-                                    class="tool-permissions__label-hint"
+                                    class="tool-permissions__hint"
                                     :class="`is-${tool.status}`"
                                 >{{ tool.statusHint }}</span>
                             </div>
+                        </ff-data-table-cell>
+                        <ff-data-table-cell>
+                            <span class="tool-permissions__type">{{ scopeLabel(tool.toolClass) }}</span>
+                        </ff-data-table-cell>
+                        <ff-data-table-cell class="permission-col">
                             <span
                                 v-if="tool.control !== 'toggle'"
                                 class="tool-permissions__static"
@@ -57,10 +66,10 @@
                                 :options-min-width="140"
                                 @update:model-value="(value) => setFamilyPreference(tool.variantKeys, value)"
                             />
-                        </li>
-                    </ul>
-                </div>
-            </template>
+                        </ff-data-table-cell>
+                    </ff-data-table-row>
+                </template>
+            </ff-data-table>
             <p v-else class="tool-permissions__empty">No flow-building tools available yet.</p>
         </section>
     </div>
@@ -73,6 +82,7 @@ import SemVer from 'semver'
 import { hasAMinimumTeamRoleOf } from '../../../composables/Permissions.js'
 import FfListbox from '../../../ui-components/components/form/ListBox.vue'
 import { Roles } from '../../../utils/roles.js'
+import FormHeading from '../../FormHeading.vue'
 
 import { useContextStore } from '@/stores/context.js'
 import { classOf, useProductAssistantStore } from '@/stores/product-assistant.js'
@@ -86,7 +96,7 @@ const NR_ASSISTANT = 'nr‑assistant'
 
 export default {
     name: 'ToolPermissionsSettings',
-    components: { FfListbox },
+    components: { FfListbox, FormHeading },
     computed: {
         ...mapState(useProductAssistantStore, ['toolCatalog', 'toolDefaults', 'toolPolicyFor', 'toolAvailabilityFor']),
         ...mapState(useContextStore, ['teamMembership']),
@@ -100,6 +110,19 @@ export default {
                 { label: 'Never', value: 'deny' }
             ]
         },
+        defaultColumns () {
+            return [
+                { label: 'Action', key: 'action' },
+                { label: 'Permission', key: 'permission', class: 'permission-col' }
+            ]
+        },
+        toolColumns () {
+            return [
+                { label: 'Tool', key: 'tool' },
+                { label: 'Type', key: 'type' },
+                { label: 'Permission', key: 'permission', class: 'permission-col' }
+            ]
+        },
         classDefaults () {
             return [
                 { key: 'read', label: 'Read', hint: 'View flows, palette and nodes' },
@@ -107,10 +130,11 @@ export default {
                 { key: 'delete', label: 'Delete', hint: 'Remove nodes, tabs and flows' }
             ]
         },
-        groupedTools () {
+        resolvedTools () {
             // Collapse versioned variants (e.g. "Manage Groups v1/v2") into one family,
             // keyed by stripped display name + class, then resolve each family against
-            // the instance's nr-assistant version into a single displayed row.
+            // the instance's nr-assistant version into a single displayed row. The flat
+            // list is sorted read -> write -> delete so the table reads scope-first.
             const families = new Map()
             for (const entry of this.toolCatalog) {
                 const displayName = this.displayName(entry)
@@ -136,17 +160,17 @@ export default {
                 })
             }
 
-            const buckets = { read: [], write: [], delete: [] }
-            for (const t of resolved) {
-                (buckets[t.toolClass] || buckets.write).push(t)
-            }
-            return CLASS_ORDER
-                .filter(key => buckets[key].length)
-                .map(key => ({ key, label: CLASS_LABELS[key], tools: buckets[key] }))
+            return resolved.sort((a, b) =>
+                CLASS_ORDER.indexOf(a.toolClass) - CLASS_ORDER.indexOf(b.toolClass) ||
+                a.displayName.localeCompare(b.displayName)
+            )
         }
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['setToolPreference', 'setToolClassDefault']),
+        scopeLabel (cls) {
+            return CLASS_LABELS[cls] || CLASS_LABELS.write
+        },
         // Hide the internal version suffix (e.g. "Manage Groups v2") from the
         // user-facing label; versioned variants are reconciled into one family.
         displayName (tool) {
@@ -228,99 +252,64 @@ export default {
 .tool-permissions {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
     width: 100%;
 }
 
 .tool-permissions__section {
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
 }
 
-.tool-permissions__section-title {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--ff-color-text);
-}
-
-.tool-permissions__group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-}
-
-.tool-permissions__group-title {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--ff-color-text-subtle);
-}
-
-.tool-permissions__rows {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.tool-permissions__row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-}
-
-.tool-permissions__label {
+.tool-permissions__cell {
     display: flex;
     flex-direction: column;
     gap: 1px;
-    min-width: 0;
 }
 
-.tool-permissions__label-title {
-    font-size: 0.8125rem;
+.tool-permissions__title {
     font-weight: 500;
     color: var(--ff-color-text);
 }
 
-.tool-permissions__label-hint {
-    font-size: 0.6875rem;
+.tool-permissions__hint {
+    font-size: 0.75rem;
     color: var(--ff-color-text-subtle);
 
     &.is-requires-update { color: var(--ff-color-status-info-text); }
     &.is-deprecated { color: var(--ff-color-status-error-text); }
 }
 
-.tool-permissions__tool-name {
+.tool-permissions__type {
+    color: var(--ff-color-text-subtle);
+}
+
+.tool-permissions__static {
     font-size: 0.8125rem;
-    color: var(--ff-color-text-strong);
-    overflow-wrap: anywhere;
+    color: var(--ff-color-text-subtle);
 }
 
 .tool-permissions__notice,
 .tool-permissions__empty {
     margin: 0;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: var(--ff-color-text-subtle);
 }
 
-.tool-permissions__static {
-    flex: none;
-    font-size: 0.75rem;
-    color: var(--ff-color-text-subtle);
+// Keep the permission column hugging the right edge so each tool name lines up
+// with its own control across the row border, rather than floating in whitespace.
+:deep(.permission-col) {
+    width: 1px;
+    white-space: nowrap;
+    text-align: right;
 }
 
 // Compact the shared listbox so the control column stays narrow and the menu
 // never sizes itself to the widest option label. The button renders in-place
 // (only the options popup is teleported), so :deep reaches it from this scope.
 :deep(.tool-permissions__control) {
-    flex: none;
-    width: 8.5rem;
     min-width: 0;
+    width: 9rem;
 
     .ff-button {
         padding: 0.25rem 0.5rem;
