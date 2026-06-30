@@ -51,7 +51,7 @@ export default {
     emits: ['step-selected'],
     methods: {
         select (key, disabled) {
-            if (this.disableNextStep) {
+            if (this.disableNextStep && key > this.currentEntry) {
                 return
             }
             if (disabled !== true) {
@@ -148,7 +148,7 @@ export default {
                 }
 
                 &.disabled {
-                    cursor: default;
+                    cursor: not-allowed;
                 }
 
                 .label {
