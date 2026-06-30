@@ -6,12 +6,7 @@
                 {{ classLabel }}
             </span>
         </div>
-        <dl v-if="paramEntries.length" class="tool-approval-params">
-            <template v-for="entry in paramEntries" :key="entry.key">
-                <dt>{{ entry.key }}</dt>
-                <dd>{{ entry.value }}</dd>
-            </template>
-        </dl>
+        <json-viewer v-if="hasParams" :value="params" class="tool-approval-payload" />
 
         <div v-if="status === 'pending'" class="tool-approval-actions">
             <ff-button kind="primary" size="small" :disabled="disabled || decided" @click="decide('approve')">
@@ -37,8 +32,11 @@
 </template>
 
 <script>
+import JsonViewer from './JsonViewer.vue'
+
 export default {
     name: 'ToolApprovalCard',
+    components: { JsonViewer },
     props: {
         name: {
             type: String,
@@ -73,13 +71,8 @@ export default {
         classLabel () {
             return { read: 'Read', write: 'Write', delete: 'Delete' }[this.toolClass] || 'Write'
         },
-        paramEntries () {
-            const params = this.params || {}
-            return Object.keys(params).map(key => {
-                const raw = params[key]
-                const value = typeof raw === 'object' ? JSON.stringify(raw) : String(raw)
-                return { key, value }
-            })
+        hasParams () {
+            return Object.keys(this.params || {}).length > 0
         }
     },
     mounted () {
@@ -125,16 +118,6 @@ export default {
     &.tag-read { background: var(--ff-color-bg-emphasis); color: var(--ff-color-text-subtle); }
     &.tag-write { background: var(--ff-color-status-info-bg); color: var(--ff-color-status-info-text); }
     &.tag-delete { background: var(--ff-color-status-error-bg); color: var(--ff-color-status-error-text); }
-}
-
-.tool-approval-params {
-    margin: 0;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 2px 10px;
-    font-size: 0.8125rem;
-    dt { font-weight: 600; color: var(--ff-color-text-subtle); }
-    dd { margin: 0; word-break: break-word; }
 }
 
 .tool-approval-actions {
