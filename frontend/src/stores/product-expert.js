@@ -200,7 +200,16 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.abortController = markRaw(new AbortController())
 
             try {
-                return await this.sendQuery({ query })
+                // sendQuery resolves with the HTTP response to render; over MQTT it resolves
+                // with nothing and the reply is rendered by the _onMqttMessage push handler
+                // instead. Rendering the response here — rather than at each call site — means
+                // every entry point (composer, questions/plan cards) shows the reply without
+                // having to remember to chain handleMessageResponse itself.
+                const result = await this.sendQuery({ query })
+                if (result) {
+                    await this.handleMessageResponse(result)
+                }
+                return result
             } catch (error) {
                 if (error.name === 'AbortError' || error.name === 'CanceledError') {
                     // User canceled request
