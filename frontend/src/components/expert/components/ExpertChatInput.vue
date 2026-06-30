@@ -17,26 +17,17 @@
             </button>
             <div class="right-buttons">
                 <capabilities-selector v-if="isInsightsAgent" />
-                <ff-kebab-menu
+                <button
                     v-else
-                    class="expert-settings-menu"
+                    type="button"
+                    class="btn-settings"
                     data-el="expert-settings-menu"
-                    :menu-items-attrs="{ class: 'expert-settings-options' }"
+                    aria-label="Expert settings"
+                    title="Expert settings"
+                    @click="openSettings"
                 >
-                    <li class="expert-settings-menu__group">
-                        <span class="expert-settings-menu__heading">Follow-up questions</span>
-                        <p class="expert-settings-menu__description">
-                            When a request needs more detail, choose how the Expert asks for it.
-                        </p>
-                        <toggle-button-group
-                            v-model="questionCadenceWrapper"
-                            :buttons="questionCadenceButtons"
-                            :usesLinks="false"
-                            :visually-hide-title="true"
-                            data-el="expert-question-cadence"
-                        />
-                    </li>
-                </ff-kebab-menu>
+                    <Cog8ToothIcon class="btn-settings__icon" />
+                </button>
             </div>
         </div>
         <div class="input-wrapper" :class="{ 'focused': isTextareaFocused }">
@@ -78,14 +69,36 @@
                 </div>
             </div>
         </div>
+
+        <ff-dialog
+            ref="settingsDialog"
+            header="Expert settings"
+            confirm-label="Done"
+            :can-be-canceled="false"
+            data-el="expert-settings-dialog"
+        >
+            <div class="expert-settings">
+                <div class="expert-settings__group">
+                    <FormHeading>Follow-up questions</FormHeading>
+                    <p>When a request needs more detail, choose how the Expert asks for it.</p>
+                    <ff-radio-group
+                        v-model="questionCadenceWrapper"
+                        orientation="vertical"
+                        :options="questionCadenceOptions"
+                        data-el="expert-question-cadence"
+                    />
+                </div>
+            </div>
+        </ff-dialog>
     </div>
 </template>
 
 <script>
+import { Cog8ToothIcon } from '@heroicons/vue/20/solid'
 import { mapActions, mapState } from 'pinia'
 
+import FormHeading from '../../FormHeading.vue'
 import ResizeBar from '../../ResizeBar.vue'
-import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
 
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
 import ContextSelector from './context-selection/index.vue'
@@ -100,9 +113,10 @@ export default {
     name: 'ExpertChatInput',
     components: {
         CapabilitiesSelector,
+        Cog8ToothIcon,
         ContextSelector,
-        ResizeBar,
-        ToggleButtonGroup
+        FormHeading,
+        ResizeBar
     },
     inject: {
         togglePinWithWidth: {
@@ -154,10 +168,10 @@ export default {
             'pendingInput',
             'questionCadence'
         ]),
-        questionCadenceButtons () {
+        questionCadenceOptions () {
             return [
-                { title: 'All at once', value: 'all' },
-                { title: 'One at a time', value: 'one' }
+                { label: 'All at once', value: 'all', description: 'Asks every open question together in a single turn.' },
+                { label: 'One at a time', value: 'one', description: 'Asks one question, then follows up based on your answer.' }
             ]
         },
         questionCadenceWrapper: {
@@ -220,6 +234,9 @@ export default {
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
         ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'handleMessageResponse', 'setPendingInput', 'setQuestionCadence']),
+        openSettings () {
+            this.$refs.settingsDialog.show()
+        },
         async handleSend () {
             if (!this.canSend) return
 
@@ -366,6 +383,26 @@ button {
     }
 }
 
+.btn-settings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    border-radius: 5px;
+    background-color: transparent;
+    color: var(--ff-color-text-subtle);
+
+    &:hover:not(:disabled) {
+        background-color: var(--ff-color-bg-surface); // gray-50
+        color: var(--ff-color-text-strong);
+    }
+
+    &__icon {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
 .input-wrapper {
     flex: 1;
     display: flex;
@@ -428,40 +465,19 @@ button {
 </style>
 
 <!--
-  Unscoped: the kebab options are teleported to <body>, so scoped selectors cannot reach them.
-  .ff-kebab-options is transparent by design (the surface normally comes from .ff-kebab-item
-  rows); this menu hosts a control instead of items, so it paints the surface itself using the
-  same theme variables, keeping light/dark support without bespoke colours.
+  Unscoped: ff-dialog teleports its content to <body>, so keep these selectors global rather
+  than relying on scoped data attributes reaching the teleported subtree.
 -->
 <style lang="scss">
-.expert-settings-options {
-    background-color: var(--ff-color-bg-app);
-    min-width: 16rem;
+.expert-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 18rem;
 
-    .expert-settings-menu__group {
+    &__group {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
-        padding: 0.75rem;
-
-        + .expert-settings-menu__group {
-            border-top: 1px solid var(--ff-color-border);
-        }
-    }
-
-    .expert-settings-menu__heading {
-        font-size: 0.6875rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        opacity: 0.7;
-    }
-
-    .expert-settings-menu__description {
-        margin: 0;
-        font-size: 0.75rem;
-        line-height: 1.4;
-        opacity: 0.7;
     }
 }
 </style>
