@@ -1,9 +1,9 @@
 <template>
-    <div ref="resizeTarget" class="ff-expert-input" :style="{height: heightStyle}">
+    <div ref="resizeTarget" class="ff-expert-input" :style="containerStyle">
         <resize-bar
             :is-resizing="isInputResizing"
             direction="horizontal"
-            @mousedown="startResize"
+            @mousedown="onStartResize"
         />
         <!-- Action buttons row -->
         <div class="action-buttons">
@@ -133,9 +133,9 @@ export default {
             inputText: '',
             includeSelection: true,
             isTextareaFocused: false,
-            // true after we grow the composer to fit loaded content (e.g. an edited question),
-            // so we can collapse it back to the default height once the message is sent
-            composerAutoGrown: false
+            // The composer auto-sizes to its content via CSS (see .chat-input field-sizing).
+            // Only once the user drag-resizes do we pin it to an explicit height.
+            userResized: false
         }
     },
     computed: {
@@ -189,6 +189,11 @@ export default {
         },
         isImmersive () {
             return this.isImmersiveDevice || this.isImmersiveInstance
+        },
+        containerStyle () {
+            // Until the user drag-resizes, let the composer size itself to its content (capped by
+            // the CSS max-height). Once they drag, pin it to the chosen height.
+            return this.userResized ? { height: this.heightStyle } : {}
         }
     },
     watch: {
@@ -198,10 +203,8 @@ export default {
                 this.setPendingInput('')
                 this.$nextTick(() => {
                     this.$refs.textarea.focus()
-                    // Grow the composer so loaded content (e.g. an edited question) is readable,
-                    // instead of being crammed into the default-height box. The CSS max-height
-                    // (40vh) caps it; short content stays near the minimum.
-                    this.growComposerToContent()
+                    // No manual sizing needed: the textarea auto-grows to fit the loaded content
+                    // (e.g. an edited question) via CSS, capped by its max-height.
                 })
             }
         }
@@ -239,38 +242,15 @@ export default {
                 .catch(e => e)
 
             this.inputText = ''
-            // Collapse the composer back to its default height if we had grown it
-            // (180 matches the CSS min-height of .ff-expert-input).
-            if (this.composerAutoGrown) {
-                this.setHeight(180)
-                this.composerAutoGrown = false
-            }
         },
-        growComposerToContent () {
-            const textarea = this.$refs.textarea
+        onStartResize (event) {
+            // Seed the drag from the composer's current rendered height (it may have auto-grown to
+            // fit its content) so the resize continues smoothly from where it is, then hand off to
+            // the resize helper. From here on the chosen height wins over the content auto-size.
             const container = this.$refs.resizeTarget
-            if (!textarea || !container) return
-            // Height of everything in the composer that isn't the textarea — the action-buttons
-            // row, the Send/context row, the container's padding, gaps and border. Only the
-            // textarea flex-grows, so this difference is invariant to the current height. Measure
-            // it at runtime (before collapsing the textarea below) rather than hard-coding it, so
-            // it stays correct if those rows change.
-            const chromeHeight = container.offsetHeight - textarea.clientHeight
-            // The textarea has flex: 1, so it stretches to fill the container. scrollHeight is
-            // floored at the element's client height, so reading it while stretched returns the
-            // current (possibly already-grown) box height rather than the text's true height —
-            // which would ratchet the composer taller on every call. Briefly take the textarea
-            // out of the flex stretch and collapse it so scrollHeight reflects only the content,
-            // then restore the inline styles.
-            const prevFlex = textarea.style.flex
-            const prevHeight = textarea.style.height
-            textarea.style.flex = '0 0 auto'
-            textarea.style.height = '0px'
-            const contentHeight = textarea.scrollHeight
-            textarea.style.flex = prevFlex
-            textarea.style.height = prevHeight
-            this.setHeight(contentHeight + chromeHeight)
-            this.composerAutoGrown = true
+            if (container) this.setHeight(container.offsetHeight)
+            this.userResized = true
+            this.startResize(event)
         },
         handleStop () {
             this.$emit('stop')
@@ -399,7 +379,12 @@ button {
     }
 
     .chat-input {
-        flex: 1;
+        // field-sizing lets the textarea grow with its content (typed or loaded, e.g. an edited
+        // question) up to the composer's max-height, where it scrolls — no JS measuring needed.
+        // flex-basis auto so it sizes to that content but still fills the box when it's taller
+        // (an empty composer, or after a drag-resize).
+        field-sizing: content;
+        flex: 1 1 auto;
         width: 100%;
         padding: 1rem; // p-4
         box-sizing: border-box;

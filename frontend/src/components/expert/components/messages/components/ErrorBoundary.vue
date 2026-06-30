@@ -15,9 +15,11 @@ export default {
         }
     },
     errorCaptured (err) {
-        // A descendant threw during render/lifecycle (e.g. an answer with a malformed
-        // resource missing its url/metadata). Contain it here so a single bad answer
-        // degrades to a small fallback instead of blanking the entire chat message.
+        // Last-resort backstop: known throws are guarded at their source (e.g. the optional
+        // streamable chains in the resource cards). This only catches a genuinely unexpected
+        // render/lifecycle failure so one bad answer item degrades to a small fallback instead
+        // of an uncaught error tearing down the whole chat. It is intentionally used once, per
+        // answer item, in AiMessage — not as a per-section wrapper.
         // Returning false stops the error from propagating further up the tree.
         // eslint-disable-next-line no-console
         console.error('[Expert] render error contained by ErrorBoundary:', err)
