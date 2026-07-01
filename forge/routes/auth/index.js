@@ -143,8 +143,17 @@ async function init (app, opts) {
                         }
                     }
                     if (accessToken.scope?.includes('ff-expert:mcp')) {
+                        const isDeviceScope = accessToken.scope?.includes('device')
+                        const isInstanceScope = accessToken.scope?.includes('instance')
+                        if (!isDeviceScope && !isInstanceScope) {
+                            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                            return
+                        }
                         // must be a http token for expert MCP access
-                        if (accessToken.ownerType !== 'http') {
+                        if (isInstanceScope && accessToken.ownerType !== 'http') {
+                            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                            return
+                        } else if (isDeviceScope && accessToken.ownerType !== 'http:device') {
                             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                             return
                         }
