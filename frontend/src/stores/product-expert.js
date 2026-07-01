@@ -184,9 +184,14 @@ export const useProductExpertStore = defineStore('product-expert', {
                 agentStore.sessionId = uuidv4()
             }
 
-            // Start session timing on first message (if not already running)
+            // Start session timing on first message, or reset the clock on subsequent
+            // messages so the session stays alive while the user is actively chatting
             if (!agentStore.sessionStartTime) {
                 this.startSessionTimer()
+            } else {
+                agentStore.sessionStartTime = Date.now()
+                agentStore.sessionWarningShown = false
+                agentStore.sessionExpiredShown = false
             }
 
             // Add user message
