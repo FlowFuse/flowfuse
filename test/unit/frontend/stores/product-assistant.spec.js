@@ -698,50 +698,10 @@ describe('product-assistant store', () => {
             })
         })
 
-        describe('pending approvals registry', () => {
-            // The pending-approval map is module-scoped (shared across store instances),
-            // so clear it before each test to avoid leakage between cases.
-            beforeEach(() => {
-                useProductAssistantStore().rejectAllPendingApprovals()
-            })
-
-            it('resolves a registered approval with the decision', async () => {
-                const store = useProductAssistantStore()
-                const promise = new Promise((resolve) => {
-                    store.registerPendingApproval('id-1', resolve, { toolKey: 'write-flow' })
-                })
-                expect(store.hasPendingApprovals()).toBe(true)
-                expect(store.resolvePendingApproval('id-1', true)).toBe(true)
-                await expect(promise).resolves.toBe(true)
-                expect(store.hasPendingApprovals()).toBe(false)
-            })
-
-            it('resolvePendingApproval returns false for an unknown id', () => {
-                const store = useProductAssistantStore()
-                expect(store.resolvePendingApproval('missing', true)).toBe(false)
-            })
-
-            it('rejectAllPendingApprovals resolves every open approval as denied', async () => {
-                const store = useProductAssistantStore()
-                const p1 = new Promise((resolve) => store.registerPendingApproval('id-1', resolve))
-                const p2 = new Promise((resolve) => store.registerPendingApproval('id-2', resolve))
-                store.rejectAllPendingApprovals()
-                await expect(p1).resolves.toBe(false)
-                await expect(p2).resolves.toBe(false)
-                expect(store.hasPendingApprovals()).toBe(false)
-            })
-
-            it('rejectAllPendingApprovals records a denied status per approval id', () => {
-                const store = useProductAssistantStore()
-                store.registerPendingApproval('id-1', () => {})
-                store.registerPendingApproval('id-2', () => {})
-                store.rejectAllPendingApprovals()
-                // The card renders a detached streaming copy, so the outcome lives in this
-                // reactive map (read by AnswerWrapper), not on the store message.
-                expect(store.toolApprovalStatuses['id-1']).toBe('denied')
-                expect(store.toolApprovalStatuses['id-2']).toBe('denied')
-            })
-
+        describe('tool approval statuses', () => {
+            // Approval decisions now live on the product-expert store's open batch; the
+            // permission store only records each card's resolved outcome (read by
+            // AnswerWrapper) since the card renders a detached streaming copy.
             it('setToolApprovalStatus / clearToolApprovalStatuses track resolved outcomes', () => {
                 const store = useProductAssistantStore()
                 store.setToolApprovalStatus('id-1', 'approved')

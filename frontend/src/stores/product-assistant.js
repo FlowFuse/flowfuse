@@ -7,11 +7,6 @@ import { useContextStore } from '@/stores/context.js'
 const MAX_DEBUG_LOG_ENTRIES = 100 // maximum number of debug log entries to keep
 
 // --- Expert tool permissions (human-in-the-loop, #421) -----------------------
-// Pending tool-approval resolvers, keyed by approval id. Kept at module scope
-// (not in store state) so the Map and the Promise resolvers it holds are never
-// wrapped in a reactive proxy, which would break their internals.
-const pendingToolApprovals = new Map()
-
 const TOOL_POLICIES = ['allow', 'ask', 'deny']
 const isToolPolicy = (p) => TOOL_POLICIES.includes(p)
 const TOOL_CLASSES = ['read', 'write', 'delete']
@@ -768,34 +763,6 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         },
         clearToolApprovalStatuses () {
             this.toolApprovalStatuses = {}
-        },
-        // Pending approvals (module-level map; see note at top of file).
-        registerPendingApproval (id, resolve, meta = {}) {
-            pendingToolApprovals.set(id, { resolve, meta })
-        },
-        getPendingApproval (id) {
-            return pendingToolApprovals.get(id) || null
-        },
-        resolvePendingApproval (id, approved) {
-            const entry = pendingToolApprovals.get(id)
-            if (!entry) return false
-            pendingToolApprovals.delete(id)
-            entry.resolve(!!approved)
-            return true
-        },
-        hasPendingApprovals () {
-            return pendingToolApprovals.size > 0
-        },
-        // Resolve every open approval as denied — used when the user stops the chat so
-        // the agent's approval wait unblocks instead of hanging on an abandoned prompt.
-        rejectAllPendingApprovals () {
-            const denied = { ...this.toolApprovalStatuses }
-            for (const [id, entry] of pendingToolApprovals.entries()) {
-                denied[id] = 'denied'
-                entry.resolve(false)
-            }
-            this.toolApprovalStatuses = denied
-            pendingToolApprovals.clear()
         },
         sendMessage (payload) {
             const orchestrator = getAppOrchestrator()
