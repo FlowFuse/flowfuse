@@ -730,6 +730,25 @@ describe('product-assistant store', () => {
                 await expect(p2).resolves.toBe(false)
                 expect(store.hasPendingApprovals()).toBe(false)
             })
+
+            it('rejectAllPendingApprovals records a denied status per approval id', () => {
+                const store = useProductAssistantStore()
+                store.registerPendingApproval('id-1', () => {})
+                store.registerPendingApproval('id-2', () => {})
+                store.rejectAllPendingApprovals()
+                // The card renders a detached streaming copy, so the outcome lives in this
+                // reactive map (read by AnswerWrapper), not on the store message.
+                expect(store.toolApprovalStatuses['id-1']).toBe('denied')
+                expect(store.toolApprovalStatuses['id-2']).toBe('denied')
+            })
+
+            it('setToolApprovalStatus / clearToolApprovalStatuses track resolved outcomes', () => {
+                const store = useProductAssistantStore()
+                store.setToolApprovalStatus('id-1', 'approved')
+                expect(store.toolApprovalStatuses['id-1']).toBe('approved')
+                store.clearToolApprovalStatuses()
+                expect(store.toolApprovalStatuses).toEqual({})
+            })
         })
     })
 })

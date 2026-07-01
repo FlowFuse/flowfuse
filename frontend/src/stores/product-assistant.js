@@ -211,7 +211,12 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         // Per-chat-session grants from the approval card ("Always allow/deny for this
         // chat"). Not persisted: cleared on Start Over and gone on refresh. Keyed by tool
         // key; a session belongs to one team by context, so no team nesting is needed.
-        sessionToolOverrides: {}
+        sessionToolOverrides: {},
+        // Terminal outcome per approval id. The approval card renders a detached streaming
+        // copy of the answer, so a status written onto the store message never reaches it;
+        // this reactive map is what lets an EXTERNAL resolution (chat stop / Start Over)
+        // update a card that the user never pressed. AnswerWrapper reads it by id.
+        toolApprovalStatuses: {}
     }),
     getters: {
         isImmersiveInstance: () => {
@@ -757,6 +762,15 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             if (!isToolPolicy(policy)) return
             this.setToolPreference(key, policy)
         },
+        // Record what a card resolved to, so a card whose answer is a detached streaming
+        // copy still reflects the outcome (see toolApprovalStatuses note).
+        setToolApprovalStatus (id, status) {
+            if (!id || !status) return
+            this.toolApprovalStatuses = { ...this.toolApprovalStatuses, [id]: status }
+        },
+        clearToolApprovalStatuses () {
+            this.toolApprovalStatuses = {}
+        },
         // Pending approvals (module-level map; see note at top of file).
         registerPendingApproval (id, resolve, meta = {}) {
             pendingToolApprovals.set(id, { resolve, meta })
@@ -777,9 +791,12 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         // Resolve every open approval as denied — used when the user stops the chat so
         // the agent's approval wait unblocks instead of hanging on an abandoned prompt.
         rejectAllPendingApprovals () {
-            for (const entry of pendingToolApprovals.values()) {
+            const denied = { ...this.toolApprovalStatuses }
+            for (const [id, entry] of pendingToolApprovals.entries()) {
+                denied[id] = 'denied'
                 entry.resolve(false)
             }
+            this.toolApprovalStatuses = denied
             pendingToolApprovals.clear()
         },
         sendMessage (payload) {

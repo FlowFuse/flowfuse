@@ -98,7 +98,7 @@
             :name="answer.name"
             :tool-class="answer.toolClass"
             :params="answer.params"
-            :status="answer.status"
+            :status="resolvedToolApprovalStatus"
             @approve="onToolApprove"
             @allow-always="onToolAllowAlways"
             @deny="onToolDeny"
@@ -170,7 +170,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useProductAssistantStore, ['supportedActions']),
+        ...mapState(useProductAssistantStore, ['supportedActions', 'toolApprovalStatuses']),
         ...mapState(useProductExpertStore, ['agentMode', 'isWaitingForResponse', 'messages']),
         isLatestMessage () {
             const msgs = this.messages || []
@@ -219,6 +219,12 @@ export default {
         },
         hasToolApproval () {
             return this.answer.kind === 'tool-approval' && !!this.answer.id
+        },
+        // The answer here is a detached streaming copy, so its own `status` only ever holds
+        // the initial 'pending'. The reactive per-id map in the store carries any later
+        // outcome — including an external one (chat stop / Start Over) the card can't see.
+        resolvedToolApprovalStatus () {
+            return this.toolApprovalStatuses[this.answer.id] || this.answer.status
         },
         isChatAnswer () {
             return !Object.hasOwnProperty.call(this.answer, 'kind') || this.answer.kind === 'chat'

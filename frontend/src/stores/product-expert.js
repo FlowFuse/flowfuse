@@ -491,36 +491,33 @@ export const useProductExpertStore = defineStore('product-expert', {
             const status = approved
                 ? (always ? 'always-allowed' : 'approved')
                 : (always ? 'always-denied' : 'denied')
-            this._setToolApprovalStatus(id, status)
+            permStore.setToolApprovalStatus(id, status)
             permStore.resolvePendingApproval(id, approved)
         },
-        // Deny every open approval (used when the user stops the chat) so the agent's
-        // approval wait unblocks instead of hanging on an abandoned prompt.
+        // Deny every open approval (used when the user stops the chat, or starts a new one)
+        // so the agent's approval wait unblocks instead of hanging on an abandoned prompt.
+        // rejectAllPendingApprovals also records each card's 'denied' outcome so the cards
+        // reflect it — they render detached streaming copies, so mutating the store message
+        // in place would never reach them.
         cancelPendingToolApprovals () {
             const permStore = useProductAssistantStore()
             if (!permStore.hasPendingApprovals()) return
-            for (const m of this._agentStore.messages) {
-                if (!Array.isArray(m.answer)) continue
-                for (const a of m.answer) {
-                    if (a.kind === 'tool-approval' && a.status === 'pending') a.status = 'denied'
-                }
-            }
             permStore.rejectAllPendingApprovals()
-        },
-        _setToolApprovalStatus (id, status) {
-            for (const m of this._agentStore.messages) {
-                if (!Array.isArray(m.answer)) continue
-                const ans = m.answer.find(a => a.kind === 'tool-approval' && a.id === id)
-                if (ans) { ans.status = status; return }
-            }
         },
         async startOver () {
             const agentStore = this._agentStore
+            // Unblock any approval still awaiting a decision before we drop its message,
+            // so the agent's paused tool call resolves (as denied) instead of hanging.
+            this.cancelPendingToolApprovals()
+
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
 
-            // A new chat drops the per-session tool grants ("Always allow/deny for this chat").
-            useProductAssistantStore().clearSessionToolOverrides()
+            // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
+            // and the resolved-approval outcomes tied to the messages we just cleared.
+            const permStore = useProductAssistantStore()
+            permStore.clearSessionToolOverrides()
+            permStore.clearToolApprovalStatuses()
 
             if (this.shouldUseMqtt) {
                 const servicesOrchestrator = getAppOrchestrator()

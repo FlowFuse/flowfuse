@@ -78,10 +78,10 @@ export default {
     emits: ['approve', 'allow-always', 'deny', 'deny-always', 'streaming-complete'],
     data () {
         return {
-            // What the user pressed on this card, mapped to a status. This is the card's
-            // own source of truth for the outcome: the answer it renders is a detached
-            // streaming copy, so a status written back into the store would never reach
-            // it. The `status` prop is only the initial value (e.g. a hydrated card).
+            // What the user pressed on this card, for instant feedback without waiting on a
+            // store round-trip. The `status` prop also reflects the outcome — AnswerWrapper
+            // feeds it from the store's reactive per-id map, which covers external
+            // resolutions (chat stop / Start Over) this card never pressed.
             localStatus: null
         }
     },

@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // Shared, mutable stand-in for the product-assistant store's permission registry.
 // Declared via vi.hoisted so both the mock factory (hoisted above the imports) and
 // the test body can reach the same state and reset it between cases.
-const permState = vi.hoisted(() => ({ pending: new Map(), session: {}, catalog: null, catalogHash: null }))
+const permState = vi.hoisted(() => ({ pending: new Map(), session: {}, statuses: {}, catalog: null, catalogHash: null }))
 
 vi.mock('@/stores/account-settings.js', () => ({
     useAccountSettingsStore: vi.fn(() => ({ featuresCheck: { isExpertAssistantFeatureEnabled: true } }))
@@ -25,6 +25,9 @@ vi.mock('@/stores/product-assistant.js', () => ({
         sessionOverrideFor: (key) => permState.session[key] || null,
         setSessionToolOverride: (key, policy) => { permState.session[key] = policy },
         clearSessionToolOverrides: () => { permState.session = {} },
+        get toolApprovalStatuses () { return permState.statuses },
+        setToolApprovalStatus: (id, status) => { permState.statuses[id] = status },
+        clearToolApprovalStatuses: () => { permState.statuses = {} },
         registerPendingApproval: (id, resolve, meta = {}) => permState.pending.set(id, { resolve, meta }),
         getPendingApproval: (id) => permState.pending.get(id) || null,
         resolvePendingApproval: (id, approved) => {
@@ -36,7 +39,10 @@ vi.mock('@/stores/product-assistant.js', () => ({
         },
         hasPendingApprovals: () => permState.pending.size > 0,
         rejectAllPendingApprovals: () => {
-            for (const entry of permState.pending.values()) entry.resolve(false)
+            for (const [id, entry] of permState.pending.entries()) {
+                permState.statuses[id] = 'denied'
+                entry.resolve(false)
+            }
             permState.pending.clear()
         }
     }))
@@ -68,6 +74,7 @@ describe('product-expert store — tool permissions (HITL, #421)', () => {
         vi.clearAllMocks()
         permState.pending.clear()
         permState.session = {}
+        permState.statuses = {}
         permState.catalog = null
         permState.catalogHash = null
     })
@@ -137,7 +144,7 @@ describe('product-expert store — tool permissions (HITL, #421)', () => {
             store.resolveToolApproval({ id, approved: true })
 
             await expect(promise).resolves.toBe(true)
-            expect(useProductExpertSupportAgentStore().messages[0].answer[0].status).toBe('approved')
+            expect(permState.statuses[id]).toBe('approved')
         })
 
         it('records a session grant and marks the card always-allowed when always is set', async () => {
@@ -149,7 +156,7 @@ describe('product-expert store — tool permissions (HITL, #421)', () => {
 
             await expect(promise).resolves.toBe(true)
             expect(permState.session['write-flow']).toBe('allow')
-            expect(useProductExpertSupportAgentStore().messages[0].answer[0].status).toBe('always-allowed')
+            expect(permState.statuses[id]).toBe('always-allowed')
         })
 
         it('marks the card always-denied and grants a session deny', async () => {
@@ -161,7 +168,7 @@ describe('product-expert store — tool permissions (HITL, #421)', () => {
 
             await expect(promise).resolves.toBe(false)
             expect(permState.session['write-flow']).toBe('deny')
-            expect(useProductExpertSupportAgentStore().messages[0].answer[0].status).toBe('always-denied')
+            expect(permState.statuses[id]).toBe('always-denied')
         })
 
         it('does nothing for an unknown approval id', () => {
@@ -174,11 +181,12 @@ describe('product-expert store — tool permissions (HITL, #421)', () => {
         it('denies every open approval and flips its card to denied', async () => {
             const store = useProductExpertStore()
             const promise = store.requestToolApproval({ tool: 'write-flow', name: 'Write Flow' })
+            const id = useProductExpertSupportAgentStore().messages[0].answer[0].id
 
             store.cancelPendingToolApprovals()
 
             await expect(promise).resolves.toBe(false)
-            expect(useProductExpertSupportAgentStore().messages[0].answer[0].status).toBe('denied')
+            expect(permState.statuses[id]).toBe('denied')
             expect(permState.pending.size).toBe(0)
         })
 
