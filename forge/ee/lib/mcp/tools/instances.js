@@ -90,7 +90,7 @@ module.exports = [
             4. Call platform_list_templates to get the template. If only one template exists, use it automatically. If there are multiple, ask the user which one to use.
             5. Call platform_check_hosted_instance_name_availability to make sure the chosen name is not already taken.
             When generating a name, always use hyphens to separate multiple words (e.g. "my-new-instance" not "my new instance").
-            After the instance is created, wait a few seconds to give it time to boot up, then ask the user if they want to be taken to it. If they do, use the ui_navigate tool to navigate to the new instance.`,
+            After the instance is created, wait a few seconds to give it time to boot up, then ask the user if they want to be taken to it. If they do, use the ui_navigate tool with the route name "instance-overview" and params { id: <the new instance id> }.`,
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             name: z.string().describe('Name for the new hosted instance'),

@@ -3,7 +3,13 @@ import type { McpToolDefinition } from '@/types'
 const tools: McpToolDefinition[] = [
     {
         name: 'ui_navigate',
-        description: 'FlowFuse UI automation tool: Navigate the user\'s browser to a specific page. Takes a route name and optional params. Use ui_list_routes to discover valid route names and their required parameters.',
+        description: `FlowFuse UI automation tool:
+            Navigates the user's browser to a specific page.
+            Use ui_list_routes to discover valid route names and the parameters they need.
+            Before navigating, call ui_get_context to remember what page the user is currently on, so you can go back if something goes wrong.
+            After calling this tool, call ui_get_context again to verify the navigation actually worked and the user ended up on the right page.
+            If the navigation failed, it might be because a newly created entity has not finished setting up yet. Wait a few seconds and try the navigation again.
+            If it still does not work after retrying, navigate the user back to the page they were on before and let them know what happened.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             type: 'object',
