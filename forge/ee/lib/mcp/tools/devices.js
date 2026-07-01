@@ -73,8 +73,16 @@ module.exports = [
             if (!comms) {
                 return { error: 'Device communications not available' }
             }
-            const response = await comms.sendCommandAwaitReply(args.teamId, args.remoteInstanceId, 'get-liveState', {}, { timeout: 3000 })
-            return response
+            try {
+                const response = await comms.sendCommandAwaitReply(args.teamId, args.remoteInstanceId, 'get-liveState', {}, { timeout: 3000 })
+                return {
+                    state: response?.state || 'unknown',
+                    health: response?.health ?? null,
+                    snapshot: response?.snapshot ?? null
+                }
+            } catch (err) {
+                return { error: 'Device is not reachable. It may be offline or not connected to the platform.' }
+            }
         }
     },
     {
