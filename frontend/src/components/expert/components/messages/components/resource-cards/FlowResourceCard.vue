@@ -29,18 +29,18 @@
                         <ff-button v-else size="small" kind="secondary" @click="importFlows">Import</ff-button>
                     </div>
                 </div>
-                <div v-if="flowMetadata" class="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap">
+                <div v-if="flowCategory" class="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap">
                     <streamable-content
                         v-if="!shouldStream || flowTitle.streamed"
-                        :string="flowMetadata.streamable.category"
+                        :string="flowCategory"
                         :should-stream="shouldStream"
                         @streaming-complete="completeStreaming"
                     />
                 </div>
             </div>
         </div>
-        <div v-if="flowMetadata" class="flex overflow-auto ml-8 max-h-[500px] flex-col relative" :class="{hidden: flowsExpanded}">
-            <flow-viewer v-if="!flowsExpanded" :flow="flow.metadata.streamable.flows" />
+        <div v-if="flowData" class="flex overflow-auto ml-8 max-h-[500px] flex-col relative" :class="{hidden: flowsExpanded}">
+            <flow-viewer v-if="!flowsExpanded" :flow="flowData" />
         </div>
     </div>
 </template>
@@ -81,9 +81,18 @@ export default {
     },
     computed: {
         ...mapState(useProductExpertStore, ['canImportFlows']),
+        // The streamable payload is optional and can be malformed (missing entirely, or
+        // present without flows/category). Read it defensively so a bad value renders as
+        // "nothing to show" instead of throwing and taking down the whole message.
+        flowData () {
+            return this.flowMetadata?.streamable?.flows ?? null
+        },
+        flowCategory () {
+            return this.flowMetadata?.streamable?.category ?? null
+        },
         flowsJson () {
-            if (!this.flowMetadata) return ''
-            return JSON.stringify(this.flowMetadata.streamable.flows, null, 2)
+            if (!this.flowData) return ''
+            return JSON.stringify(this.flowData, null, 2)
         }
     },
     watch: {
@@ -93,6 +102,13 @@ export default {
             if (flowMetadata.streamed) {
                 this.$emit('streaming-complete')
             }
+        }
+    },
+    mounted () {
+        // The category line is what normally drives completeStreaming. When there's no
+        // category to stream, signal completion here so the parent streaming list still advances.
+        if (!this.flowCategory) {
+            this.$nextTick(() => this.completeStreaming())
         }
     },
     methods: {
