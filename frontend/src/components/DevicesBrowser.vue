@@ -377,6 +377,7 @@ import FfPopover from '../ui-components/components/Popover.vue'
 import PopoverItem from '../ui-components/components/PopoverItem.vue'
 import FfCheckbox from '../ui-components/components/form/Checkbox.vue'
 
+import { applyLiveState } from '../utils/applyLiveState.js'
 import { debounce } from '../utils/eventHandling.js'
 import { createPollTimer } from '../utils/timers.js'
 
@@ -388,6 +389,7 @@ import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/Remov
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useLiveStatusStore } from '@/stores/live-status'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -468,6 +470,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
+        ...mapState(useLiveStatusStore, { liveDeviceStatuses: 'deviceStatuses', statusChannelLive: 'live' }),
         ...mapState(useUxDialogStore, ['dialog']),
         ...mapState(useUxToursStore, ['tours']),
         columns () {
@@ -604,11 +607,19 @@ export default {
             if (this.dialog?.is?.payload?.devices) {
                 this.setDialogDevices(devices)
             }
+        },
+        liveDeviceStatuses: { handler: 'applyLiveStatus', deep: true },
+        statusChannelLive (live) {
+            if (live) {
+                this.pollTimer?.stop()
+            } else {
+                this.pollTimer?.start()
+            }
         }
     },
     mounted () {
         this.fullReloadOfData()
-        this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME) // auto starts
+        this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME, !this.statusChannelLive)
     },
     async unmounted () {
         this.pollTimer.stop()
@@ -620,6 +631,20 @@ export default {
     },
     methods: {
         ...mapActions(useUxDialogStore, ['setDialogDevices']),
+        applyLiveStatus () {
+            for (const id of this.allDeviceStatuses.keys()) {
+                const state = this.liveDeviceStatuses[id]
+                if (!state) continue
+                const statusObj = this.allDeviceStatuses.get(id)
+                if (statusObj.status !== state) {
+                    this.allDeviceStatuses.set(id, applyLiveState(statusObj, state, { device: true }))
+                }
+                const device = this.devices.get(id)
+                if (device && device.status !== state) {
+                    this.devices.set(id, applyLiveState(device, state, { device: true }))
+                }
+            }
+        },
         pollTimerElapsed: async function () {
             this.pollTimer.pause()
             try {

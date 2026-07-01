@@ -3088,6 +3088,60 @@ describe('Project API', function () {
         })
     })
 
+    describe('Start action — mask clears on failure and crash recovery', async function () {
+        it('recovers a crashed instance on start (mask clears to running)', async function () {
+            const instance = await app.factory.createInstance(
+                { name: generateProjectName() },
+                app.application,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            instance.state = 'crashed'
+            await instance.save()
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${instance.id}/actions/start`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            await instance.reload()
+            instance.state.should.equal('running')
+            should(await app.db.controllers.Project.getInflightState(instance)).be.undefined()
+        })
+
+        it('clears the starting mask when the driver fails to start', async function () {
+            const instance = await app.factory.createInstance(
+                { name: 'stub-fail-start' },
+                app.application,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            instance.state = 'suspended'
+            await instance.save()
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${instance.id}/actions/start`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            // mask is held while starting
+            should(await app.db.controllers.Project.getInflightState(instance)).equal('starting')
+
+            // stub-fail-start rejects ~500ms in; the driver reverts to suspended and the mask must clear
+            // so the instance surfaces its real state rather than hanging on 'starting'
+            await sleep(800)
+            await instance.reload()
+            instance.state.should.equal('suspended')
+            should(await app.db.controllers.Project.getInflightState(instance)).be.undefined()
+        })
+    })
+
     describe('Set a project\'s state', async function () {
         let testProject
         before(async function () {
