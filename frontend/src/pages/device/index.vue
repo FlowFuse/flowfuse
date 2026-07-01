@@ -146,6 +146,7 @@ import SectionNavigationHeader from '../../components/SectionNavigationHeader.vu
 import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
+import { useInstanceStates } from '../../composables/InstanceStates.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 import deviceActionsMixin from '../../mixins/DeviceActions.js'
@@ -154,6 +155,7 @@ import Alerts from '../../services/alerts.js'
 import Dialog from '../../services/dialog.js'
 
 import { DeviceStateMutator } from '../../utils/DeviceStateMutator.js'
+import { applyLiveState } from '../../utils/applyLiveState.js'
 import { createPollTimer } from '../../utils/timers.js'
 
 import DeviceAssignApplicationDialog from '../team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
@@ -169,21 +171,12 @@ import DeviceModeBadge from './components/DeviceModeBadge.vue'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useLiveStatusStore } from '@/stores/live-status'
 
 import { useUxStore } from '@/stores/ux.js'
 
 // constants
 const POLL_TIME = 5000
-
-const deviceTransitionStates = [
-    'loading',
-    'installing',
-    'starting',
-    'stopping',
-    'restarting',
-    'suspending',
-    'importing'
-]
 
 export default {
     name: 'DevicePage',
@@ -207,8 +200,9 @@ export default {
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
         const { navigateTo, openInANewTab } = useNavigationHelper()
+        const { isTransitionState } = useInstanceStates()
 
-        return { hasPermission, isVisitingAdmin, navigateTo, openInANewTab }
+        return { hasPermission, isVisitingAdmin, navigateTo, openInANewTab, isTransitionState }
     },
     data: function () {
         return {
@@ -227,6 +221,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useLiveStatusStore, { liveDeviceStatuses: 'deviceStatuses', statusChannelLive: 'live' }),
         actionsButtonKind () {
             switch (true) {
             case this.neverConnected:
@@ -363,7 +358,17 @@ export default {
         }
     },
     watch: {
-        device: 'deviceChanged'
+        device: 'deviceChanged',
+        liveDeviceStatuses: { handler: 'applyLiveStatus', deep: true },
+        statusChannelLive (live) {
+            if (live) {
+                this.pollTimer?.stop()
+            } else if (this.pollTimer) {
+                this.pollTimer.start()
+            } else {
+                this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
+            }
+        }
     },
     async mounted () {
         this.mounted = true
@@ -380,6 +385,11 @@ export default {
     methods: {
         ...mapActions(useUxStore, ['validateUserAction']),
         ...mapActions(useContextStore, { setContextualDevice: 'setDevice' }),
+        applyLiveStatus () {
+            const state = this.liveDeviceStatuses[this.device?.id]
+            if (!state || this.device?.status === state) return
+            this.device = applyLiveState(this.device, state, { device: true, clearFlags: true })
+        },
         pollTimerElapsed: async function () {
             // Only refresh device via the timer if we are on the overview page, developer mode page
             // the device status is empty or the device is in a transition state
@@ -391,7 +401,7 @@ export default {
                     await this.loadDevice()
                 } else if (typeof this.device?.status === 'undefined') {
                     await this.loadDevice()
-                } else if (deviceTransitionStates.includes(this.device?.status)) {
+                } else if (this.isTransitionState(this.device?.status)) {
                     await this.loadDevice()
                 }
             } catch (err) {
@@ -410,7 +420,7 @@ export default {
                     return this.$router.push({ name: 'Home' })
                 }
             }
-            if (!this.pollTimer) {
+            if (!this.pollTimer && !this.statusChannelLive) {
                 this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME)
             }
 
@@ -422,7 +432,7 @@ export default {
             useAccountStore().setTeam(this.device.team.slug)
         },
         deviceRefresh: async function () {
-            if (this.pollTimer.running) {
+            if (this.pollTimer?.running) {
                 // If the poll timer is running, we don't need to manually refresh the device
                 return
             }

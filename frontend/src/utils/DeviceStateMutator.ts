@@ -1,3 +1,5 @@
+import { useInstanceStates } from '../composables/InstanceStates.js'
+
 import type { Device } from '@/types'
 import { Maybe } from '@/types/common/types'
 
@@ -27,6 +29,10 @@ export class DeviceStateMutator {
 
     // load latest state from the server
     setStateAsPendingFromServer (newState: Maybe<string> = null) {
+        const { isTransitionState } = useInstanceStates()
+        if (!newState && !isTransitionState(this.device.status)) {
+            return
+        }
         this.device.optimisticStateChange = false
         this.device.pendingStateChange = true
 
