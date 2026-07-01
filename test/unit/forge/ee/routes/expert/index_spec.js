@@ -1919,6 +1919,54 @@ describe('Expert API', function () {
                 response.statusCode.should.equal(502)
                 response.json().should.have.property('code', 'bad_gateway')
             })
+
+            it('should merge platform tools into the catalog, curated with a platform group and class', async function () {
+                sinon.stub(axios, 'get').resolves({
+                    data: {
+                        catalog: [{ key: 'create-flow', name: 'Create Flow', toolClass: 'write', group: 'flow-building' }],
+                        hash: 'abc123'
+                    }
+                })
+                const getToolDefinitions = sinon.stub().returns([
+                    { name: 'platform_list_stacks', description: 'List stacks', annotations: { readOnlyHint: true, destructiveHint: false } },
+                    { name: 'platform_delete_instance', description: 'Delete an instance', annotations: { readOnlyHint: false, destructiveHint: true } },
+                    { name: 'platform_create_instance', description: 'Create an instance', annotations: { readOnlyHint: false, destructiveHint: false } }
+                ])
+                app.comms = { platformAutomation: { getToolDefinitions } }
+                try {
+                    const response = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
+                        cookies: { sid: bobToken }
+                    })
+                    response.statusCode.should.equal(200)
+                    const json = response.json()
+                    // hash stays the flow-tools hash; platform tools do not affect it
+                    json.should.have.property('hash', 'abc123')
+                    // flow-building entry preserved, three platform entries appended
+                    json.catalog.should.be.an.Array().and.have.length(4)
+
+                    const stacks = json.catalog.find(t => t.key === 'platform_list_stacks')
+                    stacks.should.have.property('group', 'platform')
+                    stacks.should.have.property('toolClass', 'read')
+                    stacks.should.have.property('destructive', false)
+                    // friendly label derived from the name (platform_ stripped, title-cased)
+                    stacks.should.have.property('name', 'List Stacks')
+
+                    const del = json.catalog.find(t => t.key === 'platform_delete_instance')
+                    del.should.have.property('toolClass', 'delete')
+                    del.should.have.property('destructive', true)
+
+                    const create = json.catalog.find(t => t.key === 'platform_create_instance')
+                    create.should.have.property('toolClass', 'write')
+
+                    // platform tools carry no nr-assistant version window
+                    stacks.should.not.have.property('minVersion')
+                    stacks.should.not.have.property('maxVersion')
+                } finally {
+                    app.comms = null
+                }
+            })
         })
     })
 

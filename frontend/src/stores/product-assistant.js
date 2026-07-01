@@ -38,11 +38,9 @@ export const classOf = (entry) => {
 // asked for every platform action.
 export const TOOL_GROUPS = { FLOW_BUILDING: 'flow-building', PLATFORM: 'platform' }
 
-// Which group a catalog entry belongs to. Every tool served today is a flow-building
-// tool, so everything maps to 'flow-building'.
-// TODO(platform-tools): when platform tools are added to the agent's catalog, map them
-// to TOOL_GROUPS.PLATFORM here (off a `group` field on the entry) so the UI routes them
-// to their own section with their own defaults.
+// Which group a catalog entry belongs to, off the `group` field the catalog endpoint
+// stamps on each entry. Platform tools carry group:'platform'; flow-building tools omit
+// it (the always-present group), so anything unlabelled falls back to flow-building.
 export const groupOf = (entry) => entry?.group || TOOL_GROUPS.FLOW_BUILDING
 
 const eventsRegistry = {
