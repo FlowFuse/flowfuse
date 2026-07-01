@@ -20,7 +20,12 @@ function getRouteList (router: Router) {
 const tools: McpToolDefinition[] = [
     {
         name: 'ui_list_routes',
-        description: 'FlowFuse UI automation tool: List all available UI routes with their names, path patterns, and metadata. Use this to discover valid route names for the ui_navigate tool.',
+        description: `FlowFuse UI automation tool:
+            Lists all the pages the user can visit in the FlowFuse app, along with their route names, path patterns, and what parameters they need.
+            Use this to find the right route name and params before calling ui_navigate.
+            Each route has a name (like "device-overview" or "instance-overview"), a path pattern showing what parameters it expects
+            (like "/device/:id/overview" means you need to pass { id: "..." }), and metadata like the page title.
+            You do not need to call this every time. If you already know the route name from a tool description (e.g. platform_create_hosted_instance tells you to use "instance-overview"), just use it directly.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             type: 'object',
