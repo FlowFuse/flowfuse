@@ -466,6 +466,10 @@ button {
     flex: 1;
     display: flex;
     flex-direction: column;
+    // min-height: 0 must be on every ancestor in this flex chain, not just .chat-input:
+    // without it this wrapper keeps its content (min-content) height, so a long plan loaded
+    // via "Edit" pushes the whole composer tall instead of letting the textarea scroll.
+    min-height: 0;
     border: 2px solid var(--ff-color-border-strong); // border-2 border-gray-300
     border-radius: 0.5rem; // rounded-lg
     transition: border-color 0.2s ease;
