@@ -156,7 +156,9 @@
                 </EmptyState>
             </template>
         </div>
-        <InstanceStatusPolling v-for="instance in instances" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
+        <template v-if="!statusChannelLive">
+            <InstanceStatusPolling v-for="instance in instances" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
+        </template>
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
     </ff-page>
 </template>
@@ -176,6 +178,7 @@ import usePermissions from '../../composables/Permissions.js'
 import instanceActionsMixin from '../../mixins/InstanceActions.js'
 import Alerts from '../../services/alerts.js'
 import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
+import { applyLiveState } from '../../utils/applyLiveState.js'
 import { debounce } from '../../utils/eventHandling.js'
 import ApplicationLink from '../application/components/cells/ApplicationLink.vue'
 import DeploymentName from '../application/components/cells/DeploymentName.vue'
@@ -187,6 +190,7 @@ import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useLiveStatusStore } from '@/stores/live-status'
 
 export default {
     name: 'TeamInstances',
@@ -273,6 +277,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
+        ...mapState(useLiveStatusStore, { liveInstanceStatuses: 'instanceStatuses', statusChannelLive: 'live' }),
         instances () {
             return Array.from(this.instancesMap.values())
         },
@@ -289,7 +294,8 @@ export default {
         }
     },
     watch: {
-        team: 'fullReload'
+        team: 'fullReload',
+        liveInstanceStatuses: { handler: 'applyLiveStatus', deep: true }
     },
     mounted () {
         this.fullReload()
@@ -336,10 +342,25 @@ export default {
                     nextMap.set(instance.id, instance)
                 })
                 this.instancesMap = nextMap
+                this.applyLiveStatus()
             } catch (e) {
                 Alerts.emit('Failed to load instances.', 'warning')
             } finally {
                 this.loading = false
+            }
+        },
+        applyLiveStatus () {
+            const statuses = this.liveInstanceStatuses
+            for (const id of this.instancesMap.keys()) {
+                const state = statuses[id]
+                if (!state) continue
+                const row = this.instancesMap.get(id)
+                if (row.status === state && row.meta?.state === state) continue
+                this.instancesMap.set(id, {
+                    ...applyLiveState(row, state, { clearFlags: true }),
+                    running: this.isRunningState(state),
+                    notSuspended: state !== 'suspended'
+                })
             }
         },
         updateSearch: debounce(function (term) {

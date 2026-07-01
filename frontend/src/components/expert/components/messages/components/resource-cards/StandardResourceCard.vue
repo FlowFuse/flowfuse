@@ -43,7 +43,7 @@ export default {
     emits: ['streaming-complete'],
     data () {
         return {
-            resourceUrl: this.resource.metadata?.streamable.source || this.resource.streamable.url,
+            resourceUrl: this.resource.metadata?.streamable?.source || this.resource.url?.streamable,
             resourceTitle: { ...this.resource.title },
             resourceMetadataSource: this.resource.metadata?.source
         }
