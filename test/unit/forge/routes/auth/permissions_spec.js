@@ -56,6 +56,20 @@ describe('Permissions API', async () => {
         }
 
     }
+    // Dedicated platform-automation token: ownerType 'user:expert-mcp' + ff-expert:platform scope
+    const EXPERT_PLATFORM_TOKEN_TEAM_MEMBER = {
+        session: { User: { id: 'u123' }, ownerType: 'user:expert-mcp', scope: ['ff-expert:platform'] },
+        teamMembership: { role: Roles.Member }
+    }
+    const EXPERT_PLATFORM_TOKEN_TEAM_OWNER = {
+        session: { User: { id: 'u123' }, ownerType: 'user:expert-mcp', scope: ['ff-expert:platform'] },
+        teamMembership: { role: Roles.Owner }
+    }
+    // A plain user token must not gain broad access by carrying the platform scope
+    const USER_TOKEN_EXPERT_PLATFORM_SCOPE_TEAM_MEMBER = {
+        session: { User: { id: 'u123' }, ownerType: 'user', scope: ['ff-expert:platform'] },
+        teamMembership: { role: Roles.Member }
+    }
 
     let rbacApplicationEnabled = false
 
@@ -221,6 +235,19 @@ describe('Permissions API', async () => {
                 })
                 it('Prevents project token accessing any other scope', async () => {
                     expectFail(await sendRequest('team:delete', PROJECT_TOKEN_NO_SCOPE))
+                })
+            })
+
+            describe('expert platform token', () => {
+                it('Allows access to implicit scopes', async () => {
+                    expectPass(await sendRequest('team:read', EXPERT_PLATFORM_TOKEN_TEAM_MEMBER))
+                })
+                it('Prevents access to scopes not in the implicit list', async () => {
+                    expectFail(await sendRequest('team:edit', EXPERT_PLATFORM_TOKEN_TEAM_MEMBER))
+                    expectFail(await sendRequest('team:edit', EXPERT_PLATFORM_TOKEN_TEAM_OWNER))
+                })
+                it('Does not grant broad access to a plain user token carrying the scope', async () => {
+                    expectFail(await sendRequest('team:read', USER_TOKEN_EXPERT_PLATFORM_SCOPE_TEAM_MEMBER))
                 })
             })
         })
