@@ -477,12 +477,18 @@ export const useProductExpertStore = defineStore('product-expert', {
             const permStore = useProductAssistantStore()
             const entry = permStore.getPendingApproval(id)
             if (!entry) return
-            // "Always allow" persists an allow preference for this tool.
-            if (always && approved && entry.meta?.toolKey) {
-                permStore.setToolPreference(entry.meta.toolKey, 'allow')
+            // "Always allow/deny" is scoped to this chat session (not persisted): it grants
+            // for the rest of this chat and resets on Start Over / refresh. The user can
+            // make it permanent from the settings dialog.
+            if (always && entry.meta?.toolKey) {
+                permStore.setSessionToolOverride(entry.meta.toolKey, approved ? 'allow' : 'deny')
             }
-            // Reflect the outcome on the card so its buttons disable.
-            this._setToolApprovalStatus(id, approved ? 'approved' : 'denied')
+            // Reflect exactly what was pressed on the card so its buttons disable and the
+            // outcome (incl. "for this chat") shows.
+            const status = approved
+                ? (always ? 'always-allowed' : 'approved')
+                : (always ? 'always-denied' : 'denied')
+            this._setToolApprovalStatus(id, status)
             permStore.resolvePendingApproval(id, approved)
         },
         // Deny every open approval (used when the user stops the chat) so the agent's
@@ -509,6 +515,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             const agentStore = this._agentStore
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
+
+            // A new chat drops the per-session tool grants ("Always allow/deny for this chat").
+            useProductAssistantStore().clearSessionToolOverrides()
 
             if (this.shouldUseMqtt) {
                 const servicesOrchestrator = getAppOrchestrator()

@@ -102,6 +102,7 @@
             @approve="onToolApprove"
             @allow-always="onToolAllowAlways"
             @deny="onToolDeny"
+            @deny-always="onToolDenyAlways"
             @streaming-complete="onComponentComplete('tool-approval-card')"
         />
     </message-bubble>
@@ -398,6 +399,9 @@ export default {
         },
         onToolDeny () {
             this.resolveToolApproval({ id: this.answer.id, approved: false, always: false })
+        },
+        onToolDenyAlways () {
+            this.resolveToolApproval({ id: this.answer.id, approved: false, always: true })
         },
         handleClick (e) {
             const target = e.target

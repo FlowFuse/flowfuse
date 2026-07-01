@@ -18,7 +18,7 @@
                 <template v-else>
                     <ff-button
                         v-for="button in buttons" :key="button[valueKey]"
-                        size="medium"
+                        :size="size"
                         :class="{active: button[valueKey] === modelValue}"
                         @click="setValue(button.value)"
                     >
@@ -61,6 +61,13 @@ export default {
             type: String,
             required: false,
             default: 'value'
+        },
+        // Size of the underlying buttons (passed through to ff-button). Defaults to
+        // 'medium' to match existing usages; 'small' suits dense contexts like tables.
+        size: {
+            type: String,
+            required: false,
+            default: 'medium'
         }
     },
     emits: ['update:modelValue'],

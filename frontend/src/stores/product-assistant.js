@@ -17,6 +17,11 @@ const isToolPolicy = (p) => TOOL_POLICIES.includes(p)
 const TOOL_CLASSES = ['read', 'write', 'delete']
 // Fail-safe default when a class has no configured default: read allows, the rest ask.
 const fallbackForToolClass = (cls) => (cls === 'read' ? 'allow' : 'ask')
+// The class defaults a team starts with before the user changes anything.
+const defaultToolDefaults = () => ({ read: 'allow', write: 'ask', delete: 'ask' })
+// The team whose saved permissions are in effect. Permissions are per team, so every
+// read/write of defaults or preferences is scoped by this id.
+const currentTeamId = () => useContextStore().team?.id || null
 
 // Derive a tool's permission class from its catalog entry. Read tools view only;
 // delete tools are destructive writes; everything else that changes flows is write.
@@ -28,8 +33,7 @@ export const classOf = (entry) => {
 }
 
 // Tool groups partition the catalog into the sections shown in the permissions UI
-// (flow-building vs FlowFuse platform). Each group is meant to carry its own
-// read/write/delete defaults so a default for one never silently applies to the other.
+// (flow-building vs FlowFuse platform). Class defaults are shared across both groups.
 export const TOOL_GROUPS = { FLOW_BUILDING: 'flow-building', PLATFORM: 'platform' }
 
 // Which group a catalog entry belongs to. Every tool served today is a flow-building
@@ -196,10 +200,15 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         // the agent; defaults + preferences are the user's choices (persisted below).
         toolCatalog: [],
         toolCatalogHash: null,
-        // Standing read/write/delete defaults for the flow-building tools (the only tools
-        // that exist today; see the platform-tools TODO on groupOf).
-        toolDefaults: { read: 'allow', write: 'ask', delete: 'ask' },
-        toolPreferences: {}
+        // The user's saved choices, keyed by team id — a builder's permissions are their
+        // own per team, not global. toolDefaultsByTeam holds each team's standing
+        // read/write/delete defaults; toolPreferencesByTeam holds per-tool overrides.
+        toolDefaultsByTeam: {},
+        toolPreferencesByTeam: {},
+        // Per-chat-session grants from the approval card ("Always allow/deny for this
+        // chat"). Not persisted: cleared on Start Over and gone on refresh. Keyed by tool
+        // key; a session belongs to one team by context, so no team nesting is needed.
+        sessionToolOverrides: {}
     }),
     getters: {
         isImmersiveInstance: () => {
@@ -303,36 +312,60 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             return state.editorState?.flowsLoaded || state.editorState?.runtimeState?.state === 'start'
         },
         // --- Expert tool permissions (HITL, #421) ---
+        /** The current team's saved class defaults ({ read, write, delete }). */
+        teamToolDefaults: (state) => {
+            return { ...defaultToolDefaults(), ...(state.toolDefaultsByTeam[currentTeamId()] || {}) }
+        },
+        /** The current team's saved per-tool preferences ({ [key]: policy }). */
+        teamToolPreferences: (state) => {
+            return state.toolPreferencesByTeam[currentTeamId()] || {}
+        },
         /** The standing default for a tool class ('read'|'write'|'delete'). */
-        defaultForToolClass: (state) => (cls) => {
-            const d = state.toolDefaults?.[cls]
-            return isToolPolicy(d) ? d : fallbackForToolClass(cls)
+        defaultForToolClass () {
+            return (cls) => {
+                const d = this.teamToolDefaults[cls]
+                return isToolPolicy(d) ? d : fallbackForToolClass(cls)
+            }
+        },
+        /** This chat session's grant for a tool key, or null if none ('allow'|'deny'). */
+        sessionOverrideFor: (state) => (key) => {
+            const p = state.sessionToolOverrides[key]
+            return isToolPolicy(p) ? p : null
         },
         /**
-         * Effective policy for a catalog key. An explicit per-tool preference always
-         * wins; otherwise the standing default for the tool's class applies.
+         * The saved policy for a catalog key, ignoring any session grant: an explicit
+         * per-tool preference if set, else the standing default for the tool's class.
+         * This is what the settings control shows (the session grant is surfaced
+         * separately as an annotation).
          */
-        toolPolicyFor: (state) => (key) => {
-            const explicit = state.toolPreferences[key]
-            if (isToolPolicy(explicit)) return explicit
-            const entry = state.toolCatalog.find(t => t.key === key)
-            const cls = classOf(entry)
-            const d = state.toolDefaults?.[cls]
-            return isToolPolicy(d) ? d : fallbackForToolClass(cls)
+        savedToolPolicyFor () {
+            return (key) => {
+                const explicit = this.teamToolPreferences[key]
+                if (isToolPolicy(explicit)) return explicit
+                const entry = this.toolCatalog.find(t => t.key === key)
+                return this.defaultForToolClass(classOf(entry))
+            }
+        },
+        /**
+         * Effective policy for a catalog key. A session grant wins first, then the saved
+         * policy. This is what the agent gates against.
+         */
+        toolPolicyFor () {
+            return (key) => this.sessionOverrideFor(key) || this.savedToolPolicyFor(key)
         },
         /**
          * The resolved permission map sent to the agent in the chat context:
-         * { defaults, tools: { [key]: 'allow'|'ask'|'deny' } }.
+         * { defaults, tools: { [key]: 'allow'|'ask'|'deny' } }. Session grants are folded
+         * into `tools` so the agent stops asking for a tool allowed for this chat.
          */
-        resolvedToolPermissions: (state) => {
+        resolvedToolPermissions () {
             const defaults = {}
             for (const cls of TOOL_CLASSES) {
-                defaults[cls] = isToolPolicy(state.toolDefaults?.[cls]) ? state.toolDefaults[cls] : fallbackForToolClass(cls)
+                defaults[cls] = this.defaultForToolClass(cls)
             }
             const tools = {}
-            for (const t of state.toolCatalog) {
-                const explicit = state.toolPreferences[t.key]
-                tools[t.key] = isToolPolicy(explicit) ? explicit : defaults[classOf(t)]
+            for (const t of this.toolCatalog) {
+                tools[t.key] = this.toolPolicyFor(t.key)
             }
             return { defaults, tools }
         },
@@ -656,17 +689,48 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         },
         setToolClassDefault (cls, policy) {
             if (!TOOL_CLASSES.includes(cls) || !isToolPolicy(policy)) return
-            this.toolDefaults = { ...this.toolDefaults, [cls]: policy }
+            const teamId = currentTeamId()
+            if (!teamId) return
+            const team = { ...defaultToolDefaults(), ...(this.toolDefaultsByTeam[teamId] || {}), [cls]: policy }
+            this.toolDefaultsByTeam = { ...this.toolDefaultsByTeam, [teamId]: team }
         },
         setToolPreference (key, policy) {
             if (!isToolPolicy(policy)) return
-            this.toolPreferences = { ...this.toolPreferences, [key]: policy }
+            const teamId = currentTeamId()
+            if (!teamId) return
+            const team = { ...(this.toolPreferencesByTeam[teamId] || {}), [key]: policy }
+            this.toolPreferencesByTeam = { ...this.toolPreferencesByTeam, [teamId]: team }
+            // A deliberate saved choice supersedes any session grant for this tool, so the
+            // new value takes effect immediately rather than waiting for the chat to end.
+            if (key in this.sessionToolOverrides) {
+                const next = { ...this.sessionToolOverrides }
+                delete next[key]
+                this.sessionToolOverrides = next
+            }
         },
         clearToolPreference (key) {
-            if (!(key in this.toolPreferences)) return
-            const next = { ...this.toolPreferences }
+            const teamId = currentTeamId()
+            const team = this.toolPreferencesByTeam[teamId]
+            if (!team || !(key in team)) return
+            const next = { ...team }
             delete next[key]
-            this.toolPreferences = next
+            this.toolPreferencesByTeam = { ...this.toolPreferencesByTeam, [teamId]: next }
+        },
+        // Per-chat-session grants from the approval card. Not persisted; cleared on Start
+        // Over (see product-expert startOver) and dropped on refresh.
+        setSessionToolOverride (key, policy) {
+            if (!key || !isToolPolicy(policy)) return
+            this.sessionToolOverrides = { ...this.sessionToolOverrides, [key]: policy }
+        },
+        clearSessionToolOverrides () {
+            this.sessionToolOverrides = {}
+        },
+        // "Make permanent": promote this chat's session grant to the team's saved
+        // preference. setToolPreference clears the now-redundant session entry.
+        promoteSessionOverride (key) {
+            const policy = this.sessionToolOverrides[key]
+            if (!isToolPolicy(policy)) return
+            this.setToolPreference(key, policy)
         },
         // Pending approvals (module-level map; see note at top of file).
         registerPendingApproval (id, resolve, meta = {}) {
@@ -707,10 +771,10 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             })
         }
     },
-    // Only the user's HITL tool-permission choices persist across sessions; the
-    // catalog/hash and all editor/session state are re-derived each session.
+    // Only the user's saved per-team HITL choices persist across sessions; the
+    // catalog/hash, session grants, and all editor/session state are re-derived.
     persist: {
-        pick: ['toolDefaults', 'toolPreferences'],
+        pick: ['toolDefaultsByTeam', 'toolPreferencesByTeam'],
         storage: localStorage
     }
 })

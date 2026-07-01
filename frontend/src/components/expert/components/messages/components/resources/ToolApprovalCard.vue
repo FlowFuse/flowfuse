@@ -22,7 +22,7 @@
                 kind="secondary"
                 size="small"
                 :disabled="disabled || decided"
-                title="Always allow this tool without asking again"
+                title="Allow this tool for the rest of this chat without asking again"
                 @click="decide('allow-always')"
             >
                 Always allow
@@ -30,9 +30,18 @@
             <ff-button kind="tertiary" size="small" :disabled="disabled || decided" @click="decide('deny')">
                 Deny
             </ff-button>
+            <ff-button
+                kind="tertiary"
+                size="small"
+                :disabled="disabled || decided"
+                title="Deny this tool for the rest of this chat without asking again"
+                @click="decide('deny-always')"
+            >
+                Always deny
+            </ff-button>
         </div>
         <p v-else class="tool-approval-outcome">
-            {{ status === 'approved' ? 'Allowed' : 'Denied' }}
+            {{ outcomeLabel }}
         </p>
     </div>
 </template>
@@ -58,14 +67,15 @@ export default {
         },
         status: {
             type: String,
-            default: 'pending' // 'pending' | 'approved' | 'denied'
+            // 'pending' | 'approved' | 'always-allowed' | 'denied' | 'always-denied'
+            default: 'pending'
         },
         disabled: {
             type: Boolean,
             default: false
         }
     },
-    emits: ['approve', 'allow-always', 'deny', 'streaming-complete'],
+    emits: ['approve', 'allow-always', 'deny', 'deny-always', 'streaming-complete'],
     data () {
         return {
             // Optimistically disables the buttons the moment a choice is made, so the
@@ -76,6 +86,16 @@ export default {
     computed: {
         classLabel () {
             return { read: 'Read', write: 'Write', delete: 'Delete' }[this.toolClass] || 'Write'
+        },
+        // Post-decision feedback: reflect exactly what the user pressed, including whether
+        // the choice stands for the rest of this chat.
+        outcomeLabel () {
+            return {
+                approved: 'Allowed',
+                'always-allowed': 'Allowed for this chat',
+                denied: 'Denied',
+                'always-denied': 'Denied for this chat'
+            }[this.status] || (this.status === 'pending' ? '' : 'Denied')
         },
         hasParams () {
             return Object.keys(this.params || {}).length > 0
@@ -111,6 +131,8 @@ export default {
     border: 1px solid var(--ff-color-border);
     border-radius: 6px;
     background: var(--ff-color-bg-surface);
+    // Match the "N tool calls" strip (ToolCalls.vue) so the card lines up with it.
+    max-width: 90%;
 }
 
 .tool-approval-header {

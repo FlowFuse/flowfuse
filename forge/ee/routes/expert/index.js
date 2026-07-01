@@ -485,12 +485,15 @@ module.exports = async function (app) {
 
     /**
      * Retrieve the curated tool catalog for the Expert's human-in-the-loop permissions UI
-     * (#421). The MCP server(s) are static/global (not per-team registered), so unlike
-     * /mcp/features this is a thin read-only proxy: it forwards to the agent service's
-     * /mcp/tools endpoint, which returns friendly catalog entries only (raw MCP identifiers
-     * never leave the backend) plus a `hash` fingerprint of the catalog. Team access +
-     * feature gating are enforced by the shared preHandler above; read/write classification
-     * on each entry is what the client uses to decide which tools a role may enable.
+     * (#421). Returns the merged catalog for both sections the UI shows:
+     * - flow-building tools, proxied from the agent service's /mcp/flow-tools endpoint
+     *   (friendly catalog entries only — raw MCP identifiers never leave the backend);
+     * - FlowFuse platform tools, curated here from the platform automation handler
+     *   (wired but commented out until the mcp-over-mqtt branch lands — see below).
+     * A `hash` fingerprint of the flow-building catalog rides along so the browser refetches
+     * only when it changes. Team access + feature gating are enforced by the shared
+     * preHandler above; read/write classification on each entry is what the client uses to
+     * decide which tools a role may enable.
      */
     app.get('/mcp/tools', {
         schema: {
@@ -529,7 +532,7 @@ module.exports = async function (app) {
             return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
         try {
-            const toolsUrl = `${app.expert.expertUrl.split('/').slice(0, -1).join('/')}/mcp/tools`
+            const toolsUrl = `${app.expert.expertUrl.split('/').slice(0, -1).join('/')}/mcp/flow-tools`
             const response = await axios.get(toolsUrl, {
                 headers: {
                     Origin: request.headers.origin,
@@ -537,7 +540,38 @@ module.exports = async function (app) {
                 },
                 timeout: app.expert.requestTimeout
             })
-            reply.send({ catalog: response.data?.catalog || [], hash: response.data?.hash || null })
+            const catalog = response.data?.catalog || []
+
+            // TODO(platform-tools): enable once the mcp-over-mqtt branch merges, which adds
+            // forge/comms/platformAutomation.js. Platform tools are global (no per-team
+            // filtering); getToolDefinitions() is synchronous and takes no args. Curate each
+            // into a catalog entry tagged group:'platform' so the UI routes it to the
+            // FlowFuse Platform Tools section (groupOf() in the product-assistant store).
+            // const { PlatformAutomationHandler } = require('../../../comms/platformAutomation')
+            // const platformDefs = PlatformAutomationHandler(app).getToolDefinitions()
+            // catalog.push(...platformDefs.map(curatePlatformTool))
+            //
+            // curatePlatformTool maps the platform wire shape to a catalog entry. Platform
+            // tools carry standard MCP annotations (readOnlyHint / destructiveHint), which
+            // give the read/write/delete class. They don't run in Node-RED, so they have no
+            // nr-assistant version window — no minVersion/maxVersion (the UI treats their
+            // absence as always-available).
+            // function curatePlatformTool (def) {
+            //     const a = def.annotations || {}
+            //     const readOnly = a.readOnlyHint === true
+            //     const destructive = a.destructiveHint === true
+            //     return {
+            //         key: def.name,
+            //         // TODO(platform-tools): confirm a friendly title source at merge; for now
+            //         // derive from the name (strip the platform_ prefix, title-case the rest).
+            //         name: def.name.replace(/^platform_/, '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+            //         toolClass: readOnly ? 'read' : (destructive ? 'delete' : 'write'),
+            //         destructive,
+            //         group: 'platform'
+            //     }
+            // }
+
+            reply.send({ catalog, hash: response.data?.hash || null })
         } catch (error) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
         }
