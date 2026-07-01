@@ -6,13 +6,16 @@ import usePermissions from '../composables/Permissions.js'
 import alerts from '../services/alerts.js'
 import Dialog from '../services/dialog.js'
 import { InstanceStateMutator } from '../utils/InstanceStateMutator.js'
+import { applyLiveState } from '../utils/applyLiveState.js'
 
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useLiveStatusStore } from '@/stores/live-status'
 
 export default {
     computed: {
         ...mapState(useContextStore, ['team']),
+        ...mapState(useLiveStatusStore, { liveInstanceStatuses: 'instanceStatuses', statusChannelLive: 'live' }),
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },
@@ -37,10 +40,16 @@ export default {
         instance (instance) {
             this.instanceChanged()
             this.setContextualInstance(instance)
-        }
+        },
+        liveInstanceStatuses: { handler: 'applyLiveStatus', deep: true }
     },
     methods: {
         ...mapActions(useContextStore, { setContextualInstance: 'setInstance' }),
+        applyLiveStatus () {
+            const state = this.liveInstanceStatuses[this.instance?.id]
+            if (!state || this.instance?.meta?.state === state) return
+            this.instance = applyLiveState(this.instance, state, { clearFlags: true })
+        },
         showConfirmDeleteDialog () {
             this.$refs.confirmInstanceDeleteDialog.show(this.instance)
         },

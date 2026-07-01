@@ -6,12 +6,18 @@ const refreshTeam = vi.fn().mockResolvedValue(undefined)
 const onTeamChannelMembership = vi.fn().mockResolvedValue(undefined)
 const useContextStore = vi.fn(() => ({ refreshTeam, onTeamChannelMembership }))
 const useAccountAuthStore = vi.fn(() => ({ user: { id: 'user-hashid-1' }, getSessionId: () => 'session-test-id' }))
+const setInstanceStatus = vi.fn()
+const setDeviceStatus = vi.fn()
+const setLive = vi.fn()
+const clear = vi.fn()
+const useLiveStatusStore = vi.fn(() => ({ setInstanceStatus, setDeviceStatus, setLive, clear }))
 
 vi.mock('@/api/team.js', () => ({
     default: { getTeamCommsCreds: (...args) => getTeamCommsCreds(...args) }
 }))
 vi.mock('@/stores/context.js', () => ({ useContextStore }))
 vi.mock('@/stores/account-auth.js', () => ({ useAccountAuthStore }))
+vi.mock('@/stores/live-status', () => ({ useLiveStatusStore }))
 
 function makeTransport () {
     return {
@@ -45,6 +51,10 @@ describe('TeamChannelSubscriber', async () => {
         onTeamChannelMembership.mockClear()
         useContextStore.mockClear()
         useAccountAuthStore.mockClear().mockReturnValue({ user: { id: 'user-hashid-1' }, getSessionId: () => 'session-test-id' })
+        setInstanceStatus.mockClear()
+        setDeviceStatus.mockClear()
+        setLive.mockClear()
+        clear.mockClear()
         await destroyTeamChannelSubscriber()
     })
 
@@ -145,7 +155,7 @@ describe('TeamChannelSubscriber', async () => {
     })
 
     describe('subscribe on connect', () => {
-        test('subscribes to t/updated and membership topics with qos 1', async () => {
+        test('subscribes to t/updated, membership and the state wildcards with qos 1', async () => {
             const { subscriber, transport } = createSubscriber()
             let onConnect
             transport.connect.mockImplementation(async (_key, opts) => {
@@ -155,9 +165,37 @@ describe('TeamChannelSubscriber', async () => {
             await onConnect()
             expect(transport.subscribe).toHaveBeenCalledWith(
                 'team:team-1',
-                ['ff/v1/team-1/t/updated', 'ff/v1/team-1/u/user-hashid-1/membership'],
+                [
+                    'ff/v1/team-1/t/updated',
+                    'ff/v1/team-1/u/user-hashid-1/membership',
+                    'ff/v1/team-1/p/+/state',
+                    'ff/v1/team-1/d/+/state'
+                ],
                 { qos: 1 }
             )
+        })
+
+        test('marks the status channel live once subscribed', async () => {
+            const { subscriber, transport } = createSubscriber()
+            let onConnect
+            transport.connect.mockImplementation(async (_key, opts) => {
+                onConnect = opts.onConnect
+            })
+            await subscriber.connect({ id: 'team-1' })
+            await onConnect()
+            expect(setLive).toHaveBeenCalledWith(true)
+        })
+
+        test('does not mark live when the subscribe fails', async () => {
+            const { subscriber, transport } = createSubscriber()
+            transport.subscribe.mockRejectedValue(new Error('subscribe failed'))
+            let onConnect
+            transport.connect.mockImplementation(async (_key, opts) => {
+                onConnect = opts.onConnect
+            })
+            await subscriber.connect({ id: 'team-1' })
+            await onConnect()
+            expect(setLive).not.toHaveBeenCalled()
         })
 
         test('swallows subscribe errors (transport reconnect will retry)', async () => {
@@ -215,6 +253,28 @@ describe('TeamChannelSubscriber', async () => {
             expect(refreshTeam).not.toHaveBeenCalled()
             expect(onTeamChannelMembership).not.toHaveBeenCalled()
         })
+
+        test('instance state routes id + state into setInstanceStatus', async () => {
+            const { onMessage } = await connectAndCaptureOnMessage()
+            onMessage('ff/v1/team-1/p/inst-1/state', Buffer.from(JSON.stringify({ id: 'inst-1', meta: { state: 'running' } })))
+            expect(setInstanceStatus).toHaveBeenCalledWith('inst-1', 'running')
+            expect(setDeviceStatus).not.toHaveBeenCalled()
+        })
+
+        test('device state routes id + state into setDeviceStatus', async () => {
+            const { onMessage } = await connectAndCaptureOnMessage()
+            onMessage('ff/v1/team-1/d/dev-1/state', Buffer.from(JSON.stringify({ id: 'dev-1', meta: { state: 'stopped' } })))
+            expect(setDeviceStatus).toHaveBeenCalledWith('dev-1', 'stopped')
+            expect(setInstanceStatus).not.toHaveBeenCalled()
+        })
+
+        test('ignores a state message missing id or state', async () => {
+            const { onMessage } = await connectAndCaptureOnMessage()
+            onMessage('ff/v1/team-1/p/inst-1/state', Buffer.from(JSON.stringify({ id: 'inst-1' })))
+            onMessage('ff/v1/team-1/d/dev-1/state', Buffer.from(JSON.stringify({ meta: { state: 'running' } })))
+            expect(setInstanceStatus).not.toHaveBeenCalled()
+            expect(setDeviceStatus).not.toHaveBeenCalled()
+        })
     })
 
     describe('disconnect / destroy', () => {
@@ -227,10 +287,19 @@ describe('TeamChannelSubscriber', async () => {
             expect(subscriber.isConnected()).toBe(false)
         })
 
+        test('disconnect clears the live-status store (no prior-team leak)', async () => {
+            const { subscriber, transport } = createSubscriber()
+            transport.connect.mockResolvedValue(undefined)
+            await subscriber.connect({ id: 'team-1' })
+            await subscriber.disconnect()
+            expect(clear).toHaveBeenCalledTimes(1)
+        })
+
         test('disconnect is a no-op when not connected', async () => {
             const { subscriber, transport } = createSubscriber()
             await subscriber.disconnect()
             expect(transport.disconnect).not.toHaveBeenCalled()
+            expect(clear).not.toHaveBeenCalled()
         })
 
         test('destroy disconnects the active client', async () => {

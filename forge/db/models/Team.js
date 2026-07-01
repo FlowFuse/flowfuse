@@ -749,6 +749,8 @@ module.exports = {
                     const instanceList = await app.db.models.Project.findAll({
                         attributes: [
                             'id',
+                            'name',
+                            'safeName',
                             'state',
                             'ProjectStackId',
                             'TeamId'

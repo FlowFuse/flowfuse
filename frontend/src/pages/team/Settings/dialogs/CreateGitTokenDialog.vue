@@ -12,6 +12,12 @@
             <form class="space-y-6 mt-4 mb-2">
                 <FormRow v-model="input.name" data-form="token-name" :error="errors.name">Name</FormRow>
                 <FormRow v-model="input.token" data-form="token-value">Token</FormRow>
+                <FormRow v-if="input.type === 'generic'" v-model="input.username" data-form="username">Username</FormRow>
+                <FormRow v-if="input.type === 'generic'" data-form="ca-certificate">
+                    CA Certificate (optional)
+                    <template #description>Only needed for self-hosted servers that use a private certificate authority.</template>
+                    <template #input><textarea v-model="input.caCertificate" class="font-mono w-full" rows="6" placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----" /></template>
+                </FormRow>
             </form>
         </template>
     </ff-dialog>
@@ -21,12 +27,14 @@
 import { markRaw } from 'vue'
 
 import AzureInstructions from './components/CreateGitTokenDialog/AzureInstructions.vue'
+import GenericInstructions from './components/CreateGitTokenDialog/GenericInstructions.vue'
 import GitHubInstructions from './components/CreateGitTokenDialog/GitHubInstructions.vue'
 
 import teamApi from '@/api/team.js'
 
 import FormRow from '@/components/FormRow.vue'
 import AzureIcon from '@/components/icons/Azure.js'
+import GitIcon from '@/components/icons/Git.js'
 import GitHubIcon from '@/components/icons/GitHub.js'
 import { CascadingSelector, OptionTileSelector } from '@/components/variant-selector/index.js'
 import alerts from '@/services/alerts.js'
@@ -51,6 +59,8 @@ export default {
                 this.input.name = ''
                 this.input.token = ''
                 this.input.type = 'github'
+                this.input.username = ''
+                this.input.caCertificate = ''
                 this.$refs.dialog.show()
             }
         }
@@ -60,13 +70,15 @@ export default {
             input: {
                 name: '',
                 token: '',
-                type: 'github'
+                type: 'github',
+                username: '',
+                caCertificate: ''
             },
             errors: {},
             providerTree: {
                 id: 'root',
                 component: markRaw(OptionTileSelector),
-                props: { columns: 2 },
+                props: { columns: 3 },
                 children: [
                     {
                         id: 'github',
@@ -77,6 +89,11 @@ export default {
                         id: 'azure',
                         component: markRaw(AzureInstructions),
                         props: { label: 'Azure DevOps', icon: markRaw(AzureIcon) }
+                    },
+                    {
+                        id: 'generic',
+                        component: markRaw(GenericInstructions),
+                        props: { label: 'Other', icon: markRaw(GitIcon) }
                     }
                 ]
             }
@@ -92,6 +109,8 @@ export default {
         'input.type' () {
             this.input.name = ''
             this.input.token = ''
+            this.input.username = ''
+            this.input.caCertificate = ''
             this.errors = {}
         }
     },
@@ -101,7 +120,9 @@ export default {
                 name: this.input.name.trim(),
                 token: this.input.token,
                 team: this.team.id,
-                type: this.input.type
+                type: this.input.type,
+                username: this.input.username,
+                caCertificate: this.input.caCertificate
             }
             this.$emit('token-creating')
             teamApi.createGitToken(opts.team, opts).then((response) => {

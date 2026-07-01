@@ -14,12 +14,47 @@ const latestProjectState = 'project-latestProjectState'
 
 const inflightDeploys = 'project-inflightDeploys'
 
+const lastPublishedProjectState = 'project-lastPublishedProjectState'
+
+const publishLocks = new Map()
+
 module.exports = {
 
     init (app) {
         app.caches.createCache(inflightProjectState)
         app.caches.createCache(latestProjectState)
         app.caches.createCache(inflightDeploys)
+        app.caches.createCache(lastPublishedProjectState)
+    },
+
+    // serialized per project so concurrent callers can't intermix and strand a stale state
+    publishLiveState: async function (app, project) {
+        if (!app.comms || !project?.TeamId) return
+        const key = project.id
+        const previous = publishLocks.get(key) ?? Promise.resolve()
+        const current = previous.catch(() => {}).then(() => this._publishLiveStateUnlocked(app, project))
+        const tracked = current.finally(() => {
+            if (publishLocks.get(key) === tracked) {
+                publishLocks.delete(key)
+            }
+        })
+        publishLocks.set(key, tracked)
+        return tracked
+    },
+
+    _publishLiveStateUnlocked: async function (app, project) {
+        try {
+            const inflight = await this.getInflightState(app, project)
+            const latest = await this.getLatestProjectState(app, project.id)
+            const effective = inflight ?? (project.state === 'suspended' ? 'suspended' : (latest ?? project.state))
+            if (!effective) return
+            const cache = app.caches.getCache(lastPublishedProjectState)
+            if (await cache.get(project.id) === effective) return
+            await cache.set(project.id, effective)
+            app.comms.team.notifyInstanceState(app.db.models.Team.encodeHashid(project.TeamId), project.id, effective)
+        } catch (err) {
+            app.log.warn(`Failed to broadcast live state for ${project.id}: ${err.toString()}`)
+        }
     },
 
     getProjectPaginationOptions: function (app, request) {
@@ -58,6 +93,7 @@ module.exports = {
      */
     setInflightState: async function (app, project, state) {
         await app.caches.getCache(inflightProjectState).set(project.id, state)
+        await this.publishLiveState(app, project)
     },
 
     /**
@@ -87,6 +123,7 @@ module.exports = {
     clearInflightState: async function (app, project) {
         await app.caches.getCache(inflightProjectState).del(project.id)
         await app.caches.getCache(inflightDeploys).del(project.id)
+        await this.publishLiveState(app, project)
     },
 
     /**
@@ -801,14 +838,21 @@ module.exports = {
     /**
      * Updates the latest project state for the specified app and project based on the given state.
      *
-     * @param {String|Number} projectId - The project id related to the driver state update.
+     * @param {Object} project - The project the driver is reporting state for (callers already have it loaded).
      * @param {string} state - The new state to update, can be 'running', 'stopped', or other valid states.
      */
-    updateLatestProjectState: async function (app, projectId, state) {
+    updateLatestProjectState: async function (app, project, state) {
         if (['running'].includes(state)) {
-            await this.clearLatestProjectState(app, projectId)
+            await this.clearLatestProjectState(app, project.id)
         } else {
-            await this.setLatestProjectState(app, projectId, state)
+            await this.setLatestProjectState(app, project.id, state)
+        }
+        const inflight = await this.getInflightState(app, project)
+        const isTransition = inflight === 'starting' || inflight === 'restarting'
+        if (isTransition && ['running', 'safe', 'crashed'].includes(state)) {
+            await this.clearInflightState(app, project)
+        } else if (app.comms) {
+            await this.publishLiveState(app, project)
         }
     }
 }
