@@ -1,5 +1,5 @@
 <template>
-    <label class="ff-toggle-switch" :disabled="disabled" :class="{'checked': model}">
+    <label class="ff-toggle-switch" :disabled="disabled" :class="[{'checked': model}, `ff-toggle-switch--${size}`]">
         <!-- <input v-model="model" type="checkbox" :value="modelValue" /> -->
         <div class="ff-toggle-switch-slider" @click="toggle">
             <div class="ff-toggle-switch-button">
@@ -17,6 +17,10 @@ export default {
         disabled: {
             default: false,
             type: Boolean
+        },
+        size: {
+            default: 'normal',
+            type: String // 'normal' | 'small'
         },
         mode: {
             default: 'sync',

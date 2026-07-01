@@ -30,8 +30,13 @@ export const useProductExpertStore = defineStore('product-expert', {
         loadingVariant: SUPPORT_AGENT,
         shouldWakeUpAssistant: false,
         questionCadence: 'all', // 'all' = ask every clarifying question at once, 'one' = one at a time
+        planMode: false,
         inFlightUpdates: [],
         pendingInput: '',
+        // One-shot chat composer command, consumed and cleared like pendingInput.
+        // 'request-plan-change' focuses an empty composer for the plan card's "Request
+        // changes"; 'reset' clears a plan loaded via "Edit manually" but not sent.
+        composerCommand: null,
         _seenTransactionIds: new Map()
     }),
     getters: {
@@ -180,6 +185,9 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         setPendingInput (text) {
             this.pendingInput = text
+        },
+        setComposerCommand (command) {
+            this.composerCommand = command
         },
         async handleQuery ({ query }) {
             const agentStore = this._agentStore
@@ -520,6 +528,9 @@ export const useProductExpertStore = defineStore('product-expert', {
         setQuestionCadence (cadence) {
             if (!['all', 'one'].includes(cadence)) return
             this.questionCadence = cadence
+        },
+        setPlanMode (enabled) {
+            this.planMode = !!enabled
         },
         /**
          * Adds a system message to the application's message store.
