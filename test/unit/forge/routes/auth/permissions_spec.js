@@ -239,12 +239,12 @@ describe('Permissions API', async () => {
             })
 
             describe('expert platform token', () => {
-                it('Allows a role-permitted route despite the scope not listing it', async () => {
+                it('Allows access to implicit scopes', async () => {
                     expectPass(await sendRequest('team:read', EXPERT_PLATFORM_TOKEN_TEAM_MEMBER))
                 })
-                it('Stays bounded by the user role', async () => {
+                it('Prevents access to scopes not in the implicit list', async () => {
                     expectFail(await sendRequest('team:edit', EXPERT_PLATFORM_TOKEN_TEAM_MEMBER))
-                    expectPass(await sendRequest('team:edit', EXPERT_PLATFORM_TOKEN_TEAM_OWNER))
+                    expectFail(await sendRequest('team:edit', EXPERT_PLATFORM_TOKEN_TEAM_OWNER))
                 })
                 it('Does not grant broad access to a plain user token carrying the scope', async () => {
                     expectFail(await sendRequest('team:read', USER_TOKEN_EXPERT_PLATFORM_SCOPE_TEAM_MEMBER))
