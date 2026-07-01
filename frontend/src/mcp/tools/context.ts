@@ -4,7 +4,7 @@ import type { McpToolDefinition } from '@/types'
 const tools: McpToolDefinition[] = [
     {
         name: 'ui_get_context',
-        description: 'Get the current UI context: what team, application, hosted instance, or remote instance the user is viewing, the current page, scope (immersive editor vs main app), and editor state when applicable.',
+        description: 'FlowFuse UI automation tool: Get the current UI context: what team, application, hosted instance, or remote instance the user is viewing, the current page, scope (immersive editor vs main app), and editor state when applicable.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             type: 'object',

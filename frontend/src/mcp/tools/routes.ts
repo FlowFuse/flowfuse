@@ -20,7 +20,7 @@ function getRouteList (router: Router) {
 const tools: McpToolDefinition[] = [
     {
         name: 'ui_list_routes',
-        description: 'List all available UI routes with their names, path patterns, and metadata. Use this to discover valid route names for the ui_navigate tool.',
+        description: 'FlowFuse UI automation tool: List all available UI routes with their names, path patterns, and metadata. Use this to discover valid route names for the ui_navigate tool.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             type: 'object',
