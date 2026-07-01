@@ -76,5 +76,45 @@ module.exports = [
             const response = await comms.sendCommandAwaitReply(args.teamId, args.remoteInstanceId, 'get-liveState', {}, { timeout: 3000 })
             return response
         }
+    },
+    {
+        name: 'platform_create_remote_instance',
+        description: `FlowFuse platform automation tool:
+            Registers a new remote instance (device) in a team.
+            A remote instance is a Node-RED that runs on the user's own hardware rather than on the same environment as the FlowFuse platform.
+            This only registers the device on the platform, it does not install anything on the user's hardware.
+            The response includes credentials that the user will need to configure on their device to connect it to the platform.
+            If the user wants to assign it to an application, call platform_assign_remote_instance_to_application after creation.
+            After the device is created, ask the user if they want to be taken to it. If they do, use the ui_navigate tool to navigate to the new remote instance.`,
+        annotations: { readOnlyHint: false, destructiveHint: false },
+        inputSchema: {
+            name: z.string().describe('Name for the new remote instance'),
+            teamId: z.string().describe('The ID or hashid of the team to register the device in'),
+            type: z.string().optional().describe('Optional label describing the device type (e.g. "Raspberry Pi 4", "Edge Gateway")')
+        },
+        handler: async (args, { inject }) => {
+            const payload = { name: args.name, team: args.teamId }
+            if (args.type) {
+                payload.type = args.type
+            }
+            const response = await inject({ method: 'POST', url: '/api/v1/devices', payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_assign_remote_instance_to_application',
+        description: `FlowFuse platform automation tool:
+            Assigns a remote instance to an application.
+            Use this after creating a remote instance with platform_create_remote_instance, or to move an existing remote instance into a different application.
+            The remote instance and the application must belong to the same team.`,
+        annotations: { readOnlyHint: false, destructiveHint: false },
+        inputSchema: {
+            remoteInstanceId: z.string().describe('The ID or hashid of the remote instance'),
+            applicationId: z.string().describe('The ID or hashid of the application to assign it to')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}`, payload: { application: args.applicationId } })
+            return response
+        }
     }
 ]
