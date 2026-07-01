@@ -1,3 +1,5 @@
+const { EXPERT_MCP_SCOPES } = require('../../lib/expert')
+
 module.exports = async function (app) {
     app.config.features.register('httpBearerTokens', true, true)
 
@@ -220,6 +222,7 @@ module.exports = async function (app) {
         if (!token || !token.scope) {
             return false
         }
-        return token.scope.includes('ff-expert:mcp')
+
+        return token.scope.some(s => EXPERT_MCP_SCOPES.includes(s))
     }
 }
