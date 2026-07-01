@@ -1,6 +1,6 @@
 <template>
     <message-bubble ref="messageBubble" type="ai">
-        <answer-badge v-if="!isChatAnswer" :kind="answer.kind" />
+        <answer-badge v-if="!isChatAnswer && !isQuestionsAnswer" :kind="answer.kind" />
 
         <rich-content
             v-if="shouldShowRichContent"
@@ -66,6 +66,17 @@
             :should-stream="shouldStream"
             @streaming-complete="onComponentComplete('suggestions-list')"
         />
+
+        <questions-list
+            v-if="shouldShowQuestionsList"
+            :questions="answer.questions"
+            :disabled="interactionDisabled"
+            :should-stream="shouldStream"
+            class="mb-3"
+            @select="onQuestionsSubmit"
+            @edit="onQuestionsEdit"
+            @streaming-complete="onComponentComplete('questions-list')"
+        />
     </message-bubble>
 </template>
 
@@ -82,6 +93,7 @@ import FlowsList from './resources/FlowsList.vue'
 import GuideStepsList from './resources/GuideStepsList.vue'
 import IssuesList from './resources/IssuesList.vue'
 import PackagesList from './resources/PackagesList.vue'
+import QuestionsList from './resources/QuestionsList.vue'
 import ResourcesList from './resources/ResourcesList.vue'
 import RichContent from './resources/RichContent.vue'
 import SuggestionsList from './resources/SuggestionsList.vue'
@@ -98,6 +110,7 @@ export default {
         FlowsList,
         AnswerBadge,
         ResourcesList,
+        QuestionsList,
         GuideStepsList,
         MessageBubble,
         GuideHeader,
@@ -126,10 +139,21 @@ export default {
     },
     computed: {
         ...mapState(useProductAssistantStore, ['supportedActions']),
-        ...mapState(useProductExpertStore, ['agentMode']),
+        ...mapState(useProductExpertStore, ['agentMode', 'isWaitingForResponse', 'messages']),
+        isLatestMessage () {
+            const msgs = this.messages || []
+            return msgs.length > 0 && msgs[msgs.length - 1]?._uuid === this.messageUuid
+        },
+        interactionDisabled () {
+            // Disable the questions card while a response is in flight, and once the turn
+            // has passed — i.e. any message has arrived after this one — so a stale card from
+            // an earlier turn can no longer be answered.
+            return this.isWaitingForResponse || !this.isLatestMessage
+        },
         hasGuideHeader () {
-            // chat answers contain generic titles, they don't need to be displayed
-            return !!(this.answer.title && !this.isChatAnswer)
+            // chat answers contain generic titles, they don't need to be displayed.
+            // questions answers carry no guide title either.
+            return !!(this.answer.title && !this.isChatAnswer && !this.isQuestionsAnswer)
         },
         hasGuideSteps () {
             return Object.hasOwnProperty.call(this.answer, 'steps') && this.answer.steps.length > 0
@@ -152,8 +176,14 @@ export default {
         hasPlainContent () {
             return this.answer.content && this.answer.content.length > 0
         },
+        hasQuestions () {
+            return Array.isArray(this.answer.questions) && this.answer.questions.length > 0
+        },
         isChatAnswer () {
             return !Object.hasOwnProperty.call(this.answer, 'kind') || this.answer.kind === 'chat'
+        },
+        isQuestionsAnswer () {
+            return this.answer.kind === 'questions'
         },
         isEditorContext () {
             // In editor context, the route name includes 'editor'
@@ -215,6 +245,13 @@ export default {
             if (this.componentStreamingOrder.indexOf(key) === 0) return true
             return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
         },
+        shouldShowQuestionsList () {
+            const key = 'questions-list'
+            if (!this.componentStreamingOrder.includes(key)) return false
+            if (!this.hasQuestions) return false
+            if (this.componentStreamingOrder.indexOf(key) === 0) return true
+            return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
+        },
         shouldStream () {
             return !this.answer._streamed
         }
@@ -250,7 +287,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState']),
+        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput']),
         buildStreamingOrder () {
             // order matters
             // this is where the decision of the streaming order of components is decided
@@ -263,11 +300,18 @@ export default {
             if (this.hasNodePackages) this.componentStreamingOrder.push('packages-list')
             if (this.hasIssues) this.componentStreamingOrder.push('issues-list')
             if (this.hasSuggestions) this.componentStreamingOrder.push('suggestions-list')
+            if (this.hasQuestions) this.componentStreamingOrder.push('questions-list')
         },
         async onComponentComplete (key) {
             if (!this.shouldStream) await this.waitFor(200)
 
             this.streamedComponents.push(key)
+        },
+        onQuestionsSubmit (text) {
+            this.handleQuery({ query: text })
+        },
+        onQuestionsEdit (text) {
+            this.setPendingInput(text)
         },
         handleClick (e) {
             const target = e.target

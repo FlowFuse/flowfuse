@@ -70,7 +70,7 @@
             />
         </div>
 
-        <InstanceStatusPolling :instance="instance" @instance-updated="instanceUpdated" />
+        <InstanceStatusPolling v-if="!statusChannelLive" :instance="instance" @instance-updated="instanceUpdated" />
     </ff-page>
 </template>
 

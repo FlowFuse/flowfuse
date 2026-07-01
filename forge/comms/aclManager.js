@@ -140,6 +140,29 @@ module.exports = function (app) {
                 return false
             }
         },
+        checkTeamStateSub: async function (requestParts, usernameParts) {
+            // requestParts = [ fullTopic , <teamHash> , <entityId|'+'> ]
+            // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
+            // team-wide status wildcard: gate on team membership only. requestParts[2]
+            // is the instance/device id (or '+'), never the user — don't validate it.
+            const topicTeamHash = requestParts[1]
+            const usernameUserHash = usernameParts[1]
+            const usernameTeamHash = usernameParts[2]
+            if (topicTeamHash !== usernameTeamHash) {
+                return false
+            }
+            try {
+                const team = await app.db.models.Team.byId(usernameTeamHash)
+                if (!team) return false
+                const user = await app.db.models.User.byId(usernameUserHash)
+                if (!user) return false
+                const membership = await app.db.models.TeamMember.getTeamMembership(user.id, team.id, false)
+                return !!membership
+            } catch (error) {
+                app.log.error('Unexpected error during team-channel status ACL check', { requestParts, usernameParts, error })
+                return false
+            }
+        },
         checkExpertPlatformTopic: async function (topicParts, usernameParts, acl) {
             // topicParts = [ fullTopic , <userid>, <sessionid>, <command> ]
             // usernameParts = [ 'forge_platform' | 'expert-agent', <userid> [, <sessionid>] ]
@@ -410,6 +433,10 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/[^/]+\/t\/updated$/ },
                 // - ff/v1/<team>/u/<user>/membership
                 { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/membership$/ },
+                // - ff/v1/<team>/p/<instance>/state
+                { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/state$/ },
+                // - ff/v1/<team>/d/<device>/state
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/state$/ },
                 // ff/v1/platform/sync
                 { topic: /^ff\/v1\/platform\/sync$/ },
                 // ff/v1/platform/leader
@@ -475,7 +502,11 @@ module.exports = function (app) {
                 // - ff/v1/<team>/t/updated
                 { topic: /^ff\/v1\/([^/]+)\/t\/updated$/, verify: 'checkUserIsTeamMember' },
                 // - ff/v1/<team>/u/<user>/membership
-                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkUserIsTeamMember' }
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkUserIsTeamMember' },
+                // - ff/v1/<team>/p/+/state
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/state$/, verify: 'checkTeamStateSub' },
+                // - ff/v1/<team>/d/+/state
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/state$/, verify: 'checkTeamStateSub' }
             ],
             pub: []
         },

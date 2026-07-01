@@ -119,8 +119,12 @@ module.exports = {
             } else {
                 const startTime = project.name === 'stub-slow-start' ? 6000 : module.exports.START_DELAY
                 return new Promise((resolve, reject) => {
-                    setTimeout(() => {
+                    setTimeout(async () => {
                         list[project.id].state = 'running'
+                        // mirror a real launcher reporting its settled state so inflight clears via the confirm path
+                        try {
+                            await this._app.db.controllers.Project.updateLatestProjectState(project, 'running')
+                        } catch (err) {}
                         resolve()
                     }, startTime)
                 })
@@ -218,6 +222,15 @@ module.exports = {
      */
     restartFlows: async (project, options) => {
         this._app.log.info(`[stub driver] Restarting flows ${project.id}`)
+        // mirror a real launcher reporting running shortly after the bounce, so the restarting mask clears
+        setTimeout(async () => {
+            if (list[project.id]) {
+                list[project.id].state = 'running'
+            }
+            try {
+                await this._app.db.controllers.Project.updateLatestProjectState(project, 'running')
+            } catch (err) {}
+        }, module.exports.START_DELAY)
     },
 
     /**

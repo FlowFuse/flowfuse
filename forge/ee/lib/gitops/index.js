@@ -15,6 +15,7 @@ module.exports.init = async function (app) {
     // load backends
     const github = await require('./backends/github').init(app)
     const azure = await require('./backends/azure').init(app)
+    const generic = await require('./backends/generic').init(app)
 
     // Set the git feature flag
     app.config.features.register('gitIntegration', true, true)
@@ -36,6 +37,8 @@ module.exports.init = async function (app) {
             await github.pushToRepository(repoOptions, snapshot, options)
         } else if (repoOptions.tokenType === 'azure') {
             await azure.pushToRepository(repoOptions, snapshot, options)
+        } else if (repoOptions.tokenType === 'generic') {
+            await generic.pushToRepository(repoOptions, snapshot, options)
         }
     }
 
@@ -51,6 +54,8 @@ module.exports.init = async function (app) {
             return github.pullFromRepository(repoOptions)
         } else if (repoOptions.tokenType === 'azure') {
             return azure.pullFromRepository(repoOptions)
+        } else if (repoOptions.tokenType === 'generic') {
+            return generic.pullFromRepository(repoOptions)
         }
     }
 
