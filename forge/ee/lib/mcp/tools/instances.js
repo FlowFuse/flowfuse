@@ -72,7 +72,7 @@ module.exports = [
             Use this before calling platform_create_hosted_instance to make sure the name the user picked is not already taken.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            name: z.string().describe('The hosted instance name to check')
+            name: z.string().regex(/^[a-zA-Z][a-zA-Z0-9-]*$/).describe('The hosted instance name to check')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'POST', url: '/api/v1/projects/check-name', payload: { name: args.name } })
@@ -93,7 +93,7 @@ module.exports = [
             After the instance is created, wait a few seconds to give it time to boot up, then ask the user if they want to be taken to it. If they do, use the ui_navigate tool with the route name "instance-overview" and params { id: <the new instance id> }.`,
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
-            name: z.string().describe('Name for the new hosted instance'),
+            name: z.string().regex(/^[a-zA-Z][a-zA-Z0-9-]*$/).describe('Name for the new hosted instance. When generating a name, always use hyphens to separate multiple words (e.g. "my-new-instance" not "my new instance").'),
             applicationId: z.string().describe('The ID or hashid of the application'),
             projectType: z.string().describe('The ID of the hosted instance type (use platform_list_hosted_instance_types to find valid values)'),
             stack: z.string().describe('The ID of the stack (use platform_list_stacks to find valid values)'),
