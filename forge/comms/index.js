@@ -4,6 +4,7 @@ const ACLManager = require('./aclManager')
 const { CommsClient } = require('./commsClient')
 const { DeviceCommsHandler } = require('./devices')
 const { InstanceCommsHandler } = require('./instances')
+const { PlatformAutomationHandler } = require('./platformAutomation.js')
 
 /**
  * This module represents the real-time comms component of the platform.
@@ -32,6 +33,7 @@ module.exports = fp(async function (app, _opts) {
         // Create the handler for any device-related messages
         const deviceCommsHandler = DeviceCommsHandler(app, client)
         const instanceCommsHandler = InstanceCommsHandler(app, client)
+        const platformAutomationHandler = PlatformAutomationHandler(app, client)
 
         // Not in the current release, but when we handle Launcher status
         // via MQTT, it will arrive here. Compare to the status/device handler in `devices.js`
@@ -44,6 +46,7 @@ module.exports = fp(async function (app, _opts) {
             devices: deviceCommsHandler,
             instances: instanceCommsHandler,
             aclManager: ACLManager(app),
+            platformAutomation: platformAutomationHandler,
             platform: {
                 settings: {
                     sync: function (key) {
