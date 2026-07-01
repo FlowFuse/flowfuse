@@ -1,9 +1,9 @@
 <template>
-    <div ref="resizeTarget" class="ff-expert-input" :style="{height: heightStyle}">
+    <div ref="resizeTarget" class="ff-expert-input" :style="containerStyle">
         <resize-bar
             :is-resizing="isInputResizing"
             direction="horizontal"
-            @mousedown="startResize"
+            @mousedown="onStartResize"
         />
         <!-- Action buttons row -->
         <div class="action-buttons">
@@ -17,6 +17,17 @@
             </button>
             <div class="right-buttons">
                 <capabilities-selector v-if="isInsightsAgent" />
+                <button
+                    v-else
+                    type="button"
+                    class="btn-settings"
+                    data-el="expert-settings-menu"
+                    aria-label="Expert settings"
+                    title="Expert settings"
+                    @click="openSettings"
+                >
+                    <Cog8ToothIcon class="btn-settings__icon" />
+                </button>
             </div>
         </div>
         <div class="input-wrapper" :class="{ 'focused': isTextareaFocused }">
@@ -58,12 +69,35 @@
                 </div>
             </div>
         </div>
+
+        <ff-dialog
+            ref="settingsDialog"
+            header="Expert settings"
+            confirm-label="Done"
+            :can-be-canceled="false"
+            data-el="expert-settings-dialog"
+        >
+            <div class="expert-settings">
+                <div class="expert-settings__group">
+                    <FormHeading>Follow-up questions</FormHeading>
+                    <p>When a request needs more detail, choose how the Expert asks for it.</p>
+                    <ff-radio-group
+                        v-model="questionCadenceWrapper"
+                        orientation="vertical"
+                        :options="questionCadenceOptions"
+                        data-el="expert-question-cadence"
+                    />
+                </div>
+            </div>
+        </ff-dialog>
     </div>
 </template>
 
 <script>
+import { Cog8ToothIcon } from '@heroicons/vue/20/solid'
 import { mapActions, mapState } from 'pinia'
 
+import FormHeading from '../../FormHeading.vue'
 import ResizeBar from '../../ResizeBar.vue'
 
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
@@ -79,7 +113,9 @@ export default {
     name: 'ExpertChatInput',
     components: {
         CapabilitiesSelector,
+        Cog8ToothIcon,
         ContextSelector,
+        FormHeading,
         ResizeBar
     },
     inject: {
@@ -94,6 +130,7 @@ export default {
             startResize,
             heightStyle,
             bindResizer,
+            setHeight,
             isResizing: isInputResizing
         } = useResizingHelper()
 
@@ -101,6 +138,7 @@ export default {
             startResize,
             bindResizer,
             heightStyle,
+            setHeight,
             isInputResizing
         }
     },
@@ -108,7 +146,10 @@ export default {
         return {
             inputText: '',
             includeSelection: true,
-            isTextareaFocused: false
+            isTextareaFocused: false,
+            // The composer auto-sizes to its content via CSS (see .chat-input field-sizing).
+            // Only once the user drag-resizes do we pin it to an explicit height.
+            userResized: false
         }
     },
     computed: {
@@ -123,8 +164,24 @@ export default {
             'isInsightsAgent',
             'hasSelectedCapabilities',
             'hasMessages',
-            'isWaitingForResponse'
+            'isWaitingForResponse',
+            'pendingInput',
+            'questionCadence'
         ]),
+        questionCadenceOptions () {
+            return [
+                { label: 'All at once', value: 'all', description: 'Asks every open question together in a single turn.' },
+                { label: 'One at a time', value: 'one', description: 'Asks one question, then follows up based on your answer.' }
+            ]
+        },
+        questionCadenceWrapper: {
+            get () {
+                return this.questionCadence
+            },
+            set (value) {
+                this.setQuestionCadence(value)
+            }
+        },
         isInputDisabled () {
             if (this.isSessionExpired) return true
             if (this.isWaitingForResponse) return true
@@ -146,6 +203,24 @@ export default {
         },
         isImmersive () {
             return this.isImmersiveDevice || this.isImmersiveInstance
+        },
+        containerStyle () {
+            // Until the user drag-resizes, let the composer size itself to its content (capped by
+            // the CSS max-height). Once they drag, pin it to the chosen height.
+            return this.userResized ? { height: this.heightStyle } : {}
+        }
+    },
+    watch: {
+        pendingInput (text) {
+            if (text) {
+                this.inputText = text
+                this.setPendingInput('')
+                this.$nextTick(() => {
+                    this.$refs.textarea.focus()
+                    // No manual sizing needed: the textarea auto-grows to fit the loaded content
+                    // (e.g. an edited question) via CSS, capped by its max-height.
+                })
+            }
         }
     },
     mounted () {
@@ -158,7 +233,10 @@ export default {
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
-        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'handleMessageResponse']),
+        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'setPendingInput', 'setQuestionCadence']),
+        openSettings () {
+            this.$refs.settingsDialog.show()
+        },
         async handleSend () {
             if (!this.canSend) return
 
@@ -169,10 +247,9 @@ export default {
                 this.togglePinWithWidth()
             }
 
-            // Call Vuex action to handle API logic
+            // handleQuery renders the reply itself (see the store); the composer only needs
+            // to refocus the input once the turn is on its way.
             this.handleQuery({ query: message })
-                // Handle UI-specific processing if successful
-                .then((result) => this.handleMessageResponse(result))
                 .then(() => {
                     this.$nextTick(() => {
                         this.$refs.textarea.focus()
@@ -181,6 +258,15 @@ export default {
                 .catch(e => e)
 
             this.inputText = ''
+        },
+        onStartResize (event) {
+            // Seed the drag from the composer's current rendered height (it may have auto-grown to
+            // fit its content) so the resize continues smoothly from where it is, then hand off to
+            // the resize helper. From here on the chosen height wins over the content auto-size.
+            const container = this.$refs.resizeTarget
+            if (container) this.setHeight(container.offsetHeight)
+            this.userResized = true
+            this.startResize(event)
         },
         handleStop () {
             this.$emit('stop')
@@ -232,6 +318,7 @@ export default {
 .right-buttons {
     display: flex;
     gap: 0.5rem;
+    align-items: center;
 }
 
 button {
@@ -295,6 +382,26 @@ button {
     }
 }
 
+.btn-settings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    border-radius: 5px;
+    background-color: transparent;
+    color: var(--ff-color-text-subtle);
+
+    &:hover:not(:disabled) {
+        background-color: var(--ff-color-bg-surface); // gray-50
+        color: var(--ff-color-text-strong);
+    }
+
+    &__icon {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
 .input-wrapper {
     flex: 1;
     display: flex;
@@ -308,7 +415,12 @@ button {
     }
 
     .chat-input {
-        flex: 1;
+        // field-sizing lets the textarea grow with its content (typed or loaded, e.g. an edited
+        // question) up to the composer's max-height, where it scrolls — no JS measuring needed.
+        // flex-basis auto so it sizes to that content but still fills the box when it's taller
+        // (an empty composer, or after a drag-resize).
+        field-sizing: content;
+        flex: 1 1 auto;
         width: 100%;
         padding: 1rem; // p-4
         box-sizing: border-box;
@@ -347,6 +459,24 @@ button {
             display: flex;
             justify-content: flex-end;
         }
+    }
+}
+</style>
+
+<!--
+  Unscoped: ff-dialog teleports its content to <body>, so keep these selectors global rather
+  than relying on scoped data attributes reaching the teleported subtree.
+-->
+<style lang="scss">
+.expert-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 18rem;
+
+    &__group {
+        display: flex;
+        flex-direction: column;
     }
 }
 </style>
