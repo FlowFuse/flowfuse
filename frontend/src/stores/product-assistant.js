@@ -728,6 +728,19 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             delete next[key]
             this.toolPreferencesByTeam = { ...this.toolPreferencesByTeam, [teamId]: next }
         },
+        // Reset every tool of a class within a group to that group's class default by clearing
+        // its saved per-tool preference. Session "for this chat" grants are left alone.
+        resetGroupClassPreferences (group, cls) {
+            const teamId = currentTeamId()
+            if (!teamId || !TOOL_CLASSES.includes(cls)) return
+            const keys = this.toolCatalog
+                .filter(e => groupOf(e) === group && classOf(e) === cls)
+                .map(e => e.key)
+            if (!keys.length) return
+            const prefs = { ...(this.toolPreferencesByTeam[teamId] || {}) }
+            for (const k of keys) delete prefs[k]
+            this.toolPreferencesByTeam = { ...this.toolPreferencesByTeam, [teamId]: prefs }
+        },
         // Per-chat-session grants from the approval card. Not persisted; cleared on Start
         // Over (see product-expert startOver) and dropped on refresh.
         setSessionToolOverride (key, policy) {

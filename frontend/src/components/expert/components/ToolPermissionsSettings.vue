@@ -13,7 +13,7 @@
             <div class="tool-permissions__block">
                 <p class="tool-permissions__subtitle">Default permissions</p>
                 <p class="tool-permissions__intro">
-                    Choose what the Expert may do by default for each action type. Override individual tools below.
+                    Choose what the Expert may do by default for each action type. A permission set on an individual tool below overrides its type default, and keeps that setting until you reset it.
                 </p>
                 <ff-data-table :columns="defaultColumns" :show-search="false">
                     <template #rows>
@@ -25,14 +25,30 @@
                                 </div>
                             </ff-data-table-cell>
                             <ff-data-table-cell class="permission-col">
-                                <ToggleButtonGroup
-                                    class="tool-permissions__toggle"
-                                    size="small"
-                                    :uses-links="false"
-                                    :buttons="policyButtons"
-                                    :model-value="teamGroupDefaults(group.key)[cls.key]"
-                                    @update:model-value="(value) => setToolClassDefault(group.key, cls.key, value)"
-                                />
+                                <div class="tool-permissions__default-control">
+                                    <span
+                                        v-if="customCount(group, cls.key)"
+                                        class="tool-permissions__count"
+                                    >{{ customCount(group, cls.key) }} set individually</span>
+                                    <ff-button
+                                        v-if="customCount(group, cls.key)"
+                                        v-ff-tooltip:left="`Reset ${cls.label} tools in ${group.title} to this default`"
+                                        kind="tertiary"
+                                        size="small"
+                                        class="tool-permissions__reset"
+                                        @click="resetGroupClassPreferences(group.key, cls.key)"
+                                    >
+                                        Reset
+                                    </ff-button>
+                                    <ToggleButtonGroup
+                                        class="tool-permissions__toggle"
+                                        size="small"
+                                        :uses-links="false"
+                                        :buttons="policyButtons"
+                                        :model-value="teamGroupDefaults(group.key)[cls.key]"
+                                        @update:model-value="(value) => setToolClassDefault(group.key, cls.key, value)"
+                                    />
+                                </div>
                             </ff-data-table-cell>
                         </ff-data-table-row>
                     </template>
@@ -120,7 +136,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useProductAssistantStore, ['toolCatalog', 'teamGroupDefaults', 'savedToolPolicyFor', 'sessionOverrideFor', 'toolAvailabilityFor']),
+        ...mapState(useProductAssistantStore, ['toolCatalog', 'teamGroupDefaults', 'teamToolPreferences', 'savedToolPolicyFor', 'sessionOverrideFor', 'toolAvailabilityFor']),
         ...mapState(useContextStore, ['teamMembership']),
         canUseWriteTools () {
             return hasAMinimumTeamRoleOf(Roles.Member, this.teamMembership)
@@ -177,9 +193,19 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useProductAssistantStore, ['setToolPreference', 'setToolClassDefault', 'promoteSessionOverride']),
+        ...mapActions(useProductAssistantStore, ['setToolPreference', 'setToolClassDefault', 'promoteSessionOverride', 'resetGroupClassPreferences']),
         scopeLabel (cls) {
             return CLASS_LABELS[cls] || CLASS_LABELS.write
+        },
+        // A tool is "set individually" when it carries its own saved preference, so it no
+        // longer follows its type's default. Session-only "for this chat" grants don't count
+        // (they're shown per-tool below and reset on their own). This is what Reset clears.
+        familyHasCustom (tool) {
+            return tool.variantKeys.some(k => !!this.teamToolPreferences[k])
+        },
+        // How many tools of a class within a group have their own permission set.
+        customCount (group, cls) {
+            return group.tools.filter(t => t.toolClass === cls && this.familyHasCustom(t)).length
         },
         // The label under a tool name when this chat has a session grant for it, else null.
         sessionNoteFor (key) {
@@ -405,6 +431,19 @@ export default {
 // inline-flex lets the right-aligned permission column push the control to the edge.
 .tool-permissions__toggle {
     display: inline-flex;
+}
+
+// Count + Reset sit to the left of the class-default toggle, all hugging the right edge.
+.tool-permissions__default-control {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.tool-permissions__count {
+    font-size: 0.75rem;
+    color: var(--ff-color-text-subtle);
 }
 </style>
 
