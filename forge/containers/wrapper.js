@@ -211,6 +211,32 @@ module.exports = {
             await this._driver.restartFlows(project, options)
         }
     },
+    getMCPFeatures: async (project, endpoints) => {
+        let value = {}
+        if (this._driver.getMCPFeatures) {
+            value = await this._driver.getMCPFeatures(project, endpoints)
+        }
+        return value
+    },
+    callMCPTool: async (project, endpoint, name, input) => {
+        // MCP ROUTE: step 3 (hosted)
+        // Called By: forge app (forge/comms/instances.js) inflight request handler
+        // Calls To : loaded driver (localfs/k8s/docker) helper fn callMCPTool
+        let value = {}
+        if (this._driver.callMCPTool) {
+            value = await this._driver.callMCPTool(project, endpoint, name, input)
+        }
+        return value
+    },
+    readMCPResource: async (project, endpoint, uri) => {
+        // Called By: forge app (forge/comms/instances.js) inflight request handler
+        // Calls To : loaded driver (localfs/k8s/docker) helper fn readMCPResource
+        let value = {}
+        if (this._driver.readMCPResource) {
+            value = await this._driver.readMCPResource(project, endpoint, uri)
+        }
+        return value
+    },
     revokeUserToken: async (project, token) => { // logout:nodered(step-2)
         if (this._driver.revokeUserToken) {
             if (project.state === 'suspended') {

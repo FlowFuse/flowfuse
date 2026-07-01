@@ -14,7 +14,7 @@ const axios = require('axios')
 const httpAgent = new http.Agent({ keepAlive: false })
 const httpsAgent = new https.Agent({ keepAlive: false })
 
-const { connector, actionOut, sourceChat, sourceInflight, ruleIn, ruleOut } = require('./templates.js')
+const { connector, actionOut, sourceChat, sourceInflight, sourcePlatform, ruleIn, ruleOut } = require('./templates.js')
 
 // EMQX v5 IDs for connector/action/source resources are `<type>:<name>`.
 // Rule IDs are the rule's own `id` field.
@@ -188,7 +188,8 @@ async function validateBridge (app, { cfg, client } = {}) {
         }
         const hasSourceChat = sources.some(s => s.name === sourceChat.name && s.type === 'mqtt')
         const hasSourceInflight = sources.some(s => s.name === sourceInflight.name && s.type === 'mqtt')
-        if (!hasSourceChat || !hasSourceInflight) {
+        const hasSourcePlatform = sources.some(s => s.name === sourcePlatform.name && s.type === 'mqtt')
+        if (!hasSourceChat || !hasSourceInflight || !hasSourcePlatform) {
             app.log.info('Expert bridge sources not found')
             return false
         }
@@ -325,6 +326,8 @@ async function addBridge (app, { cfg, client } = {}) {
     await post(client, '/sources', sourceChat)
     app.log.info(`creating EMQX source ${sourceInflight.name}`)
     await post(client, '/sources', sourceInflight)
+    app.log.info(`creating EMQX source ${sourcePlatform.name}`)
+    await post(client, '/sources', sourcePlatform)
     app.log.info(`creating EMQX rule ${ruleOut.id}`)
     await post(client, '/rules', ruleOut)
     app.log.info(`creating EMQX rule ${ruleIn.id}`)
