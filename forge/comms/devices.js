@@ -121,6 +121,7 @@ class DeviceCommsHandler {
             const teamId = this.app.db.models.Team.encodeHashid(device.TeamId)
             const startTime = Date.now()
             try {
+                const previousState = device.state
                 const payload = JSON.parse(status.status)
                 await this.app.db.controllers.Device.updateState(device, payload)
 
@@ -128,6 +129,11 @@ class DeviceCommsHandler {
                     // This device is busy updating - don't interrupt it
                     this.app.log.info({ msg: 'Device status update - null status', device: deviceId, team: teamId, responseTime: Date.now() - startTime })
                     return
+                }
+
+                const maskTransientStop = previousState === 'restarting' && payload.state === 'stopped'
+                if (!maskTransientStop && payload.state !== previousState) {
+                    this.app.comms.team.notifyDeviceState(teamId, status.id, payload.state)
                 }
 
                 // If the status state===unknown, the device is waiting for confirmation
