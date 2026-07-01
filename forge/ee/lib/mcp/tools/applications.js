@@ -138,7 +138,10 @@ module.exports = [
     },
     {
         name: 'platform_create_application',
-        description: 'FlowFuse platform automation tool: Create a new application in a team.',
+        description: `FlowFuse platform automation tool:
+            Creates a new application in a team.
+            An application is a container that groups together hosted instances and remote instances that work together.
+            After the application is created, ask the user if they want to be taken to it. If they do, use the ui_navigate tool to navigate to the new application.`,
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             name: z.string().describe('Name for the new application'),
