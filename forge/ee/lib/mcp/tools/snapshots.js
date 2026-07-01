@@ -11,7 +11,7 @@ module.exports = [
         inputSchema: {
             hostedInstanceId: z.string().describe('The ID or hashid of the hosted instance'),
             cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
-            limit: z.number().optional().describe('How many results to return per page')
+            limit: z.number().min(1).max(20).describe('How many results to return per page')
         },
         handler: async (args, { inject }) => {
             let url = `/api/v1/projects/${args.hostedInstanceId}/snapshots`
@@ -63,7 +63,7 @@ module.exports = [
         inputSchema: {
             remoteInstanceId: z.string().describe('The ID or hashid of the remote instance'),
             cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
-            limit: z.number().optional().describe('How many results to return per page')
+            limit: z.number().min(1).max(20).describe('How many results to return per page')
         },
         handler: async (args, { inject }) => {
             let url = `/api/v1/devices/${args.remoteInstanceId}/snapshots`

@@ -45,7 +45,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             hostedInstanceId: z.string().describe('The ID or hashid of the hosted instance'),
-            limit: z.number().optional().describe('Number of log entries to return (default 30)'),
+            limit: z.number().min(1).max(100).describe('Number of log entries to return'),
             cursor: z.string().optional().describe('Cursor for pagination (the ID of the last entry from the previous page)')
         },
         handler: async (args, { inject }) => {

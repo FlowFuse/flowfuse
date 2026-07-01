@@ -58,7 +58,7 @@ module.exports = [
             applicationId: z.string().describe('The ID or hashid of the application'),
             query: z.string().optional().describe('Search remote instances by name'),
             cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
-            limit: z.number().optional().describe('How many results to return per page (default 100, max 100)')
+            limit: z.number().min(1).max(10).describe('How many results to return per page')
         },
         handler: async (args, { inject }) => {
             let url = `/api/v1/applications/${args.applicationId}/devices`
@@ -106,7 +106,7 @@ module.exports = [
         inputSchema: {
             applicationId: z.string().describe('The ID or hashid of the application'),
             cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last entry from the previous page)'),
-            limit: z.number().optional().describe('How many entries to return (default 1000)'),
+            limit: z.number().min(1).max(100).describe('How many entries to return'),
             event: z.string().optional().describe('Filter by event type (e.g. "application.created", "project.snapshot.device-target-set")'),
             username: z.string().optional().describe('Filter by the username of whoever triggered the event'),
             scope: z.string().optional().describe('What level of entries to include: "application", "project", or "device" (default "application")')

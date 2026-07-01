@@ -15,7 +15,7 @@ module.exports = [
             teamId: z.string().describe('The ID or hashid of the team'),
             query: z.string().optional().describe('Search remote instances by name or type'),
             cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
-            limit: z.number().optional().describe('How many results to return per page (default 100, max 100)')
+            limit: z.number().min(1).max(10).describe('How many results to return per page')
         },
         handler: async (args, { inject }) => {
             let url = `/api/v1/teams/${args.teamId}/devices`
