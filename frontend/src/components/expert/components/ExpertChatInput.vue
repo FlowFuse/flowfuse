@@ -30,7 +30,7 @@
                     @toggle="setPlanMode(!planMode)"
                 >
                     <template #icon>
-                        <ff-toggle-switch :modelValue="planMode" tabindex="-1" />
+                        <ff-toggle-switch :modelValue="planMode" size="small" tabindex="-1" />
                     </template>
                 </default-chip>
                 <capabilities-selector v-if="isInsightsAgent" />
@@ -187,8 +187,7 @@ export default {
             'hasMessages',
             'isWaitingForResponse',
             'pendingInput',
-            'planChangeRequest',
-            'composerReset',
+            'composerCommand',
             'questionCadence',
             'planMode'
         ]),
@@ -241,10 +240,8 @@ export default {
         isImmersive: {
             immediate: true,
             handler (immersive) {
-                // Plan mode is only offered in immersive mode, but planMode is persisted.
-                // Force it off when leaving immersive (and on load outside immersive) so a
-                // stale "on" value isn't carried into (and sent from) non-immersive contexts
-                // where the toggle is hidden.
+                // Plan mode is only offered in immersive mode, so force it off when leaving
+                // so a stale "on" value isn't sent from a non-immersive context.
                 if (!immersive && this.planMode) {
                     this.setPlanMode(false)
                 }
@@ -255,28 +252,19 @@ export default {
                 this.inputText = text
                 this.requestingPlanChange = false
                 this.setPendingInput('')
-                this.$nextTick(() => {
-                    this.$refs.textarea.focus()
-                    // No manual sizing needed: the textarea auto-grows to fit the loaded content
-                    // (e.g. an edited question or plan) via CSS, capped by its max-height.
-                })
+                this.$nextTick(() => this.$refs.textarea.focus())
             }
         },
-        planChangeRequest () {
-            // The plan card's "Request changes" action: focus an empty composer and show
-            // the change hint, so the user can describe a change in their own words.
+        composerCommand (command) {
+            if (!command) return
+            // Plan card actions: focus an empty composer with a change hint, or clear a
+            // plan loaded via "Edit manually" that was approved/rejected without sending.
             this.inputText = ''
-            this.requestingPlanChange = true
-            this.$nextTick(() => {
-                this.$refs.textarea.focus()
-            })
-        },
-        composerReset () {
-            // A plan was loaded into the composer (via "Edit manually") then approved or
-            // rejected without sending; clear the stale text. The composer auto-collapses to
-            // fit its (now empty) content via CSS, so no manual height reset is needed.
-            this.inputText = ''
-            this.requestingPlanChange = false
+            this.requestingPlanChange = command === 'request-plan-change'
+            if (this.requestingPlanChange) {
+                this.$nextTick(() => this.$refs.textarea.focus())
+            }
+            this.setComposerCommand(null)
         },
         inputText (value) {
             // Clear the plan-change hint once the user starts typing their own text.
@@ -295,7 +283,7 @@ export default {
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
-        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'setPendingInput', 'setQuestionCadence', 'setPlanMode']),
+        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setQuestionCadence', 'setPlanMode']),
         openSettings () {
             this.$refs.settingsDialog.show()
         },
@@ -384,39 +372,25 @@ export default {
     align-items: center;
 }
 
-// Reuses the shared DefaultChip for its bg, border, active state and theming; the only
-// styling here is sizing the toggle switch in the #icon slot, since the switch has no size
-// prop. It is a visual indicator only (pointer-events disabled); the chip handles the click.
+// Reuses the shared DefaultChip; only tweaks needed here are neutralising the chip's
+// warning-yellow separator and centring the label around the divider.
 .plan-mode-chip {
-    // DefaultChip's separator is a warning-yellow in the inactive state (intended for the
-    // Selection chip); neutralise it here for both states so it reads as a plain divider.
     :deep(.separator),
     &.active :deep(.separator) {
         background: var(--ff-color-border);
     }
 
-    // DefaultChip's .text padding is asymmetric (less on the left) AND the chip adds a 5px
-    // flex gap between the text box and the divider, so the label sits left of centre.
-    // Equalise the padding and subtract the gap from the right so "Plan mode" has the same
-    // visual space on both sides of the divider cell.
+    // DefaultChip's .text padding is asymmetric and it adds a 5px flex gap before the
+    // divider; equalise so "Plan mode" sits centred on both sides of the divider cell.
     :deep(.text) {
         padding-left: 0.5rem;
         padding-right: calc(0.5rem - 5px);
     }
 
+    // The switch is a visual indicator only; the chip handles the click.
     :deep(.ff-toggle-switch) {
-        --ff-toggle-width: 30px;
-        --ff-toggle-translate: 12px;
-        height: 18px;
         pointer-events: none;
         flex-shrink: 0;
-    }
-
-    :deep(.ff-toggle-switch-button) {
-        height: 14px;
-        width: 14px;
-        left: 2px;
-        bottom: 2px;
     }
 }
 
@@ -514,12 +488,12 @@ button {
     }
 
     .chat-input {
-        // field-sizing lets the textarea grow with its content (typed or loaded, e.g. an edited
-        // question) up to the composer's max-height, where it scrolls — no JS measuring needed.
-        // flex-basis auto so it sizes to that content but still fills the box when it's taller
-        // (an empty composer, or after a drag-resize).
+        // field-sizing grows the textarea with its content up to the composer's max-height.
+        // min-height: 0 lets it shrink within the flex box past its content height (loading a
+        // long plan via "Edit manually") so overflow-y scrolls instead of overflowing the chat.
         field-sizing: content;
         flex: 1 1 auto;
+        min-height: 0;
         width: 100%;
         padding: 1rem; // p-4
         box-sizing: border-box;

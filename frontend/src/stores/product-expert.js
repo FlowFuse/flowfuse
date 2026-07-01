@@ -33,12 +33,10 @@ export const useProductExpertStore = defineStore('product-expert', {
         planMode: false,
         inFlightUpdates: [],
         pendingInput: '',
-        // Incremented to ask the chat composer to focus an empty input for a plan-change
-        // request (the plan card's "Request changes" action). The composer watches it.
-        planChangeRequest: 0,
-        // Incremented to ask the chat composer to clear itself (e.g. a plan was loaded via
-        // "Edit manually" then approved/rejected without sending). The composer watches it.
-        composerReset: 0,
+        // One-shot chat composer command, consumed and cleared like pendingInput.
+        // 'request-plan-change' focuses an empty composer for the plan card's "Request
+        // changes"; 'reset' clears a plan loaded via "Edit manually" but not sent.
+        composerCommand: null,
         _seenTransactionIds: new Map()
     }),
     getters: {
@@ -188,18 +186,10 @@ export const useProductExpertStore = defineStore('product-expert', {
         setPendingInput (text) {
             this.pendingInput = text
         },
-        requestPlanChange () {
-            // Signal the chat composer to focus an empty input so the user can describe
-            // a change to a proposed plan. Bumping a counter lets the composer react each
-            // time, including repeated requests.
-            this.planChangeRequest++
+        setComposerCommand (command) {
+            this.composerCommand = command
         },
-        resetComposer () {
-            // Signal the chat composer to clear its input. Bumping a counter lets the
-            // composer react each time, including repeated resets.
-            this.composerReset++
-        },
-        async handleQuery ({ query, contextOverrides }) {
+        async handleQuery ({ query }) {
             const agentStore = this._agentStore
 
             // Auto-initialize session ID if not set
@@ -223,7 +213,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // instead. Rendering the response here — rather than at each call site — means
                 // every entry point (composer, questions/plan cards) shows the reply without
                 // having to remember to chain handleMessageResponse itself.
-                const result = await this.sendQuery({ query, contextOverrides })
+                const result = await this.sendQuery({ query })
                 if (result) {
                     await this.handleMessageResponse(result)
                 }
@@ -244,21 +234,20 @@ export const useProductExpertStore = defineStore('product-expert', {
                 agentStore.abortController = null
             }
         },
-        sendQuery ({ query, contextOverrides }) {
+        sendQuery ({ query }) {
             if (this.shouldUseMqtt) {
-                return this.sendMqttQuery({ query, contextOverrides })
+                return this.sendMqttQuery({ query })
             } else {
-                return this.sendHttpQuery({ query, contextOverrides })
+                return this.sendHttpQuery({ query })
             }
         },
-        async sendHttpQuery ({ query, contextOverrides }) {
+        async sendHttpQuery ({ query }) {
             const agentStore = this._agentStore
             const payload = {
                 query,
                 context: {
                     ...useContextStore().expert,
-                    agent: this.agentMode,
-                    ...(contextOverrides || {})
+                    agent: this.agentMode
                 },
                 sessionId: agentStore.sessionId,
                 abortController: agentStore.abortController
@@ -270,7 +259,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             return expertApi.chat(payload)
         },
-        async sendMqttQuery ({ query, contextOverrides } = {}) {
+        async sendMqttQuery ({ query } = {}) {
             const servicesOrchestrator = getAppOrchestrator()
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
             const mqttTopicHelper = useMqttExpertTopicHelper()
@@ -1107,7 +1096,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     persist: {
-        pick: ['shouldWakeUpAssistant', 'questionCadence', 'planMode'],
+        pick: ['shouldWakeUpAssistant', 'questionCadence'],
         storage: localStorage
     }
 })

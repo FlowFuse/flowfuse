@@ -320,7 +320,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'requestPlanChange', 'resetComposer', 'setPlanMode']),
+        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setPlanMode']),
         buildStreamingOrder () {
             // order matters
             // this is where the decision of the streaming order of components is decided
@@ -348,29 +348,21 @@ export default {
             this.setPendingInput(text)
         },
         onPlanApprove () {
-            // Approving exits plan mode. Plan mode is strictly read-only, so we turn it off
-            // here rather than punching a write override through an active plan mode; the build
-            // then runs as a normal acting turn, and follow-up turns keep building instead of
-            // dropping back into planning.
+            // Approving exits read-only plan mode so the build runs as a normal acting turn,
+            // and clears any plan text loaded into the composer via "Edit manually".
             this.setPlanMode(false)
-            // Clear the composer in case the plan was loaded into it via "Edit manually"
-            // and then approved without sending; the loaded text is now stale.
-            this.resetComposer()
+            this.setComposerCommand('reset')
             this.handleQuery({ query: 'Approved. Proceed with the plan.' })
         },
         onPlanEditManual () {
-            // Load the plan markdown into the message box so the user can edit it directly,
-            // then send it back for the agent to re-propose as an updated plan to approve.
+            // Load the plan markdown into the composer to edit and resubmit for a re-proposal.
             this.setPendingInput(this.answer.content)
         },
         onPlanRequestChanges () {
-            // Focus an empty composer so the user can describe a change in their own words;
-            // the agent folds it in and re-proposes an updated plan to approve.
-            this.requestPlanChange()
+            this.setComposerCommand('request-plan-change')
         },
         onPlanReject () {
-            // Drop any plan text loaded into the composer via "Edit manually".
-            this.resetComposer()
+            this.setComposerCommand('reset')
             this.handleQuery({ query: 'I do not want to proceed with this plan.' })
         },
         handleClick (e) {
