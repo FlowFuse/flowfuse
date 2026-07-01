@@ -57,6 +57,10 @@ function registerTools (server, toolDefinitions, inject, checkScope, options = {
  * Formats an app.inject() response into an MCP CallToolResult.
  */
 function formatResponse (response) {
+    if (typeof response.json !== 'function') {
+        return response
+    }
+
     const body = response.json()
     if (response.statusCode >= 400) {
         return {
