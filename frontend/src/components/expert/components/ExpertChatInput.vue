@@ -16,11 +16,8 @@
                 Start over
             </button>
             <div class="right-buttons">
-                <!-- TODO: plan mode is currently scoped to immersive mode (instance/device
-                     editor) only. Make it available app-wide once the FlowFuse platform
-                     automations are introduced, so the agent can also plan against those. -->
                 <default-chip
-                    v-if="!isInsightsAgent && isImmersive"
+                    v-if="!isInsightsAgent"
                     class="plan-mode-chip"
                     text="Plan mode"
                     :modelValue="planMode"
@@ -237,16 +234,6 @@ export default {
         }
     },
     watch: {
-        isImmersive: {
-            immediate: true,
-            handler (immersive) {
-                // Plan mode is only offered in immersive mode, so force it off when leaving
-                // so a stale "on" value isn't sent from a non-immersive context.
-                if (!immersive && this.planMode) {
-                    this.setPlanMode(false)
-                }
-            }
-        },
         pendingInput (text) {
             if (text) {
                 this.inputText = text
