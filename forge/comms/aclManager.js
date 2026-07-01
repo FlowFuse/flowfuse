@@ -7,7 +7,8 @@
  * Other components (ie EE-specific features) can register their own additional ACLs
  */
 module.exports = function (app) {
-    const expertRbacToolCheck = async (teamMembership, application, toolName) => {
+    const expertRbacToolCheck = async (teamMembership, toolName, application) => {
+        const applicationCheck = typeof application !== 'undefined'
         const applicationHash = typeof application === 'object' ? application.hashid : application
         if (toolName === 'expert:status-message') {
             return true
@@ -20,8 +21,15 @@ module.exports = function (app) {
             'automation:get-flows': 'project:flows:view'
         }
         const requiredPermission = toolAccessPermission[toolName] || 'project:flows:edit' // default to highest level of access if tool isn't in the list, to be safe
-        if (!app.hasPermission(teamMembership, requiredPermission, { applicationId: applicationHash })) {
-            return false
+
+        if (applicationCheck) {
+            if (!app.hasPermission(teamMembership, requiredPermission, { applicationId: applicationHash })) {
+                return false
+            }
+        } else {
+            if (!app.hasPermission(teamMembership, requiredPermission)) {
+                return false
+            }
         }
         return true
     }
