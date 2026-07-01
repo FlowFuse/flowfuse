@@ -110,7 +110,7 @@ export const useContextStore = defineStore('context', {
                 selectedNodes,
                 scope,
                 supportsPlatformAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
-                supportsPlatformUIAutomation: useAccountSettingsStore().featuresCheck?.isExpertAssistantFeatureEnabled ?? false,
+                supportsPlatformUIAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
                 questionCadence: useProductExpertStore().questionCadence
             }
         }
