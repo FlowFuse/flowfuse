@@ -85,7 +85,7 @@ module.exports = [
             This only registers the device on the platform, it does not install anything on the user's hardware.
             The response includes credentials that the user will need to configure on their device to connect it to the platform.
             If the user wants to assign it to an application, call platform_assign_remote_instance_to_application after creation.
-            After the device is created, ask the user if they want to be taken to it. If they do, use the ui_navigate tool to navigate to the new remote instance.`,
+            After the device is created, ask the user if they want to be taken to it. If they do, use the ui_navigate tool with the route name "device-overview" and params { id: <the new device id> }.`,
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             name: z.string().describe('Name for the new remote instance'),
@@ -93,10 +93,7 @@ module.exports = [
             type: z.string().optional().describe('Optional label describing the device type (e.g. "Raspberry Pi 4", "Edge Gateway")')
         },
         handler: async (args, { inject }) => {
-            const payload = { name: args.name, team: args.teamId }
-            if (args.type) {
-                payload.type = args.type
-            }
+            const payload = { name: args.name, team: args.teamId, type: args.type || '' }
             const response = await inject({ method: 'POST', url: '/api/v1/devices', payload })
             return response
         }
