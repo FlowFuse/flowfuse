@@ -69,7 +69,7 @@ module.exports = fp(async function (app, opts) {
                 // Permission disabled via admin settings
                 reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                 throw new Error()
-            } else if (permission.role && permission.role !== Roles.Admin && (!request.session.scope || request.session.ownerType === 'user')) {
+            } else if (permission.role && permission.role !== Roles.Admin && (!request.session.scope || request.session.ownerType === 'user' || request.session.ownerType === 'user:expert-mcp')) {
                 // The user is required to have a role in the team associated with
                 // this request
                 if (!request.teamMembership) {
@@ -115,10 +115,9 @@ module.exports = fp(async function (app, opts) {
                 // We also need to check against the list of implicit scopes for
                 // a given token type (ie device/project)
 
-                // temp hack
-                // TODO: Consider using custom ownerType e.g. `user:expert-mcp`
-                // so that any other routes that permit a "user" token will not be accessible via this token type
-                if (request.session.ownerType === 'user' && request.session.scope?.includes('ff-expert:platform')) {
+                // The dedicated platform-automation token is server-minted, role-bounded above,
+                // and not a general user token, so it may reach the routes its tools call.
+                if (request.session.ownerType === 'user:expert-mcp' && request.session.scope?.includes('ff-expert:platform')) {
                     return
                 }
 
