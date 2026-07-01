@@ -24,6 +24,35 @@ const IMPLICIT_TOKEN_SCOPES = {
         'broker:clients:list',
         'broker:clients:link',
         'assistant:call' // permit access to assistant
+    ],
+    'user:expert-mcp': [
+        // applications
+        'team:projects:list', // list applications, list hosted instances, get instances status
+        'project:read', // get application details
+        'team:device:list', // list application remote instances
+        'application:audit-log', // get application audit log
+        // devices
+        'device:read', // get remote instance details
+        'device:create', // create remote instance
+        'device:edit', // assign remote instance to application
+        // hosted instances
+        'project:create', // create application, create hosted instance, check instance name
+        'project-type:read',
+        'project-type:list',
+        'project:log', // get hosted instance logs
+        // snapshots
+        'project:snapshot:list', // list hosted instance snapshots
+        'project:snapshot:create', // create hosted instance snapshot
+        'device:snapshot:list', // list remote instance snapshots
+        'device:snapshot:create', // create remote instance snapshot
+        // teams
+        'user:team:list', // list teams
+        'team:read', // get team details
+        // platform
+        'stack:list',
+        'flow-blueprint:list',
+        'project:status',
+        'template:list'
     ]
 }
 
@@ -69,7 +98,7 @@ module.exports = fp(async function (app, opts) {
                 // Permission disabled via admin settings
                 reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                 throw new Error()
-            } else if (permission.role && permission.role !== Roles.Admin && (!request.session.scope || request.session.ownerType === 'user')) {
+            } else if (permission.role && permission.role !== Roles.Admin && (!request.session.scope || request.session.ownerType === 'user' || request.session.ownerType === 'user:expert-mcp')) {
                 // The user is required to have a role in the team associated with
                 // this request
                 if (!request.teamMembership) {
@@ -114,6 +143,7 @@ module.exports = fp(async function (app, opts) {
                 // But they are using an access_token that could be scoped down
                 // We also need to check against the list of implicit scopes for
                 // a given token type (ie device/project)
+
                 if (!request.session.scope.includes(scope) &&
                     (!IMPLICIT_TOKEN_SCOPES[request.session.ownerType] || !IMPLICIT_TOKEN_SCOPES[request.session.ownerType].includes(scope))) {
                     reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })

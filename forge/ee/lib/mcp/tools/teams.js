@@ -2,8 +2,8 @@ const { z } = require('zod')
 
 module.exports = [
     {
-        name: 'platform.list-teams',
-        description: 'List all teams the authenticated user belongs to. Returns team names, slugs, IDs, and membership roles.',
+        name: 'platform_list_teams',
+        description: 'FlowFuse platform automation tool: List all teams the authenticated user belongs to. Returns team names, slugs, IDs, and membership roles.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {},
         handler: async (args, { inject }) => {
@@ -12,8 +12,8 @@ module.exports = [
         }
     },
     {
-        name: 'platform.get-team',
-        description: 'Get details of a specific team by its ID, including team type, member count, and instance counts.',
+        name: 'platform_get_team',
+        description: 'FlowFuse platform automation tool: Get details of a specific team by its ID, including team type, member count, hosted instance and remote instance counts.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             teamId: z.string().describe('The ID or hashid of the team')

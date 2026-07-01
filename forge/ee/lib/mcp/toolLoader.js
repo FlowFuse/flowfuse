@@ -24,12 +24,15 @@ function loadToolDefinitions () {
  * Registers all tool definitions on a McpServer instance.
  * Called once per request since the server is stateless (fresh per request).
  *
- * @param {import('@modelcontextprotocol/sdk/server/mcp.js').McpServer} server
+ * @param {Object} server
  * @param {Array} toolDefinitions - loaded tool definitions
  * @param {Function} inject - app.inject helper bound to the request's auth token
  * @param {Function} checkScope - scope check function (stub for now)
+ * @param {Object} [options] - optional extra context passed to tool handlers
+ * @param {Object} [options.comms] - device comms handler for MQTT commands
  */
-function registerTools (server, toolDefinitions, inject, checkScope) {
+function registerTools (server, toolDefinitions, inject, checkScope, options = {}) {
+    const { comms } = options
     for (const tool of toolDefinitions) {
         const config = {
             description: tool.description,
@@ -44,8 +47,8 @@ function registerTools (server, toolDefinitions, inject, checkScope) {
             if (scopeError) {
                 return scopeError
             }
-            const response = await tool.handler(args, { inject })
-            return formatResponse(response)
+            const response = await tool.handler(args, { inject, comms })
+            return typeof response?.json === 'function' ? formatResponse(response) : response
         })
     }
 }
@@ -54,16 +57,19 @@ function registerTools (server, toolDefinitions, inject, checkScope) {
  * Formats an app.inject() response into an MCP CallToolResult.
  */
 function formatResponse (response) {
+    if (typeof response.json !== 'function') {
+        return response
+    }
+
     const body = response.json()
     if (response.statusCode >= 400) {
         return {
-            content: [{ type: 'text', text: JSON.stringify(body) }],
+            content: body,
+            code: response.statusCode,
             isError: true
         }
     }
-    return {
-        content: [{ type: 'text', text: JSON.stringify(body, null, 2) }]
-    }
+    return body
 }
 
-module.exports = { loadToolDefinitions, registerTools }
+module.exports = { formatResponse, loadToolDefinitions, registerTools }

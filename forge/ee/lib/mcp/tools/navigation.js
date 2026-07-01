@@ -2,14 +2,14 @@ const { z } = require('zod')
 
 module.exports = [
     {
-        name: 'platform.open-editor',
-        description: 'Get the URL to open the Node-RED editor for an instance. Returns a URL the user can open in their browser.',
+        name: 'platform_open_hosted_instance_editor',
+        description: 'FlowFuse platform automation tool: Get the URL to open the Node-RED editor for a hosted instance. Returns a URL the user can open in their browser.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            instanceId: z.string().describe('The ID or hashid of the instance')
+            hostedInstanceId: z.string().describe('The ID or hashid of the hosted instance')
         },
         handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.instanceId}` })
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}` })
             if (response.statusCode >= 400) {
                 return response
             }
@@ -21,14 +21,14 @@ module.exports = [
         }
     },
     {
-        name: 'platform.open-instance',
-        description: 'Get the URL to open the instance dashboard in the FlowFuse platform. Returns a URL the user can open in their browser.',
+        name: 'platform_open_hosted_instance',
+        description: 'FlowFuse platform automation tool: Get the URL to open the hosted instance dashboard in the FlowFuse platform. Returns a URL the user can open in their browser.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            instanceId: z.string().describe('The ID or hashid of the instance')
+            hostedInstanceId: z.string().describe('The ID or hashid of the hosted instance')
         },
         handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.instanceId}` })
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}` })
             if (response.statusCode >= 400) {
                 return response
             }
