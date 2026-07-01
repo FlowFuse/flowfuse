@@ -24,7 +24,7 @@ function loadToolDefinitions () {
  * Registers all tool definitions on a McpServer instance.
  * Called once per request since the server is stateless (fresh per request).
  *
- * @param {import('@modelcontextprotocol/sdk/server/mcp.js').McpServer} server
+ * @param {Object} server
  * @param {Array} toolDefinitions - loaded tool definitions
  * @param {Function} inject - app.inject helper bound to the request's auth token
  * @param {Function} checkScope - scope check function (stub for now)
