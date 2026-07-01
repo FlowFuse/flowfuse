@@ -300,8 +300,8 @@ module.exports = function (app) {
                     }
 
                     // if this is an inflight channel messages we must validate the user has appropriate RBAC permission
-                    if (isInflight && ['p', 'd', 'a'].includes(entityType)) {
-                        const result = await expertRbacToolCheck(teamMembership, applicationHash, inflightType)
+                    if (isInflight) {
+                        const result = await expertRbacToolCheck(teamMembership, inflightType, applicationHash)
                         if (!result) {
                             throw ValidationError('user does not have permission to access this inflight topic')
                         }
