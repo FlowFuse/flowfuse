@@ -666,4 +666,41 @@ describe('Project model', function () {
             await team.destroy()
         })
     })
+
+    describe('Status change broadcast (afterSave hook)', function () {
+        let notifySpy
+        before(async function () {
+            await app.close()
+            app = await setup({ limits: { instances: 20 } })
+        })
+        after(async function () {
+            await app.close()
+            app = await setup()
+        })
+        beforeEach(function () {
+            notifySpy = sinon.spy(app.comms.team, 'notifyInstanceState')
+        })
+        afterEach(function () {
+            notifySpy.restore()
+        })
+
+        it('notifies the team channel when an instance state changes on save', async function () {
+            const team = await app.db.models.Team.create({ name: 'Broadcast Team', TeamTypeId: 1 })
+            const instance = await app.db.models.Project.create({ name: 'broadcast-p1', type: '', url: '', state: 'running', TeamId: team.id })
+            notifySpy.resetHistory() // ignore the create-time save
+            instance.state = 'suspended'
+            await instance.save()
+            notifySpy.calledOnce.should.be.true()
+            notifySpy.firstCall.args.should.eql([app.db.models.Team.encodeHashid(team.id), instance.id, 'suspended'])
+        })
+
+        it('does not notify when a save leaves state unchanged', async function () {
+            const team = await app.db.models.Team.create({ name: 'Broadcast Team 2', TeamTypeId: 1 })
+            const instance = await app.db.models.Project.create({ name: 'broadcast-p2', type: '', url: '', state: 'suspended', TeamId: team.id })
+            notifySpy.resetHistory()
+            instance.name = 'broadcast-p2-renamed' // name change is allowed while suspended
+            await instance.save()
+            notifySpy.called.should.be.false()
+        })
+    })
 })
