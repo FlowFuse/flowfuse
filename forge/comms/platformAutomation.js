@@ -77,7 +77,17 @@ class PlatformAutomationHandler {
                 // TODO: Probably sensible to verify that toolDefinition matches the tool to ensure no tampering has occurred
                 const { toolDefinition } = meta || {}
 
+                const { annotations } = toolDefinition
                 const tool = this.findTool(toolName)
+
+                // Verify tool annotations haven't been tampered with
+                if (JSON.stringify({ annotations }) !== JSON.stringify({ annotations: tool.annotations })) {
+                    return onError(
+                        'Tool definition mismatch',
+                        'MCP_PLATFORM_TOOL_TAMPERED'
+                    )
+                }
+
                 if (!tool) {
                     return onError(
                         `Unknown platform tool: ${toolName}`,
@@ -86,19 +96,21 @@ class PlatformAutomationHandler {
                 }
 
                 const user = await this.app.db.models.User.byId(userId)
-                const { token } = await this.app.expert.mcp.getOrCreatePlatformToken(user)
-                const inject = (opts) => this.app.inject({
-                    ...opts,
-                    headers: {
-                        ...opts.headers,
-                        authorization: `Bearer ${token}`,
-                        'x-ff-automation-source': 'expert'
-                    }
-                })
+                if (user) {
+                    const { token } = await this.app.expert.mcp.getOrCreatePlatformToken(user)
+                    const inject = (opts) => this.app.inject({
+                        ...opts,
+                        headers: {
+                            ...opts.headers,
+                            authorization: `Bearer ${token}`,
+                            'x-ff-automation-source': 'expert'
+                        }
+                    })
 
-                const { formatResponse } = require('../ee/lib/mcp/toolLoader')
-                const response = await tool.handler(args, { inject })
-                result = formatResponse(response)
+                    const { formatResponse } = require('../ee/lib/mcp/toolLoader')
+                    const response = await tool.handler(args, { inject })
+                    result = formatResponse(response)
+                }
                 break
             }
             default:

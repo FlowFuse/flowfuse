@@ -60,13 +60,19 @@ class CommsClient extends EventEmitter {
                     const direction = topicParts[7] // request or response (only for inflight channels)
 
                     // these are common for both insights and platform automations
-                    const payload = JSON.parse(message.toString())
+                    let payload
+                    try {
+                        payload = JSON.parse(message.toString())
+                    } catch (err) {
+                        this.app.log.warn(`Ignoring malformed expert payload on ${topic}: ${err.message}`)
+                        return
+                    }
                     const correlationData = packet.properties?.correlationData
                     const userProperties = packet.properties?.userProperties
                     const mqttOptions = { properties: { correlationData, userProperties } }
 
                     if (!correlationData || !userProperties) {
-                        console.warn('Tool call request missing correlationData or userProperties', payload)
+                        this.app.log.warn(`'Tool call request missing correlationData or userProperties: ${message.toString()}`)
                         return // do not respond, the agent will timeout and handle it
                     }
                     // end common bits
