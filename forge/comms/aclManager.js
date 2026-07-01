@@ -273,7 +273,6 @@ module.exports = function (app) {
                         throw ValidationError('team does not exist')
                     } else {
                         teamId = team.id
-                        applicationHash = null // NA
                     }
                 } else {
                     throw ValidationError('invalid entity')
