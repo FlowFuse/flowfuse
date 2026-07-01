@@ -5,6 +5,8 @@ const TOKEN_CACHE_NAME = 'ExpertMCPAccessTokenCache'
 
 const EXPERT_MCP_SCOPE = 'ff-expert:mcp'
 const EXPERT_MCP_PLATFORM_SCOPE = 'ff-expert:platform'
+// Dedicated owner type so platform-automation tokens are not treated as general user tokens
+const EXPERT_MCP_PLATFORM_OWNER_TYPE = 'user:expert-mcp'
 
 const EXPERT_MCP_SCOPES = [
     EXPERT_MCP_SCOPE,
@@ -113,11 +115,12 @@ module.exports = fp(async function (app, _opts) {
         }
 
         const expiresAt = new Date(Date.now() + TOKEN_TTL)
-        // TODO: change to a new method explicitly for Expert Automations
         const { token } = await app.db.controllers.AccessToken.createTokenForUser(
             user,
             expiresAt,
-            [EXPERT_MCP_PLATFORM_SCOPE]
+            [EXPERT_MCP_PLATFORM_SCOPE],
+            undefined,
+            EXPERT_MCP_PLATFORM_OWNER_TYPE
         )
 
         const entry = { token }
