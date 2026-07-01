@@ -975,7 +975,7 @@ describe('Expert API', function () {
                 await setFeatureForTeam(app, 'teamHttpSecurity', true)
                 // The MCP features endpoint now gates on the instance launcher version - the default
                 // instance must advertise a launcher new enough to support MCP features.
-                instance.versions = { launcher: { current: '2.31.4' } }
+                instance.versions = { launcher: { current: '2.32.0' } }
                 // create an common reusable MCP registration
                 mockMcpRegistration1 = {
                     id: 1,
@@ -1250,7 +1250,7 @@ describe('Expert API', function () {
                     TeamId: team.id,
                     Project: instance
                 }])
-                // launcher version below MIN_HOSTED_INSTANCE_LAUNCHER_VERSION (2.31.4)
+                // launcher version below MIN_HOSTED_INSTANCE_LAUNCHER_VERSION (2.32.0)
                 instance.versions = { launcher: { current: '2.0.0' } }
                 const liveState = sinon.stub(instance, 'liveState').returns({ meta: { state: 'running' } })
                 const getFeatures = sinon.stub(app.containers, 'getMCPFeatures')
@@ -1270,7 +1270,7 @@ describe('Expert API', function () {
                 result.incompatibleServers[0].should.have.property('instance', instance.id)
                 result.incompatibleServers[0].should.have.property('instanceType', 'instance')
                 result.incompatibleServers[0].should.have.property('currentVersion', '2.0.0')
-                result.incompatibleServers[0].should.have.property('minimumSupportedVersion', '2.31.4')
+                result.incompatibleServers[0].should.have.property('minimumSupportedVersion', '2.32.0')
                 // an incompatible instance must never be queried for features (or have its live state checked past the version gate)
                 getFeatures.called.should.be.false()
                 liveState.called.should.be.false()
@@ -1344,7 +1344,7 @@ describe('Expert API', function () {
                             name: 'alice',
                             state: 'running',
                             ApplicationId: applicationAlice2.id,
-                            versions: { launcher: { current: '2.31.4' } },
+                            versions: { launcher: { current: '2.32.0' } },
                             liveState: () => ({ meta: { state: 'running' } }),
                             getSetting: sinon.stub().resolves({}) // no special settings
                         },
@@ -1367,7 +1367,7 @@ describe('Expert API', function () {
                             name: 'bob',
                             state: 'running',
                             ApplicationId: applicationBob2.id,
-                            versions: { launcher: { current: '2.31.4' } },
+                            versions: { launcher: { current: '2.32.0' } },
                             liveState: () => ({ meta: { state: 'running' } }),
                             getSetting: sinon.stub().resolves({}) // no special settings
                         },
@@ -1390,7 +1390,7 @@ describe('Expert API', function () {
                             name: 'chris',
                             state: 'running',
                             ApplicationId: applicationChris2.id,
-                            versions: { launcher: { current: '2.31.4' } },
+                            versions: { launcher: { current: '2.32.0' } },
                             liveState: () => ({ meta: { state: 'running' } }),
                             getSetting: sinon.stub().resolves({}) // no special settings
                         },
@@ -1718,7 +1718,7 @@ describe('Expert API', function () {
             // Build a byTeam stub registration whose target is a remote instance (device). The MCP
             // features for devices are fetched over MQTT via deviceComms.sendCommandAwaitReply rather
             // than the launcher admin API used for hosted instances.
-            const buildDeviceRegistration = (agentVersion = '3.9.1') => ({
+            const buildDeviceRegistration = (agentVersion = '4.0.0') => ({
                 id: 1,
                 hashid: 'mcpregdev001',
                 name: 'mcp-server-device',
@@ -1745,7 +1745,7 @@ describe('Expert API', function () {
 
             it('should get mcp features for a device via deviceComms (MQTT proxy)', async function () {
                 const token = bobToken
-                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([buildDeviceRegistration('3.9.1')])
+                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([buildDeviceRegistration('4.0.0')])
 
                 // wire up a fake device comms MQTT proxy that answers the live-state and feature requests
                 const sendCommandAwaitReply = sinon.stub().callsFake(async (teamHashid, deviceHashid, command, payload) => {
@@ -1798,7 +1798,7 @@ describe('Expert API', function () {
 
             it('should report a device whose agent version is too old as incompatible', async function () {
                 const token = bobToken
-                // agent version older than MIN_REMOTE_INSTANCE_AGENT_VERSION (3.9.1)
+                // agent version older than MIN_REMOTE_INSTANCE_AGENT_VERSION (4.0.0)
                 sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([buildDeviceRegistration('3.0.0')])
 
                 const sendCommandAwaitReply = sinon.stub().resolves({ state: 'running' })
@@ -1820,7 +1820,7 @@ describe('Expert API', function () {
                     result.incompatibleServers[0].should.have.property('instance', 'devicehash001')
                     result.incompatibleServers[0].should.have.property('instanceType', 'device')
                     result.incompatibleServers[0].should.have.property('currentVersion', '3.0.0')
-                    result.incompatibleServers[0].should.have.property('minimumSupportedVersion', '3.9.1')
+                    result.incompatibleServers[0].should.have.property('minimumSupportedVersion', '4.0.0')
                     // the version gate happens before any MQTT round-trip - no live-state or feature request should be made
                     sendCommandAwaitReply.called.should.be.false()
                 } finally {
