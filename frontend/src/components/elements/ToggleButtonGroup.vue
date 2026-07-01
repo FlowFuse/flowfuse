@@ -149,6 +149,7 @@ export default {
                 position: relative;
                 z-index: 1;
                 border-radius: 4px;
+                white-space: nowrap;
 
                 &:focus-visible {
                     outline: 2px solid var(--ff-color-accent-hover);
@@ -161,5 +162,11 @@ export default {
             }
         }
     }
+}
+
+// Show the label in full; ff-button clamps it by default.
+.ff-toggle-group .toggle .ff-btn .clipped-overflow {
+    display: block;
+    overflow: visible;
 }
 </style>

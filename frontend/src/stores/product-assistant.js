@@ -33,7 +33,9 @@ export const classOf = (entry) => {
 }
 
 // Tool groups partition the catalog into the sections shown in the permissions UI
-// (flow-building vs FlowFuse platform). Class defaults are shared across both groups.
+// (flow-building vs FlowFuse platform). Each group carries its own read/write/delete
+// class defaults, so a team can, say, auto-allow flow-building reads while still being
+// asked for every platform action.
 export const TOOL_GROUPS = { FLOW_BUILDING: 'flow-building', PLATFORM: 'platform' }
 
 // Which group a catalog entry belongs to. Every tool served today is a flow-building
@@ -202,7 +204,8 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         toolCatalogHash: null,
         // The user's saved choices, keyed by team id — a builder's permissions are their
         // own per team, not global. toolDefaultsByTeam holds each team's standing
-        // read/write/delete defaults; toolPreferencesByTeam holds per-tool overrides.
+        // read/write/delete defaults per group ({ [teamId]: { [group]: {read,write,delete} } });
+        // toolPreferencesByTeam holds per-tool overrides.
         toolDefaultsByTeam: {},
         toolPreferencesByTeam: {},
         // Per-chat-session grants from the approval card ("Always allow/deny for this
@@ -312,18 +315,19 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             return state.editorState?.flowsLoaded || state.editorState?.runtimeState?.state === 'start'
         },
         // --- Expert tool permissions (HITL, #421) ---
-        /** The current team's saved class defaults ({ read, write, delete }). */
-        teamToolDefaults: (state) => {
-            return { ...defaultToolDefaults(), ...(state.toolDefaultsByTeam[currentTeamId()] || {}) }
+        /** The current team's saved class defaults ({ read, write, delete }) for a group. */
+        teamGroupDefaults: (state) => (group) => {
+            const teamDefaults = state.toolDefaultsByTeam[currentTeamId()] || {}
+            return { ...defaultToolDefaults(), ...(teamDefaults[group] || {}) }
         },
         /** The current team's saved per-tool preferences ({ [key]: policy }). */
         teamToolPreferences: (state) => {
             return state.toolPreferencesByTeam[currentTeamId()] || {}
         },
-        /** The standing default for a tool class ('read'|'write'|'delete'). */
+        /** The standing default for a tool class ('read'|'write'|'delete') within a group. */
         defaultForToolClass () {
-            return (cls) => {
-                const d = this.teamToolDefaults[cls]
+            return (cls, group = TOOL_GROUPS.FLOW_BUILDING) => {
+                const d = this.teamGroupDefaults(group)[cls]
                 return isToolPolicy(d) ? d : fallbackForToolClass(cls)
             }
         },
@@ -343,7 +347,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                 const explicit = this.teamToolPreferences[key]
                 if (isToolPolicy(explicit)) return explicit
                 const entry = this.toolCatalog.find(t => t.key === key)
-                return this.defaultForToolClass(classOf(entry))
+                return this.defaultForToolClass(classOf(entry), groupOf(entry))
             }
         },
         /**
@@ -359,9 +363,13 @@ export const useProductAssistantStore = defineStore('product-assistant', {
          * into `tools` so the agent stops asking for a tool allowed for this chat.
          */
         resolvedToolPermissions () {
+            // Every catalog tool is resolved into `tools` with its own group's class
+            // default already applied, so per-group defaults need no contract change.
+            // `defaults` stays flat as a fallback for any tool the agent knows but this
+            // catalog didn't list (drift); flow-building is the always-present group.
             const defaults = {}
             for (const cls of TOOL_CLASSES) {
-                defaults[cls] = this.defaultForToolClass(cls)
+                defaults[cls] = this.defaultForToolClass(cls, TOOL_GROUPS.FLOW_BUILDING)
             }
             const tools = {}
             for (const t of this.toolCatalog) {
@@ -687,12 +695,16 @@ export const useProductAssistantStore = defineStore('product-assistant', {
                 this.toolCatalogHash = hash || null
             }
         },
-        setToolClassDefault (cls, policy) {
+        setToolClassDefault (group, cls, policy) {
             if (!TOOL_CLASSES.includes(cls) || !isToolPolicy(policy)) return
             const teamId = currentTeamId()
             if (!teamId) return
-            const team = { ...defaultToolDefaults(), ...(this.toolDefaultsByTeam[teamId] || {}), [cls]: policy }
-            this.toolDefaultsByTeam = { ...this.toolDefaultsByTeam, [teamId]: team }
+            const teamDefaults = this.toolDefaultsByTeam[teamId] || {}
+            const groupDefaults = { ...defaultToolDefaults(), ...(teamDefaults[group] || {}), [cls]: policy }
+            this.toolDefaultsByTeam = {
+                ...this.toolDefaultsByTeam,
+                [teamId]: { ...teamDefaults, [group]: groupDefaults }
+            }
         },
         setToolPreference (key, policy) {
             if (!isToolPolicy(policy)) return

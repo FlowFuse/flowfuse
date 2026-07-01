@@ -90,6 +90,7 @@
             confirm-label="Done"
             :can-be-canceled="false"
             data-el="expert-settings-dialog"
+            boxClass="max-w-[54rem]!"
         >
             <div class="expert-settings">
                 <div class="expert-settings__group">
@@ -551,6 +552,9 @@ button {
     &__group {
         display: flex;
         flex-direction: column;
+        // Space the heading and its description from the controls below, so the
+        // section description isn't flush against the next heading.
+        gap: 0.5rem;
     }
 }
 </style>

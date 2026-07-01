@@ -409,8 +409,8 @@ export const useProductExpertStore = defineStore('product-expert', {
                 }
                 break
             case parsedTopic.inflightType === 'expert:tool-approval':
-                // Human-in-the-loop approval request (#421). Render the approval card and
-                // wait — with no timeout — for the user's decision, then reply to the agent.
+                // HITL approval (#421): show the card, await the decision, reply to the agent.
+                // No browser timeout; the agent's request window still bounds the wait.
                 try {
                     const approved = await this.requestToolApproval(payload)
                     await mqttService.publishMessage(this.mqttConnectionKey, {
@@ -450,12 +450,15 @@ export const useProductExpertStore = defineStore('product-expert', {
                 this._clearInFlightUpdates()
             }
         },
-        // Render a tool-approval card and return a Promise that resolves to the user's
-        // decision (true/false). The Promise stays open with no timeout (#421); it is
-        // resolved by resolveToolApproval (a card button) or cancelPendingToolApprovals
-        // (the chat stop). The agent holds its tool call paused on the MQTT round-trip.
+        // Show the approval card; resolve with the user's decision via resolveToolApproval
+        // or cancelPendingToolApprovals (chat stop). No browser timeout (#421).
         requestToolApproval (payload = {}) {
             const permStore = useProductAssistantStore()
+            // Honour a session "Always allow/deny" without re-prompting: the agent's snapshot
+            // is from turn start, so it re-asks mid-loop for a tool already blanket-approved.
+            const override = permStore.sessionOverrideFor(payload.tool)
+            if (override === 'allow') return Promise.resolve(true)
+            if (override === 'deny') return Promise.resolve(false)
             const id = uuidv4()
             this.addAiMessage({
                 kind: 'tool-approval',

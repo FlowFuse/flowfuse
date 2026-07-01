@@ -1,43 +1,44 @@
 <template>
     <div class="tool-permissions" data-el="expert-tool-permissions">
-        <section class="tool-permissions__section">
-            <FormHeading>Default permissions</FormHeading>
-            <p class="tool-permissions__intro">
-                Choose what the Expert may do by default for each action type. Override individual tools in each section below.
-            </p>
-            <p v-if="!inEditor" class="tool-permissions__notice">
-                Flow-building tools run in an instance editor. Open one to let the Expert use them; you can still set their permissions here.
-            </p>
-            <p v-if="!canUseWriteTools" class="tool-permissions__notice">
-                Your role is read-only, so the Expert can use read-only tools but cannot run actions that change flows.
-            </p>
-
-            <ff-data-table :columns="defaultColumns" :show-search="false">
-                <template #rows>
-                    <ff-data-table-row v-for="cls in classDefaults" :key="cls.key">
-                        <ff-data-table-cell>
-                            <div class="tool-permissions__cell">
-                                <span class="tool-permissions__title">{{ cls.label }}</span>
-                                <span class="tool-permissions__hint">{{ cls.hint }}</span>
-                            </div>
-                        </ff-data-table-cell>
-                        <ff-data-table-cell class="permission-col">
-                            <ToggleButtonGroup
-                                class="tool-permissions__toggle"
-                                size="small"
-                                :uses-links="false"
-                                :buttons="policyButtons"
-                                :model-value="teamToolDefaults[cls.key]"
-                                @update:model-value="(value) => setToolClassDefault(cls.key, value)"
-                            />
-                        </ff-data-table-cell>
-                    </ff-data-table-row>
-                </template>
-            </ff-data-table>
-        </section>
+        <p v-if="!inEditor" class="tool-permissions__notice">
+            Flow-building tools run in an instance editor. Open one to let the Expert use them; you can still set their permissions here.
+        </p>
+        <p v-if="!canUseWriteTools" class="tool-permissions__notice">
+            Your role is read-only, so the Expert can use read-only tools but cannot run actions that change flows.
+        </p>
 
         <section v-for="group in orderedGroups" :key="group.key" class="tool-permissions__section">
-            <FormHeading>{{ group.title }}</FormHeading>
+            <h4 class="tool-permissions__group-title">{{ group.title }}</h4>
+
+            <div class="tool-permissions__block">
+                <p class="tool-permissions__subtitle">Default permissions</p>
+                <p class="tool-permissions__intro">
+                    Choose what the Expert may do by default for each action type. Override individual tools below.
+                </p>
+                <ff-data-table :columns="defaultColumns" :show-search="false">
+                    <template #rows>
+                        <ff-data-table-row v-for="cls in classDefaults" :key="cls.key">
+                            <ff-data-table-cell>
+                                <div class="tool-permissions__cell">
+                                    <span class="tool-permissions__title">{{ cls.label }}</span>
+                                    <span class="tool-permissions__hint">{{ cls.hint }}</span>
+                                </div>
+                            </ff-data-table-cell>
+                            <ff-data-table-cell class="permission-col">
+                                <ToggleButtonGroup
+                                    class="tool-permissions__toggle"
+                                    size="small"
+                                    :uses-links="false"
+                                    :buttons="policyButtons"
+                                    :model-value="teamGroupDefaults(group.key)[cls.key]"
+                                    @update:model-value="(value) => setToolClassDefault(group.key, cls.key, value)"
+                                />
+                            </ff-data-table-cell>
+                        </ff-data-table-row>
+                    </template>
+                </ff-data-table>
+            </div>
+
             <ff-accordion v-if="group.tools.length" label="Individual tools" :set-open="false">
                 <template #content>
                     <ff-data-table :columns="toolColumns" :show-search="false">
@@ -94,7 +95,6 @@ import SemVer from 'semver'
 import { hasAMinimumTeamRoleOf } from '../../../composables/Permissions.js'
 import { Roles } from '../../../utils/roles.js'
 import Accordion from '../../Accordion.vue'
-import FormHeading from '../../FormHeading.vue'
 import ToggleButtonGroup from '../../elements/ToggleButtonGroup.vue'
 
 import { useContextStore } from '@/stores/context.js'
@@ -109,7 +109,7 @@ const NR_ASSISTANT = 'nr‑assistant'
 
 export default {
     name: 'ToolPermissionsSettings',
-    components: { FormHeading, ToggleButtonGroup, 'ff-accordion': Accordion },
+    components: { ToggleButtonGroup, 'ff-accordion': Accordion },
     props: {
         // Whether the user is in an instance editor, where flow-building tools can
         // actually run. Outside it the tools are still listed (and configurable) but
@@ -120,7 +120,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useProductAssistantStore, ['toolCatalog', 'teamToolDefaults', 'savedToolPolicyFor', 'sessionOverrideFor', 'toolAvailabilityFor']),
+        ...mapState(useProductAssistantStore, ['toolCatalog', 'teamGroupDefaults', 'savedToolPolicyFor', 'sessionOverrideFor', 'toolAvailabilityFor']),
         ...mapState(useContextStore, ['teamMembership']),
         canUseWriteTools () {
             return hasAMinimumTeamRoleOf(Roles.Member, this.teamMembership)
@@ -150,11 +150,13 @@ export default {
                 { label: 'Permission', key: 'permission', class: 'permission-col' }
             ]
         },
+        // Class hints stay generic so they read correctly for both flow-building and
+        // platform tools (each group has its own defaults).
         classDefaults () {
             return [
-                { key: 'read', label: 'Read', hint: 'View flows, palette and nodes' },
-                { key: 'write', label: 'Write', hint: 'Add or change nodes, wires and tabs' },
-                { key: 'delete', label: 'Delete', hint: 'Remove nodes, tabs and flows' }
+                { key: 'read', label: 'Read', hint: 'View only, no changes' },
+                { key: 'write', label: 'Write', hint: 'Create or change resources' },
+                { key: 'delete', label: 'Delete', hint: 'Remove resources' }
             ]
         },
         // The two tool sections, ordered by where the user is (see isImmersive).
@@ -169,7 +171,7 @@ export default {
                 key: TOOL_GROUPS.PLATFORM,
                 title: 'FlowFuse Platform Tools',
                 tools: this.groupTools(TOOL_GROUPS.PLATFORM),
-                empty: 'Available soon — added once FlowFuse platform tools ship.'
+                empty: 'Individual platform tools appear here once they ship.'
             }
             return this.isImmersive ? [flow, platform] : [platform, flow]
         }
@@ -182,8 +184,8 @@ export default {
         // The label under a tool name when this chat has a session grant for it, else null.
         sessionNoteFor (key) {
             const p = this.sessionOverrideFor(key)
-            if (p === 'allow') return 'Set to Always allow for this chat'
-            if (p === 'deny') return 'Set to Always deny for this chat'
+            if (p === 'allow') return 'Allowed for this chat'
+            if (p === 'deny') return 'Denied for this chat'
             return null
         },
         // Collapse versioned variants (e.g. "Manage Groups v1/v2") into one family, keyed
@@ -303,14 +305,38 @@ export default {
 .tool-permissions {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.75rem;
     width: 100%;
 }
 
 .tool-permissions__section {
     display: flex;
     flex-direction: column;
-    gap: 0.875rem;
+    gap: 0.75rem;
+}
+
+// Group title (Flow Building / Platform) — a subheading under the dialog's
+// "Tool permissions" heading, so it reads as subordinate rather than a peer.
+.tool-permissions__group-title {
+    margin: 0;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--ff-color-border);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--ff-color-text);
+}
+
+.tool-permissions__block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.tool-permissions__subtitle {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--ff-color-text);
 }
 
 .tool-permissions__intro {
@@ -347,11 +373,14 @@ export default {
     color: var(--ff-color-text-subtle);
 }
 
-// The "set to X for this chat" note + its Make permanent action, under a tool name.
+// The "X for this chat" note + its Make permanent action, under a tool name. Wraps so
+// the action drops to its own line (with full width) in the narrow tool column rather
+// than being squeezed and clipped.
 .tool-permissions__session {
-    display: inline-flex;
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.375rem;
+    gap: 0.25rem 0.5rem;
     font-size: 0.75rem;
     color: var(--ff-color-status-info-text);
 }
@@ -376,5 +405,12 @@ export default {
 // inline-flex lets the right-aligned permission column push the control to the edge.
 .tool-permissions__toggle {
     display: inline-flex;
+}
+</style>
+
+<!-- Floor the equal-width segments so the longest policy label fits. -->
+<style lang="scss">
+.tool-permissions__toggle .ff-btn {
+    min-width: 6.5rem;
 }
 </style>

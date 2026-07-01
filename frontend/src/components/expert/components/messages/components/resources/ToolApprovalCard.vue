@@ -1,5 +1,5 @@
 <template>
-    <div class="expert-tool-approval" :class="`status-${status}`">
+    <div class="expert-tool-approval" :class="`status-${effectiveStatus}`">
         <div class="tool-approval-header">
             <span class="tool-approval-name">{{ name }}</span>
             <span v-if="toolClass" class="tool-approval-tag" :class="`tag-${toolClass}`">
@@ -14,26 +14,26 @@
             class="tool-approval-payload"
         />
 
-        <div v-if="status === 'pending'" class="tool-approval-actions">
-            <ff-button kind="primary" size="small" :disabled="disabled || decided" @click="decide('approve')">
+        <div v-if="effectiveStatus === 'pending'" class="tool-approval-actions">
+            <ff-button kind="primary" size="small" :disabled="disabled" @click="decide('approve')">
                 Allow
             </ff-button>
             <ff-button
                 kind="secondary"
                 size="small"
-                :disabled="disabled || decided"
+                :disabled="disabled"
                 title="Allow this tool for the rest of this chat without asking again"
                 @click="decide('allow-always')"
             >
                 Always allow
             </ff-button>
-            <ff-button kind="tertiary" size="small" :disabled="disabled || decided" @click="decide('deny')">
+            <ff-button kind="tertiary" size="small" :disabled="disabled" @click="decide('deny')">
                 Deny
             </ff-button>
             <ff-button
                 kind="tertiary"
                 size="small"
-                :disabled="disabled || decided"
+                :disabled="disabled"
                 title="Deny this tool for the rest of this chat without asking again"
                 @click="decide('deny-always')"
             >
@@ -78,14 +78,20 @@ export default {
     emits: ['approve', 'allow-always', 'deny', 'deny-always', 'streaming-complete'],
     data () {
         return {
-            // Optimistically disables the buttons the moment a choice is made, so the
-            // card cannot be clicked twice while the decision round-trips to the agent.
-            decided: false
+            // What the user pressed on this card, mapped to a status. This is the card's
+            // own source of truth for the outcome: the answer it renders is a detached
+            // streaming copy, so a status written back into the store would never reach
+            // it. The `status` prop is only the initial value (e.g. a hydrated card).
+            localStatus: null
         }
     },
     computed: {
         classLabel () {
             return { read: 'Read', write: 'Write', delete: 'Delete' }[this.toolClass] || 'Write'
+        },
+        // The decision to show: this card's own press wins; otherwise the prop's value.
+        effectiveStatus () {
+            return this.localStatus || this.status
         },
         // Post-decision feedback: reflect exactly what the user pressed, including whether
         // the choice stands for the rest of this chat.
@@ -95,16 +101,15 @@ export default {
                 'always-allowed': 'Allowed for this chat',
                 denied: 'Denied',
                 'always-denied': 'Denied for this chat'
-            }[this.status] || (this.status === 'pending' ? '' : 'Denied')
+            }[this.effectiveStatus] || (this.effectiveStatus === 'pending' ? '' : 'Denied')
         },
         hasParams () {
             return Object.keys(this.params || {}).length > 0
         },
-        // Collapse the payload once the call is allowed, always-allowed or denied
-        // (locally or via the round-tripped status); the header toggle stays live
+        // Collapse the payload once a decision is made; the header toggle stays live
         // so the user can re-expand it at any time.
         payloadCollapsed () {
-            return this.decided || this.status !== 'pending'
+            return this.effectiveStatus !== 'pending'
         }
     },
     mounted () {
@@ -114,8 +119,13 @@ export default {
     },
     methods: {
         decide (action) {
-            if (this.disabled || this.decided) return
-            this.decided = true
+            if (this.disabled || this.effectiveStatus !== 'pending') return
+            this.localStatus = {
+                approve: 'approved',
+                'allow-always': 'always-allowed',
+                deny: 'denied',
+                'deny-always': 'always-denied'
+            }[action] || 'denied'
             this.$emit(action)
         }
     }
