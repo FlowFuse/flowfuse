@@ -166,6 +166,11 @@ module.exports = {
                     }
                 }
             },
+            afterSave: async (project, opts) => {
+                if (project.changed('state')) {
+                    await Controllers.Project.publishLiveState(project)
+                }
+            },
             afterDestroy: async (project, opts) => {
                 await M.AccessToken.destroy({
                     where: {

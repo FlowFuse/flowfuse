@@ -51,7 +51,7 @@ jobs:
           path: 'blueprint-library'
           token: ${{ steps.generate_token.outputs.token }}
       - name: Cache image pipeline output
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           key: img-pipeline-cache
           path: website/_site/img         
@@ -69,7 +69,7 @@ jobs:
       - name: Build the forge
         run: npm run build:nuxt:skip-images
         working-directory: 'website'
-      - uses: untitaker/hyperlink@1ae2cef25222e3307a82bc7388f0667137f4240b # 0.2.1
+      - uses: untitaker/hyperlink@9375bc4063712ad490d5eb3d54df0b6aade15e54 # 0.3.2
         with:
           args: website/nuxt/dist/ --check-anchors --sources website/src
   publish:

@@ -27,6 +27,17 @@ export function useInstanceStates () {
         'unknown'
     ]
 
+    const transitionStates = [
+        'loading',
+        'installing',
+        'starting',
+        'stopping',
+        'restarting',
+        'suspending',
+        'importing',
+        'rollback'
+    ]
+
     const statesMap = {
         running: runningStates,
         error: errorStates,
@@ -36,6 +47,7 @@ export function useInstanceStates () {
     const isRunningState = (state) => runningStates.includes(state)
     const isErrorState = (state) => errorStates.includes(state)
     const isStoppedState = (state) => stoppedStates.includes(state)
+    const isTransitionState = (state) => transitionStates.includes(state)
 
     const groupBySimplifiedStates = (instanceStateCounts) => {
         return {
@@ -64,6 +76,8 @@ export function useInstanceStates () {
         isErrorState,
         stoppedStates,
         isStoppedState,
+        transitionStates,
+        isTransitionState,
         statesMap,
         groupBySimplifiedStates
     }
