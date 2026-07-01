@@ -3,6 +3,16 @@ const fp = require('fastify-plugin')
 
 const TOKEN_CACHE_NAME = 'ExpertMCPAccessTokenCache'
 
+const EXPERT_MCP_SCOPE = 'ff-expert:mcp'
+const EXPERT_MCP_PLATFORM_SCOPE = 'ff-expert:platform'
+// Dedicated owner type so platform-automation tokens are not treated as general user tokens
+const EXPERT_MCP_PLATFORM_OWNER_TYPE = 'user:expert-mcp'
+
+const EXPERT_MCP_SCOPES = [
+    EXPERT_MCP_SCOPE,
+    EXPERT_MCP_PLATFORM_SCOPE
+]
+
 module.exports = fp(async function (app, _opts) {
     // Get the assistant service configuration
     const serviceEnabled = app.config.expert?.enabled === true
@@ -51,10 +61,16 @@ module.exports = fp(async function (app, _opts) {
         let mcpAccessToken = await readCachedMcpAccessToken(instanceId)
 
         if (!mcpAccessToken) {
-            const instanceSettings = await instance.getSetting('settings')
-            const httpNodeAuth = instanceSettings?.httpNodeAuth
+            let httpNodeAuth
+            if (instanceType === 'instance') {
+                const instanceSettings = await instance.getSetting('settings')
+                httpNodeAuth = instanceSettings?.httpNodeAuth
+            } else if (instanceType === 'device') {
+                const deviceSettings = await instance.getSetting('security')
+                httpNodeAuth = deviceSettings?.httpNodeAuth
+            }
             const tokenName = 'FlowFuse Expert MCP Access Token'
-            const scope = ['ff-expert:mcp', instanceType]
+            const scope = [EXPERT_MCP_SCOPE, instanceType]
             if (httpNodeAuth?.type === 'flowforge-user' && teamHttpSecurityFeatureEnabled) {
                 // FlowFuse auth is enabled for this instance
                 const expiresAt = new Date(Date.now() + (TOKEN_TTL))
@@ -91,6 +107,30 @@ module.exports = fp(async function (app, _opts) {
         return readCachedMcpAccessToken(instanceId)
     }
 
+    async function getOrCreateMcpPlatformToken (user) {
+        const cacheKey = `platform:${user.hashid}`
+        const cached = await readCachedMcpAccessToken(cacheKey)
+        if (cached) {
+            return cached
+        }
+
+        const expiresAt = new Date(Date.now() + TOKEN_TTL)
+        const { token } = await app.db.controllers.AccessToken.createTokenForUser(
+            user,
+            expiresAt,
+            [EXPERT_MCP_PLATFORM_SCOPE],
+            undefined,
+            EXPERT_MCP_PLATFORM_OWNER_TYPE
+        )
+
+        const entry = { token }
+        await tokenCache().set(cacheKey, {
+            value: entry,
+            expiresAt: Date.now() + TOKEN_TTL
+        })
+        return entry
+    }
+
     app.decorate('expert', {
         serviceEnabled,
         expertUrl,
@@ -99,7 +139,10 @@ module.exports = fp(async function (app, _opts) {
         mcp: {
             clearTokenCache: clearMcpAccessTokenCache,
             getCachedToken: getCachedMcpAccessToken,
-            getOrCreateToken: getOrCreateMcpAccessToken
+            getOrCreateToken: getOrCreateMcpAccessToken,
+            getOrCreatePlatformToken: getOrCreateMcpPlatformToken
         }
     })
 }, { name: 'app.expert' })
+
+module.exports.EXPERT_MCP_SCOPES = EXPERT_MCP_SCOPES

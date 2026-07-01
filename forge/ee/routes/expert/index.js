@@ -7,9 +7,12 @@
  * @memberof forge.routes.api
  */
 const { default: axios } = require('axios')
+const semver = require('semver')
 const { v4: uuidv4 } = require('uuid')
 
 const { filterAccessibleMCPServerFeatures } = require('../../../services/expert.js')
+/** @type {typeof import('../../../comms/devices.js').DeviceCommsHandler} */
+const getDeviceComms = (app) => { return app.comms?.devices }
 
 /**
  * @param {import('../../forge.js').ForgeApplication} app
@@ -132,15 +135,16 @@ module.exports = async function (app) {
             //    instance's node security settings
 
             // first pass - get associated applications for the MCP servers selected by user
+            const mcpServerIds = []
             for (const server of selectedCapabilities || []) {
-                const applicationId = server.application
-                if (!applicationId) { continue }
-
+                const { application: applicationId, mcpServer } = server
+                if (!applicationId || !mcpServer) { continue }
                 if (!Object.hasOwnProperty.call(applicationCache, applicationId)) {
                     applicationCache[applicationId] = await app.db.models.Application.byId(applicationId)
                 }
                 const application = applicationCache[applicationId]
                 if (application) {
+                    mcpServerIds.push(mcpServer)
                     mcpServersList.push({ server, application })
                 }
             }
@@ -150,17 +154,17 @@ module.exports = async function (app) {
 
             // Build the team's trusted MCP registry. This is the source of truth for which MCP servers
             // exist and their transport details (instance, endpoint, protocol). The client-supplied
-            // transport fields (e.g. mcpServerUrl, instanceUrl, mcpEndpoint) are NEVER trusted - they
-            // are re-resolved from here so a user cannot point a minted access token at an arbitrary
-            // URL, nor attach a token for an instance they have not been authorised against.
-            // (mirrors the /mcp/features route)
-            const registrations = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
+            // transport fields are NEVER trusted - they should always be re-resolved from the trusted registry.
+            const registrations = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true, filterId: mcpServerIds }) || []
             const trustedRegistrations = new Map()
             for (const reg of registrations) {
-                if (reg.targetType !== 'instance' || !reg.Project) {
+                if (reg.targetType === 'instance' && reg.Project) {
+                    trustedRegistrations.set(`${reg.Project.id}::${reg.hashid}`, reg)
+                } else if (reg.targetType === 'device' && reg.Device) {
+                    trustedRegistrations.set(`${reg.Device.hashid}::${reg.hashid}`, reg)
+                } else {
                     continue
-                } // devices are not yet supported for MCP servers
-                trustedRegistrations.set(`${reg.Project.id}::${reg.name}`, reg)
+                }
             }
 
             // final pass - re-resolve each accessible server against the trusted registry, verify
@@ -174,8 +178,8 @@ module.exports = async function (app) {
 
                 // re-resolve against the trusted registry - drops any selection that is not a
                 // registered MCP server for this team
-                const registration = trustedRegistrations.get(`${server.instance}::${server.mcpServerName}`)
-                const instance = registration?.Project
+                const registration = trustedRegistrations.get(`${server.instance}::${server.mcpServer}`)
+                const instance = registration?.Project || registration?.Device
                 if (!instance) {
                     server._invalid = true
                     continue
@@ -192,20 +196,6 @@ module.exports = async function (app) {
 
                 const instanceType = registration.targetType // trusted instance type ('instance')
 
-                // Tamper detection (audit signal only - we overwrite with trusted values regardless).
-                // A well-behaved client echoes back the transport details we issued via /mcp/features,
-                // so any disagreement indicates either a stale client or tampering. We log it rather
-                // than reject, to avoid failing legitimate requests in a race condition. mcpServerUrl is
-                // not compared - FlowFuse never issues it as an authoritative field (the agent builds
-                // it client-side), so it is simply dropped below.
-                const tamperedFields = []
-                if (server.instanceUrl !== undefined && server.instanceUrl !== instance.url) { tamperedFields.push('instanceUrl') }
-                if (server.mcpEndpoint !== undefined && server.mcpEndpoint !== registration.endpointRoute) { tamperedFields.push('mcpEndpoint') }
-                if (server.mcpProtocol !== undefined && server.mcpProtocol !== registration.protocol) { tamperedFields.push('mcpProtocol') }
-                if (tamperedFields.length > 0) {
-                    app.log.warn(`Expert chat: correcting client-supplied MCP transport fields [${tamperedFields.join(', ')}] that did not match the trusted registry (user=${request.user.hashid}, team=${request.team.hashid}, instance=${instance.id})`)
-                }
-
                 // Overwrite all transport/identity fields with trusted values - never trust the client's
                 // copy. The agent rebuilds mcpServerUrl from instanceUrl + mcpEndpoint, as it does for
                 // the /mcp/features response.
@@ -214,6 +204,7 @@ module.exports = async function (app) {
                 server.instanceType = instanceType
                 server.instanceName = instance.name
                 server.instanceUrl = instance.url
+                server.mcpServer = registration.hashid
                 server.mcpServerName = registration.name
                 server.mcpEndpoint = registration.endpointRoute
                 server.mcpProtocol = registration.protocol
@@ -243,6 +234,7 @@ module.exports = async function (app) {
                     Origin: request.headers.origin,
                     'X-Chat-Session-ID': sessionId,
                     'X-Chat-Transaction-ID': transactionId,
+                    'X-Chat-Namespace-ID': app.license.get('id'),
                     ...(app.expert.serviceToken ? { Authorization: `Bearer ${app.expert.serviceToken}` } : {})
                 },
                 timeout: app.expert.requestTimeout
@@ -301,18 +293,31 @@ module.exports = async function (app) {
                                     instance: { type: 'string' },
                                     instanceType: { type: 'string', enum: ['instance', 'device'] },
                                     instanceName: { type: 'string' },
+                                    mcpServer: { type: 'string' },
                                     mcpServerName: { type: 'string' },
                                     prompts: { type: 'array', items: { type: 'object', additionalProperties: true } },
                                     resources: { type: 'array', items: { type: 'object', additionalProperties: true } },
                                     resourceTemplates: { type: 'array', items: { type: 'object', additionalProperties: true } },
                                     tools: { type: 'array', items: { type: 'object', additionalProperties: true } },
-                                    mcpProtocol: { type: 'string', enum: ['http', 'sse'] },
-                                    mcpServerUrl: { type: 'string' },
                                     title: { type: 'string' },
                                     version: { type: 'string' },
                                     description: { type: 'string' }
                                 },
-                                required: ['instance', 'instanceType', 'instanceName', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools', 'mcpProtocol']
+                                required: ['instance', 'instanceType', 'instanceName', 'mcpServer', 'mcpServerName', 'prompts', 'resources', 'resourceTemplates', 'tools']
+                            }
+                        },
+                        incompatibleServers: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    instance: { type: 'string' },
+                                    instanceType: { type: 'string', enum: ['instance', 'device'] },
+                                    instanceName: { type: 'string' },
+                                    currentVersion: { type: 'string' },
+                                    minimumSupportedVersion: { type: 'string' }
+                                },
+                                required: ['instance', 'instanceType']
                             }
                         }
                     }
@@ -348,30 +353,31 @@ module.exports = async function (app) {
             //    7. Filter the MCP features based on user RBACs (e.g. destructive tool access)
             // 3. Return the filtered MCP features to the client
 
-            /** @type {MCPServerItem[]} */
-            const runningInstancesWithMCPServer = []
             const transactionId = request.headers['x-chat-transaction-id']
-            const mcpCapabilitiesUrl = `${app.expert.expertUrl.split('/').slice(0, -1).join('/')}/mcp/features`
+            const deviceComms = getDeviceComms(app)
 
             // Get the MCP servers registered for this team
             const mcpServers = await app.db.models.MCPRegistration.byTeam(request.team.id, { includeInstance: true }) || []
 
-            // Scan each MCP server and ensure the user has access to the associated application and that the instance is running
-            // then collect the MCP server info for the running instances MCP servers
-            // filter out any that the user doesn't have access to
+            // PASS 1 - group registrations by instance.
+            // An instance can have multiple MCP servers registered, but the expensive per-instance work
+            // (live-state check + access token) should only run once per instance. So here we do only the
+            // cheap checks (team match, expected state, application access) and group the registrations by
+            // instance. The live-state check / token retrieval happens once per instance in pass 2.
+            /** @type {Object<string, { instance: any, instanceType: 'instance'|'device', application: any, registrations: any[] }>} */
+            const instanceGroups = {}
             const applicationCache = {}
             for (const server of mcpServers) {
-                const { name, protocol, endpointRoute, TeamId, Project, Device, title, version, description } = server
+                const { hashid, name, protocol, endpointRoute, TeamId, Project, Device, title, version, description } = server
                 if (TeamId !== request.team.id) {
                     // shouldn't happen due to byTeam filter, but just in case
                     continue
                 }
                 let instance, instanceId, instanceType
                 if (Device) {
-                    // instanceType = 'device'
-                    // instance = Device
-                    // instanceId = Device.hashid
-                    continue // Devices are not yet supported for MCP servers
+                    instanceType = 'device'
+                    instance = Device
+                    instanceId = Device.hashid
                 } else if (Project) {
                     instanceType = 'instance'
                     instance = Project
@@ -406,78 +412,148 @@ module.exports = async function (app) {
                     continue // user doesn't have access to this instance
                 }
 
-                // Now we have confirmed access is allowed, check instance is actually running before offering
-                // MCP features (querying a non-running instance would cause timeouts)
-                if (instance.liveState) {
-                    const liveState = await instance.liveState({ omitStorageFlows: true })
-                    if (liveState?.meta?.state !== 'running') {
-                        continue
-                    }
+                // Group the registration under its instance so per-instance work runs only once in pass 2
+                if (!instanceGroups[instanceId]) {
+                    instanceGroups[instanceId] = { instance, instanceType, application, registrations: [] }
                 }
+                instanceGroups[instanceId].registrations.push({ hashid, name, protocol, endpointRoute, title, version, description })
+            }
 
-                // Check instance settings for node security. If FlowFuse auth is enabled, generate a short-lived (5 mins)
-                // auth token for the instance with a scope limited to MCP access and cache it in memory for subsequent requests
-                const mcpAccessToken = await app.expert.mcp.getOrCreateToken(instance, instanceType, instanceId, request.teamHttpSecurityFeature)
+            // PASS 2 - for each unique instance, confirm instance is actually running (live-state check) and that
+            // the instance's launcher/agent version is new enough to support MCP features.
+            const instancesWithMCPServers = []
+            const incompatibleServers = []
+            const MIN_HOSTED_INSTANCE_LAUNCHER_VERSION = '2.32.0'
+            const MIN_REMOTE_INSTANCE_AGENT_VERSION = '4.0.0'
 
-                runningInstancesWithMCPServer.push({
-                    team: request.team.hashid,
-                    application: application.hashid,
-                    instance: instanceId,
-                    instanceType,
-                    instanceName: instance.name,
-                    instanceUrl: instance.url,
-                    mcpServerName: name,
-                    mcpEndpoint: endpointRoute,
-                    mcpProtocol: protocol,
-                    mcpAccessToken,
-                    title,
-                    version,
-                    description
-                })
+            for (const instanceId of Object.keys(instanceGroups)) {
+                try {
+                    const { instance, instanceType, application, registrations } = instanceGroups[instanceId]
+                    // check instance is actually running before offering MCP features (querying a non-running instance would cause timeouts)
+                    // additionally, check that the instance's launcher/agent version is new enough to support MCP features.
+                    // note: the version check can only be done after the live-state check, because the version is only available in the live-state response.
+
+                    if (instanceType === 'instance' && instance) {
+                        // Check that instance launcher supports the required features before attempting to get the live state.
+                        if (!instance.versions?.launcher?.current || semver.lt(instance.versions.launcher.current, MIN_HOSTED_INSTANCE_LAUNCHER_VERSION)) {
+                            incompatibleServers.push({ instance: instanceId, instanceType, instanceName: instance.name, currentVersion: instance.versions?.launcher?.current, minimumSupportedVersion: MIN_HOSTED_INSTANCE_LAUNCHER_VERSION })
+                            continue // skip - launcher version too old to support MCP features via the admin API
+                        }
+                        // Next check that the instance is actually running before calling MCP features (querying a non-running instance would cause timeouts)
+                        const liveState = await instance.liveState({ omitStorageFlows: true })
+                        if (liveState?.meta?.state !== 'running') {
+                            continue
+                        }
+                    } else if (instanceType === 'device' && instance) {
+                        // Check that device agent version supports the required features before attempting to get the live state.
+                        if (!instance.agentVersion || semver.lt(instance.agentVersion, MIN_REMOTE_INSTANCE_AGENT_VERSION)) {
+                            incompatibleServers.push({ instance: instanceId, instanceType, instanceName: instance.name, currentVersion: instance.agentVersion, minimumSupportedVersion: MIN_REMOTE_INSTANCE_AGENT_VERSION })
+                            continue // skip - agent version too old to support MCP features
+                        }
+                        // Next check that the device is actually running before offering MCP features (querying a non-running device would cause timeouts)
+                        const response = await deviceComms.sendCommandAwaitReply(request.team.hashid, instanceId, 'get-liveState', {}, { timeout: 3000 })
+                        if (response?.state !== 'running') {
+                            continue
+                        }
+                    } else {
+                        continue // unsupported instance type or instance not found, skip it.
+                    }
+
+                    // Check instance settings for node security. If FlowFuse auth is enabled, generate a short-lived (5 mins)
+                    // auth token for the instance with a scope limited to MCP access and cache it in memory for subsequent requests
+                    const mcpAccessToken = await app.expert.mcp.getOrCreateToken(instance, instanceType, instanceId, request.teamHttpSecurityFeature)
+
+                    instancesWithMCPServers.push({
+                        team: request.team.hashid,
+                        application: application.hashid,
+                        instance,
+                        instanceType,
+                        mcpServers: registrations.map(reg => ({
+                            team: request.team.hashid,
+                            application: application.hashid,
+                            instance: instanceId,
+                            instanceType,
+                            instanceName: instance.name,
+                            instanceUrl: instance.url,
+                            mcpServer: reg.hashid,
+                            mcpServerName: reg.name,
+                            mcpEndpoint: reg.endpointRoute,
+                            mcpProtocol: reg.protocol,
+                            mcpAccessToken,
+                            accessToken: mcpAccessToken,
+                            title: reg.title,
+                            version: reg.version,
+                            description: reg.description
+                        }))
+                    })
+                } catch (error) {
+                    continue // if we get an error trying, assume instance is offline/unreachable and skip it
+                }
             }
 
             // if no running instances with MCP server, return early
-            if (runningInstancesWithMCPServer.length === 0) {
-                return reply.send({ servers: [], transactionId })
+            if (instancesWithMCPServers.length === 0) {
+                return reply.send({ servers: [], incompatibleServers, transactionId })
             }
 
-            // Call to backend to request MCP capabilities from expert service
-            // For reference - this POST:
-            // * calls the backend expert service endpoint /mcp/features
-            // * it connects to each MCP server registered
-            // * retrieves the prompts/resources/tools
-            // * adds them to the response along with the MCP server info
-            const response = await axios.post(mcpCapabilitiesUrl, {
-                teamId: request.team.hashid,
-                servers: runningInstancesWithMCPServer
-            }, {
-                headers: {
-                    Origin: request.headers.origin,
-                    'X-Chat-Transaction-ID': transactionId,
-                    ...(app.expert.serviceToken ? { Authorization: `Bearer ${app.expert.serviceToken}` } : {})
-                },
-                timeout: app.expert.requestTimeout
+            // Request the features via the launcher (remote instances via MQTT, hosted instances via direct
+            // call to launcher admin API), one call per instance, all in parallel.
+            const featurePromises = instancesWithMCPServers.map(instanceWithMCPServers => {
+                // for HTTP protocol, we can call the launcher admin API directly (for hosted instances) or via MQTT (for remote instances)
+                const instance = instanceWithMCPServers.instance
+                if (!instance) {
+                    return Promise.resolve({ ...instanceWithMCPServers, error: 'Instance not found' })
+                }
+                if (instanceWithMCPServers.instanceType === 'instance') {
+                    // hosted instance - call launcher API
+                    return app.containers.getMCPFeatures(instance, instanceWithMCPServers.mcpServers)
+                } else if (instanceWithMCPServers.instanceType === 'device') {
+                    // remote instance - call via command await dispatcher
+                    return deviceComms.sendCommandAwaitReply(instanceWithMCPServers.team, instance.hashid, 'mcp:get-features', { mcpEndPoints: instanceWithMCPServers.mcpServers }, { timeout: 10000 })
+                } else {
+                    return Promise.resolve({ ...instanceWithMCPServers, error: 'Unsupported instance type' })
+                }
             })
 
-            if (response.data.transactionId !== transactionId) {
-                throw new Error('Transaction ID mismatch')
-            }
-            const mcpServersResponse = response.data.servers || []
+            // wait for all promises to resolve
+            const featuresResponses = await Promise.all(featurePromises)
+            const mcpServersResponse = (featuresResponses || []).flat()
+
             const serverList = []
             // load the associate application models so that we can filter features based on user access
             for (const serverItem of mcpServersResponse) {
-                const application = applicationCache[serverItem.application]
+                const application = applicationCache[serverItem.spec.application]
                 if (application) {
                     serverList.push({
-                        server: serverItem,
+                        server: { ...serverItem.features, ...serverItem.spec },
                         application
                     })
                 }
             }
             // now check tools/resources/prompts access per server based on team membership
-            response.data.servers = filterAccessibleMCPServerFeatures(app, serverList, request.team, request.teamMembership)
-
-            reply.send(response.data)
+            // response.data.servers = filterAccessibleMCPServerFeatures(app, serverList, request.team, request.teamMembership)
+            const finalServers = filterAccessibleMCPServerFeatures(app, serverList, request.team, request.teamMembership)
+            const finalServersView = finalServers.map(s => {
+                return {
+                    // ownership info
+                    team: s.team,
+                    application: s.application,
+                    instance: s.instance,
+                    instanceType: s.instanceType,
+                    instanceName: s.instanceName,
+                    // mcp info
+                    mcpServer: s.mcpServer, // the MCP Servers ID - for keying the UI list and for the client to send back in the chat context to select which MCP server to use for a given query
+                    title: s.title || s.mcpServerName || s.mcpServer,
+                    description: s.description,
+                    mcpServerName: s.mcpServerName,
+                    version: s.version,
+                    tools: s.tools,
+                    resources: s.resources,
+                    resourceTemplates: s.resourceTemplates,
+                    prompts: s.prompts
+                }
+            })
+            reply.send({ servers: finalServersView, incompatibleServers, transactionId })
         } catch (error) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
         }
@@ -586,6 +662,7 @@ module.exports = async function (app) {
  * @property {string} instanceType
  * @property {string} instanceName
  * @property {string} instanceUrl
+ * @property {string} mcpServer
  * @property {string} mcpServerName
  * @property {string} mcpEndpoint
  * @property {string} mcpProtocol

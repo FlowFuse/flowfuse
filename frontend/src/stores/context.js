@@ -6,6 +6,7 @@ import product from '../services/product.js'
 import { Roles } from '../utils/roles.js'
 
 import { useAccountAuthStore } from './account-auth.js'
+import { useAccountSettingsStore } from './account-settings.js'
 import { useProductAssistantStore } from './product-assistant.js'
 import { useProductExpertStore } from './product-expert.js'
 
@@ -111,6 +112,8 @@ export const useContextStore = defineStore('context', {
                 rawRoute,
                 selectedNodes,
                 scope,
+                supportsPlatformAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
+                supportsPlatformUIAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
                 questionCadence: useProductExpertStore().questionCadence,
                 planMode: useProductExpertStore().planMode,
                 // Human-in-the-loop tool permissions (#421). The agent gates each
