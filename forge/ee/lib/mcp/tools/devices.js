@@ -2,7 +2,7 @@ const { z } = require('zod')
 
 module.exports = [
     {
-        name: 'platform_list_remote_instances',
+        name: 'platform_list_team_remote_instances',
         description: `FlowFuse platform automation tool:
             Lists all remote instances that belong to a team.
             A remote instance is a Node-RED that runs on the user's own hardware (like a Raspberry Pi or an edge server) rather than on the same environment as the FlowFuse platform.
@@ -11,10 +11,27 @@ module.exports = [
             To get the full details of one specific remote instance, call platform_get_remote_instance with its ID.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            teamId: z.string().describe('The ID or hashid of the team')
+            teamId: z.string().describe('The ID or hashid of the team'),
+            query: z.string().optional().describe('Search remote instances by name or type'),
+            cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
+            limit: z.number().optional().describe('How many results to return per page (default 100, max 100)')
         },
         handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/devices` })
+            let url = `/api/v1/teams/${args.teamId}/devices`
+            const params = []
+            if (args.query) {
+                params.push(`query=${args.query}`)
+            }
+            if (args.cursor) {
+                params.push(`cursor=${args.cursor}`)
+            }
+            if (args.limit) {
+                params.push(`limit=${args.limit}`)
+            }
+            if (params.length > 0) {
+                url += '?' + params.join('&')
+            }
+            const response = await inject({ method: 'GET', url })
             return response
         }
     },
@@ -43,10 +60,23 @@ module.exports = [
             Use this when you need to see what snapshots exist for a remote instance, for example to pick one to deploy or to check what changed between versions.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            remoteInstanceId: z.string().describe('The ID or hashid of the remote instance')
+            remoteInstanceId: z.string().describe('The ID or hashid of the remote instance'),
+            cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
+            limit: z.number().optional().describe('How many results to return per page')
         },
         handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/devices/${args.remoteInstanceId}/snapshots` })
+            let url = `/api/v1/devices/${args.remoteInstanceId}/snapshots`
+            const params = []
+            if (args.cursor) {
+                params.push(`cursor=${args.cursor}`)
+            }
+            if (args.limit) {
+                params.push(`limit=${args.limit}`)
+            }
+            if (params.length > 0) {
+                url += '?' + params.join('&')
+            }
+            const response = await inject({ method: 'GET', url })
             return response
         }
     },
