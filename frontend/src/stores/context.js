@@ -57,7 +57,8 @@ export const useContextStore = defineStore('context', {
                     pageName: null,
                     rawRoute: {},
                     selectedNodes: null,
-                    scope: 'ff-app'
+                    scope: 'ff-app',
+                    questionCadence: useProductExpertStore().questionCadence
                 }
             }
 
@@ -106,7 +107,8 @@ export const useContextStore = defineStore('context', {
                 nodeRedVersion: assistantStore.nodeRedVersion,
                 rawRoute,
                 selectedNodes,
-                scope
+                scope,
+                questionCadence: useProductExpertStore().questionCadence
             }
         }
     },
