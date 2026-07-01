@@ -71,7 +71,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         sessionId () { return this._agentStore.sessionId },
         shouldUseMqtt () {
             const accountSettingsStore = useAccountSettingsStore()
-            return accountSettingsStore.featuresCheck?.isExpertCommsBetaEnabled && this.isSupportAgent
+            return accountSettingsStore.featuresCheck?.isExternalMqttBrokerFeatureEnabled && this.isSupportAgent
         }
     },
     actions: {
