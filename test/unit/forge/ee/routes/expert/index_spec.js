@@ -1655,6 +1655,98 @@ describe('Expert API', function () {
                 capturedPostData.servers[0].mcpAccessToken.scope.should.containEql('instance')
             })
         })
+
+        describe('MCP tools Endpoint (tool permissions catalog #421)', function () {
+            it('should return 401 for instance token', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
+                    cookies: { sid: instanceToken }
+                })
+                response.statusCode.should.equal(401)
+            })
+
+            it('should return 401 for device token', async function () {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
+                    cookies: { sid: deviceToken }
+                })
+                response.statusCode.should.equal(401)
+            })
+
+            it('should return 404 for a non-team member', async function () {
+                const get = sinon.stub(axios, 'get') // must not proxy for a caller with no team access
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
+                    cookies: { sid: chrisToken }
+                })
+                response.statusCode.should.equal(404)
+                get.called.should.be.false()
+            })
+
+            // teamId is validated by the querystring schema (required, minLength 10),
+            // which runs before the preHandler — so a missing teamId is a 400, not a 404.
+            it('should return 400 when the teamId query param is missing', async function () {
+                const get = sinon.stub(axios, 'get') // should not be called
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/expert/mcp/tools',
+                    cookies: { sid: bobToken }
+                })
+                response.statusCode.should.equal(400)
+                get.called.should.be.false()
+            })
+
+            it('should proxy the flow-tools catalog and hash for a team member', async function () {
+                const get = sinon.stub(axios, 'get').resolves({
+                    data: {
+                        catalog: [{ key: 'create-flow', name: 'Create Flow', toolClass: 'write' }],
+                        hash: 'abc123'
+                    }
+                })
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
+                    cookies: { sid: bobToken }
+                })
+                response.statusCode.should.equal(200)
+                const json = response.json()
+                json.should.have.property('hash', 'abc123')
+                json.should.have.property('catalog').which.is.an.Array().and.have.length(1)
+                json.catalog[0].should.have.property('key', 'create-flow')
+                // the upstream request goes to the agent's /mcp/flow-tools with the service token
+                get.calledOnce.should.be.true()
+                const [calledUrl, calledOpts] = get.firstCall.args
+                calledUrl.should.endWith('/mcp/flow-tools')
+                calledOpts.headers.should.have.property('Authorization', 'Bearer test-token')
+            })
+
+            it('should default catalog to [] and hash to null when the agent omits them', async function () {
+                sinon.stub(axios, 'get').resolves({ data: {} })
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
+                    cookies: { sid: bobToken }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.deepEqual({ catalog: [], hash: null })
+            })
+
+            it('should propagate the upstream status code when the agent errors', async function () {
+                sinon.stub(axios, 'get').rejects({
+                    response: { status: 502, data: { code: 'bad_gateway', error: 'upstream down' } }
+                })
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
+                    cookies: { sid: bobToken }
+                })
+                response.statusCode.should.equal(502)
+                response.json().should.have.property('code', 'bad_gateway')
+            })
+        })
     })
 
     describe('service disabled', async function () {
