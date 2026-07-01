@@ -49,7 +49,7 @@ module.exports = [
         name: 'platform_get_application_remote_instances',
         description: `FlowFuse platform automation tool:
             Gets all the remote instances (devices) that live inside an application.
-            A remote instance is a Node-RED that runs on someone's own hardware (like a Raspberry Pi or a server) instead of on the FlowFuse cloud.
+            A remote instance is a Node-RED that runs on the user's own hardware (like a Raspberry Pi or a server) rather than on the same environment as the FlowFuse platform.
             Use this to see which remote instances are connected to an application, check if they are online or offline, or find one by name.
             You can search by name using the query parameter and page through results using cursor or limit.
             To get the full details of one specific remote instance, call platform_get_remote_instance with its ID.`,
