@@ -28,8 +28,11 @@ function loadToolDefinitions () {
  * @param {Array} toolDefinitions - loaded tool definitions
  * @param {Function} inject - app.inject helper bound to the request's auth token
  * @param {Function} checkScope - scope check function (stub for now)
+ * @param {Object} [options] - optional extra context passed to tool handlers
+ * @param {Object} [options.comms] - device comms handler for MQTT commands
  */
-function registerTools (server, toolDefinitions, inject, checkScope) {
+function registerTools (server, toolDefinitions, inject, checkScope, options = {}) {
+    const { comms } = options
     for (const tool of toolDefinitions) {
         const config = {
             description: tool.description,
@@ -44,8 +47,8 @@ function registerTools (server, toolDefinitions, inject, checkScope) {
             if (scopeError) {
                 return scopeError
             }
-            const response = await tool.handler(args, { inject })
-            return formatResponse(response)
+            const response = await tool.handler(args, { inject, comms })
+            return typeof response?.json === 'function' ? formatResponse(response) : response
         })
     }
 }
