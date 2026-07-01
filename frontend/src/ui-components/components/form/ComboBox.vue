@@ -220,7 +220,7 @@ export default {
                 .map(normalize)
         },
         customValue () {
-            const noMatchingOptions = this.filteredOptions.filter(option => option.value.includes(this.query)).length === 0
+            const noMatchingOptions = this.filteredOptions.filter(option => option.value === this.query).length === 0
             const hasQuery = this.query !== ''
 
             return (hasQuery && noMatchingOptions)
