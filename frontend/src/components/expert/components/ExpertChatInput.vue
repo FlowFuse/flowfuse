@@ -274,9 +274,8 @@ export default {
             minHeight: 120,
             maxViewportMarginY: 80
         })
-        // Fetch the tool catalog as soon as the Expert panel mounts (not only in the
-        // editor) so the permissions settings can render everywhere. Flow-building
-        // tools are still only usable from an instance editor (see isImmersive below).
+        // Fetch on mount everywhere (not just the editor) so the permissions settings
+        // can render outside an instance too; the tools themselves stay editor-only.
         this.fetchToolCatalog()
     },
     methods: {

@@ -32,14 +32,11 @@ export const classOf = (entry) => {
 // read/write/delete defaults so a default for one never silently applies to the other.
 export const TOOL_GROUPS = { FLOW_BUILDING: 'flow-building', PLATFORM: 'platform' }
 
-// Which group a catalog entry belongs to. Today every tool the agent serves is a
-// flow-building tool, so everything maps to 'flow-building'.
-// TODO(platform-tools): once Steve's platform-tool work is merged into the agent,
-// platform tools arrive in the same catalog. Map them to TOOL_GROUPS.PLATFORM here —
-// e.g. off a `group`/`target` field added to the catalog entry in buildToolCatalog
-// (get_mcp_tools.js) or a tool annotation — so the UI routes them to the FlowFuse
-// Platform Tools section and applies that group's own defaults (see the toolDefaults
-// TODO below for namespacing the defaults by group at the same time).
+// Which group a catalog entry belongs to. Every tool served today is a flow-building
+// tool, so everything maps to 'flow-building'.
+// TODO(platform-tools): when platform tools are added to the agent's catalog, map them
+// to TOOL_GROUPS.PLATFORM here (off a `group` field on the entry) so the UI routes them
+// to their own section with their own defaults.
 export const groupOf = (entry) => entry?.group || TOOL_GROUPS.FLOW_BUILDING
 
 const eventsRegistry = {
@@ -199,11 +196,8 @@ export const useProductAssistantStore = defineStore('product-assistant', {
         // the agent; defaults + preferences are the user's choices (persisted below).
         toolCatalog: [],
         toolCatalogHash: null,
-        // Standing read/write/delete defaults. Today these are the flow-building tools'
-        // defaults (the only tools that exist).
-        // TODO(platform-tools): when platform tools land (see groupOf), namespace these
-        // by tool group so flow-building and platform actions carry independent defaults,
-        // and migrate the persisted shape from { read, write, delete } accordingly.
+        // Standing read/write/delete defaults for the flow-building tools (the only tools
+        // that exist today; see the platform-tools TODO on groupOf).
         toolDefaults: { read: 'allow', write: 'ask', delete: 'ask' },
         toolPreferences: {}
     }),

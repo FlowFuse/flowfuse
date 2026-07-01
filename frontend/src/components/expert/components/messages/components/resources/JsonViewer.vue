@@ -40,12 +40,9 @@
 </template>
 
 <script>
-// Single-value JSON viewer with prettify + word-wrap, mirroring the presentation
-// of the snapshot comparison diff panel (SnapshotDiffChangePanel) without its
-// two-sided diff machinery — used for read-only payloads such as the tool
-// approval card's call parameters. The wrap toggle only appears when a line is
-// long enough to overflow horizontally. When collapsible, a header toggle hides
-// or reveals the content at any time; defaultCollapsed seeds its initial state.
+// Read-only single-value JSON viewer with prettify, word-wrap and optional collapse,
+// following the presentation of SnapshotDiffChangePanel without its two-sided diff
+// machinery. Used for payloads such as the tool approval card's call parameters.
 import { ChevronRightIcon } from '@heroicons/vue/20/solid'
 
 const LONG_LINE_THRESHOLD = 50
@@ -88,8 +85,7 @@ export default {
         }
     },
     computed: {
-        // Prettified JSON for objects/arrays, plain string for scalars — the same
-        // stringify the snapshot diff panel uses, made crash-proof.
+        // Prettified JSON for objects/arrays, plain string for scalars.
         text () {
             const v = this.value
             if (v === undefined || v === null) return ''

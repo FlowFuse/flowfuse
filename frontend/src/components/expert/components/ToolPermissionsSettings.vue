@@ -72,12 +72,8 @@
             <p v-else class="tool-permissions__empty">No flow-building tools available yet.</p>
         </section>
 
-        <!-- TODO(platform-tools): once Steve's platform-tool work is merged into the agent,
-             FlowFuse platform tools arrive in the same catalog. Render them here exactly like
-             the Flow Building Tools section above: a defaults data-table for this group plus the
-             per-tool data-table, filtering the catalog with groupOf(entry) === TOOL_GROUPS.PLATFORM.
-             See groupOf / the toolDefaults TODO in stores/product-assistant.js for namespacing the
-             defaults by group at the same time. -->
+        <!-- TODO(platform-tools): render platform tools here like the section above, filtered
+             with groupOf(entry) === TOOL_GROUPS.PLATFORM. See groupOf in stores/product-assistant.js. -->
         <section class="tool-permissions__section">
             <FormHeading>FlowFuse Platform Tools</FormHeading>
             <p class="tool-permissions__empty">Available soon — added once FlowFuse platform tools ship.</p>
@@ -156,8 +152,7 @@ export default {
             // list is sorted read -> write -> delete so the table reads scope-first.
             const families = new Map()
             for (const entry of this.toolCatalog) {
-                // Only flow-building tools belong in this section; platform tools (once
-                // they exist) render in their own section (see groupOf / the TODO above).
+                // Platform tools render in their own section (see the TODO above).
                 if (groupOf(entry) !== TOOL_GROUPS.FLOW_BUILDING) continue
                 const displayName = this.displayName(entry)
                 const cls = classOf(entry)

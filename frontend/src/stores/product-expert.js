@@ -321,15 +321,9 @@ export const useProductExpertStore = defineStore('product-expert', {
             })
         },
         async fetchToolCatalog () {
-            // Fetch the tool catalog for the permissions UI (#421) over HTTP
-            // (GET /api/v1/expert/mcp/tools), mirroring the insights `getCapabilities`
-            // pattern. This deliberately does NOT use MQTT — the catalog is needed before
-            // any chat, and we must not open (or keep open) the broker connection on mount.
-            // The agent replies with a curated, friendly catalog (raw tool identifiers
-            // never reach the browser) plus a `hash` we store to detect later drift.
-            // Fetched whenever the Expert panel mounts, not only in the editor: the
-            // permissions UI lists every tool everywhere. Flow-building tools are simply
-            // shown as usable only from an instance editor (gated in the settings UI).
+            // Fetch the tool catalog for the permissions UI (#421) over HTTP, not MQTT:
+            // the catalog is needed before any chat, so we must not open the broker
+            // connection on mount. Store the returned `hash` to detect later drift.
             const assistantStore = useProductAssistantStore()
 
             const teamId = useContextStore().expert?.teamId

@@ -49,10 +49,7 @@ const getCapabilities = async (payload) => {
 }
 
 /**
- * Fetch the curated tool catalog for the human-in-the-loop permissions UI (#421).
- * Read-only GET — proxied by forge to the agent's /mcp/tools endpoint, which serves
- * friendly catalog entries only (raw MCP identifiers never leave the backend) plus a
- * `hash` fingerprint the UI uses to refetch only when the catalog changes.
+ * Fetch the curated tool catalog for the tool-permissions UI (#421).
  * @param {{ teamId: string }} params
  * @returns {Promise<{ catalog: Array, hash: string|null }>}
  */
