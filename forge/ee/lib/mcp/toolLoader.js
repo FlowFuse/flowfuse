@@ -6,7 +6,7 @@ const toolsDir = path.join(__dirname, 'tools')
 /**
  * Loads all tool definition files from the tools/ directory.
  * Each file should export an array of tool definitions with:
- *   { name, description, inputSchema, annotations, handler }
+ *   { name, title, description, inputSchema, annotations, handler }
  *
  * Definitions are loaded once at startup and reused across requests.
  */
@@ -35,6 +35,7 @@ function registerTools (server, toolDefinitions, inject, checkScope, options = {
     const { comms } = options
     for (const tool of toolDefinitions) {
         const config = {
+            title: tool.title,
             description: tool.description,
             annotations: tool.annotations
         }

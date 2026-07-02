@@ -3,6 +3,7 @@ const { z } = require('zod')
 module.exports = [
     {
         name: 'platform_get_hosted_instance',
+        title: 'Get Hosted Instance',
         description: `FlowFuse platform automation tool:
             Gets the full details of one specific hosted instance.
             A hosted instance is a Node-RED that runs on the same environment as the FlowFuse platform.
@@ -21,6 +22,7 @@ module.exports = [
     },
     {
         name: 'platform_get_hosted_instance_status',
+        title: 'Get Hosted Instance Status',
         description: `FlowFuse platform automation tool:
             Gets the live running status of a specific hosted instance (running, stopped, suspended, starting, etc.).
             This is different from platform_get_hosted_instance: that tool gives you metadata and settings,
@@ -37,6 +39,7 @@ module.exports = [
     },
     {
         name: 'platform_get_hosted_instance_logs',
+        title: 'Get Hosted Instance Logs',
         description: `FlowFuse platform automation tool:
             Gets the runtime logs for a hosted instance.
             These are the Node-RED console logs showing what happened while the instance was running.
@@ -66,6 +69,7 @@ module.exports = [
     },
     {
         name: 'platform_check_hosted_instance_name_availability',
+        title: 'Check Hosted Instance Name Availability',
         description: `FlowFuse platform automation tool:
             Checks if a name is available for a new hosted instance.
             Hosted instance names must be unique across the entire platform.
@@ -81,6 +85,7 @@ module.exports = [
     },
     {
         name: 'platform_create_hosted_instance',
+        title: 'Create Hosted Instance',
         description: `FlowFuse platform automation tool:
             Creates a new hosted Node-RED instance inside an application. The instance starts automatically after creation.
             Before calling this tool, gather the required parameters:

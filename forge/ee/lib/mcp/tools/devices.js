@@ -3,6 +3,7 @@ const { z } = require('zod')
 module.exports = [
     {
         name: 'platform_list_team_remote_instances',
+        title: 'List Team Remote Instances',
         description: `FlowFuse platform automation tool:
             Lists all remote instances that belong to a team.
             Remote instances are sometimes referred to as devices.
@@ -38,6 +39,7 @@ module.exports = [
     },
     {
         name: 'platform_get_remote_instance',
+        title: 'Get Remote Instance',
         description: `FlowFuse platform automation tool:
             Gets the full details of one specific remote instance.
             Remote instances are sometimes referred to as devices.
@@ -56,6 +58,7 @@ module.exports = [
     },
     {
         name: 'platform_get_remote_instance_status',
+        title: 'Get Remote Instance Status',
         description: `FlowFuse platform automation tool:
             Gets the live running status of a remote instance by querying the device directly over MQTT.
             This returns the real-time state of the Node-RED runtime on the device (running, stopped, installing, etc.),
@@ -87,6 +90,7 @@ module.exports = [
     },
     {
         name: 'platform_create_remote_instance',
+        title: 'Create Remote Instance',
         description: `FlowFuse platform automation tool:
             Registers a new remote instance (device) in a team.
             A remote instance is a Node-RED that runs on the user's own hardware rather than on the same environment as the FlowFuse platform.
@@ -108,6 +112,7 @@ module.exports = [
     },
     {
         name: 'platform_assign_remote_instance_to_application',
+        title: 'Assign Remote Instance To Application',
         description: `FlowFuse platform automation tool:
             Assigns a remote instance to an application.
             Use this after creating a remote instance with platform_create_remote_instance, or to move an existing remote instance into a different application.

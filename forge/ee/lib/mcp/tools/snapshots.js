@@ -3,6 +3,7 @@ const { z } = require('zod')
 module.exports = [
     {
         name: 'platform_list_hosted_instance_snapshots',
+        title: 'List Hosted Instance Snapshots',
         description: `FlowFuse platform automation tool:
             Lists all snapshots that were taken from a hosted instance.
             A snapshot is like a saved photo of everything running on the hosted instance at a point in time: the flows, the settings, and the configuration.
@@ -31,6 +32,7 @@ module.exports = [
     },
     {
         name: 'platform_create_hosted_instance_snapshot',
+        title: 'Create Hosted Instance Snapshot',
         description: `FlowFuse platform automation tool:
             Creates a new snapshot from a hosted instance, capturing everything it is running right now (flows, settings, and configuration).
             Think of it as taking a photo of the hosted instance so you can go back to this exact state later or deploy it to other hosted instances.
@@ -55,6 +57,7 @@ module.exports = [
     },
     {
         name: 'platform_list_remote_instance_snapshots',
+        title: 'List Remote Instance Snapshots',
         description: `FlowFuse platform automation tool:
             Lists all snapshots that were taken from a remote instance (device).
             A snapshot is like a saved photo of everything running on the remote instance at a point in time: the flows, the settings, and the configuration.
@@ -83,6 +86,7 @@ module.exports = [
     },
     {
         name: 'platform_create_remote_instance_snapshot',
+        title: 'Create Remote Instance Snapshot',
         description: `FlowFuse platform automation tool:
             This tool will always fail if the remote instance is not reachable.
             This tool exclusively creates snapshots, it does not create anything else.

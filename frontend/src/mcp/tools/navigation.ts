@@ -3,6 +3,7 @@ import type { McpToolDefinition } from '@/types'
 const tools: McpToolDefinition[] = [
     {
         name: 'ui_navigate',
+        title: 'Navigate',
         description: `FlowFuse UI automation tool:
             Navigates the user's browser to a specific page.
             Use ui_list_routes to discover valid route names and the parameters they need.

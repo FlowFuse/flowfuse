@@ -20,6 +20,7 @@ function getRouteList (router: Router) {
 const tools: McpToolDefinition[] = [
     {
         name: 'ui_list_routes',
+        title: 'List Routes',
         description: `FlowFuse UI automation tool:
             Lists all the pages the user can visit in the FlowFuse app, along with their route names, path patterns, and what parameters they need.
             Use this to find the right route name and params before calling ui_navigate.
