@@ -39,7 +39,7 @@ module.exports = async function (app) {
         if (app.config.tables?.enabled) {
             await app.register(require('./tables'), { prefix: '/api/v1/teams/:teamId/databases', logLevel: app.config.logging.http })
         }
-        await app.register(require('./mcp'), { prefix: '/api/v1/teams/:teamId/mcp', logLevel: app.config.logging.http })
+        await app.register(require('./mcp'), { logLevel: app.config.logging.http })
         await app.register(require('./autoUpdateStacks'), { prefix: '/api/v1/projects/:projectId/autoUpdateStack', logLevel: app.config.logging.http })
         await app.register(require('./expert'), { prefix: '/api/v1/expert', logLevel: app.config.logging.http })
 
