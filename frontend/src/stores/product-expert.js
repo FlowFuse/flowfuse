@@ -76,7 +76,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         sessionId () { return this._agentStore.sessionId },
         shouldUseMqtt () {
             const accountSettingsStore = useAccountSettingsStore()
-            return accountSettingsStore.featuresCheck?.isExpertCommsBetaEnabled && this.isSupportAgent
+            return accountSettingsStore.featuresCheck?.isExternalMqttBrokerFeatureEnabled && this.isSupportAgent
         }
     },
     actions: {
@@ -197,9 +197,14 @@ export const useProductExpertStore = defineStore('product-expert', {
                 agentStore.sessionId = uuidv4()
             }
 
-            // Start session timing on first message (if not already running)
+            // Start session timing on first message, or reset the clock on subsequent
+            // messages so the session stays alive while the user is actively chatting
             if (!agentStore.sessionStartTime) {
                 this.startSessionTimer()
+            } else {
+                agentStore.sessionStartTime = Date.now()
+                agentStore.sessionWarningShown = false
+                agentStore.sessionExpiredShown = false
             }
 
             // Add user message
@@ -362,7 +367,53 @@ export const useProductExpertStore = defineStore('product-expert', {
                     }
                 })
                 break
+            case parsedTopic.inflightType === 'automation-ui:mcp-get-features': {
+                // handle UI MCP features request
+                try {
+                    const automationsService = servicesOrchestrator.$serviceInstances.automations
+                    const tools = automationsService.getToolDefinitions()
+
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                        qos: 2,
+                        topic: responseTopic,
+                        payload: JSON.stringify({ tools }),
+                        correlationData: transactionId,
+                        userProperties: {
+                            sessionId,
+                            transactionId: chatTransactionId,
+                            origin: window.origin || window.location.origin
+                        }
+                    })
+                } catch (e) {
+                    this._onMqttError(e)
+                }
+                break
+            }
+            case parsedTopic.inflightType === 'automation-ui:mcp-call-tool': {
+                // handle UI MCP tool invocation request
+                try {
+                    const automationsService = servicesOrchestrator.$serviceInstances.automations
+                    const { name, input } = payload?.data || {}
+                    const result = await automationsService.dispatch(name, input)
+
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                        qos: 2,
+                        topic: responseTopic,
+                        payload: JSON.stringify(result),
+                        correlationData: transactionId,
+                        userProperties: {
+                            sessionId,
+                            transactionId: chatTransactionId,
+                            origin: window.origin || window.location.origin
+                        }
+                    })
+                } catch (e) {
+                    this._onMqttError(e)
+                }
+                break
+            }
             case parsedTopic.inflightType.startsWith('automation:'):
+                // passes automation requests to the Assistant
                 try {
                     const result = await assistantStore.invokeActionAwaitResponse({
                         action: `automation/${parsedTopic.inflightType.replace('automation:', '')}`,

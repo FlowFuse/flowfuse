@@ -149,7 +149,7 @@ module.exports = {
     /**
      * Create an AccessToken for the editor.
      */
-    createTokenForUser: async function (app, user, expiresAt, scope = [], includeRefresh) {
+    createTokenForUser: async function (app, user, expiresAt, scope = [], includeRefresh, ownerType = 'user') {
         const userId = typeof user === 'number' ? user : user.id
         const token = generateToken(32, 'ffu')
         const refreshToken = includeRefresh ? generateToken(32, 'ffu') : null
@@ -162,7 +162,7 @@ module.exports = {
             expiresAt,
             scope,
             ownerId: '' + userId,
-            ownerType: 'user'
+            ownerType
         })
         return { token, expiresAt, refreshToken }
     },

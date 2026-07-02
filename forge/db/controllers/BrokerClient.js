@@ -1,5 +1,20 @@
 const { generateToken, compareHash } = require('../utils')
 
+async function createClient (app, { username, ownerId, ownerType, prefix, where, usePublicUrl = true }) {
+    const existingClient = await app.db.models.BrokerClient.findOne({
+        where: where ?? { ownerId, ownerType }
+    })
+    if (existingClient) {
+        await existingClient.destroy()
+    }
+    const password = generateToken(32, prefix)
+    await app.db.models.BrokerClient.create({ username, password, ownerId, ownerType })
+    const url = usePublicUrl
+        ? (app.config.broker.public_url || app.config.broker.url || null)
+        : (app.config.broker.url || null)
+    return { url, username, password }
+}
+
 module.exports = {
     /**
      * Validate the username/password
@@ -46,100 +61,51 @@ module.exports = {
      *
      */
     createClientForProject: async function (app, project) {
-        if (app.comms) {
-            const existingClient = await app.db.models.BrokerClient.findOne({
-                where: {
-                    ownerId: project.id,
-                    ownerType: 'project'
-                }
-            })
-            if (existingClient) {
-                await existingClient.destroy()
-            }
-            if (!project.Team) {
-                // When restarting the platform, the container drivers get a minimal list
-                // of projects to restart. They don't necessarily include the Team in their
-                // query - so we need to ensure its available.
-                await project.reload({
-                    include: [{
-                        model: app.db.models.Team,
-                        attributes: ['hashid', 'id', 'name', 'slug', 'links']
-                    }]
-                })
-            }
-            const username = `project:${project.Team.hashid}:${project.id}`
-            const password = generateToken(32, 'ffbp')
-            await app.db.models.BrokerClient.create({
-                username,
-                password,
-                ownerId: project.id,
-                ownerType: 'project'
-            })
-            return {
-                url: app.config.broker.url || null,
-                username,
-                password
-            }
+        if (!app.comms) {
+            return null
         }
-        return null
+        if (!project.Team) {
+            // When restarting the platform, the container drivers get a minimal list
+            // of projects to restart. They don't necessarily include the Team in their
+            // query - so we need to ensure its available.
+            await project.reload({
+                include: [{
+                    model: app.db.models.Team,
+                    attributes: ['hashid', 'id', 'name', 'slug', 'links']
+                }]
+            })
+        }
+        return createClient(app, {
+            username: `project:${project.Team.hashid}:${project.id}`,
+            ownerId: project.id,
+            ownerType: 'project',
+            prefix: 'ffbp',
+            usePublicUrl: false
+        })
     },
 
     createClientForDevice: async function (app, device) {
-        if (app.comms) {
-            const existingClient = await app.db.models.BrokerClient.findOne({
-                where: {
-                    ownerId: '' + device.id,
-                    ownerType: 'device'
-                }
-            })
-            if (existingClient) {
-                await existingClient.destroy()
-            }
-            const username = `device:${device.Team.hashid}:${device.hashid}`
-            const password = generateToken(32, 'ffbd')
-            await app.db.models.BrokerClient.create({
-                username,
-                password,
-                ownerId: '' + device.id,
-                ownerType: 'device'
-            })
-            return {
-                // Devices should default to the public url if set
-                url: app.config.broker.public_url || app.config.broker.url || null,
-                username,
-                password
-            }
+        if (!app.comms) {
+            return null
         }
-        return null
+        return createClient(app, {
+            username: `device:${device.Team.hashid}:${device.hashid}`,
+            ownerId: '' + device.id,
+            ownerType: 'device',
+            prefix: 'ffbd'
+        })
     },
 
     createClientForFrontend: async function (app, device) {
-        if (app.comms) {
-            const existingClient = await app.db.models.BrokerClient.findOne({
-                where: {
-                    ownerId: '' + device.id,
-                    ownerType: 'frontend'
-                }
-            })
-            if (existingClient) {
-                await existingClient.destroy()
-            }
-
-            const username = `frontend:${device.Team.hashid}:${device.hashid}`
-            const password = generateToken(32, 'ffbf')
-            await app.db.models.BrokerClient.create({
-                username,
-                password,
-                ownerId: '' + device.id,
-                ownerType: 'frontend'
-            })
-            return {
-                url: app.config.broker.public_url || app.config.broker.url || null,
-                username,
-                password
-            }
+        if (!app.comms) {
+            return null
         }
-        return null
+        return createClient(app, {
+            username: `frontend:${device.Team.hashid}:${device.hashid}`,
+            ownerId: '' + device.id,
+            ownerType: 'frontend',
+            prefix: 'ffbf'
+        })
     },
 
     createClientForExpertAgent: async function (app) {
@@ -183,57 +149,30 @@ module.exports = {
     },
 
     createClientForTeamFrontend: async function (app, user, team, sessionId) {
-        if (app.comms) {
-            const username = `fe-team:${user.hashid}:${team.hashid}:${sessionId}`
-            const existingClient = await app.db.models.BrokerClient.findOne({
-                where: { username }
-            })
-            if (existingClient) {
-                await existingClient.destroy()
-            }
-            const password = generateToken(32, 'ffbtf')
-            await app.db.models.BrokerClient.create({
-                username,
-                password,
-                ownerId: '' + user.id,
-                ownerType: 'fe-team'
-            })
-            return {
-                url: app.config.broker.public_url || app.config.broker.url || null,
-                username,
-                password
-            }
+        if (!app.comms) {
+            return null
         }
-        return null
+        const username = `fe-team:${user.hashid}:${team.hashid}:${sessionId}`
+        return createClient(app, {
+            where: { username },
+            username,
+            ownerId: '' + user.id,
+            ownerType: 'fe-team',
+            prefix: 'ffbtf'
+        })
     },
 
     createClientForExpertClient: async function (app, user, sessionId) {
-        if (app.comms) {
-            const existingClient = await app.db.models.BrokerClient.findOne({
-                where: {
-                    ownerId: '' + user.id,
-                    ownerType: 'expert-user',
-                    username: `expert-client:${user.hashid}:${sessionId}`
-                }
-            })
-            if (existingClient) {
-                await existingClient.destroy()
-            }
-
-            const username = `expert-client:${user.hashid}:${sessionId}`
-            const password = generateToken(32, 'ffbec') // ff broker expert client
-            await app.db.models.BrokerClient.create({
-                username,
-                password,
-                ownerId: '' + user.id,
-                ownerType: 'expert-user'
-            })
-            return {
-                url: app.config.broker.public_url || app.config.broker.url || null,
-                username,
-                password
-            }
+        if (!app.comms) {
+            return null
         }
-        return null
+        const username = `expert-client:${user.hashid}:${sessionId}`
+        return createClient(app, {
+            where: { ownerId: '' + user.id, ownerType: 'expert-user', username },
+            username,
+            ownerId: '' + user.id,
+            ownerType: 'expert-user',
+            prefix: 'ffbec'
+        })
     }
 }
