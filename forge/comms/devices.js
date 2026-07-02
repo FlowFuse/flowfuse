@@ -108,6 +108,10 @@ class DeviceCommsHandler {
                     return onError('Invalid MCP request - missing required fields', 'MCP_INVALID_REQUEST')
                 }
 
+                if (typeof instanceId !== 'string') {
+                    return onError('Invalid instance ID', 'MCP_INVALID_INSTANCE_ID')
+                }
+
                 const instance = await this.app.db.models.Device.byId(instanceId)
                 if (!instance) {
                     return onError('Invalid instance', 'MCP_INVALID_INSTANCE')
