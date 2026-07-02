@@ -1,6 +1,6 @@
 <template>
     <message-bubble ref="messageBubble" type="ai">
-        <answer-badge v-if="!isChatAnswer && !isQuestionsAnswer" :kind="answer.kind" />
+        <answer-badge v-if="!isChatAnswer && !isQuestionsAnswer && !isPlanAnswer" :kind="answer.kind" />
 
         <rich-content
             v-if="shouldShowRichContent"
@@ -77,6 +77,21 @@
             @edit="onQuestionsEdit"
             @streaming-complete="onComponentComplete('questions-list')"
         />
+
+        <plan-card
+            v-if="shouldShowPlanList"
+            :plan="answer.content"
+            :message-uuid="messageUuid"
+            :answer-uuid="answer._uuid"
+            :disabled="interactionDisabled"
+            :should-stream="shouldStream"
+            class="mb-3"
+            @approve="onPlanApprove"
+            @edit-manual="onPlanEditManual"
+            @request-changes="onPlanRequestChanges"
+            @reject="onPlanReject"
+            @streaming-complete="onComponentComplete('plan-list')"
+        />
     </message-bubble>
 </template>
 
@@ -93,6 +108,7 @@ import FlowsList from './resources/FlowsList.vue'
 import GuideStepsList from './resources/GuideStepsList.vue'
 import IssuesList from './resources/IssuesList.vue'
 import PackagesList from './resources/PackagesList.vue'
+import PlanCard from './resources/PlanCard.vue'
 import QuestionsList from './resources/QuestionsList.vue'
 import ResourcesList from './resources/ResourcesList.vue'
 import RichContent from './resources/RichContent.vue'
@@ -107,6 +123,7 @@ export default {
         SuggestionsList,
         RichContent,
         PackagesList,
+        PlanCard,
         FlowsList,
         AnswerBadge,
         ResourcesList,
@@ -145,7 +162,7 @@ export default {
             return msgs.length > 0 && msgs[msgs.length - 1]?._uuid === this.messageUuid
         },
         interactionDisabled () {
-            // Disable the questions card while a response is in flight, and once the turn
+            // Disable the question/plan cards while a response is in flight, and once the turn
             // has passed — i.e. any message has arrived after this one — so a stale card from
             // an earlier turn can no longer be answered.
             return this.isWaitingForResponse || !this.isLatestMessage
@@ -153,7 +170,8 @@ export default {
         hasGuideHeader () {
             // chat answers contain generic titles, they don't need to be displayed.
             // questions answers carry no guide title either.
-            return !!(this.answer.title && !this.isChatAnswer && !this.isQuestionsAnswer)
+            // plan answers carry their heading inside their Markdown content, not a title.
+            return !!(this.answer.title && !this.isChatAnswer && !this.isQuestionsAnswer && !this.isPlanAnswer)
         },
         hasGuideSteps () {
             return Object.hasOwnProperty.call(this.answer, 'steps') && this.answer.steps.length > 0
@@ -174,16 +192,24 @@ export default {
             return this.answer.issues && this.answer.issues.length > 0
         },
         hasPlainContent () {
-            return this.answer.content && this.answer.content.length > 0
+            // A plan keeps its markdown in content, but the PlanCard renders it; do not
+            // also render it as plain rich-content above the card.
+            return !this.isPlanAnswer && this.answer.content && this.answer.content.length > 0
         },
         hasQuestions () {
             return Array.isArray(this.answer.questions) && this.answer.questions.length > 0
+        },
+        hasPlan () {
+            return this.isPlanAnswer && typeof this.answer.content === 'string' && this.answer.content.length > 0
         },
         isChatAnswer () {
             return !Object.hasOwnProperty.call(this.answer, 'kind') || this.answer.kind === 'chat'
         },
         isQuestionsAnswer () {
             return this.answer.kind === 'questions'
+        },
+        isPlanAnswer () {
+            return this.answer.kind === 'plan'
         },
         isEditorContext () {
             // In editor context, the route name includes 'editor'
@@ -252,6 +278,13 @@ export default {
             if (this.componentStreamingOrder.indexOf(key) === 0) return true
             return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
         },
+        shouldShowPlanList () {
+            const key = 'plan-list'
+            if (!this.componentStreamingOrder.includes(key)) return false
+            if (!this.hasPlan) return false
+            if (this.componentStreamingOrder.indexOf(key) === 0) return true
+            return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
+        },
         shouldStream () {
             return !this.answer._streamed
         }
@@ -287,7 +320,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput']),
+        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setPlanMode']),
         buildStreamingOrder () {
             // order matters
             // this is where the decision of the streaming order of components is decided
@@ -301,6 +334,7 @@ export default {
             if (this.hasIssues) this.componentStreamingOrder.push('issues-list')
             if (this.hasSuggestions) this.componentStreamingOrder.push('suggestions-list')
             if (this.hasQuestions) this.componentStreamingOrder.push('questions-list')
+            if (this.hasPlan) this.componentStreamingOrder.push('plan-list')
         },
         async onComponentComplete (key) {
             if (!this.shouldStream) await this.waitFor(200)
@@ -312,6 +346,24 @@ export default {
         },
         onQuestionsEdit (text) {
             this.setPendingInput(text)
+        },
+        onPlanApprove () {
+            // Approving exits read-only plan mode so the build runs as a normal acting turn,
+            // and clears any plan text loaded into the composer via "Edit manually".
+            this.setPlanMode(false)
+            this.setComposerCommand('reset')
+            this.handleQuery({ query: 'Approved. Proceed with the plan.' })
+        },
+        onPlanEditManual () {
+            // Load the plan markdown into the composer to edit and resubmit for a re-proposal.
+            this.setPendingInput(this.answer.content)
+        },
+        onPlanRequestChanges () {
+            this.setComposerCommand('request-plan-change')
+        },
+        onPlanReject () {
+            this.setComposerCommand('reset')
+            this.handleQuery({ query: 'I do not want to proceed with this plan.' })
         },
         handleClick (e) {
             const target = e.target

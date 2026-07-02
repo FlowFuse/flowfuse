@@ -16,6 +16,20 @@
                 Start over
             </button>
             <div class="right-buttons">
+                <default-chip
+                    v-if="!isInsightsAgent"
+                    class="plan-mode-chip"
+                    text="Plan mode"
+                    :modelValue="planMode"
+                    :disabled="isWaitingForResponse"
+                    title="Plan mode: the Expert proposes a plan before making any changes, and acts only once you approve it."
+                    data-el="expert-plan-mode-toggle"
+                    @toggle="setPlanMode(!planMode)"
+                >
+                    <template #icon>
+                        <ff-toggle-switch :modelValue="planMode" size="small" tabindex="-1" />
+                    </template>
+                </default-chip>
                 <capabilities-selector v-if="isInsightsAgent" />
                 <button
                     v-else
@@ -101,6 +115,7 @@ import FormHeading from '../../FormHeading.vue'
 import ResizeBar from '../../ResizeBar.vue'
 
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
+import DefaultChip from './chips/DefaultChip.vue'
 import ContextSelector from './context-selection/index.vue'
 
 import { useResizingHelper } from '@/composables/ResizingHelper.js'
@@ -115,6 +130,7 @@ export default {
         CapabilitiesSelector,
         Cog8ToothIcon,
         ContextSelector,
+        DefaultChip,
         FormHeading,
         ResizeBar
     },
@@ -147,6 +163,8 @@ export default {
             inputText: '',
             includeSelection: true,
             isTextareaFocused: false,
+            // true after "Request changes" on a plan, until the user types or sends; drives the hint placeholder
+            requestingPlanChange: false,
             // The composer auto-sizes to its content via CSS (see .chat-input field-sizing).
             // Only once the user drag-resizes do we pin it to an explicit height.
             userResized: false
@@ -166,7 +184,9 @@ export default {
             'hasMessages',
             'isWaitingForResponse',
             'pendingInput',
-            'questionCadence'
+            'composerCommand',
+            'questionCadence',
+            'planMode'
         ]),
         questionCadenceOptions () {
             return [
@@ -197,6 +217,9 @@ export default {
             if (this.isInsightsAgent && !this.hasSelectedCapabilities) {
                 return 'Select a resource to get started'
             }
+            if (this.requestingPlanChange) {
+                return 'Describe a change to the plan, or paste an edited version'
+            }
             return this.isInsightsAgent
                 ? 'Tell us what you want to know about'
                 : 'Tell us what you need help with'
@@ -214,12 +237,26 @@ export default {
         pendingInput (text) {
             if (text) {
                 this.inputText = text
+                this.requestingPlanChange = false
                 this.setPendingInput('')
-                this.$nextTick(() => {
-                    this.$refs.textarea.focus()
-                    // No manual sizing needed: the textarea auto-grows to fit the loaded content
-                    // (e.g. an edited question) via CSS, capped by its max-height.
-                })
+                this.$nextTick(() => this.$refs.textarea.focus())
+            }
+        },
+        composerCommand (command) {
+            if (!command) return
+            // Plan card actions: focus an empty composer with a change hint, or clear a
+            // plan loaded via "Edit manually" that was approved/rejected without sending.
+            this.inputText = ''
+            this.requestingPlanChange = command === 'request-plan-change'
+            if (this.requestingPlanChange) {
+                this.$nextTick(() => this.$refs.textarea.focus())
+            }
+            this.setComposerCommand(null)
+        },
+        inputText (value) {
+            // Clear the plan-change hint once the user starts typing their own text.
+            if (value && this.requestingPlanChange) {
+                this.requestingPlanChange = false
             }
         }
     },
@@ -233,7 +270,7 @@ export default {
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
-        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'setPendingInput', 'setQuestionCadence']),
+        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setQuestionCadence', 'setPlanMode']),
         openSettings () {
             this.$refs.settingsDialog.show()
         },
@@ -258,6 +295,7 @@ export default {
                 .catch(e => e)
 
             this.inputText = ''
+            this.requestingPlanChange = false
         },
         onStartResize (event) {
             // Seed the drag from the composer's current rendered height (it may have auto-grown to
@@ -319,6 +357,28 @@ export default {
     display: flex;
     gap: 0.5rem;
     align-items: center;
+}
+
+// Reuses the shared DefaultChip; only tweaks needed here are neutralising the chip's
+// warning-yellow separator and centring the label around the divider.
+.plan-mode-chip {
+    :deep(.separator),
+    &.active :deep(.separator) {
+        background: var(--ff-color-border);
+    }
+
+    // DefaultChip's .text padding is asymmetric and it adds a 5px flex gap before the
+    // divider; equalise so "Plan mode" sits centred on both sides of the divider cell.
+    :deep(.text) {
+        padding-left: 0.5rem;
+        padding-right: calc(0.5rem - 5px);
+    }
+
+    // The switch is a visual indicator only; the chip handles the click.
+    :deep(.ff-toggle-switch) {
+        pointer-events: none;
+        flex-shrink: 0;
+    }
 }
 
 button {
@@ -406,6 +466,10 @@ button {
     flex: 1;
     display: flex;
     flex-direction: column;
+    // min-height: 0 must be on every ancestor in this flex chain, not just .chat-input:
+    // without it this wrapper keeps its content (min-content) height, so a long plan loaded
+    // via "Edit" pushes the whole composer tall instead of letting the textarea scroll.
+    min-height: 0;
     border: 2px solid var(--ff-color-border-strong); // border-2 border-gray-300
     border-radius: 0.5rem; // rounded-lg
     transition: border-color 0.2s ease;
@@ -415,12 +479,12 @@ button {
     }
 
     .chat-input {
-        // field-sizing lets the textarea grow with its content (typed or loaded, e.g. an edited
-        // question) up to the composer's max-height, where it scrolls — no JS measuring needed.
-        // flex-basis auto so it sizes to that content but still fills the box when it's taller
-        // (an empty composer, or after a drag-resize).
+        // field-sizing grows the textarea with its content up to the composer's max-height.
+        // min-height: 0 lets it shrink within the flex box past its content height (loading a
+        // long plan via "Edit manually") so overflow-y scrolls instead of overflowing the chat.
         field-sizing: content;
         flex: 1 1 auto;
+        min-height: 0;
         width: 100%;
         padding: 1rem; // p-4
         box-sizing: border-box;

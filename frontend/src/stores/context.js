@@ -59,7 +59,8 @@ export const useContextStore = defineStore('context', {
                     rawRoute: {},
                     selectedNodes: null,
                     scope: 'ff-app',
-                    questionCadence: useProductExpertStore().questionCadence
+                    questionCadence: useProductExpertStore().questionCadence,
+                    planMode: useProductExpertStore().planMode
                 }
             }
 
@@ -111,7 +112,8 @@ export const useContextStore = defineStore('context', {
                 scope,
                 supportsPlatformAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
                 supportsPlatformUIAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
-                questionCadence: useProductExpertStore().questionCadence
+                questionCadence: useProductExpertStore().questionCadence,
+                planMode: useProductExpertStore().planMode
             }
         }
     },
