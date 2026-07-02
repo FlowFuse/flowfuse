@@ -116,11 +116,11 @@ export const useContextStore = defineStore('context', {
                 supportsPlatformUIAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
                 questionCadence: useProductExpertStore().questionCadence,
                 planMode: useProductExpertStore().planMode,
-                // Signals that this FlowFuse version implements human-in-the-loop tool
-                // permissions (#421), so it sends toolPermissions + canUseWriteTools and can
-                // render approval cards. Older instances omit it; the agent then runs in a
-                // backward-compatible mode (flow-building tools all allowed, platform writes
-                // blocked with a prompt to update) instead of treating the user as read-only.
+                // Capability flags: signal that this version can render the question,
+                // plan, and approval cards. Older instances omit them and the agent drops
+                // the matching tool / runs in backward-compatible mode.
+                supportsQuestions: true,
+                supportsPlanMode: true,
                 supportsHITL: true,
                 // Human-in-the-loop tool permissions (#421). The agent gates each
                 // flow-building tool call against this map; canUseWriteTools drives
