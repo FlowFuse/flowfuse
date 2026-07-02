@@ -40,3 +40,7 @@ To access it from another Node-RED instance, you can use the `HTTP Request` node
 option, selecting 'bearer authentication' and providing the token:
 
 ![](./images/bearer-token-nr-request.png)
+
+### Remote Instances
+
+HTTP Access Tokens can also be used to secure HTTP endpoints served by Node-RED flows running on Remote Instances (devices). This requires [Device Agent v4](../device-agent/introduction.md) or later. On self-hosted FlowFuse, it also requires FlowFuse v2.32 or later.

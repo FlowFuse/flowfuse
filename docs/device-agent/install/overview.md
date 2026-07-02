@@ -28,7 +28,7 @@ meta:
 
 ## Prerequisites
 
-- Node.js 18 or later (for Manual install and for running locally)
+- Node.js 18 or later (for Manual install and for running locally). Supported versions are 18, 20, 22, and 24. Device Agent v4 (and its installer and official Docker image) defaults to Node.js 22 — this is the recommended runtime. Note that Node.js 20 reached end-of-life in April 2026.
 - Supported OS: Linux, macOS, Windows, or Docker container
 - Networking: allow outbound access on 443 to:
   - app.flowfuse.com

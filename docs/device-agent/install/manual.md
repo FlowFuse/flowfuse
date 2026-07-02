@@ -16,7 +16,7 @@ Use this method if you want direct control over the Node.js runtime and filesyst
 
 ## Prerequisites
 
-- Node.js 18 or later installed
+- Node.js 18 or later installed (Node.js 22 recommended; supported versions are 18, 20, 22, and 24). Node.js 20 reached end-of-life in April 2026.
 - Linux, macOS, or Windows
 - Outbound network access to FlowFuse platform and the NPM registry
 
@@ -125,6 +125,6 @@ sudo npm install -g @flowfuse/device-agent@latest
 npm install -g @flowfuse/device-agent@latest
 ```
 
-If you must stay on 2.x, use `@2.x`. Device Agent 3.x requires Node.js 18+.
+If you must stay on 2.x, use `@2.x`. Device Agent 3.x requires Node.js 18+. Device Agent 4.x defaults to Node.js 22 and supports Node.js 18, 20, 22, and 24.
 
 [^1]: Run `powershell -Command "Start-Process 'cmd' -Verb RunAs"` to launch an elevated command prompt (e.g. as an admin user)
