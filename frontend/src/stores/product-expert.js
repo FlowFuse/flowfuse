@@ -245,19 +245,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
         },
         sendQuery ({ query, toolApprovals } = {}) {
-            // TEMP mqtt-transport trace — remove before merge
-            const featuresCheck = useAccountSettingsStore().featuresCheck
-            /* eslint-disable no-console */
-            console.log('[mqtt-transport] sendQuery decision', {
-                transport: this.shouldUseMqtt ? 'MQTT' : 'HTTP',
-                shouldUseMqtt: this.shouldUseMqtt,
-                isSupportAgent: this.isSupportAgent,
-                agentMode: this.agentMode,
-                isExternalMqttBrokerFeatureEnabled: featuresCheck?.isExternalMqttBrokerFeatureEnabled,
-                isExternalMqttBrokerFeatureEnabledForPlatform: featuresCheck?.isExternalMqttBrokerFeatureEnabledForPlatform,
-                isMqttBrokerFeatureEnabledForTeam: featuresCheck?.isMqttBrokerFeatureEnabledForTeam
-            })
-            /* eslint-enable no-console */
             if (this.shouldUseMqtt) {
                 return this.sendMqttQuery({ query, toolApprovals })
             } else {

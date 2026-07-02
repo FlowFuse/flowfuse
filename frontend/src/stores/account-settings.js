@@ -50,24 +50,6 @@ export const useAccountSettingsStore = defineStore('account-settings', {
             // adding in PostHog Feature Flags
             checks.isPostHogFeatureFlagsEnabled = !!state.posthogFlags[POSTHOG_FLAGS.FF_FEATURE_FLAGS]
 
-            // TEMP mqtt-transport trace — remove before merge
-            /* eslint-disable no-console */
-            console.log('[mqtt-transport] featuresCheck', {
-                // platform-level feature flags (from /api/v1/settings -> state.features)
-                platform_externalBroker: state.features?.externalBroker,
-                platform_teamBroker: state.features?.teamBroker,
-                // team-TYPE feature (what isMqttBrokerFeatureEnabledForTeam actually reads)
-                teamType_teamBroker: team?.type?.properties?.features?.teamBroker,
-                teamType_enableAllFeatures: team?.type?.properties?.enableAllFeatures,
-                teamId: team?.id,
-                teamSlug: team?.slug,
-                // resolved checks that drive shouldUseMqtt
-                isExternalMqttBrokerFeatureEnabledForPlatform: checks.isExternalMqttBrokerFeatureEnabledForPlatform,
-                isMqttBrokerFeatureEnabledForTeam: checks.isMqttBrokerFeatureEnabledForTeam,
-                isExternalMqttBrokerFeatureEnabled: checks.isExternalMqttBrokerFeatureEnabled
-            })
-            /* eslint-enable no-console */
-
             return checks
         }
     },
