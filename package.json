@@ -125,6 +125,7 @@
         "vue-shepherd": "^3.0.0",
         "vue3-google-login": "^2.0.33",
         "yaml": "^2.3.1",
+        "zod": "^4.4.3",
         "zxcvbn": "^4.4.2"
     },
     "devDependencies": {
