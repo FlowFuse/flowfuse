@@ -1,5 +1,5 @@
 <template>
-    <div class="ff-header" data-sentry-unmask>
+    <div class="ff-header">
         <!-- Mobile: Toggle(Team & Team Admin Options) -->
         <i v-if="!hiddenLeftDrawer && !editorImmersiveDrawer.active" class="ff-header--mobile-toggle">
             <transition name="mobile-menu-fade" mode="out-in">

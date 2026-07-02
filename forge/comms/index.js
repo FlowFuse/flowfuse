@@ -3,6 +3,8 @@ const fp = require('fastify-plugin')
 const ACLManager = require('./aclManager')
 const { CommsClient } = require('./commsClient')
 const { DeviceCommsHandler } = require('./devices')
+const { InstanceCommsHandler } = require('./instances')
+const { PlatformAutomationHandler } = require('./platformAutomation.js')
 
 /**
  * This module represents the real-time comms component of the platform.
@@ -30,6 +32,8 @@ module.exports = fp(async function (app, _opts) {
 
         // Create the handler for any device-related messages
         const deviceCommsHandler = DeviceCommsHandler(app, client)
+        const instanceCommsHandler = InstanceCommsHandler(app, client)
+        const platformAutomationHandler = PlatformAutomationHandler(app, client)
 
         // Not in the current release, but when we handle Launcher status
         // via MQTT, it will arrive here. Compare to the status/device handler in `devices.js`
@@ -40,7 +44,9 @@ module.exports = fp(async function (app, _opts) {
         // Setup the platform API for the comms component
         app.decorate('comms', {
             devices: deviceCommsHandler,
+            instances: instanceCommsHandler,
             aclManager: ACLManager(app),
+            platformAutomation: platformAutomationHandler,
             platform: {
                 settings: {
                     sync: function (key) {
@@ -59,6 +65,26 @@ module.exports = fp(async function (app, _opts) {
                         }
                         client.publish('ff/v1/platform/leader', JSON.stringify(msg))
                     }
+                }
+            },
+            team: {
+                notify: function (teamHash, reason, srcId) {
+                    if (!teamHash) return
+                    const msg = { reason: reason || null, srcId: srcId || null }
+                    client.publish(`ff/v1/${teamHash}/t/updated`, JSON.stringify(msg))
+                },
+                notifyMembership: function (teamHash, userHash, reason, srcId) {
+                    if (!teamHash || !userHash) return
+                    const msg = { reason: reason || null, srcId: srcId || null }
+                    client.publish(`ff/v1/${teamHash}/u/${userHash}/membership`, JSON.stringify(msg))
+                },
+                notifyDeviceState: function (teamHash, id, state) {
+                    if (!teamHash || !id) return
+                    client.publish(`ff/v1/${teamHash}/d/${id}/state`, JSON.stringify({ id, meta: { state } }))
+                },
+                notifyInstanceState: function (teamHash, id, state) {
+                    if (!teamHash || !id) return
+                    client.publish(`ff/v1/${teamHash}/p/${id}/state`, JSON.stringify({ id, meta: { state } }))
                 }
             }
         })

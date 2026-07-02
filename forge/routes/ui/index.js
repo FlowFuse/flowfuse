@@ -41,7 +41,8 @@ module.exports = async function (app) {
                 const apihost = telemetry.frontend.posthog.apiurl || 'https://app.posthog.com'
                 const apikey = telemetry.frontend.posthog.apikey
                 const options = {
-                    api_host: apihost
+                    api_host: apihost,
+                    cookieless_mode: 'on_reject'
                 }
                 if ('capture_pageview' in telemetry.frontend.posthog) {
                     options.capture_pageview = telemetry.frontend.posthog.capture_pageview
@@ -55,16 +56,34 @@ module.exports = async function (app) {
 
             if (telemetry.frontend.google?.tag) {
                 const tag = telemetry.frontend.google.tag
-                injection += `<script async src="https://www.googletagmanager.com/gtag/js?id=${tag}"></script>`
-                injection += `<script> window.dataLayer = window.dataLayer || []; let gtag = window.gtag = function (){dataLayer.push(arguments);}; gtag('js', new Date()); gtag('config', '${tag}'); </script>`
+                // Deferred until consent is given - the cookie-consent store calls this on accept.
+                injection += `<script>
+                window._ffLoadGoogleAnalytics = function () {
+                    if (window._ffGoogleAnalyticsLoaded) { return }
+                    window._ffGoogleAnalyticsLoaded = true
+                    var s = document.createElement('script'); s.async = true
+                    s.src = 'https://www.googletagmanager.com/gtag/js?id=${tag}'
+                    document.head.appendChild(s)
+                    window.dataLayer = window.dataLayer || []
+                    window.gtag = function () { dataLayer.push(arguments) }
+                    gtag('js', new Date()); gtag('config', '${tag}')
+                }
+            </script>`
             }
 
             if (support?.enabled && support.frontend?.hubspot?.trackingcode) {
                 const trackingCode = support.frontend.hubspot.trackingcode
-                injection += `<!-- Start of HubSpot Embed Code -->
-                <script type="text/javascript">window._ffhstc = "${trackingCode}"</script>
-                <script type="text/javascript" id="hs-script-loader" async defer src="//js-eu1.hs-scripts.com/${trackingCode}.js"></script>
-              <!-- End of HubSpot Embed Code -->`
+                // Deferred until consent is given - the cookie-consent store calls this on accept.
+                injection += `<script type="text/javascript">
+                window._ffhstc = "${trackingCode}"
+                window._ffLoadHubSpot = function () {
+                    if (document.getElementById('hs-script-loader')) { return }
+                    var s = document.createElement('script')
+                    s.type = 'text/javascript'; s.id = 'hs-script-loader'; s.async = true; s.defer = true
+                    s.src = '//js-eu1.hs-scripts.com/${trackingCode}.js'
+                    document.head.appendChild(s)
+                }
+            </script>`
             }
 
             if (telemetry.frontend?.sentry?.dsn) {

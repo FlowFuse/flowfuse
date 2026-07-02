@@ -32,7 +32,7 @@
     top: 60px;
     width: 0;
     height: calc(100% - 60px);
-    background: white;
+    background: var(--ff-color-bg-app);
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
     display: flex;
@@ -61,8 +61,8 @@
       padding: 0;
       display: flex;
       line-height: 1.5;
-      border-bottom: 1px solid $ff-grey-200;
-      background: white;
+      border-bottom: 1px solid var(--ff-color-border);
+      background: var(--ff-color-bg-app);
       z-index: 10;
 
       .logo {
@@ -71,7 +71,7 @@
         a {
           display: flex;
           align-items: center;
-          color: $ff-grey-500;
+          color: var(--ff-color-text-subtle);
           gap: 4px;
           padding: 0 15px;
           transition: all 0.2s ease;
@@ -86,12 +86,12 @@
           }
 
           &:hover {
-            background: $ff-grey-100;
-            color: $ff-grey-700;
+            background: var(--ff-color-bg-surface-raised);
+            color: var(--ff-color-text-muted);
           }
 
           &:active {
-            background: $ff-grey-200;
+            background: var(--ff-color-bg-emphasis);
           }
         }
       }
@@ -112,7 +112,7 @@
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        color: $ff-grey-500;
+        color: var(--ff-color-text-subtle);
         flex-shrink: 0;
         gap: 5px;
       }
@@ -130,7 +130,7 @@
   }
 
   .resize-bar.resizing {
-    background-color: $ff-blue-500;
+    background-color: var(--ff-color-link);
   }
 
   &.resizing {

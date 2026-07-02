@@ -20,13 +20,14 @@
                 :rows="devicesWithStatuses"
                 :show-search="true"
                 search-placeholder="Search Remote Instances"
-                :show-load-more="moreThanOnePage"
+                :pagination="paginationProps"
                 :check-key="row => row.id"
                 :show-row-checkboxes="hasPermission('team:device:bulk-edit', applicationContext)"
                 @rows-checked="checkedDevices = $event"
-                @load-more="loadMoreDevices"
                 @update:search="updateSearch"
                 @update:sort="updateSort"
+                @update:page="onPageChange"
+                @update:page-size="onPageSizeChange"
             >
                 <template #actions>
                     <ff-popover button-text="Filters" button-kind="secondary">
@@ -376,6 +377,7 @@ import FfPopover from '../ui-components/components/Popover.vue'
 import PopoverItem from '../ui-components/components/PopoverItem.vue'
 import FfCheckbox from '../ui-components/components/form/Checkbox.vue'
 
+import { applyLiveState } from '../utils/applyLiveState.js'
 import { debounce } from '../utils/eventHandling.js'
 import { createPollTimer } from '../utils/timers.js'
 
@@ -387,6 +389,7 @@ import RemoveDeviceFromGroupDialog from './dialogs/device-group-management/Remov
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useLiveStatusStore } from '@/stores/live-status'
 import { useUxDialogStore } from '@/stores/ux-dialog.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -445,8 +448,11 @@ export default {
 
             checkedDevices: [], // devices currently selected in the table
 
-            unsearchedHasMoreThanOnePage: true,
-            unfilteredHasMoreThanOnePage: true,
+            // Pagination
+            page: 1,
+            pageSize: 25,
+            totalRows: 0,
+            searchTerm: '',
 
             sort: {
                 key: null,
@@ -464,14 +470,15 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
+        ...mapState(useLiveStatusStore, { liveDeviceStatuses: 'deviceStatuses', statusChannelLive: 'live' }),
         ...mapState(useUxDialogStore, ['dialog']),
         ...mapState(useUxToursStore, ['tours']),
         columns () {
             const columns = [
-                { label: 'Remote Instance', key: 'name', sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLink) } },
-                { label: 'Type', key: 'type', class: ['w-48'], sortable: !this.moreThanOnePage },
-                { label: 'Created', key: 'createdAt', class: ['w-48'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceCreatedAtCell) } },
-                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-48'], sortable: !this.moreThanOnePage, component: { is: markRaw(DeviceLastSeenCell) } },
+                { label: 'Remote Instance', key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
+                { label: 'Type', key: 'type', class: ['w-48'], sortable: true },
+                { label: 'Created', key: 'createdAt', class: ['w-48'], sortable: true, component: { is: markRaw(DeviceCreatedAtCell) } },
+                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-48'], sortable: true, component: { is: markRaw(DeviceLastSeenCell) } },
                 { label: 'Mode', key: 'mode', class: ['w-30'], sortable: true, component: { is: markRaw(DeviceModeBadge) } },
                 { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge), map: { instanceId: 'id' }, extraProps: { instanceType: 'device' } } }
             ]
@@ -482,7 +489,6 @@ export default {
                     label: 'Assigned To',
                     class: ['w-48'],
                     key: '_ownerSortKey',
-                    sortable: !this.moreThanOnePage,
                     component: {
                         is: markRaw(DeviceAssignedToLink)
                     }
@@ -491,7 +497,7 @@ export default {
                     columns.push({
                         label: 'Group',
                         key: 'deviceGroup.name',
-                        sortable: !this.moreThanOnePage
+                        sortable: true
                     })
                 }
             } else if (this.displayingInstance) {
@@ -503,25 +509,14 @@ export default {
                 columns.push({
                     label: 'Group',
                     key: 'deviceGroup.name',
-                    sortable: !this.moreThanOnePage
+                    sortable: true
                 })
             }
 
             return columns
         },
-        filteredDevices () {
-            const devicesToDisplay = new Set(this.filter?.devices)
-
-            return Array.from(this.devices.values()).filter((device) => {
-                if (!this.filter || this.unfilteredHasMoreThanOnePage) {
-                    return true
-                }
-
-                return devicesToDisplay.has(device.id)
-            })
-        },
         devicesWithStatuses () {
-            const output = this.filteredDevices.map(device => {
+            const output = Array.from(this.devices.values()).map(device => {
                 const statusObject = this.allDeviceStatuses.get(device.id)
                 const ownerKey = this.getOwnerSortKeyForDevice(device)
                 const context = device.application?.id ? { applicationId: device.application?.id } : {}
@@ -544,7 +539,14 @@ export default {
             )
         },
         moreThanOnePage () {
-            return !!this.nextCursor
+            return this.totalRows > this.pageSize
+        },
+        paginationProps () {
+            return {
+                page: this.page,
+                pageSize: this.pageSize,
+                total: this.totalRows
+            }
         },
         teamRuntimeLimitReached () {
             let teamTypeRuntimeLimit = getTeamProperty(this.team, 'runtimes.limit')
@@ -605,11 +607,19 @@ export default {
             if (this.dialog?.is?.payload?.devices) {
                 this.setDialogDevices(devices)
             }
+        },
+        liveDeviceStatuses: { handler: 'applyLiveStatus', deep: true },
+        statusChannelLive (live) {
+            if (live) {
+                this.pollTimer?.stop()
+            } else {
+                this.pollTimer?.start()
+            }
         }
     },
     mounted () {
         this.fullReloadOfData()
-        this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME) // auto starts
+        this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME, !this.statusChannelLive)
     },
     async unmounted () {
         this.pollTimer.stop()
@@ -621,6 +631,20 @@ export default {
     },
     methods: {
         ...mapActions(useUxDialogStore, ['setDialogDevices']),
+        applyLiveStatus () {
+            for (const id of this.allDeviceStatuses.keys()) {
+                const state = this.liveDeviceStatuses[id]
+                if (!state) continue
+                const statusObj = this.allDeviceStatuses.get(id)
+                if (statusObj.status !== state) {
+                    this.allDeviceStatuses.set(id, applyLiveState(statusObj, state, { device: true }))
+                }
+                const device = this.devices.get(id)
+                if (device && device.status !== state) {
+                    this.devices.set(id, applyLiveState(device, state, { device: true }))
+                }
+            }
+        },
         pollTimerElapsed: async function () {
             this.pollTimer.pause()
             try {
@@ -638,10 +662,8 @@ export default {
          */
         applyFilter (filter, shouldClearDeviceModeFilters = true) {
             this.filter = filter
-
-            if (this.unfilteredHasMoreThanOnePage) {
-                this.doFilterServerSide()
-            }
+            this.page = 1
+            this.doFilterServerSide()
 
             if (shouldClearDeviceModeFilters) {
                 this.deviceModeFilters = {
@@ -653,19 +675,26 @@ export default {
 
         updateSearch (searchTerm) {
             this.searchTerm = searchTerm
-
-            if (this.unsearchedHasMoreThanOnePage) {
-                this.doSearchServerSide()
-            }
+            this.page = 1
+            this.doSearchServerSide()
         },
 
         updateSort (key, direction) {
             this.sort.key = key
             this.sort.direction = direction
+            this.page = 1
+            this.doSortServerSide()
+        },
 
-            if (this.moreThanOnePage) {
-                this.doSortServerSide()
-            }
+        onPageChange (page) {
+            this.page = page
+            this.loadDevices(true)
+        },
+
+        onPageSizeChange (pageSize) {
+            this.pageSize = pageSize
+            this.page = 1
+            this.loadDevices(true)
         },
 
         doFilterServerSide: debounce(function () {
@@ -853,6 +882,7 @@ export default {
         // Device loading
         fullReloadOfData () {
             this.checkedDevices = []
+            this.page = 1
             this.loadDevices(true)
             this.pollForDeviceStatuses(true)
         },
@@ -863,24 +893,17 @@ export default {
             }
         },
 
-        async loadMoreDevices () {
-            await this.fetchDevices()
-        },
-
         async pollForDeviceStatuses (reset) {
             if (this.hasLoadedModel) {
                 await this.fetchAllDeviceStatuses(reset)
             }
         },
 
-        async fetchDevices (resetPage = false) {
-            if (resetPage) {
-                this.nextCursor = null
-            }
-
+        async fetchDevices () {
             /// Params to send to the server
-            const nextCursor = this.nextCursor
-            const extraParams = {}
+            const extraParams = {
+                page: this.page
+            }
 
             // Specific filtering
             if (this.filter?.property && this.filter?.bucket) {
@@ -898,27 +921,16 @@ export default {
                 }
             }
 
-            // Actually fetch the data
-            const data = await this.fetchData(nextCursor, null, extraParams)
+            const data = await this.fetchData(this.pageSize, extraParams)
 
-            if (resetPage) {
-                this.devices = new Map()
-            }
-
+            const nextDevices = new Map()
             data.devices.forEach(device => {
-                this.devices.set(device.id, device)
+                nextDevices.set(device.id, device)
             })
+            this.devices = nextDevices
 
-            // Pagination
-            this.nextCursor = data.meta?.next_cursor || null
-
-            if (!extraParams.query) {
-                this.unsearchedHasMoreThanOnePage = this.moreThanOnePage
-            }
-
-            if (!extraParams.filters) {
-                this.unfilteredHasMoreThanOnePage = this.moreThanOnePage
-            }
+            // Pagination — prefer the new meta.total field, fall back to count for safety.
+            this.totalRows = data.meta?.total ?? data.count ?? data.devices.length
 
             this.loadingDevices = false
         },

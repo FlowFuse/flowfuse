@@ -754,6 +754,100 @@ describe('Team API', function () {
             })
             response.statusCode.should.equal(404)
         })
+
+        it('Paginates with page+limit and returns total in meta', async function () {
+            // 4 projects exist (app.project + 3 created in beforeEach)
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?page=1&limit=2`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.projects.should.have.length(2)
+            result.should.have.property('count', 4)
+            result.should.have.property('meta')
+            result.meta.should.have.property('page', 1)
+            result.meta.should.have.property('pageSize', 2)
+            result.meta.should.have.property('total', 4)
+            result.meta.should.have.property('pageCount', 2)
+        })
+
+        it('Server-side search filters by project name (case-insensitive)', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?page=1&limit=25&query=LIST-INSTANCE-1`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            // 'list-instance-1' matches 'list-instance-1' only (not list-instance-2/3)
+            result.projects.should.have.length(1)
+            result.projects[0].should.have.property('name', 'list-instance-1')
+            result.meta.should.have.property('total', 1)
+        })
+
+        it('Sort by name ascending returns expected order', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?page=1&limit=25&sort=name&dir=asc`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            const names = result.projects.map(p => p.name)
+            const sorted = [...names].sort()
+            names.should.deepEqual(sorted)
+        })
+
+        it('Sort by name descending returns reverse order', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?page=1&limit=25&sort=name&dir=desc`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            const names = result.projects.map(p => p.name)
+            const sorted = [...names].sort().reverse()
+            names.should.deepEqual(sorted)
+        })
+
+        it('page=2 returns the second slice with correct offset', async function () {
+            // 4 projects, limit=2 → page 1 = first two, page 2 = remaining two.
+            // Pin the order so offset arithmetic is deterministic.
+            const pageOne = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?page=1&limit=2&sort=name&dir=asc`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            const pageTwo = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?page=2&limit=2&sort=name&dir=asc`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            pageTwo.statusCode.should.equal(200)
+            const r1 = pageOne.json()
+            const r2 = pageTwo.json()
+            r2.projects.should.have.length(2)
+            r2.meta.should.have.property('page', 2)
+            r2.meta.should.have.property('total', 4)
+            // The two pages must not overlap.
+            const ids1 = r1.projects.map(p => p.id)
+            const ids2 = r2.projects.map(p => p.id)
+            ids2.forEach(id => ids1.should.not.containEql(id))
+        })
+
+        it('schema.querystring rejects an invalid sort key', async function () {
+            // Confirms the `enum` in the route schema actually enforces — proves we're using
+            // `schema.querystring` (honored) rather than bare `query:` (silently ignored).
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?page=1&sort=nope`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(400)
+        })
     })
 
     describe('Get a list of a teams dashboard instances', () => {
@@ -1458,6 +1552,121 @@ describe('Team API', function () {
 
     describe('Get current users membership', async function () {
         // GET /api/v1/teams/:teamId/user
+    })
+
+    describe('Comms credentials', async function () {
+        // POST /api/v1/teams/:teamId/comms-credentials
+        it('issues team-channel credentials for a team member', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                payload: { sessionId: 'tab-1234567890' },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('username', `fe-team:${TestObjects.bob.hashid}:${TestObjects.ATeam.hashid}:tab-1234567890`)
+            result.should.have.property('password')
+            result.password.should.match(/^ffbtf_/)
+            result.should.have.property('url')
+        })
+        it('rejects a non-member with 404', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                payload: { sessionId: 'tab-1234567890' },
+                cookies: { sid: TestObjects.tokens.chris }
+            })
+            response.statusCode.should.equal(404)
+        })
+        it('rejects when sessionId is missing', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                payload: {},
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invalid_request')
+        })
+        it('rejects when sessionId is too short', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                payload: { sessionId: 'short' },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invalid_request')
+        })
+        it('returns 503 when comms is not configured', async function () {
+            const originalComms = app.comms
+            app.comms = null
+            try {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                    payload: { sessionId: 'tab-1234567890' },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(503)
+                response.json().should.have.property('code', 'comms_unavailable')
+            } finally {
+                app.comms = originalComms
+            }
+        })
+        it('returns 503 when broker client cannot be created', async function () {
+            const stub = sinon.stub(app.db.controllers.BrokerClient, 'createClientForTeamFrontend').resolves(null)
+            try {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                    payload: { sessionId: 'tab-1234567890' },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(503)
+                response.json().should.have.property('code', 'comms_unavailable')
+            } finally {
+                stub.restore()
+            }
+        })
+    })
+
+    describe('Team-channel notifications', async function () {
+        it('publishes a team-channel notify on team update', async function () {
+            const team = await app.db.models.Team.create({ name: generateName('notify-team'), slug: generateName('notify-slug'), TeamTypeId: app.defaultTeamType.id })
+            await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            const notifyStub = sinon.stub(app.comms.team, 'notify')
+            try {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: { name: team.name + '-updated' },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                notifyStub.calledWith(team.hashid, 'updated').should.be.true()
+            } finally {
+                notifyStub.restore()
+            }
+        })
+        it('publishes a team-channel notify when a team is suspended', async function () {
+            const team = await app.db.models.Team.create({ name: generateName('notify-suspend'), slug: generateName('notify-suspend-slug'), TeamTypeId: app.defaultTeamType.id })
+            await team.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+            const notifyStub = sinon.stub(app.comms.team, 'notify')
+            try {
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: `/api/v1/teams/${team.hashid}`,
+                    payload: { suspended: true },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                notifyStub.calledWith(team.hashid, 'suspended').should.be.true()
+            } finally {
+                notifyStub.restore()
+            }
+        })
     })
 
     describe('Get team audit-log', async function () {

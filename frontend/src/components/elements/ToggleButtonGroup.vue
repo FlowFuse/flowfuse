@@ -18,7 +18,7 @@
                 <template v-else>
                     <ff-button
                         v-for="button in buttons" :key="button[valueKey]"
-                        size="medium"
+                        :size="size"
                         :class="{active: button[valueKey] === modelValue}"
                         @click="setValue(button.value)"
                     >
@@ -61,6 +61,13 @@ export default {
             type: String,
             required: false,
             default: 'value'
+        },
+        // Size of the underlying buttons (passed through to ff-button). Defaults to
+        // 'medium' to match existing usages; 'small' suits dense contexts like tables.
+        size: {
+            type: String,
+            required: false,
+            default: 'medium'
         }
     },
     emits: ['update:modelValue'],
@@ -95,12 +102,12 @@ export default {
     align-items: center;
 
     .title {
-        color: $ff-black;
+        color: var(--ff-color-text);
         font-weight: 400;
     }
 
     .toggle {
-        border: 1px solid $ff-blue-800;
+        border: 1px solid var(--ff-color-toggle-group-active-border);
         display: flex;
         border-radius: 5px;
 
@@ -116,7 +123,7 @@ export default {
                 top: 0;
                 left: 0;
                 height: 100%;
-                background: $ff-indigo-700;
+                background: var(--ff-color-accent-hover-bg);
                 border-radius: 4px;
                 transition: transform 0.2s ease;
                 z-index: 0;
@@ -131,28 +138,35 @@ export default {
                 text-align: center;
 
                 &.router-link-active {
-                    color: $ff-white;
+                    color: var(--ff-color-text-on-brand);
                 }
             }
 
             .ff-btn {
                 background: transparent;
-                color: $ff-grey-500;
+                color: var(--ff-color-text-subtle);
                 border-color: transparent;
                 position: relative;
                 z-index: 1;
                 border-radius: 4px;
+                white-space: nowrap;
 
                 &:focus-visible {
-                    outline: 2px solid $ff-indigo-700;
+                    outline: 2px solid var(--ff-color-accent-hover);
                     outline-offset: 1px;
                 }
 
                 &.active {
-                    color: $ff-white;
+                    color: var(--ff-color-text-on-brand);
                 }
             }
         }
     }
+}
+
+// Show the label in full; ff-button clamps it by default.
+.ff-toggle-group .toggle .ff-btn .clipped-overflow {
+    display: block;
+    overflow: visible;
 }
 </style>

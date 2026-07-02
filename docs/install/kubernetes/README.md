@@ -276,7 +276,7 @@ postgresql:
 
 Apply changes with [platform startup command](#start-flowfuse-platform).
 
-Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowforge#postgresql) for more details about the parameters that can be configured for the PostgreSQL database.
+Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowfuse#postgresql) for more details about the parameters that can be configured for the PostgreSQL database.
 
 ### How to backup embedded database?
 

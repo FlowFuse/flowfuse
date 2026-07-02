@@ -1,4 +1,6 @@
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+
 const { Roles } = require('../../../../forge/lib/roles')
 const setup = require('../routes/setup')
 const TestModelFactory = require('../../../lib/TestModelFactory') // eslint-disable-line
@@ -1316,6 +1318,159 @@ describe('Broker Auth v2 API', async function () {
             })
 
             // TODO: tests for Application RBACs (ensure project/device in an application with reduced permissions are suitably restricted in the ACLs)
+        })
+
+        describe('Team Frontend', async function () {
+            // checkUserIsTeamMember verifier coverage — the security gate for the
+            // browser team-channel subscriptions
+            let teamFrontendUsername
+            let teamUpdatedTopic
+            let membershipTopic
+            let otherTeam
+            let bob
+
+            before(async function () {
+                await setupCE()
+                bob = await factory.createUser({ username: 'bob', name: 'Bob', email: 'bob@example.com', password: 'bbPassword1!' })
+                await TestObjects.ATeam.addUser(bob, { through: { role: Roles.Member } })
+                otherTeam = await factory.createTeam({ name: 'BTeam' })
+                teamFrontendUsername = `fe-team:${TestObjects.alice.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
+                teamUpdatedTopic = `ff/v1/${TestObjects.ATeam.hashid}/t/updated`
+                membershipTopic = `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/membership`
+            })
+
+            after(async function () {
+                await app.close()
+            })
+
+            it('allows a team member to subscribe to their t/updated topic', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: teamUpdatedTopic
+                })
+            })
+            it('allows a team member to subscribe to their own membership topic', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: membershipTopic
+                })
+            })
+            it('denies subscribe when the topic team-hash mismatches the credential', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/t/updated`
+                })
+            })
+            it('denies subscribe to another user\'s membership topic', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${bob.hashid}/membership`
+                })
+            })
+            it('denies subscribe for a user who is not a member of the team', async function () {
+                const charlie = await factory.createUser({ username: 'charlie', name: 'Charlie', email: 'charlie@example.com', password: 'ccPassword1!' })
+                // charlie is not in ATeam; he holds a (theoretically) valid credential username
+                const charlieUsername = `fe-team:${charlie.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
+                await denyRead({
+                    username: charlieUsername,
+                    topic: teamUpdatedTopic
+                })
+            })
+            it('allows a team member to subscribe to the team instance-state wildcard', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/state`
+                })
+            })
+            it('allows a team member to subscribe to the team device-state wildcard', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/d/+/state`
+                })
+            })
+            it('denies subscribe to another team\'s state wildcard', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/p/+/state`
+                })
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/d/+/state`
+                })
+            })
+            it('denies state subscribe for a user who is not a member of the team', async function () {
+                const dave = await factory.createUser({ username: 'dave', name: 'Dave', email: 'dave@example.com', password: 'ddPassword1!' })
+                const daveUsername = `fe-team:${dave.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
+                await denyRead({
+                    username: daveUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/state`
+                })
+            })
+            it('denies fe-team from publishing to state (read-only client)', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/state`
+                })
+            })
+            it('denies fe-team from publishing (read-only client)', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: teamUpdatedTopic
+                })
+            })
+            it('allows forge_platform to publish team-channel topics', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: teamUpdatedTopic
+                })
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: membershipTopic
+                })
+            })
+            it('allows forge_platform to publish the reshaped instance/device state topics', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/an-instance/state`
+                })
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/d/a-device/state`
+                })
+            })
+            it('denies subscribe when the credential\'s team hash does not resolve to a team', async function () {
+                const teamLookupStub = sinon.stub(app.db.models.Team, 'byId').resolves(null)
+                try {
+                    await denyRead({
+                        username: teamFrontendUsername,
+                        topic: teamUpdatedTopic
+                    })
+                } finally {
+                    teamLookupStub.restore()
+                }
+            })
+            it('denies subscribe when the credential\'s user hash does not resolve to a user', async function () {
+                const userLookupStub = sinon.stub(app.db.models.User, 'byId').resolves(null)
+                try {
+                    await denyRead({
+                        username: teamFrontendUsername,
+                        topic: teamUpdatedTopic
+                    })
+                } finally {
+                    userLookupStub.restore()
+                }
+            })
+            it('denies subscribe when the membership lookup throws', async function () {
+                const teamLookupStub = sinon.stub(app.db.models.Team, 'byId').rejects(new Error('boom'))
+                try {
+                    await denyRead({
+                        username: teamFrontendUsername,
+                        topic: teamUpdatedTopic
+                    })
+                } finally {
+                    teamLookupStub.restore()
+                }
+            })
         })
     })
 })

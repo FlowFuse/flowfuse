@@ -1,3 +1,148 @@
+#### 2.31.3: Release
+
+ - Remove ffhttp token scope (#7543)
+ - build(deps): bump pino-pretty from 10.3.1 to 13.1.3 (#7530)
+ - build(deps-dev): bump vue-tsc from 3.2.6 to 3.3.5 (#7526)
+ - build(deps): bump pino from 8.19.0 to 10.3.1 (#7527)
+ - build(deps): bump nodemailer from 8.0.9 to 9.0.0 (#7524)
+ - build(deps): bump axios from 1.17.0 to 1.18.0 (#7536)
+ - Allow CertNode token to include catalogue URLS (#7428)
+ - build(deps-dev): bump webpack from 5.105.0 to 5.107.2 (#7487)
+ - docs: explain upgrading the Node-RED version via Stacks (#7444)
+ - build(deps): bump mqtt from 5.10.3 to 5.15.1 (#7454)
+ - build(deps): bump google-auth-library from 10.5.0 to 10.7.0 (#7448)
+ - build(deps): bump dompurify from 3.4.0 to 3.4.10 (#7503)
+ - build(deps-dev): bump webpack-dev-server from 5.2.4 to 5.2.5 (#7497)
+ - build(deps-dev): bump postcss-loader from 8.1.1 to 8.2.1 (#7508)
+ - build(deps): bump lru-cache from 11.2.7 to 11.5.1 (#7455)
+ - build(deps): bump @aws-sdk/credential-provider-node from 3.972.7 to 3.972.55 (#7483)
+ - build(deps-dev): bump ajv from 8.18.0 to 8.20.0 (#7494)
+ - build(deps): bump posthog-node from 5.33.2 to 5.37.0 (#7528)
+ - build(deps): bump launch-editor from 2.10.0 to 2.14.1 (#7516)
+ - Bump fastify-metrics from 12.1.0 to 13.2.0 (#7478)
+ - build(deps): bump pg from 8.16.3 to 8.21.0 (#7505)
+ - Bump eslint-plugin-no-only-tests from 3.3.0 to 3.4.0 (#7449)
+ - build(deps): bump semver from 7.6.3 to 7.8.4 (#7496)
+ - Bump @sentry/node from 10.54.0 to 10.57.0 (#7486)
+ - build(deps-dev): bump ts-loader from 9.5.7 to 9.6.0 (#7507)
+ - build(deps): bump yaml from 2.8.3 to 2.9.0 (#7489)
+ - Bump vue from 3.5.30 to 3.5.38 (#7485)
+ - build(deps): bump tar-stream from 3.1.7 to 3.2.0 (#7501)
+ - build(deps): bump nodemailer from 8.0.5 to 8.0.9 (#7518)
+ - build(deps): bump form-data from 4.0.5 to 4.0.6 (#7517)
+ - build(deps-dev): bump ws from 8.20.1 to 8.21.0 (#7511)
+ - build(deps): bump tar from 7.5.13 to 7.5.16 (#7519)
+ - build(deps-dev): bump tmp from 0.2.6 to 0.2.7 (#7510)
+ - Bump sinon from 21.1.2 to 22.0.0 (#7488)
+ - build(deps): bump qrcode from 1.5.3 to 1.5.4 (#7498)
+ - ci: Increase the number of PRs created by dependabot to 50 (#7480)
+ - Bump @babel/core from 7.26.9 to 7.29.7 (#7457)
+ - Bump @fastify/static from 9.1.2 to 9.1.3 (#7472)
+ - Bump 1password/install-cli-action from 3.0.0 to 4.0.0 (#7466)
+ - Bump cypress-io/github-action from 7.3.0 to 7.4.0 (#7364)
+ - Bump aws-actions/configure-aws-credentials from 6.1.1 to 6.2.0 (#7365)
+ - Bump docker/setup-qemu-action from 4.0.0 to 4.1.0 (#7366)
+ - Bump html-webpack-plugin from 5.6.0 to 5.6.7 (#7475)
+ - Bump mocha from 11.7.5 to 11.7.6 (#7476)
+ - Bump actions/checkout from 6.0.2 to 6.0.3 (#7393)
+ - Bump untitaker/hyperlink from 0.2.0 to 0.2.1 (#7394)
+ - Bump axios from 1.16.0 to 1.17.0 (#7473)
+ - Bump codecov/codecov-action from 6.0.1 to 7.0.0 (#7461)
+ - Bump tailwindcss from 4.3.0 to 4.3.1 (#7469)
+ - Bump aws-actions/amazon-ecr-login from 2.1.5 to 2.1.6 (#7464)
+ - ci: Increase the number of PRs created by dependabot to 30 (#7450)
+ - docs: fix typo in hardware introduction (#7442)
+ - Add hint to SSO SAML authentication query parameters (#7420)
+ - [7257] Add proper pagination to Hosted and Remote Instances pages + N+1 fix for Hosted Instances (#7353)
+ - Bump @babel/helpers from 7.26.9 to 7.29.7 (#7421)
+ - [17] Sentry Upgrade: v7 → v10 & drop unused Replay/Performance/Cron/Profiling collection (#7345)
+ - fix: ListBox options cropped to trigger width for icon-only buttons (#7415)
+ - [7307] Dark Mode (#7360)
+ - [7400] Overflow menu is clipped by Expert   (#7406)
+ - [6343] Descriptive Page Titles (#7362)
+ - ci: Run single-replica emqx cluster on pre-staging environments (#7413)
+ - Pinning Remote Instances default NR to 4.1.x (#7412)
+ - ci: Add Node-RED 5 stack to a pre-staging environment (#7391)
+ - Bump shell-quote from 1.8.1 to 1.8.4 (#7404)
+ - Bump babel-loader from 9.2.1 to 10.1.1 (#7392)
+
+#### 2.31.2: Release
+
+#### 2.31.1: Release
+
+ - [7356] Add cookie consent on login page (#7387)
+ - Align Expert FF Expert chat and MCP endpoints (#7389)
+ - fix: snapshots list dropdown not flexible on resize (#7399)
+ - Fix ignored paths in webpack watch options (#7384)
+ - fix: await DOM flush before rendering snapshot comparison (#7398)
+ - [7385] Expert Tools row not available on device   (#7386)
+ - Update AI configuration description for licensing (#7390)
+ - docs: update FlowFuse Expert docs for 2.31 release (#7378)
+ - Bump @redis/client from 5.11.0 to 6.0.0 (#7363)
+ - docs: fix broken persistent-context image link (#7382)
+ - ci: point docs link checker at website/nuxt/dist (#7381)
+
+#### 2.31.0: Release
+
+ - Update available Node-RED Versions for Application Devices (#7373)
+ - Validate snapshot owner in device api (#7377)
+ - Fix: Add type: 'object' to schema roots with required to silence AJV strictTypes warning on startup (#7375)
+ - [5637] Upgrade hericons to v 2.1.5 (#7308)
+ - Allow per-team cert nodes catalogues via admin override (#7369)
+ - Document team-level and platform-level AI feature management options (#7335)
+ - Handle duplicate expert messages (#7372)
+ - Add team level support for expert features (#7331)
+ - Fix inconsistend backend gating of snapshot description endpoint (#7330)
+ - docs: add `ai.enabled` platform configuration and team type feature (#7321)
+ - Enforce AI feature dependency checks for feature flags and assistant-… (#7319)
+ - Add documentation for soft launch enablement using PostHog feature flags (#7343)
+ - Gate snapshot description and inline completions flags behind assistant config (#7318)
+ - Introduce generic `ai` platform and team type feature flag (#7317)
+ - docs: update Cloud free trial length from 14 to 30 days (#7358)
+ - Register startup and weekly tasks in expert module (#7357)
+ - Add automated EMQX bridge setup for Expert broker (#7184)
+ - Bump tmp from 0.2.4 to 0.2.6 (#7351)
+ - Bump docker/login-action from 4.1.0 to 4.2.0 (#7340)
+ - Bump docker/build-push-action from 7.1.0 to 7.2.0 (#7338)
+ - chore: Bump docker/setup-buildx-action from 4.0.0 to 4.1.0 (#7339)
+ - ci: Improve pre-staging `forge` container image size (#7329)
+ - feat: update support agent initial sentence (#7349)
+ - Bump webpack-cli from 5.1.4 to 7.0.2 (#7336)
+ - docs: Clarify how to use TLS from a private Certificate Authority in the docker deployment (#7344)
+ - Bump nodemon from 3.1.7 to 3.1.14 (#7337)
+ - Add section on private CA to k8s install instructions (#7328)
+ - ci: Update website links validation method in `Publish Documentation` workflow (#7341)
+ - Adjust tab option margins for consistent spacing in ff-components (#7301)
+ - Fix Team Broker response to match schema (#7323)
+ - Include updatedAt timestamp in MQTTTopicSchema (#7246)
+ - Bump actions/create-github-app-token from 3.1.1 to 3.2.0 (#7291)
+ - Bump @tootallnate/once and @sentry/profiling-node (#7227)
+ - Fix dev/prod CSS loader inconsistencies causing cascade ordering mismatches (#7304)
+ - Bump protobufjs from 7.5.6 to 7.6.0 (#7309)
+ - Bump codecov/codecov-action from 6.0.0 to 6.0.1 (#7290)
+ - [7126] Tighten response schemas: add `required` and `additionalProperties: false` (#7131)
+ - Bump tailwindcss from 4.2.4 to 4.3.0 (#7245)
+ - Bump benc-uk/workflow-dispatch from 1.3.1 to 1.3.2 (#7299)
+ - Switch internal reusable workflows to new tagging approach (#7298)
+ - Run pre-staging on node 24 container (#7247)
+ - Bump slackapi/slack-github-action from 3.0.2 to 3.0.3 (#7189) @app/dependabot
+ - Bump aws-actions/amazon-ecr-login from 2.1.4 to 2.1.5 (#7242) @app/dependabot
+ - Bump aws-actions/configure-aws-credentials from 6.1.0 to 6.1.1 (#7241) @app/dependabot
+ - Manually bump ws to 8.20.1 (#7297) @hardillb
+ - [7141] Bump tailwindcss from 2.2.19 to 4.2.1 (#7203) @n-lark
+ - Allow valid npm package names to be deployed via pipelines (#7294) @hardillb
+ - Bump mocha and copy-webpack-plugin (#7287) @hardillb
+ - Bump webpack-dev-server from 5.2.1 to 5.2.4 (#7286) @app/dependabot
+ - Bump diff from 5.2.0 to 9.0.0 (#7240) @app/dependabot
+ - Added a missing keycloack SSO setup required step (#7284) @robmarcer
+ - Bump qs and body-parser (#7252) @app/dependabot
+ - Bump minimatch from 10.1.1 to 10.2.5 (#7251) @app/dependabot
+ - Bump systeminformation from 5.31.5 to 5.31.6 (#7249) @app/dependabot
+ - ci: enable dependabot cooldown (#7248) @ppawlowski
+ - Bump @babel/plugin-transform-modules-systemjs from 7.24.1 to 7.29.4 (#7238) @app/dependabot
+ - Bump fast-xml-builder from 1.1.5 to 1.2.0 (#7236) @app/dependabot
+ - Bump fast-uri from 3.1.0 to 3.1.2 (#7239) @app/dependabot
+
 #### 2.30.1: Release
 
  - Ensure auto updating stacks jump to latest version (#7228) @hardillb

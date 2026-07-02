@@ -18,8 +18,8 @@ import TeamLink from './components/router-links/TeamLink.vue'
 import PageLayout from './layouts/Page.vue'
 import router from './routes.js'
 import Alerts from './services/alerts.js'
+import { getAppOrchestrator } from './services/app.orchestrator.ts'
 import { setupSentry } from './services/error-tracking.js'
-import { getServicesOrchestrator } from './services/service.orchestrator.ts'
 import { skipResetPlugin } from './stores/plugins/skip-reset.plugin.js'
 
 import './index.css'
@@ -37,10 +37,10 @@ const app = createApp(App)
     .use(router)
     .use(VueShepherdPlugin)
 
-const servicesOrchestrator = getServicesOrchestrator()
+const servicesOrchestrator = getAppOrchestrator()
 
 // Error tracking
-setupSentry(app, router)
+setupSentry(app)
 
 // Boot all services before mounting
 servicesOrchestrator.init(app, router)

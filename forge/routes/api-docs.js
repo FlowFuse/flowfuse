@@ -150,7 +150,11 @@ module.exports = fp(async function (app, opts) {
         properties: {
             query: { type: 'string' },
             cursor: { type: 'string' },
-            limit: { type: 'number' }
+            limit: { type: 'number' },
+            page: { type: 'number', minimum: 1 },
+            sort: { type: 'string' },
+            dir: { type: 'string', enum: ['asc', 'desc'] },
+            order: { type: 'string', enum: ['asc', 'desc'] }
         }
     })
 
@@ -159,7 +163,11 @@ module.exports = fp(async function (app, opts) {
         type: 'object',
         properties: {
             next_cursor: { type: 'string' },
-            previous_cursor: { type: 'string' }
+            previous_cursor: { type: 'string' },
+            page: { type: 'number' },
+            pageSize: { type: 'number' },
+            total: { type: 'number' },
+            pageCount: { type: 'number' }
         }
     })
     app.addSchema({

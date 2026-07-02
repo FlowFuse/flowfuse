@@ -120,6 +120,7 @@ module.exports = async function (app) {
             const result = await app.db.controllers.Team.removeUser(request.team, request.user, request.userRole)
             if (result) {
                 await app.auditLog.Team.team.user.removed(request.session.User, null, request.team, request.user)
+                app.comms?.team?.notifyMembership(request.team.hashid, request.user.hashid, 'removed')
             }
             reply.send({ status: 'okay' })
         } catch (err) {
@@ -188,6 +189,7 @@ module.exports = async function (app) {
                             // might want to make this only if it drop under Member
                             await app.db.controllers.StorageSession.removeUserFromTeamSessions(request.user, request.team)
                         }
+                        app.comms?.team?.notifyMembership(request.team.hashid, request.user.hashid, 'role-changed')
                     }
                     reply.send({ status: 'okay' })
                 } catch (err) {

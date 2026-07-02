@@ -149,7 +149,7 @@ module.exports = {
     /**
      * Create an AccessToken for the editor.
      */
-    createTokenForUser: async function (app, user, expiresAt, scope = [], includeRefresh) {
+    createTokenForUser: async function (app, user, expiresAt, scope = [], includeRefresh, ownerType = 'user') {
         const userId = typeof user === 'number' ? user : user.id
         const token = generateToken(32, 'ffu')
         const refreshToken = includeRefresh ? generateToken(32, 'ffu') : null
@@ -162,7 +162,7 @@ module.exports = {
             expiresAt,
             scope,
             ownerId: '' + userId,
-            ownerType: 'user'
+            ownerType
         })
         return { token, expiresAt, refreshToken }
     },
@@ -300,25 +300,42 @@ module.exports = {
     },
 
     // Should these only get added via forge/ee/lib/httpTokens?
-    createHTTPNodeToken: async function (app, project, name, scope = [''], expiresAt) {
-        const projectId = (project && typeof project === 'object') ? project.id : project
+    createHTTPNodeToken: async function (app, owner, name, scope = [''], expiresAt) {
+        // Ensure a string
+        const ownerId = '' + owner.id
+        let ownerType
+        if (owner.constructor.name === 'Project') {
+            ownerType = 'http'
+        } else if (owner.constructor.name === 'Device') {
+            ownerType = 'http:device'
+        } else {
+            throw new Error('Invalid owner type for HTTP Node Token: ' + owner.constructor.name)
+        }
         const token = generateToken(32, 'ffhttp')
         const tok = await app.db.models.AccessToken.create({
             token,
             expiresAt,
             name,
             scope,
-            ownerId: projectId,
-            ownerType: 'http'
+            ownerId,
+            ownerType
         })
         // Overwrite the hashed token with the plain value
         const result = app.db.views.AccessToken.instanceHTTPTokenSummary(tok)
         result.token = token
         return result
     },
-    updateHTTPNodeToken: async function (app, project, tokenId, scope = [''], expiresAt) {
-        const projectId = (project && typeof project === 'object') ? project.id : project
-        const token = await app.db.models.AccessToken.byId(tokenId, 'http', projectId)
+    updateHTTPNodeToken: async function (app, owner, tokenId, scope = [''], expiresAt) {
+        const ownerId = '' + owner.id
+        let ownerType
+        if (owner.constructor.name === 'Project') {
+            ownerType = 'http'
+        } else if (owner.constructor.name === 'Device') {
+            ownerType = 'http:device'
+        } else {
+            throw new Error('Invalid owner type for HTTP Node Token: ' + owner.constructor.name)
+        }
+        const token = await app.db.models.AccessToken.byId(tokenId, ownerType, ownerId)
         if (token) {
             token.scope = scope
             if (expiresAt === undefined) {

@@ -128,7 +128,8 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
     { output: 'isFlowFuseNodesFeatureEnabled', platformKey: 'ffNodes' },
     { output: 'isInstanceAutoStackUpdateFeatureEnabled', platformKey: 'autoStackUpdate' },
     { output: 'isDevOpsPipelinesFeatureEnabled', platformKey: 'devops-pipelines' },
-    { output: 'isExternalMqttBrokerFeatureEnabled', platformKey: 'externalBroker' }
+    { output: 'isExternalMqttBrokerFeatureEnabled', platformKey: 'externalBroker' },
+    { output: 'isExpertPlatformAutomationFeatureEnabled', platformKey: 'expertPlatformAutomation' }
 ]
 
 function isPlatformFeatureEnabled (state: PlatformState, platformKey: string, platformSource?: 'settings'): boolean {

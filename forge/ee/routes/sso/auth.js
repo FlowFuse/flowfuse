@@ -76,6 +76,19 @@ module.exports = fp(async function (app, opts) {
                         provider: providerId,
                         redirectTo: decodeURIComponent(request.query.r || '/')
                     })
+
+                    if (opts.sendIdpHint && request.query.t) {
+                        const target = await app.db.models.OAuthSession.getAndRemoveById(request.query.t, false)
+                        try {
+                            const redirect = new URL(target.redirect_uri)
+                            opts.additionalAuthorizeParams = {
+                                kc_idp_hint: redirect.host
+                            }
+                        } catch (err) {
+                            // ignore error in parsing URL and send no hint
+                        }
+                    }
+
                     done(null, opts)
                     return
                 } else {

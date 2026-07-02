@@ -1,7 +1,7 @@
 <template>
     <ff-loading v-if="loading" message="Loading Logs..." />
     <template v-else>
-        <div v-if="device?.status && deviceOnline" class="mx-auto text-xs border bg-gray-800 text-gray-200 rounded-sm p-2 font-mono flex flex-col w-full overflow-auto">
+        <div v-if="device?.status && deviceOnline" class="mx-auto text-xs border ff-code-surface rounded-sm p-2 font-mono flex flex-col w-full overflow-auto">
             <template v-if="logEntries.length > 0">
                 <span
                     v-for="(item, itemIdx) in logEntries"
@@ -27,7 +27,7 @@
 <script>
 import deviceApi from '../../../api/devices.js'
 
-import getServicesOrchestrator from '@/services/service.orchestrator'
+import getAppOrchestrator from '@/services/app.orchestrator'
 
 const HEARTBEAT_INTERVAL = 10000
 
@@ -75,7 +75,7 @@ export default {
     },
     methods: {
         getMqttService () {
-            return getServicesOrchestrator().$serviceInstances.mqtt
+            return getAppOrchestrator().$serviceInstances.mqtt
         },
         async connectMQTT () {
             const mqttService = this.getMqttService()

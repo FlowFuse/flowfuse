@@ -22,7 +22,7 @@ describe('Team - Instances', () => {
 
         cy.intercept(
             'GET',
-            '/api/*/teams/*/projects',
+            '/api/*/teams/*/projects*',
             req => req.reply(res => {
                 res.send({
                     projects: res.body.projects.map(instance => ({ ...instance, ...{ settings: { dashboard2UI: '/dashboard' } } }))

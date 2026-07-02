@@ -142,13 +142,13 @@ export default defineComponent({
     width: 100%;
     display: flex;
     flex-direction: column;
-    background: $ff-grey-50;
+    background: var(--ff-color-bg-surface);
 
     > .header {
-        border-bottom: 1px solid $ff-grey-300;
+        border-bottom: 1px solid var(--ff-color-border-strong);
         padding: 10px 0;
         width: 100%;
-        background: $ff-white;
+        background: var(--ff-color-bg-app);
 
         .content {
             padding: 0 12px;
@@ -157,7 +157,7 @@ export default defineComponent({
 
             .title {
                 margin: 0;
-                color: $ff-grey-800;
+                color: var(--ff-color-text);
                 font-weight: bold;
                 font-size: 1.25rem;
                 line-height: 1.75rem;
@@ -168,17 +168,17 @@ export default defineComponent({
     .content-wrapper {
         flex: 1;
         width: 100%;
-        background-color: $ff-grey-50;
+        background-color: var(--ff-color-bg-surface);
         overflow: auto;
 
        .section {
            padding-bottom: 15px;
            margin-bottom: 15px;
-           border-bottom: 1px solid $ff-grey-200;
+           border-bottom: 1px solid var(--ff-color-border);
 
            .header {
                .title {
-                   color: $ff-grey-600;
+                   color: var(--ff-color-text-deep);
                    font-size: 10px;
                }
            }
@@ -191,8 +191,8 @@ export default defineComponent({
 
     .footer {
         padding: 10px 12px;
-        border-top: 1px solid $ff-grey-300;
-        background: $ff-white;
+        border-top: 1px solid var(--ff-color-border-strong);
+        background: var(--ff-color-bg-app);
     }
 }
 </style>

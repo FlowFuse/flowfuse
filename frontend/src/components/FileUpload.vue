@@ -110,7 +110,7 @@ export default {
 .ff-file-upload--empty,
 .ff-file-upload--file {
     flex-grow: 1;
-    border: 1px solid $ff-grey-300;
+    border: 1px solid var(--ff-color-border-strong);
     padding: $ff-unit-sm $ff-unit-md;
     border-radius: $ff-unit-sm;
     display: flex;
@@ -121,12 +121,12 @@ export default {
     overflow-x: hidden;
 }
 .ff-file-upload--empty {
-    color: $ff-grey-400;
+    color: var(--ff-color-text-subtle);
 }
 .ff-file-upload--clear {
     cursor: pointer;
     &:hover {
-        color: $ff-blue-600;
+        color: var(--ff-color-link);
     }
 }
 </style>

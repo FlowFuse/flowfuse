@@ -120,18 +120,30 @@ export default {
     },
     methods: {
         handleClick (event) {
-            const btn = event.target.closest('.ff-code-block--copy')
-            if (!btn) return
-            const codeEl = btn.closest('.ff-code-block')?.querySelector('pre code')
-            if (!codeEl) return
-            navigator.clipboard.writeText(codeEl.textContent || '').then(() => {
-                btn.innerHTML = CODE_BLOCK_ICONS.ICON_CHECK
-                setTimeout(() => { btn.innerHTML = CODE_BLOCK_ICONS.ICON_DUPLICATE }, 2000)
+            const copyBtn = event.target.closest('.ff-code-block--copy') || event.target.closest('.ff-table-block--copy')
+            if (!copyBtn) return
+
+            let textToCopy = ''
+            const codeEl = copyBtn.closest('.ff-code-block')?.querySelector('pre code')
+            const tableEl = copyBtn.closest('.ff-table-block')?.querySelector('table')
+
+            if (codeEl) {
+                textToCopy = codeEl.textContent || ''
+            } else if (tableEl) {
+                const rows = [...tableEl.querySelectorAll('tr')]
+                textToCopy = rows.map(row => {
+                    return [...row.querySelectorAll('th, td')].map(cell => cell.textContent.trim()).join('\t')
+                }).join('\n')
+            }
+
+            if (!textToCopy) return
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                copyBtn.innerHTML = CODE_BLOCK_ICONS.ICON_CHECK
+                setTimeout(() => { copyBtn.innerHTML = CODE_BLOCK_ICONS.ICON_DUPLICATE }, 2000)
             }).catch(() => {
-                // execCommand is deprecated but remains the only fallback for non-secure
-                // contexts (HTTP) where the Clipboard API is unavailable
                 const textarea = document.createElement('textarea')
-                textarea.value = codeEl.textContent || ''
+                textarea.value = textToCopy
                 textarea.style.position = 'fixed'
                 textarea.style.left = '-999999px'
                 document.body.appendChild(textarea)
@@ -146,6 +158,51 @@ export default {
 
 <style scoped lang="scss">
 .streamable-content {
+    :deep(h1) {
+        font-size: 1.125rem;
+        font-weight: 600;
+        line-height: 1.4;
+        margin: 0.75rem 0 0.25rem;
+    }
+
+    :deep(h2) {
+        font-size: 1.0625rem;
+        font-weight: 600;
+        line-height: 1.4;
+        margin: 0.625rem 0 0.25rem;
+    }
+
+    :deep(h3) {
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.4;
+        margin: 0.5rem 0 0.125rem;
+    }
+
+    :deep(h4),
+    :deep(h5),
+    :deep(h6) {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        line-height: 1.4;
+        margin: 0.375rem 0 0.125rem;
+    }
+
+    :deep(.ff-checkbox) {
+        margin-right: 0.25rem;
+        color: var(--ff-color-text-subtle);
+    }
+
+    :deep(.ff-checkbox--checked) {
+        color: var(--ff-color-accent);
+    }
+
+    :deep(h1:first-child),
+    :deep(h2:first-child),
+    :deep(h3:first-child) {
+        margin-top: 0;
+    }
+
     :deep(ul) {
         padding: revert;
 
@@ -154,9 +211,35 @@ export default {
         }
     }
 
+    :deep(ol) {
+        padding: revert;
+
+        li {
+            list-style: decimal;
+        }
+    }
+
+    :deep(blockquote) {
+        margin: 0.5rem 0;
+        padding: 0.25rem 0.75rem;
+        border-left: 3px solid var(--ff-color-accent);
+        color: var(--ff-color-text-subtle);
+    }
+
+    :deep(.ff-task-list) {
+        padding-left: 0;
+
+        li {
+            list-style: none;
+            display: flex;
+            align-items: baseline;
+            gap: 0.25rem;
+        }
+    }
+
     :deep(.ff-code-block) {
         margin: 0.75rem 0;
-        border: 1px solid $ff-grey-200;
+        border: 1px solid var(--ff-color-border);
         border-radius: 0.5rem;
         overflow: hidden;
         font-size: 0.8125rem;
@@ -165,7 +248,7 @@ export default {
             margin: 0;
             padding: 1rem;
             overflow-x: auto;
-            background: $ff-grey-50;
+            background: var(--ff-color-bg-surface);
             border-radius: 0;
             white-space: pre;
             overflow-wrap: normal;
@@ -187,15 +270,15 @@ export default {
         align-items: center;
         justify-content: space-between;
         padding: 0.3rem 1rem;
-        background: $ff-grey-100;
-        border-bottom: 1px solid $ff-grey-200;
+        background: var(--ff-color-bg-surface-raised);
+        border-bottom: 1px solid var(--ff-color-border);
         min-height: 2rem;
     }
 
     :deep(.ff-code-block--lang) {
         font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
         font-size: 0.6875rem;
-        color: $ff-grey-500;
+        color: var(--ff-color-text-subtle);
         text-transform: lowercase;
     }
 
@@ -208,7 +291,7 @@ export default {
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        color: $ff-color--action;
+        color: var(--ff-color-accent-text);
         transition: all 0.2s ease;
 
         svg {
@@ -218,8 +301,8 @@ export default {
         }
 
         &:hover {
-            color: $ff-white;
-            background-color: $ff-color--highlight;
+            color: var(--ff-color-text-on-brand);
+            background-color: var(--ff-color-accent);
         }
     }
 
@@ -229,16 +312,65 @@ export default {
         border-radius: 0;
     }
 
-    :deep(table) {
-        border-collapse: collapse; /* removes double borders */
+    :deep(.ff-table-block) {
+        margin: 0.75rem 0;
+        border: 1px solid var(--ff-color-border);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
 
-        tr + tr td {
-            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-            border-top: 1px solid $ff-grey-200;
+    :deep(.ff-table-block--header) {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0.3rem 1rem;
+        background: var(--ff-color-bg-surface-raised);
+        border-bottom: 1px solid var(--ff-color-border);
+        min-height: 2rem;
+    }
+
+    :deep(.ff-table-block--copy) {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        background: transparent;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        color: var(--ff-color-accent-text);
+        transition: all 0.2s ease;
+
+        svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            pointer-events: none;
+        }
+
+        &:hover {
+            color: var(--ff-color-text-on-brand);
+            background-color: var(--ff-color-accent);
+        }
+    }
+
+    :deep(table) {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8125rem;
+
+        th {
+            text-align: left;
+            font-weight: 600;
+            background: var(--ff-color-bg-surface);
         }
 
         td, th {
-            padding: 5px 10px;
+            padding: 0.375rem 0.75rem;
+            border: 1px solid var(--ff-color-border);
+        }
+
+        tbody tr:hover {
+            background: var(--ff-color-bg-surface);
         }
     }
 }

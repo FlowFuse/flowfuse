@@ -74,7 +74,7 @@ import MemoryChart from '../../../components/charts/performance/MemoryChart.vue'
 import InformationWell from '../../../components/wells/InformationWell.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
-import getServicesOrchestrator from '@/services/service.orchestrator'
+import getAppOrchestrator from '@/services/app.orchestrator'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
@@ -151,7 +151,7 @@ export default {
     },
     methods: {
         getMqttService () {
-            return getServicesOrchestrator().$serviceInstances.mqtt
+            return getAppOrchestrator().$serviceInstances.mqtt
         },
         async connectMQTT () {
             const mqttService = this.getMqttService()
