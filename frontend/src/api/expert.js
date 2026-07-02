@@ -48,7 +48,19 @@ const getCapabilities = async (payload) => {
     })
 }
 
+/**
+ * Fetch the curated tool catalog for the tool-permissions UI (#421).
+ * @param {{ teamId: string }} params
+ * @returns {Promise<{ catalog: Array, hash: string|null }>}
+ */
+const getToolCatalog = async ({ teamId } = {}) => {
+    return client.get('/api/v1/expert/mcp/tools', {
+        params: { teamId }
+    }).then(res => res.data)
+}
+
 export default {
     chat,
-    getCapabilities
+    getCapabilities,
+    getToolCatalog
 }

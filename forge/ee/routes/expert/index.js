@@ -15,6 +15,31 @@ const { filterAccessibleMCPServerFeatures } = require('../../../services/expert.
 const getDeviceComms = (app) => { return app.comms?.devices }
 
 /**
+ * Maps a platform automation tool's wire definition into a catalog entry for the
+ * Expert permissions UI (#421). Platform tools carry standard MCP annotations
+ * (readOnlyHint / destructiveHint), which give the read/write/delete class. They
+ * run on the platform, not in Node-RED, so they have no nr-assistant version window
+ * (no minVersion/maxVersion — the UI treats their absence as always-available).
+ * `group: 'platform'` routes them to the FlowFuse Platform Tools section (groupOf()
+ * in the product-assistant store). The friendly label is the tool's own `title`; if a
+ * tool ever lacks one, fall back to deriving it from the name (strip the platform_
+ * prefix and title-case the rest).
+ */
+const curatePlatformTool = (def) => {
+    const annotations = def.annotations || {}
+    const readOnly = annotations.readOnlyHint === true
+    const destructive = annotations.destructiveHint === true
+    return {
+        key: def.name,
+        name: def.title || def.name.replace(/^platform_/, '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        description: def.description,
+        toolClass: readOnly ? 'read' : (destructive ? 'delete' : 'write'),
+        destructive,
+        group: 'platform'
+    }
+}
+
+/**
  * @param {import('../../forge.js').ForgeApplication} app
  */
 module.exports = async function (app) {
@@ -46,8 +71,10 @@ module.exports = async function (app) {
                     error: 'unauthorized'
                 })
             }
-            // Ensure users team access is valid
-            const teamId = request.body.context?.teamId // `context.teamId` is the hash provided in the body context by the client
+            // Ensure users team access is valid. `teamId` is the team hash provided by the
+            // client — in the body context for POST routes (/chat, /mcp/features) or as a
+            // query param for GET routes (/mcp/tools, which has no body).
+            const teamId = request.body?.context?.teamId || request.query?.teamId
             if (!teamId) {
                 return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
             }
@@ -555,6 +582,91 @@ module.exports = async function (app) {
             reply.send({ servers: finalServersView, incompatibleServers, transactionId })
         } catch (error) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
+        }
+    })
+
+    /**
+     * Retrieve the curated tool catalog for the Expert's human-in-the-loop permissions UI
+     * (#421). Returns the merged catalog for both sections the UI shows:
+     * - flow-building tools, proxied from the agent service's /mcp/flow-tools endpoint
+     *   (friendly catalog entries only — raw MCP identifiers never leave the backend);
+     * - FlowFuse platform tools, curated here from the platform automation handler
+     *   (app.comms.platformAutomation) and tagged group:'platform'.
+     * A `hash` fingerprint of the flow-building catalog rides along so the browser refetches
+     * only when it changes. Team access + feature gating are enforced by the shared
+     * preHandler above; read/write classification on each entry is what the client uses to
+     * decide which tools a role may enable.
+     */
+    app.get('/mcp/tools', {
+        schema: {
+            hide: true, // dont show in swagger
+            querystring: {
+                type: 'object',
+                properties: {
+                    teamId: { type: 'string', minLength: 10 }
+                },
+                required: ['teamId']
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        catalog: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                additionalProperties: true
+                            }
+                        },
+                        hash: {
+                            type: ['string', 'null']
+                        }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    },
+    async (request, reply) => {
+        if (!request.isExpertAssistantEnabled) {
+            return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+        try {
+            const toolsUrl = `${app.expert.expertUrl.split('/').slice(0, -1).join('/')}/mcp/flow-tools`
+            const response = await axios.get(toolsUrl, {
+                headers: {
+                    Origin: request.headers.origin,
+                    ...(app.expert.serviceToken ? { Authorization: `Bearer ${app.expert.serviceToken}` } : {})
+                },
+                timeout: app.expert.requestTimeout
+            })
+            const catalog = response.data?.catalog || []
+
+            // Merge in the FlowFuse platform tools. They are global (no per-team filtering)
+            // and served from the handler singleton already constructed on app.comms, so we
+            // reuse it rather than newing one up — constructing re-registers its MQTT event
+            // listener. getToolDefinitions() is synchronous and takes no args.
+            const platformHandler = app.comms?.platformAutomation
+            if (platformHandler) {
+                const platformDefs = platformHandler.getToolDefinitions() || []
+                catalog.push(...platformDefs.map(curatePlatformTool))
+            }
+
+            reply.send({ catalog, hash: response.data?.hash || null })
+        } catch (error) {
+            // TODO: decide with the team whether this belongs on the branch. The tool catalog
+            // is a non-fatal enhancement (the client swallows failures and gates safely with
+            // defaults). Never forward an upstream auth failure as our own 401 — the SPA's
+            // axios interceptor treats any 401 as session-expiry and logs the user out, which
+            // an unrelated expert-service token rejection must not trigger.
+            const upstreamStatus = error.response?.status
+            app.log.warn(`[expert/mcp/tools] upstream tool-catalog fetch failed: status=${upstreamStatus} msg=${error.message}`)
+            if (upstreamStatus === 401 || upstreamStatus === 403) {
+                return reply.send({ catalog: [], hash: null })
+            }
+            reply.code(upstreamStatus || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
         }
     })
 }

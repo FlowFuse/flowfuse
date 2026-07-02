@@ -90,6 +90,7 @@
             confirm-label="Done"
             :can-be-canceled="false"
             data-el="expert-settings-dialog"
+            boxClass="max-w-[54rem]!"
         >
             <div class="expert-settings">
                 <div class="expert-settings__group">
@@ -101,6 +102,11 @@
                         :options="questionCadenceOptions"
                         data-el="expert-question-cadence"
                     />
+                </div>
+                <div class="expert-settings__group">
+                    <FormHeading>Tool permissions</FormHeading>
+                    <p>Choose which actions the Expert can run, and which need your approval.</p>
+                    <tool-permissions-settings :in-editor="isImmersive" />
                 </div>
             </div>
         </ff-dialog>
@@ -115,6 +121,7 @@ import FormHeading from '../../FormHeading.vue'
 import ResizeBar from '../../ResizeBar.vue'
 
 import CapabilitiesSelector from './CapabilitiesSelector.vue'
+import ToolPermissionsSettings from './ToolPermissionsSettings.vue'
 import DefaultChip from './chips/DefaultChip.vue'
 import ContextSelector from './context-selection/index.vue'
 
@@ -132,7 +139,8 @@ export default {
         ContextSelector,
         DefaultChip,
         FormHeading,
-        ResizeBar
+        ResizeBar,
+        ToolPermissionsSettings
     },
     inject: {
         togglePinWithWidth: {
@@ -267,10 +275,13 @@ export default {
             minHeight: 120,
             maxViewportMarginY: 80
         })
+        // Fetch on mount everywhere (not just the editor) so the permissions settings
+        // can render outside an instance too; the tools themselves stay editor-only.
+        this.fetchToolCatalog()
     },
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
-        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setQuestionCadence', 'setPlanMode']),
+        ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setQuestionCadence', 'setPlanMode', 'fetchToolCatalog']),
         openSettings () {
             this.$refs.settingsDialog.show()
         },
@@ -541,6 +552,9 @@ button {
     &__group {
         display: flex;
         flex-direction: column;
+        // Space the heading and its description from the controls below, so the
+        // section description isn't flush against the next heading.
+        gap: 0.5rem;
     }
 }
 </style>

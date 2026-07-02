@@ -3,6 +3,7 @@ const { z } = require('zod')
 module.exports = [
     {
         name: 'platform_list_applications',
+        title: 'List Applications',
         description: `FlowFuse platform automation tool: 
             Lists all applications in a team but does not return hosted instances or remote instances. 
             Call platform_get_application to get details of a specific application. 
@@ -18,6 +19,7 @@ module.exports = [
     },
     {
         name: 'platform_get_application',
+        title: 'Get Application',
         description: 'FlowFuse platform automation tool: Use this tool to retrieve application metadata (name, description, link, team createdAt and updatedAt)',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -30,6 +32,7 @@ module.exports = [
     },
     {
         name: 'platform_get_application_hosted_instances',
+        title: 'Get Application Hosted Instances',
         description: `FlowFuse platform automation tool:
             Gets all the hosted instances that live inside an application.
             A hosted instance is a Node-RED that runs on the same environment as the FlowFuse platform.
@@ -47,6 +50,7 @@ module.exports = [
     },
     {
         name: 'platform_get_application_remote_instances',
+        title: 'Get Application Remote Instances',
         description: `FlowFuse platform automation tool:
             Gets all the remote instances (devices) that live inside an application.
             A remote instance is a Node-RED that runs on the user's own hardware (like a Raspberry Pi or a server) rather than on the same environment as the FlowFuse platform.
@@ -81,6 +85,7 @@ module.exports = [
     },
     {
         name: 'platform_get_application_instances_status',
+        title: 'Get Application Instances Status',
         description: `FlowFuse platform automation tool:
             Gets the live running status of every hosted instance inside an application.
             Use this when you want to know if the hosted instances are running, stopped, or in the middle of deploying.
@@ -97,6 +102,7 @@ module.exports = [
     },
     {
         name: 'platform_get_application_audit_log',
+        title: 'Get Application Audit Log',
         description: `FlowFuse platform automation tool:
             Gets the audit log (activity history) for an application. Think of it as a diary that writes down everything that happened: who did what, and when.
             Use this to find out what changed, who made a change, or to figure out what went wrong by looking at recent activity.
@@ -138,6 +144,7 @@ module.exports = [
     },
     {
         name: 'platform_create_application',
+        title: 'Create Application',
         description: `FlowFuse platform automation tool:
             Creates a new application in a team.
             An application is a container that groups together hosted instances and remote instances that work together.

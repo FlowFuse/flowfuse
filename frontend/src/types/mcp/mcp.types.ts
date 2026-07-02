@@ -19,6 +19,7 @@ export interface McpToolHandlerContext {
 
 export interface McpToolDefinition {
     name: string
+    title: string
     description: string
     annotations: McpToolAnnotations
     inputSchema: McpToolInputSchema
@@ -27,6 +28,7 @@ export interface McpToolDefinition {
 
 export interface McpToolWireDefinition {
     name: string
+    title: string
     description: string
     annotations: McpToolAnnotations
     inputSchema: McpToolInputSchema

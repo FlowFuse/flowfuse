@@ -37,7 +37,12 @@ export const useProductExpertStore = defineStore('product-expert', {
         // 'request-plan-change' focuses an empty composer for the plan card's "Request
         // changes"; 'reset' clears a plan loaded via "Edit manually" but not sent.
         composerCommand: null,
-        _seenTransactionIds: new Map()
+        _seenTransactionIds: new Map(),
+        // Open human-in-the-loop approval batch (#421). When a turn defers a tool batch
+        // for approval the agent ends the turn and returns the card(s); we hold the
+        // decisions here until every card is answered, then send them back in one resume
+        // message. { decisions: { [toolUseId]: 'approved'|'denied' }, toolKeys: { [id]: key }, remaining: number }
+        _approvalBatch: null
     }),
     getters: {
         _agentStore () {
@@ -239,14 +244,14 @@ export const useProductExpertStore = defineStore('product-expert', {
                 agentStore.abortController = null
             }
         },
-        sendQuery ({ query }) {
+        sendQuery ({ query, toolApprovals } = {}) {
             if (this.shouldUseMqtt) {
-                return this.sendMqttQuery({ query })
+                return this.sendMqttQuery({ query, toolApprovals })
             } else {
-                return this.sendHttpQuery({ query })
+                return this.sendHttpQuery({ query, toolApprovals })
             }
         },
-        async sendHttpQuery ({ query }) {
+        async sendHttpQuery ({ query, toolApprovals } = {}) {
             const agentStore = this._agentStore
             const payload = {
                 query,
@@ -257,6 +262,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                 sessionId: agentStore.sessionId,
                 abortController: agentStore.abortController
             }
+            // Resume a deferred approval turn (#421): the decisions drive the turn instead
+            // of a new user query. Transport-agnostic — HTTP and MQTT both just carry it.
+            if (toolApprovals) payload.toolApprovals = toolApprovals
 
             if (this.isInsightsAgent) {
                 payload.context.selectedCapabilities = useProductExpertInsightsAgentStore().selectedCapabilities
@@ -264,7 +272,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             return expertApi.chat(payload)
         },
-        async sendMqttQuery ({ query } = {}) {
+        async sendMqttQuery ({ query, toolApprovals } = {}) {
             const servicesOrchestrator = getAppOrchestrator()
             const mqttService = servicesOrchestrator.$serviceInstances.mqtt
             const mqttTopicHelper = useMqttExpertTopicHelper()
@@ -288,16 +296,20 @@ export const useProductExpertStore = defineStore('product-expert', {
             })
 
             try {
+                const payload = {
+                    query,
+                    context: {
+                        ...useContextStore().expert,
+                        agent: this.agentMode
+                    }
+                }
+                // Resume a deferred approval turn (#421): decisions drive the turn, no query.
+                if (toolApprovals) payload.toolApprovals = toolApprovals
+
                 await mqttService.publishMessage(mqttConnectionKey, {
                     topic,
                     qos: 2,
-                    payload: {
-                        query,
-                        context: {
-                            ...useContextStore().expert,
-                            agent: this.agentMode
-                        }
-                    },
+                    payload,
                     correlationData: transactionId,
                     userProperties: {
                         sessionId: this.sessionId,
@@ -325,11 +337,32 @@ export const useProductExpertStore = defineStore('product-expert', {
                 onDisconnect: this._onMqttDisconnect
             })
         },
+        async fetchToolCatalog () {
+            // Fetch the tool catalog for the permissions UI (#421) over HTTP, not MQTT:
+            // the catalog is needed before any chat, so we must not open the broker
+            // connection on mount. Store the returned `hash` to detect later drift.
+            const assistantStore = useProductAssistantStore()
+
+            const teamId = useContextStore().expert?.teamId
+            if (!teamId) return
+
+            try {
+                const { catalog, hash } = await expertApi.getToolCatalog({ teamId })
+                assistantStore.setToolCatalog(catalog || [], hash || null)
+            } catch (e) {
+                // Non-fatal: the agent still gates safely with defaults if the catalog
+                // is unavailable; the settings UI simply shows no tools yet.
+            }
+        },
         async handleInFlightRequest ({ topic, message, transactionId, sessionId, chatTransactionId } = {}) {
-            const inFlightRequest = this._inFlightRequests.values().next().value
+            // Match the originating chat request explicitly (not just the first entry) so a
+            // concurrent in-flight request — e.g. an open tool approval — can't shadow it and
+            // cause us to drop a valid in-flight request.
+            const inFlightRequest = Array.from(this._inFlightRequests.values())
+                .find(r => r.transactionId === chatTransactionId)
 
             // dismiss inFlight requests that don't match the existing sessionId or the inFlight message transactionId
-            if (sessionId !== this.sessionId || inFlightRequest?.transactionId !== chatTransactionId) return
+            if (sessionId !== this.sessionId || !inFlightRequest) return
 
             const servicesOrchestrator = getAppOrchestrator()
             const assistantStore = useProductAssistantStore()
@@ -446,15 +479,118 @@ export const useProductExpertStore = defineStore('product-expert', {
             // ignore aborted messages through mqtt
             if (Object.prototype.hasOwnProperty.call(response, 'aborted') && response.aborted === true) return
 
+            // Tool-catalog freshness (#421): the agent stamps a catalog hash on every
+            // response. If it differs from what we hold, the catalog drifted (e.g. a
+            // rolling deploy landed a new tool version) — refetch the full list in the
+            // background. Only the small hash rides on each interaction.
+            const incomingHash = response?.toolCatalogHash
+            if (incomingHash && incomingHash !== useProductAssistantStore().toolCatalogHash) {
+                this.fetchToolCatalog()
+            }
+
             if (response.answer && Array.isArray(response.answer)) {
                 this.addAiMessage(response)
                 this._clearInFlightUpdates()
+                // A deferred-approval turn (#421) ends with one card per tool that needs
+                // approval. Track the batch so we can send every decision back at once.
+                if (response.kind === 'tool-approval') {
+                    this.beginApprovalBatch(response.answer)
+                }
             }
+        },
+        // Register the approval cards returned by a deferred turn (#421). The agent has
+        // ended the turn and left memory; we collect the user's decisions here until every
+        // card is answered, then resumeToolApprovals() sends them back in one message.
+        beginApprovalBatch (cards = []) {
+            const toolKeys = {}
+            let remaining = 0
+            for (const c of cards) {
+                const id = c.toolUseId || c.id
+                if (!id) continue
+                toolKeys[id] = c.toolKey
+                remaining++
+            }
+            this._approvalBatch = remaining > 0 ? { decisions: {}, toolKeys, remaining } : null
+        },
+        // A card was answered. Record the decision, reflect it on the card, apply any session
+        // "always" grant, and once the whole batch is answered resume the turn (#421).
+        resolveToolApproval ({ id, approved, always } = {}) {
+            const batch = this._approvalBatch
+            if (!batch || !(id in batch.toolKeys) || (id in batch.decisions)) return
+            const permStore = useProductAssistantStore()
+            // "Always allow/deny" is scoped to this chat session (not persisted): it grants
+            // for the rest of this chat and resets on Start Over / refresh. The user can make
+            // it permanent from the settings dialog. It rides the resume's context so the
+            // agent stops asking for this tool for the rest of the chat.
+            if (always && batch.toolKeys[id]) {
+                permStore.setSessionToolOverride(batch.toolKeys[id], approved ? 'allow' : 'deny')
+            }
+            // Reflect exactly what was pressed on the card so its buttons disable and the
+            // outcome (incl. "for this chat") shows.
+            const status = approved
+                ? (always ? 'always-allowed' : 'approved')
+                : (always ? 'always-denied' : 'denied')
+            permStore.setToolApprovalStatus(id, status)
+            batch.decisions[id] = approved ? 'approved' : 'denied'
+            batch.remaining--
+            if (batch.remaining <= 0) {
+                const decisions = batch.decisions
+                this._approvalBatch = null
+                this.resumeToolApprovals(decisions)
+            }
+        },
+        // Send the batch decisions back to continue the deferred turn (#421). This is an
+        // ordinary chat request with no query — the toolApprovals map drives it. The agent
+        // resumes from the persisted tool calls, runs the approved ones, and continues.
+        // Transport-agnostic: over MQTT the reply arrives via the push handler; over HTTP it
+        // is the awaited response, rendered here (mirrors handleQuery).
+        async resumeToolApprovals (decisions) {
+            const agentStore = this._agentStore
+            agentStore.abortController = markRaw(new AbortController())
+            try {
+                const result = await this.sendQuery({ query: '', toolApprovals: decisions })
+                if (result) {
+                    await this.handleMessageResponse(result)
+                }
+                return result
+            } catch (error) {
+                if (error.name === 'AbortError' || error.name === 'CanceledError') {
+                    this.addPredefinedAiMessage('Generation stopped.')
+                } else if (!this.shouldUseMqtt) {
+                    console.error('Expert API error:', error)
+                    this.addPredefinedAiMessage('Sorry, I encountered an error. Please try again.', { isError: true })
+                }
+            } finally {
+                agentStore.abortController = null
+            }
+        },
+        // Abandon the open approval batch (chat stop / Start Over). The agent already left
+        // memory when it deferred, so there is nothing to unblock — just mark any unanswered
+        // card denied so it stops looking pending, and drop the batch (#421). If the user
+        // later sends a new message the agent self-heals the abandoned tool calls.
+        cancelPendingToolApprovals () {
+            const batch = this._approvalBatch
+            if (!batch) return
+            const permStore = useProductAssistantStore()
+            for (const id of Object.keys(batch.toolKeys)) {
+                if (!(id in batch.decisions)) permStore.setToolApprovalStatus(id, 'denied')
+            }
+            this._approvalBatch = null
         },
         async startOver () {
             const agentStore = this._agentStore
+            // Unblock any approval still awaiting a decision before we drop its message,
+            // so the agent's paused tool call resolves (as denied) instead of hanging.
+            this.cancelPendingToolApprovals()
+
             agentStore.sessionId = uuidv4()
             agentStore.messages = []
+
+            // A new chat drops the per-session tool grants ("Always allow/deny for this chat")
+            // and the resolved-approval outcomes tied to the messages we just cleared.
+            const permStore = useProductAssistantStore()
+            permStore.clearSessionToolOverrides()
+            permStore.clearToolApprovalStatuses()
 
             if (this.shouldUseMqtt) {
                 const servicesOrchestrator = getAppOrchestrator()
@@ -1103,6 +1239,8 @@ export const useProductExpertStore = defineStore('product-expert', {
             this.addPredefinedAiMessage(payload.message, { isError: true, code: payload.code })
         },
         stopInflightChat () {
+            // Deny any open approval prompts first so the agent's paused tool call unblocks.
+            this.cancelPendingToolApprovals()
             if (this.shouldUseMqtt) {
                 const inFlightRequest = this._inFlightRequests.values().next().value
                 const servicesOrchestrator = getAppOrchestrator()

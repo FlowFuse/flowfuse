@@ -33,8 +33,9 @@ class PlatformAutomationHandler {
         if (!this._fullToolDefinitions) {
             const { loadToolDefinitions } = require('../ee/lib/mcp/toolLoader')
             this._fullToolDefinitions = loadToolDefinitions()
-            this._wireToolDefinitions = this._fullToolDefinitions.map(({ name, description, inputSchema, annotations }) => ({
+            this._wireToolDefinitions = this._fullToolDefinitions.map(({ name, title, description, inputSchema, annotations }) => ({
                 name,
+                title,
                 description,
                 inputSchema: inputSchema && z.toJSONSchema(z.object(inputSchema)),
                 annotations

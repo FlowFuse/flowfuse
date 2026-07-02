@@ -3,6 +3,7 @@ const { z } = require('zod')
 module.exports = [
     {
         name: 'platform_open_hosted_instance_editor',
+        title: 'Open Hosted Instance Editor',
         description: 'FlowFuse platform automation tool: Get the URL to open the Node-RED editor for a hosted instance. Returns a URL the user can open in their browser.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -22,6 +23,7 @@ module.exports = [
     },
     {
         name: 'platform_open_hosted_instance',
+        title: 'Open Hosted Instance',
         description: 'FlowFuse platform automation tool: Get the URL to open the hosted instance dashboard in the FlowFuse platform. Returns a URL the user can open in their browser.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {

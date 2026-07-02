@@ -27,6 +27,7 @@ class AutomationsService extends BaseService implements AutomationsServiceI {
     getToolDefinitions (): McpToolWireDefinition[] {
         return Array.from(this.$tools.values()).map((tool) => ({
             name: tool.name,
+            title: tool.title,
             description: tool.description,
             annotations: tool.annotations,
             inputSchema: tool.inputSchema

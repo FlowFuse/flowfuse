@@ -4,6 +4,7 @@ import type { McpToolDefinition } from '@/types'
 const tools: McpToolDefinition[] = [
     {
         name: 'ui_get_context',
+        title: 'Get Context',
         description: `FlowFuse UI automation tool:
             This is your go-to tool whenever a user request is ambiguous or you are not sure what they are referring to.
             It tells you everything about where the user is right now: what page they are on, which team they belong to,
