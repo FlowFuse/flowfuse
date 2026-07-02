@@ -60,7 +60,7 @@
                     <ff-data-table :columns="toolColumns" :show-search="false">
                         <template #rows>
                             <ff-data-table-row v-for="tool in group.tools" :key="tool.familyKey">
-                                <ff-data-table-cell>
+                                <ff-data-table-cell class="tool-col">
                                     <div class="tool-permissions__cell">
                                         <span class="tool-permissions__title">{{ tool.displayName }}</span>
                                         <span
@@ -161,7 +161,7 @@ export default {
         },
         toolColumns () {
             return [
-                { label: 'Tool', key: 'tool' },
+                { label: 'Tool', key: 'tool', class: 'tool-col' },
                 { label: 'Type', key: 'type' },
                 { label: 'Permission', key: 'permission', class: 'permission-col' }
             ]
@@ -447,9 +447,19 @@ export default {
 }
 </style>
 
-<!-- Floor the equal-width segments so the longest policy label fits. -->
+<!-- Unscoped: these land on ff-data-table's internal cell elements, which a
+     scoped selector can't reach. Kept specific under .tool-permissions so they
+     don't leak past this component. -->
 <style lang="scss">
 .tool-permissions__toggle .ff-btn {
     min-width: 6.5rem;
+}
+
+// Let the tool-name column absorb all free space so the Type and Permission
+// columns stay pinned right. Otherwise the Type ("scope") column tracks the tool
+// column's content width and jumps left when a per-chat session note (and its
+// "Make permanent" action) disappears after being promoted to a saved default.
+.tool-permissions .tool-col {
+    width: 100%;
 }
 </style>
