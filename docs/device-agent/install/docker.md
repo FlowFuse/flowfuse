@@ -61,7 +61,7 @@ services:
 
 From Device Agent v4, the container no longer runs as `root`. It runs as the unprivileged `flowfuse` user (UID `2000` / GID `2000`), following least-privilege security practices.
 
-This affects bind-mounted files and directories: the mounted path must be readable (and, where the agent needs to write — for example when using a Provisioning Token or a module cache — writable) by UID/GID `2000`.
+This affects bind-mounted directories: the directory the agent uses for its state must be writable by UID/GID `2000`, otherwise the agent will fail to start with a permissions error.
 
 Before upgrading an existing container to v4, update the ownership of any mounted directory so the `flowfuse` user can access it:
 
@@ -86,6 +86,6 @@ Once running and assigned, access the Node-RED editor at `http://<device-ip>:188
 ## Notes
 
 - Device Agent 4.x defaults to Node.js 22; the `latest` tag now uses Node.js 22. Node.js 20 reached end-of-life in April 2026.
-- Device Agent 3.x uses Node.js 18 in the base image. To stay on a specific line, use a fixed tag (for example `3.x` or `2.8.0`) instead of `latest`.
+- Device Agent 3.x uses Node.js 18 in the base image. To stay on a specific line, use a fixed tag instead of `latest`.
 - For 2.x, use a fixed tag like `2.8.0` instead of `latest`.
 - Ensure outbound TCP 443 to `app.flowfuse.com` and `mqtt.flowfuse.cloud` and access to `https://registry.npmjs.com` unless using a module cache. See [Running with no access to npmjs.org](../running.md#running-with-no-access-to-npmjs.org).

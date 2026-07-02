@@ -43,4 +43,4 @@ option, selecting 'bearer authentication' and providing the token:
 
 ### Remote Instances
 
-HTTP Access Tokens can also be used to secure HTTP endpoints served by Node-RED flows running on Remote Instances (devices). This requires [Device Agent v4](../device-agent/introduction.md) or later. On self-hosted FlowFuse, it also requires FlowFuse v2.32 or later; it is already available on FlowFuse Cloud.
+HTTP Access Tokens can also be used to secure HTTP endpoints served by Node-RED flows running on Remote Instances (devices). This requires [Device Agent v4](../device-agent/introduction.md) or later. On self-hosted FlowFuse, it also requires FlowFuse v2.32 or later.

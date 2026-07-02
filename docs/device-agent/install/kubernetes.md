@@ -31,8 +31,6 @@ Any deployment on Kubernetes is going to be specific to the environment and requ
 
 Choose the approach that matches how you manage device lifecycle and credentials.
 
-> **Non-root container (Device Agent v4+):** From Device Agent v4 the container runs as the unprivileged `flowfuse` user (UID `2000` / GID `2000`) instead of `root`. Any volume the agent must write to — such as the PersistentVolume used for Automatic Provisioning — must be writable by GID `2000`. The examples below set `securityContext.fsGroup: 2000` on the pod so mounted volumes are group-owned by, and writable to, the `flowfuse` user. A read-only Secret mount (as used in Fixed Configuration) is world-readable and needs no change.
-
 ## Fixed Configuration
 
 If you have an existing `device.yml` file containing a set of Device Agent credentials.
@@ -130,8 +128,6 @@ spec:
       labels:
         app: device-one
     spec:
-      securityContext:
-        fsGroup: 2000 # allows the non-root flowfuse user (UID/GID 2000) to write to the PVC
       initContainers: # on first run copies the device.yml from Secret to PVC volume
       - name: config-copy
         image: busybox:latest
