@@ -772,8 +772,8 @@ describe('Expert API', function () {
                 const fiveMinsFromNow = Date.now() + (5 * 60 * 1000)
                 dbToken.expiresAt.getTime().should.be.approximately(fiveMinsFromNow, 2000) // check expiry (with grace period)
 
-                // get the cached token and check it matches DB token (cache is keyed by the device id)
-                const cachedToken = await app.expert.mcp.getCachedToken(device.id)
+                // get the cached token and check it matches DB token (cache is keyed by the device hashid)
+                const cachedToken = await app.expert.mcp.getCachedToken(device.hashid)
                 should.exist(cachedToken)
                 cachedToken.should.have.property('token').and.be.a.String()
                 cachedToken.should.have.property('scheme', 'Bearer')

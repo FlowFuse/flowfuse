@@ -239,7 +239,8 @@ module.exports = async function (app) {
                 delete server.mcpServerUrl
 
                 // ownership verified - safe to read/create the cached access token for this instance
-                server.mcpAccessToken = await app.expert.mcp.getOrCreateToken(instance, instanceType, instance.id, request.teamHttpSecurityFeature)
+                const idString = instanceType === 'instance' ? instance.id : instance.hashid
+                server.mcpAccessToken = await app.expert.mcp.getOrCreateToken(instance, instanceType, idString, request.teamHttpSecurityFeature)
             }
             const filteredAccessibleServers = accessibleServers.filter(s => !s._invalid)
             context.selectedCapabilities = filteredAccessibleServers?.length > 0 ? filteredAccessibleServers : undefined

@@ -150,6 +150,23 @@ describe('InstanceCommsHandler', function () {
             eeApp.containers.callMCPTool.called.should.be.false()
         })
 
+        it('returns MCP_INVALID_INSTANCE_ID when the instance id is not a string', async function () {
+            // Hosted instances are identified by their (uuid) id (a string). A numeric id must be
+            // rejected up-front because it would later be used as a cache key, and the redis cache
+            // driver rejects non-string keys (the memory driver tolerates them, hiding the bug locally).
+            const res = await invokeInsight({
+                userId: EE.alice.hashid,
+                command: 'mcp:call-tool',
+                mcpServer: baseMcpServer({ instance: 999999 }), // numeric, not the uuid string
+                mcpDefinitionKind: 'mcp_tool',
+                mcpDefinition: READONLY_TOOL,
+                data: { name: 'my_tool', input: {} }
+            })
+            res.ok.should.be.false()
+            res.code.should.equal('MCP_INVALID_INSTANCE_ID')
+            eeApp.containers.callMCPTool.called.should.be.false()
+        })
+
         it('returns MCP_INVALID_INSTANCE when the instance does not exist', async function () {
             const res = await invokeInsight({
                 userId: EE.alice.hashid,
