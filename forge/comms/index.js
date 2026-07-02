@@ -82,9 +82,11 @@ module.exports = fp(async function (app, _opts) {
                     if (!teamHash || !id) return
                     client.publish(`ff/v1/${teamHash}/d/${id}/state`, JSON.stringify({ id, meta: { state } }))
                 },
-                notifyInstanceState: function (teamHash, id, state) {
+                notifyInstanceState: function (teamHash, id, state, versions) {
                     if (!teamHash || !id) return
-                    client.publish(`ff/v1/${teamHash}/p/${id}/state`, JSON.stringify({ id, meta: { state } }))
+                    const meta = { state }
+                    if (versions) meta.versions = versions
+                    client.publish(`ff/v1/${teamHash}/p/${id}/state`, JSON.stringify({ id, meta }))
                 }
             }
         })
