@@ -71,9 +71,10 @@ Setup command
 
 Global Options
 
-  -h, --help       print out helpful usage information
-  --version        print out version information
-  -v, --verbose    turn on debugging output
+  -h, --help          print out helpful usage information
+  --version           print out version information
+  -v, --verbose       turn on debugging output
+  -j, --json-logging  output logs in JSON format
 ```
 
 ### Command Line Examples
@@ -88,6 +89,14 @@ _Start the agent with a different working directory and the Web UI enabled_
 
 ```bash
 flowfuse-device-agent -d /path/to/working/directory -w --ui-user admin --ui-pass password --ui-port 8081
+```
+
+## Structured JSON logging
+
+By default the Device Agent prints plain-text logs, which can be hard to parse with log aggregation tools such as Grafana Loki or AWS CloudWatch. From Device Agent v4, you can output machine-readable, structured logs in JSON format using the `-j`/`--json-logging` flag:
+
+```bash
+flowfuse-device-agent --json-logging
 ```
 
 ## Configuring Node.js Options

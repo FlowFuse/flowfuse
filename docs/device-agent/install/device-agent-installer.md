@@ -125,10 +125,10 @@ flowfuse-device-agent-installer.exe --port 1882
 To update bundled Node.js runtime, specify the `--update-nodejs` flag with the desired version:
 
 ```bash
-./flowfuse-device-agent-installer --update-nodejs --nodejs-version 20.19.1
+./flowfuse-device-agent-installer --update-nodejs --nodejs-version 22.11.0
 ```
 
-Specifying `--update-nodejs` without a version will pick the default version defined in the installer.
+Specifying `--update-nodejs` without a version will pick the default version defined in the installer. From the Device Agent v4 release, the installer defaults to Node.js 22.
 
 ### Device Agent
 To update the Device Agent package, use the `--update-agent` flag, optionally specifying the version:
