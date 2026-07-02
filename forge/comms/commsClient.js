@@ -59,10 +59,33 @@ class CommsClient extends EventEmitter {
                     const channelCommand = topicParts[6] // dynamic value, e.g. mcp:call-tool or mcp:read-resource
                     const direction = topicParts[7] // request or response (only for inflight channels)
 
+                    // these are common for both insights and platform automations
+                    let payload
+                    try {
+                        payload = JSON.parse(message.toString())
+                    } catch (err) {
+                        this.app.log.warn(`Ignoring malformed expert payload on ${topic}: ${err.message}`)
+                        return
+                    }
+                    const correlationData = packet.properties?.correlationData
+                    const userProperties = packet.properties?.userProperties
+                    const mqttOptions = { properties: { correlationData, userProperties } }
+
+                    if (!correlationData || !userProperties) {
+                        this.app.log.warn(`'Tool call request missing correlationData or userProperties: ${message.toString()}`)
+                        return // do not respond, the agent will timeout and handle it
+                    }
+                    // end common bits
+
                     const supportedInsightsCommands = {
                         'insights:mcp-call-tool': 'mcp:call-tool',
                         'insights:mcp-read-resource': 'mcp:read-resource'
                     }
+                    const supportedPlatformAutomationCommands = {
+                        'automation:mcp-get-features': 'mcp-get-features',
+                        'automation:mcp-call-tool': 'mcp-call-tool'
+                    }
+
                     if (supportedInsightsCommands[channelCommand] && direction === 'request') {
                         const isInsightsToolCall = channel === 'platform' && channelCommand === 'insights:mcp-call-tool' && direction === 'request'
                         const isInsightsResourceCall = channel === 'platform' && channelCommand === 'insights:mcp-read-resource' && direction === 'request'
@@ -74,37 +97,11 @@ class CommsClient extends EventEmitter {
                         // has permission to access this topic. Now, we verify the payload contains the required fields to process the request.
                         // If OK, emit the message to the appropriate instance/device handler (handled in ./instances.js or ./devices.js)
 
-                        const payload = JSON.parse(message.toString())
                         const command = supportedInsightsCommands[channelCommand]
                         const data = payload.data || {}
                         const { kind, mcpServer, toolDefinition, resourceDefinition, resourceTemplateDefinition } = payload.meta || {}
-                        const correlationData = packet.properties?.correlationData
-                        const userProperties = packet.properties?.userProperties
-                        if (!correlationData || !userProperties) {
-                            console.warn('Expert Insight tool call request missing correlationData or userProperties', payload)
-                            return // do not respond, the agent will timeout and handle it
-                        }
-
-                        const mqttOptions = { properties: { correlationData, userProperties } }
                         const responseTopic = `ff/v1/expert/${userId}/${sessionId}/${channel}/${channelCommand}/response`
-
-                        /** Callback for failed MCP request. Publishes a structured error back to the agent. */
-                        const onError = (content, code, error) => {
-                            const data = {
-                                code: code || error?.code || 'MCP_ERROR',
-                                content: `Error: ${content}`,
-                                isError: true
-                            }
-                            if (error) {
-                                data.type = error?.name || error?.constructor?.name || 'Error'
-                                data.message = error?.message || error?.toString()
-                            }
-                            this.client.publish(responseTopic, JSON.stringify(data), mqttOptions)
-                        }
-                        /** Callback for successful MCP request. Publishes the result back to the agent. */
-                        const onSuccess = (result) => {
-                            this.client.publish(responseTopic, JSON.stringify(result), mqttOptions)
-                        }
+                        const { onSuccess, onError } = this.createMqttCallbacks(responseTopic, mqttOptions)
 
                         // check that the mcpServer contains the required fields to process the request
                         if (!mcpServer || !['instance', 'device'].includes(mcpServer.instanceType) || !mcpServer.instance || !mcpServer.mcpServer) {
@@ -138,6 +135,24 @@ class CommsClient extends EventEmitter {
                             kind, // mcp kind (mcp_tool, mcp_resource, mcp_resource_template)
                             definition, // mcpFeatureDefinition
                             data, // call data
+                            onSuccess, // success callback
+                            onError // failure callback
+                        )
+                    } else if (supportedPlatformAutomationCommands[channelCommand] && direction === 'request') {
+                        // channel command is either 'mcp-get-features' or 'mcp-call-tool'
+                        const responseTopic = `ff/v1/expert/${userId}/${sessionId}/platform/${channelCommand}/response`
+                        const command = supportedPlatformAutomationCommands[channelCommand]
+                        const data = payload.data || {}
+                        const { onSuccess, onError } = this.createMqttCallbacks(responseTopic, mqttOptions)
+
+                        this.emit(
+                            'request/platform-automation:forge', // event name
+                            {
+                                userId, // ID of user making the request
+                                command, // command,
+                                data, // payload data
+                                meta: payload.meta
+                            },
                             onSuccess, // success callback
                             onError // failure callback
                         )
@@ -221,6 +236,29 @@ class CommsClient extends EventEmitter {
                 'ff/v1/expert/+/+/platform/+/request'
             ])
         }
+    }
+
+    /**
+     * Creates onSuccess/onError callbacks that publish results back to the agent
+     * over the given MQTT response topic.
+     */
+    createMqttCallbacks (responseTopic, mqttOptions) {
+        const onError = (content, code, error) => {
+            const data = {
+                code: code || error?.code || 'MCP_ERROR',
+                content: `Error: ${content}`,
+                isError: true
+            }
+            if (error) {
+                data.type = error?.name || error?.constructor?.name || 'Error'
+                data.message = error?.message || error?.toString()
+            }
+            this.client.publish(responseTopic, JSON.stringify(data), mqttOptions)
+        }
+        const onSuccess = (result) => {
+            this.client.publish(responseTopic, JSON.stringify(result), mqttOptions)
+        }
+        return { onSuccess, onError }
     }
 
     /**

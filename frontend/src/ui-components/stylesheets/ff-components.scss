@@ -563,6 +563,17 @@ li.ff-kebab-item {
         color: var(--ff-color-text-disabled);
       }
     }
+    &.ff-toggle-switch--small {
+      --ff-toggle-width: 30px;
+      --ff-toggle-translate: 12px;
+      height: 18px;
+      .ff-toggle-switch-button {
+        height: 14px;
+        width: 14px;
+        left: 2px;
+        bottom: 2px;
+      }
+    }
 }
 
 .ff-toggle-switch-slider {

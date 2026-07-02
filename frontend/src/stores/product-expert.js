@@ -30,8 +30,13 @@ export const useProductExpertStore = defineStore('product-expert', {
         loadingVariant: SUPPORT_AGENT,
         shouldWakeUpAssistant: false,
         questionCadence: 'all', // 'all' = ask every clarifying question at once, 'one' = one at a time
+        planMode: false,
         inFlightUpdates: [],
         pendingInput: '',
+        // One-shot chat composer command, consumed and cleared like pendingInput.
+        // 'request-plan-change' focuses an empty composer for the plan card's "Request
+        // changes"; 'reset' clears a plan loaded via "Edit manually" but not sent.
+        composerCommand: null,
         _seenTransactionIds: new Map()
     }),
     getters: {
@@ -71,7 +76,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         sessionId () { return this._agentStore.sessionId },
         shouldUseMqtt () {
             const accountSettingsStore = useAccountSettingsStore()
-            return accountSettingsStore.featuresCheck?.isExpertCommsBetaEnabled && this.isSupportAgent
+            return accountSettingsStore.featuresCheck?.isExternalMqttBrokerFeatureEnabled && this.isSupportAgent
         }
     },
     actions: {
@@ -181,6 +186,9 @@ export const useProductExpertStore = defineStore('product-expert', {
         setPendingInput (text) {
             this.pendingInput = text
         },
+        setComposerCommand (command) {
+            this.composerCommand = command
+        },
         async handleQuery ({ query }) {
             const agentStore = this._agentStore
 
@@ -189,9 +197,14 @@ export const useProductExpertStore = defineStore('product-expert', {
                 agentStore.sessionId = uuidv4()
             }
 
-            // Start session timing on first message (if not already running)
+            // Start session timing on first message, or reset the clock on subsequent
+            // messages so the session stays alive while the user is actively chatting
             if (!agentStore.sessionStartTime) {
                 this.startSessionTimer()
+            } else {
+                agentStore.sessionStartTime = Date.now()
+                agentStore.sessionWarningShown = false
+                agentStore.sessionExpiredShown = false
             }
 
             // Add user message
@@ -354,7 +367,53 @@ export const useProductExpertStore = defineStore('product-expert', {
                     }
                 })
                 break
+            case parsedTopic.inflightType === 'automation-ui:mcp-get-features': {
+                // handle UI MCP features request
+                try {
+                    const automationsService = servicesOrchestrator.$serviceInstances.automations
+                    const tools = automationsService.getToolDefinitions()
+
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                        qos: 2,
+                        topic: responseTopic,
+                        payload: JSON.stringify({ tools }),
+                        correlationData: transactionId,
+                        userProperties: {
+                            sessionId,
+                            transactionId: chatTransactionId,
+                            origin: window.origin || window.location.origin
+                        }
+                    })
+                } catch (e) {
+                    this._onMqttError(e)
+                }
+                break
+            }
+            case parsedTopic.inflightType === 'automation-ui:mcp-call-tool': {
+                // handle UI MCP tool invocation request
+                try {
+                    const automationsService = servicesOrchestrator.$serviceInstances.automations
+                    const { name, input } = payload?.data || {}
+                    const result = await automationsService.dispatch(name, input)
+
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                        qos: 2,
+                        topic: responseTopic,
+                        payload: JSON.stringify(result),
+                        correlationData: transactionId,
+                        userProperties: {
+                            sessionId,
+                            transactionId: chatTransactionId,
+                            origin: window.origin || window.location.origin
+                        }
+                    })
+                } catch (e) {
+                    this._onMqttError(e)
+                }
+                break
+            }
             case parsedTopic.inflightType.startsWith('automation:'):
+                // passes automation requests to the Assistant
                 try {
                     const result = await assistantStore.invokeActionAwaitResponse({
                         action: `automation/${parsedTopic.inflightType.replace('automation:', '')}`,
@@ -520,6 +579,9 @@ export const useProductExpertStore = defineStore('product-expert', {
         setQuestionCadence (cadence) {
             if (!['all', 'one'].includes(cadence)) return
             this.questionCadence = cadence
+        },
+        setPlanMode (enabled) {
+            this.planMode = !!enabled
         },
         /**
          * Adds a system message to the application's message store.
