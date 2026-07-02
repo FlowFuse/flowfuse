@@ -333,6 +333,9 @@ export default {
     flex-direction: column;
     gap: 1.75rem;
     width: 100%;
+    // Separate the first group title from the dialog's "Tool permissions" intro
+    // paragraph above, which sits close by via the settings group's small gap.
+    margin-top: 0.75rem;
 }
 
 .tool-permissions__section {
