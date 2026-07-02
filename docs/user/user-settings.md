@@ -15,6 +15,7 @@ In the Settings section, you can modify various characteristics of your personal
 - **Username**
 - **Name**
 - **E-Mail** (modifiable only if SSO is disabled)
+- **Theme** - choose **Light**, **Dark**, or **System** for the FlowFuse interface. **System** follows your operating system setting and updates live when it changes. Your choice is saved per browser. This applies to the FlowFuse application only; the Node-RED editor and Dashboard manage their own themes separately.
 
 Additionally, you can select a default Team, especially useful if your account is associated with multiple Teams.
 
