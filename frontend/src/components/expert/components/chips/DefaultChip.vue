@@ -1,5 +1,5 @@
 <template>
-    <div class="chip" :class="{active: modelValue}" :title="title" @click="$emit('toggle')">
+    <div class="chip" :class="{active: modelValue, disabled}" :title="title" @click="onClick">
         <div class="text">
             <slot name="text">
                 <span>{{ text }}</span>
@@ -9,8 +9,10 @@
         <span class="separator" />
 
         <div class="icon-wrapper">
-            <XMarkIcon v-if="modelValue" class="ff-icon ff-icon-sm" />
-            <PlusIcon v-else class="ff-icon ff-icon-sm" />
+            <slot name="icon" :active="modelValue">
+                <XMarkIcon v-if="modelValue" class="ff-icon ff-icon-sm" />
+                <PlusIcon v-else class="ff-icon ff-icon-sm" />
+            </slot>
         </div>
     </div>
 </template>
@@ -41,20 +43,29 @@ export default {
             type: String,
             required: false,
             default: ''
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     emits: ['toggle'],
     methods: {
-        pluralize
+        pluralize,
+        onClick () {
+            if (this.disabled) return
+            this.$emit('toggle')
+        }
     }
 }
 </script>
 
 <style scoped lang="scss">
 .chip {
-    border: 1px solid $ff-grey-200;
+    border: 1px solid var(--ff-color-border);
     border-radius: 5px;
-    background: $ff-grey-50;
+    background: var(--ff-color-bg-surface);
     display: flex;
     gap: 5px;
     align-items: center;
@@ -62,12 +73,17 @@ export default {
     transition: 0.3s ease-in-out;
     white-space: nowrap;
 
+    &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
     &.active {
-        background: $ff-indigo-100;
-        border: 1px solid $ff-indigo-300;
+        background: var(--ff-color-accent-surface);
+        border: 1px solid var(--ff-color-accent-light);
 
         .separator {
-            background: $ff-indigo-300;
+            background: var(--ff-color-chip-default-bg);
         }
     }
 
@@ -80,7 +96,7 @@ export default {
     .separator {
         width: 1px;
         align-self: stretch;
-        background: $ff-yellow-100;
+        background: var(--ff-color-status-warning-bg);
     }
 
     .text {

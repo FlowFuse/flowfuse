@@ -3,10 +3,9 @@ const { createVNode: _createVNode, openBlock: _openBlock, createBlock: _createBl
 module.exports = {
     props: {
         type: {
-            required: true,
-            type: String
+            type: String,
+            default: ''
         }
-
     },
     render: function (_ctx, _cache) {
         const path1 = _createVNode('path', {

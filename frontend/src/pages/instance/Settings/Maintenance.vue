@@ -345,8 +345,8 @@ export default {
     .scheduled-upgrade {
         .days-selector {
             .day-selector {
-                border: 1px solid $ff-indigo-200;
-                background: $ff-indigo-50;
+                border: 1px solid var(--ff-color-accent-light);
+                background: var(--ff-color-accent-surface);
                 padding: 5px 15px;
                 border-radius: 4px;
                 cursor: pointer;
@@ -356,12 +356,12 @@ export default {
                 text-align: center;
 
                 &:hover {
-                    background: $ff-indigo-200;
+                    background: var(--ff-color-progress-track);
                 }
 
                 &.selected {
-                    background: $ff-indigo-400;
-                    color: white;
+                    background: var(--ff-color-progress-fill);
+                    color: var(--ff-color-text-on-brand);
 
                     span {
                         font-weight: 600;

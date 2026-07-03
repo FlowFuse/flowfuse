@@ -141,7 +141,7 @@ describe('FlowFuse - Application - Devices - Create', () => {
     }
 
     beforeEach(() => {
-        cy.intercept('GET', '/api/v1/applications/*/devices').as('getApplicationDevices')
+        cy.intercept('GET', '/api/v1/applications/*/devices*').as('getApplicationDevices')
         cy.login('bob', 'bbPassword')
     })
 

@@ -1,3 +1,5 @@
+const Sentry = require('@sentry/node')
+
 /**
  * Routes related to session handling, login/out etc
  *
@@ -72,6 +74,7 @@ async function init (app, opts) {
                 const mfaMissing = request.session.User.mfa_enabled && !request.session.mfa_verified
 
                 if (emailVerified && passwordNotExpired && !suspended && !mfaMissing) {
+                    Sentry.setUser({ id: request.session.User.hashid, username: request.session.User.username, email: request.session.User.email, name: request.session.User.name })
                     return
                 }
                 if (request.routeOptions.config.allowAnonymous) {
@@ -107,8 +110,8 @@ async function init (app, opts) {
                         // delete one time code immediately (spent)
                         await accessToken.destroy()
                     }
-                    if (accessToken.ownerType === 'user') {
-                        request.session.User = await app.db.models.User.findOne({ where: { id: parseInt(accessToken.ownerId) } })
+                    if (accessToken.ownerType === 'user' || accessToken.ownerType === 'user:expert-mcp') {
+                        request.session.User = await app.db.models.User.findOne({ where: { id: +accessToken.ownerId } })
                         // Unlike a cookie based session, we'll allow user tokens to continue
                         // working if password has expired or email isn't verified
                         // TODO: validate this choice
@@ -116,6 +119,7 @@ async function init (app, opts) {
                             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                             return
                         }
+                        Sentry.setUser({ id: request.session.User.hashid, username: request.session.User.username, email: request.session.User.email, name: request.session.User.name })
                         if (accessToken.name) {
                             // Temp hack to give token full user scope
                             delete request.session.scope
@@ -139,11 +143,25 @@ async function init (app, opts) {
                         }
                     }
                     if (accessToken.scope?.includes('ff-expert:mcp')) {
-                        // must be a http token for expert MCP access
-                        if (accessToken.ownerType !== 'http') {
+                        const isDeviceScope = accessToken.scope?.includes('device')
+                        const isInstanceScope = accessToken.scope?.includes('instance')
+                        if (!isDeviceScope && !isInstanceScope) {
                             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                             return
                         }
+                        // must be a http token for expert MCP access
+                        if (isInstanceScope && accessToken.ownerType !== 'http') {
+                            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                            return
+                        } else if (isDeviceScope && accessToken.ownerType !== 'http:device') {
+                            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                            return
+                        }
+                    }
+                    if (accessToken.scope?.includes('ff-expert:platform') && accessToken.ownerType !== 'user:expert-mcp') {
+                        // this scope is only valid on the dedicated platform-automation token type
+                        reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                        return
                     }
                     return
                 }

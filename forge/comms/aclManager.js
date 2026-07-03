@@ -7,7 +7,8 @@
  * Other components (ie EE-specific features) can register their own additional ACLs
  */
 module.exports = function (app) {
-    const expertRbacToolCheck = async (teamMembership, application, toolName) => {
+    const expertRbacToolCheck = async (teamMembership, toolName, application) => {
+        const applicationCheck = typeof application !== 'undefined'
         const applicationHash = typeof application === 'object' ? application.hashid : application
         if (toolName === 'expert:status-message') {
             return true
@@ -20,8 +21,15 @@ module.exports = function (app) {
             'automation:get-flows': 'project:flows:view'
         }
         const requiredPermission = toolAccessPermission[toolName] || 'project:flows:edit' // default to highest level of access if tool isn't in the list, to be safe
-        if (!app.hasPermission(teamMembership, requiredPermission, { applicationId: applicationHash })) {
-            return false
+
+        if (applicationCheck) {
+            if (!app.hasPermission(teamMembership, requiredPermission, { applicationId: applicationHash })) {
+                return false
+            }
+        } else {
+            if (!app.hasPermission(teamMembership, requiredPermission)) {
+                return false
+            }
         }
         return true
     }
@@ -114,6 +122,129 @@ module.exports = function (app) {
                 // postgres with throw over, unlike sqlite that returns no results.
                 return false
             }
+        },
+        checkUserIsTeamMember: async function (requestParts, usernameParts) {
+            // requestParts = [ fullTopic , <teamHash> [, <userHash>] ]
+            // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
+            const topicTeamHash = requestParts[1]
+            const usernameUserHash = usernameParts[1]
+            const usernameTeamHash = usernameParts[2]
+            if (topicTeamHash !== usernameTeamHash) {
+                return false
+            }
+            // membership topic: user capture must match the credential's user
+            if (requestParts[2] !== undefined && requestParts[2] !== usernameUserHash) {
+                return false
+            }
+            try {
+                const team = await app.db.models.Team.byId(usernameTeamHash)
+                if (!team) return false
+                const user = await app.db.models.User.byId(usernameUserHash)
+                if (!user) return false
+                const membership = await app.db.models.TeamMember.getTeamMembership(user.id, team.id, false)
+                return !!membership
+            } catch (error) {
+                app.log.error('Unexpected error during team-channel ACL check', { requestParts, usernameParts, error })
+                return false
+            }
+        },
+        checkTeamStateSub: async function (requestParts, usernameParts) {
+            // requestParts = [ fullTopic , <teamHash> , <entityId|'+'> ]
+            // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
+            // team-wide status wildcard: gate on team membership only. requestParts[2]
+            // is the instance/device id (or '+'), never the user — don't validate it.
+            const topicTeamHash = requestParts[1]
+            const usernameUserHash = usernameParts[1]
+            const usernameTeamHash = usernameParts[2]
+            if (topicTeamHash !== usernameTeamHash) {
+                return false
+            }
+            try {
+                const team = await app.db.models.Team.byId(usernameTeamHash)
+                if (!team) return false
+                const user = await app.db.models.User.byId(usernameUserHash)
+                if (!user) return false
+                const membership = await app.db.models.TeamMember.getTeamMembership(user.id, team.id, false)
+                return !!membership
+            } catch (error) {
+                app.log.error('Unexpected error during team-channel status ACL check', { requestParts, usernameParts, error })
+                return false
+            }
+        },
+        checkExpertPlatformTopic: async function (topicParts, usernameParts, acl) {
+            // topicParts = [ fullTopic , <userid>, <sessionid>, <command> ]
+            // usernameParts = [ 'forge_platform' | 'expert-agent', <userid> [, <sessionid>] ]
+
+            const ValidationError = function (message) {
+                const error = new Error(message)
+                error.name = 'ACLValidationError'
+                return error
+            }
+
+            try {
+                const [, userId, sessionId, command] = topicParts
+                if (!userId || !sessionId || !command) {
+                    throw ValidationError('invalid topic format')
+                }
+
+                if (command === '+') {
+                    if (!acl.allowWildcard?.command) {
+                        throw ValidationError('invalid command wildcard')
+                    }
+                } else {
+                    // validate command format is [forge:<command>]|[insights:<command>]
+                    const commandParts = command.split(':', 2)
+                    if (commandParts.length !== 2) {
+                        throw ValidationError('invalid command format')
+                    }
+                    const [commandAgent, commandName] = commandParts
+                    switch (commandAgent) {
+                    case 'automation':
+                        if (['mcp-get-features', 'mcp-call-tool'].indexOf(commandName) === -1) {
+                            throw ValidationError('invalid platform command for platform api')
+                        }
+                        break
+                    case 'insights':
+                        if (['mcp-call-tool', 'mcp-read-resource'].includes(commandName) === false) {
+                            throw ValidationError('invalid platform command for insights')
+                        }
+                        break
+                    default:
+                        throw ValidationError('invalid platform command')
+                    }
+                }
+
+                // at minimum, ensure session is present and either a wildcard or 8 or more chars
+                if (sessionId === '+') {
+                    if (!acl.allowWildcard?.session) {
+                        throw ValidationError('invalid session wildcard')
+                    }
+                } else if (sessionId.length < 8) {
+                    throw ValidationError('invalid session id')
+                }
+
+                if (userId === '+') {
+                    if (!acl.allowWildcard?.user) {
+                        throw ValidationError('invalid user wildcard')
+                    }
+                } else {
+                    const user = await app.db.models.User.byId(userId)
+                    if (!user || user.suspended) {
+                        throw ValidationError('invalid user')
+                    }
+                    // TODO: consider checking if the user has permission to operate on this channel here or in the command handler.
+                    // For now, we just check the user exists and is not suspended.
+                }
+
+                return true
+            } catch (err) {
+                if (err.name === 'ACLValidationError') {
+                    app.log.warn(`ACL validation error for expert platform topic: ${err.message}`)
+                } else {
+                    app.log.error(`Unexpected error during ACL validation for expert platform topic: ${err.message}`)
+                }
+            }
+            return false
         },
         checkExpertTopic: async function (topicParts, usernameParts, acl) {
             // topicParts = [ fullTopic , <userid>, <sessionid>, <entityType>, <entityId> [, <inflightType>] ]
@@ -217,7 +348,6 @@ module.exports = function (app) {
                         throw ValidationError('team does not exist')
                     } else {
                         teamId = team.id
-                        applicationHash = null // NA
                     }
                 } else {
                     throw ValidationError('invalid entity')
@@ -245,7 +375,7 @@ module.exports = function (app) {
 
                     // if this is an inflight channel messages we must validate the user has appropriate RBAC permission
                     if (isInflight) {
-                        const result = await expertRbacToolCheck(teamMembership, applicationHash, inflightType)
+                        const result = await expertRbacToolCheck(teamMembership, inflightType, applicationHash)
                         if (!result) {
                             throw ValidationError('user does not have permission to access this inflight topic')
                         }
@@ -288,7 +418,9 @@ module.exports = function (app) {
                 // ff/v1/platform/sync
                 { topic: /^ff\/v1\/platform\/sync$/ },
                 // ff/v1/platform/leader
-                { topic: /^ff\/v1\/platform\/leader$/ }
+                { topic: /^ff\/v1\/platform\/leader$/ },
+                // platform can listen for Expert Agent requests
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' }
             ],
             pub: [
                 // Send commands to project launchers
@@ -303,10 +435,21 @@ module.exports = function (app) {
                 // Send commands to all application-assigned devices
                 // - ff/v1/+/a/+/command
                 { topic: /^ff\/v1\/[^/]+\/a\/[^/]+\/command$/ },
+                // Team channel broadcasts to subscribed team members
+                // - ff/v1/<team>/t/updated
+                { topic: /^ff\/v1\/[^/]+\/t\/updated$/ },
+                // - ff/v1/<team>/u/<user>/membership
+                { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/membership$/ },
+                // - ff/v1/<team>/p/<instance>/state
+                { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/state$/ },
+                // - ff/v1/<team>/d/<device>/state
+                { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/state$/ },
                 // ff/v1/platform/sync
                 { topic: /^ff\/v1\/platform\/sync$/ },
                 // ff/v1/platform/leader
-                { topic: /^ff\/v1\/platform\/leader$/ }
+                { topic: /^ff\/v1\/platform\/leader$/ },
+                // platform can respond to Expert Agent requests
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' }
             ]
         },
         project: {
@@ -360,6 +503,20 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/resources\/heartbeat$/, verify: 'checkDeviceIsAssigned' }
             ]
         },
+        // browser-side team channel (per-tab, per-team)
+        teamFrontend: {
+            sub: [
+                // - ff/v1/<team>/t/updated
+                { topic: /^ff\/v1\/([^/]+)\/t\/updated$/, verify: 'checkUserIsTeamMember' },
+                // - ff/v1/<team>/u/<user>/membership
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkUserIsTeamMember' },
+                // - ff/v1/<team>/p/+/state
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/state$/, verify: 'checkTeamStateSub' },
+                // - ff/v1/<team>/d/+/state
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/state$/, verify: 'checkTeamStateSub' }
+            ],
+            pub: []
+        },
         // frontend client (user)
         expertClient: {
             sub: [
@@ -380,12 +537,16 @@ module.exports = function (app) {
         // backend client (agent)
         expertAgent: {
             sub: [
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { user: true, session: true, entity: true }, isAgent: true, isSub: true },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { user: true, session: true, entity: true, inflightType: true }, isAgent: true, isSub: true }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { user: true, session: true, entity: true }, isAgent: true, isSub: true, agent: 'support' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { user: true, session: true, entity: true, inflightType: true }, isAgent: true, isSub: true, agent: 'support' },
+                // Expert agent can listen for platform responses
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isAgent: true, isSub: true, agent: 'platform' }
             ],
             pub: [
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', isAgent: true, isPub: true },
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', isAgent: true, isPub: true, agent: 'support' },
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'support' },
+                // Expert agent can respond to platform requests
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' }
             ]
         }
     }
@@ -397,6 +558,7 @@ module.exports = function (app) {
             // - project:<teamid>:<projectid>
             // - device:<teamid>:<deviceid>
             // - frontend:<teamid>:<deviceid>
+            // - fe-team:<userid>:<teamid>:<sessionid>
             // - expert-client:<userid>:<sessionid>
             // - expert-agent:<userid>:<apiversion>
 
@@ -412,6 +574,8 @@ module.exports = function (app) {
                 aclList = ACLS.project[aclType]
             } else if (/^device:/.test(username)) {
                 aclList = ACLS.device[aclType]
+            } else if (/^fe-team:/.test(username)) {
+                aclList = ACLS.teamFrontend[aclType]
             } else if (/^frontend:/.test(username)) {
                 aclList = ACLS.frontend[aclType]
             } else if (/^expert-agent:/.test(username)) {

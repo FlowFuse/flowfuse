@@ -81,7 +81,7 @@ export default {
             left: 0;
             top: 15px;
             height: 4px;
-            background: $ff-grey-300;
+            background: var(--ff-color-border-strong);
             transform: translateY(-50%);
             z-index: 1;
             display: flex;
@@ -101,7 +101,7 @@ export default {
                 span {
                     width: 1000px;
                     height: 4px;
-                    background: $ff-indigo-600;
+                    background: var(--ff-color-accent);
                     z-index: 3;
                     display: block;
                     right: 0;
@@ -129,21 +129,21 @@ export default {
                 position: relative;
                 width: 20px;
                 height: 20px;
-                background-color: $ff-grey-400;
+                background-color: var(--ff-color-progress-track-neutral);
                 border-radius: 50%;
                 z-index: 2;
                 transition: ease-in-out .3s;
 
                 &.completed {
-                    background-color: $ff-indigo-600;
+                    background-color: var(--ff-color-accent);
                 }
 
                 &.active {
                     transform: scale(1.1);
-                    background-color: $ff-indigo-600;
+                    background-color: var(--ff-color-accent);
 
                     .label {
-                        color: $ff-indigo-700;
+                        color: var(--ff-color-accent-hover);
                     }
                 }
 
@@ -156,7 +156,7 @@ export default {
                     left: 50%;
                     transform: translate(-50%, 150%);
                     font-weight: bold;
-                    color: $ff-grey-300;
+                    color: var(--ff-color-text-disabled);
                     transition: ease-in-out .3s;
                 }
             }

@@ -14,8 +14,8 @@
 
 .ff-info-card-content {
     padding: 6px 12px;
-    background-color: white;
-    border: 1px solid $ff-grey-300;
+    background-color: var(--ff-color-bg-app);
+    border: 1px solid var(--ff-color-border-strong);
 }
 
 .ff-info-card-row {
@@ -25,5 +25,5 @@
 .ff-info-card .ff-info-card-row:not(:last-child) {
     margin-bottom: 6px;
     padding-bottom: 6px;
-    border-bottom: 1px solid $ff-grey-200;
+    border-bottom: 1px solid var(--ff-color-border);
 }

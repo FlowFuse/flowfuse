@@ -1,6 +1,7 @@
 const crypto = require('crypto')
 const sleep = require('util').promisify(setTimeout)
 
+const jwt = require('jsonwebtoken')
 const should = require('should') // eslint-disable-line
 const sinon = require('sinon')
 
@@ -1052,6 +1053,63 @@ describe('Project API', function () {
 @flowfuse-nodes:registry=https://localhost:1234/
 //localhost:1234:_auth="${newToken}"
 `)
+            })
+
+            describe('Extra Catalogues in Certified Nodes Token', function () {
+                it('Should include extra catalogue', async function () {
+                    const authToken = Buffer.from('platform:verySecret').toString('base64')
+                    const jwtCertifiedToken = jwt.sign({
+                        token: authToken,
+                        catalogues: ['https://example.com/cat1.json', 'https://example.com/cat2.json']
+                    }, '', { algorithm: 'none' })
+                    await app.settings.set('platform:ff-npm-registry:token', jwtCertifiedToken)
+
+                    await setTeamFlags(true, true)
+
+                    const projectName = generateProjectName()
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/projects',
+                        payload: {
+                            name: projectName,
+                            applicationId: TestObjects.ApplicationA.hashid,
+                            projectType: TestObjects.projectType1.hashid,
+                            template: TestObjects.template1.hashid,
+                            stack: TestObjects.stack1.hashid
+                        },
+                        cookies: { sid: TestObjects.tokens.alice }
+                    })
+                    response.statusCode.should.equal(200)
+                    const result = response.json()
+
+                    const newProject = await app.db.models.Project.byId(result.id)
+                    const newAccessToken = (await newProject.refreshAuthTokens()).token
+                    const runtimeSettings = (await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/projects/${newProject.id}/settings`,
+                        headers: {
+                            authorization: `Bearer ${newAccessToken}`
+                        }
+                    })).json()
+
+                    const teamHashId = newProject.Team.hashid
+                    const newToken = Buffer.from(`platform/${teamHashId}:verySecret`).toString('base64')
+                    const settings = runtimeSettings.settings
+                    settings.should.have.property('palette')
+                    settings.palette.should.have.property('npmrc')
+                    settings.palette.should.have.property('catalogue')
+                    settings.palette.catalogue.should.containEql('https://localhost/cert-nodes-catalogue.json')
+                    settings.palette.catalogue.should.containEql('https://localhost/ff-nodes-catalogue.json')
+                    settings.palette.catalogue.should.containEql('https://example.com/cat1.json')
+                    settings.palette.catalogue.should.containEql('https://example.com/cat2.json')
+                    settings.palette.should.have.property('npmrc')
+                    settings.palette.npmrc.should.equal(`@flowfuse-certified-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="${newToken}"
+
+@flowfuse-nodes:registry=https://localhost:1234/
+//localhost:1234:_auth="${newToken}"
+`)
+                })
             })
         })
 
@@ -3027,6 +3085,60 @@ describe('Project API', function () {
 
             response.statusCode.should.equal(401)
             response.json().should.have.property('code', 'unauthorized')
+        })
+    })
+
+    describe('Start action — mask clears on failure and crash recovery', async function () {
+        it('recovers a crashed instance on start (mask clears to running)', async function () {
+            const instance = await app.factory.createInstance(
+                { name: generateProjectName() },
+                app.application,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            instance.state = 'crashed'
+            await instance.save()
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${instance.id}/actions/start`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            await instance.reload()
+            instance.state.should.equal('running')
+            should(await app.db.controllers.Project.getInflightState(instance)).be.undefined()
+        })
+
+        it('clears the starting mask when the driver fails to start', async function () {
+            const instance = await app.factory.createInstance(
+                { name: 'stub-fail-start' },
+                app.application,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            instance.state = 'suspended'
+            await instance.save()
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${instance.id}/actions/start`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            // mask is held while starting
+            should(await app.db.controllers.Project.getInflightState(instance)).equal('starting')
+
+            // stub-fail-start rejects ~500ms in; the driver reverts to suspended and the mask must clear
+            // so the instance surfaces its real state rather than hanging on 'starting'
+            await sleep(800)
+            await instance.reload()
+            instance.state.should.equal('suspended')
+            should(await app.db.controllers.Project.getInflightState(instance)).be.undefined()
         })
     })
 

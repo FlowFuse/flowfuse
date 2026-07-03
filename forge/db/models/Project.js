@@ -166,6 +166,11 @@ module.exports = {
                     }
                 }
             },
+            afterSave: async (project, opts) => {
+                if (project.changed('state')) {
+                    await Controllers.Project.publishLiveState(project)
+                }
+            },
             afterDestroy: async (project, opts) => {
                 await M.AccessToken.destroy({
                     where: {
@@ -552,15 +557,23 @@ module.exports = {
                     })
                 },
                 byTeam: async (teamIdOrHash, {
+                    pagination = null,
                     query = null,
                     instanceId = null,
                     includeAssociations = true,
                     includeSettings = false,
                     includeMeta = false,
-                    limit = null,
                     orderByMostRecentFlows = false,
                     excludeApplications = null
                 } = {}) => {
+                    const {
+                        page = null,
+                        limit = null,
+                        offset = null,
+                        sort = null,
+                        dir = 'asc'
+                    } = pagination || {}
+                    const withTotal = page !== null
                     let teamId = teamIdOrHash
                     if (typeof teamId === 'string') {
                         teamId = M.Team.decodeHashid(teamId)
@@ -613,8 +626,31 @@ module.exports = {
                     if (limit !== null) {
                         queryObject.limit = limit
                     }
+                    if (offset !== null) {
+                        queryObject.offset = offset
+                    }
 
-                    if (includeMeta && orderByMostRecentFlows) {
+                    const direction = String(dir).toLowerCase() === 'desc' ? 'DESC' : 'ASC'
+                    if (sort) {
+                        const sortMap = {
+                            name: ['name'],
+                            createdAt: ['createdAt'],
+                            updatedAt: ['updatedAt'],
+                            'application.name': [{ model: M.Application }, 'name'],
+                            flowLastUpdatedAt: [{ model: M.StorageFlow }, 'updatedAt']
+                        }
+                        const mapped = sortMap[sort]
+                        if (mapped) {
+                            // flowLastUpdatedAt needs the StorageFlow include — only valid with includeMeta
+                            if (sort === 'flowLastUpdatedAt' && !includeMeta) {
+                                // fall through to default ordering below
+                            } else {
+                                queryObject.order = [[...mapped, `${direction}${sort === 'flowLastUpdatedAt' ? ' NULLS LAST' : ''}`]]
+                            }
+                        }
+                    }
+
+                    if (!queryObject.order && includeMeta && orderByMostRecentFlows) {
                         queryObject.order = [
                             [literal(`
                                 CASE
@@ -647,6 +683,18 @@ module.exports = {
                         }
                     }
 
+                    if (withTotal) {
+                        const countInclude = [{
+                            model: M.Team,
+                            where: { id: teamId },
+                            attributes: []
+                        }]
+                        const [rows, total] = await Promise.all([
+                            this.findAll(queryObject),
+                            this.count({ where: queryObject.where, include: countInclude, distinct: true, col: 'id' })
+                        ])
+                        return { rows, total }
+                    }
                     return this.findAll(queryObject)
                 },
                 getProjectTeamId: async (id) => {

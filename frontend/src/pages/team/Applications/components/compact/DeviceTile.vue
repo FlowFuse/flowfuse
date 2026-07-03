@@ -1,8 +1,8 @@
 <template>
     <div class="device-tile" data-el="device-tile">
         <div class="status">
-            <StatusBadge v-if="!minimalView" :status="device.status" :instanceId="device.id" instanceType="device" />
-            <InstanceMinimalStatusBadge v-else :status="device.status" />
+            <StatusBadge v-if="!minimalView" :status="localDevice.status" :instanceId="device.id" instanceType="device" />
+            <InstanceMinimalStatusBadge v-else :status="localDevice.status" />
         </div>
         <div class="details">
             <div class="detail-wrapper">
@@ -50,14 +50,19 @@
 </template>
 
 <script>
+import { mapState } from 'pinia'
+
 import FinishSetupButton from '../../../../../components/FinishSetup.vue'
 import StatusBadge from '../../../../../components/StatusBadge.vue'
 import usePermissions from '../../../../../composables/Permissions.js'
 import AuditMixin from '../../../../../mixins/Audit.js'
 import deviceActionsMixin from '../../../../../mixins/DeviceActions.js'
 import FfKebabMenu from '../../../../../ui-components/components/kebab-menu/KebabMenu.vue'
+import { applyLiveState } from '../../../../../utils/applyLiveState.js'
 import DaysSince from '../../../../application/Snapshots/components/cells/DaysSince.vue'
 import InstanceMinimalStatusBadge from '../../../../instance/components/InstanceMinimalStatusBadge.vue'
+
+import { useLiveStatusStore } from '@/stores/live-status'
 
 export default {
     name: 'DeviceTile',
@@ -89,12 +94,30 @@ export default {
         const { hasPermission } = usePermissions()
         return { hasPermission }
     },
+    data () {
+        return {
+            localDevice: this.device
+        }
+    },
     computed: {
+        ...mapState(useLiveStatusStore, { liveDeviceStatuses: 'deviceStatuses' }),
         neverConnected () {
             return !this.device.lastSeenAt
         }
     },
+    watch: {
+        device (newValue) {
+            this.localDevice = newValue
+            this.applyLiveStatus()
+        },
+        liveDeviceStatuses: { handler: 'applyLiveStatus', deep: true }
+    },
     methods: {
+        applyLiveStatus () {
+            const state = this.liveDeviceStatuses[this.localDevice?.id]
+            if (!state || this.localDevice?.status === state) return
+            this.localDevice = applyLiveState(this.localDevice, state, { device: true })
+        },
         shouldDisplayKebabMenu () {
             return this.hasPermission('device:edit') ||
             this.hasPermission('device:delete')

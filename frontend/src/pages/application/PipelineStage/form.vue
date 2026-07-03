@@ -42,7 +42,7 @@
                     label="Remote Instance"
                     :value="StageType.DEVICE"
                     description=""
-                    color="#31959A"
+                    color="var(--ff-palette-teal-700)"
                     :disabled="!allowInstanceSelection"
                     disabledTooltip="Cannot add Remote Instance after a device group"
                 >
@@ -53,7 +53,7 @@
                     label="Device Group"
                     :value="StageType.DEVICEGROUP"
                     description=""
-                    color="#31959A"
+                    color="var(--ff-palette-teal-700)"
                     :disabled="isFirstStage || !allowDeviceGroupSelection"
                     disabledTooltip="Device Groups cannot be the first stage or proceed non Device Group stages"
                 >
@@ -144,7 +144,7 @@
                         Choose Git Token
                     </template>
                     <template #description>
-                        This token is used to authenticate with the GitHub or Azure DevOps API. To manage your tokens, go to <strong>Team Settings -> Integrations</strong>.
+                        This token is used to authenticate with your Git provider. To manage your tokens, go to <strong>Team Settings -> Integrations</strong>.
                     </template>
                 </FormRow>
                 <FormRow
@@ -158,7 +158,7 @@
                         Repository URL
                     </template>
                     <template #description>
-                        Only GitHub and Azure hosted repositories are currently supported.
+                        Supports GitHub, Azure DevOps, and any HTTPS Git server (GitLab, Bitbucket, self-hosted).
                     </template>
                 </FormRow>
                 <FormRow
@@ -659,18 +659,15 @@ export default {
         repoStageHasCredentialSecret () {
             return this.stage.gitRepo?.credentialSecret
         },
+        selectedGitTokenType () {
+            const tok = this.gitTokens.find(t => t.value === this.input.gitTokenId)
+            return tok?.type
+        },
         gitPlaceholder () {
-            if (this.input.gitTokenId) {
-                for (const i in this.gitTokens) {
-                    const tok = this.gitTokens[i]
-                    if (tok.value === this.input.gitTokenId) {
-                        if (tok.type === 'github') {
-                            return 'e.g. https://github.com/[org]/[repo]'
-                        } else if (tok.type === 'azure') {
-                            return 'e.g. https://dev.azure.com/[org]/_git/[repo]'
-                        }
-                    }
-                }
+            if (this.selectedGitTokenType === 'azure') {
+                return 'e.g. https://dev.azure.com/[org]/_git/[repo]'
+            } else if (this.selectedGitTokenType === 'generic') {
+                return 'e.g. https://git.example.com/org/repo.git'
             }
             return 'e.g. https://github.com/[org]/[repo]'
         }
@@ -685,14 +682,11 @@ export default {
             // If not, reset to the stages original action (if available)
             this.input.action = this.stage?.action && this.actionOptions.some((option) => option.value === this.stage.action) ? this.stage.action : null
         },
-        'input.url' (newUrl, oldUrl) {
-            if (newUrl === '') {
-                this.errors.url = ''
-            } else if (!/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(newUrl) && !/^https:\/\/dev\.azure\.com\/[^/]+\/_git\/[^/]+$/.test(newUrl)) {
-                this.errors.url = 'Please enter a valid GitHub or Azure DevOps repository URL'
-            } else {
-                this.errors.url = ''
-            }
+        'input.url' () {
+            this.validateGitUrl()
+        },
+        'input.gitTokenId' () {
+            this.validateGitUrl()
         },
         'input.pushPath' (newPushPath, oldPushPath) {
             if (newPushPath === '' && this.isFirstStage) {
@@ -726,6 +720,19 @@ export default {
         this.original.deviceGroupId = this.input.deviceGroupId
     },
     methods: {
+        validateGitUrl () {
+            const url = this.input.url
+            const type = this.selectedGitTokenType
+            if (url === '') {
+                this.errors.url = ''
+            } else if (type === 'github' || type === 'azure') {
+                this.errors.url = (/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(url) || /^https:\/\/dev\.azure\.com\/[^/]+\/_git\/[^/]+$/.test(url))
+                    ? ''
+                    : 'Please enter a valid GitHub or Azure DevOps repository URL'
+            } else {
+                this.errors.url = /^https:\/\//i.test(url) ? '' : 'Please enter a valid HTTPS repository URL'
+            }
+        },
         async submit () {
             this.loading.creating = !this.isEdit
             this.loading.updating = this.isEdit

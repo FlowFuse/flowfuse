@@ -148,7 +148,7 @@ export default {
 
 <style lang="scss" scoped>
 textarea:disabled {
-  background-color: $ff-white;
+  background-color: var(--ff-color-bg-app);
   opacity: .9;
   -webkit-appearance: none;
   -moz-appearance: none;

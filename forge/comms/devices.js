@@ -8,6 +8,7 @@ const { v4: uuidv4 } = require('uuid')
 
 const noop = () => {}
 const DEFAULT_TIMEOUT = 10000
+const { filterAccessibleMCPServerFeatures } = require('../services/expert.js')
 
 // declare command and response monitor types (and freeze them)
 const CommandMonitorTemplate = {
@@ -37,6 +38,21 @@ Object.freeze(CommandMessageTemplate)
 
 /** @typedef {typeof CommandMonitorTemplate} ResponseMonitor */
 /** @typedef {typeof CommandMessageTemplate} CommandMessage */
+/**
+ * @typedef MCPServerDetails
+ * @property {any} team - team
+ * @property {any} application - application
+ * @property {any} instance - instance
+ * @property {any} instanceName - instanceName
+ * @property {any} instanceType - instanceType
+ * @property {any} mcpServer - mcpServer
+ * @property {any} mcpServerName - mcpServerName
+ * @property {any} mcpEndpoint - mcpEndpoint
+ * @property {any} mcpServerNameUnique - mcpServerNameUnique
+ * @property {any} mcpServerDescription - mcpServerDescription
+ * @property {any} mcpServerTitle - mcpServerTitle
+ * @property {any} mcpServerVersion - mcpServerVersion
+ */
 
 /**
  * DeviceCommsHandler
@@ -63,6 +79,145 @@ class DeviceCommsHandler {
         // Listen for any incoming device status events
         client.on('status/device', (status) => { this.handleStatus(status) })
         client.on('response/device', (response) => { this.handleCommandResponse(response) })
+
+        // Handle expert inflight requests sent from the FF Expert Agent - intended for an MCP server on a specific remote instance
+        client.on('request/device/expert/insight', async (userId, command, /** @type {MCPServerDetails} */ mcpServer, mcpDefinitionKind, mcpDefinition, data, onSuccess, onError) => {
+            // MCP ROUTE: step 2 (remote)
+            // Called By: an MQTT inflight message (from the Expert Agent)
+            // Calls To : device agent via the established command channel (sendCommandAwaitReply)
+
+            const { team: teamId, application: applicationId, instance: instanceId, instanceType, mcpServer: mcpServerId } = mcpServer
+            const isToolCall = command === 'mcp:call-tool'
+            const isResourceCall = command === 'mcp:read-resource' && mcpDefinitionKind === 'mcp_resource'
+            const isResourceTemplateCall = command === 'mcp:read-resource' && mcpDefinitionKind === 'mcp_resource_template'
+            const toolDefinition = isToolCall ? mcpDefinition : null
+            const resourceDefinition = isResourceCall ? mcpDefinition : null
+            const resourceTemplateDefinition = isResourceTemplateCall ? mcpDefinition : null
+
+            try {
+                // Premise:
+                // The incoming request contains information to call an MCP tool/resource on a specific instance.
+                // 1. Check that the for the MCP server supplied, the user has access (application level)
+                // 2. Check that the for the MCP server feature being performed (tool/resource/resource_template), that the user has access to (feature level)
+                // 3. Re-resolve the MCP server against the team's trusted MCP registry, verify
+                //    instance/application ownership, and get/create access tokens as needed based on the
+                //    instance node security settings
+
+                // first pass - basic sanity checks, picking up associated models for the user, team membership, etc
+                if (!teamId || !applicationId || !instanceId || !mcpServerId || instanceType !== 'device') {
+                    return onError('Invalid MCP request - missing required fields', 'MCP_INVALID_REQUEST')
+                }
+
+                if (typeof instanceId !== 'string') {
+                    return onError('Invalid instance ID', 'MCP_INVALID_INSTANCE_ID')
+                }
+
+                const instance = await this.app.db.models.Device.byId(instanceId)
+                if (!instance) {
+                    return onError('Invalid instance', 'MCP_INVALID_INSTANCE')
+                }
+
+                // get associated db models for the user and team membership
+                // reload the trusted registration and ensure it is still valid for this team and instance
+                const registration = await app.db.models.MCPRegistration.byId(mcpServerId)
+                if (!registration) {
+                    return onError('No MCP registration found', 'MCP_NO_REGISTRATION')
+                }
+
+                const application = instance.Application
+                await application.reload({ attributes: ['TeamId'] })
+                const team = instance.Team
+
+                const teamOk = team.hashid === teamId && application.TeamId === team.id && registration.TeamId === team.id
+                const applicationOk = application.hashid === applicationId && instance.ApplicationId === application.id
+                const instanceOk = registration.targetId === instance.id.toString() && registration.targetType === instanceType
+
+                if (!teamOk || !applicationOk || !instanceOk) {
+                    return onError('Invalid team, application, or instance', 'MCP_INVALID_TEAM_APPLICATION_INSTANCE')
+                }
+
+                const serverEntry = {
+                    application,
+                    server: {
+                        ...mcpServer,
+                        tools: toolDefinition ? [toolDefinition] : [],
+                        resources: resourceDefinition ? [resourceDefinition] : [],
+                        resourceTemplates: resourceTemplateDefinition ? [resourceTemplateDefinition] : []
+                    }
+                }
+                const user = await app.db.models.User.byId(userId)
+                if (!user || user.hashid !== userId) {
+                    return onError('Invalid user', 'MCP_INVALID_USER')
+                }
+                const existingRole = await user.getTeamMembership(teamId)
+                const accessibleServers = filterAccessibleMCPServerFeatures(app, [serverEntry], team, existingRole)
+                const accessibleServer = accessibleServers.find(s => s.mcpServer === mcpServerId)
+                if (!accessibleServer) {
+                    return onError('User does not have access to MCP server', 'MCP_NO_ACCESS')
+                }
+
+                const commandData = {
+                    kind: mcpDefinitionKind,
+                    endpoint: null // updated below after checks and other data is appended
+                }
+
+                // Prepare command data based on the type of MCP call (tool, resource, or resource template)
+                if (isToolCall) {
+                    const accessibleTool = accessibleServer.tools.find(t => t.name === data.name)
+                    if (!accessibleTool) {
+                        return onError('User does not have access to MCP tool', 'MCP_NO_ACCESS_TOOL')
+                    }
+                    commandData.name = data.name
+                    commandData.input = data.input
+                } else if (isResourceCall) {
+                    const accessibleResource = accessibleServer.resources.find(r => r.uri === resourceDefinition.uri)
+                    if (!accessibleResource) {
+                        return onError('User does not have access to MCP resource', 'MCP_NO_ACCESS_RESOURCE')
+                    }
+                    commandData.uri = data.uri
+                } else if (isResourceTemplateCall) {
+                    const accessibleResourceTemplate = accessibleServer.resourceTemplates.find(r => r.uriTemplate === resourceTemplateDefinition.uriTemplate)
+                    if (!accessibleResourceTemplate) {
+                        return onError('User does not have access to MCP resource template', 'MCP_NO_ACCESS_RESOURCE_TEMPLATE')
+                    }
+                    // Prepare the commandData for the resource template call, including resolving the final URI from the template and input values
+                    // NOTE: The Expert Agent will typically unfurl the template and provide a fully resolved URI, but if it is not provided (or contains
+                    // placeholders), we will compute it below using the template and input values
+                    commandData.uri = data.uri
+                    commandData.uriTemplate = data.uriTemplate
+                    commandData.input = data.input
+                    if ((!commandData.uri || /\{([^}]+)\}/.test(commandData.uri))) {
+                        // compute the final URI by replacing placeholders in the template with input values
+                        const template = data.uriTemplate || commandData.uri
+                        const input = data.input || {}
+                        commandData.uri = template.replace(/\{([^}]+)\}/g, (match, key) => {
+                            const cleanKey = key.replace(/[*?]/g, '') // strip RFC6570 modifiers e.g. {var*} or {var?} to get the clean key for input lookup
+                            return input[cleanKey] !== undefined ? encodeURIComponent(input[cleanKey]) : match
+                        })
+                    }
+                } else {
+                    return onError('Invalid MCP command', 'MCP_INVALID_COMMAND')
+                }
+
+                // update the endpoint with the resolved access token for the instance and team
+                const teamType = await instance.Team.getTeamType()
+                const teamHttpSecurityFeature = !!teamType.properties.features?.teamHttpSecurity
+                commandData.endpoint = {
+                    mcpEndpoint: mcpServer.mcpEndpoint,
+                    headers: mcpServer.headers || {},
+                    accessToken: await app.expert.mcp.getOrCreateToken(instance, mcpServer.instanceType, instanceId, teamHttpSecurityFeature) || null
+                }
+
+                try {
+                    const result = await this.sendCommandAwaitReply(teamId, instanceId, command, commandData, { timeout: 30000 })
+                    onSuccess(result)
+                } catch (err) {
+                    return onError(`An error occurred performing insight request: ${err.message}`, 'MCP_INSIGHT_REQUEST_ERROR', err)
+                }
+            } catch (err) {
+                return onError(`Error handling expert insights inflight request: ${err.message}`, 'MCP_INSIGHT_REQUEST_ERROR', err)
+            }
+        })
         client.on('logs/heartbeat', (beat) => {
             this.deviceLogHeartbeats[beat.id] = beat.timestamp
         })
@@ -121,6 +276,7 @@ class DeviceCommsHandler {
             const teamId = this.app.db.models.Team.encodeHashid(device.TeamId)
             const startTime = Date.now()
             try {
+                const previousState = device.state
                 const payload = JSON.parse(status.status)
                 await this.app.db.controllers.Device.updateState(device, payload)
 
@@ -128,6 +284,11 @@ class DeviceCommsHandler {
                     // This device is busy updating - don't interrupt it
                     this.app.log.info({ msg: 'Device status update - null status', device: deviceId, team: teamId, responseTime: Date.now() - startTime })
                     return
+                }
+
+                const maskTransientStop = previousState === 'restarting' && payload.state === 'stopped'
+                if (!maskTransientStop && payload.state !== previousState) {
+                    this.app.comms.team.notifyDeviceState(teamId, status.id, payload.state)
                 }
 
                 // If the status state===unknown, the device is waiting for confirmation
@@ -315,8 +476,8 @@ class DeviceCommsHandler {
      * @param {String} deviceId The device Id
      * @param {String} command The command to send to the device
      * @param {Object} payload The payload to send to the device
-     * @param {Object} options Options
-     * @param {Number} options.timeout The timeout in milliseconds to wait for a response
+     * @param {Object} routingOptions Options
+     * @param {Number} [routingOptions.timeout=DEFAULT_TIMEOUT] The timeout in milliseconds to wait for a response
      * @returns {Promise<Any>} The response payload
      * @see handleCommandResponse
      */

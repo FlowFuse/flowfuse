@@ -151,7 +151,7 @@ export default {
         gap: 5px;
 
         .icon {
-            color: $ff-indigo-700;
+            color: var(--ff-color-accent-hover);
         }
 
         .counter {
@@ -161,7 +161,7 @@ export default {
 
         &:after {
             height: 2px;
-            background: $ff-grey-200;
+            background: var(--ff-color-bg-emphasis);
             content: '';
             flex: 1;
             align-self: center;
@@ -169,7 +169,7 @@ export default {
 
         .text {
             &:focus {
-                outline: 2px solid $ff-indigo-700;
+                outline: 2px solid var(--ff-color-accent-hover);
                 outline-offset: 2px;
             }
         }
@@ -202,14 +202,14 @@ export default {
                 }
 
                 &:focus {
-                    background: $ff-indigo-50;
+                    background: var(--ff-color-accent-surface);
                     border: none;
                     outline: none;
                 }
             }
 
             &:hover {
-                background: $ff-indigo-50;
+                background: var(--ff-color-accent-surface);
             }
 
             &.show-more {
@@ -223,7 +223,7 @@ export default {
                     opacity: .6;
 
                     &:focus {
-                        background: $ff-indigo-50;
+                        background: var(--ff-color-accent-surface);
                         border: none;
                         outline: none;
                     }

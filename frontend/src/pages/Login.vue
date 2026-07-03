@@ -1,7 +1,7 @@
 <template>
     <ff-layout-box class="ff-login">
         <div v-if="!appLoader" data-form="login">
-            <ff-loading v-if="loggingIn" message="Logging in..." color="white" />
+            <ff-loading v-if="loggingIn" message="Logging in..." />
             <template v-else-if="!mfaRequired">
                 <label>Username / E-Mail</label>
                 <ff-text-input
@@ -259,7 +259,8 @@ export default {
             }
         },
         async directSSO (id) {
-            window.location = `/ee/sso/login?p=${id}${this.$route.query.r ? `&r=${this.$route.query.r}` : ''}`
+            const matched = this.redirectUrlAfterLogin.match(/^\/account\/request\/([a-zA-Z0-9\-_]+)(\/editor)?$/)
+            window.location = `/ee/sso/login?p=${id}${this.$route.query.r ? `&r=${this.$route.query.r}` : ''}${matched?.[1] ? `&t=${matched[1]}` : ''}`
         }
     }
 }

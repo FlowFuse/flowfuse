@@ -67,7 +67,7 @@ export default {
 .section-title {
     font-size: 1rem; // text-base
     font-weight: 500; // font-medium
-    color: #111827; // text-gray-900
+    color: var(--ff-color-text-strong); // text-gray-900
     margin: 0 0 0.75rem 0; // mb-3
 }
 

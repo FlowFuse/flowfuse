@@ -312,15 +312,15 @@ export default {
         border: none;
 
         &--button {
-            background: $ff-white;
+            background: var(--ff-color-bg-app);
             border: none;
-            border-bottom: 1px solid $ff-color--border;
+            border-bottom: 1px solid var(--ff-color-border);
         }
 
         &--content {
             & > div {
                 &:nth-child(odd) {
-                    background: $ff-grey-50;
+                    background: var(--ff-color-bg-surface);
                 }
 
                 .ff-audit-entry {
