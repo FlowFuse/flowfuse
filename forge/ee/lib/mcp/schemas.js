@@ -34,4 +34,42 @@ const auditLogFilters = {
 const paginationParams = { ...basePagination, ...searchQuery, ...sortParams }
 const auditLogQuery = { ...paginationParams, ...auditLogFilters }
 
-module.exports = { basePagination, searchQuery, sortParams, auditLogFilters, paginationParams, auditLogQuery }
+// Field-name lists for each fragment, so a tool can serialise exactly the query
+// params its route supports without re-listing them.
+const basePaginationKeys = Object.keys(basePagination)
+const paginationParamsKeys = Object.keys(paginationParams)
+const auditLogQueryKeys = Object.keys(auditLogQuery)
+
+// Serialise the given query fields from args onto a url. The single place every
+// read tool builds a query string: only defined values are included, values are
+// URL-encoded, and an array value (e.g. multiple audit event names) is appended
+// once per element.
+function appendQuery (url, args, keys) {
+    const params = new URLSearchParams()
+    for (const key of keys) {
+        const value = args[key]
+        if (value === undefined || value === null) {
+            continue
+        }
+        if (Array.isArray(value)) {
+            value.forEach(v => params.append(key, v))
+        } else {
+            params.append(key, value)
+        }
+    }
+    const queryString = params.toString()
+    return queryString ? `${url}?${queryString}` : url
+}
+
+module.exports = {
+    basePagination,
+    searchQuery,
+    sortParams,
+    auditLogFilters,
+    paginationParams,
+    auditLogQuery,
+    basePaginationKeys,
+    paginationParamsKeys,
+    auditLogQueryKeys,
+    appendQuery
+}
