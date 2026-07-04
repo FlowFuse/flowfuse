@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import JsonViewer from './JsonViewer.vue'
+import JsonViewer from '@/components/JsonViewer.vue'
 
 export default {
     name: 'ToolApprovalCard',
