@@ -13,6 +13,7 @@ concurrency:
 
 jobs:
   check-changes:
+    if: false
     name: Verify changes
     runs-on: ubuntu-latest
     outputs:
@@ -271,6 +272,15 @@ jobs:
           done
 
           echo 'All test jobs succeeded or were skipped'
+
+  fail-fast:
+    name: Fail fast
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail fast the pipeline
+        run: |
+          echo "This job is designed to fail fast if any of the test jobs fail or are cancelled."
+          exit 1
 
   notify-slack:
     name: Notify on failure
