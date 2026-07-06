@@ -52,7 +52,11 @@ const IMPLICIT_TOKEN_SCOPES = {
         'stack:list',
         'flow-blueprint:list',
         'project:status',
-        'template:list'
+        'template:list',
+        // device groups
+        'application:device-group:list', // list application device groups
+        'application:device-group:read', // get application device group
+        'team:device-group:list' // list team device groups
     ]
 }
 
