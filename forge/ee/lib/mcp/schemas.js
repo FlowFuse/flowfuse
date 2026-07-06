@@ -1,5 +1,16 @@
 const { z } = require('zod')
 
+// Entity-ID params, imported by the tools so every tool names a given resource
+// with one canonical field, validator and wording. Hosted instances are Projects
+// (UUID primary key); teams, applications, devices and snapshots use hashids. A
+// device and a remote instance are the same entity, so both use remoteInstanceId.
+// Each tool's own description explains how it uses the id, so these stay generic.
+const teamId = z.string().describe('The ID or hashid of the team')
+const applicationId = z.string().describe('The ID or hashid of the application')
+const hostedInstanceId = z.string().uuid().describe('The UUID of the hosted instance')
+const remoteInstanceId = z.string().describe('The ID or hashid of the remote instance')
+const snapshotId = z.string().describe('The hashid of the snapshot')
+
 // Shared query fragments, imported by the tools/*.js files. Compose per route:
 // spread basePagination, then add searchQuery / sortParams / auditLogFilters only
 // when the backing route supports those params, so a tool never advertises a
@@ -62,6 +73,11 @@ function appendQuery (url, args, keys) {
 }
 
 module.exports = {
+    teamId,
+    applicationId,
+    hostedInstanceId,
+    remoteInstanceId,
+    snapshotId,
     basePagination,
     searchQuery,
     sortParams,

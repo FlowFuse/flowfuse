@@ -3,6 +3,11 @@ const should = require('should') // eslint-disable-line no-unused-vars
 const FF_UTIL = require('flowforge-test-utils')
 
 const {
+    teamId,
+    applicationId,
+    hostedInstanceId,
+    remoteInstanceId,
+    snapshotId,
     basePagination,
     paginationParams,
     auditLogQuery,
@@ -13,6 +18,18 @@ const {
 } = FF_UTIL.require('forge/ee/lib/mcp/schemas')
 
 describe('MCP shared query schemas', function () {
+    describe('entity-id params', function () {
+        it('hashid params accept any non-empty string', function () {
+            for (const param of [teamId, applicationId, remoteInstanceId, snapshotId]) {
+                param.parse('aBc123').should.equal('aBc123')
+            }
+        })
+        it('hostedInstanceId accepts a UUID and rejects a hashid', function () {
+            hostedInstanceId.parse('4f8c1e2a-1b2c-4d3e-8f90-abcdef123456').should.be.a.String()
+            hostedInstanceId.safeParse('aBc123').success.should.equal(false)
+        })
+    })
+
     describe('fragment composition', function () {
         it('basePagination exposes only cursor/limit/page', function () {
             basePaginationKeys.should.eql(['cursor', 'limit', 'page'])

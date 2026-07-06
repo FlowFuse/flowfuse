@@ -7,6 +7,27 @@ const EXPERT_MCP_PLATFORM_OWNER_TYPE = 'user:expert-mcp'
 // production (forge/ee/lib/expert/index.js). It must be nameless: a named token
 // has request.session.scope deleted (the #7446 temp hack), which would skip the
 // IMPLICIT_TOKEN_SCOPES['user:expert-mcp'] allow-list check we want to exercise.
+// Binds a finder to a tool module's exported array; findTool(name) returns the
+// named tool and asserts it exists.
+function toolFinder (tools) {
+    return (name) => {
+        const tool = tools.find(t => t.name === name)
+        should.exist(tool)
+        return tool
+    }
+}
+
+// A stub inject that records every call and hands back a canned response, so a
+// handler's request wiring can be asserted without a running app.
+function recordingInject (response = { statusCode: 200, json: () => ({}) }) {
+    const calls = []
+    const inject = async (options) => {
+        calls.push(options)
+        return response
+    }
+    return { calls, inject }
+}
+
 async function createExpertMcpToken (app, user = app.user) {
     const { token } = await app.db.controllers.AccessToken.createTokenForUser(
         user,
@@ -44,4 +65,4 @@ async function expectToolMatchesRoute (inject, tool, args, { method, url, payloa
     return { viaTool, routeResponse }
 }
 
-module.exports = { expectToolMatchesRoute, createExpertMcpToken }
+module.exports = { expectToolMatchesRoute, createExpertMcpToken, toolFinder, recordingInject }
