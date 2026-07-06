@@ -59,7 +59,7 @@ module.exports = {
                         }
                     })
                 },
-                getTeamsForUser: async (userId, includeTeam) => {
+                getTeamsForUser: async (userId, includeTeam = false) => {
                     if (typeof userId === 'string') {
                         userId = M.User.decodeHashid(userId)
                     }
