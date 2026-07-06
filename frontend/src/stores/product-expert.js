@@ -212,6 +212,10 @@ export const useProductExpertStore = defineStore('product-expert', {
                 agentStore.sessionExpiredShown = false
             }
 
+            // A new message supersedes any pending approval cards; the agent cancels the
+            // abandoned tool calls next turn, so dismiss the cards now.
+            this.cancelPendingToolApprovals('cancelled')
+
             // Add user message
             this.addUserMessage(query)
 
@@ -564,16 +568,15 @@ export const useProductExpertStore = defineStore('product-expert', {
                 agentStore.abortController = null
             }
         },
-        // Abandon the open approval batch (chat stop / Start Over). The agent already left
-        // memory when it deferred, so there is nothing to unblock — just mark any unanswered
-        // card denied so it stops looking pending, and drop the batch (#421). If the user
-        // later sends a new message the agent self-heals the abandoned tool calls.
-        cancelPendingToolApprovals () {
+        // Abandon the open approval batch (chat stop / Start Over / new message): mark any
+        // unanswered card with the given outcome so it stops looking pending, and drop the
+        // batch. A new message passes 'cancelled'; stop/Start Over keep 'denied'.
+        cancelPendingToolApprovals (status = 'denied') {
             const batch = this._approvalBatch
             if (!batch) return
             const permStore = useProductAssistantStore()
             for (const id of Object.keys(batch.toolKeys)) {
-                if (!(id in batch.decisions)) permStore.setToolApprovalStatus(id, 'denied')
+                if (!(id in batch.decisions)) permStore.setToolApprovalStatus(id, status)
             }
             this._approvalBatch = null
         },
