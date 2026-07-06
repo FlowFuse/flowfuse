@@ -48,6 +48,8 @@ const IMPLICIT_TOKEN_SCOPES = {
         // teams
         'user:team:list', // list teams
         'team:read', // get team details
+        // search
+        'team:search', // search team resources, search team instances
         // platform
         'stack:list',
         'flow-blueprint:list',
