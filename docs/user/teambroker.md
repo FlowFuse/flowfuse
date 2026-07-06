@@ -6,18 +6,9 @@ navTitle: Team Broker
 
 When FlowFuse is deployed with an Enterprise license from v2.11.0 onwards comes with the option to enable a MQTT broker for each Team.
 
-This is a single shared MQTT broker, but each team has their own separate topic space and the ability to provision credentials for clients.
+This is a single shared MQTT broker, but each team has their own separate topic space and the ability to provision credentials for clients. It removes the need to install and manage a broker of your own.
 
-## What the Team Broker is
-
-The Team Broker removes the need to install and operate a separate MQTT broker to move
-data between devices, Node-RED instances and other clients: the broker is provided and
-managed by the platform itself. It is not replaceable with a customer-supplied broker
-(self-hosted details in [MQTT Broker configuration](/docs/install/configuration.md#mqtt-broker-configuration)).
-
-If your company already operates its own MQTT broker, that broker can still be connected
-to FlowFuse as an external broker to browse its topic hierarchy alongside the Team
-Broker, and Node-RED instances can connect to it directly as a regular MQTT client.
+If your company already operates its own MQTT broker, that broker can also be connected to FlowFuse as an external broker to browse its topic hierarchy alongside the Team Broker.
 
 ## Foreword
 FlowFuse offers zero config MQTT integration with the Team Broker via the [FlowFuse MQTT Nodes](/docs/user/mqtt-nodes/) that greatly simplifies the whole process by removing the need for manual configuration.

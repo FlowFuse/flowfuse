@@ -92,7 +92,7 @@ Before you begin, ensure you have the following:
      - [Digital Ocean](digital-ocean.md)
      - MicroK8s
 5. **Ingress Controller:** [The Traefik](https://doc.traefik.io/traefik/) installed on the cluster.
-6. **EMQX Operator:** This is required to install the platform's MQTT broker when the broker is enabled. The broker provides device and instance communication, the Team Broker, and FlowFuse Expert. Instructions for installing the operator can be found [here](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator)
+6. **EMQX Operator:** This is required to install the platform's MQTT broker when the broker is enabled. Instructions for installing the operator can be found [here](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator)
 
 For a production-ready environment, we also recommend: 
 * **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)

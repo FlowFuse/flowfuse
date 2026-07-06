@@ -218,11 +218,9 @@ This is currently an *optional* component - the platform will work without the
 broker, but some features will not be available:
 
 - Without a broker: Project Nodes, Device Actions and Remote Device Editing are unavailable.
-- The following features additionally require the platform broker to be EMQX, as they
-  rely on EMQX-specific capabilities (its authentication hooks, per-team topic
-  namespacing and management API): the [Team Broker](/docs/user/teambroker.md),
-  [FlowFuse Expert](/docs/user/expert/) and live device log and performance views
-  in the platform UI.
+- The following features additionally require the platform broker to be EMQX:
+  the [Team Broker](/docs/user/teambroker.md), [FlowFuse Expert](/docs/user/expert/)
+  and live device log and performance views in the platform UI.
 
 [Mosquitto](https://mosquitto.org/) is supported at a legacy level for existing
 installations that manage their own broker: core platform messaging works, but the
