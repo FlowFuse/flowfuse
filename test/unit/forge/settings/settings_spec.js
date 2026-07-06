@@ -17,7 +17,7 @@ describe('Platform Settings', function () {
     describe('read settings', function () {
         it('read default value', async function () {
             const value = app.settings.get('telemetry:enabled')
-            value.should.equal(true)
+            value.should.equal(false)
         })
     })
     describe('update settings', function () {
