@@ -9,11 +9,13 @@ const {
     remoteInstanceId,
     snapshotId,
     basePagination,
-    paginationParams,
-    auditLogQuery,
+    cursorParamKeys,
+    limitParamKeys,
     basePaginationKeys,
-    paginationParamsKeys,
-    auditLogQueryKeys,
+    pageParamKeys,
+    searchQueryKeys,
+    sortParamsKeys,
+    auditLogFilterKeys,
     appendQuery
 } = FF_UTIL.require('forge/ee/lib/mcp/schemas')
 
@@ -31,19 +33,19 @@ describe('MCP shared query schemas', function () {
     })
 
     describe('fragment composition', function () {
-        it('basePagination exposes only cursor/limit/page', function () {
-            basePaginationKeys.should.eql(['cursor', 'limit', 'page'])
+        it('basePagination is cursor plus limit only (no page)', function () {
+            basePaginationKeys.should.eql(['cursor', 'limit'])
         })
-        it('paginationParams is basePagination plus search and sort fields', function () {
-            paginationParamsKeys.should.eql(['cursor', 'limit', 'page', 'query', 'sort', 'dir', 'order'])
+        it('page, search and sort are separate opt-in fragments', function () {
+            cursorParamKeys.should.eql(['cursor'])
+            limitParamKeys.should.eql(['limit'])
+            pageParamKeys.should.eql(['page'])
+            searchQueryKeys.should.eql(['query'])
+            sortParamsKeys.should.eql(['sort', 'dir'])
+            auditLogFilterKeys.should.eql(['event', 'username'])
         })
-        it('auditLogQuery is paginationParams plus the audit filters', function () {
-            auditLogQueryKeys.should.eql(['cursor', 'limit', 'page', 'query', 'sort', 'dir', 'order', 'event', 'username'])
-        })
-        it('key lists match the shape objects they describe', function () {
+        it('key list matches the shape object it describes', function () {
             basePaginationKeys.should.eql(Object.keys(basePagination))
-            paginationParamsKeys.should.eql(Object.keys(paginationParams))
-            auditLogQueryKeys.should.eql(Object.keys(auditLogQuery))
         })
     })
 
@@ -55,19 +57,19 @@ describe('MCP shared query schemas', function () {
             appendQuery('/api/v1/x', { teamId: 'abc' }, basePaginationKeys).should.equal('/api/v1/x')
         })
         it('serialises only the defined, supported params', function () {
-            appendQuery('/api/v1/x', { limit: 10, page: 2, cursor: undefined }, basePaginationKeys)
+            appendQuery('/api/v1/x', { limit: 10, page: 2, cursor: undefined }, [...basePaginationKeys, ...pageParamKeys])
                 .should.equal('/api/v1/x?limit=10&page=2')
         })
         it('url-encodes values', function () {
-            appendQuery('/api/v1/x', { query: 'a b&c' }, paginationParamsKeys)
+            appendQuery('/api/v1/x', { query: 'a b&c' }, searchQueryKeys)
                 .should.equal('/api/v1/x?query=a+b%26c')
         })
         it('appends an array value once per element', function () {
-            appendQuery('/api/v1/x', { event: ['flows.created', 'flows.deleted'] }, auditLogQueryKeys)
+            appendQuery('/api/v1/x', { event: ['flows.created', 'flows.deleted'] }, auditLogFilterKeys)
                 .should.equal('/api/v1/x?event=flows.created&event=flows.deleted')
         })
         it('skips null and undefined but keeps other values', function () {
-            appendQuery('/api/v1/x', { limit: null, page: 1 }, basePaginationKeys)
+            appendQuery('/api/v1/x', { limit: null, page: 1 }, [...basePaginationKeys, ...pageParamKeys])
                 .should.equal('/api/v1/x?page=1')
         })
     })
