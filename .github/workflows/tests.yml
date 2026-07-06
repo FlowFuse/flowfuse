@@ -306,7 +306,7 @@ jobs:
               ] } ] },
               { "type": "divider" },
               { "type": "section", "fields": [
-                { "type": "mrkdwn", "text": "*Author:* ${{ github.event_name == 'pull_request' && github.actor || '{{MENTION}}' }}" },
+                { "type": "mrkdwn", "text": "*Author:* ${{ github.event_name != 'pull_request' && github.actor || '{{MENTION}}' }}" },
                 { "type": "mrkdwn", "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View failed workflow>" },
                 { "type": "mrkdwn", "text": "${{ format('*Last commit:* <{0}/{1}/commit/{2}|{2}>', github.server_url, github.repository, github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha) }}" },
                 { "type": "mrkdwn", "text": "${{ github.event_name == 'pull_request' && format('*Pull request:* <{0}/{1}/pull/{2}|{2}>', github.server_url, github.repository, github.event.pull_request.number) || format('*Branch:* {0}', github.ref_name) }}" }
