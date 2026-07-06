@@ -113,37 +113,6 @@ Option        | Description
 `driver.options.customHostname.ingressClass` | The name of the Ingress Class that should be used for the custom hostname. Default: not set
 `driver.options.customHostname.certManagerIssuer` | The name of the CertManager ClusterIssuer to provision HTTPS certificates for custom hostnames. Default: not set
 
-## MQTT Broker configuration
-
-The platform uses an MQTT broker to provide real-time messaging between devices,
-Node-RED instances and the platform. The broker shipped with the platform's
-Docker Compose and Kubernetes installations is [EMQX](https://www.emqx.io/): the
-Docker Compose installation includes it by default, and the Helm chart deploys it
-when the broker is enabled (`forge.broker.enabled`), which requires the
-[EMQX Operator](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator)
-to be installed on the cluster.
-
-Running without a broker restricts what features are available:
-
-- Without a broker: Project Nodes, Device Actions and Remote Device Editing are unavailable.
-- The following features additionally require the platform broker to be EMQX, as they
-  rely on EMQX-specific capabilities (its authentication hooks, per-team topic
-  namespacing and management API): the [Team Broker](/docs/user/teambroker.md),
-  [FlowFuse Expert](/docs/user/expert/) and live device log and performance views
-  in the platform UI.
-
-[Mosquitto](https://mosquitto.org/) is supported at a legacy level for existing
-installations: core platform messaging works, but the EMQX-dependent features listed
-above are unavailable. Replacing the platform broker with a different customer-supplied
-broker is not supported.
-
-If a broker has been setup in the platform, the following configuration is required:
-
-Option        | Description
---------------|------------
-`broker.url`  | The full url to the platform broker. This is used by the platform and Node-RED instances to connect to the broker. For example: `mqtt://localhost:4800`.
-`broker.public_url` | The url used by devices to connect to the broker, if different to `broker.url`. When running in a Docker or Kubernetes environment, this should be the externally addressable url of the broker, and may require devices to use WebSockets instead. For example: `ws://example.com:4881`.
-
 ## Email configuration
 
 By default, email is disabled. This restricts some features in the platform around
@@ -234,6 +203,36 @@ Option        | Description
 `support.enabled` | Enables the chat support widget in the UI. Default: `false`
 `support.frontend.hubspot.trackingcode` | The numerical identifier within your [HubSpot Tracking Code](https://knowledge.hubspot.com/conversations/chat-widget-is-not-appearing-on-your-pages). Default: `null`
 
+
+## MQTT Broker configuration
+
+The platform uses an MQTT broker to provide real-time messaging between devices,
+Node-RED instances and the platform. The broker shipped with the platform's
+Docker Compose and Kubernetes installations is [EMQX](https://www.emqx.io/): the
+Docker Compose installation includes it by default, and the Helm chart deploys it
+when the broker is enabled (`forge.broker.enabled`), which requires the
+[EMQX Operator](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator)
+to be installed on the cluster.
+
+This is currently an *optional* component - the platform will work without the
+broker, but some features will not be available:
+
+- Without a broker: Project Nodes, Device Actions and Remote Device Editing are unavailable.
+- The following features additionally require the platform broker to be EMQX, as they
+  rely on EMQX-specific capabilities (its authentication hooks, per-team topic
+  namespacing and management API): the [Team Broker](/docs/user/teambroker.md),
+  [FlowFuse Expert](/docs/user/expert/) and live device log and performance views
+  in the platform UI.
+
+[Mosquitto](https://mosquitto.org/) is supported at a legacy level for existing
+installations that manage their own broker: core platform messaging works, but the
+EMQX-dependent features listed above are unavailable. Replacing the platform broker
+with a different customer-supplied broker is not supported.
+
+Option         | Description
+---------------|--------------
+`broker.url`   | The full url to the platform broker. This is used by the platform and Node-RED instances to connect to the broker. For example: `mqtt://localhost:1883`.
+`broker.public_url` | If set, this is the url provided to Devices to connect to the broker with. When running in a Docker or K8S environment, this url should be the externally addressable url the broker is provided on. This could be via WebSockets, for example: `ws://example.com:1884`
 
 ## AI Configuration
 
