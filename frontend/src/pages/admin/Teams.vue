@@ -213,8 +213,6 @@ export default {
                         v.billingSummary = 'unmanaged'
                     } else if (v.billing.canceled) {
                         v.billingSummary = 'canceled'
-                    } else if (v.billing.canceled) {
-                        v.billingSummary = 'canceled'
                     } else if (v.billing.trialEnded) {
                         v.billingSummary = 'trial ended'
                     } else if (v.billing.trial) {
