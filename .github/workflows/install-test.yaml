@@ -36,44 +36,20 @@ jobs:
   notify-slack:
     name: Notify about test failure
     needs: [install]
-    if: failure()
+    if: always()
     runs-on: ubuntu-latest
 
     steps:
-    - name: Post to a Slack channel
-      id: slack
-      uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
+    - name: Notify Slack
+      uses: FlowFuse/github-actions-workflows/actions/slack_notification@feat-slack-notification-action
       with:
-        method: chat.postMessage
-        token: ${{ secrets.SLACK_GHBOT_TOKEN }}
-        payload: |
-          {
-            "channel": "C067BD0377F",
-            "blocks": [
-              {
-                "type": "header",
-                "text": {
-                  "type": "plain_text",
-                  "text": ":x: ${{ github.workflow }} workflow failed",
-                  "emoji": true
-                }
-              },
-              {
-                "type": "divider"
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "<${{ github.server_url }}/${{ github.repository }}/actions/workflows/install-test.yaml|${{ github.workflow }}> workflow failed to complete successfully."
-                }
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
-                }
-              }
-            ]
-          }
+        bot-token: ${{ secrets.SLACK_GHBOT_TOKEN }}
+        mode: channel
+        channel-id: C03AP45RSFP
+        blocks: |
+          [
+            { "type": "header", "text": { "type": "plain_text", "text": ":x: ${{ github.workflow }} workflow failed", "emoji": true } },
+            { "type": "divider" },
+            { "type": "section", "text": { "type": "mrkdwn", "text": "<${{ github.server_url }}/${{ github.repository }}/actions/workflows/install-test.yaml|${{ github.workflow }}> workflow failed to complete successfully." } },
+            { "type": "section", "text": { "type": "mrkdwn", "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>" } }
+          ]
