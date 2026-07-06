@@ -43,8 +43,12 @@ const IMPLICIT_TOKEN_SCOPES = {
         // snapshots
         'project:snapshot:list', // list hosted instance snapshots
         'project:snapshot:create', // create hosted instance snapshot
+        'project:snapshot:read', // get hosted instance snapshot
         'device:snapshot:list', // list remote instance snapshots
         'device:snapshot:create', // create remote instance snapshot
+        'device:snapshot:read', // get remote instance snapshot
+        'snapshot:meta', // get snapshot metadata by snapshot id
+        'snapshot:full', // get full snapshot payload by snapshot id
         // teams
         'user:team:list', // list teams
         'team:read', // get team details
