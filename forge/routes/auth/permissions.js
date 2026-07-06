@@ -48,6 +48,13 @@ const IMPLICIT_TOKEN_SCOPES = {
         // teams
         'user:team:list', // list teams
         'team:read', // get team details
+        'team:user:list', // list team members
+        'team:user:invite', // list team invitations
+        'team:device:provisioning-token:list', // list team device provisioning tokens
+        // team types
+        'team-type:list', // list team types
+        'team-type:read', // get team type
+        'team:create', // check team slug availability
         // platform
         'stack:list',
         'flow-blueprint:list',
