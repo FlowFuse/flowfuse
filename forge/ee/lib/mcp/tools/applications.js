@@ -1,5 +1,19 @@
 const { z } = require('zod')
 
+const {
+    teamId,
+    applicationId,
+    basePagination,
+    basePaginationKeys,
+    pageParam,
+    pageParamKeys,
+    searchQuery,
+    searchQueryKeys,
+    auditLogFilters,
+    auditLogFilterKeys,
+    appendQuery
+} = require('../schemas')
+
 module.exports = [
     {
         name: 'platform_list_applications',
@@ -10,7 +24,7 @@ module.exports = [
             Call platform_get_remote_instance to get details of a specific remote instance or platform_get_hosted_instance to get details of a specific hosted instance.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            teamId: z.string().describe('The ID or hashid of the team')
+            teamId
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/applications?includeInstances=false&includeApplicationDevices=false` })
@@ -23,7 +37,7 @@ module.exports = [
         description: 'FlowFuse platform automation tool: Use this tool to retrieve application metadata (name, description, link, team createdAt and updatedAt)',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            applicationId: z.string().describe('The ID or hashid of the application')
+            applicationId
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/applications/${args.applicationId}` })
@@ -41,7 +55,7 @@ module.exports = [
             To check if hosted instances are currently running or stopped, call platform_get_application_instances_status instead.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            applicationId: z.string().describe('The ID or hashid of the application')
+            applicationId
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/applications/${args.applicationId}/instances` })
@@ -55,30 +69,17 @@ module.exports = [
             Gets all the remote instances (devices) that live inside an application.
             A remote instance is a Node-RED that runs on the user's own hardware (like a Raspberry Pi or a server) rather than on the same environment as the FlowFuse platform.
             Use this to see which remote instances are connected to an application, check if they are online or offline, or find one by name.
-            You can search by name using the query parameter and page through results using cursor or limit.
+            You can search by name using the query parameter and page through results using cursor, limit or page.
             To get the full details of one specific remote instance, call platform_get_remote_instance with its ID.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            applicationId: z.string().describe('The ID or hashid of the application'),
-            query: z.string().optional().describe('Search remote instances by name'),
-            cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
-            limit: z.number().min(1).max(10).describe('How many results to return per page')
+            applicationId,
+            ...basePagination,
+            ...pageParam,
+            ...searchQuery
         },
         handler: async (args, { inject }) => {
-            let url = `/api/v1/applications/${args.applicationId}/devices`
-            const params = []
-            if (args.query) {
-                params.push(`query=${args.query}`)
-            }
-            if (args.cursor) {
-                params.push(`cursor=${args.cursor}`)
-            }
-            if (args.limit) {
-                params.push(`limit=${args.limit}`)
-            }
-            if (params.length > 0) {
-                url += '?' + params.join('&')
-            }
+            const url = appendQuery(`/api/v1/applications/${args.applicationId}/devices`, args, [...basePaginationKeys, ...pageParamKeys, ...searchQueryKeys])
             const response = await inject({ method: 'GET', url })
             return response
         }
@@ -93,7 +94,7 @@ module.exports = [
             this tool tells you what is happening right now (is it running? is it deploying? when were the flows last updated?).`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            applicationId: z.string().describe('The ID or hashid of the application')
+            applicationId
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/applications/${args.applicationId}/instances/status` })
@@ -110,34 +111,14 @@ module.exports = [
             You can narrow down results by event type, username, or scope (application, project, or device).`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            applicationId: z.string().describe('The ID or hashid of the application'),
-            cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last entry from the previous page)'),
-            limit: z.number().min(1).max(100).describe('How many entries to return'),
-            event: z.string().optional().describe('Filter by event type (e.g. "application.created", "project.snapshot.device-target-set")'),
-            username: z.string().optional().describe('Filter by the username of whoever triggered the event'),
-            scope: z.string().optional().describe('What level of entries to include: "application", "project", or "device" (default "application")')
+            applicationId,
+            ...basePagination,
+            ...searchQuery,
+            ...auditLogFilters,
+            scope: z.enum(['application', 'project', 'device']).optional().describe('Which entries to include by scope (default application)')
         },
         handler: async (args, { inject }) => {
-            let url = `/api/v1/applications/${args.applicationId}/audit-log`
-            const params = []
-            if (args.cursor) {
-                params.push(`cursor=${args.cursor}`)
-            }
-            if (args.limit) {
-                params.push(`limit=${args.limit}`)
-            }
-            if (args.event) {
-                params.push(`event=${args.event}`)
-            }
-            if (args.username) {
-                params.push(`username=${args.username}`)
-            }
-            if (args.scope) {
-                params.push(`scope=${args.scope}`)
-            }
-            if (params.length > 0) {
-                url += '?' + params.join('&')
-            }
+            const url = appendQuery(`/api/v1/applications/${args.applicationId}/audit-log`, args, [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys, 'scope'])
             const response = await inject({ method: 'GET', url })
             return response
         }
@@ -152,7 +133,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             name: z.string().describe('Name for the new application'),
-            teamId: z.string().describe('The ID or hashid of the team to create the application in'),
+            teamId,
             description: z.string().optional().describe('Optional description for the application')
         },
         handler: async (args, { inject }) => {
@@ -161,6 +142,25 @@ module.exports = [
                 payload.description = args.description
             }
             const response = await inject({ method: 'POST', url: '/api/v1/applications', payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_application_snapshots',
+        title: 'List Application Snapshots',
+        description: `FlowFuse platform automation tool:
+            Lists the snapshots belonging to an application.
+            A snapshot is a saved copy of an instance's flows, credentials and settings at a point in time.
+            Use this to see what snapshots are available for the hosted instances inside an application.
+            Use cursor or limit to page through results.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            applicationId,
+            ...basePagination
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/applications/${args.applicationId}/snapshots`, args, basePaginationKeys)
+            const response = await inject({ method: 'GET', url })
             return response
         }
     }
