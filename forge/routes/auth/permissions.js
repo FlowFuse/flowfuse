@@ -52,7 +52,10 @@ const IMPLICIT_TOKEN_SCOPES = {
         'stack:list',
         'flow-blueprint:list',
         'project:status',
-        'template:list'
+        'template:list',
+        // user self-service
+        'user:read', // get current user profile
+        'user:edit' // list own notifications, list own team invitations
     ]
 }
 
