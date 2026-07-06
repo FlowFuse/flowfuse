@@ -52,7 +52,14 @@ const IMPLICIT_TOKEN_SCOPES = {
         'stack:list',
         'flow-blueprint:list',
         'project:status',
-        'template:list'
+        'template:list',
+        // observability
+        'team:audit-log', // get team audit log
+        'project:audit-log', // get hosted instance audit log
+        'device:audit-log', // get remote instance audit log
+        'project:history', // get hosted instance or remote instance history
+        'team:bom', // get team bill of materials
+        'application:bom' // get application bill of materials
     ]
 }
 
