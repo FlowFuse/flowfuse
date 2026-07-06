@@ -462,6 +462,60 @@ NOY6Z1oJnpttQ9gwyV8euQ3C0Wcjf3+OVQ==
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)).should.have.property('role', Roles.Member)
             ;(await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.BTeam.id)).should.have.property('role', Roles.Owner)
         })
+        describe('updateTeamMembership Application Level', async function () {
+            it('add Application Override', async function () {
+                await app.sso.updateTeamMembership({
+                    'ff-roles': [
+                        'ff-ateam-member',
+                        'ff-ateam[application-1]-owner'
+                    ]
+                }, app.user, {
+                    groupAssertionName: 'ff-roles',
+                    groupAllTeams: true,
+                    groupPrefixLength: 0,
+                    groupSuffixLength: 0
+                })
+                const teamMembership = await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)
+                teamMembership.should.have.property('permissions')
+                teamMembership.permissions.should.have.property('applications')
+                teamMembership.permissions.applications.should.have.property(app.application.hashid, Roles.Owner)
+            })
+
+            it('remove Application Override', async function () {
+                const origTeamMembership = await app.db.models.TeamMember.getTeamMembership(app.user.id, app.team.id)
+                origTeamMembership.permissions = { applications: {}, sso: true }
+                origTeamMembership.permissions.applications[app.application.hashid] = Roles.Owner
+                await origTeamMembership.save()
+                await app.sso.updateTeamMembership({
+                    'ff-roles': [
+                        'ff-ateam-member'
+                    ]
+                }, app.user, {
+                    groupAssertionName: 'ff-roles',
+                    groupAllTeams: true,
+                    groupPrefixLength: 0,
+                    groupSuffixLength: 0
+                })
+                const teamMembership = await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)
+                teamMembership.should.have.property('permissions')
+                teamMembership.permissions.should.be.empty()
+            })
+
+            it('should fail if not a group member', async function () {
+                await app.sso.updateTeamMembership({
+                    'ff-roles': [
+                        'ff-ateam[application-1]-owner'
+                    ]
+                }, app.user, {
+                    groupAssertionName: 'ff-roles',
+                    groupAllTeams: true,
+                    groupPrefixLength: 0,
+                    groupSuffixLength: 0
+                })
+                const teamMembership = await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)
+                should(teamMembership).not.be.ok()
+            })
+        })
     })
     describe('find expired SSO SAML Certs', async function () {
         it('send email for active SSO profile with cert with less than 2 weeks life', async function () {
