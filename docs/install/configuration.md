@@ -115,8 +115,24 @@ Option        | Description
 
 ## MQTT Broker configuration
 
-By default, the platform runs without an MQTT broker. This restricts some features
-in the platform, such as the Project Nodes, Device Actions and Remote Device Editing.
+The platform uses an MQTT broker to provide real-time messaging between devices,
+Node-RED instances and the platform. The broker shipped with the platform's
+Docker Compose and Kubernetes installations is [EMQX](https://www.emqx.io/). It is
+deployed and configured automatically by those installers.
+
+By default, the platform runs without an MQTT broker. This restricts what features
+are available:
+
+- Without a broker: Project Nodes, Device Actions and Remote Device Editing are unavailable.
+- The following features additionally require the platform broker to be EMQX, as they
+  rely on EMQX-specific capabilities (its authentication hooks, per-team topic
+  namespacing and management API): the [Team Broker](/docs/user/teambroker.md),
+  [FlowFuse Expert](/docs/user/expert/index.md) and real-time updates in the platform UI.
+
+[Mosquitto](https://mosquitto.org/) is supported at a legacy level for existing
+installations: core platform messaging works, but the EMQX-dependent features listed
+above are unavailable. Replacing the platform broker with a different customer-supplied
+broker is not supported.
 
 If a broker has been setup in the platform, the following configuration is required:
 
@@ -215,19 +231,6 @@ Option        | Description
 `support.enabled` | Enables the chat support widget in the UI. Default: `false`
 `support.frontend.hubspot.trackingcode` | The numerical identifier within your [HubSpot Tracking Code](https://knowledge.hubspot.com/conversations/chat-widget-is-not-appearing-on-your-pages). Default: `null`
 
-
-## MQTT Broker configuration
-
-The platform depends on the [Mosquitto MQTT Broker](https://mosquitto.org/) to
-provide real-time messaging between devices and the platform.
-
-This is currently an *optional* component - the platform will work without the
-broker, but some features will not be available.
-
-Option         | Description
----------------|--------------
-`broker.url`   | The full url to the platform broker. This is used by the platform and Node-RED instances to connect to the broker. For example: `mqtt://localhost:1883`.
-`broker.public_url` | If set, this is the url provided to Devices to connect to the broker with. When running in a Docker or K8S environment, this url should be the externally addressable url the broker is provided on. This could be via WebSockets, for example: `ws://example.com:1884`
 
 ## AI Configuration
 

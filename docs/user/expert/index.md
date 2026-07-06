@@ -8,6 +8,8 @@ FlowFuse Expert is the AI built into FlowFuse and the Node-RED editor. It is not
 
 **FlowFuse Expert is automatically installed and available in all hosted and remote instances running within or connected to FlowFuse**, no manual installation or configuration required. For self-hosted Enterprise customers, FlowFuse Expert can be enabled on request. [Contact us](https://flowfuse.com/contact-us/) to get it set up on your infrastructure.
 
+> **Note:** On self-hosted installations, FlowFuse Expert requires an Enterprise license and the platform's EMQX-based MQTT broker with the Team Broker feature enabled (see [MQTT Broker configuration](/docs/install/configuration.md)). Expert communicates through a bridge between your platform broker and FlowFuse's central Expert service, which is set up as part of enabling Expert. Installations running without EMQX, for example legacy Mosquitto-based installs, cannot enable Expert.
+
 ## Managing AI Features
 
 **Team owners** can enable or disable all AI features for their team from the team settings page. When disabled, the Expert chat panel with all AI feature will get removed for that team. Running instances need to be restarted for the change to take full effect.
