@@ -275,6 +275,7 @@ jobs:
 
   fail-fast:
     name: Fail fast
+    id: fail-fast
     runs-on: ubuntu-latest
     steps:
       - name: Fail fast the pipeline
@@ -284,7 +285,7 @@ jobs:
 
   notify-slack:
     name: Notify on failure
-    needs: tests-summary
+    needs: fail-fast
     if: failure()
     runs-on: ubuntu-latest
 
