@@ -283,8 +283,9 @@ jobs:
         uses: FlowFuse/github-actions-workflows/actions/slack_notification@feat-slack-notification-action
         with:
           bot-token: ${{ secrets.SLACK_GHBOT_TOKEN }}
-          mode: ${{ github.event_name == 'pull_request' && 'author' || 'channel' }}
+          mode: ${{ github.event_name != 'pull_request' && 'author' || 'channel' }}
           mention-actor: ${{ github.event_name != 'pull_request' }}
+          channel-id: C03AP45RSFP
           blocks: |
             [
               { "type": "header", "text": { "type": "plain_text", "text": ":x: ${{ github.event_name == 'pull_request' && format('Tests failed against {0} pull request', github.event.pull_request.number) || format('Tests failed against {0} branch', github.ref_name) }}", "emoji": true } },
