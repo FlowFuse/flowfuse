@@ -2,7 +2,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useContextStore } from '@/stores/context.js'
-import { useProductAssistantStore } from '@/stores/product-assistant.js'
+import { TOOL_GROUPS, classOf, groupOf, useProductAssistantStore } from '@/stores/product-assistant.js'
 
 vi.mock('@/services/post-message.service.js', () => ({
     createMessagingService: () => ({
@@ -432,6 +432,282 @@ describe('product-assistant store', () => {
                     registeredEvent: { propertyBag: 'nonExistent', propertyName: 'foo', propertyValue: true },
                     eventData: null
                 })).not.toThrow()
+            })
+        })
+    })
+
+    // Human-in-the-loop tool permissions (#421). The permission-resolution engine
+    // lives entirely in this store: per-team defaults, per-tool overrides, per-chat
+    // session grants, version gating, and the pending-approval registry.
+    describe('tool permissions (HITL, #421)', () => {
+        const TEAM = 'team-1'
+        beforeEach(() => {
+            // Every default/preference read is scoped by the current team, so set one.
+            useContextStore().setTeam({ id: TEAM })
+        })
+
+        describe('classOf helper', () => {
+            it('defaults to write when the entry is missing', () => {
+                expect(classOf(null)).toBe('write')
+            })
+
+            it('maps toolClass read/delete through', () => {
+                expect(classOf({ toolClass: 'read' })).toBe('read')
+                expect(classOf({ toolClass: 'delete' })).toBe('delete')
+            })
+
+            it('treats a destructive tool as delete', () => {
+                expect(classOf({ destructive: true })).toBe('delete')
+            })
+
+            it('falls back to write for anything else', () => {
+                expect(classOf({ toolClass: 'something-else' })).toBe('write')
+            })
+        })
+
+        describe('groupOf helper', () => {
+            it('uses the entry group when present', () => {
+                expect(groupOf({ group: TOOL_GROUPS.PLATFORM })).toBe(TOOL_GROUPS.PLATFORM)
+            })
+
+            it('defaults to flow-building', () => {
+                expect(groupOf({})).toBe(TOOL_GROUPS.FLOW_BUILDING)
+                expect(groupOf(null)).toBe(TOOL_GROUPS.FLOW_BUILDING)
+            })
+        })
+
+        describe('initial state', () => {
+            it('starts with an empty catalog and no hash', () => {
+                const store = useProductAssistantStore()
+                expect(store.toolCatalog).toEqual([])
+                expect(store.toolCatalogHash).toBeNull()
+            })
+
+            it('starts with no saved defaults, preferences or session grants', () => {
+                const store = useProductAssistantStore()
+                expect(store.toolDefaultsByTeam).toEqual({})
+                expect(store.toolPreferencesByTeam).toEqual({})
+                expect(store.sessionToolOverrides).toEqual({})
+            })
+        })
+
+        describe('teamGroupDefaults / defaultForToolClass', () => {
+            it('returns the fail-safe defaults when the team has none saved', () => {
+                const store = useProductAssistantStore()
+                expect(store.teamGroupDefaults(TOOL_GROUPS.FLOW_BUILDING)).toEqual({ read: 'allow', write: 'ask', delete: 'ask' })
+            })
+
+            it('defaultForToolClass reflects a saved class default', () => {
+                const store = useProductAssistantStore()
+                store.setToolClassDefault(TOOL_GROUPS.FLOW_BUILDING, 'write', 'allow')
+                expect(store.defaultForToolClass('write')).toBe('allow')
+            })
+
+            it('defaultForToolClass falls back per class when nothing valid is stored', () => {
+                const store = useProductAssistantStore()
+                expect(store.defaultForToolClass('read')).toBe('allow')
+                expect(store.defaultForToolClass('write')).toBe('ask')
+                expect(store.defaultForToolClass('delete')).toBe('ask')
+            })
+        })
+
+        describe('savedToolPolicyFor / toolPolicyFor', () => {
+            it('uses the class default when there is no explicit preference', () => {
+                const store = useProductAssistantStore()
+                store.setToolCatalog([{ key: 'read-flow', toolClass: 'read' }])
+                expect(store.savedToolPolicyFor('read-flow')).toBe('allow')
+            })
+
+            it('an explicit per-tool preference overrides the class default', () => {
+                const store = useProductAssistantStore()
+                store.setToolCatalog([{ key: 'read-flow', toolClass: 'read' }])
+                store.setToolPreference('read-flow', 'deny')
+                expect(store.savedToolPolicyFor('read-flow')).toBe('deny')
+            })
+
+            it('a session grant wins over the saved policy in toolPolicyFor', () => {
+                const store = useProductAssistantStore()
+                store.setToolCatalog([{ key: 'write-flow', toolClass: 'write' }])
+                store.setToolPreference('write-flow', 'deny')
+                store.setSessionToolOverride('write-flow', 'allow')
+                expect(store.savedToolPolicyFor('write-flow')).toBe('deny')
+                expect(store.toolPolicyFor('write-flow')).toBe('allow')
+            })
+        })
+
+        describe('resolvedToolPermissions', () => {
+            it('emits flat defaults plus a per-tool policy map', () => {
+                const store = useProductAssistantStore()
+                store.setToolCatalog([
+                    { key: 'read-flow', toolClass: 'read' },
+                    { key: 'write-flow', toolClass: 'write' },
+                    { key: 'delete-flow', toolClass: 'delete' }
+                ])
+                store.setSessionToolOverride('write-flow', 'allow')
+                const resolved = store.resolvedToolPermissions
+                expect(resolved.defaults).toEqual({ read: 'allow', write: 'ask', delete: 'ask' })
+                expect(resolved.tools).toEqual({
+                    'read-flow': 'allow',
+                    'write-flow': 'allow', // session grant folded in
+                    'delete-flow': 'ask'
+                })
+            })
+        })
+
+        describe('toolAvailabilityFor (version gating)', () => {
+            it('treats a tool as available when the instance version is unknown', () => {
+                const store = useProductAssistantStore()
+                expect(store.toolAvailabilityFor({ minVersion: '1.0.0' }).status).toBe('available')
+            })
+
+            it('requires an update when below the tool min version', () => {
+                const store = useProductAssistantStore()
+                store.version = '0.9.0'
+                const availability = store.toolAvailabilityFor({ minVersion: '1.0.0' })
+                expect(availability.status).toBe('requires-update')
+                expect(availability.requiredVersion).toBe('1.0.0')
+            })
+
+            it('marks a tool deprecated when past its max version', () => {
+                const store = useProductAssistantStore()
+                store.version = '2.0.0'
+                expect(store.toolAvailabilityFor({ maxVersion: '1.5.0' }).status).toBe('deprecated')
+            })
+
+            it('is available but flagged when in range with a max set', () => {
+                const store = useProductAssistantStore()
+                store.version = '1.2.0'
+                const availability = store.toolAvailabilityFor({ minVersion: '1.0.0', maxVersion: '1.5.0' })
+                expect(availability.status).toBe('available')
+                expect(availability.deprecated).toBe(true)
+            })
+        })
+
+        describe('setToolCatalog', () => {
+            it('stores a catalog and hash', () => {
+                const store = useProductAssistantStore()
+                store.setToolCatalog([{ key: 'a' }], 'hash-1')
+                expect(store.toolCatalog).toHaveLength(1)
+                expect(store.toolCatalogHash).toBe('hash-1')
+            })
+
+            it('coerces a non-array catalog to an empty array', () => {
+                const store = useProductAssistantStore()
+                store.setToolCatalog(null, 'hash-1')
+                expect(store.toolCatalog).toEqual([])
+            })
+
+            it('leaves the hash untouched when hash arg is omitted', () => {
+                const store = useProductAssistantStore()
+                store.setToolCatalog([{ key: 'a' }], 'hash-1')
+                store.setToolCatalog([{ key: 'b' }])
+                expect(store.toolCatalogHash).toBe('hash-1')
+            })
+        })
+
+        describe('setToolClassDefault', () => {
+            it('is a no-op for an invalid class or policy', () => {
+                const store = useProductAssistantStore()
+                store.setToolClassDefault(TOOL_GROUPS.FLOW_BUILDING, 'nope', 'allow')
+                store.setToolClassDefault(TOOL_GROUPS.FLOW_BUILDING, 'read', 'nope')
+                expect(store.toolDefaultsByTeam).toEqual({})
+            })
+
+            it('is a no-op when there is no current team', () => {
+                const store = useProductAssistantStore()
+                useContextStore().setTeam(null)
+                store.setToolClassDefault(TOOL_GROUPS.FLOW_BUILDING, 'read', 'deny')
+                expect(store.toolDefaultsByTeam).toEqual({})
+            })
+
+            it('scopes the default under the current team and group', () => {
+                const store = useProductAssistantStore()
+                store.setToolClassDefault(TOOL_GROUPS.FLOW_BUILDING, 'delete', 'deny')
+                expect(store.toolDefaultsByTeam[TEAM][TOOL_GROUPS.FLOW_BUILDING].delete).toBe('deny')
+            })
+        })
+
+        describe('setToolPreference / clearToolPreference', () => {
+            it('saves a per-tool preference for the current team', () => {
+                const store = useProductAssistantStore()
+                store.setToolPreference('write-flow', 'allow')
+                expect(store.teamToolPreferences['write-flow']).toBe('allow')
+            })
+
+            it('clears any session grant for that tool so the saved value takes effect now', () => {
+                const store = useProductAssistantStore()
+                store.setSessionToolOverride('write-flow', 'deny')
+                store.setToolPreference('write-flow', 'allow')
+                expect(store.sessionToolOverrides['write-flow']).toBeUndefined()
+            })
+
+            it('clearToolPreference removes a saved preference', () => {
+                const store = useProductAssistantStore()
+                store.setToolPreference('write-flow', 'allow')
+                store.clearToolPreference('write-flow')
+                expect(store.teamToolPreferences['write-flow']).toBeUndefined()
+            })
+        })
+
+        describe('resetGroupClassPreferences', () => {
+            it('clears only the matching group + class tool preferences, leaving session grants alone', () => {
+                const store = useProductAssistantStore()
+                store.setToolCatalog([
+                    { key: 'read-flow', toolClass: 'read' },
+                    { key: 'write-flow', toolClass: 'write' }
+                ])
+                store.setToolPreference('read-flow', 'deny')
+                store.setToolPreference('write-flow', 'deny')
+                store.setSessionToolOverride('read-flow', 'allow')
+
+                store.resetGroupClassPreferences(TOOL_GROUPS.FLOW_BUILDING, 'read')
+
+                expect(store.teamToolPreferences['read-flow']).toBeUndefined()
+                expect(store.teamToolPreferences['write-flow']).toBe('deny') // different class untouched
+                expect(store.sessionToolOverrides['read-flow']).toBe('allow') // session grant untouched
+            })
+        })
+
+        describe('session overrides', () => {
+            it('sets and reads a session grant', () => {
+                const store = useProductAssistantStore()
+                store.setSessionToolOverride('write-flow', 'allow')
+                expect(store.sessionOverrideFor('write-flow')).toBe('allow')
+            })
+
+            it('ignores an invalid policy', () => {
+                const store = useProductAssistantStore()
+                store.setSessionToolOverride('write-flow', 'maybe')
+                expect(store.sessionOverrideFor('write-flow')).toBeNull()
+            })
+
+            it('clearSessionToolOverrides drops them all', () => {
+                const store = useProductAssistantStore()
+                store.setSessionToolOverride('a', 'allow')
+                store.setSessionToolOverride('b', 'deny')
+                store.clearSessionToolOverrides()
+                expect(store.sessionToolOverrides).toEqual({})
+            })
+
+            it('promoteSessionOverride saves the grant permanently and drops the session entry', () => {
+                const store = useProductAssistantStore()
+                store.setSessionToolOverride('write-flow', 'allow')
+                store.promoteSessionOverride('write-flow')
+                expect(store.teamToolPreferences['write-flow']).toBe('allow')
+                expect(store.sessionToolOverrides['write-flow']).toBeUndefined()
+            })
+        })
+
+        describe('tool approval statuses', () => {
+            // Approval decisions now live on the product-expert store's open batch; the
+            // permission store only records each card's resolved outcome (read by
+            // AnswerWrapper) since the card renders a detached streaming copy.
+            it('setToolApprovalStatus / clearToolApprovalStatuses track resolved outcomes', () => {
+                const store = useProductAssistantStore()
+                store.setToolApprovalStatus('id-1', 'approved')
+                expect(store.toolApprovalStatuses['id-1']).toBe('approved')
+                store.clearToolApprovalStatuses()
+                expect(store.toolApprovalStatuses).toEqual({})
             })
         })
     })

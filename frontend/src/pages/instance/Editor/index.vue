@@ -43,6 +43,7 @@
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" :instance="instance" @confirm="onInstanceDelete" />
 
         <InstanceStatusPolling
+            v-if="!statusChannelLive"
             :instance="instance"
             @instance-updated="instanceUpdated"
         />

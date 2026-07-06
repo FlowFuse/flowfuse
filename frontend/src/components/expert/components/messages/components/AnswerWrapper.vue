@@ -1,6 +1,6 @@
 <template>
-    <message-bubble ref="messageBubble" type="ai">
-        <answer-badge v-if="!isChatAnswer" :kind="answer.kind" />
+    <message-bubble ref="messageBubble" type="ai" :bare="hasToolApproval">
+        <answer-badge v-if="!isChatAnswer && !isQuestionsAnswer && !isPlanAnswer && !hasToolApproval" :kind="answer.kind" />
 
         <rich-content
             v-if="shouldShowRichContent"
@@ -66,6 +66,45 @@
             :should-stream="shouldStream"
             @streaming-complete="onComponentComplete('suggestions-list')"
         />
+
+        <questions-list
+            v-if="shouldShowQuestionsList"
+            :questions="answer.questions"
+            :disabled="interactionDisabled"
+            :should-stream="shouldStream"
+            class="mb-3"
+            @select="onQuestionsSubmit"
+            @edit="onQuestionsEdit"
+            @streaming-complete="onComponentComplete('questions-list')"
+        />
+
+        <plan-card
+            v-if="shouldShowPlanList"
+            :plan="answer.content"
+            :message-uuid="messageUuid"
+            :answer-uuid="answer._uuid"
+            :disabled="interactionDisabled"
+            :should-stream="shouldStream"
+            class="mb-3"
+            @approve="onPlanApprove"
+            @edit-manual="onPlanEditManual"
+            @request-changes="onPlanRequestChanges"
+            @reject="onPlanReject"
+            @streaming-complete="onComponentComplete('plan-list')"
+        />
+
+        <tool-approval-card
+            v-if="shouldShowToolApproval"
+            :name="answer.name"
+            :tool-class="answer.toolClass"
+            :params="answer.params"
+            :status="resolvedToolApprovalStatus"
+            @approve="onToolApprove"
+            @allow-always="onToolAllowAlways"
+            @deny="onToolDeny"
+            @deny-always="onToolDenyAlways"
+            @streaming-complete="onComponentComplete('tool-approval-card')"
+        />
     </message-bubble>
 </template>
 
@@ -82,9 +121,12 @@ import FlowsList from './resources/FlowsList.vue'
 import GuideStepsList from './resources/GuideStepsList.vue'
 import IssuesList from './resources/IssuesList.vue'
 import PackagesList from './resources/PackagesList.vue'
+import PlanCard from './resources/PlanCard.vue'
+import QuestionsList from './resources/QuestionsList.vue'
 import ResourcesList from './resources/ResourcesList.vue'
 import RichContent from './resources/RichContent.vue'
 import SuggestionsList from './resources/SuggestionsList.vue'
+import ToolApprovalCard from './resources/ToolApprovalCard.vue'
 
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
@@ -95,13 +137,16 @@ export default {
         SuggestionsList,
         RichContent,
         PackagesList,
+        PlanCard,
         FlowsList,
         AnswerBadge,
         ResourcesList,
+        QuestionsList,
         GuideStepsList,
         MessageBubble,
         GuideHeader,
-        IssuesList
+        IssuesList,
+        ToolApprovalCard
     },
     props: {
         answer: {
@@ -125,11 +170,23 @@ export default {
         }
     },
     computed: {
-        ...mapState(useProductAssistantStore, ['supportedActions']),
-        ...mapState(useProductExpertStore, ['agentMode']),
+        ...mapState(useProductAssistantStore, ['supportedActions', 'toolApprovalStatuses']),
+        ...mapState(useProductExpertStore, ['agentMode', 'isWaitingForResponse', 'messages']),
+        isLatestMessage () {
+            const msgs = this.messages || []
+            return msgs.length > 0 && msgs[msgs.length - 1]?._uuid === this.messageUuid
+        },
+        interactionDisabled () {
+            // Disable the question/plan cards while a response is in flight, and once the turn
+            // has passed — i.e. any message has arrived after this one — so a stale card from
+            // an earlier turn can no longer be answered.
+            return this.isWaitingForResponse || !this.isLatestMessage
+        },
         hasGuideHeader () {
-            // chat answers contain generic titles, they don't need to be displayed
-            return !!(this.answer.title && !this.isChatAnswer)
+            // chat answers contain generic titles, they don't need to be displayed.
+            // questions answers carry no guide title either.
+            // plan answers carry their heading inside their Markdown content, not a title.
+            return !!(this.answer.title && !this.isChatAnswer && !this.isQuestionsAnswer && !this.isPlanAnswer)
         },
         hasGuideSteps () {
             return Object.hasOwnProperty.call(this.answer, 'steps') && this.answer.steps.length > 0
@@ -150,10 +207,33 @@ export default {
             return this.answer.issues && this.answer.issues.length > 0
         },
         hasPlainContent () {
-            return this.answer.content && this.answer.content.length > 0
+            // A plan keeps its markdown in content, but the PlanCard renders it; do not
+            // also render it as plain rich-content above the card.
+            return !this.isPlanAnswer && this.answer.content && this.answer.content.length > 0
+        },
+        hasQuestions () {
+            return Array.isArray(this.answer.questions) && this.answer.questions.length > 0
+        },
+        hasPlan () {
+            return this.isPlanAnswer && typeof this.answer.content === 'string' && this.answer.content.length > 0
+        },
+        hasToolApproval () {
+            return this.answer.kind === 'tool-approval' && !!this.answer.id
+        },
+        // The answer here is a detached streaming copy, so its own `status` only ever holds
+        // the initial 'pending'. The reactive per-id map in the store carries any later
+        // outcome — including an external one (chat stop / Start Over) the card can't see.
+        resolvedToolApprovalStatus () {
+            return this.toolApprovalStatuses[this.answer.id] || this.answer.status
         },
         isChatAnswer () {
             return !Object.hasOwnProperty.call(this.answer, 'kind') || this.answer.kind === 'chat'
+        },
+        isQuestionsAnswer () {
+            return this.answer.kind === 'questions'
+        },
+        isPlanAnswer () {
+            return this.answer.kind === 'plan'
         },
         isEditorContext () {
             // In editor context, the route name includes 'editor'
@@ -215,6 +295,27 @@ export default {
             if (this.componentStreamingOrder.indexOf(key) === 0) return true
             return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
         },
+        shouldShowQuestionsList () {
+            const key = 'questions-list'
+            if (!this.componentStreamingOrder.includes(key)) return false
+            if (!this.hasQuestions) return false
+            if (this.componentStreamingOrder.indexOf(key) === 0) return true
+            return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
+        },
+        shouldShowPlanList () {
+            const key = 'plan-list'
+            if (!this.componentStreamingOrder.includes(key)) return false
+            if (!this.hasPlan) return false
+            if (this.componentStreamingOrder.indexOf(key) === 0) return true
+            return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
+        },
+        shouldShowToolApproval () {
+            const key = 'tool-approval-card'
+            if (!this.componentStreamingOrder.includes(key)) return false
+            if (!this.hasToolApproval) return false
+            if (this.componentStreamingOrder.indexOf(key) === 0) return true
+            return this.streamedComponents.length >= this.componentStreamingOrder.indexOf(key)
+        },
         shouldStream () {
             return !this.answer._streamed
         }
@@ -250,7 +351,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState']),
+        ...mapActions(useProductExpertStore, ['updateAnswerStreamedState', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setPlanMode', 'resolveToolApproval']),
         buildStreamingOrder () {
             // order matters
             // this is where the decision of the streaming order of components is decided
@@ -263,11 +364,50 @@ export default {
             if (this.hasNodePackages) this.componentStreamingOrder.push('packages-list')
             if (this.hasIssues) this.componentStreamingOrder.push('issues-list')
             if (this.hasSuggestions) this.componentStreamingOrder.push('suggestions-list')
+            if (this.hasQuestions) this.componentStreamingOrder.push('questions-list')
+            if (this.hasPlan) this.componentStreamingOrder.push('plan-list')
+            if (this.hasToolApproval) this.componentStreamingOrder.push('tool-approval-card')
         },
         async onComponentComplete (key) {
             if (!this.shouldStream) await this.waitFor(200)
 
             this.streamedComponents.push(key)
+        },
+        onQuestionsSubmit (text) {
+            this.handleQuery({ query: text })
+        },
+        onQuestionsEdit (text) {
+            this.setPendingInput(text)
+        },
+        onPlanApprove () {
+            // Approving exits read-only plan mode so the build runs as a normal acting turn,
+            // and clears any plan text loaded into the composer via "Edit manually".
+            this.setPlanMode(false)
+            this.setComposerCommand('reset')
+            this.handleQuery({ query: 'Approved. Proceed with the plan.' })
+        },
+        onPlanEditManual () {
+            // Load the plan markdown into the composer to edit and resubmit for a re-proposal.
+            this.setPendingInput(this.answer.content)
+        },
+        onPlanRequestChanges () {
+            this.setComposerCommand('request-plan-change')
+        },
+        onPlanReject () {
+            this.setComposerCommand('reset')
+            this.handleQuery({ query: 'I do not want to proceed with this plan.' })
+        },
+        onToolApprove () {
+            this.resolveToolApproval({ id: this.answer.id, approved: true, always: false })
+        },
+        onToolAllowAlways () {
+            this.resolveToolApproval({ id: this.answer.id, approved: true, always: true })
+        },
+        onToolDeny () {
+            this.resolveToolApproval({ id: this.answer.id, approved: false, always: false })
+        },
+        onToolDenyAlways () {
+            this.resolveToolApproval({ id: this.answer.id, approved: false, always: true })
         },
         handleClick (e) {
             const target = e.target

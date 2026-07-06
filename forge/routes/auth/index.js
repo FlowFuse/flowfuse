@@ -110,8 +110,8 @@ async function init (app, opts) {
                         // delete one time code immediately (spent)
                         await accessToken.destroy()
                     }
-                    if (accessToken.ownerType === 'user') {
-                        request.session.User = await app.db.models.User.findOne({ where: { id: parseInt(accessToken.ownerId) } })
+                    if (accessToken.ownerType === 'user' || accessToken.ownerType === 'user:expert-mcp') {
+                        request.session.User = await app.db.models.User.findOne({ where: { id: +accessToken.ownerId } })
                         // Unlike a cookie based session, we'll allow user tokens to continue
                         // working if password has expired or email isn't verified
                         // TODO: validate this choice
@@ -143,11 +143,25 @@ async function init (app, opts) {
                         }
                     }
                     if (accessToken.scope?.includes('ff-expert:mcp')) {
-                        // must be a http token for expert MCP access
-                        if (accessToken.ownerType !== 'http') {
+                        const isDeviceScope = accessToken.scope?.includes('device')
+                        const isInstanceScope = accessToken.scope?.includes('instance')
+                        if (!isDeviceScope && !isInstanceScope) {
                             reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                             return
                         }
+                        // must be a http token for expert MCP access
+                        if (isInstanceScope && accessToken.ownerType !== 'http') {
+                            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                            return
+                        } else if (isDeviceScope && accessToken.ownerType !== 'http:device') {
+                            reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                            return
+                        }
+                    }
+                    if (accessToken.scope?.includes('ff-expert:platform') && accessToken.ownerType !== 'user:expert-mcp') {
+                        // this scope is only valid on the dedicated platform-automation token type
+                        reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
+                        return
                     }
                     return
                 }

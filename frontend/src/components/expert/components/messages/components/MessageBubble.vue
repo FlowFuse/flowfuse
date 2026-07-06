@@ -1,7 +1,7 @@
 <template>
     <div
         class="message-bubble flex flex-col gap-1"
-        :class="{'ai-message': isAiMessage, 'human-message': isHumanMessage, 'system-message': isSystemMessage, [`system-${variant}`]: variant}"
+        :class="{'ai-message': isAiMessage, 'human-message': isHumanMessage, 'system-message': isSystemMessage, 'message-bubble--bare': bare, [`system-${variant}`]: variant}"
     >
         <slot />
     </div>
@@ -19,6 +19,14 @@ export default {
             required: false,
             type: String,
             default: null
+        },
+        // Strips the bubble chrome (background + padding) so a self-contained
+        // card (e.g. the tool approval card) renders standalone, not nested
+        // inside an AI bubble.
+        bare: {
+            required: false,
+            type: Boolean,
+            default: false
         }
     },
     computed: {
@@ -47,6 +55,14 @@ export default {
         background-color: var(--ff-color-bg-surface-raised);
         color: var(--ff-color-text);
         border-bottom-left-radius: 0.125rem;
+    }
+
+    &.message-bubble--bare {
+        padding: 0;
+
+        &.ai-message {
+            background-color: transparent;
+        }
     }
 
     &.human-message {

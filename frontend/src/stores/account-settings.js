@@ -6,8 +6,7 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 
 export const POSTHOG_FLAGS = {
-    FF_FEATURE_FLAGS: 'FF_FEATURE_FLAGS',
-    EXPERT_COMMS_BETA_ENABLED: 'EXPERT_COMMS_BETA_ENABLED'
+    FF_FEATURE_FLAGS: 'FF_FEATURE_FLAGS'
 }
 
 export const useAccountSettingsStore = defineStore('account-settings', {
@@ -49,7 +48,6 @@ export const useAccountSettingsStore = defineStore('account-settings', {
                 checks.isExternalMqttBrokerFeatureEnabledForPlatform && checks.isMqttBrokerFeatureEnabledForTeam
 
             // adding in PostHog Feature Flags
-            checks.isExpertCommsBetaEnabled = !!state.posthogFlags[POSTHOG_FLAGS.EXPERT_COMMS_BETA_ENABLED]
             checks.isPostHogFeatureFlagsEnabled = !!state.posthogFlags[POSTHOG_FLAGS.FF_FEATURE_FLAGS]
 
             return checks

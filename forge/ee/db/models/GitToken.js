@@ -15,6 +15,14 @@ module.exports = {
             type: DataTypes.STRING,
             allowNull: false,
             default: 'github'
+        },
+        username: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        caCertificate: {
+            type: DataTypes.TEXT,
+            allowNull: true
         }
     },
     associations: function (M) {

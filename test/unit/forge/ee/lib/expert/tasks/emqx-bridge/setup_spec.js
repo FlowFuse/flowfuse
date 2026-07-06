@@ -10,7 +10,7 @@ const {
     getConfig, getList, makeClient, del, post
 } = bridge._internal
 
-const { connector, actionOut, sourceChat, sourceInflight, ruleIn, ruleOut } = templates
+const { connector, actionOut, sourceChat, sourceInflight, sourcePlatform, ruleIn, ruleOut } = templates
 
 // #region helpers
 
@@ -62,7 +62,8 @@ function fullDiscovery (client) {
         status: 200,
         data: [
             { name: sourceChat.name, type: 'mqtt', connector: connector.name },
-            { name: sourceInflight.name, type: 'mqtt', connector: connector.name }
+            { name: sourceInflight.name, type: 'mqtt', connector: connector.name },
+            { name: sourcePlatform.name, type: 'mqtt', connector: connector.name }
         ]
     })
     client.get.withArgs('/actions').resolves({
@@ -97,7 +98,8 @@ function passingValidate (client, { licenceId = 'test-licence-id', server = 'exp
         status: 200,
         data: [
             { name: sourceChat.name, type: 'mqtt' },
-            { name: sourceInflight.name, type: 'mqtt' }
+            { name: sourceInflight.name, type: 'mqtt' },
+            { name: sourcePlatform.name, type: 'mqtt' }
         ]
     })
     client.get.withArgs('/rules?limit=100').resolves({
@@ -401,13 +403,14 @@ describe('EMQX bridge-setup', function () {
 
             await addBridge(app, { cfg, client })
 
-            client.post.callCount.should.equal(6) // 1 connector + 1 action + 2 sources + 2 rules
+            client.post.callCount.should.equal(7) // 1 connector + 1 action + 3 sources + 2 rules
             client.post.getCall(0).args[0].should.equal('/connectors')
             client.post.getCall(1).args[0].should.equal('/actions')
             client.post.getCall(2).args[0].should.equal('/sources')
             client.post.getCall(3).args[0].should.equal('/sources')
-            client.post.getCall(4).args[0].should.equal('/rules')
+            client.post.getCall(4).args[0].should.equal('/sources')
             client.post.getCall(5).args[0].should.equal('/rules')
+            client.post.getCall(6).args[0].should.equal('/rules')
 
             const connectorPayload = client.post.getCall(0).args[1]
             connectorPayload.server.should.equal('expert.test:1884')
@@ -458,15 +461,16 @@ describe('EMQX bridge-setup', function () {
 
             await removeBridge(app, { cfg, client })
 
-            // 2 rules + 2 sources + 1 action + 1 connector = 6 deletes
-            client.delete.callCount.should.equal(6)
+            // 2 rules + 3 sources + 1 action + 1 connector = 7 deletes
+            client.delete.callCount.should.equal(7)
             const paths = client.delete.getCalls().map(c => c.args[0])
             paths[0].should.match(/^\/rules\//)
             paths[1].should.match(/^\/rules\//)
             paths[2].should.match(/^\/sources\//)
             paths[3].should.match(/^\/sources\//)
-            paths[4].should.match(/^\/actions\//)
-            paths[5].should.equal(`/connectors/mqtt:${connector.name}`)
+            paths[4].should.match(/^\/sources\//)
+            paths[5].should.match(/^\/actions\//)
+            paths[6].should.equal(`/connectors/mqtt:${connector.name}`)
         })
 
         it('tolerates 404s on individual deletes', async function () {
@@ -553,9 +557,9 @@ describe('EMQX bridge-setup', function () {
 
             const result = await syncBridge(app, { force: true, client })
             result.should.be.true()
-            // 1 connector delete + 6 creates (1 connector + 1 action + 2 sources + 2 rules)
+            // 1 connector delete + 7 creates (1 connector + 1 action + 3 sources + 2 rules)
             client.delete.callCount.should.equal(1)
-            client.post.callCount.should.equal(6)
+            client.post.callCount.should.equal(7)
             // didn't bother validating
             client.get.calledWith('/connectors').should.be.false()
         })
@@ -585,7 +589,7 @@ describe('EMQX bridge-setup', function () {
             const result = await syncBridge(app, { client })
             result.should.be.true()
             client.delete.called.should.be.true()
-            client.post.callCount.should.equal(6) // 1 connector + 1 action + 2 sources + 2 rules
+            client.post.callCount.should.equal(7) // 1 connector + 1 action + 3 sources + 2 rules
         })
 
         it('returns false when an underlying call throws. (force=true) (logs error)', async function () {

@@ -1,9 +1,12 @@
 import { defineStore } from 'pinia'
 
 import teamApi from '../api/team.js'
+import { hasAMinimumTeamRoleOf } from '../composables/Permissions.js'
 import product from '../services/product.js'
+import { Roles } from '../utils/roles.js'
 
 import { useAccountAuthStore } from './account-auth.js'
+import { useAccountSettingsStore } from './account-settings.js'
 import { useProductAssistantStore } from './product-assistant.js'
 import { useProductExpertStore } from './product-expert.js'
 
@@ -57,7 +60,9 @@ export const useContextStore = defineStore('context', {
                     pageName: null,
                     rawRoute: {},
                     selectedNodes: null,
-                    scope: 'ff-app'
+                    scope: 'ff-app',
+                    questionCadence: useProductExpertStore().questionCadence,
+                    planMode: useProductExpertStore().planMode
                 }
             }
 
@@ -106,7 +111,22 @@ export const useContextStore = defineStore('context', {
                 nodeRedVersion: assistantStore.nodeRedVersion,
                 rawRoute,
                 selectedNodes,
-                scope
+                scope,
+                supportsPlatformAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
+                supportsPlatformUIAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
+                questionCadence: useProductExpertStore().questionCadence,
+                planMode: useProductExpertStore().planMode,
+                // Capability flags: signal that this version can render the question,
+                // plan, and approval cards. Older instances omit them and the agent drops
+                // the matching tool / runs in backward-compatible mode.
+                supportsQuestions: true,
+                supportsPlanMode: true,
+                supportsHITL: true,
+                // Human-in-the-loop tool permissions (#421). The agent gates each
+                // flow-building tool call against this map; canUseWriteTools drives
+                // role inheritance (fail-closed) for write/delete tools.
+                toolPermissions: assistantStore.resolvedToolPermissions,
+                canUseWriteTools: hasAMinimumTeamRoleOf(Roles.Member, state.teamMembership)
             }
         }
     },
