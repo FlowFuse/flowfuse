@@ -117,17 +117,20 @@ Option        | Description
 
 The platform uses an MQTT broker to provide real-time messaging between devices,
 Node-RED instances and the platform. The broker shipped with the platform's
-Docker Compose and Kubernetes installations is [EMQX](https://www.emqx.io/). It is
-deployed and configured automatically by those installers.
+Docker Compose and Kubernetes installations is [EMQX](https://www.emqx.io/): the
+Docker Compose installation includes it by default, and the Helm chart deploys it
+when the broker is enabled (`forge.broker.enabled`), which requires the
+[EMQX Operator](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator)
+to be installed on the cluster.
 
-By default, the platform runs without an MQTT broker. This restricts what features
-are available:
+Running without a broker restricts what features are available:
 
 - Without a broker: Project Nodes, Device Actions and Remote Device Editing are unavailable.
 - The following features additionally require the platform broker to be EMQX, as they
   rely on EMQX-specific capabilities (its authentication hooks, per-team topic
   namespacing and management API): the [Team Broker](/docs/user/teambroker.md),
-  [FlowFuse Expert](/docs/user/expert/index.md) and real-time updates in the platform UI.
+  [FlowFuse Expert](/docs/user/expert/) and live device log and performance views
+  in the platform UI.
 
 [Mosquitto](https://mosquitto.org/) is supported at a legacy level for existing
 installations: core platform messaging works, but the EMQX-dependent features listed
@@ -138,8 +141,8 @@ If a broker has been setup in the platform, the following configuration is requi
 
 Option        | Description
 --------------|------------
-`broker.url`  | The url for the platform to access the broker. For example: `mqtt://localhost:4800`.
-`broker.public_url` | The url used by devices to connect to the broker, if different to `broker.url`. For example, this may require devices to use WebSockets instead: `ws://localhost:4881`.
+`broker.url`  | The full url to the platform broker. This is used by the platform and Node-RED instances to connect to the broker. For example: `mqtt://localhost:4800`.
+`broker.public_url` | The url used by devices to connect to the broker, if different to `broker.url`. When running in a Docker or Kubernetes environment, this should be the externally addressable url of the broker, and may require devices to use WebSockets instead. For example: `ws://example.com:4881`.
 
 ## Email configuration
 

@@ -10,19 +10,14 @@ This is a single shared MQTT broker, but each team has their own separate topic 
 
 ## What the Team Broker is
 
-The Team Broker is a multi-tenant MQTT broker service built into the FlowFuse platform:
-one broker instance, managed by the platform, where every team gets its own fully
-isolated topic space and can provision client credentials in a self-service way. It
-removes the need to install and operate a separate broker to move MQTT data between
-devices, Node-RED instances and other clients.
+The Team Broker removes the need to install and operate a separate MQTT broker to move
+data between devices, Node-RED instances and other clients: the broker is provided and
+managed by the platform itself. It is not replaceable with a customer-supplied broker
+(self-hosted details in [MQTT Broker configuration](/docs/install/configuration.md#mqtt-broker-configuration)).
 
-Under the hood the Team Broker is provided by [EMQX](https://www.emqx.io/), and the
-platform integrates with EMQX-specific capabilities for client authentication, per-team
-topic isolation and bridging. The Team Broker cannot be backed by a different broker
-(see [MQTT Broker configuration](/docs/install/configuration.md)). If your company
-already operates its own MQTT broker, that broker can still be connected to FlowFuse
-as an external broker to browse its topic hierarchy alongside the Team Broker, and
-Node-RED instances can connect to it directly as a regular MQTT client.
+If your company already operates its own MQTT broker, that broker can still be connected
+to FlowFuse as an external broker to browse its topic hierarchy alongside the Team
+Broker, and Node-RED instances can connect to it directly as a regular MQTT client.
 
 ## Foreword
 FlowFuse offers zero config MQTT integration with the Team Broker via the [FlowFuse MQTT Nodes](/docs/user/mqtt-nodes/) that greatly simplifies the whole process by removing the need for manual configuration.
