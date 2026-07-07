@@ -58,6 +58,8 @@ module.exports = fp(async function (app, opts) {
         // temporary until FF Expert Insights can be enabled on Self Hosted EE instance
         const isInsightsEnabled = isAiEnabled && app.config?.expert?.enabled && app.config?.expert?.insights?.enabled
         app.config.features.register('expertInsights', isInsightsEnabled ?? false, false)
+
+        require('./bom').init(app)
     }
 
     // Set the Team Library Feature Flag
