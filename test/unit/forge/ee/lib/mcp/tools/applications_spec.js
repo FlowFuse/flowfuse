@@ -114,6 +114,64 @@ describe('MCP Application Tools', function () {
         })
     })
 
+    describe('platform_export_application_audit_log', function () {
+        const tool = findTool('platform_export_application_audit_log')
+
+        it('has read-only annotations', function () {
+            tool.annotations.readOnlyHint.should.equal(true)
+            tool.annotations.destructiveHint.should.equal(false)
+        })
+
+        it('exposes the expected input fields', function () {
+            Object.keys(tool.inputSchema).should.eql(['applicationId', 'cursor', 'limit', 'query', 'event', 'username', 'scope', 'includeChildren'])
+        })
+
+        it('requests the export endpoint with no query string when no filters are given', async function () {
+            const { calls, inject } = recordingInject()
+            await tool.handler({ applicationId: 'app1' }, { inject })
+            calls.should.have.length(1)
+            calls[0].method.should.equal('GET')
+            calls[0].url.should.equal('/api/v1/applications/app1/audit-log/export')
+        })
+
+        it('serialises cursor, limit, event, username, scope and includeChildren onto the query string', async function () {
+            const { calls, inject } = recordingInject()
+            await tool.handler({
+                applicationId: 'app1',
+                cursor: 'c1',
+                limit: 10,
+                event: 'application.created',
+                username: 'alice',
+                scope: 'application',
+                includeChildren: true
+            }, { inject })
+            calls.should.have.length(1)
+            calls[0].method.should.equal('GET')
+            calls[0].url.should.equal('/api/v1/applications/app1/audit-log/export?cursor=c1&limit=10&event=application.created&username=alice&scope=application&includeChildren=true')
+        })
+    })
+
+    describe('platform_list_team_application_statuses', function () {
+        const tool = findTool('platform_list_team_application_statuses')
+
+        it('has the expected input params', function () {
+            Object.keys(tool.inputSchema).should.eql(['teamId', 'associationsLimit'])
+        })
+
+        it('calls GET /api/v1/teams/:teamId/applications/status with associationsLimit', async function () {
+            const { calls, inject } = recordingInject()
+            await tool.handler({ teamId: 'team1', associationsLimit: 5 }, { inject })
+            calls[0].method.should.equal('GET')
+            calls[0].url.should.equal('/api/v1/teams/team1/applications/status?associationsLimit=5')
+        })
+
+        it('omits the query string when associationsLimit is not set', async function () {
+            const { calls, inject } = recordingInject()
+            await tool.handler({ teamId: 'team1' }, { inject })
+            calls[0].url.should.equal('/api/v1/teams/team1/applications/status')
+        })
+    })
+
     describe('Integration smoke test', function () {
         let app
         let token
@@ -227,6 +285,23 @@ describe('MCP Application Tools', function () {
                 await expectToolMatchesRoute(inject, tool, { applicationId: app.application.hashid }, {
                     method: 'GET',
                     url: `/api/v1/applications/${app.application.hashid}/snapshots`
+                })
+            })
+
+            it('platform_export_application_audit_log matches GET /api/v1/applications/:applicationId/audit-log/export', async function () {
+                const tool = findTool('platform_export_application_audit_log')
+                await expectToolMatchesRoute(inject, tool, { applicationId: app.application.hashid }, {
+                    method: 'GET',
+                    url: `/api/v1/applications/${app.application.hashid}/audit-log/export`,
+                    raw: true
+                })
+            })
+
+            it('platform_list_team_application_statuses matches GET /api/v1/teams/:teamId/applications/status', async function () {
+                const tool = findTool('platform_list_team_application_statuses')
+                await expectToolMatchesRoute(inject, tool, { teamId: app.team.hashid }, {
+                    method: 'GET',
+                    url: `/api/v1/teams/${app.team.hashid}/applications/status`
                 })
             })
         })

@@ -14,6 +14,14 @@ const {
     appendQuery
 } = require('../schemas')
 
+// Audit-log routes accept cursor+limit pagination, free-text query, event
+// (single name or array) and username. scope narrows which entity levels are
+// returned and its allowed values differ per route (the device route has none);
+// includeChildren pulls in descendant entries within the chosen scope.
+const includeChildren = z.boolean().optional().describe('Also include audit entries from child entities within the chosen scope')
+const auditLogInput = { ...basePagination, ...searchQuery, ...auditLogFilters }
+const auditLogKeys = [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys]
+
 module.exports = [
     {
         name: 'platform_list_applications',
@@ -160,6 +168,43 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const url = appendQuery(`/api/v1/applications/${args.applicationId}/snapshots`, args, basePaginationKeys)
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_export_application_audit_log',
+        title: 'Export Application Audit Log',
+        description: `FlowFuse platform automation tool:
+            Exports an application audit log as a CSV file.
+            Use this when the user wants a downloadable or shareable copy of the application's audit history.
+            To read audit log entries directly instead, use the application audit log read tool.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            applicationId,
+            ...auditLogInput,
+            scope: z.enum(['application', 'project', 'device']).optional().describe('Entity level to include (default application)'),
+            includeChildren
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/applications/${args.applicationId}/audit-log/export`, args, [...auditLogKeys, 'scope', 'includeChildren'])
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_application_statuses',
+        title: 'List Team Application Statuses',
+        description: `FlowFuse platform automation tool:
+            Lists the applications in a team along with the live status of their associated hosted instances and remote instances.
+            Use this to get a status overview across an entire team without querying each application individually.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId,
+            associationsLimit: z.number().optional().describe('Maximum number of associated instances and devices to include per application')
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/teams/${args.teamId}/applications/status`, args, ['associationsLimit'])
             const response = await inject({ method: 'GET', url })
             return response
         }
