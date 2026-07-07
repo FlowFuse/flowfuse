@@ -127,6 +127,8 @@ async function init (app, opts) {
                                 readOnly: accessToken.readOnly,
                                 adminOptIn: accessToken.adminOptIn
                             }
+                            request.requestContext.set('isPAT', true)
+                            request.requestContext.set('pat', request.session.pat)
                             // Temp hack to give token full user scope
                             delete request.session.scope
                         }
