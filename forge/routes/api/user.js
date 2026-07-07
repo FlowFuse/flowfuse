@@ -252,6 +252,7 @@ module.exports = async function (app) {
      * /api/v1/user/pat
      */
     app.post('/tokens', {
+        preHandler: app.blockPAT,
         config: {
             rateLimit: app.config.rate_limits ? { max: 5, timeWindow: 30000 } : false
         },
@@ -279,10 +280,6 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        if (request.session.isPAT) {
-            reply.code(403).send({ code: 'pat_cannot_create_pat', error: 'PATs cannot create other PATs' })
-            return
-        }
         const updates = new app.auditLog.formatters.UpdatesCollection()
         try {
             const body = request.body
@@ -366,6 +363,7 @@ module.exports = async function (app) {
      * /api/v1/user/tokens/:id
      */
     app.put('/tokens/:id', {
+        preHandler: app.blockPAT,
         schema: {
             summary: 'Update users Personal Access Token',
             tags: ['Tokens'],
@@ -395,10 +393,6 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
-        if (request.session.isPAT) {
-            reply.code(403).send({ code: 'pat_cannot_create_pat', error: 'PATs cannot create other PATs' })
-            return
-        }
         const updates = new app.auditLog.formatters.UpdatesCollection()
         try {
             const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'user', request.session.User.id)

@@ -201,6 +201,20 @@ async function init (app, opts) {
         return new Error()
     })
 
+    /**
+     * preHandler function that blocks requests authenticated via a Personal Access Token.
+     * Use on routes that must not be callable by PATs (e.g. creating or updating PATs).
+     *
+     * @name blockPAT
+     * @static
+     * @memberof forge
+     */
+    app.decorate('blockPAT', async (request, reply) => {
+        if (request.session?.isPAT) {
+            reply.code(403).send({ code: 'pat_cannot_create_pat', error: 'PATs cannot create other PATs' })
+        }
+    })
+
     app.decorateRequest('session', null)
     app.decorateRequest('sid', null)
 
