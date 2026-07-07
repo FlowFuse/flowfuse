@@ -265,23 +265,43 @@ module.exports = {
         await app.settings.set('platform:stats:token', false)
     },
 
-    createPersonalAccessToken: async function (app, user, scope, expiresAt, name) {
+    createPersonalAccessToken: async function (app, user, scope, expiresAt, name, { readOnly = false, adminOptIn = false, teamIds = [] } = {}) {
         const userId = typeof user === 'number' ? user : user.id
         const token = generateToken(32, 'ffpat')
-        const tok = await app.db.models.AccessToken.create({
-            name,
-            token,
-            scope,
-            expiresAt,
-            ownerId: '' + userId,
-            ownerType: 'user'
+        let tokId
+        await app.db.sequelize.transaction(async (t) => {
+            const tok = await app.db.models.AccessToken.create({
+                name,
+                token,
+                scope,
+                expiresAt,
+                readOnly,
+                adminOptIn,
+                ownerId: '' + userId,
+                ownerType: 'user'
+            }, { transaction: t })
+            tokId = tok.id
+            if (teamIds.length > 0) {
+                const scopes = teamIds.map(teamId => ({
+                    AccessTokenId: tok.id,
+                    TeamId: app.db.models.Team.decodeHashid(teamId),
+                    UserId: userId
+                }))
+                await app.db.models.AccessTokenTeamScope.bulkCreate(scopes, { transaction: t })
+            }
         })
-        // Overwrite the hashed token with the plain value
-        const result = app.db.views.AccessToken.personalAccessTokenSummary(tok)
+        const reloaded = await app.db.models.AccessToken.findOne({
+            where: { id: tokId },
+            include: [{
+                model: app.db.models.AccessTokenTeamScope,
+                include: [{ model: app.db.models.Team, attributes: ['id', 'name'] }]
+            }]
+        })
+        const result = app.db.views.AccessToken.personalAccessTokenSummary(reloaded)
         result.token = token
         return result
     },
-    updatePersonalAccessToken: async function (app, user, tokenId, scope, expiresAt) {
+    updatePersonalAccessToken: async function (app, user, tokenId, scope, expiresAt, { readOnly, adminOptIn, teamIds } = {}) {
         const userId = typeof user === 'number' ? user : user.id
         const token = await app.db.models.AccessToken.byId(tokenId, 'user', userId)
         if (token) {
@@ -291,12 +311,41 @@ module.exports = {
             } else {
                 token.expiresAt = expiresAt
             }
+            if (readOnly !== undefined) {
+                token.readOnly = readOnly
+            }
+            if (adminOptIn !== undefined) {
+                token.adminOptIn = adminOptIn
+            }
             await token.save()
+            if (teamIds !== undefined) {
+                await app.db.sequelize.transaction(async (t) => {
+                    await app.db.models.AccessTokenTeamScope.destroy({
+                        where: { AccessTokenId: token.id },
+                        transaction: t
+                    })
+                    if (teamIds.length > 0) {
+                        const scopes = teamIds.map(teamId => ({
+                            AccessTokenId: token.id,
+                            TeamId: app.db.models.Team.decodeHashid(teamId),
+                            UserId: userId
+                        }))
+                        await app.db.models.AccessTokenTeamScope.bulkCreate(scopes, { transaction: t })
+                    }
+                })
+            }
+            const reloaded = await app.db.models.AccessToken.findOne({
+                where: { id: token.id },
+                include: [{
+                    model: app.db.models.AccessTokenTeamScope,
+                    include: [{ model: app.db.models.Team, attributes: ['id', 'name'] }]
+                }]
+            })
+            return reloaded
         } else {
             // should throw unknown token error
             throw new Error('Not Found')
         }
-        return token
     },
 
     // Should these only get added via forge/ee/lib/httpTokens?

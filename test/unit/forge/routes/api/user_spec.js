@@ -1041,6 +1041,185 @@ describe('User API', async function () {
             const tokens2 = await app.db.models.AccessToken.getPersonalAccessTokens({ id: userId })
             tokens2.should.have.length(0)
         })
+
+        it('Create a PAT with readOnly and teamIds returns scoped fields', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Scoped Token',
+                    scope: '',
+                    readOnly: true,
+                    adminOptIn: false,
+                    teamIds: [TestObjects.ATeam.hashid]
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.have.property('readOnly', true)
+            json.should.have.property('adminOptIn', false)
+            json.should.have.property('teams').which.is.an.Array()
+            json.teams.should.have.length(1)
+            json.teams[0].should.have.property('id', TestObjects.ATeam.hashid)
+            json.teams[0].should.have.property('name', 'ATeam')
+        })
+
+        it('Non-admin cannot set adminOptIn: true', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.elvis },
+                payload: {
+                    name: 'Admin Token',
+                    scope: '',
+                    adminOptIn: true
+                }
+            })
+            response.statusCode.should.equal(403)
+            response.json().should.have.property('code', 'unauthorized')
+        })
+
+        it('teamIds referencing teams user does not belong to are rejected', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Bad Team Token',
+                    scope: '',
+                    teamIds: [TestObjects.BTeam.hashid]
+                }
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invalid_team')
+        })
+
+        it('Updating replaces team scopes', async function () {
+            const createResponse = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Team Replace Token',
+                    scope: '',
+                    teamIds: [TestObjects.ATeam.hashid]
+                }
+            })
+            createResponse.statusCode.should.equal(200)
+            const created = createResponse.json()
+            created.teams.should.have.length(1)
+            created.teams[0].id.should.equal(TestObjects.ATeam.hashid)
+
+            const updateResponse = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/tokens/' + created.id,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    scope: '',
+                    teamIds: []
+                }
+            })
+            updateResponse.statusCode.should.equal(200)
+            const updated = updateResponse.json()
+            updated.should.have.property('teams').which.is.an.Array()
+            updated.teams.should.have.length(0)
+        })
+
+        it('GET /tokens returns readOnly, adminOptIn and teams', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            for (const tok of json.tokens) {
+                tok.should.have.property('readOnly')
+                tok.should.have.property('adminOptIn')
+                tok.should.have.property('teams')
+            }
+        })
+
+        it('Create/update without new fields still works (backwards compat)', async function () {
+            const createResponse = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: { name: 'Compat Token', scope: '' }
+            })
+            createResponse.statusCode.should.equal(200)
+            const created = createResponse.json()
+            created.should.have.property('readOnly', false)
+            created.should.have.property('adminOptIn', false)
+            created.teams.should.have.length(0)
+
+            const updateResponse = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/tokens/' + created.id,
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: { scope: '' }
+            })
+            updateResponse.statusCode.should.equal(200)
+        })
+
+        it('PAT-authenticated POST /tokens returns 403', async function () {
+            const createResponse = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: { name: 'Bootstrap PAT', scope: '' }
+            })
+            createResponse.statusCode.should.equal(200)
+            const bootstrapToken = createResponse.json().token
+
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                headers: { authorization: `Bearer ${bootstrapToken}` },
+                payload: { name: 'PAT via PAT', scope: '' }
+            })
+            response.statusCode.should.equal(403)
+            response.json().should.have.property('code', 'pat_cannot_create_pat')
+        })
+
+        it('PAT-authenticated PUT /tokens/:id returns 403', async function () {
+            const createResponse = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: { name: 'PAT for Update Test', scope: '' }
+            })
+            createResponse.statusCode.should.equal(200)
+            const { id, token: rawToken } = createResponse.json()
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: '/api/v1/user/tokens/' + id,
+                headers: { authorization: `Bearer ${rawToken}` },
+                payload: { scope: '' }
+            })
+            response.statusCode.should.equal(403)
+            response.json().should.have.property('code', 'pat_cannot_create_pat')
+        })
+
+        it('Cookie session can create tokens with readOnly and adminOptIn', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    name: 'Admin Scoped Token',
+                    scope: '',
+                    readOnly: false,
+                    adminOptIn: true
+                }
+            })
+            response.statusCode.should.equal(200)
+            const json = response.json()
+            json.should.have.property('readOnly', false)
+            json.should.have.property('adminOptIn', true)
+        })
     })
 
     describe('User invites', async function () {

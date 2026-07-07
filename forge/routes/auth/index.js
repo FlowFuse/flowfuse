@@ -121,6 +121,12 @@ async function init (app, opts) {
                         }
                         Sentry.setUser({ id: request.session.User.hashid, username: request.session.User.username, email: request.session.User.email, name: request.session.User.name })
                         if (accessToken.name) {
+                            request.session.isPAT = true
+                            request.session.pat = {
+                                id: accessToken.id,
+                                readOnly: accessToken.readOnly,
+                                adminOptIn: accessToken.adminOptIn
+                            }
                             // Temp hack to give token full user scope
                             delete request.session.scope
                         }
