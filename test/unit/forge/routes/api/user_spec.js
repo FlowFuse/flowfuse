@@ -1066,6 +1066,7 @@ describe('User API', async function () {
         })
 
         it('Non-admin cannot set adminOptIn: true', async function () {
+            await login('elvis', 'eePassword')
             const response = await app.inject({
                 method: 'POST',
                 url: '/api/v1/user/tokens',

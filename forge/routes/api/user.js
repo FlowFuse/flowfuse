@@ -397,6 +397,7 @@ module.exports = async function (app) {
         try {
             const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'user', request.session.User.id)
             if (oldToken) {
+                const oldSummary = app.db.views.AccessToken.personalAccessTokenSummary(oldToken)
                 const body = request.body
                 const teamIds = body.teamIds
                 if (teamIds !== undefined && teamIds.length > 0) {
@@ -417,9 +418,10 @@ module.exports = async function (app) {
                     request.session.User, request.params.id, body.scope, body.expiresAt,
                     { readOnly: body.readOnly, adminOptIn: body.adminOptIn, teamIds }
                 )
-                updates.pushDifferences(oldToken, newToken)
+                const newSummary = app.db.views.AccessToken.personalAccessTokenSummary(newToken)
+                updates.pushDifferences(oldSummary, newSummary)
                 await app.auditLog.User.user.pat.updated(request.session.User, null, updates)
-                reply.send(app.db.views.AccessToken.personalAccessTokenSummary(newToken))
+                reply.send(newSummary)
                 return
             }
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
