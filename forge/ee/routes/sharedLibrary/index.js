@@ -25,9 +25,9 @@ module.exports = async function (app) {
                         // Device exists and the auth token is for this team
                         return
                     }
-                } else if (!request.session.ownerType) {
-                    // This is a logged-in user. Get their teamMembership so the needsPermission
-                    // checks in the routes will evaluate properly
+                } else if (!request.session.ownerType || request.session.ownerType === 'user' || request.session.ownerType === 'user:expert-mcp') {
+                    // Cookie sessions and personal/platform-automation tokens both populate
+                    // request.session.User the same way (see forge/routes/auth/index.js).
                     request.teamMembership = await request.session.User.getTeamMembership(request.team.id)
                     if (request.teamMembership) {
                         return
