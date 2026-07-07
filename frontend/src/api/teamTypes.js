@@ -28,7 +28,7 @@ const getTeamTypes = async (cursor, limit, filter) => {
             // - billing.description is blank or equal 'free'
             teamType.isFree = teamType.properties?.billing?.disabled || !teamType.properties?.billing?.description || teamType.properties?.billing?.description === 'free'
             if (!teamType.isFree) {
-                const [price, interval] = teamType.properties?.billing?.description.split('/')
+                const [price, interval] = teamType.properties.billing.description.split('/') // description will be _something_ due to the isFree check above
                 teamType.billingPrice = price
                 teamType.billingInterval = interval
                 if (teamType.properties?.billing?.yrDescription) {
