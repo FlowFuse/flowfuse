@@ -11,7 +11,9 @@
  */
 const { normalize } = require('path')
 
-const nrUtil = require('@node-red/util') // eslint-disable-line
+const nrUtil = {
+    util: require('./red_util')
+}
 
 const forgeUtils = require('../../db/utils')
 
