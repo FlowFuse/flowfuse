@@ -53,11 +53,10 @@ const IMPLICIT_TOKEN_SCOPES = {
         'flow-blueprint:list',
         'project:status',
         'template:list',
-        // team data and packages
-        'team:database:list', // list/get team databases and tables
-        'team:packages:read', // list team npm packages
-        'team:git:tokens:list', // list team git tokens
-        'library:entry:list' // list team shared library entries
+        // remote instance reads
+        'device:audit-log', // get remote instance audit log
+        'device:history', // get remote instance history
+        'project:edit' // get remote instance HTTP tokens
     ]
 }
 

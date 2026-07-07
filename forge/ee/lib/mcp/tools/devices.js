@@ -1,5 +1,13 @@
 const { z } = require('zod')
 
+const { remoteInstanceId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery } = require('../schemas')
+
+// Audit-log routes accept cursor+limit pagination, free-text query, event
+// (single name or array) and username. The device audit-log route has no scope
+// parameter, so these tools only compose the base audit-log fragments.
+const auditLogInput = { ...basePagination, ...searchQuery, ...auditLogFilters }
+const auditLogKeys = [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys]
+
 module.exports = [
     {
         name: 'platform_list_team_remote_instances',
@@ -124,6 +132,79 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}`, payload: { application: args.applicationId } })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_remote_instance_audit_log',
+        title: 'Get Remote Instance Audit Log',
+        description: `FlowFuse platform automation tool:
+            Reads the audit log for a remote instance/device, showing events like connection changes,
+            deployments, and configuration changes for that device.
+            Use this when the user wants to know what has happened to a specific remote instance.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            remoteInstanceId,
+            ...auditLogInput
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/devices/${args.remoteInstanceId}/audit-log`, args, auditLogKeys)
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_export_remote_instance_audit_log',
+        title: 'Export Remote Instance Audit Log',
+        description: `FlowFuse platform automation tool:
+            Exports a remote instance/device audit log as a CSV file.
+            Use this when the user wants a downloadable or shareable copy of the device's audit history,
+            rather than reading entries directly with platform_get_remote_instance_audit_log.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            remoteInstanceId,
+            ...auditLogInput
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/devices/${args.remoteInstanceId}/audit-log/export`, args, auditLogKeys)
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_remote_instance_history',
+        title: 'Get Remote Instance History',
+        description: `FlowFuse platform automation tool:
+            Reads a timeline of changes made to a remote instance/device over time.
+            This is plan-gated on the projectHistory feature, which defaults to enabled;
+            if the team's plan has this feature disabled, the tool reports that device history
+            is not enabled for this team rather than a bare not-found error.
+            Use this when the user wants a chronological view of what changed on a device.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            remoteInstanceId,
+            ...basePagination
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/devices/${args.remoteInstanceId}/history`, args, basePaginationKeys)
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_remote_instance_http_tokens',
+        title: 'List Remote Instance HTTP Tokens',
+        description: `FlowFuse platform automation tool:
+            Lists the HTTP bearer tokens configured for a remote instance (device).
+            These tokens are used by external callers to authenticate HTTP requests handled by the
+            remote instance's Node-RED flows.
+            HTTP bearer tokens are a plan-gated feature: a team without it enabled gets a 404 error.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            remoteInstanceId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/devices/${args.remoteInstanceId}/httpTokens` })
             return response
         }
     }
