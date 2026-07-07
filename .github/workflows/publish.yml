@@ -140,64 +140,20 @@ jobs:
 
     steps:
     - name: Send notification
-      uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
+      uses: FlowFuse/github-actions-workflows/actions/slack_notification@slack_notification/v1
       with:
-        method: chat.postMessage
-        token: ${{ secrets.SLACK_GHBOT_TOKEN }}
-        payload: |
-          {
-            "channel": "C067BD0377F",
-            "blocks": [
-              {
-                "type": "header",
-                "text": {
-                  "type": "plain_text",
-                  "text": ":x: FlowFuse npm package publish pipeline failed",
-                  "emoji": true
-                }
-              },
-              {
-                "type": "divider"
-              },
-              {
-                "type": "rich_text",
-                "elements": [
-                  {
-                    "type": "rich_text_section",
-                    "elements": [
-                      {
-                        "type": "emoji",
-                        "name": "warning"
-                      },
-                      {
-                        "type": "text",
-                        "text": " Deployment to FFC environments will not happen until this issue is resolved.",
-                        "style": {
-                          "bold": true
-                        }
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "divider"
-              },
-              {
-                "type": "actions",
-                "elements": [
-                  {
-                    "type": "button",
-                    "text": {
-                      "type": "plain_text",
-                      "text": "View Failed Workflow",
-                      "emoji": true
-                    },
-                    "style": "primary",
-                    "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-                    "value": "view_workflow"
-                  }
-                ]
-              }
-            ]
-          }
+        bot-token: ${{ secrets.SLACK_GHBOT_TOKEN }}
+        mode: channel
+        blocks: |
+          [
+            { "type": "header", "text": { "type": "plain_text", "text": ":x: FlowFuse npm package publish pipeline failed", "emoji": true } },
+            { "type": "divider" },
+            { "type": "rich_text", "elements": [ { "type": "rich_text_section", "elements": [
+              { "type": "emoji", "name": "warning" },
+              { "type": "text", "text": " Deployment to FFC environments will not happen until this issue is resolved.", "style": { "bold": true } }
+            ] } ] },
+            { "type": "divider" },
+            { "type": "actions", "elements": [
+              { "type": "button", "text": { "type": "plain_text", "text": "View Failed Workflow", "emoji": true }, "style": "primary", "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}", "value": "view_workflow" }
+            ] }
+          ]
