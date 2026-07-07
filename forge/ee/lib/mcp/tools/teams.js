@@ -1,6 +1,22 @@
 const { z } = require('zod')
 
-const { teamId, basePagination, basePaginationKeys, limitParam, limitParamKeys, pageParam, pageParamKeys, searchQuery, searchQueryKeys, appendQuery } = require('../schemas')
+const { teamId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery } = require('../schemas')
+
+// Audit-log routes accept cursor+limit pagination, free-text query, event
+// (single name or array) and username. scope narrows which entity levels are
+// returned; includeChildren pulls in descendant entries within the chosen scope.
+const includeChildren = z.boolean().optional().describe('Also include audit entries from child entities within the chosen scope')
+const auditLogInput = { ...basePagination, ...searchQuery, ...auditLogFilters }
+const auditLogKeys = [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys]
+
+// Strips credentials (including the password) before returning results to the caller.
+function redactDatabaseCredentials (database) {
+    if (!database) {
+        return database
+    }
+    const { credentials, ...rest } = database
+    return rest
+}
 
 module.exports = [
     {
@@ -43,63 +59,6 @@ module.exports = [
         }
     },
     {
-        name: 'platform_list_team_projects',
-        title: 'List Team Projects',
-        description: `FlowFuse platform automation tool:
-            Lists the hosted instances (projects) in a team, with optional name filtering, sorting, and pagination.
-            Use this for a lighter-weight or differently sorted view of a team's hosted instances than looking up each application individually.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            teamId,
-            query: z.string().optional().describe('Filter instances by name substring'),
-            sort: z.enum(['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']).optional().describe('Field to sort the instance list by'),
-            dir: z.enum(['asc', 'desc']).optional().describe('Sort direction for the sort field'),
-            includeMeta: z.boolean().optional().describe('Include instance settings and metadata in each row (default false)'),
-            orderByMostRecentFlows: z.boolean().optional().describe('Order results by most recently updated flows (default false)'),
-            ...limitParam,
-            ...pageParam
-        },
-        handler: async (args, { inject }) => {
-            const url = appendQuery(`/api/v1/teams/${args.teamId}/projects`, args, [
-                'query', 'sort', 'dir', 'includeMeta', 'orderByMostRecentFlows', ...limitParamKeys, ...pageParamKeys
-            ])
-            const response = await inject({ method: 'GET', url })
-            return response
-        }
-    },
-    {
-        name: 'platform_list_team_application_statuses',
-        title: 'List Team Application Statuses',
-        description: `FlowFuse platform automation tool:
-            Lists the applications in a team along with the live status of their associated hosted instances and remote instances.
-            Use this to get a status overview across an entire team without querying each application individually.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            teamId,
-            associationsLimit: z.number().optional().describe('Maximum number of associated instances and devices to include per application')
-        },
-        handler: async (args, { inject }) => {
-            const url = appendQuery(`/api/v1/teams/${args.teamId}/applications/status`, args, ['associationsLimit'])
-            const response = await inject({ method: 'GET', url })
-            return response
-        }
-    },
-    {
-        name: 'platform_list_team_dashboard_instances',
-        title: 'List Team Dashboard Instances',
-        description: `FlowFuse platform automation tool:
-            Lists the hosted instances in a team that have the Node-RED dashboard module installed.
-            Use this to find instances that expose a dashboard rather than checking every instance individually.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            teamId
-        },
-        handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/dashboard-instances` })
-            return response
-        }
-    },
-    {
         name: 'platform_get_team_instance_counts',
         title: 'Get Team Instance Counts',
         description: `FlowFuse platform automation tool:
@@ -120,54 +79,6 @@ module.exports = [
         }
     },
     {
-        name: 'platform_list_team_provisioning_tokens',
-        title: 'List Team Provisioning Tokens',
-        description: `FlowFuse platform automation tool:
-            Lists a team's device provisioning tokens. This summary view omits the token secret.
-            Use this to see what provisioning tokens exist for a team without exposing their secrets.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            teamId
-        },
-        handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/devices/provisioning` })
-            return response
-        }
-    },
-    {
-        name: 'platform_list_team_types',
-        title: 'List Team Types',
-        description: `FlowFuse platform automation tool:
-            Lists the team types (tiers/plans) available on the platform, with name search, active-state filtering and pagination.
-            Use this to see what team types exist before creating a team or to look up a team's current type.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            ...basePagination,
-            ...searchQuery,
-            filter: z.enum(['all', 'active', 'inactive']).optional().describe('Which team types to include by active state (default active only)')
-        },
-        handler: async (args, { inject }) => {
-            const url = appendQuery('/api/v1/team-types', args, [...basePaginationKeys, ...searchQueryKeys, 'filter'])
-            const response = await inject({ method: 'GET', url })
-            return response
-        }
-    },
-    {
-        name: 'platform_get_team_type',
-        title: 'Get Team Type',
-        description: `FlowFuse platform automation tool:
-            Gets the details of a single team type by its hashid.
-            Use this to inspect the tier/plan a team is on, or to check a team type before assigning it to a new team.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            teamTypeId: z.string().describe('Team type hashid')
-        },
-        handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/team-types/${args.teamTypeId}` })
-            return response
-        }
-    },
-    {
         name: 'platform_check_team_slug_availability',
         title: 'Check Team Slug Availability',
         description: `FlowFuse platform automation tool:
@@ -180,6 +91,244 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'POST', url: '/api/v1/teams/check-slug', payload: { slug: args.slug } })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_team_membership',
+        title: 'Get Team Membership',
+        description: `FlowFuse platform automation tool:
+            Gets the authenticated user's own membership (role) in a team.
+            Use this to check what role the current user holds in a team before attempting an action that needs a specific role.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/user` })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_members',
+        title: 'List Team Members',
+        description: `FlowFuse platform automation tool:
+            Lists the members of a team, including their role and, when SSO is enabled, whether their membership is SSO-managed.
+            Use this to see who belongs to a team before inviting, removing, or changing the role of a member.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/members` })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_invitations',
+        title: 'List Team Invitations',
+        description: `FlowFuse platform automation tool:
+            Lists the pending invitations for a team.
+            This requires the Owner role, so a non-Owner credential will get an access error even though this tool itself is read-only.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/invitations` })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_team_audit_log',
+        title: 'Get Team Audit Log',
+        description: `FlowFuse platform automation tool:
+            Reads the audit log for a team, showing events like membership changes, billing changes,
+            and administrative actions taken across the team's applications, instances, and devices.
+            A team-scoped PAT only sees audit log entries for teams it is scoped to.
+            Use this when the user asks what happened on a team, or wants to investigate recent changes.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId,
+            ...auditLogInput,
+            scope: z.enum(['team', 'application', 'project', 'device']).optional().describe('Entity level to include (default team)'),
+            includeChildren
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/teams/${args.teamId}/audit-log`, args, [...auditLogKeys, 'scope', 'includeChildren'])
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_export_team_audit_log',
+        title: 'Export Team Audit Log',
+        description: `FlowFuse platform automation tool:
+            Exports the team audit log as a CSV file.
+            Use this when the user wants a downloadable or shareable copy of the team's audit history,
+            rather than reading entries directly with platform_get_team_audit_log.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId,
+            ...auditLogInput,
+            scope: z.enum(['team', 'application', 'project', 'device']).optional().describe('Entity level to include (default team)'),
+            includeChildren
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/teams/${args.teamId}/audit-log/export`, args, [...auditLogKeys, 'scope', 'includeChildren'])
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_databases',
+        title: 'List Team Databases',
+        description: `FlowFuse platform automation tool:
+            Lists the FlowFuse Tables databases for a team.
+            FlowFuse Tables is a plan-gated feature; if it is not enabled for the team's plan, the underlying API's error response is returned as-is.
+            The underlying API response includes a credentials object with connection details, including a password. This tool strips that object before returning results, so no credentials are ever exposed.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/databases` })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            const databases = response.json().map(redactDatabaseCredentials)
+            return {
+                statusCode: response.statusCode,
+                json: () => databases
+            }
+        }
+    },
+    {
+        name: 'platform_get_team_database',
+        title: 'Get Team Database',
+        description: `FlowFuse platform automation tool:
+            Gets a single FlowFuse Tables database for a team.
+            FlowFuse Tables is a plan-gated feature; if it is not enabled for the team's plan, the underlying API's error response is returned as-is.
+            The underlying API response includes a credentials object with connection details, including a password. This tool strips that object before returning the result, so no credentials are ever exposed.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId,
+            databaseId: z.string().describe('database hashid')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}` })
+            if (response.statusCode >= 400) {
+                return response
+            }
+            const database = redactDatabaseCredentials(response.json())
+            return {
+                statusCode: response.statusCode,
+                json: () => database
+            }
+        }
+    },
+    {
+        name: 'platform_list_database_tables',
+        title: 'List Database Tables',
+        description: `FlowFuse platform automation tool:
+            Lists the tables defined in a FlowFuse Tables database. The full list is returned; this endpoint does not paginate.
+            FlowFuse Tables is a plan-gated feature; if it is not enabled for the team's plan, the underlying API's error response is returned as-is.
+            Use platform_get_database_table to get the full schema of a single table, or platform_query_database_table_data to read row data.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId,
+            databaseId: z.string().describe('database hashid')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables` })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_database_table',
+        title: 'Get Database Table',
+        description: `FlowFuse platform automation tool:
+            Gets the schema definition of a single table in a FlowFuse Tables database (column names, types, and constraints). Does not return row data or credentials.
+            FlowFuse Tables is a plan-gated feature; if it is not enabled for the team's plan, the underlying API's error response is returned as-is.
+            Use platform_query_database_table_data to read row data instead.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId,
+            databaseId: z.string().describe('database hashid'),
+            tableName: z.string().describe('Name of the database table')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${args.tableName}` })
+            return response
+        }
+    },
+    {
+        name: 'platform_query_database_table_data',
+        title: 'Query Database Table Data',
+        description: `FlowFuse platform automation tool:
+            Reads the row data of a table in a FlowFuse Tables database. There are no column-filter parameters; this returns rows as stored.
+            At most 10 rows are returned per call (the limit is capped at 10 by the platform).
+            FlowFuse Tables is a plan-gated feature; if it is not enabled for the team's plan, the underlying API's error response is returned as-is.
+            Use platform_get_database_table first if you need to know the column names and types.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId,
+            databaseId: z.string().describe('database hashid'),
+            tableName: z.string().describe('Name of the database table'),
+            limit: z.number().int().min(1).max(10).default(10).describe('Maximum number of rows to return (1-10, default 10)')
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${args.tableName}/data`, args, ['limit'])
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_npm_packages',
+        title: 'List Team NPM Packages',
+        description: `FlowFuse platform automation tool:
+            Lists the private npm packages owned by a team.
+            The npm registry is a plan-gated feature; if it is not enabled for the team's plan, or the team does not exist, the underlying API's error response is returned as-is.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/npm/packages` })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_git_tokens',
+        title: 'List Team Git Tokens',
+        description: `FlowFuse platform automation tool:
+            Lists the git tokens configured for a team. The response never includes the raw stored personal access token, only its ID, name, and type.
+            Git integration is a plan-gated feature; if it is not enabled for the team's plan, or the team does not exist, the underlying API's error response is returned as-is.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/git/tokens` })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_library_entries',
+        title: 'List Library Entries',
+        description: `FlowFuse platform automation tool:
+            Lists entries in the team shared library (reusable flows, functions, and other snippets shared across a team's hosted and remote instances).
+            Pass an empty path to list the library root, or a folder path to list its contents.
+            The shared library is enabled by default, but a team may still not exist or the caller may not be a member; either case returns the underlying API's error response as-is.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            libraryId: z.string().describe('shared-library hashid (the team hashid)'),
+            path: z.string().default('').describe('Library entry path; empty string lists the library root'),
+            type: z.string().optional().describe('entry type filter query param (e.g. flows, functions)')
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/storage/library/${args.libraryId}/${args.path || ''}`, args, ['type'])
+            const response = await inject({ method: 'GET', url })
             return response
         }
     }
