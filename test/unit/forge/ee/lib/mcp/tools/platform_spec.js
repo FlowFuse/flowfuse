@@ -154,6 +154,42 @@ describe('MCP Platform Tools - Catalog', function () {
         })
     })
 
+    describe('platform_list_team_types', function () {
+        const tool = findTool('platform_list_team_types')
+
+        it('has pagination plus search and filter params', function () {
+            Object.keys(tool.inputSchema).should.eql(['cursor', 'limit', 'query', 'filter'])
+        })
+
+        it('calls GET /api/v1/team-types', async function () {
+            const { calls, inject } = recordingInject()
+            await tool.handler({ cursor: 'abc' }, { inject })
+            calls[0].method.should.equal('GET')
+            calls[0].url.should.equal('/api/v1/team-types?cursor=abc')
+        })
+
+        it('serialises search and filter params', async function () {
+            const { calls, inject } = recordingInject()
+            await tool.handler({ query: 'starter', filter: 'active' }, { inject })
+            calls[0].url.should.equal('/api/v1/team-types?query=starter&filter=active')
+        })
+    })
+
+    describe('platform_get_team_type', function () {
+        const tool = findTool('platform_get_team_type')
+
+        it('has the teamTypeId input', function () {
+            Object.keys(tool.inputSchema).should.eql(['teamTypeId'])
+        })
+
+        it('calls GET /api/v1/team-types/:teamTypeId', async function () {
+            const { calls, inject } = recordingInject()
+            await tool.handler({ teamTypeId: 'tt1' }, { inject })
+            calls[0].method.should.equal('GET')
+            calls[0].url.should.equal('/api/v1/team-types/tt1')
+        })
+    })
+
     describe('Integration smoke test', function () {
         let app
         let token
@@ -253,6 +289,22 @@ describe('MCP Platform Tools - Catalog', function () {
             await expectToolMatchesRoute(inject, tool, { flowBlueprintId: blueprint.hashid }, {
                 method: 'GET',
                 url: `/api/v1/flow-blueprints/${blueprint.hashid}`
+            })
+        })
+
+        it('platform_list_team_types matches GET /api/v1/team-types', async function () {
+            const tool = findTool('platform_list_team_types')
+            await expectToolMatchesRoute(inject, tool, {}, {
+                method: 'GET',
+                url: '/api/v1/team-types'
+            })
+        })
+
+        it('platform_get_team_type matches GET /api/v1/team-types/:teamTypeId', async function () {
+            const tool = findTool('platform_get_team_type')
+            await expectToolMatchesRoute(inject, tool, { teamTypeId: app.defaultTeamType.hashid }, {
+                method: 'GET',
+                url: `/api/v1/team-types/${app.defaultTeamType.hashid}`
             })
         })
     })

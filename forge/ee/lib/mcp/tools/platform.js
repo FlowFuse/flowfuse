@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { basePagination, basePaginationKeys, searchQuery, appendQuery } = require('../schemas')
+const { basePagination, basePaginationKeys, searchQuery, searchQueryKeys, appendQuery } = require('../schemas')
 
 module.exports = [
     {
@@ -117,6 +117,39 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/flow-blueprints/${args.flowBlueprintId}` })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_types',
+        title: 'List Team Types',
+        description: `FlowFuse platform automation tool:
+            Lists the team types (tiers/plans) available on the platform, with name search, active-state filtering and pagination.
+            Use this to see what team types exist before creating a team or to look up a team's current type.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            ...basePagination,
+            ...searchQuery,
+            filter: z.enum(['all', 'active', 'inactive']).optional().describe('Which team types to include by active state (default active only)')
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery('/api/v1/team-types', args, [...basePaginationKeys, ...searchQueryKeys, 'filter'])
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_team_type',
+        title: 'Get Team Type',
+        description: `FlowFuse platform automation tool:
+            Gets the details of a single team type by its hashid.
+            Use this to inspect the tier/plan a team is on, or to check a team type before assigning it to a new team.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamTypeId: z.string().describe('Team type hashid')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/team-types/${args.teamTypeId}` })
             return response
         }
     }
