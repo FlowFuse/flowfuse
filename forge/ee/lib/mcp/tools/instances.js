@@ -1,5 +1,14 @@
 const { z } = require('zod')
 
+const { teamId, hostedInstanceId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, limitParam, limitParamKeys, pageParam, pageParamKeys, appendQuery } = require('../schemas')
+
+// Audit-log routes accept cursor+limit pagination, free-text query, event
+// (single name or array) and username. scope narrows which entity levels are
+// returned; includeChildren pulls in descendant entries within the chosen scope.
+const includeChildren = z.boolean().optional().describe('Also include audit entries from child entities within the chosen scope')
+const auditLogInput = { ...basePagination, ...searchQuery, ...auditLogFilters }
+const auditLogKeys = [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys]
+
 module.exports = [
     {
         name: 'platform_get_hosted_instance',
@@ -117,6 +126,243 @@ module.exports = [
                 payload.flowBlueprintId = args.flowBlueprintId
             }
             const response = await inject({ method: 'POST', url: '/api/v1/projects', payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_instance_ha',
+        title: 'Get Instance High Availability',
+        description: `FlowFuse platform automation tool:
+            Returns the High Availability configuration for a hosted instance.
+            High Availability runs an instance across multiple replicas so it stays up if one replica fails.
+            High Availability is a plan-gated feature: a team without it enabled gets a 404 error.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/ha` })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_instance_custom_hostname',
+        title: 'Get Instance Custom Hostname',
+        description: `FlowFuse platform automation tool:
+            Returns the custom hostname configured for a hosted instance.
+            Custom hostnames are a plan-gated feature: a team without it enabled gets a 404 error.
+            Use platform_get_instance_custom_hostname_status to check whether the hostname is verified and routable.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/customHostname` })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_instance_custom_hostname_status',
+        title: 'Get Instance Custom Hostname Status',
+        description: `FlowFuse platform automation tool:
+            Returns the status of the custom hostname for a hosted instance, i.e. whether the DNS
+            CNAME record has been set up correctly and points at the platform.
+            A 200 response means the hostname is verified. A 410 response means a hostname is set
+            but its CNAME record does not resolve to the platform yet. A 404 response can mean no
+            custom hostname is configured, the platform does not support hostname verification, or
+            the custom hostname feature is not enabled for the team.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/customHostname/status` })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_instance_protection',
+        title: 'Get Instance Protection',
+        description: `FlowFuse platform automation tool:
+            Returns the protected-instance configuration for a hosted instance.
+            A protected instance requires extra confirmation before destructive actions such as
+            suspension or deletion can be performed against it.
+            Protected instance is a plan-gated feature: a team without it enabled gets a 404 error.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/protectInstance` })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_instance_auto_update_stack',
+        title: 'Get Instance Auto-Update Stack Schedule',
+        description: `FlowFuse platform automation tool:
+            Returns the auto-update stack (weekly restart) schedule for a hosted instance.
+            This schedule controls the windows in which the platform is allowed to automatically
+            restart the instance to apply a stack update.
+            This surface has no plan gate: a 404 response means the instance does not exist.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/autoUpdateStack` })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_instance_files',
+        title: 'List Instance Files',
+        description: `FlowFuse platform automation tool:
+            Lists files and directories within a hosted instance file store at the given path.
+            Use an empty string for the path to list the root of the file store.
+            Static file storage is a plan-gated feature: a team without it enabled gets a 404 error.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId,
+            path: z.string().describe('Directory path within the instance file store to list')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/files/_/${encodeURIComponent(args.path)}` })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_instance_http_tokens',
+        title: 'List Instance HTTP Tokens',
+        description: `FlowFuse platform automation tool:
+            Lists the HTTP bearer tokens configured for a hosted instance.
+            These tokens are used by external callers to authenticate HTTP requests handled by the
+            instance's Node-RED flows.
+            HTTP bearer tokens are a plan-gated feature: a team without it enabled gets a 404 error.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/httpTokens` })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_hosted_instance_audit_log',
+        title: 'Get Hosted Instance Audit Log',
+        description: `FlowFuse platform automation tool:
+            Reads the audit log for a hosted instance, showing events like deployments, restarts,
+            settings changes, and other actions taken against that instance.
+            Use this when the user wants to know what has happened to a specific hosted instance.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId,
+            ...auditLogInput,
+            scope: z.enum(['project', 'device']).optional().describe('Entity level to include (default project)'),
+            includeChildren
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/projects/${args.hostedInstanceId}/audit-log`, args, [...auditLogKeys, 'scope', 'includeChildren'])
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_export_hosted_instance_audit_log',
+        title: 'Export Hosted Instance Audit Log',
+        description: `FlowFuse platform automation tool:
+            Exports a hosted instance audit log as a CSV file.
+            Use this when the user wants a downloadable or shareable copy of the instance's audit history,
+            rather than reading entries directly with platform_get_hosted_instance_audit_log.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId,
+            ...auditLogInput,
+            scope: z.enum(['project', 'device']).optional().describe('Entity level to include (default project)'),
+            includeChildren
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/projects/${args.hostedInstanceId}/audit-log/export`, args, [...auditLogKeys, 'scope', 'includeChildren'])
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_hosted_instance_history',
+        title: 'Get Hosted Instance History',
+        description: `FlowFuse platform automation tool:
+            Reads a timeline of changes made to a hosted instance over time.
+            This is plan-gated on the projectHistory feature, which defaults to enabled;
+            if the team's plan has this feature disabled, the tool reports that instance history
+            is not enabled for this team rather than a bare not-found error.
+            Use this when the user wants a chronological view of what changed on an instance.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId,
+            ...basePagination
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/projects/${args.hostedInstanceId}/history`, args, basePaginationKeys)
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_hosted_instance_resources',
+        title: 'Get Hosted Instance Resources',
+        description: `FlowFuse platform automation tool:
+            Reads a point-in-time snapshot of resource usage (CPU, memory) for a hosted instance.
+            This is plan-gated on the instanceResources feature, which defaults to disabled;
+            if the team's plan has this feature disabled, the tool reports that resource usage
+            is not enabled for this team rather than a bare not-found error.
+            This only returns a snapshot, not a live streaming feed.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/resources` })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_projects',
+        title: 'List Team Projects',
+        description: `FlowFuse platform automation tool:
+            Lists the hosted instances (projects) in a team, with optional name filtering, sorting, and pagination.
+            Use this for a lighter-weight or differently sorted view of a team's hosted instances than looking up each application individually.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId,
+            query: z.string().optional().describe('Filter instances by name substring'),
+            sort: z.enum(['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']).optional().describe('Field to sort the instance list by'),
+            dir: z.enum(['asc', 'desc']).optional().describe('Sort direction for the sort field'),
+            includeMeta: z.boolean().optional().describe('Include instance settings and metadata in each row (default false)'),
+            orderByMostRecentFlows: z.boolean().optional().describe('Order results by most recently updated flows (default false)'),
+            ...limitParam,
+            ...pageParam
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/teams/${args.teamId}/projects`, args, [
+                'query', 'sort', 'dir', 'includeMeta', 'orderByMostRecentFlows', ...limitParamKeys, ...pageParamKeys
+            ])
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_dashboard_instances',
+        title: 'List Team Dashboard Instances',
+        description: `FlowFuse platform automation tool:
+            Lists the hosted instances in a team that have the Node-RED dashboard module installed.
+            Use this to find instances that expose a dashboard rather than checking every instance individually.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/dashboard-instances` })
             return response
         }
     }

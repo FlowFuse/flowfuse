@@ -45,6 +45,11 @@ const IMPLICIT_TOKEN_SCOPES = {
         'project:snapshot:create', // create hosted instance snapshot
         'device:snapshot:list', // list remote instance snapshots
         'device:snapshot:create', // create remote instance snapshot
+        // instance configuration
+        'project:edit', // get instance custom hostname, custom hostname status and HTTP tokens
+        'project:files:list', // list instance files
+        'project:audit-log', // get hosted instance audit log
+        'project:history', // get hosted instance history
         // teams
         'user:team:list', // list teams
         'team:read', // get team details
