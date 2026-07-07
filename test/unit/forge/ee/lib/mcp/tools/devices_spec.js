@@ -1,7 +1,7 @@
 const should = require('should') // eslint-disable-line no-unused-vars
 const sinon = require('sinon')
 
-const { expectToolMatchesRoute, createExpertMcpToken, toolFinder } = require('../../../../../../lib/mcpToolEquivalence')
+const { expectToolMatchesRoute, createExpertMcpToken, toolFinder, recordingInject } = require('../../../../../../lib/mcpToolEquivalence')
 
 const FF_UTIL = require('flowforge-test-utils')
 
@@ -110,6 +110,21 @@ describe('MCP Device Read Tools', function () {
             call.url.should.equal('/api/v1/devices/device1/audit-log?limit=20&username=alice')
         })
     })
+
+    describe('platform_list_team_provisioning_tokens', function () {
+        const tool = findTool('platform_list_team_provisioning_tokens')
+
+        it('has the teamId input', function () {
+            Object.keys(tool.inputSchema).should.eql(['teamId'])
+        })
+
+        it('calls GET /api/v1/teams/:teamId/devices/provisioning', async function () {
+            const { calls, inject } = recordingInject()
+            await tool.handler({ teamId: 'team1' }, { inject })
+            calls[0].method.should.equal('GET')
+            calls[0].url.should.equal('/api/v1/teams/team1/devices/provisioning')
+        })
+    })
 })
 
 describe('MCP Device Read Tools - integration smoke', function () {
@@ -199,6 +214,18 @@ describe('MCP Device Read Tools - integration smoke', function () {
             const body = routeResponse.json()
             body.should.have.property('count', 1)
             body.tokens[0].should.have.property('name', 'device-http-token')
+        })
+
+        it('platform_list_team_provisioning_tokens matches GET /api/v1/teams/:teamId/devices/provisioning', async function () {
+            await app.db.controllers.AccessToken.createTokenForTeamDeviceProvisioning('equivalence-test-token', app.team)
+
+            const tool = findTool('platform_list_team_provisioning_tokens')
+            const { routeResponse } = await expectToolMatchesRoute(inject, tool, { teamId: app.team.hashid }, {
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/devices/provisioning`
+            })
+            routeResponse.statusCode.should.equal(200)
+            routeResponse.json().tokens.should.not.be.empty()
         })
     })
 })

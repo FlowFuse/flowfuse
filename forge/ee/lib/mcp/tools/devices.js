@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { remoteInstanceId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery } = require('../schemas')
+const { teamId, remoteInstanceId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery } = require('../schemas')
 
 // Audit-log routes accept cursor+limit pagination, free-text query, event
 // (single name or array) and username. The device audit-log route has no scope
@@ -205,6 +205,21 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/devices/${args.remoteInstanceId}/httpTokens` })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_provisioning_tokens',
+        title: 'List Team Provisioning Tokens',
+        description: `FlowFuse platform automation tool:
+            Lists a team's device provisioning tokens. This summary view omits the token secret.
+            Use this to see what provisioning tokens exist for a team without exposing their secrets.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/devices/provisioning` })
             return response
         }
     }

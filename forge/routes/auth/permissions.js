@@ -56,7 +56,8 @@ const IMPLICIT_TOKEN_SCOPES = {
         // remote instance reads
         'device:audit-log', // get remote instance audit log
         'device:history', // get remote instance history
-        'project:edit' // get remote instance HTTP tokens
+        'project:edit', // get remote instance HTTP tokens
+        'team:device:provisioning-token:list' // list team device provisioning tokens
     ]
 }
 
