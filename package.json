@@ -150,7 +150,7 @@
         "cross-env": "^10.1.0",
         "css-loader": "^7.1.2",
         "cypress": "^15.14.2",
-        "cypress-mailpit": "^0.0.4",
+        "cypress-mailpit": "^2.0.0",
         "dotenv-webpack": "^9.0.0",
         "eslint": "^9.39.4",
         "eslint-plugin-cypress": "^6.4.2",
