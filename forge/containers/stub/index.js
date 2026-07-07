@@ -9,7 +9,7 @@
  * @memberof forge.containers.drivers
  *
  */
-const { normalize } = require('path')
+const { posix: { normalize } } = require('path')
 
 const nrUtil = {
     util: require('./red_util')
