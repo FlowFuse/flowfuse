@@ -62,8 +62,7 @@ export default {
             required: false,
             default: 'value'
         },
-        // Size of the underlying buttons (passed through to ff-button). Defaults to
-        // 'medium' to match existing usages; 'small' suits dense contexts like tables.
+        // Button size passed through to ff-button: 'small' or 'medium'.
         size: {
             type: String,
             required: false,

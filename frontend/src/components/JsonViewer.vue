@@ -40,22 +40,13 @@
 </template>
 
 <script>
-// Read-only single-value JSON viewer with prettify, word-wrap and optional collapse,
-// following the presentation of SnapshotDiffChangePanel without its two-sided diff
-// machinery. Used for payloads such as the tool approval card's call parameters.
+// Read-only single-value JSON viewer with prettify, word-wrap and optional collapse.
+// Generic component: renders any object, array or scalar as a payload block.
 import { ChevronRightIcon } from '@heroicons/vue/20/solid'
 
-const LONG_LINE_THRESHOLD = 50
+import { safeStringify } from '@/composables/strings/String.js'
 
-// Stringify that never throws — if the payload can't be serialised for any
-// reason, show a plain error instead of breaking the surrounding card.
-function safeStringify (value) {
-    try {
-        return JSON.stringify(value, null, 2)
-    } catch (err) {
-        return 'Could not display the payload.'
-    }
-}
+const LONG_LINE_THRESHOLD = 50
 
 export default {
     name: 'JsonViewer',
