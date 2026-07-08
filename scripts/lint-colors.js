@@ -156,7 +156,8 @@ function run () {
     }
 
     if (failed) {
-        throw new Error('FlowFuse color-token lint failed.')
+        error('FlowFuse color-token lint failed.')
+        process.exit(1)
     }
 
     log('✓ no banned color references')
