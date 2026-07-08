@@ -121,14 +121,35 @@ async function init (app, opts) {
                         }
                         Sentry.setUser({ id: request.session.User.hashid, username: request.session.User.username, email: request.session.User.email, name: request.session.User.name })
                         if (accessToken.name) {
-                            request.session.isPAT = true
-                            request.session.pat = {
+                            const scopes = accessToken.AccessTokenTeamScopes ?? []
+                            let teamScopes = null
+
+                            if (scopes.length > 0) {
+                                const teamIds = scopes.map(s => s.TeamId)
+                                const memberships = await app.db.models.TeamMember.findAll({
+                                    where: { UserId: request.session.User.id, TeamId: teamIds }
+                                })
+                                const roleByTeamId = {}
+                                for (const m of memberships) {
+                                    roleByTeamId[m.TeamId] = m.role
+                                }
+                                teamScopes = scopes.map(s => ({
+                                    [app.db.models.Team.encodeHashid(s.TeamId)]: roleByTeamId[s.TeamId] ?? null
+                                }))
+                            }
+
+                            const patMetadata = {
                                 id: accessToken.id,
                                 readOnly: accessToken.readOnly,
-                                adminOptIn: accessToken.adminOptIn
+                                adminOptIn: accessToken.adminOptIn,
+                                teamScopes
                             }
+
+                            request.session.isPAT = true
+                            request.session.pat = patMetadata
                             request.requestContext.set('isPAT', true)
-                            request.requestContext.set('pat', request.session.pat)
+                            request.requestContext.set('pat', patMetadata)
+
                             // Temp hack to give token full user scope
                             delete request.session.scope
                         }
@@ -185,6 +206,7 @@ async function init (app, opts) {
         }
         reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
     }
+
     app.decorate('verifySession', verifySession)
 
     /**

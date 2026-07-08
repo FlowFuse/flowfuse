@@ -426,7 +426,11 @@ module.exports = {
                 scope: {
                     [Op.notIn]: ['password:reset', 'email:verify']
                 }
-            }
+            },
+            include: [{
+                model: app.db.models.AccessTokenTeamScope,
+                include: [{ model: app.db.models.Team, attributes: ['id', 'name'] }]
+            }]
         })
         if (accessToken) {
             if (accessToken.expiresAt && accessToken.expiresAt.getTime() < Date.now()) {

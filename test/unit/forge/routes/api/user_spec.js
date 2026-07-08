@@ -1221,6 +1221,104 @@ describe('User API', async function () {
             json.should.have.property('readOnly', false)
             json.should.have.property('adminOptIn', true)
         })
+
+        describe('PAT auth metadata', async function () {
+            it('getOrExpire eager-loads AccessTokenTeamScopes for PATs', async function () {
+                // Create a PAT with team scopes
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        name: 'Eager Load PAT',
+                        scope: '',
+                        teamIds: [TestObjects.ATeam.hashid]
+                    }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                // Call getOrExpire directly and verify includes
+                const accessToken = await app.db.controllers.AccessToken.getOrExpire(patToken)
+                accessToken.should.have.property('name', 'Eager Load PAT')
+                accessToken.should.have.property('readOnly')
+                accessToken.should.have.property('adminOptIn')
+                accessToken.should.have.property('AccessTokenTeamScopes')
+                accessToken.AccessTokenTeamScopes.should.be.an.Array()
+                accessToken.AccessTokenTeamScopes.should.have.length(1)
+                accessToken.AccessTokenTeamScopes[0].should.have.property('TeamId')
+                accessToken.AccessTokenTeamScopes[0].should.have.property('Team')
+                accessToken.AccessTokenTeamScopes[0].Team.should.have.property('name', 'ATeam')
+            })
+
+            it('getOrExpire returns empty AccessTokenTeamScopes for PATs without team scopes', async function () {
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: { name: 'No Scope PAT', scope: '' }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                const accessToken = await app.db.controllers.AccessToken.getOrExpire(patToken)
+                accessToken.should.have.property('name', 'No Scope PAT')
+                accessToken.AccessTokenTeamScopes.should.be.an.Array()
+                accessToken.AccessTokenTeamScopes.should.have.length(0)
+            })
+
+            it('PAT-authenticated request is identified as PAT (blockPAT rejects)', async function () {
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: { name: 'Block Test PAT', scope: '' }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                // PAT can access normal routes
+                const userResponse = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/user',
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                userResponse.statusCode.should.equal(200)
+
+                // But is blocked by blockPAT preHandler
+                const blockedResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    headers: { authorization: `Bearer ${patToken}` },
+                    payload: { name: 'Should Fail', scope: '' }
+                })
+                blockedResponse.statusCode.should.equal(403)
+                blockedResponse.json().should.have.property('code', 'pat_cannot_create_pat')
+            })
+
+            it('cookie session is not identified as PAT', async function () {
+                // Cookie sessions should not be blocked by blockPAT
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: { name: 'Cookie Session PAT', scope: '' }
+                })
+                createResponse.statusCode.should.equal(200)
+            })
+
+            it('non-PAT bearer tokens are not identified as PAT', async function () {
+                const device = await app.factory.createDevice({ name: 'pat-test-device' }, TestObjects.ATeam, null, TestObjects.application)
+                const deviceToken = await app.db.controllers.AccessToken.createTokenForDevice(device)
+
+                // Verify via getOrExpire that device tokens don't get AccessTokenTeamScopes
+                const accessToken = await app.db.controllers.AccessToken.getOrExpire(deviceToken.token)
+                should(accessToken.name).be.null()
+                // Device tokens have empty scopes array (no team scope entries)
+                accessToken.AccessTokenTeamScopes.should.be.an.Array()
+                accessToken.AccessTokenTeamScopes.should.have.length(0)
+            })
+        })
     })
 
     describe('User invites', async function () {
