@@ -32,7 +32,7 @@ const CommandMessageTemplate = {
     correlationData: '',
     createdAt: 0,
     expiresAt: 0,
-    payload: Object()
+    payload: Object() // eslint-disable-line no-object-constructor
 }
 Object.freeze(CommandMessageTemplate)
 
