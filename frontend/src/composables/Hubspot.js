@@ -11,7 +11,7 @@ export function useHubspotHelper () {
             confirmLabel: 'Close',
             canBeCanceled: false,
             is: {
-                // eslint-disable-next-line vue/one-component-per-file
+
                 component: defineComponent({
                     computed: {
                         url () {

@@ -20,7 +20,7 @@ async function initCache (options, app) {
         }
     }
     client = createClient(newOptions)
-    // eslint-disable-next-line n/handle-callback-err
+
     client.on('error', (err) => {
         app.log.info(`Valkey Cache error ${err}`)
     })

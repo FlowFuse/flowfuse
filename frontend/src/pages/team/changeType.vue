@@ -110,7 +110,6 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 
-// eslint-disable-next-line vue/one-component-per-file
 export default {
     name: 'ChangeTeamType',
     components: {

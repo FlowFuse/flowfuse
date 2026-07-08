@@ -1,5 +1,5 @@
 const { Op } = require('sequelize')
-const should = require('should') // eslint-disable-line
+const should = require('should')
 const sinon = require('sinon')
 
 const setup = require('../../setup')

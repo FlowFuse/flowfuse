@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const should = require('should') // eslint-disable-line
+const should = require('should')
 const sinon = require('sinon')
 
 const { sha256, compareHash } = require('../../../../../forge/db/utils')

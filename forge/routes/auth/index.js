@@ -583,7 +583,6 @@ async function init (app, opts) {
      */
     app.post('/account/verify', {
         preHandler: function (request, reply, done) {
-            // eslint-disable-next-line promise/no-callback-in-promise
             app.verifySession(request, reply).then(() => done()).catch(done)
         },
         config: {

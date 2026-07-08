@@ -25,7 +25,7 @@ module.exports = async function (app) {
                     request.snapshot = await app.db.models.ProjectSnapshot.byId(request.params.snapshotId)
                     if (!request.snapshot || request.snapshot.DeviceId !== request.device.id) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                        return // eslint-disable-line no-useless-return
+                        return
                     }
                 } catch (err) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })

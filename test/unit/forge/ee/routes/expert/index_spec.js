@@ -1,6 +1,6 @@
 const { default: axios } = require('axios')
 
-const should = require('should') // eslint-disable-line
+const should = require('should')
 const sinon = require('sinon')
 
 const { sha256 } = require('../../../../../../forge/db/utils.js')
