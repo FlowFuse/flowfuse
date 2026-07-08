@@ -21,3 +21,23 @@ jobs:
       - uses: JS-DevTools/npm-publish@0fd2f4369c5d6bcfcde6091a7c527d810b9b5c3f # v4.1.5
         with:
           token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+  notify-slack:
+    name: Notify about release failure
+    needs: [publish]
+    if: failure()
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Notify Slack
+      uses: FlowFuse/github-actions-workflows/actions/slack_notification@slack_notification/v1
+      with:
+        bot-token: ${{ secrets.SLACK_GHBOT_TOKEN }}
+        mode: channel
+        blocks: |
+          [
+            { "type": "header", "text": { "type": "plain_text", "text": ":x: ${{ github.workflow }} workflow failed", "emoji": true } },
+            { "type": "divider" },
+            { "type": "section", "text": { "type": "mrkdwn", "text": "<${{ github.server_url }}/${{ github.repository }}/actions/workflows/release-publish.yml|${{ github.workflow }}> workflow failed to complete successfully." } },
+            { "type": "section", "text": { "type": "mrkdwn", "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>" } }
+          ]
