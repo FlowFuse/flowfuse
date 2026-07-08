@@ -1,0 +1,15 @@
+// PROBE FILE — deliberate lint violations for testing scripts/lint-colors.js. DELETE ME.
+
+.probe {
+    // Check 1: banned SCSS alias
+    color: $ff-grey-700;
+
+    // Check 1: hex literal in a color property
+    background-color: #374151;
+
+    // Check 1: named color keyword in a color property
+    border: 1px solid black;
+
+    // Check 1: raw palette var used directly in a color property
+    fill: var(--ff-palette-red-500);
+}

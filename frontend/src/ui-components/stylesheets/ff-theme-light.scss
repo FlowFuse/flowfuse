@@ -4,6 +4,9 @@
 [data-theme="light"] {
     color-scheme: light;
 
+    /* PROBE: theme-parity violation — token defined in light but not dark. DELETE ME. */
+    --ff-color-probe-only-light:  var(--ff-palette-white);
+
     --ff-color-bg-app:            var(--ff-palette-white);
     --ff-color-bg-surface:        var(--ff-palette-grey-50);
     --ff-color-bg-surface-raised: var(--ff-palette-grey-100);
