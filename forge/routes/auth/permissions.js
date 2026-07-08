@@ -1,5 +1,5 @@
-const fp = require('fastify-plugin')
 const { requestContext } = require('@fastify/request-context')
+const fp = require('fastify-plugin')
 
 const { Permissions } = require('../../lib/permissions')
 const { Roles } = require('../../lib/roles.js')
