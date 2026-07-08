@@ -44,7 +44,7 @@ export default defineComponent({
             type: Array
         },
         collapsed: {
-            required: true,
+            required: false,
             type: Boolean,
             default: true
         },

@@ -38,8 +38,7 @@ export default {
     props: {
         application: {
             type: Object,
-            required: true,
-            default: null
+            required: true
         }
     },
     setup () {

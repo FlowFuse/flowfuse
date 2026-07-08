@@ -1,6 +1,6 @@
 const crypto = require('crypto')
 
-const should = require('should') // eslint-disable-line no-unused-vars
+const should = require('should')
 
 const { addFlowsToProject } = require('../../../../lib/Snapshots')
 const TestModelFactory = require('../../../../lib/TestModelFactory')

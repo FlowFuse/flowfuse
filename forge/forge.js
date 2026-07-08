@@ -8,7 +8,7 @@ const fastify = require('fastify')
 const auditLog = require('./auditLog')
 const caches = require('./caches')
 const comms = require('./comms')
-const config = require('./config') // eslint-disable-line n/no-unpublished-require
+const config = require('./config')
 const containers = require('./containers')
 const db = require('./db')
 const ee = require('./ee')
@@ -182,7 +182,7 @@ module.exports = async (options = {}) => {
         // Test Only. Permit access to app.routes - for evaluating routes in tests
         if (options.config?.test?.fastifyRoutes) {
             // since @fastify/routes is a dev dependency, we only load it when requested in test
-            server.register(require('@fastify/routes')) // eslint-disable-line n/no-unpublished-require
+            server.register(require('@fastify/routes'))
         }
 
         // Rate Limits: rate limiting for the server end points

@@ -116,7 +116,6 @@ describe('FlowFuse - Devices', () => {
                             // select 'application-2'
                             cy.get('[data-form="application"] .ff-listbox').should('be.visible')
                             cy.get('[data-form="application"]').within(() => {
-                                // eslint-disable-next-line cypress/require-data-selectors
                                 cy.get('.ff-listbox').should('not.be.disabled')
                                 cy.get('.ff-listbox').click()
                             })

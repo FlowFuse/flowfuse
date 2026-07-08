@@ -28,8 +28,7 @@ export default {
     props: {
         state: {
             required: true,
-            type: [String, null, undefined],
-            default: null
+            type: [String, null, undefined]
         },
         pendingStateChange: {
             required: false,

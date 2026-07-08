@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 /**
  * Add credentialSecret to Snapshots table
  */

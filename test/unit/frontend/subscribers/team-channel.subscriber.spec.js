@@ -1,4 +1,3 @@
-/* eslint-env browser */
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 const getTeamCommsCreds = vi.fn()

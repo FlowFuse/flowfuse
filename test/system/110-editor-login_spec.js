@@ -1,6 +1,6 @@
 const crypto = require('node:crypto')
 
-const should = require('should') // eslint-disable-line no-unused-vars
+const should = require('should')
 
 const { base64URLEncode } = require('../../forge/db/utils')
 const TestModelFactory = require('../lib/TestModelFactory')
