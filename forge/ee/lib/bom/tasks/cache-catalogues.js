@@ -1,15 +1,13 @@
-const { decodeCertifiedNodesToken } = require('../../../../lib/npm')
-const { randomInt } = require("../../../../housekeeper/utils")
-
 const axios = require('axios')
+
+const { decodeCertifiedNodesToken } = require('../../../../lib/npm')
 
 const NODE_VERSION_CACHE = 'nodes-latestVersion'
 
 module.exports = {
     name: 'cacheCatalogues',
-    //startup: false,
-    startup: 1000 * 10,
-    schedule: `*/5 * * * *`, // '35 21 * * *' // 21:35 every day
+    startup: 1000 * 90, // 90 seconds after start up to ensure cache populated
+    schedule: '47 21 * * *', // Update at 21:47 every day (if not done with a restart)
     run: async function (app) {
         app.caches.createCache(NODE_VERSION_CACHE)
         const cache = app.caches.getCache(NODE_VERSION_CACHE)
@@ -23,11 +21,11 @@ module.exports = {
                                    !!app.settings.get('platform:ff-npm-registry:token')
         if (platformNPMEnabled) {
             // gets platform wide certified nodes catalogues but not per team override
-            const { token, catalogues } = decodeCertifiedNodesToken(app.settings.get('platform:ff-npm-registry:token'), 'placeholder')
+            const { catalogues } = decodeCertifiedNodesToken(app.settings.get('platform:ff-npm-registry:token'), 'placeholder')
             cataloguesList.push(...catalogues)
         }
 
-        for (const cat  of cataloguesList) {
+        for (const cat of cataloguesList) {
             app.log.debug(`Checking catalogue ${cat} for latest node versions`)
             try {
                 const res = await axios.get(cat, {
@@ -42,7 +40,7 @@ module.exports = {
                         const version = mod.version
                         cache.set(name, version)
                     }
-                } 
+                }
             } catch (err) {
                 app.log.debug(`Problem reading catalogue ${cat}, ${err.toString()}`)
             }
