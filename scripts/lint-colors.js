@@ -2,12 +2,38 @@
 // Tailwind utility classes in Vue templates, (3) theme-file token parity.
 // Fail messages below describe each rule when triggered.
 
-const { execSync } = require('child_process')
 const { log, error } = require('console')
 const fs = require('fs')
 const path = require('path')
 
 const root = path.resolve(__dirname, '..', 'frontend', 'src')
+
+// Cross-platform replacement for `grep -rnE`: recursively walk `dir`, match each
+// line of every file whose extension is in `extensions` against `pattern`, and
+// return `relativePath:lineNumber:lineText` entries (relative to `root`).
+function grepLines (dir, pattern, extensions) {
+    const re = new RegExp(pattern)
+    const matches = []
+    const walk = (current) => {
+        for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+            const full = path.join(current, entry.name)
+            if (entry.isDirectory()) {
+                walk(full)
+            } else if (extensions.includes(path.extname(entry.name))) {
+                const rel = path.relative(root, full)
+                const content = fs.readFileSync(full, 'utf8')
+                const lines = content.split(/\r?\n/)
+                for (let i = 0; i < lines.length; i++) {
+                    if (re.test(lines[i])) {
+                        matches.push(`${rel}:${i + 1}:${lines[i]}`)
+                    }
+                }
+            }
+        }
+    }
+    walk(dir)
+    return matches
+}
 const stylesheetsDir = path.join(root, 'ui-components', 'stylesheets')
 const lightThemeFile = path.join(stylesheetsDir, 'ff-theme-light.scss')
 const darkThemeFile = path.join(stylesheetsDir, 'ff-theme-dark.scss')
@@ -24,19 +50,7 @@ const ALLOWLIST_FILES = /(ff-colors|ff-palette|ff-theme-light|ff-theme-dark|ff-h
 const ALLOW_HEX_COMMENT = /\/\/\s*allow-hex:/
 
 function checkBannedReferences () {
-    let raw = ''
-    try {
-        raw = execSync(
-            `grep -rnE '${BANNED_PATTERN}' --include='*.scss' --include='*.vue' --include='*.css' "${root}"`,
-            { encoding: 'utf8' }
-        )
-    } catch (e) {
-        if (e.status === 1) return []
-        throw e
-    }
-    return raw
-        .split('\n')
-        .filter(Boolean)
+    return grepLines(root, BANNED_PATTERN, ['.scss', '.vue', '.css'])
         .filter(line => !ALLOWLIST_FILES.test(line.split(':')[0]))
         .filter(line => !ALLOW_HEX_COMMENT.test(line))
 }
@@ -46,17 +60,7 @@ const BANNED_TAILWIND_CLASSES = '\\b(bg-black|text-(red|yellow|blue|green|indigo
 const TAILWIND_IN_TEMPLATE = `(:?class)\\s*=\\s*"[^"]*${BANNED_TAILWIND_CLASSES}[^"]*"`
 
 function checkTemplateClasses () {
-    let raw = ''
-    try {
-        raw = execSync(
-            `grep -rnE '${TAILWIND_IN_TEMPLATE}' --include='*.vue' "${root}"`,
-            { encoding: 'utf8' }
-        )
-    } catch (e) {
-        if (e.status === 1) return []
-        throw e
-    }
-    return raw.split('\n').filter(Boolean)
+    return grepLines(root, TAILWIND_IN_TEMPLATE, ['.vue'])
 }
 
 // Check 3 — theme-file parity
