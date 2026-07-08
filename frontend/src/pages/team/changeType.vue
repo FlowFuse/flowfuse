@@ -234,7 +234,7 @@ export default {
                 const targetInstanceLimits = {}
                 let totalInstanceCount = 0
                 for (const instanceType of Object.keys(currentInstanceCountsByType)) {
-                    if (!this.input.teamType.properties?.instances?.[instanceType]?.active ?? false) {
+                    if (!this.input.teamType.properties?.instances?.[instanceType]?.active) {
                         targetInstanceLimits[instanceType] = 0
                     } else {
                         targetInstanceLimits[instanceType] = this.input.teamType.properties?.instances?.[instanceType]?.limit ?? -1

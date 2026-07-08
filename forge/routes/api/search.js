@@ -245,7 +245,7 @@ module.exports = async function (app) {
         }))
 
         reply.send({
-            count: ((instances.length ?? 0) + (devices.length ?? 0)) ?? 0,
+            count: instances.length + devices.length,
             results: [
                 ...instanceResults,
                 ...deviceResults
