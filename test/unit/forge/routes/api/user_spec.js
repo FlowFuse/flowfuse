@@ -973,14 +973,14 @@ describe('User API', async function () {
 
             const response2 = await app.inject({
                 method: 'GET',
-                url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}`,
                 headers: {
                     authorization: `Bearer ${token}`
                 }
             })
             response2.statusCode.should.equal(200)
             const team = response2.json()
-            team.name.should.equal('BTeam')
+            team.name.should.equal('ATeam')
         })
         it('User cannot modify/delete a token they do not own', async function () {
             await login('bob', 'bbPassword')
@@ -1317,6 +1317,230 @@ describe('User API', async function () {
                 // Device tokens have empty scopes array (no team scope entries)
                 accessToken.AccessTokenTeamScopes.should.be.an.Array()
                 accessToken.AccessTokenTeamScopes.should.have.length(0)
+            })
+        })
+
+        describe('PAT scope enforcement', async function () {
+            // alice: admin, ATeam owner
+            // bob: admin, ATeam owner, BTeam owner
+
+            it('team-scoped PAT can access allowed team', async function () {
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        name: 'ATeam Scoped',
+                        scope: '',
+                        teamIds: [TestObjects.ATeam.hashid]
+                    }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}`,
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.have.property('name', 'ATeam')
+            })
+
+            it('team-scoped PAT cannot access a team outside its scope', async function () {
+                await login('bob', 'bbPassword')
+                // bob is member of both ATeam and BTeam, but scope the PAT to ATeam only
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: {
+                        name: 'ATeam Only',
+                        scope: '',
+                        teamIds: [TestObjects.ATeam.hashid]
+                    }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                // Accessing BTeam should fail
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                // 404 from the shared team preHandler nullifying membership,
+                // or 403 from needsPermission team scope check
+                response.statusCode.should.be.oneOf([403, 404])
+            })
+
+            it('team-agnostic PAT (no teamScopes) can access any team the user belongs to', async function () {
+                await login('bob', 'bbPassword')
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: { name: 'No Scope', scope: '' }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                // Can access both ATeam and BTeam
+                const aResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}`,
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                aResponse.statusCode.should.equal(200)
+
+                const bResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                bResponse.statusCode.should.equal(200)
+            })
+
+            it('read-only PAT can call read endpoints', async function () {
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        name: 'ReadOnly PAT',
+                        scope: '',
+                        readOnly: true
+                    }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                // GET team (read) should succeed
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}`,
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                response.statusCode.should.equal(200)
+            })
+
+            it('read-only PAT cannot call write endpoints', async function () {
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        name: 'ReadOnly Write Test',
+                        scope: '',
+                        readOnly: true
+                    }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                // PUT user (write) should be rejected
+                const response = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user',
+                    headers: { authorization: `Bearer ${patToken}` },
+                    payload: { name: 'Should Not Change' }
+                })
+                response.statusCode.should.equal(403)
+            })
+
+            it('adminOptIn: false strips admin privileges', async function () {
+                // alice is admin but PAT has adminOptIn: false (default)
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: { name: 'No Admin PAT', scope: '' }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                // Admin-only endpoint (e.g. list all users) should be rejected
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/admin/users',
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                response.statusCode.should.not.equal(200)
+            })
+
+            it('adminOptIn: true preserves admin privileges', async function () {
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        name: 'Admin PAT',
+                        scope: '',
+                        adminOptIn: true
+                    }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                // Admin can access a team they are not a member of
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                response.statusCode.should.equal(200)
+            })
+
+            it('adminOptIn: true + readOnly still enforces read-only', async function () {
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: {
+                        name: 'Admin ReadOnly',
+                        scope: '',
+                        adminOptIn: true,
+                        readOnly: true
+                    }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                // Read should work (admin bypass + read-only allows reads)
+                const readResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.ATeam.hashid}`,
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                readResponse.statusCode.should.equal(200)
+
+                // Write should be blocked by read-only even though admin
+                const writeResponse = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user',
+                    headers: { authorization: `Bearer ${patToken}` },
+                    payload: { name: 'Should Not Change' }
+                })
+                writeResponse.statusCode.should.equal(403)
+            })
+
+            it('cookie session is unaffected by PAT enforcement', async function () {
+                // Cookie session should still have full access
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams/${TestObjects.BTeam.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                response.statusCode.should.equal(200)
+
+                // Write should also work
+                const writeResponse = await app.inject({
+                    method: 'PUT',
+                    url: '/api/v1/user',
+                    cookies: { sid: TestObjects.tokens.alice },
+                    payload: { name: 'Alice Skywalker' }
+                })
+                writeResponse.statusCode.should.equal(200)
             })
         })
     })

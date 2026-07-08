@@ -150,6 +150,20 @@ async function init (app, opts) {
                             request.requestContext.set('isPAT', true)
                             request.requestContext.set('pat', patMetadata)
 
+                            // When adminOptIn is false, shadow the admin flag on
+                            // the session User so all downstream permission checks
+                            // treat this request as non-admin.
+                            // Using Object.defineProperty instead of direct assignment
+                            // to avoid mutating the Sequelize model's dataValues,
+                            // which would persist to the database if .save() is
+                            // called later in the request lifecycle.
+                            if (request.session.User.admin && !patMetadata.adminOptIn) {
+                                Object.defineProperty(request.session.User, 'admin', {
+                                    value: false,
+                                    configurable: true
+                                })
+                            }
+
                             // Temp hack to give token full user scope
                             delete request.session.scope
                         }
