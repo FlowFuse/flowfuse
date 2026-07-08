@@ -22,19 +22,6 @@ export default [
         ]
     },
 
-    // TODO(eslint-v9-follow-up): the ESLint 8 -> 9 / neostandard rule-set change left a number
-    // of now-stale inline `eslint-disable` comments in the codebase (for n/no-process-exit,
-    // n/no-extraneous-import, n/no-unpublished-require, n/handle-callback-err, no-unused-vars,
-    // no-useless-return, no-template-curly-in-string, promise/no-callback-in-promise,
-    // vue/one-component-per-file, etc.). They surface as "Unused eslint-disable directive"
-    // warnings. Silencing the report here to keep this migration PR small; remove this block
-    // and delete the stale directives in the follow-up PR.
-    {
-        linterOptions: {
-            reportUnusedDisableDirectives: 'off'
-        }
-    },
-
     // extends: standard, plugin:import/recommended, plugin:promise/recommended, plugin:n/recommended
     // neostandard is the flat-config successor to eslint-config-standard and registers
     // (globally) the n and promise plugins plus @stylistic, subsuming the old promise/n
@@ -155,12 +142,6 @@ export default [
             'vue/attribute-hyphenation': 'off',
             'vue/singleline-html-element-content-newline': 'off',
             'vue/component-definition-name-casing': 'off',
-
-            // TODO(eslint-v9-follow-up): vue/no-required-prop-with-default is new in
-            // eslint-plugin-vue v10 and flags a required prop that also declares a default.
-            // Disabled to keep this migration PR small; fix the offending prop(s) and remove
-            // this in the follow-up PR.
-            'vue/no-required-prop-with-default': 'off',
 
             // plugin:promise
             'promise/always-return': 'off', // common Vue.js pattern
