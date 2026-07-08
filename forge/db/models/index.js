@@ -67,6 +67,7 @@ const modelTypes = [
     'ProjectTemplate',
     'ProjectSnapshot',
     'AccessToken',
+    'AccessTokenTeamScope',
     'AuthClient',
     'Device',
     'DeviceGroup',

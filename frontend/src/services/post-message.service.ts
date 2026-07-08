@@ -146,7 +146,7 @@ class PostMessageService extends BaseService implements PostMessageServiceI {
         this.sendMessage({ message })
     }
 
-    setExpertContext (payload: {data: object, sessionId: string}) {
+    setExpertContext (payload: { data: object, sessionId: string }) {
         useProductExpertStore().setContext(payload)
 
         const message = {
