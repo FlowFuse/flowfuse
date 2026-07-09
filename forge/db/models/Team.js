@@ -788,7 +788,8 @@ module.exports = {
                             [Op.or]: [
                                 { name: nameOrId },
                                 { id: applicationId }
-                            ]
+                            ],
+                            TeamId: this.id
                         }
                     })
 

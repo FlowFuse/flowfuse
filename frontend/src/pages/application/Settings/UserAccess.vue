@@ -5,8 +5,8 @@
             data-el="user-access-table"
         >
             <template v-if="hasPermission('team:user:change-role') || isAdminUser" #context-menu="{row}">
-                <ff-kebab-item v-if="!row.permissions.sso" data-action="edit-token" label="Edit Permissions" @click="editUserPermissions(row)" />
-                <ff-kebab-item v-else label="SSO Managed" />
+                <ff-kebab-item v-if="row.permissions?.sso === true" label="SSO Managed" />
+                <ff-kebab-item v-else data-action="edit-token" label="Edit Permissions" @click="editUserPermissions(row)" />
             </template>
         </ff-data-table>
 
