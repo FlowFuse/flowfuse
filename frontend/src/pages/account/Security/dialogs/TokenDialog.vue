@@ -155,7 +155,7 @@ export default {
             const scopeOpts = {
                 readOnly: this.input.readOnly,
                 adminOptIn: this.input.adminOptIn,
-                teamIds: this.input.teamIds.length > 0 ? this.input.teamIds : undefined
+                teamIds: this.edit ? this.input.teamIds : (this.input.teamIds.length > 0 ? this.input.teamIds : undefined)
             }
             if (!this.edit) {
                 let array = []

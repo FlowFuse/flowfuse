@@ -237,8 +237,8 @@ const deletePersonalAccessToken = async (id) => {
  * @param {boolean} options.adminOptIn Whether admin opt-in is enabled
  * @param {Array<string>} options.teamIds Array of team IDs the token is scoped to
  */
-const updatePersonalAccessToken = async (id, scope, expiresAt) => {
-    return client.put('/api/v1/user/tokens/' + id, { scope, expiresAt })
+const updatePersonalAccessToken = async (id, scope, expiresAt, { readOnly, adminOptIn, teamIds } = {}) => {
+    return client.put('/api/v1/user/tokens/' + id, { scope, expiresAt, readOnly, adminOptIn, teamIds }).then(res => res.data)
 }
 
 const enableMFA = async () => {
