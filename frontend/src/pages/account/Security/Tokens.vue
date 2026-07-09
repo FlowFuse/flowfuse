@@ -29,7 +29,6 @@
 </template>
 
 <script>
-import { pluralize } from '@/composables/strings/String.js'
 import { PlusIcon } from '@heroicons/vue/24/outline'
 import { markRaw } from 'vue'
 
@@ -40,6 +39,8 @@ import ExpiryCell from '../components/ExpiryCell.vue'
 
 import TokenCreated from './dialogs/TokenCreated.vue'
 import TokenDialog from './dialogs/TokenDialog.vue'
+
+import { pluralize } from '@/composables/strings/String.js'
 
 export default {
     name: 'PersonalAccessTokens',

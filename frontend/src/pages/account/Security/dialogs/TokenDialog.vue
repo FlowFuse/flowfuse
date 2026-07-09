@@ -64,11 +64,10 @@
 <script>
 import { mapState } from 'pinia'
 
-import userApi from '@/api/user.js'
-import { useAccountAuthStore } from '@/stores/index.js'
-import { useAccountStore } from '@/stores/index.js'
-
 import FormRow from '../../../../components/FormRow.vue'
+
+import userApi from '@/api/user.js'
+import { useAccountAuthStore, useAccountStore } from '@/stores/index.js'
 
 export default {
     name: 'TokenDialog',
@@ -138,8 +137,7 @@ export default {
             if (!this.input.name) {
                 return true
             }
-            return this.input.expires && !this.input.expiresAt;
-
+            return this.input.expires && !this.input.expiresAt
         }
     },
     methods: {
