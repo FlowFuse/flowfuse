@@ -435,7 +435,7 @@ module.exports = async function (app) {
      * Initialize expert chat
      */
     app.post('/expert-creds', {
-        // preHandler: app.needsPermission('xxx'), // all users can start an expert chat, but we might want to add a permission later
+        preHandler: app.blockPAT,
         schema: {
             summary: 'Initialize expert chat',
             tags: ['User'],

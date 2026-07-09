@@ -1542,6 +1542,76 @@ describe('User API', async function () {
                 })
                 writeResponse.statusCode.should.equal(200)
             })
+
+            describe('broker credential endpoints blocked for PATs', async function () {
+                let patToken
+
+                before(async function () {
+                    await login('alice', 'aaPassword')
+                    const createResponse = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/user/tokens',
+                        cookies: { sid: TestObjects.tokens.alice },
+                        payload: { name: 'Broker Test PAT', scope: '', adminOptIn: true }
+                    })
+                    createResponse.statusCode.should.equal(200)
+                    patToken = createResponse.json().token
+                })
+
+                it('PAT cannot call POST /user/expert-creds', async function () {
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/user/expert-creds',
+                        headers: { authorization: `Bearer ${patToken}` },
+                        payload: { sessionId: 'abcd1234' }
+                    })
+                    response.statusCode.should.equal(403)
+                    response.json().should.have.property('code', 'pat_cannot_create_pat')
+                })
+
+                it('cookie session can call POST /user/expert-creds', async function () {
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/user/expert-creds',
+                        cookies: { sid: TestObjects.tokens.alice },
+                        payload: { sessionId: 'abcd1234' }
+                    })
+                    response.statusCode.should.equal(200)
+                })
+
+                it('PAT cannot call POST /teams/:teamId/comms-credentials', async function () {
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                        headers: { authorization: `Bearer ${patToken}` },
+                        payload: { sessionId: 'abcd1234' } // somewhat defeats the purpose of this test but better safe than sorry
+                    })
+                    response.statusCode.should.equal(403)
+                    response.json().should.have.property('code', 'pat_cannot_create_pat')
+                })
+
+                it('PAT cannot call POST /devices/:deviceId/logs', async function () {
+                    const device = await app.factory.createDevice({ name: 'broker-test-device' }, TestObjects.ATeam, null, TestObjects.application)
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/devices/${device.hashid}/logs`,
+                        headers: { authorization: `Bearer ${patToken}` }
+                    })
+                    response.statusCode.should.equal(403)
+                    response.json().should.have.property('code', 'pat_cannot_create_pat')
+                })
+
+                it('PAT cannot call POST /devices/:deviceId/resources', async function () {
+                    const device = await app.factory.createDevice({ name: 'broker-test-device-2' }, TestObjects.ATeam, null, TestObjects.application)
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: `/api/v1/devices/${device.hashid}/resources`,
+                        headers: { authorization: `Bearer ${patToken}` }
+                    })
+                    response.statusCode.should.equal(403)
+                    response.json().should.have.property('code', 'pat_cannot_create_pat')
+                })
+            })
         })
     })
 
