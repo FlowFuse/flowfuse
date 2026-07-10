@@ -401,7 +401,7 @@ module.exports = async function (app) {
     })
 
     app.post('/expert-agent-creds', {
-        preHandler: app.needsPermission('platform:expert-agent:creds'),
+        preHandler: [app.blockPAT, app.needsPermission('platform:expert-agent:creds')],
         schema: {
             summary: 'Regenerate expert agent credentials - admin-only',
             tags: ['Platform'],

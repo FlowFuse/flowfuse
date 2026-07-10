@@ -952,7 +952,7 @@ module.exports = async function (app) {
      * @name /api/v1/teams/:teamId/comms-credentials
      */
     app.post('/:teamId/comms-credentials', {
-        preHandler: app.needsPermission('team:read'),
+        preHandler: [app.blockPAT, app.needsPermission('team:read')],
         schema: {
             summary: 'Issue team-channel broker credentials for the current user/session',
             tags: ['Teams'],
