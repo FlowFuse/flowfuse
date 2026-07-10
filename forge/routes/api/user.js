@@ -252,6 +252,7 @@ module.exports = async function (app) {
      * /api/v1/user/pat
      */
     app.post('/tokens', {
+        preHandler: app.blockPAT,
         config: {
             rateLimit: app.config.rate_limits ? { max: 5, timeWindow: 30000 } : false
         },
@@ -263,7 +264,10 @@ module.exports = async function (app) {
                 properties: {
                     scope: { type: 'string' },
                     expiresAt: { type: 'number' },
-                    name: { type: 'string' }
+                    name: { type: 'string' },
+                    readOnly: { type: 'boolean' },
+                    adminOptIn: { type: 'boolean' },
+                    teamIds: { type: 'array', items: { type: 'string' } }
                 }
             },
             response: {
@@ -279,8 +283,25 @@ module.exports = async function (app) {
         const updates = new app.auditLog.formatters.UpdatesCollection()
         try {
             const body = request.body
-            const token = await app.db.controllers.AccessToken.createPersonalAccessToken(request.session.User, body.scope, body.expiresAt, body.name)
-            // token has already been sanitised via views.AccessToken.personalAccessToken
+            const teamIds = body.teamIds ?? []
+            if (teamIds.length > 0) {
+                for (const teamId of teamIds) {
+                    const decodedId = app.db.models.Team.decodeHashid(teamId)
+                    const membership = decodedId ? await app.db.models.TeamMember.findOne({ where: { UserId: request.session.User.id, TeamId: decodedId } }) : null
+                    if (!membership) {
+                        reply.code(400).send({ code: 'invalid_team', error: `Not a member of team: ${teamId}` })
+                        return
+                    }
+                }
+            }
+            if (body.adminOptIn === true && !request.session.User.admin) {
+                reply.code(403).send({ code: 'unauthorized', error: 'Admin access required to set adminOptIn' })
+                return
+            }
+            const token = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                request.session.User, body.scope, body.expiresAt, body.name,
+                { readOnly: body.readOnly, adminOptIn: body.adminOptIn, teamIds }
+            )
             updates.push('id', token.id)
             updates.push('name', token.name)
             updates.push('scope', body.scope)
@@ -342,6 +363,7 @@ module.exports = async function (app) {
      * /api/v1/user/tokens/:id
      */
     app.put('/tokens/:id', {
+        preHandler: app.blockPAT,
         schema: {
             summary: 'Update users Personal Access Token',
             tags: ['Tokens'],
@@ -355,7 +377,10 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     scope: { type: 'string' },
-                    expiresAt: { type: 'number' }
+                    expiresAt: { type: 'number' },
+                    readOnly: { type: 'boolean' },
+                    adminOptIn: { type: 'boolean' },
+                    teamIds: { type: 'array', items: { type: 'string' } }
                 }
             },
             response: {
@@ -372,11 +397,31 @@ module.exports = async function (app) {
         try {
             const oldToken = await app.db.models.AccessToken.byId(request.params.id, 'user', request.session.User.id)
             if (oldToken) {
+                const oldSummary = app.db.views.AccessToken.personalAccessTokenSummary(oldToken)
                 const body = request.body
-                const newToken = await app.db.controllers.AccessToken.updatePersonalAccessToken(request.session.User, request.params.id, body.scope, body.expiresAt)
-                updates.pushDifferences(oldToken, newToken)
+                const teamIds = body.teamIds
+                if (teamIds !== undefined && teamIds.length > 0) {
+                    for (const teamId of teamIds) {
+                        const decodedId = app.db.models.Team.decodeHashid(teamId)
+                        const membership = decodedId ? await app.db.models.TeamMember.findOne({ where: { UserId: request.session.User.id, TeamId: decodedId } }) : null
+                        if (!membership) {
+                            reply.code(400).send({ code: 'invalid_team', error: `Not a member of team: ${teamId}` })
+                            return
+                        }
+                    }
+                }
+                if (body.adminOptIn === true && !request.session.User.admin) {
+                    reply.code(403).send({ code: 'unauthorized', error: 'Admin access required to set adminOptIn' })
+                    return
+                }
+                const newToken = await app.db.controllers.AccessToken.updatePersonalAccessToken(
+                    request.session.User, request.params.id, body.scope, body.expiresAt,
+                    { readOnly: body.readOnly, adminOptIn: body.adminOptIn, teamIds }
+                )
+                const newSummary = app.db.views.AccessToken.personalAccessTokenSummary(newToken)
+                updates.pushDifferences(oldSummary, newSummary)
                 await app.auditLog.User.user.pat.updated(request.session.User, null, updates)
-                reply.send(app.db.views.AccessToken.personalAccessTokenSummary(newToken))
+                reply.send(newSummary)
                 return
             }
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
