@@ -41,6 +41,7 @@ import TokenCreated from './dialogs/TokenCreated.vue'
 import TokenDialog from './dialogs/TokenDialog.vue'
 
 import { pluralize } from '@/composables/strings/String.js'
+import { useAccountAuthStore } from '@/stores/account-auth.js'
 
 export default {
     name: 'PersonalAccessTokens',
@@ -53,8 +54,15 @@ export default {
     data () {
         return {
             loading: false,
-            tokens: [],
-            columns: [
+            tokens: []
+        }
+    },
+    computed: {
+        isAdmin () {
+            return useAccountAuthStore().isAdminUser
+        },
+        columns () {
+            return [
                 { label: 'Name', key: 'name', sortable: true },
                 {
                     label: 'Teams',
@@ -95,13 +103,26 @@ export default {
                     }
                 },
                 {
+                    label: 'Admin Access',
+                    key: 'adminOptIn',
+                    sortable: false,
+                    hidden: !this.isAdmin,
+                    component: {
+                        is: markRaw({
+                            name: 'AdminOptInCell',
+                            props: ['adminOptIn'],
+                            template: '<span v-if="adminOptIn" class="text-green-500">&#x2714;</span><span v-else class="text-red-500">&#x2718;</span>'
+                        })
+                    }
+                },
+                {
                     label: 'Expires',
                     key: 'expiresAt',
                     component: {
                         is: markRaw(ExpiryCell)
                     }
                 }
-            ]
+            ].filter(col => !col.hidden)
         }
     },
     mounted () {
