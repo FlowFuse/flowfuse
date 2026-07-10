@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import SemVer from 'semver'
 
+import { useUrlHelper } from '@/composables/UrlHelper'
 import getAppOrchestrator from '@/services/app.orchestrator'
 import { useContextStore } from '@/stores/context.js'
 
@@ -302,11 +303,11 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             // instance.url / device.editor.url can carry an editor path (httpAdminRoot) or a
             // trailing slash, but a MessageEvent's origin is always a bare scheme://host:port.
             // Reduce each entry to its origin so the comparison in handleMessage matches.
+            const { safeOrigin } = useUrlHelper()
             const addOrigin = (url) => {
-                try {
-                    allowedOrigins.add(new URL(url).origin)
-                } catch {
-                    // not a parseable URL - ignore
+                const origin = safeOrigin(url)
+                if (origin) {
+                    allowedOrigins.add(origin)
                 }
             }
             if (instance?.url) {
