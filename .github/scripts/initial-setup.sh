@@ -164,8 +164,8 @@ kubectl run flowfuse-setup-2 \
   --env="PGPASSWORD=$DBPASSWORD" \
   --image bitnamilegacy/postgresql:14.10.0-debian-11-r3 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
-  "INSERT INTO public.\"AccessTokens\" (token,\"expiresAt\",scope,\"ownerId\",\"ownerType\",\"refreshToken\",name,\"createdAt\",\"updatedAt\") \
-    VALUES ('$INIT_CONFIG_ACCESS_TOKEN_HASH',NULL,'','1','user',NULL,'setup','2024-03-18 10:46:54.055+01','2024-03-18 10:46:54.055+01');"
+  "INSERT INTO public.\"AccessTokens\" (token,\"expiresAt\",scope,\"ownerId\",\"ownerType\",\"refreshToken\",name,\"adminOptIn\",\"createdAt\",\"updatedAt\") \
+    VALUES ('$INIT_CONFIG_ACCESS_TOKEN_HASH',NULL,'','1','user',NULL,'setup',1,'2024-03-18 10:46:54.055+01','2024-03-18 10:46:54.055+01');"
 
 ### Configure ff-npm-registry token
 echo "Configuring ff-npm-registry token"
