@@ -364,7 +364,7 @@ module.exports.init = async function (app) {
                         if (application) {
                             if (providerOpts.groupAllTeams || (providerOpts.groupTeams || []).includes(teamSlug)) {
                                 if (desiredTeamApplicationroles[team.hashid]) {
-                                    desiredTeamApplicationroles[team.hashid][application.hashid] = Math.max(desiredTeamApplicationroles[teamSlug][application.hashid] || 0, applicationRole)
+                                    desiredTeamApplicationroles[team.hashid][application.hashid] = Math.max(desiredTeamApplicationroles[team.hashid][application.hashid] || 0, applicationRole)
                                 } else {
                                     desiredTeamApplicationroles[team.hashid] = {}
                                     desiredTeamApplicationroles[team.hashid][application.hashid] = applicationRole
