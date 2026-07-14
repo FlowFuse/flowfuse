@@ -52,25 +52,6 @@ export default {
         ...mapState(useUxStore, ['overlay']),
         ...mapState(useProductBrokersStore, ['interview']),
         ...mapState(useAccountSettingsStore, ['hasAvailableTeams'])
-    },
-    watch: {
-        $route: function () {
-            this.checkRouteMeta()
-        }
-    },
-    mounted () {
-        this.checkRouteMeta()
-    },
-    methods: {
-        checkRouteMeta () {
-            for (let l = 0; l < this.$route.matched.length; l++) {
-                const level = this.$route.matched[l]
-                if (level.meta.hideSideMenu) {
-                    this.hideTeamOptions = true
-                    break
-                }
-            }
-        }
     }
 }
 </script>
