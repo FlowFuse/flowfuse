@@ -91,6 +91,34 @@ describe('Admin API', async function () {
             result.should.match(/\n$/)
         })
 
+        it('sanitises openmetrics keys derived from data (e.g. team type names with spaces)', async function () {
+            // Team type names are admin-editable and can contain spaces/uppercase,
+            // which are invalid in OpenMetrics metric names
+            const spacedType = await app.db.models.TeamType.create({ name: 'Team Type Two', active: true, properties: {} })
+            await app.db.models.Team.create({ name: 'ETeam', TeamTypeId: spacedType.id })
+
+            await login('alice', 'aaPassword')
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/admin/stats',
+                headers: {
+                    accept: 'application/openmetrics-text'
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.body
+
+            // The team type name has been folded to a valid metric name
+            result.should.match(/flowforge_teams_by_type_team_type_two 1\n/)
+            // No metric line has a space or dash inside its name (only the
+            // single space separating name from value is allowed)
+            result.split('\n').filter(Boolean).forEach(line => {
+                const name = line.slice(0, line.lastIndexOf(' '))
+                name.should.match(/^[a-zA-Z_:][a-zA-Z0-9_:]*$/)
+            })
+        })
+
         describe('access token management', () => {
             async function getStatsAccessTokens () {
                 return app.db.models.AccessToken.findAll({ where: { scope: 'platform:stats' } })
