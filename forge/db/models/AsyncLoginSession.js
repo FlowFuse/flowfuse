@@ -2,6 +2,18 @@ const { DataTypes } = require('sequelize')
 
 const { generateToken } = require('../utils')
 
+async function validateSessionExpiry (session) {
+    if (session) {
+        const age = Date.now() - session.createdAt.getTime()
+        if (age > 1000 * 60 * 30) {
+            // session is older than 30 minutes, expire it
+            await session.destroy()
+            return null
+        }
+    }
+    return session
+}
+
 module.exports = {
     name: 'AsyncLoginSession',
     schema: {
@@ -33,26 +45,20 @@ module.exports = {
                     return session
                 },
                 bySessionToken: async (sessionToken) => {
-                    return this.findOne({
+                    const session = await this.findOne({
                         where: { sessionToken }
                     })
+                    return validateSessionExpiry(session)
                 },
                 getAndExpireByDoneToken: async (doneToken) => {
-                    const session = await this.findOne({
+                    let session = await this.findOne({
                         where: { doneToken }
                     })
-                    if (session) {
-                        const age = Date.now() - session.createdAt.getTime()
-                        if (age > 1000 * 60 * 30) {
-                            // session is older than 30 minutes, expire it
-                            await session.destroy()
-                            return null
-                        }
-                        if (session.status !== 'pending') {
-                            // The session is resolved. We only allow retrieving it once,
-                            // so we destroy it after retrieval.
-                            await session.destroy()
-                        }
+                    session = await validateSessionExpiry(session)
+                    if (session && session.status !== 'pending') {
+                        // The session is resolved. We only allow retrieving it once,
+                        // so we destroy it after retrieval.
+                        await session.destroy()
                     }
                     return session
                 }
