@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import JsonViewer from './JsonViewer.vue'
+import JsonViewer from '@/components/JsonViewer.vue'
 
 export default {
     name: 'ToolApprovalCard',
@@ -67,7 +67,7 @@ export default {
         },
         status: {
             type: String,
-            // 'pending' | 'approved' | 'always-allowed' | 'denied' | 'always-denied'
+            // 'pending' | 'approved' | 'always-allowed' | 'denied' | 'always-denied' | 'cancelled'
             default: 'pending'
         },
         disabled: {
@@ -100,7 +100,8 @@ export default {
                 approved: 'Allowed',
                 'always-allowed': 'Allowed for this chat',
                 denied: 'Denied',
-                'always-denied': 'Denied for this chat'
+                'always-denied': 'Denied for this chat',
+                cancelled: 'Cancelled'
             }[this.effectiveStatus] || (this.effectiveStatus === 'pending' ? '' : 'Denied')
         },
         hasParams () {

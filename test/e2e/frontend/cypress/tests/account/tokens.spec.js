@@ -13,9 +13,18 @@ describe('FlowFuse - Personal Access Tokens', () => {
         cy.get('[data-action="new-token"]').click()
         cy.get('[data-el="add-token-dialog"]').should('be.visible')
 
-        // expiry disabled by default
+        // expiry unchecked and date field hidden by default
         cy.get('[data-form="expiry-toggle"] input').should('not.be.checked')
-        cy.get('[data-form="token-expiry"] input').should('be.disabled')
+        cy.get('[data-form="token-expiry"]').should('not.exist')
+
+        // read-only unchecked by default
+        cy.get('[data-form="readonly-toggle"] input').should('not.be.checked')
+
+        // admin opt-in unchecked by default (alice is admin so it should be visible)
+        cy.get('[data-form="admin-optin-toggle"] input').should('not.be.checked')
+
+        // team scope warning visible when no teams selected
+        cy.contains('This token will have access to all teams you belong to').should('be.visible')
 
         cy.get('[data-el="add-token-dialog"]').within(() => {
             // check primary is disabled by default
@@ -28,6 +37,22 @@ describe('FlowFuse - Personal Access Tokens', () => {
         })
 
         cy.get('[data-el="add-token-dialog"]').should('not.be.visible')
+    })
+
+    it('expiry date field appears when expiry is toggled on', () => {
+        cy.get('[data-action="new-token"]').click()
+
+        // date field should not exist initially
+        cy.get('[data-form="token-expiry"]').should('not.exist')
+
+        // toggle expiry on
+        cy.get('[data-form="expiry-toggle"]').click()
+        cy.get('[data-form="token-expiry"]').should('exist')
+        cy.get('[data-form="token-expiry"] input').should('not.be.disabled')
+
+        // toggle expiry off
+        cy.get('[data-form="expiry-toggle"]').click()
+        cy.get('[data-form="token-expiry"]').should('not.exist')
     })
 
     it('can be added without an expiry', () => {
@@ -87,6 +112,66 @@ describe('FlowFuse - Personal Access Tokens', () => {
         cy.get('[data-el="tokens-table"] tbody').find('tr').last().should('contain', '31')
         cy.get('[data-el="tokens-table"] tbody').find('tr').last().should('contain', '12')
         cy.get('[data-el="tokens-table"] tbody').find('tr').last().should('contain', '2050')
+    })
+
+    it('can be added with read-only enabled', () => {
+        cy.intercept('POST', '/api/*/user/tokens').as('addPersonalAccessToken')
+
+        cy.get('[data-action="new-token"]').click()
+        cy.get('[data-form="token-name"] input').type('ReadOnly Token')
+        cy.get('[data-form="readonly-toggle"]').click()
+
+        cy.get('[data-el="add-token-dialog"] [data-action="dialog-confirm"]').click()
+
+        cy.wait('@addPersonalAccessToken').its('request.body').should('have.property', 'readOnly', true)
+
+        cy.get('[data-el="add-token-confirmation"]').should('be.visible')
+        cy.get('[data-el="add-token-confirmation"] [data-action="token-confirmation-done"]').click()
+
+        // token list should show Read Only badge
+        cy.get('[data-el="tokens-table"] tbody').find('tr').last().should('contain', 'Read Only')
+    })
+
+    it('can be added with team scope', () => {
+        cy.intercept('POST', '/api/*/user/tokens').as('addPersonalAccessToken')
+
+        cy.get('[data-action="new-token"]').click()
+        cy.get('[data-form="token-name"] input').type('Team Scoped Token')
+
+        // select the first team
+        cy.get('[data-form^="team-scope-"]').first().click()
+
+        // warning should disappear when a team is selected
+        cy.contains('This token will have access to all teams you belong to').should('not.exist')
+
+        cy.get('[data-el="add-token-dialog"] [data-action="dialog-confirm"]').click()
+
+        cy.wait('@addPersonalAccessToken').its('request.body').should('have.property', 'teamIds')
+
+        cy.get('[data-el="add-token-confirmation"]').should('be.visible')
+        cy.get('[data-el="add-token-confirmation"] [data-action="token-confirmation-done"]').click()
+
+        // token list should show Team Scoped
+        cy.get('[data-el="tokens-table"] tbody').find('tr').last().should('contain', 'Team Scoped')
+    })
+
+    it('can be added with admin opt-in', () => {
+        cy.intercept('POST', '/api/*/user/tokens').as('addPersonalAccessToken')
+
+        cy.get('[data-action="new-token"]').click()
+        cy.get('[data-form="token-name"] input').type('Admin Token')
+        cy.get('[data-form="admin-optin-toggle"]').click()
+
+        cy.get('[data-el="add-token-dialog"] [data-action="dialog-confirm"]').click()
+
+        cy.wait('@addPersonalAccessToken').its('request.body').should('have.property', 'adminOptIn', true)
+
+        cy.get('[data-el="add-token-confirmation"]').should('be.visible')
+        cy.get('[data-el="add-token-confirmation"] [data-action="token-confirmation-done"]').click()
+    })
+
+    it('token list shows All Teams for unscoped tokens', () => {
+        cy.get('[data-el="tokens-table"] tbody').find('tr').first().should('contain', 'All Teams')
     })
 
     it('can be removed', () => {
