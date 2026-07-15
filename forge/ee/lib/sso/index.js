@@ -485,42 +485,39 @@ module.exports.init = async function (app) {
             await Promise.all(promises)
             // Now all group membership updated apply application overrides
 
-            const desiredTeamApplicationArray = Object.entries(desiredTeamApplicationroles)
-            // if (desiredTeamApplicationArray.length > 0) {
-                app.log.debug(`Desired Application Roles for ${user.username} ${JSON.stringify(desiredTeamApplicationroles)}`)
-                // This needs to do 2 passes, get all the memberships that exist and compare to new list
-                const existingApplicationOveridesList = (await app.db.models.TeamMember.getTeamsForUser(user.id, true))?.filter(app => { return !!app.permissions }) || []
-                const existingApplicationOverides = existingApplicationOveridesList.reduce((prev, tm) => {
-                    const n = {}
-                    n[tm.Team.hashid] = {
-                        overides: tm.permissions
-                    }
-                    return {
-                        ...prev,
-                        ...n
-                    }
-                }, {})
-                app.log.debug(`Existing Application Roles for ${user.username} ${JSON.stringify(existingApplicationOverides)}`)
-                const applicationPromises = []
-                for (const [teamId, overides] of Object.entries(desiredTeamApplicationroles)) {
-                    const membership = await app.db.models.TeamMember.getTeamMembership(user.id, teamId)
-                    if (membership) {
-                        const newPermissions = { applications: overides, sso: true }
-                        applicationPromises.push(app.db.controllers.Team.changeUserTeamPermissions(teamId, user.hashid, newPermissions))
-                        // need to remove from existingApplicationOvervides
-                        delete existingApplicationOverides[teamId]
-                    } else {
-                        app.log.debug(`User ${user.name} not a member of Team ${teamId} so not overriding Application access`)
-                    }
+            app.log.debug(`Desired Application Roles for ${user.username} ${JSON.stringify(desiredTeamApplicationroles)}`)
+            // This needs to do 2 passes, get all the memberships that exist and compare to new list
+            const existingApplicationOveridesList = (await app.db.models.TeamMember.getTeamsForUser(user.id, true))?.filter(app => { return !!app.permissions }) || []
+            const existingApplicationOverides = existingApplicationOveridesList.reduce((prev, tm) => {
+                const n = {}
+                n[tm.Team.hashid] = {
+                    overides: tm.permissions
                 }
-                // Any teamIds in existingApplicationOverides are no longer in the desired list, so remove them
-                for (const teamId of Object.keys(existingApplicationOverides)) {
-                    const tm = await app.db.models.TeamMember.getTeamMembership(user.hashid, teamId)
-                    tm.permissions = {}
-                    applicationPromises.push(tm.save())
+                return {
+                    ...prev,
+                    ...n
                 }
-                await Promise.all(applicationPromises)
-            // }
+            }, {})
+            app.log.debug(`Existing Application Roles for ${user.username} ${JSON.stringify(existingApplicationOverides)}`)
+            const applicationPromises = []
+            for (const [teamId, overides] of Object.entries(desiredTeamApplicationroles)) {
+                const membership = await app.db.models.TeamMember.getTeamMembership(user.id, teamId)
+                if (membership) {
+                    const newPermissions = { applications: overides, sso: true }
+                    applicationPromises.push(app.db.controllers.Team.changeUserTeamPermissions(teamId, user.hashid, newPermissions))
+                    // need to remove from existingApplicationOvervides
+                    delete existingApplicationOverides[teamId]
+                } else {
+                    app.log.debug(`User ${user.name} not a member of Team ${teamId} so not overriding Application access`)
+                }
+            }
+            // Any teamIds in existingApplicationOverides are no longer in the desired list, so remove them
+            for (const teamId of Object.keys(existingApplicationOverides)) {
+                const tm = await app.db.models.TeamMember.getTeamMembership(user.hashid, teamId)
+                tm.permissions = {}
+                applicationPromises.push(tm.save())
+            }
+            await Promise.all(applicationPromises)
         } else {
             const missingGroupAssertions = new Error(`SAML response missing ${providerOpts.groupAssertionName} assertion`)
             missingGroupAssertions.code = 'unknown_sso_user'
