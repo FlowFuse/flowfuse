@@ -486,7 +486,7 @@ module.exports.init = async function (app) {
             // Now all group membership updated apply application overrides
 
             const desiredTeamApplicationArray = Object.entries(desiredTeamApplicationroles)
-            if (desiredTeamApplicationArray.length > 0) {
+            // if (desiredTeamApplicationArray.length > 0) {
                 app.log.debug(`Desired Application Roles for ${user.username} ${JSON.stringify(desiredTeamApplicationroles)}`)
                 // This needs to do 2 passes, get all the memberships that exist and compare to new list
                 const existingApplicationOveridesList = (await app.db.models.TeamMember.getTeamsForUser(user.id, true))?.filter(app => { return !!app.permissions }) || []
@@ -520,7 +520,7 @@ module.exports.init = async function (app) {
                     applicationPromises.push(tm.save())
                 }
                 await Promise.all(applicationPromises)
-            }
+            // }
         } else {
             const missingGroupAssertions = new Error(`SAML response missing ${providerOpts.groupAssertionName} assertion`)
             missingGroupAssertions.code = 'unknown_sso_user'
