@@ -6,13 +6,13 @@ const { default: z } = require('zod')
 
 /**
  * Cheap, deterministic identity fingerprint of the platform tool catalog (not
- * cryptographic). Computed over each tool's name, description, input schema and
- * annotations so any change to a tool's contract shifts the hash. Items are
+ * cryptographic). Computed over each tool's name, title, description, input schema,
+ * annotations and _meta so any change to a tool's contract shifts the hash. Items are
  * sorted so the result is stable regardless of tool enumeration order and
  * identical wherever the same catalog is served. Lets a caller cheaply detect
  * whether the catalog changed before pulling the full list.
  *
- * @param {Array<{name:string,description?:string,inputSchema?:object,annotations?:object}>} tools
+ * @param {Array<{name:string,title?:string,description?:string,inputSchema?:object,annotations?:object,_meta?:object}>} tools
  * @returns {string}
  */
 function computeCatalogHash (tools) {
@@ -20,7 +20,9 @@ function computeCatalogHash (tools) {
         n: t.name,
         d: t.description || '',
         s: t.inputSchema || null,
-        a: t.annotations || null
+        a: t.annotations || null,
+        m: t._meta || null,
+        t: t.title || null
     }))
     items.sort()
     const str = items.join('')
@@ -63,12 +65,13 @@ class PlatformAutomationHandler {
         if (!this._fullToolDefinitions) {
             const { loadToolDefinitions } = require('../ee/lib/mcp/toolLoader')
             this._fullToolDefinitions = loadToolDefinitions()
-            this._wireToolDefinitions = this._fullToolDefinitions.map(({ name, title, description, inputSchema, annotations }) => ({
+            this._wireToolDefinitions = this._fullToolDefinitions.map(({ name, title, description, inputSchema, annotations, _meta }) => ({
                 name,
                 title,
                 description,
                 inputSchema: inputSchema && z.toJSONSchema(z.object(inputSchema)),
-                annotations
+                annotations,
+                _meta
             }))
             this._catalogHash = computeCatalogHash(this._wireToolDefinitions)
         }
