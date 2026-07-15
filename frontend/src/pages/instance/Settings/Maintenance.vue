@@ -183,7 +183,7 @@ export default {
                         seconds: 0
                     }
                 }
-                this.scheduledUpgrade.selectedWeekdays = [...this.scheduledUpgrade.initialValue?.days] ?? []
+                this.scheduledUpgrade.selectedWeekdays = [...this.scheduledUpgrade.initialValue?.days ?? []]
                 if (Object.prototype.hasOwnProperty.call(this.scheduledUpgrade.initialValue, 'hour')) {
                     this.scheduledUpgrade.startHour = {
                         hours: this.scheduledUpgrade.initialValue.hour ?? 14,
