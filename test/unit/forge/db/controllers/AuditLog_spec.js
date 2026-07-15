@@ -20,14 +20,13 @@ describe('AuditLog controller', function () {
 
     describe('source column', function () {
         it('writes null source when no audit context is set', async function () {
-            await app.db.controllers.AuditLog.platformLog(app, null, 'test.event', {})
+            await app.db.controllers.AuditLog.platformLog(null, 'test.event', {})
             const entries = await app.db.models.AuditLog.findAll()
             entries.should.have.length(1)
             should(entries[0].source).be.null()
         })
 
         it('writes source from request context', async function () {
-            // Simulate being inside a request with audit context
             const store = requestContext
             const origGet = store.get
             store.get = (key) => {
@@ -38,7 +37,7 @@ describe('AuditLog controller', function () {
             }
 
             try {
-                await app.db.controllers.AuditLog.teamLog(app, 1, null, 'test.event', {})
+                await app.db.controllers.AuditLog.teamLog('1', null, 'test.event', {})
                 const entries = await app.db.models.AuditLog.findAll()
                 entries.should.have.length(1)
                 entries[0].source.should.equal('api')
@@ -63,7 +62,7 @@ describe('AuditLog controller', function () {
             }
 
             try {
-                await app.db.controllers.AuditLog.projectLog(app, 1, null, 'test.event', {})
+                await app.db.controllers.AuditLog.projectLog('1', null, 'test.event', {})
                 const entries = await app.db.models.AuditLog.findAll()
                 entries.should.have.length(1)
                 entries[0].source.should.equal('mcp:expert')
@@ -89,7 +88,7 @@ describe('AuditLog controller', function () {
             }
 
             try {
-                await app.db.controllers.AuditLog.deviceLog(app, 1, null, 'test.event', { device: { id: 1 } })
+                await app.db.controllers.AuditLog.deviceLog('1', null, 'test.event', { device: { id: 1 } })
                 const entries = await app.db.models.AuditLog.findAll()
                 entries.should.have.length(1)
                 entries[0].source.should.equal('api')
@@ -115,7 +114,7 @@ describe('AuditLog controller', function () {
             }
 
             try {
-                await app.db.controllers.AuditLog.deviceLog(app, 1, null, 'test.event', { device: { id: 1 } })
+                await app.db.controllers.AuditLog.deviceLog('1', null, 'test.event', { device: { id: 1 } })
                 const entries = await app.db.models.AuditLog.findAll()
                 entries.should.have.length(1)
                 entries[0].source.should.equal('api')
@@ -138,12 +137,12 @@ describe('AuditLog controller', function () {
             }
 
             try {
-                await app.db.controllers.AuditLog.platformLog(app, null, 'p.event', {})
-                await app.db.controllers.AuditLog.userLog(app, null, 'u.event', {})
-                await app.db.controllers.AuditLog.applicationLog(app, 1, null, 'a.event', {})
-                await app.db.controllers.AuditLog.projectLog(app, 1, null, 'pr.event', {})
-                await app.db.controllers.AuditLog.teamLog(app, 1, null, 'tm.event', {})
-                await app.db.controllers.AuditLog.deviceLog(app, 1, null, 'd.event', {})
+                await app.db.controllers.AuditLog.platformLog(null, 'p.event', {})
+                await app.db.controllers.AuditLog.userLog(null, 'u.event', {})
+                await app.db.controllers.AuditLog.applicationLog('1', null, 'a.event', {})
+                await app.db.controllers.AuditLog.projectLog('1', null, 'pr.event', {})
+                await app.db.controllers.AuditLog.teamLog('1', null, 'tm.event', {})
+                await app.db.controllers.AuditLog.deviceLog('1', null, 'd.event', {})
 
                 const entries = await app.db.models.AuditLog.findAll()
                 entries.should.have.length(6)
