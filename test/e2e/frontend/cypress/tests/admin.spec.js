@@ -68,7 +68,8 @@ describe('FlowFuse platform admin users', () => {
         // Not a member of BTeam
         cy.get('[data-el="teams-table"]').contains('BTeam').click()
 
-        cy.url().should('match', /\/team\/[^/]+/)
+        // wait for the team redirect to settle on /overview, else the Applications click below can race the pending redirect
+        cy.url().should('match', /\/team\/[^/]+\/overview/)
         cy.get('[data-el="banner-team-as-admin"]').should('exist')
 
         // Unique alias to avoid colliding with cy.home()'s getTeamApplications
