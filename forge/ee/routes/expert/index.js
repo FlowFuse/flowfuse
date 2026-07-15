@@ -411,6 +411,10 @@ module.exports = async function (app) {
                 if (instance?.state !== 'running') {
                     continue
                 }
+                // if this is a device and its status column is not "online", skip it (avoids unnecessary timeouts)
+                if (instanceType === 'device' && instance?.status !== 'online') {
+                    continue
+                }
 
                 // Ensure instance has an associated application
                 if (!instance?.ApplicationId) {
