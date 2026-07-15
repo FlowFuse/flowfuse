@@ -179,6 +179,17 @@ be done with care.
 An optional prefix and suffix can be include in the group name to support SAML providers that have existing naming policies. The SSO configuration can be configured with the lengths of these values so they will be stripped off before the group name is validated.
 
 For example, if an organisation requires all groups to begin with `acme-org-`, a prefix length of `9` can be set and the group `acme-org-ff-development-owner` will be handled as `ff-development-owner`.
+
+### Application Level Groups
+
+In addition to being able to add Users to Teams using groups, Role overrides for specific Applications within those groups can also be controlled.
+
+A User must me a member of the group that controls access to a given Team in order for an Application override to take effect.
+
+Groups for Application overrides use a similar pattern to Team Groups and use the same prefix and suffix length modifiers. They take the form `ff-<team>[application]-role` where `application` can be the application name or id.
+
+For example, given a Team called `development` and an Application called `test` owner level access would be granted by membership of a group named `ff-development-owner` and an override to viewer for test would be `ff-development[test]-viewer`.
+
 ## Managing Admin users
 
 The SSO Configuration can be configured to managed the admin users of the platform by enabling the
