@@ -5,6 +5,34 @@
 const { default: z } = require('zod')
 
 /**
+ * Cheap, deterministic identity fingerprint of the platform tool catalog (not
+ * cryptographic). Computed over each tool's name, description, input schema and
+ * annotations so any change to a tool's contract shifts the hash. Items are
+ * sorted so the result is stable regardless of tool enumeration order and
+ * identical wherever the same catalog is served. Lets a caller cheaply detect
+ * whether the catalog changed before pulling the full list.
+ *
+ * @param {Array<{name:string,description?:string,inputSchema?:object,annotations?:object}>} tools
+ * @returns {string}
+ */
+function computeCatalogHash (tools) {
+    const items = (tools || []).map(t => JSON.stringify({
+        n: t.name,
+        d: t.description || '',
+        s: t.inputSchema || null,
+        a: t.annotations || null
+    }))
+    items.sort()
+    const str = items.join('')
+    let h = 5381
+    for (let i = 0; i < str.length; i++) {
+        h = (((h << 5) + h) ^ str.charCodeAt(i)) >>> 0
+    }
+    // Prefix with count + length to make incidental 32-bit collisions vanishingly unlikely.
+    return `${items.length}-${str.length}-${h.toString(16)}`
+}
+
+/**
  * PlatformAutomationHandler
  * @class PlatformAutomationHandler
  * @memberof forge.comms
@@ -21,6 +49,8 @@ class PlatformAutomationHandler {
         /** Tool definitions without the handler functions - for sending across the wire to the agent for tool discovery */
         this._wireToolDefinitions = null
         this._fullToolDefinitions = null
+        /** Deterministic fingerprint of the wire tool definitions - for cheap catalog change detection */
+        this._catalogHash = null
 
         this.setupEventHandler()
     }
@@ -40,6 +70,7 @@ class PlatformAutomationHandler {
                 inputSchema: inputSchema && z.toJSONSchema(z.object(inputSchema)),
                 annotations
             }))
+            this._catalogHash = computeCatalogHash(this._wireToolDefinitions)
         }
     }
 
@@ -49,6 +80,14 @@ class PlatformAutomationHandler {
     getToolDefinitions () {
         this.loadTools()
         return this._wireToolDefinitions
+    }
+
+    /**
+     * Returns a deterministic fingerprint of the wire tool definitions.
+     */
+    getCatalogHash () {
+        this.loadTools()
+        return this._catalogHash
     }
 
     /**
@@ -69,7 +108,13 @@ class PlatformAutomationHandler {
 
             switch (command) {
             case 'mcp-get-features':
-                result = { tools: this.getToolDefinitions() }
+                if (data?.hashOnly) {
+                    // Cheap catalog change detection: return just the fingerprint so
+                    // the caller can decide whether it needs to pull the full list.
+                    result = { catalogHash: this.getCatalogHash() }
+                } else {
+                    result = { tools: this.getToolDefinitions(), catalogHash: this.getCatalogHash() }
+                }
                 break
             case 'mcp-call-tool': {
                 const toolName = data?.name
