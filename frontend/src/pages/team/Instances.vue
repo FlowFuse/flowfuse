@@ -277,7 +277,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
-        ...mapState(useLiveStatusStore, { liveInstanceStatuses: 'instanceStatuses', statusChannelLive: 'live' }),
+        ...mapState(useLiveStatusStore, { liveInstanceMetadata: 'instanceMetadata', statusChannelLive: 'live' }),
         instances () {
             return Array.from(this.instancesMap.values())
         },
@@ -295,7 +295,7 @@ export default {
     },
     watch: {
         team: 'fullReload',
-        liveInstanceStatuses: { handler: 'applyLiveStatus', deep: true }
+        liveInstanceMetadata: { handler: 'applyLiveStatus', deep: true }
     },
     mounted () {
         this.fullReload()
@@ -350,14 +350,15 @@ export default {
             }
         },
         applyLiveStatus () {
-            const statuses = this.liveInstanceStatuses
+            const metadata = this.liveInstanceMetadata
             for (const id of this.instancesMap.keys()) {
-                const state = statuses[id]
-                if (!state) continue
+                const meta = metadata[id]
+                if (!meta?.status) continue
+                const state = meta.status
                 const row = this.instancesMap.get(id)
                 if (row.status === state && row.meta?.state === state) continue
                 this.instancesMap.set(id, {
-                    ...applyLiveState(row, state, { clearFlags: true }),
+                    ...applyLiveState(row, state, { versions: meta.versions, clearFlags: true }),
                     running: this.isRunningState(state),
                     notSuspended: state !== 'suspended'
                 })
