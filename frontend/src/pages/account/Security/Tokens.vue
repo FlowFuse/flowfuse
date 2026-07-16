@@ -9,7 +9,7 @@
         <template #actions>
             <ff-button data-action="new-token" @click="newToken()">
                 <template #icon-left>
-                    <PlusSmallIcon />
+                    <PlusIcon />
                 </template>
                 Add Token
             </ff-button>
@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { PlusSmallIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon } from '@heroicons/vue/24/outline'
 import { markRaw } from 'vue'
 
 import userApi from '../../../api/user.js'
@@ -40,10 +40,13 @@ import ExpiryCell from '../components/ExpiryCell.vue'
 import TokenCreated from './dialogs/TokenCreated.vue'
 import TokenDialog from './dialogs/TokenDialog.vue'
 
+import { pluralize } from '@/composables/strings/String.js'
+import { useAccountAuthStore } from '@/stores/account-auth.js'
+
 export default {
     name: 'PersonalAccessTokens',
     components: {
-        PlusSmallIcon,
+        PlusIcon,
         SectionTopMenu,
         TokenDialog,
         TokenCreated
@@ -51,10 +54,67 @@ export default {
     data () {
         return {
             loading: false,
-            tokens: [],
-            columns: [
+            tokens: []
+        }
+    },
+    computed: {
+        isAdmin () {
+            return useAccountAuthStore().isAdminUser
+        },
+        columns () {
+            return [
                 { label: 'Name', key: 'name', sortable: true },
-                // { label: 'Scope', key: 'scope' },
+                {
+                    label: 'Teams',
+                    key: 'teams',
+                    sortable: false,
+                    component: {
+                        is: markRaw({
+                            name: 'TeamsCell',
+                            props: ['teams'],
+                            template: '<span :title="tooltip" style="cursor:help">{{ label }}</span>',
+                            computed: {
+                                label () {
+                                    if (!this.teams || this.teams.length === 0) {
+                                        return 'All Teams'
+                                    }
+                                    return 'Team Scoped'
+                                },
+                                tooltip () {
+                                    if (!this.teams || this.teams.length === 0) {
+                                        return 'This token has access to all teams in your account'
+                                    }
+                                    return `This Token is scoped to the following ${pluralize('team', this.teams.length)}: \n${this.teams.map(t => t.name).join('\n')}`
+                                }
+                            }
+                        })
+                    }
+                },
+                {
+                    label: 'Read Only',
+                    key: 'readOnly',
+                    sortable: false,
+                    component: {
+                        is: markRaw({
+                            name: 'ReadOnlyCell',
+                            props: ['readOnly'],
+                            template: '<span v-if="readOnly" class="ff-badge ff-badge--info">Read Only</span><span v-else></span>'
+                        })
+                    }
+                },
+                {
+                    label: 'Admin Access',
+                    key: 'adminOptIn',
+                    sortable: false,
+                    hidden: !this.isAdmin,
+                    component: {
+                        is: markRaw({
+                            name: 'AdminOptInCell',
+                            props: ['adminOptIn'],
+                            template: '<span v-if="adminOptIn" class="text-green-500">&#x2714;</span><span v-else class="text-red-500">&#x2718;</span>'
+                        })
+                    }
+                },
                 {
                     label: 'Expires',
                     key: 'expiresAt',
@@ -62,7 +122,7 @@ export default {
                         is: markRaw(ExpiryCell)
                     }
                 }
-            ]
+            ].filter(col => !col.hidden)
         }
     },
     mounted () {

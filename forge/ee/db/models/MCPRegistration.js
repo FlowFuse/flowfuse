@@ -77,7 +77,7 @@ module.exports = {
                         })
                         include.push({
                             model: M.Device,
-                            attributes: ['hashid', 'id', 'name', 'type', 'ApplicationId', 'state', 'agentVersion'],
+                            attributes: ['hashid', 'id', 'name', 'type', 'ApplicationId', 'state', 'lastSeenAt', 'agentVersion'],
                             required: false,
                             on: deviceOwnershipJoin,
                             include: {

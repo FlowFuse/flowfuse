@@ -16,14 +16,9 @@ const getDeviceComms = (app) => { return app.comms?.devices }
 
 /**
  * Maps a platform automation tool's wire definition into a catalog entry for the
- * Expert permissions UI (#421). Platform tools carry standard MCP annotations
- * (readOnlyHint / destructiveHint), which give the read/write/delete class. They
- * run on the platform, not in Node-RED, so they have no nr-assistant version window
- * (no minVersion/maxVersion — the UI treats their absence as always-available).
- * `group: 'platform'` routes them to the FlowFuse Platform Tools section (groupOf()
- * in the product-assistant store). The friendly label is the tool's own `title`; if a
- * tool ever lacks one, fall back to deriving it from the name (strip the platform_
- * prefix and title-case the rest).
+ * Expert permissions UI. The read/write/delete class comes from the MCP annotations
+ * (readOnlyHint / destructiveHint), and `group: 'platform'` routes it to the platform
+ * section. The label is the tool's own `title`, falling back to a name-derived label.
  */
 const curatePlatformTool = (def) => {
     const annotations = def.annotations || {}
@@ -416,6 +411,10 @@ module.exports = async function (app) {
                 if (instance?.state !== 'running') {
                     continue
                 }
+                // if this is a device and its status column is not "online", skip it (avoids unnecessary timeouts)
+                if (instanceType === 'device' && instance?.status !== 'online') {
+                    continue
+                }
 
                 // Ensure instance has an associated application
                 if (!instance?.ApplicationId) {
@@ -586,16 +585,10 @@ module.exports = async function (app) {
     })
 
     /**
-     * Retrieve the curated tool catalog for the Expert's human-in-the-loop permissions UI
-     * (#421). Returns the merged catalog for both sections the UI shows:
-     * - flow-building tools, proxied from the agent service's /mcp/flow-tools endpoint
-     *   (friendly catalog entries only — raw MCP identifiers never leave the backend);
-     * - FlowFuse platform tools, curated here from the platform automation handler
-     *   (app.comms.platformAutomation) and tagged group:'platform'.
-     * A `hash` fingerprint of the flow-building catalog rides along so the browser refetches
-     * only when it changes. Team access + feature gating are enforced by the shared
-     * preHandler above; read/write classification on each entry is what the client uses to
-     * decide which tools a role may enable.
+     * Returns the merged tool catalog for the Expert permissions UI: flow-building tools
+     * proxied from the agent's /mcp/flow-tools endpoint, plus curated platform tools. A
+     * `hash` of the flow-building catalog rides along so the browser refetches only when
+     * it changes. Team access and feature gating are enforced by the shared preHandler.
      */
     app.get('/mcp/tools', {
         schema: {
@@ -656,11 +649,10 @@ module.exports = async function (app) {
 
             reply.send({ catalog, hash: response.data?.hash || null })
         } catch (error) {
-            // TODO: decide with the team whether this belongs on the branch. The tool catalog
-            // is a non-fatal enhancement (the client swallows failures and gates safely with
-            // defaults). Never forward an upstream auth failure as our own 401 — the SPA's
-            // axios interceptor treats any 401 as session-expiry and logs the user out, which
-            // an unrelated expert-service token rejection must not trigger.
+            // The tool catalog is a non-fatal enhancement (the client swallows failures and
+            // gates safely with defaults). Never forward an upstream auth failure as our own
+            // 401. The SPA's axios interceptor treats any 401 as session-expiry and logs the
+            // user out, which an unrelated expert-service token rejection must not trigger.
             const upstreamStatus = error.response?.status
             app.log.warn(`[expert/mcp/tools] upstream tool-catalog fetch failed: status=${upstreamStatus} msg=${error.message}`)
             if (upstreamStatus === 401 || upstreamStatus === 403) {

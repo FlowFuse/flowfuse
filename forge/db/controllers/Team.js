@@ -134,6 +134,37 @@ module.exports = {
             }
             await userRole.destroy()
 
+            // Clean up scoped PAT entries that reference this team.
+            // Find which tokens had scopes for this team, remove those
+            // entries, then delete any tokens left with zero team scopes
+            // (they were scoped exclusively to the removed team and would
+            // otherwise silently escalate to team-global access).
+            const affectedScopes = await app.db.models.AccessTokenTeamScope.findAll({
+                where: { UserId: user.id, TeamId: team.id },
+                attributes: ['AccessTokenId']
+            })
+            const affectedTokenIds = affectedScopes.map(s => s.AccessTokenId)
+            if (affectedTokenIds.length > 0) {
+                await app.db.sequelize.transaction(async (t) => {
+                    await app.db.models.AccessTokenTeamScope.destroy({
+                        where: { UserId: user.id, TeamId: team.id },
+                        transaction: t
+                    })
+                    for (const tokenId of affectedTokenIds) {
+                        const remaining = await app.db.models.AccessTokenTeamScope.count({
+                            where: { AccessTokenId: tokenId },
+                            transaction: t
+                        })
+                        if (remaining === 0) {
+                            await app.db.models.AccessToken.destroy({
+                                where: { id: tokenId },
+                                transaction: t
+                            })
+                        }
+                    }
+                })
+            }
+
             await app.db.controllers.StorageSession.removeUserFromTeamSessions(user, team)
 
             return true
