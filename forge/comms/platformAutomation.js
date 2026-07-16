@@ -5,14 +5,11 @@
 const { default: z } = require('zod')
 
 /**
- * Cheap, deterministic identity fingerprint of the platform tool catalog (not
- * cryptographic). Computed over each tool's name, title, description, input schema,
- * annotations and _meta so any change to a tool's contract shifts the hash. Items are
- * sorted so the result is stable regardless of tool enumeration order and
- * identical wherever the same catalog is served. Lets a caller cheaply detect
- * whether the catalog changed before pulling the full list.
+ * Cheap, non-cryptographic fingerprint of the platform tool catalog, over each tool's
+ * name/title/description/inputSchema/annotations/_meta. Sorted for stability across
+ * enumeration order, so a caller can detect catalog changes before pulling the full list.
  *
- * @param {Array<{name:string,title?:string,description?:string,inputSchema?:object,annotations?:object,_meta?:object}>} tools
+ * @param {Array<object>} tools
  * @returns {string}
  */
 function computeCatalogHash (tools) {
