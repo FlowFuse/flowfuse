@@ -487,7 +487,18 @@ module.exports.init = async function (app) {
 
             app.log.debug(`Desired Application Roles for ${user.username} ${JSON.stringify(desiredTeamApplicationroles)}`)
             // This needs to do 2 passes, get all the memberships that exist and compare to new list
-            const existingApplicationOveridesList = (await app.db.models.TeamMember.getTeamsForUser(user.id, true))?.filter(app => { return !!app.permissions }) || []
+            const existingApplicationOveridesList = (await app.db.models.TeamMember.getTeamsForUser(user.id, true))?.filter(teamMambership => {
+                // check if users are allowed to be in other groups, filter out groups not SSO controlled
+                if (providerOpts.groupMapping && providerOpts.groupOtherTeams) {
+                    if (providerOpts.groupTeams.includes(teamMambership.Team.slug)) {
+                        return !!teamMambership.permissions
+                    } else {
+                        return false
+                    }
+                } else {
+                    return !!teamMambership.permissions
+                }
+            }) || []
             const existingApplicationOverides = existingApplicationOveridesList.reduce((prev, tm) => {
                 const n = {}
                 n[tm.Team.hashid] = {
@@ -680,7 +691,18 @@ module.exports.init = async function (app) {
         await Promise.all(promises)
         // Now all group membership updated apply application overrides
         // This needs to do 2 passes, get all the memberships that exist and compare to new list
-        const existingApplicationOveridesList = (await app.db.models.TeamMember.getTeamsForUser(user.id, true))?.filter(app => { return !!app.permissions }) || []
+        const existingApplicationOveridesList = (await app.db.models.TeamMember.getTeamsForUser(user.id, true))?.filter(teamMambership => {
+            // check if users are allowed to be in other groups, filter out groups not SSO controlled
+            if (providerOpts.groupMapping && providerOpts.groupOtherTeams) {
+                if (providerOpts.groupTeams.includes(teamMambership.Team.slug)) {
+                    return !!teamMambership.permissions
+                } else {
+                    return false
+                }
+            } else {
+                return !!teamMambership.permissions
+            }
+        }) || []
         const existingApplicationOverides = existingApplicationOveridesList.reduce((prev, tm) => {
             const n = {}
             n[tm.Team.hashid] = {
