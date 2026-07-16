@@ -93,7 +93,8 @@ module.exports = async (options = {}) => {
                         method: reply.request?.method,
                         remoteAddress: reply.request?.ip,
                         remotePort: reply.request?.socket.remotePort
-                    }
+                    },
+                    props: reply.logProperties
                 }
                 if (reply.request?.session?.ownerType) {
                     switch (reply.request?.session?.ownerType) {

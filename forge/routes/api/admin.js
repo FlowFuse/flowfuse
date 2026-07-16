@@ -110,9 +110,12 @@ module.exports = async function (app) {
         let result = {}
         const rootKey = root ? `${root}_` : ''
         for (const [key, value] of Object.entries(obj)) {
-            const formattedKey = `${rootKey}${key}`.replace(/[A-Z]/g, m => {
-                return '_' + m.toLowerCase()
-            })
+            const formattedKey = `${rootKey}${key}`
+                .replace(/[A-Z]/g, m => '_' + m.toLowerCase())
+                // OpenMetrics names must match [a-zA-Z_:][a-zA-Z0-9_:]* - fold
+                // any other char (spaces etc from data like team type names) to _
+                .replace(/[^a-zA-Z0-9_:]/g, '_')
+                .replace(/_{2,}/g, '_')
             if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
                 result[formattedKey] = value
             } else {
