@@ -102,6 +102,12 @@ describe('NonceStore', function () {
             should(result.correlationId).be.a.String()
             result.correlationId.should.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
         })
+
+        it('does not mutate the caller metadata object', function () {
+            const metadata = { source: 'mcp:expert' }
+            store.createSourceNonce(metadata)
+            should(metadata.correlationId).be.undefined()
+        })
     })
 
     describe('close', function () {

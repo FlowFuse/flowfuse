@@ -53,10 +53,11 @@ class NonceStore {
         if (!metadata?.source) {
             throw new Error('source is required for source context nonces')
         }
-        if (!metadata.correlationId) {
-            metadata.correlationId = crypto.randomUUID()
+        const meta = { ...metadata }
+        if (!meta.correlationId) {
+            meta.correlationId = crypto.randomUUID()
         }
-        return this.create(metadata, ttl)
+        return this.create(meta, ttl)
     }
 
     /**
