@@ -8,12 +8,13 @@ type LiveStateTarget = {
 type ApplyLiveStateOptions = {
     device?: boolean
     clearFlags?: boolean
+    versions?: Record<string, string>
 }
 
-export function applyLiveState<T extends LiveStateTarget> (obj: T, state: string, { device = false, clearFlags = false }: ApplyLiveStateOptions = {}): T {
+export function applyLiveState<T extends LiveStateTarget> (obj: T, state: string, { device = false, clearFlags = false, versions }: ApplyLiveStateOptions = {}): T {
     const next = device
         ? { ...obj, status: state }
-        : { ...obj, status: state, meta: { ...(obj.meta || {}), state } }
+        : { ...obj, status: state, meta: { ...(obj.meta || {}), state, ...(versions ? { versions } : {}) } }
     if (clearFlags) {
         next.optimisticStateChange = false
         next.pendingStateChange = false
