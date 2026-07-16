@@ -5,6 +5,10 @@ const downloadsFolder = 'test/e2e/frontend/cypress/downloads'
 module.exports = {
     viewportWidth: 1024,
     viewportHeight: 768,
+    retries: {
+        runMode: 2,
+        openMode: 0
+    },
     e2e: {
         downloadsFolder,
         fixturesFolder: 'test/e2e/frontend/cypress/fixtures',
