@@ -9,7 +9,7 @@ const { default: z } = require('zod')
  * name/title/description/inputSchema/annotations/_meta. Sorted for stability across
  * enumeration order, so a caller can detect catalog changes before pulling the full list.
  *
- * @param {Array<object>} tools
+ * @param {Array<{name:string,title?:string,description?:string,inputSchema?:object,annotations?:object,_meta?:object}>} tools
  * @returns {string}
  */
 function computeCatalogHash (tools) {
