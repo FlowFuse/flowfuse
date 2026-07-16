@@ -11,8 +11,13 @@ import { useProductTablesStore } from '@/stores/product-tables.js'
 
 function ensureTeamChannelConnected (team) {
     if (!team?.id) return
-    const teamChannel = getAppOrchestrator().$subscriberInstances.teamChannel
-    teamChannel?.connect(team).catch(() => {})
+    const subscribers = getAppOrchestrator().$subscriberInstances
+    Object.values(subscribers).forEach(subscriber => subscriber?.connect(team).catch(() => {}))
+}
+
+function disconnectTeamSubscribers () {
+    const subscribers = getAppOrchestrator().$subscriberInstances
+    Object.values(subscribers).forEach(subscriber => subscriber?.disconnect().catch(() => {}))
 }
 
 export const useAccountStore = defineStore('account', {
@@ -94,7 +99,7 @@ export const useAccountStore = defineStore('account', {
             if (team?.id) {
                 ensureTeamChannelConnected(team)
             } else {
-                getAppOrchestrator().$subscriberInstances.teamChannel?.disconnect().catch(() => {})
+                disconnectTeamSubscribers()
             }
             this.pendingTeamChange = false
         },

@@ -14,7 +14,10 @@ import { BaseService } from './service.contract'
 import { Maybe } from '@/types/common/types'
 import type {
     BinaryPayload,
+    ManagedMqttAttachment,
     ManagedMqttClient,
+    MqttAttachmentHandle,
+    MqttConnectionHandlers,
     MqttConnectionOptions,
     MqttConnectionWaiter,
     MqttCredentialProvider,
@@ -48,6 +51,8 @@ class MqttService extends BaseService implements MqttServiceI {
 
     protected $destroyed: boolean
 
+    protected $attachmentSeq: number
+
     constructor ({ app, router, services }: CreateServiceOptions) {
         super({
             name: 'mqtt',
@@ -60,6 +65,7 @@ class MqttService extends BaseService implements MqttServiceI {
         this.$clients = new Map()
         this.$clientOperations = new Map()
         this.$destroyed = false
+        this.$attachmentSeq = 0
 
         this.init()
     }
@@ -99,73 +105,133 @@ class MqttService extends BaseService implements MqttServiceI {
     }
 
     async createClient (key: string, options: Partial<MqttConnectionOptions> = {}): Promise<MqttClient> {
-        const {
-            reconnectPeriod = 0,
-            getCredentials,
-            reconnect,
-            onConnect,
-            onClose,
-            onOffline,
-            onError,
-            onMessage
-        } = options
-
         if (!key || typeof key !== 'string') {
             throw new Error('MQTT connection key is required')
         }
 
-        if (typeof getCredentials !== 'function') {
+        if (typeof options.getCredentials !== 'function') {
             throw new Error(`MQTT connection "${key}" requires a getCredentials callback`)
         }
 
-        return this.runClientOperation(key, async () => {
-            if (this.$destroyed) {
-                throw new Error('MqttService has been destroyed')
-            }
+        const attachment = this._buildAttachment(options)
 
+        return this.runClientOperation(key, async () => {
             if (this.hasClient(key)) {
                 await this._destroyClientUnlocked(key)
             }
+            return this._createAndConnect(key, options, attachment)
+        })
+    }
 
-            const managed: ManagedMqttClient = {
-                key,
-                client: null,
-                listeners: new Set(),
-                destroyed: false,
-                intentionalDisconnect: false,
-                status: 'idle',
-                getCredentials: this._buildCredentialsProvider(key, getCredentials),
-                reconnectPolicy: this._normalizeReconnectPolicy({
-                    reconnect,
-                    reconnectPeriod,
-                    hasDynamicCredentials: true
-                }),
-                reconnectAttempt: 0,
-                reconnectGeneration: 0,
-                reconnectTimer: null,
-                subscriptions: new Map(),
-                connectionWaiters: new Set(),
-                terminalFailure: false,
-                lastError: null,
-                connectHandlerPromise: null,
-                handlers: {
-                    onConnect,
-                    onClose,
-                    onOffline,
-                    onError,
-                    onMessage
+    async attachClient (key: string, options: Partial<MqttConnectionOptions> = {}): Promise<MqttAttachmentHandle> {
+        if (!key || typeof key !== 'string') {
+            throw new Error('MQTT connection key is required')
+        }
+
+        const attachment = this._buildAttachment(options)
+
+        await this.runClientOperation(key, async () => {
+            const existing = this.$clients.get(key)
+            if (existing && !existing.destroyed) {
+                existing.attachments.add(attachment)
+                if (existing.status === 'connected' && existing.client?.connected) {
+                    attachment.handlers.onConnect?.({} as IConnackPacket, existing.client)
+                }
+                return
+            }
+
+            if (typeof options.getCredentials !== 'function') {
+                throw new Error(`MQTT connection "${key}" requires a getCredentials callback`)
+            }
+            await this._createAndConnect(key, options, attachment)
+        })
+
+        return { key, id: attachment.id }
+    }
+
+    async detachClient (handle: MqttAttachmentHandle): Promise<void> {
+        const { key, id } = handle
+        await this.runClientOperation(key, async () => {
+            const managed = this.$clients.get(key)
+            if (!managed) return
+
+            for (const attachment of managed.attachments) {
+                if (attachment.id === id) {
+                    managed.attachments.delete(attachment)
+                    break
                 }
             }
 
-            this.$clients.set(key, managed)
-
-            try {
-                return await this.connectManagedClient(managed, false)
-            } catch (error) {
-                this.$clients.delete(key)
-                throw error
+            if (managed.attachments.size === 0) {
+                await this._destroyClientUnlocked(key)
             }
         })
+    }
+
+    private _buildAttachment (options: Partial<MqttConnectionOptions>): ManagedMqttAttachment {
+        const { onConnect, onClose, onOffline, onError, onMessage } = options
+        return {
+            id: this.$attachmentSeq++,
+            handlers: { onConnect, onClose, onOffline, onError, onMessage }
+        }
+    }
+
+    private _dispatch<K extends keyof MqttConnectionHandlers> (
+        managed: ManagedMqttClient,
+        event: K,
+        ...args: Parameters<NonNullable<MqttConnectionHandlers[K]>>
+    ): void {
+        for (const attachment of managed.attachments) {
+            const handler = attachment.handlers[event]
+            if (handler) {
+                ;(handler as (...a: unknown[]) => void)(...args)
+            }
+        }
+    }
+
+    private async _createAndConnect (
+        key: string,
+        options: Partial<MqttConnectionOptions>,
+        attachment: ManagedMqttAttachment
+    ): Promise<MqttClient> {
+        if (this.$destroyed) {
+            throw new Error('MqttService has been destroyed')
+        }
+
+        const { reconnectPeriod = 0, getCredentials, reconnect } = options
+
+        const managed: ManagedMqttClient = {
+            key,
+            client: null,
+            listeners: new Set(),
+            destroyed: false,
+            intentionalDisconnect: false,
+            status: 'idle',
+            getCredentials: this._buildCredentialsProvider(key, getCredentials as MqttCredentialProvider),
+            reconnectPolicy: this._normalizeReconnectPolicy({
+                reconnect,
+                reconnectPeriod,
+                hasDynamicCredentials: true
+            }),
+            reconnectAttempt: 0,
+            reconnectGeneration: 0,
+            reconnectTimer: null,
+            subscriptions: new Map(),
+            attachments: new Set([attachment]),
+            connectionWaiters: new Set(),
+            terminalFailure: false,
+            lastError: null,
+            connectHandlerPromise: null
+        }
+
+        this.$clients.set(key, managed)
+
+        try {
+            return await this.connectManagedClient(managed, false)
+        } catch (error) {
+            this.$clients.delete(key)
+            throw error
+        }
     }
 
     async publishMessage (key: string, options?: MqttPublishRequest): Promise<void> {
@@ -505,11 +571,11 @@ class MqttService extends BaseService implements MqttServiceI {
                     await this.replaySubscriptions(managed, client)
                 } catch (error) {
                     if (error instanceof Error) {
-                        managed.handlers.onError?.(error, client)
+                        this._dispatch(managed, 'onError', error, client)
                     }
                 }
 
-                managed.handlers.onConnect?.(connack, client)
+                this._dispatch(managed, 'onConnect', connack, client)
             }
 
             managed.connectHandlerPromise = handleAsync().finally(() => {
@@ -519,46 +585,46 @@ class MqttService extends BaseService implements MqttServiceI {
 
         register('close', () => {
             managed.status = 'disconnected'
-            managed.handlers.onClose?.(client)
+            this._dispatch(managed, 'onClose', client)
             this.scheduleReconnect(managed)
         })
 
         register('disconnect', (packet: IDisconnectPacket) => {
-            managed.handlers.onDisconnect?.(packet, client)
+            this._dispatch(managed, 'onDisconnect', packet, client)
         })
 
         register('offline', () => {
             managed.status = 'disconnected'
-            managed.handlers.onOffline?.(client)
+            this._dispatch(managed, 'onOffline', client)
             this.scheduleReconnect(managed)
         })
 
         register('end', () => {
-            managed.handlers.onEnd?.(client)
+            this._dispatch(managed, 'onEnd', client)
         })
 
         register('reconnect', () => {
-            managed.handlers.onReconnect?.(client)
+            this._dispatch(managed, 'onReconnect', client)
         })
 
         register('error', (error: Error | ErrorWithReasonCode) => {
-            managed.handlers.onError?.(error, client)
+            this._dispatch(managed, 'onError', error, client)
         })
 
         register('message', (topic: string, message: Buffer, packet: IPublishPacket) => {
-            managed.handlers.onMessage?.(topic, message, packet, client)
+            this._dispatch(managed, 'onMessage', topic, message, packet, client)
         })
 
         register('packetsend', (packet: Packet) => {
-            managed.handlers.onPacketSend?.(packet, client)
+            this._dispatch(managed, 'onPacketSend', packet, client)
         })
 
         register('packetreceive', (packet: Packet) => {
-            managed.handlers.onPacketReceive?.(packet, client)
+            this._dispatch(managed, 'onPacketReceive', packet, client)
         })
 
         register('outgoingEmpty', () => {
-            managed.handlers.onOutgoingEmpty?.(client)
+            this._dispatch(managed, 'onOutgoingEmpty', client)
         })
     }
 
@@ -619,7 +685,7 @@ class MqttService extends BaseService implements MqttServiceI {
                     this.clearReconnectTimer(managed)
                     this.rejectConnectionWaiters(managed, normalizedError)
                 }
-                managed.handlers.onError?.(normalizedError, managed.client)
+                this._dispatch(managed, 'onError', normalizedError, managed.client)
                 if (!managed.terminalFailure) {
                     this.scheduleReconnect(managed)
                 }
