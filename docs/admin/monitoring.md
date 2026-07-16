@@ -50,4 +50,22 @@ TOKEN=your_generated_token
 curl -H 'Authorization: Bearer $TOKEN' https://example.com/api/v1/admin/stats
 ```
 
+## Configure Prometheus to scrape the Platform statistics endpoint
 
+To configure Prometheus to scrape the FlowFuse Platform statistics endpoint, you need to add a new scrape job to your Prometheus configuration file (usually `prometheus.yml`).
+Since the statistics endpoint is secured, you will need to provide the access token in the scrape configuration (see the previous paragraph on enabling token-based access).
+
+Once you have the token, you can add a new scrape job to your Prometheus configuration (replace `<generated_token>` and `<flowfuse_platform_url>` with yor FlowFuse Platform-sepcific values):
+
+```yaml
+scrape_configs:
+   - job_name: flowfuse_platform_stats
+     metrics_path: /api/v1/admin/stats
+     scheme: https
+     authorization:
+        type: Bearer
+        credentials: "<generated_token>"
+     scrape_protocols: ["OpenMetricsText1.0.0"]
+     static_configs:
+     - targets: ["<flowfuse_platform_url>"]
+```

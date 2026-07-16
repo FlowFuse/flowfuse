@@ -1,13 +1,16 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+type InstanceMetadata = { status: string, versions?: Record<string, string> }
+
 export const useLiveStatusStore = defineStore('live-status', () => {
-    const instanceStatuses = ref<Record<string, string>>({})
+    const instanceMetadata = ref<Record<string, InstanceMetadata>>({})
     const deviceStatuses = ref<Record<string, string>>({})
     const live = ref(false)
 
-    function setInstanceStatus (id: string, state: string): void {
-        instanceStatuses.value[id] = state
+    function setInstanceStatus (id: string, state: string, versions?: Record<string, string>): void {
+        const existing = instanceMetadata.value[id]
+        instanceMetadata.value[id] = { status: state, versions: versions ?? existing?.versions }
     }
 
     function setDeviceStatus (id: string, state: string): void {
@@ -19,10 +22,10 @@ export const useLiveStatusStore = defineStore('live-status', () => {
     }
 
     function clear (): void {
-        instanceStatuses.value = {}
+        instanceMetadata.value = {}
         deviceStatuses.value = {}
         live.value = false
     }
 
-    return { instanceStatuses, deviceStatuses, live, setDeviceStatus, setInstanceStatus, setLive, clear }
+    return { instanceMetadata, deviceStatuses, live, setDeviceStatus, setInstanceStatus, setLive, clear }
 })

@@ -543,7 +543,7 @@ describe('Project controller', function () {
                 // running -> stopped is a change
                 await app.db.controllers.Project.updateLatestProjectState(instance, 'stopped')
                 notifySpy.calledOnce.should.be.true()
-                notifySpy.firstCall.args.should.eql([app.db.models.Team.encodeHashid(team.id), instance.id, 'stopped'])
+                notifySpy.firstCall.args.should.eql([app.db.models.Team.encodeHashid(team.id), instance.id, { state: 'stopped', versions: undefined }])
 
                 // same state again -> no further notification
                 await app.db.controllers.Project.updateLatestProjectState(instance, 'stopped')
@@ -562,12 +562,12 @@ describe('Project controller', function () {
             try {
                 // inflight wins over the db/latest state
                 await app.db.controllers.Project.setInflightState(instance, 'starting')
-                notifySpy.calledWith(teamHash, instance.id, 'starting').should.be.true()
+                notifySpy.calledWith(teamHash, instance.id, sinon.match({ state: 'starting' })).should.be.true()
 
                 // clearing reverts to the effective db state (running)
                 notifySpy.resetHistory()
                 await app.db.controllers.Project.clearInflightState(instance)
-                notifySpy.calledWith(teamHash, instance.id, 'running').should.be.true()
+                notifySpy.calledWith(teamHash, instance.id, sinon.match({ state: 'running' })).should.be.true()
             } finally {
                 notifySpy.restore()
             }
@@ -589,9 +589,42 @@ describe('Project controller', function () {
                     app.db.controllers.Project.publishLiveState(instance)
                 ])
                 notifySpy.calledOnce.should.be.true()
-                notifySpy.firstCall.args.should.eql([app.db.models.Team.encodeHashid(team.id), instance.id, 'stopped'])
+                notifySpy.firstCall.args.should.eql([app.db.models.Team.encodeHashid(team.id), instance.id, { state: 'stopped', versions: undefined }])
             } finally {
                 notifySpy.restore()
+            }
+        })
+
+        it('captures container versions on the running transition and publishes them flat', async function () {
+            const instance = await makeInstance('versions-capture')
+            await app.db.controllers.Project.setInflightState(instance, 'starting')
+            const detailsStub = sinon.stub(app.containers, 'details').resolves({ state: 'running', versions: { 'node-red': '5.0.0', launcher: '2.31.3' } })
+            const notifySpy = sinon.spy(app.comms.team, 'notifyInstanceState')
+            try {
+                await app.db.controllers.Project.updateLatestProjectState(instance, 'running')
+
+                await instance.reload()
+                instance.versions.should.eql({ 'node-red': { current: '5.0.0' }, launcher: { current: '2.31.3' } })
+
+                const teamHash = app.db.models.Team.encodeHashid(instance.TeamId)
+                notifySpy.calledWith(teamHash, instance.id, { state: 'running', versions: { 'node-red': '5.0.0', launcher: '2.31.3' } }).should.be.true()
+            } finally {
+                notifySpy.restore()
+                detailsStub.restore()
+            }
+        })
+
+        it('does not re-query container versions once they are known', async function () {
+            const instance = await makeInstance('versions-known')
+            instance.versions = { 'node-red': { current: '5.0.0' } }
+            await instance.save()
+            await app.db.controllers.Project.setInflightState(instance, 'starting')
+            const detailsStub = sinon.stub(app.containers, 'details').resolves({ state: 'running', versions: { 'node-red': '9.9.9' } })
+            try {
+                await app.db.controllers.Project.updateLatestProjectState(instance, 'running')
+                detailsStub.called.should.be.false()
+            } finally {
+                detailsStub.restore()
             }
         })
 

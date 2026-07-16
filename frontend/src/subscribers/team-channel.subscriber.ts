@@ -124,7 +124,7 @@ class TeamChannelSubscriber extends BaseSubscriber implements TeamChannelSubscri
 
     // topic pattern → store action; the store owns interpretation (what a
     // reason means, what to refresh). Add a row per new sync-able entity.
-    protected _topicRoutes (): Array<{ pattern: RegExp, handle: (payload: { reason?: string, id?: string, meta?: { state?: string } }) => void }> {
+    protected _topicRoutes (): Array<{ pattern: RegExp, handle: (payload: { reason?: string, id?: string, meta?: { state?: string, versions?: Record<string, string> } }) => void }> {
         return [
             { pattern: MEMBERSHIP_TOPIC_REGEX, handle: (payload) => this._onMembership(payload) },
             { pattern: TEAM_UPDATED_TOPIC_REGEX, handle: () => this._onTeamUpdated() },
@@ -133,10 +133,10 @@ class TeamChannelSubscriber extends BaseSubscriber implements TeamChannelSubscri
         ]
     }
 
-    protected _onInstanceStatus (payload: { id?: string, meta?: { state?: string } }): void {
+    protected _onInstanceStatus (payload: { id?: string, meta?: { state?: string, versions?: Record<string, string> } }): void {
         if (!payload?.id || !payload.meta?.state) return
         try {
-            useLiveStatusStore().setInstanceStatus(payload.id, payload.meta.state)
+            useLiveStatusStore().setInstanceStatus(payload.id, payload.meta.state, payload.meta.versions)
         } catch {}
     }
 
