@@ -55,7 +55,7 @@ module.exports = {
             const versions = Object.keys(versionInfo).length
                 ? Object.fromEntries(Object.entries(versionInfo).map(([key, value]) => [key, value?.current]))
                 : undefined
-            app.comms.team.notifyInstanceState(app.db.models.Team.encodeHashid(project.TeamId), project.id, effective, versions)
+            app.comms.team.notifyInstanceState(app.db.models.Team.encodeHashid(project.TeamId), project.id, { state: effective, versions })
         } catch (err) {
             app.log.warn(`Failed to broadcast live state for ${project.id}: ${err.toString()}`)
         }
