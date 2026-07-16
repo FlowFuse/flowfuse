@@ -5,6 +5,7 @@ const mockCreateBootstrapService = vi.fn()
 const mockCreateMessagingService = vi.fn()
 const mockCreateMqttService = vi.fn()
 const mockCreateTeamChannelSubscriber = vi.fn()
+const mockCreateLiveStatusSubscriber = vi.fn()
 const mockCreateMqttTransport = vi.fn()
 
 vi.mock('../../../../frontend/src/services/automations.service.js', () => {
@@ -43,6 +44,12 @@ vi.mock('../../../../frontend/src/subscribers/team-channel.subscriber.js', () =>
     }
 })
 
+vi.mock('../../../../frontend/src/subscribers/live-status.subscriber.js', () => {
+    return {
+        createLiveStatusSubscriber: mockCreateLiveStatusSubscriber
+    }
+})
+
 async function loadOrchestratorModule () {
     vi.resetModules()
     return await import('../../../../frontend/src/services/app.orchestrator.ts')
@@ -54,6 +61,7 @@ function seedServices () {
     const postMessageService = { name: 'postMessage', destroy: vi.fn().mockResolvedValue() }
     const mqttService = { name: 'mqtt', destroy: vi.fn().mockResolvedValue() }
     const teamChannelSubscriber = { name: 'teamChannel', destroy: vi.fn().mockResolvedValue() }
+    const liveStatusSubscriber = { name: 'liveStatus', destroy: vi.fn().mockResolvedValue() }
     const transport = { name: 'mqtt-transport' }
 
     mockCreateAutomationsService.mockReturnValue(automationsService)
@@ -62,8 +70,9 @@ function seedServices () {
     mockCreateMqttService.mockReturnValue(mqttService)
     mockCreateMqttTransport.mockReturnValue(transport)
     mockCreateTeamChannelSubscriber.mockReturnValue(teamChannelSubscriber)
+    mockCreateLiveStatusSubscriber.mockReturnValue(liveStatusSubscriber)
 
-    return { automationsService, bootstrapService, postMessageService, mqttService, teamChannelSubscriber, transport }
+    return { automationsService, bootstrapService, postMessageService, mqttService, teamChannelSubscriber, liveStatusSubscriber, transport }
 }
 
 describe('AppOrchestrator', () => {
@@ -74,6 +83,7 @@ describe('AppOrchestrator', () => {
         mockCreateMqttService.mockReset()
         mockCreateMqttTransport.mockReset()
         mockCreateTeamChannelSubscriber.mockReset()
+        mockCreateLiveStatusSubscriber.mockReset()
     })
 
     test('init boots services + subscribers, injects shared instances, and provides them on the app', async () => {
@@ -116,7 +126,7 @@ describe('AppOrchestrator', () => {
     })
 
     test('dispose destroys services + subscribers and resets internal state', async () => {
-        const { bootstrapService, postMessageService, mqttService, teamChannelSubscriber } = seedServices()
+        const { bootstrapService, postMessageService, mqttService, teamChannelSubscriber, liveStatusSubscriber } = seedServices()
         mqttService.destroy.mockRejectedValueOnce(new Error('destroy failed'))
 
         const app = { provide: vi.fn(), unmount: vi.fn() }
@@ -130,9 +140,11 @@ describe('AppOrchestrator', () => {
         postMessageService.destroy.mockClear()
         mqttService.destroy.mockClear()
         teamChannelSubscriber.destroy.mockClear()
+        liveStatusSubscriber.destroy.mockClear()
         await orchestrator.dispose()
 
         expect(teamChannelSubscriber.destroy).toHaveBeenCalledTimes(1)
+        expect(liveStatusSubscriber.destroy).toHaveBeenCalledTimes(1)
         expect(bootstrapService.destroy).toHaveBeenCalledTimes(1)
         expect(postMessageService.destroy).toHaveBeenCalledTimes(1)
         expect(mqttService.destroy).toHaveBeenCalledTimes(1)
@@ -142,7 +154,7 @@ describe('AppOrchestrator', () => {
             mqtt: null,
             automations: null
         })
-        expect(orchestrator.$subscriberInstances).toEqual({ teamChannel: null })
+        expect(orchestrator.$subscriberInstances).toEqual({ teamChannel: null, liveStatus: null })
         expect(orchestrator.$app).toBeNull()
         expect(orchestrator.$router).toBeNull()
         expect(orchestrator.$cleanupRegistered).toBe(false)
