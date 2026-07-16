@@ -52,8 +52,14 @@ export default {
                 this.checkWaitTime *= 1.15
 
                 if (this.instance.id) {
-                    const data = await InstanceApi.getInstance(this.instance.id)
-                    this.$emit('instance-updated', data)
+                    try {
+                        const data = await InstanceApi.getInstance(this.instance.id)
+                        this.$emit('instance-updated', data)
+                    } catch (err) {
+                        if (err.response?.status !== 404) {
+                            console.error(err)
+                        }
+                    }
                 }
             }, this.checkWaitTime)
         },

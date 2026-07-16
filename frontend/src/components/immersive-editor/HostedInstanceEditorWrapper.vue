@@ -29,6 +29,7 @@ import { mapActions, mapState } from 'pinia'
 
 import LoadingScreenWrapper from './LoadingScreenWrapper.vue'
 
+import { useUrlHelper } from '@/composables/UrlHelper'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useThemeStore } from '@/stores/theme'
 import { isInstanceOnNR5Plus } from '@/utils/instanceVersion'
@@ -148,7 +149,9 @@ export default {
         }),
         // todo this event listener should be moved in the messaging.service.js
         eventListener (event) {
-            if (event.origin === this.instance.url) {
+            const { originsMatch } = useUrlHelper()
+
+            if (originsMatch(event.origin, this.instance.url)) {
                 // Forward iframe activity to the parent page so PostHog's idle timer
                 // is reset when the user is active inside the cross-origin iframe.
                 window.dispatchEvent(new MouseEvent('mousemove'))
