@@ -54,6 +54,20 @@ module.exports = {
                 return this.ownerType === 'application'
             }
         },
+        /** @type {'online'|'offline'|'not-seen'} a virtual column derived from `lastSeenAt`: `not-seen` if never seen, `online` if seen within the last 30 minutes, otherwise `offline` */
+        status: {
+            type: DataTypes.VIRTUAL(DataTypes.ENUM('online', 'offline', 'not-seen')),
+            get () {
+                const lastSeenAt = this.lastSeenAt
+                // Caveat: if `lastSeenAt` is not selected in the query it will be `undefined`
+                // here and the device reports `not-seen` regardless of its true state.
+                if (!lastSeenAt) {
+                    return 'not-seen'
+                }
+                const ageMs = Date.now() - new Date(lastSeenAt).getTime()
+                return ageMs <= (30 * 60 * 1000) ? 'online' : 'offline'
+            }
+        },
         nodejsVersion: { type: DataTypes.STRING, allowNull: true }
     },
     associations: function (M) {
