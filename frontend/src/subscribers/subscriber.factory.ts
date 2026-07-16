@@ -3,12 +3,12 @@ import type { CreateSubscriberOptions } from '@/types/subscribers/subscriber.typ
 
 type SubscriberConstructor<T> = new (options: CreateSubscriberOptions) => T
 
-export function defineSubscriberSingleton<T extends { destroy(): Promise<void> }> (Ctor: SubscriberConstructor<T>) {
+export function defineSubscriberSingleton<T extends { destroy(): Promise<void> }> (SubscriberClass: SubscriberConstructor<T>) {
     let instance: Maybe<T> = null
 
     function create (options: CreateSubscriberOptions): T {
         if (!instance) {
-            instance = new Ctor(options)
+            instance = new SubscriberClass(options)
         }
         return instance
     }
