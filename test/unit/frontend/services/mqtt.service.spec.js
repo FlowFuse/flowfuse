@@ -944,4 +944,80 @@ describe('MqttService', async () => {
         await destroyMqttService()
         await destroyMqttService()
     })
+
+    describe('attachClient / detachClient (shared refcounted connections)', () => {
+        const creds = async () => ({ url: 'mqtt://example.com', username: 'user', password: 'pass' })
+
+        test('a second attach on the same key reuses the existing client', async () => {
+            const service = createMqttService({ app: {}, services: {}, router: {} })
+            const client = createMockClient()
+            mockConnect.mockReturnValue(client)
+
+            const first = await service.attachClient('team:team-1', { getCredentials: creds })
+            const second = await service.attachClient('team:team-1', { getCredentials: creds })
+
+            expect(mockConnect).toHaveBeenCalledTimes(1)
+            expect(first.id).not.toBe(second.id)
+            expect(service.getManagedClient('team:team-1').attachments.size).toBe(2)
+        })
+
+        test('detaching a non-last attachment keeps the connection alive', async () => {
+            const service = createMqttService({ app: {}, services: {}, router: {} })
+            mockConnect.mockReturnValue(createMockClient())
+
+            const first = await service.attachClient('team:team-1', { getCredentials: creds })
+            const second = await service.attachClient('team:team-1', { getCredentials: creds })
+
+            await service.detachClient(first)
+            expect(service.hasClient('team:team-1')).toBe(true)
+            expect(service.getManagedClient('team:team-1').attachments.size).toBe(1)
+
+            await service.detachClient(second)
+            expect(service.hasClient('team:team-1')).toBe(false)
+        })
+
+        test('detaching an unknown handle is a no-op', async () => {
+            const service = createMqttService({ app: {}, services: {}, router: {} })
+            mockConnect.mockReturnValue(createMockClient())
+            await service.attachClient('team:team-1', { getCredentials: creds })
+
+            await service.detachClient({ key: 'team:team-1', id: 999 })
+            expect(service.hasClient('team:team-1')).toBe(true)
+            expect(service.getManagedClient('team:team-1').attachments.size).toBe(1)
+        })
+
+        test('a late attach onto an already-connected client fires its onConnect immediately', async () => {
+            const service = createMqttService({ app: {}, services: {}, router: {} })
+            const client = createMockClient()
+            mockConnect.mockReturnValue(client)
+
+            await service.attachClient('team:team-1', { getCredentials: creds })
+            client.emit('connect', { cmd: 'connack' })
+
+            const onConnect = vi.fn()
+            await service.attachClient('team:team-1', { getCredentials: creds, onConnect })
+            expect(onConnect).toHaveBeenCalledTimes(1)
+        })
+
+        test('messages fan out to every attachment', async () => {
+            const service = createMqttService({ app: {}, services: {}, router: {} })
+            const client = createMockClient()
+            mockConnect.mockReturnValue(client)
+
+            const onMessageA = vi.fn()
+            const onMessageB = vi.fn()
+            await service.attachClient('team:team-1', { getCredentials: creds, onMessage: onMessageA })
+            await service.attachClient('team:team-1', { getCredentials: creds, onMessage: onMessageB })
+
+            client.emit('message', 'ff/v1/team-1/t/updated', Buffer.from('{}'), { cmd: 'publish' })
+
+            expect(onMessageA).toHaveBeenCalledTimes(1)
+            expect(onMessageB).toHaveBeenCalledTimes(1)
+        })
+
+        test('requires a credential provider when creating a fresh connection', async () => {
+            const service = createMqttService({ app: {}, services: {}, router: {} })
+            await expect(service.attachClient('team:team-1', {})).rejects.toThrow('requires a getCredentials callback')
+        })
+    })
 })
