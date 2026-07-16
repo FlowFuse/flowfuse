@@ -146,7 +146,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountAuthStore, ['isAdminUser']),
-        ...mapState(useLiveStatusStore, { liveInstanceStatuses: 'instanceStatuses', statusChannelLive: 'live' }),
+        ...mapState(useLiveStatusStore, { liveInstanceMetadata: 'instanceMetadata', statusChannelLive: 'live' }),
         isInstanceRunning () {
             return this.localInstance.meta?.state === 'running'
         },
@@ -170,13 +170,13 @@ export default {
         instance (newValue) {
             this.instanceUpdated(newValue)
         },
-        liveInstanceStatuses: { handler: 'applyLiveStatus', deep: true }
+        liveInstanceMetadata: { handler: 'applyLiveStatus', deep: true }
     },
     methods: {
         applyLiveStatus () {
-            const state = this.liveInstanceStatuses[this.localInstance?.id]
-            if (!state || this.localInstance?.meta?.state === state) return
-            this.localInstance = applyLiveState(this.localInstance, state, { clearFlags: true })
+            const meta = this.liveInstanceMetadata[this.localInstance?.id]
+            if (!meta?.status || this.localInstance?.meta?.state === meta.status) return
+            this.localInstance = applyLiveState(this.localInstance, meta.status, { versions: meta.versions, clearFlags: true })
         },
         navigateToInstance () {
             this.$router.push({ name: 'Instance', params: { id: this.localInstance.id } })
