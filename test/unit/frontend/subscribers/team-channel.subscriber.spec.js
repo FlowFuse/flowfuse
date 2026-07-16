@@ -257,8 +257,15 @@ describe('TeamChannelSubscriber', async () => {
         test('instance state routes id + state into setInstanceStatus', async () => {
             const { onMessage } = await connectAndCaptureOnMessage()
             onMessage('ff/v1/team-1/p/inst-1/state', Buffer.from(JSON.stringify({ id: 'inst-1', meta: { state: 'running' } })))
-            expect(setInstanceStatus).toHaveBeenCalledWith('inst-1', 'running')
+            expect(setInstanceStatus).toHaveBeenCalledWith('inst-1', 'running', undefined)
             expect(setDeviceStatus).not.toHaveBeenCalled()
+        })
+
+        test('instance state forwards versions when present', async () => {
+            const { onMessage } = await connectAndCaptureOnMessage()
+            const versions = { 'node-red': '5.0.0', launcher: '2.31.3' }
+            onMessage('ff/v1/team-1/p/inst-1/state', Buffer.from(JSON.stringify({ id: 'inst-1', meta: { state: 'running', versions } })))
+            expect(setInstanceStatus).toHaveBeenCalledWith('inst-1', 'running', versions)
         })
 
         test('device state routes id + state into setDeviceStatus', async () => {
