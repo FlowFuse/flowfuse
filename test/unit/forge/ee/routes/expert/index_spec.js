@@ -1718,7 +1718,7 @@ describe('Expert API', function () {
             // Build a byTeam stub registration whose target is a remote instance (device). The MCP
             // features for devices are fetched over MQTT via deviceComms.sendCommandAwaitReply rather
             // than the launcher admin API used for hosted instances.
-            const buildDeviceRegistration = (agentVersion = '4.0.0') => ({
+            const buildDeviceRegistration = (agentVersion = '4.0.0', status = 'online') => ({
                 id: 1,
                 hashid: 'mcpregdev001',
                 name: 'mcp-server-device',
@@ -1734,6 +1734,7 @@ describe('Expert API', function () {
                     name: 'device-1',
                     url: 'http://device-1',
                     state: 'running',
+                    status, // virtual field derived from lastSeenAt; must be 'online' for the device to be queried
                     ApplicationId: application.id,
                     agentVersion,
                     getSetting: sinon.stub().resolves({}) // no special settings
@@ -1823,6 +1824,40 @@ describe('Expert API', function () {
                     result.incompatibleServers[0].should.have.property('minimumSupportedVersion', '4.0.0')
                     // the version gate happens before any MQTT round-trip - no live-state or feature request should be made
                     sendCommandAwaitReply.called.should.be.false()
+                } finally {
+                    app.comms = null
+                }
+            })
+
+            it('should skip a device whose status is not "online"', async function () {
+                const token = bobToken
+                // device is registered and its `state` is 'running', but its `status` virtual field
+                // reports 'offline' (i.e. lastSeenAt too old). It must be skipped to avoid
+                // an unnecessary MQTT round-trip that would just time out.
+                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([buildDeviceRegistration('4.0.0', 'offline')])
+
+                const sendCommandAwaitReply = sinon.stub().resolves({ state: 'running' })
+                app.comms = { devices: { sendCommandAwaitReply } }
+                // the launcher admin API (used for hosted instances) must NOT be used for devices
+                const getFeatures = sinon.stub(app.containers, 'getMCPFeatures')
+
+                try {
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/expert/mcp/features',
+                        cookies: { sid: token },
+                        headers: { 'x-chat-transaction-id': 'abc' },
+                        payload: { context: { teamId: team.hashid } }
+                    })
+                    response.statusCode.should.equal(200)
+
+                    const result = response.json()
+                    // an offline device is neither queried for features nor reported as incompatible - it is silently skipped
+                    result.should.have.property('servers').which.is.an.Array().and.has.length(0)
+                    result.should.have.property('incompatibleServers').which.is.an.Array().and.has.length(0)
+                    // the status gate happens before any MQTT round-trip or launcher call
+                    sendCommandAwaitReply.called.should.be.false()
+                    getFeatures.called.should.be.false()
                 } finally {
                     app.comms = null
                 }
