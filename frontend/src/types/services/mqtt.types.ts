@@ -87,12 +87,12 @@ export interface MqttConnectionWaiter {
     timer: ReturnType<typeof setTimeout> | null
 }
 
-export interface ManagedMqttAttachment {
+export interface ManagedMqttObserver {
     id: number
     handlers: MqttConnectionHandlers
 }
 
-export interface MqttAttachmentHandle {
+export interface MqttObserverHandle {
     key: string
     id: number
 }
@@ -110,7 +110,7 @@ export interface ManagedMqttClient {
     reconnectGeneration: number
     reconnectTimer: ReturnType<typeof setTimeout> | null
     subscriptions: Map<string, ManagedMqttSubscription>
-    attachments: Set<ManagedMqttAttachment>
+    observers: Set<ManagedMqttObserver>
     connectionWaiters: Set<MqttConnectionWaiter>
     terminalFailure: boolean
     lastError: Error | null
@@ -120,8 +120,8 @@ export interface ManagedMqttClient {
 export interface MqttServiceI extends AppService {
     createClient(key: string, options?: Partial<MqttConnectionOptions>): Promise<MqttClient>
     destroyClient(key: string): Promise<void>
-    attachClient(key: string, options?: Partial<MqttConnectionOptions>): Promise<MqttAttachmentHandle>
-    detachClient(handle: MqttAttachmentHandle): Promise<void>
+    attachClientObserver(clientKey: string, options?: Partial<MqttConnectionOptions>): Promise<MqttObserverHandle>
+    detachClientObserver(handle: MqttObserverHandle): Promise<void>
     getManagedClient(key: string): ManagedMqttClient | null
     hasClient(key: string): boolean
     publishMessage(key: string, options: MqttPublishRequest): Promise<void>
