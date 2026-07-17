@@ -61,6 +61,12 @@ describe('3rd Party Broker API', function () {
         }
         app.defaultTeamType.properties = defaultTeamTypeProperties
         await app.defaultTeamType.save()
+
+        app.team2 = await app.db.models.Team.create({
+            TeamTypeId: defaultTeamType.id,
+            name: 'Team2'
+        })
+        app.team2.addUser(userBob, { through: { role: Roles.Owner } })
     })
 
     after(async function () {
@@ -160,6 +166,15 @@ describe('3rd Party Broker API', function () {
             result.credentials.should.have.property('username')
             result.credentials.should.have.property('password')
         })
+        it('Cannot get credentials as a regular user', async function () {
+            const b1 = await create3rdPartyBroker({ name: 'my-broker', host: 'broker-host' })
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${b1.credentialId}/credentials`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(401)
+        })
         it('Edit Credentials as Owner', async function () {
             const b1 = await create3rdPartyBroker()
             const response = await app.inject({
@@ -188,6 +203,26 @@ describe('3rd Party Broker API', function () {
             result.should.have.property('ssl', true)
             result.should.have.property('verifySSL', true)
             result.should.have.property('clientId', 'broker-client-rename')
+        })
+        it('Fail to edit broker if team/broker mismatch', async function () {
+            const b1 = await create3rdPartyBroker()
+            const response = await app.inject({
+                method: 'PUT',
+                // b1 exists in team1. Attempt to edit it from team2 should fail
+                url: `/api/v1/teams/${app.team2.hashid}/brokers/${b1.credentialId}`,
+                cookies: { sid: TestObjects.tokens.bob },
+                body: {
+                    name: 'broker-rename',
+                    host: '127.0.0.1',
+                    port: 8883,
+                    protocol: 'wss:',
+                    protocolVersion: 5,
+                    ssl: true,
+                    verifySSL: true,
+                    clientId: 'broker-client-rename'
+                }
+            })
+            response.statusCode.should.equal(404)
         })
 
         it('Fail to Create Credentials as Member', async function () {
@@ -242,6 +277,16 @@ describe('3rd Party Broker API', function () {
             response.statusCode.should.equal(200)
             const result = response.json()
             result.brokers.should.have.a.lengthOf(0)
+        })
+        it('Fail to delete broker if team/broker mismatch', async function () {
+            const b1 = await create3rdPartyBroker()
+            const response = await app.inject({
+                method: 'DELETE',
+                // b1 exists in team1. Attempt to delete it from team2 should fail
+                url: `/api/v1/teams/${app.team2.hashid}/brokers/${b1.credentialId}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(404)
         })
     })
 
@@ -338,6 +383,41 @@ describe('3rd Party Broker API', function () {
             })
             response.statusCode.should.equal(201)
         })
+        it('Fails to store topic if team/broker mismatch', async function () {
+            // First as the broker agent
+            let response = await app.inject({
+                method: 'POST',
+                // Attempt to store topic for a broker in a different team should fail
+                url: `/api/v1/teams/${app.team2.hashid}/brokers/${brokerCredentialId}/topics`,
+                headers: {
+                    Authorization: `Bearer ${agentToken}`
+                },
+                body: [
+                    {
+                        topic: 'foo/bar/baz/qux',
+                        time: 1738236145678,
+                        type: { type: 'string' }
+                    }
+                ]
+            })
+            response.statusCode.should.equal(404)
+
+            // Then as a team member
+            response = await app.inject({
+                method: 'POST',
+                // Attempt to store topic for a broker in a different team should fail
+                url: `/api/v1/teams/${app.team2.hashid}/brokers/${brokerCredentialId}/topics`,
+                cookies: { sid: TestObjects.tokens.bob },
+                body: [
+                    {
+                        topic: 'foo/bar/baz/qux',
+                        time: 1738236145678,
+                        type: { type: 'string' }
+                    }
+                ]
+            })
+            response.statusCode.should.equal(404)
+        })
         it('Store Topic for a broker as a team owner', async function () {
             const response = await app.inject({
                 method: 'POST',
@@ -386,6 +466,14 @@ describe('3rd Party Broker API', function () {
             const result = response.json()
             result.topics.should.have.a.lengthOf(4)
         })
+        it('Cannot get topics for broker in a different team', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team2.hashid}/brokers/${brokerCredentialId}/topics`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(404)
+        })
         it('Add Metadata to a Topic', async function () {
             let response = await app.inject({
                 method: 'GET',
@@ -416,6 +504,34 @@ describe('3rd Party Broker API', function () {
             result.metadata.should.have.property('comment', 'HelloWorld')
             result.metadata.should.have.property('lastSeen', 100)
         })
+        it('Cannot add metadata to a topic for a broker in a different team', async function () {
+            // First, get a topicId for a broker in team1
+            let response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            let result = response.json()
+            result.topics.should.have.a.lengthOf(4)
+            result.topics[0].should.have.property('id')
+            result.topics[0].should.have.property('topic')
+            const topicId = result.topics[0].id
+
+            // Then try to update the metadata via team2
+            response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/teams/${app.team2.hashid}/brokers/${brokerCredentialId}/topics/${topicId}`,
+                cookies: { sid: TestObjects.tokens.bob },
+                body: {
+                    metadata: {
+                        comment: 'HelloWorld',
+                        lastSeen: 100
+                    }
+                }
+            })
+            response.statusCode.should.equal(404)
+        })
         it('Delete Topic', async function () {
             let response = await app.inject({
                 method: 'GET',
@@ -444,6 +560,28 @@ describe('3rd Party Broker API', function () {
             response.statusCode.should.equal(200)
             result = response.json()
             result.count.should.equal(3)
+        })
+        it('Cannot delete topic metadata for a broker in a different team', async function () {
+            // Get a valid topicId for a broker in team1
+            let response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${app.team.hashid}/brokers/${brokerCredentialId}/topics`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            let result = response.json()
+            result.topics.should.have.a.lengthOf(3) // 1 was deleted in the previous test
+            result.topics[0].should.have.property('id')
+            result.topics[0].should.have.property('topic')
+            const topicId = result.topics[0].id
+
+            // Attempt to delete it via team2 should fail
+            response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/teams/${app.team2.hashid}/brokers/${brokerCredentialId}/topics/${topicId}`,
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(404)
         })
 
         it('Topic Cache', async function () {
