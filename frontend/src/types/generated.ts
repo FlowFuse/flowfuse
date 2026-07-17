@@ -10836,6 +10836,7 @@ export interface components {
             applications?: {
                 [key: string]: unknown;
             };
+            sso?: boolean;
         };
         /** TeamMemberList */
         TeamMemberList: ({
