@@ -9,7 +9,7 @@ export class MqttTransport implements Transport<TransportConnectOptions> {
     }
 
     attach (key: string, options: TransportConnectOptions): Promise<TransportAttachmentHandle> {
-        return this.$mqtt.attachClient(key, options as Partial<MqttConnectionOptions>)
+        return this.$mqtt.attachClientObserver(key, options as Partial<MqttConnectionOptions>)
     }
 
     subscribe (key: string, topics: string[], options: TransportSubscribeOptions = {}): Promise<void> {
@@ -17,7 +17,7 @@ export class MqttTransport implements Transport<TransportConnectOptions> {
     }
 
     detach (handle: TransportAttachmentHandle): Promise<void> {
-        return this.$mqtt.detachClient(handle)
+        return this.$mqtt.detachClientObserver(handle)
     }
 }
 
