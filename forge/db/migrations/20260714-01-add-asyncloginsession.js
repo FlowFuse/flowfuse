@@ -30,6 +30,7 @@ module.exports = {
                 allowNull: false
             }
         })
+        await context.addIndex('AsyncLoginSessions', { name: 'async_login_sessions_done_token', fields: ['doneToken'] })
     },
     down: async (context, Sequelize) => { }
 }

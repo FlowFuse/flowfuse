@@ -32,6 +32,9 @@ module.exports = {
             type: DataTypes.STRING
         }
     },
+    indexes: [
+        { name: 'async_login_sessions_done_token', fields: ['doneToken'] }
+    ],
     finders: function (M) {
         return {
             static: {
