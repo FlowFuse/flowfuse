@@ -297,10 +297,22 @@
     }
     .forge-status-success,
     .forge-status-connected,
-    .forge-status-running {
+    .forge-status-running,
+    .forge-status-online {
         background-color: var(--ff-color-status-success-bg);
         border-color: var(--ff-color-status-success-border);
         color: var(--ff-color-status-success-text);
+    }
+    .forge-status-offline {
+        background-color: var(--ff-color-status-neutral-bg);
+        border-color: var(--ff-color-status-neutral-border);
+        color: var(--ff-color-status-neutral-text);
+    }
+    .forge-status-not-seen {
+        background-color: var(--ff-color-status-neutral-bg);
+        border-color: var(--ff-color-status-neutral-border);
+        color: var(--ff-color-status-neutral-text);
+        @apply border-dashed;
     }
 
     .forge-minimal-status-error,

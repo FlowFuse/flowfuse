@@ -362,10 +362,9 @@ import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
 
 import DeviceCreatedAtCell from '../pages/device/DeviceCreatedAtCell.vue'
-import DeviceLastSeenCell from '../pages/device/components/DeviceLastSeenCell.vue'
 import DeviceModeBadge from '../pages/device/components/DeviceModeBadge.vue'
+import DeviceOnlineStatusCell from '../pages/device/components/DeviceOnlineStatusCell.vue'
 import SnapshotAssignDialog from '../pages/instance/VersionHistory/Snapshots/dialogs/SnapshotAssignDialog.vue'
-import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadge.vue'
 import DeviceAssignApplicationDialog from '../pages/team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
 import DeviceAssignInstanceDialog from '../pages/team/Devices/dialogs/DeviceAssignInstanceDialog.vue'
 import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog.vue'
@@ -478,9 +477,8 @@ export default {
                 { label: 'Remote Instance', key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: true },
                 { label: 'Created', key: 'createdAt', class: ['w-48'], sortable: true, component: { is: markRaw(DeviceCreatedAtCell) } },
-                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-48'], sortable: true, component: { is: markRaw(DeviceLastSeenCell) } },
                 { label: 'Mode', key: 'mode', class: ['w-30'], sortable: true, component: { is: markRaw(DeviceModeBadge) } },
-                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge), map: { instanceId: 'id' }, extraProps: { instanceType: 'device' } } }
+                { label: 'Status', key: 'lastSeenAt', class: ['w-40'], sortable: true, component: { is: markRaw(DeviceOnlineStatusCell) } }
             ]
 
             if (this.displayingTeam) {
