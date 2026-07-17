@@ -15,6 +15,29 @@ const { filterAccessibleMCPServerFeatures } = require('../../../services/expert.
 const getDeviceComms = (app) => { return app.comms?.devices }
 
 /**
+ * Run `fn` over `items` with at most `limit` concurrent executions.
+ * `fn` must not throw (each task should wrap its own errors) so a single failure cannot sink the
+ * pool - this gives Promise.allSettled-like semantics. `isStopped()` is polled before pulling each
+ * next item: when it returns true the workers stop taking new work (used to enforce the overall
+ * deadline). It does NOT cancel in-flight work - there is no abort signal for MQTT calls.
+ * @param {any[]} items
+ * @param {number} limit
+ * @param {(item:any, index:number) => Promise<void>} fn
+ * @param {() => boolean} [isStopped]
+ */
+async function mapWithConcurrency (items, limit, fn, isStopped) {
+    let cursor = 0
+    const worker = async () => {
+        while (cursor < items.length) {
+            if (isStopped?.()) { return }
+            const index = cursor++
+            await fn(items[index], index)
+        }
+    }
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
+}
+
+/**
  * Maps a platform automation tool's wire definition into a catalog entry for the
  * Expert permissions UI. The read/write/delete class comes from the MCP annotations
  * (readOnlyHint / destructiveHint), and `group: 'platform'` routes it to the platform
@@ -340,6 +363,18 @@ module.exports = async function (app) {
                                 },
                                 required: ['instance', 'instanceType']
                             }
+                        },
+                        summary: {
+                            type: 'object',
+                            properties: {
+                                instanceCount: { type: 'integer' },
+                                mcpServerCount: { type: 'integer' },
+                                enumeratedCount: { type: 'integer' },
+                                unenumeratedCount: { type: 'integer' },
+                                limit: { type: 'integer' },
+                                limited: { type: 'boolean' },
+                                deadlineReached: { type: 'boolean' }
+                            }
                         }
                     }
                 },
@@ -358,6 +393,25 @@ module.exports = async function (app) {
         if (!request.isExpertInsightsEnabled) {
             return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
+
+        // MCP feature enumeration config //
+
+        // Minimum launcher/agent versions that support MCP feature enumeration
+        const MIN_HOSTED_INSTANCE_LAUNCHER_VERSION = '2.32.0'
+        const MIN_REMOTE_INSTANCE_AGENT_VERSION = '4.0.0'
+
+        // Total cap on the number of MCP servers scanned per request. Instances are scanned until this
+        // many servers have been planned; any remainder is reported as unenumerated in the response summary.
+        const MAX_SERVERS = app.config.expert?.insights?.maxServers ?? 20 // 20, for now, until otherwise requested.
+        // Bounded fan-out for the per-instance scan. Kept modest to leave DB pool + broker headroom for the
+        // rest of the platform (the endpoint itself does not need more concurrency to meet its time budget).
+        const ENUM_CONCURRENCY = app.config.expert?.insights?.enumConcurrency ?? 5 // increasing this might risk of hitting DB pool or broker limits. 5 is a reasonable starting point.
+        // Overall wall-clock budget for the scan. Once reached we stop scanning further instances and return
+        // whatever has been enumerated so far (in-flight calls are left to run out their own timeouts).
+        const ENUM_DEADLINE_MS = app.config.expert?.insights?.enumDeadlineMs ?? 10_000 // default to 10 seconds
+        // Per-device MQTT timeouts. There is no abort for an in-flight MQTT call, so these bound a single call.
+        const DEVICE_LIVENESS_TIMEOUT = app.config.expert?.insights?.deviceLivenessTimeout ?? 3_000
+        const DEVICE_FEATURES_TIMEOUT = app.config.expert?.insights?.deviceFeaturesTimeout ?? 5_000
 
         try {
             // Premise:
@@ -411,6 +465,10 @@ module.exports = async function (app) {
                 if (instance?.state !== 'running') {
                     continue
                 }
+                // if this is a device and its status column is not "online", skip it (avoids unnecessary timeouts)
+                if (instanceType === 'device' && instance?.status !== 'online') {
+                    continue
+                }
 
                 // Ensure instance has an associated application
                 if (!instance?.ApplicationId) {
@@ -440,105 +498,125 @@ module.exports = async function (app) {
                 instanceGroups[instanceId].registrations.push({ hashid, name, protocol, endpointRoute, title, version, description })
             }
 
-            // PASS 2 - for each unique instance, confirm instance is actually running (live-state check) and that
-            // the instance's launcher/agent version is new enough to support MCP features.
-            const instancesWithMCPServers = []
+            // PASS 2 + 3 - for each unique instance, confirm it is actually reachable/running (live-state
+            // check) and that its launcher/agent version supports MCP features, then fetch those features.
+            // This runs as a bounded, pipelined per-instance scan: each instance flows live-state -> token
+            // -> features independently, so one slow instance does not hold up the others, and the whole
+            // scan is capped by an overall deadline.
             const incompatibleServers = []
-            const MIN_HOSTED_INSTANCE_LAUNCHER_VERSION = '2.32.0'
-            const MIN_REMOTE_INSTANCE_AGENT_VERSION = '4.0.0'
+            const mcpServersResponse = [] // flat [{ spec, features }] - one entry per successfully enumerated server
 
-            for (const instanceId of Object.keys(instanceGroups)) {
+            // Apply the total cap: take whole instances up to MAX_MCP_SERVERS, slicing the boundary instance
+            // if needed so we never exceed the cap and always make progress. (Selection is in registration
+            // order for now - prioritisation could be added later.)
+            const candidateGroups = Object.entries(instanceGroups).map(([instanceId, group]) => ({ instanceId, ...group }))
+            const candidateInstanceCount = candidateGroups.length
+            const candidateServerCount = candidateGroups.reduce((total, group) => total + group.registrations.length, 0)
+            const groupsToScan = []
+            let plannedServerCount = 0
+            for (const group of candidateGroups) {
+                if (plannedServerCount >= MAX_SERVERS) { break }
+                const remaining = MAX_SERVERS - plannedServerCount
+                const registrations = group.registrations.length <= remaining ? group.registrations : group.registrations.slice(0, remaining)
+                groupsToScan.push({ ...group, registrations })
+                plannedServerCount += registrations.length
+            }
+
+            // Scan a single instance: version gate -> live-state -> token -> features. Never throws: any
+            // failure (timeout, unreachable, driver error) skips the instance so it cannot sink the pool.
+            // Results are pushed into the shared collectors as they complete.
+            const scanInstance = async ({ instanceId, instance, instanceType, application, registrations }) => {
                 try {
-                    const { instance, instanceType, application, registrations } = instanceGroups[instanceId]
-                    // check instance is actually running before offering MCP features (querying a non-running instance would cause timeouts)
-                    // additionally, check that the instance's launcher/agent version is new enough to support MCP features.
-                    // note: the version check can only be done after the live-state check, because the version is only available in the live-state response.
-
                     if (instanceType === 'instance' && instance) {
                         // Check that instance launcher supports the required features before attempting to get the live state.
                         if (!instance.versions?.launcher?.current || semver.lt(instance.versions.launcher.current, MIN_HOSTED_INSTANCE_LAUNCHER_VERSION)) {
                             incompatibleServers.push({ instance: instanceId, instanceType, instanceName: instance.name, currentVersion: instance.versions?.launcher?.current, minimumSupportedVersion: MIN_HOSTED_INSTANCE_LAUNCHER_VERSION })
-                            continue // skip - launcher version too old to support MCP features via the admin API
+                            return // skip - launcher version too old to support MCP features via the admin API
                         }
                         // Next check that the instance is actually running before calling MCP features (querying a non-running instance would cause timeouts)
                         const liveState = await instance.liveState({ omitStorageFlows: true })
                         if (liveState?.meta?.state !== 'running') {
-                            continue
+                            return
                         }
                     } else if (instanceType === 'device' && instance) {
                         // Check that device agent version supports the required features before attempting to get the live state.
                         if (!instance.agentVersion || semver.lt(instance.agentVersion, MIN_REMOTE_INSTANCE_AGENT_VERSION)) {
                             incompatibleServers.push({ instance: instanceId, instanceType, instanceName: instance.name, currentVersion: instance.agentVersion, minimumSupportedVersion: MIN_REMOTE_INSTANCE_AGENT_VERSION })
-                            continue // skip - agent version too old to support MCP features
+                            return // skip - agent version too old to support MCP features
                         }
                         // Next check that the device is actually running before offering MCP features (querying a non-running device would cause timeouts)
-                        const response = await deviceComms.sendCommandAwaitReply(request.team.hashid, instanceId, 'get-liveState', {}, { timeout: 3000 })
-                        if (response?.state !== 'running') {
-                            continue
+                        const liveState = await deviceComms.sendCommandAwaitReply(request.team.hashid, instanceId, 'get-liveState', {}, { timeout: DEVICE_LIVENESS_TIMEOUT })
+                        if (liveState?.state !== 'running') {
+                            return
                         }
                     } else {
-                        continue // unsupported instance type or instance not found, skip it.
+                        return // unsupported instance type or instance not found, skip it.
                     }
 
                     // Check instance settings for node security. If FlowFuse auth is enabled, generate a short-lived (5 mins)
                     // auth token for the instance with a scope limited to MCP access and cache it in memory for subsequent requests
                     const mcpAccessToken = await app.expert.mcp.getOrCreateToken(instance, instanceType, instanceId, request.teamHttpSecurityFeature)
-
-                    instancesWithMCPServers.push({
+                    const specs = registrations.map(reg => ({
                         team: request.team.hashid,
                         application: application.hashid,
-                        instance,
+                        instance: instanceId,
                         instanceType,
-                        mcpServers: registrations.map(reg => ({
-                            team: request.team.hashid,
-                            application: application.hashid,
-                            instance: instanceId,
-                            instanceType,
-                            instanceName: instance.name,
-                            instanceUrl: instance.url,
-                            mcpServer: reg.hashid,
-                            mcpServerName: reg.name,
-                            mcpEndpoint: reg.endpointRoute,
-                            mcpProtocol: reg.protocol,
-                            mcpAccessToken,
-                            accessToken: mcpAccessToken,
-                            title: reg.title,
-                            version: reg.version,
-                            description: reg.description
-                        }))
-                    })
+                        instanceName: instance.name,
+                        instanceUrl: instance.url,
+                        mcpServer: reg.hashid,
+                        mcpServerName: reg.name,
+                        mcpEndpoint: reg.endpointRoute,
+                        mcpProtocol: reg.protocol,
+                        mcpAccessToken,
+                        accessToken: mcpAccessToken,
+                        title: reg.title,
+                        version: reg.version,
+                        description: reg.description
+                    }))
+
+                    // Fetch features: hosted instances via the launcher admin API, remote instances (devices) via MQTT.
+                    let responses
+                    if (instanceType === 'instance') {
+                        responses = await app.containers.getMCPFeatures(instance, specs)
+                    } else {
+                        responses = await deviceComms.sendCommandAwaitReply(request.team.hashid, instance.hashid, 'mcp:get-features', { mcpEndPoints: specs }, { timeout: DEVICE_FEATURES_TIMEOUT })
+                    }
+                    for (const item of (responses || [])) {
+                        mcpServersResponse.push(item) // { spec, features }
+                    }
                 } catch (error) {
-                    continue // if we get an error trying, assume instance is offline/unreachable and skip it
+                    // assume instance is offline/unreachable/errored and skip it - never sink the pool
+                    app.log.debug(`[expert/mcp] skipping instance ${instanceId} during MCP feature scan: ${error.message}`)
                 }
             }
 
-            // if no running instances with MCP server, return early
-            if (instancesWithMCPServers.length === 0) {
-                return reply.send({ servers: [], incompatibleServers, transactionId })
+            // Drive the scan under a bounded concurrency limit and an overall deadline. The deadline only
+            // stops the pool from scanning further instances; in-flight MQTT/launcher calls run out their
+            // own per-call timeouts (there is no abort for MQTT).
+            let deadlineReached = false
+            let deadlineTimer
+            const deadline = new Promise(resolve => { deadlineTimer = setTimeout(() => { deadlineReached = true; resolve() }, ENUM_DEADLINE_MS) })
+            const scan = mapWithConcurrency(groupsToScan, ENUM_CONCURRENCY, scanInstance, () => deadlineReached)
+            await Promise.race([scan, deadline])
+            clearTimeout(deadlineTimer)
+
+            // Summary of scan coverage. `unenumeratedCount` is a single derived difference so it can never drift as
+            // it captures all servers not enumerated for any reason (cap, deadline, not-running, old version, error).
+            const enumeratedCount = mcpServersResponse.length
+            const summary = {
+                instanceCount: candidateInstanceCount,
+                mcpServerCount: candidateServerCount,
+                enumeratedCount,
+                unenumeratedCount: candidateServerCount - enumeratedCount,
+                limit: MAX_SERVERS,
+                limited: candidateServerCount > MAX_SERVERS,
+                deadlineReached
             }
 
-            // Request the features via the launcher (remote instances via MQTT, hosted instances via direct
-            // call to launcher admin API), one call per instance, all in parallel.
-            const featurePromises = instancesWithMCPServers.map(instanceWithMCPServers => {
-                // for HTTP protocol, we can call the launcher admin API directly (for hosted instances) or via MQTT (for remote instances)
-                const instance = instanceWithMCPServers.instance
-                if (!instance) {
-                    return Promise.resolve({ ...instanceWithMCPServers, error: 'Instance not found' })
-                }
-                if (instanceWithMCPServers.instanceType === 'instance') {
-                    // hosted instance - call launcher API
-                    return app.containers.getMCPFeatures(instance, instanceWithMCPServers.mcpServers)
-                } else if (instanceWithMCPServers.instanceType === 'device') {
-                    // remote instance - call via command await dispatcher
-                    return deviceComms.sendCommandAwaitReply(instanceWithMCPServers.team, instance.hashid, 'mcp:get-features', { mcpEndPoints: instanceWithMCPServers.mcpServers }, { timeout: 10000 })
-                } else {
-                    return Promise.resolve({ ...instanceWithMCPServers, error: 'Unsupported instance type' })
-                }
-            })
-
-            // wait for all promises to resolve
-            const featuresResponses = await Promise.all(featurePromises)
-            const mcpServersResponse = (featuresResponses || []).flat()
+            // if no servers were enumerated, return early
+            if (mcpServersResponse.length === 0) {
+                return reply.send({ servers: [], incompatibleServers, summary, transactionId })
+            }
 
             const serverList = []
             // load the associate application models so that we can filter features based on user access
@@ -574,7 +652,7 @@ module.exports = async function (app) {
                     prompts: s.prompts
                 }
             })
-            reply.send({ servers: finalServersView, incompatibleServers, transactionId })
+            reply.send({ servers: finalServersView, incompatibleServers, summary, transactionId })
         } catch (error) {
             reply.code(error.response?.status || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
         }
