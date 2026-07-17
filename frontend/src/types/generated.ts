@@ -863,6 +863,9 @@ export interface paths {
                         scope?: string;
                         expiresAt?: number;
                         name?: string;
+                        readOnly?: boolean;
+                        adminOptIn?: boolean;
+                        teamIds?: string[];
                     };
                 };
             };
@@ -916,6 +919,9 @@ export interface paths {
                     "application/json": {
                         scope?: string;
                         expiresAt?: number;
+                        readOnly?: boolean;
+                        adminOptIn?: boolean;
+                        teamIds?: string[];
                     };
                 };
             };
@@ -10235,6 +10241,12 @@ export interface components {
             id: string;
             name: string;
             expiresAt: string | null;
+            readOnly?: boolean;
+            adminOptIn?: boolean;
+            teams?: {
+                id?: string;
+                name?: string | null;
+            }[];
         };
         /** PersonalAccessToken */
         PersonalAccessToken: {
@@ -10309,6 +10321,7 @@ export interface components {
             createdAt: string;
             username: string | null;
             event: string;
+            source?: string | null;
             scope: {
                 [key: string]: unknown;
             };

@@ -232,8 +232,12 @@ class CommsClient extends EventEmitter {
                 'ff/v1/+/d/+/resources/heartbeat',
                 // Platform sync messages
                 'ff/v1/platform/sync',
-                // Listen for Expert platform requests
-                'ff/v1/expert/+/+/platform/+/request'
+                // Listen for Expert platform requests.
+                // Uses a dedicated shared subscription group. The group name defines the set
+                // of consumers that share the workload, so keeping Expert separate from the
+                // "platform" group prevents unrelated features from sharing a consumer pool and
+                // allows them to scale independently.
+                '$share/expert/ff/v1/expert/+/+/platform/+/request'
             ])
         }
     }

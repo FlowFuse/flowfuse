@@ -875,7 +875,7 @@ module.exports = async function (app) {
      * Start device logging
      */
     app.post('/:deviceId/logs', {
-        preHandler: app.needsPermission('device:read'),
+        preHandler: [app.blockPAT, app.needsPermission('device:read')],
         schema: {
             summary: 'Start device logging',
             tags: ['Devices'],
@@ -909,10 +909,10 @@ module.exports = async function (app) {
     })
 
     /**
-     * Start device resouce stream
+     * Start a device resource stream
      */
     app.post('/:deviceId/resources', {
-        preHandler: app.needsPermission('device:read'),
+        preHandler: [app.blockPAT, app.needsPermission('device:read')],
         schema: {
             summary: 'Start device logging',
             tags: ['Devices'],
