@@ -44,10 +44,10 @@ class LiveStatusSubscriber extends TeamSubscriber implements TeamSubscriberI {
         } catch {}
     }
 
-    protected _onInstanceStatus (payload: { id?: string, meta?: { state?: string } }): void {
+    protected _onInstanceStatus (payload: { id?: string, meta?: { state?: string, versions?: Record<string, string> } }): void {
         if (!payload?.id || !payload.meta?.state) return
         try {
-            useLiveStatusStore().setInstanceStatus(payload.id, payload.meta.state)
+            useLiveStatusStore().setInstanceStatus(payload.id, payload.meta.state, payload.meta.versions)
         } catch {}
     }
 

@@ -62,6 +62,23 @@ async function init (app, opts) {
      * @static
      * @memberof forge
      */
+    function resolveSourceContext (request) {
+        const nonceHeader = request.headers?.['x-ff-source-nonce']
+        if (nonceHeader && app.nonceStore) {
+            const metadata = app.nonceStore.consume(nonceHeader)
+            if (metadata) {
+                request.requestContext.set('sourceContext', metadata)
+                return
+            }
+        }
+        if (request.session?.isPAT) {
+            request.requestContext.set('sourceContext', {
+                source: 'api',
+                tokenId: request.session.pat?.id
+            })
+        }
+    }
+
     async function verifySession (request, reply) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
@@ -75,6 +92,7 @@ async function init (app, opts) {
 
                 if (emailVerified && passwordNotExpired && !suspended && !mfaMissing) {
                     Sentry.setUser({ id: request.session.User.hashid, username: request.session.User.username, email: request.session.User.email, name: request.session.User.name })
+                    resolveSourceContext(request)
                     return
                 }
                 if (request.routeOptions.config.allowAnonymous) {
@@ -206,6 +224,7 @@ async function init (app, opts) {
                         reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                         return
                     }
+                    resolveSourceContext(request)
                     return
                 }
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })

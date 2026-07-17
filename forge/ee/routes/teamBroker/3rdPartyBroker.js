@@ -36,6 +36,10 @@ module.exports = async function (app) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                     return // eslint-disable-line no-useless-return
                 }
+                if (request.broker.TeamId !== request.team.id) {
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                    return // eslint-disable-line no-useless-return
+                }
             }
         }
         if (!request.teamMembership && request.session.User) {

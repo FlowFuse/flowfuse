@@ -217,6 +217,9 @@ module.exports = async (options = {}) => {
         // Request Context: per-request store
         await server.register(fastifyRequestContext)
 
+        // Nonce Store: in-memory single-use token store
+        await server.register(require('./lib/nonceStore'))
+
         let contentSecurityPolicy = false
         if (runtimeConfig.content_security_policy?.enabled) {
             if (!runtimeConfig.content_security_policy.directives) {
