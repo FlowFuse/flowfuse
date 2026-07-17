@@ -184,15 +184,19 @@ For example, if an organisation requires all groups to begin with `acme-org-`, a
 
 In addition to being able to add Users to Teams using groups, Role overrides for specific Applications within those groups can also be controlled.
 
-A User must me a member of the group that controls access to a given Team in order for an Application override to take effect.
+The User must have a membership of the Team the Application belongs to for an Application override to take effect. If the User is not a member of that Team, the override is ignored.
 
-Groups for Application overrides use a similar pattern to Team Groups and use the same prefix and suffix length modifiers. They take the form `ff-<team>[application]-role` where `application` can be the application name or id.
+Groups for Application overrides use a similar pattern to Team Groups and use the same prefix and suffix length modifiers. They take the form `ff-<team>[<application>]-<role>`, where `<application>` can be the Application name or id and `<role>` must be one of the valid roles listed above, but can also be `none` to remove access from an Application within the Team. Any unrecognised role is ignored.
 
-For example, given a Team called `development` and an Application called `test` owner level access would be granted by membership of a group named `ff-development-owner` and an override to viewer for test would be `ff-development[test]-viewer`.
+For example, given a Team called `development` and an Application called `test`, owner-level access to the Team would be granted by membership of a group named `ff-development-owner`, and an override to `viewer` for the Application `test` would be granted by `ff-development[test]-viewer`.
+
+If multiple groups grant different roles for the same Application, the highest role is applied.
+
+Application overrides applied this way are managed by the SSO provider: they cannot be edited in the FlowFuse UI, and if the corresponding group is removed the override is cleared the next time the User logs in.
 
 ## Managing Admin users
 
-The SSO Configuration can be configured to managed the admin users of the platform by enabling the
+The SSO Configuration can be configured to manage the admin users of the platform by enabling the
 `Manage Admin roles using group assertions` option. Once enabled, the name of a group can be provided
 that will be used to identify whether a user is an admin or not.
 
