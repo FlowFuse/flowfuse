@@ -515,6 +515,59 @@ NOY6Z1oJnpttQ9gwyV8euQ3C0Wcjf3+OVQ==
                 const teamMembership = await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)
                 should(teamMembership).not.be.ok()
             })
+
+            it('applies highest role when multiple overrides for one application', async function () {
+                await app.sso.updateTeamMembership({
+                    'ff-roles': [
+                        'ff-ateam-member',
+                        'ff-ateam[application-1]-viewer',
+                        'ff-ateam[application-1]-owner'
+                    ]
+                }, app.user, {
+                    groupAssertionName: 'ff-roles',
+                    groupAllTeams: true,
+                    groupPrefixLength: 0,
+                    groupSuffixLength: 0
+                })
+                const teamMembership = await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)
+                teamMembership.permissions.applications.should.have.property(app.application.hashid, Roles.Owner)
+            })
+
+            it('ignores override for an unknown application', async function () {
+                await app.sso.updateTeamMembership({
+                    'ff-roles': [
+                        'ff-ateam-member',
+                        'ff-ateam[does-not-exist]-owner'
+                    ]
+                }, app.user, {
+                    groupAssertionName: 'ff-roles',
+                    groupAllTeams: true,
+                    groupPrefixLength: 0,
+                    groupSuffixLength: 0
+                })
+                // Team membership should still be applied, with no application overrides
+                const teamMembership = await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)
+                teamMembership.should.have.property('role', Roles.Member)
+                should(teamMembership.permissions?.applications || {}).be.empty()
+            })
+
+            it('ignores override for an unknown team without erroring', async function () {
+                // A malformed/unknown team in an override group must not throw and
+                // must not stop regular team memberships being applied
+                await app.sso.updateTeamMembership({
+                    'ff-roles': [
+                        'ff-ateam-member',
+                        'ff-nosuchteam[application-1]-owner'
+                    ]
+                }, app.user, {
+                    groupAssertionName: 'ff-roles',
+                    groupAllTeams: true,
+                    groupPrefixLength: 0,
+                    groupSuffixLength: 0
+                })
+                const teamMembership = await app.db.models.TeamMember.getTeamMembership(app.user.id, teams.ATeam.id)
+                teamMembership.should.have.property('role', Roles.Member)
+            })
         })
     })
     describe('find expired SSO SAML Certs', async function () {
