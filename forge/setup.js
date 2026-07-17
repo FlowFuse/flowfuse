@@ -24,7 +24,7 @@ module.exports.finishSetup = async function (app, stackOverrides) {
         app.log.info(`*   ${app.config.base_url.padEnd(47, ' ')}*`)
         app.log.info('****************************************************')
     } catch (err) {
-        app.log.error(`Failed to create default ProjectStack: ${err.toString()}`)
+        app.log.error(`ERROR: Failed to create default ProjectStack: ${err.toString()}`)
         console.error(err.stack)
         throw err
     }
