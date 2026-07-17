@@ -5,7 +5,7 @@
 
             <p>Applications are used to manage and group together your Node-RED Instances and resources.</p>
 
-            <div v-if="writableApplications.length > 1" class="search-wrapper flex justify-center my-2">
+            <div v-if="writableApplications.length > 5" class="search-wrapper flex justify-center my-2">
                 <ff-text-input
                     v-model="searchTerm" class="ff-data-table--search max-w-2xl w-full col-span-3 relative"
                     data-form="search" placeholder="Search applications"

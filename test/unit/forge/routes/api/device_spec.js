@@ -471,7 +471,7 @@ describe('Device API', async function () {
         })
     })
 
-    describe.only('Async device registration', async function () {
+    describe('Async device registration', async function () {
 
         it('session token status check requires user session', async function () {
             const response = await app.inject({
@@ -507,7 +507,7 @@ describe('Device API', async function () {
             const result = response.json()
             result.should.have.property('registerUrl').and.be.a.String()
             result.should.have.property('doneUrl').and.be.a.String()
-            
+
             const sessionToken = result.registerUrl.split('/').pop()
             // Verify status cannot be checked without a valid user session
             let statusResponse = await app.inject({
@@ -603,7 +603,6 @@ describe('Device API', async function () {
                 url: result.doneUrl
             })
             doneResponse.statusCode.should.equal(404)
-            
         })
         it('rejects attempting to create device with an invalid registration session token', async function () {
             const createResponse = await app.inject({

@@ -68,7 +68,7 @@ import SuccessStep from '../../components/multi-step-forms/device/steps/SuccessS
 import { useContextStore } from '@/stores/context.js'
 
 export default {
-    name: 'CreateInstance',
+    name: 'RegisterDevice',
     components: {
         MultiStepDeviceForm,
         SuccessStep

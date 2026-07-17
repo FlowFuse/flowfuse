@@ -194,14 +194,6 @@ export default {
                     if (this.registrationSession) {
                         payload.registrationSession = this.registrationSession
                     }
-                    console.log(payload)
-                    // return {
-                    //     id: '123',
-                    //     name: 'My Remote Instance',
-                    //     credentials: {
-                    //         otc: 'phantom-secret-potato'
-                    //     }
-                    // }
                     return deviceApi.create(payload)
                 })
                 .catch(err => {
