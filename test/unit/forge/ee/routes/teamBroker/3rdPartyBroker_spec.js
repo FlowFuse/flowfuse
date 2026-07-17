@@ -569,7 +569,7 @@ describe('3rd Party Broker API', function () {
                 cookies: { sid: TestObjects.tokens.bob }
             })
             response.statusCode.should.equal(200)
-            let result = response.json()
+            const result = response.json()
             result.topics.should.have.a.lengthOf(3) // 1 was deleted in the previous test
             result.topics[0].should.have.property('id')
             result.topics[0].should.have.property('topic')
