@@ -141,6 +141,7 @@ const formatLogEntry = (auditLogDbRow) => {
         User: auditLogDbRow.User, // TODO: Kept for compatibility. Remove once Audit Log UI overhaul complete
         event: auditLogDbRow.event,
         createdAt: auditLogDbRow.createdAt,
+        source: auditLogDbRow.source || null,
         scope: {
             id: auditLogDbRow.entityId,
             type: auditLogDbRow.entityType
@@ -199,6 +200,12 @@ const formatLogEntry = (auditLogDbRow) => {
             if (body?.key && body?.scope && body?.store && (body.store === 'memory' || body.store === 'persistent')) {
                 formatted.body = formatted.body || {}
                 formatted.body.context = { key: body.key, scope: body.scope, store: body.store }
+            }
+
+            // pass through PAT audit context if present
+            if (body?.sourceContext) {
+                formatted.body = formatted.body || {}
+                formatted.body.sourceContext = body.sourceContext
             }
 
             // format log entries for know Node-RED audit events
