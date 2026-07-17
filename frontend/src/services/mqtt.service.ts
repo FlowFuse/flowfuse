@@ -74,52 +74,52 @@ class MqttService extends BaseService implements MqttServiceI {
         this.$mqtt = Mqtt
     }
 
-    getManagedClient (key: string): ManagedMqttClient | null {
-        return this.$clients.get(key) ?? null
+    getManagedClient (clientKey: string): ManagedMqttClient | null {
+        return this.$clients.get(clientKey) ?? null
     }
 
-    hasClient (key: string): boolean {
-        return this.$clients.has(key)
+    hasClient (clientKey: string): boolean {
+        return this.$clients.has(clientKey)
     }
 
-    async runClientOperation<T> (key: string, operation: () => Promise<T> | T): Promise<T> {
-        const previous = this.$clientOperations.get(key) ?? Promise.resolve()
+    async runClientOperation<T> (clientKey: string, operation: () => Promise<T> | T): Promise<T> {
+        const previous = this.$clientOperations.get(clientKey) ?? Promise.resolve()
         const current = previous
             .catch(() => {})
             .then(operation)
 
         const tracked = current.finally(() => {
-            if (this.$clientOperations.get(key) === tracked) {
-                this.$clientOperations.delete(key)
+            if (this.$clientOperations.get(clientKey) === tracked) {
+                this.$clientOperations.delete(clientKey)
             }
         })
-        this.$clientOperations.set(key, tracked)
+        this.$clientOperations.set(clientKey, tracked)
 
         return tracked
     }
 
-    async destroyClient (key: string): Promise<void> {
-        await this.runClientOperation(key, async () => {
-            await this._destroyClientUnlocked(key)
+    async destroyClient (clientKey: string): Promise<void> {
+        await this.runClientOperation(clientKey, async () => {
+            await this._destroyClientUnlocked(clientKey)
         })
     }
 
-    async createClient (key: string, options: Partial<MqttConnectionOptions> = {}): Promise<MqttClient> {
-        if (!key || typeof key !== 'string') {
+    async createClient (clientKey: string, options: Partial<MqttConnectionOptions> = {}): Promise<MqttClient> {
+        if (!clientKey || typeof clientKey !== 'string') {
             throw new Error('MQTT connection key is required')
         }
 
         if (typeof options.getCredentials !== 'function') {
-            throw new Error(`MQTT connection "${key}" requires a getCredentials callback`)
+            throw new Error(`MQTT connection "${clientKey}" requires a getCredentials callback`)
         }
 
         const observer = this._buildObserver(options)
 
-        return this.runClientOperation(key, async () => {
-            if (this.hasClient(key)) {
-                await this._destroyClientUnlocked(key)
+        return this.runClientOperation(clientKey, async () => {
+            if (this.hasClient(clientKey)) {
+                await this._destroyClientUnlocked(clientKey)
             }
-            return this._createAndConnect(key, options, observer)
+            return this._createAndConnect(clientKey, options, observer)
         })
     }
 
@@ -234,11 +234,11 @@ class MqttService extends BaseService implements MqttServiceI {
         }
     }
 
-    async publishMessage (key: string, options?: MqttPublishRequest): Promise<void> {
-        const managed = this.getManagedClient(key)
+    async publishMessage (clientKey: string, options?: MqttPublishRequest): Promise<void> {
+        const managed = this.getManagedClient(clientKey)
 
         if (!managed || managed.destroyed) {
-            return Promise.reject(new Error(`MQTT connection "${key}" does not exist`))
+            return Promise.reject(new Error(`MQTT connection "${clientKey}" does not exist`))
         }
 
         const {
@@ -309,7 +309,7 @@ class MqttService extends BaseService implements MqttServiceI {
 
         if (waitForConnection) {
             try {
-                await this.waitForConnection(key, { timeout: connectionTimeout })
+                await this.waitForConnection(clientKey, { timeout: connectionTimeout })
             } catch (error) {
                 if (error instanceof Error && typeof onError === 'function') onError(error)
                 return Promise.reject(error)
@@ -319,7 +319,7 @@ class MqttService extends BaseService implements MqttServiceI {
         const { client } = managed
 
         if (managed.status === 'reconnecting' || !client?.connected) {
-            return Promise.reject(new Error(`MQTT connection "${key}" is not connected`))
+            return Promise.reject(new Error(`MQTT connection "${clientKey}" is not connected`))
         }
 
         return new Promise<void>((resolve, reject) => {
@@ -334,14 +334,14 @@ class MqttService extends BaseService implements MqttServiceI {
         })
     }
 
-    subscribe (key: string, topic: string | string[], options: MqttSubscribeOptions = {}): Promise<void> {
-        const managed = this.$clients.get(key)
+    subscribe (clientKey: string, topic: string | string[], options: MqttSubscribeOptions = {}): Promise<void> {
+        const managed = this.$clients.get(clientKey)
         if (!managed || managed.destroyed) {
-            return Promise.reject(new Error(`MQTT connection "${key}" does not exist`))
+            return Promise.reject(new Error(`MQTT connection "${clientKey}" does not exist`))
         }
 
         if (!managed.client?.connected) {
-            return Promise.reject(new Error(`MQTT connection "${key}" is not connected`))
+            return Promise.reject(new Error(`MQTT connection "${clientKey}" is not connected`))
         }
 
         return new Promise<void>((resolve, reject) => {
@@ -356,14 +356,14 @@ class MqttService extends BaseService implements MqttServiceI {
         })
     }
 
-    unsubscribe (key: string, topic: string | string[]): Promise<void> {
-        const managed = this.getManagedClient(key)
+    unsubscribe (clientKey: string, topic: string | string[]): Promise<void> {
+        const managed = this.getManagedClient(clientKey)
         if (!managed || managed.destroyed) {
             return Promise.resolve()
         }
 
         if (!managed.client?.connected) {
-            return Promise.reject(new Error(`MQTT connection "${key}" is not connected`))
+            return Promise.reject(new Error(`MQTT connection "${clientKey}" is not connected`))
         }
 
         return new Promise<void>((resolve, reject) => {
@@ -378,15 +378,15 @@ class MqttService extends BaseService implements MqttServiceI {
         })
     }
 
-    async endConnection (key: string): Promise<void> {
-        await this.destroyClient(key)
+    async endConnection (clientKey: string): Promise<void> {
+        await this.destroyClient(clientKey)
     }
 
     async destroy (): Promise<void> {
         this.$destroyed = true
 
         const keys = [...this.$clients.keys()]
-        await Promise.all(keys.map(async (key) => this.destroyClient(key)))
+        await Promise.all(keys.map(async (clientKey) => this.destroyClient(clientKey)))
 
         this.$clients.clear()
         this.$mqtt = null
@@ -458,10 +458,10 @@ class MqttService extends BaseService implements MqttServiceI {
         managed.connectionWaiters.clear()
     }
 
-    waitForConnection (key: string, { timeout = 5000 }: MqttWaitForConnectionOptions = {}): Promise<void> {
-        const managed = this.getManagedClient(key)
+    waitForConnection (clientKey: string, { timeout = 5000 }: MqttWaitForConnectionOptions = {}): Promise<void> {
+        const managed = this.getManagedClient(clientKey)
         if (!managed || managed.destroyed) {
-            return Promise.reject(new Error(`MQTT connection "${key}" does not exist`))
+            return Promise.reject(new Error(`MQTT connection "${clientKey}" does not exist`))
         }
 
         if (!Number.isInteger(timeout) || timeout < 0) {
@@ -490,7 +490,7 @@ class MqttService extends BaseService implements MqttServiceI {
             }
 
             waiter.timer = setTimeout(() => {
-                waiter.reject(new Error(`MQTT connection "${key}" did not connect before the timeout elapsed`))
+                waiter.reject(new Error(`MQTT connection "${clientKey}" did not connect before the timeout elapsed`))
             }, timeout)
 
             managed.connectionWaiters.add(waiter)
@@ -659,9 +659,9 @@ class MqttService extends BaseService implements MqttServiceI {
         }, delay)
     }
 
-    async reconnectClient (key: string): Promise<void> {
-        await this.runClientOperation(key, async () => {
-            const managed = this.$clients.get(key)
+    async reconnectClient (clientKey: string): Promise<void> {
+        await this.runClientOperation(clientKey, async () => {
+            const managed = this.$clients.get(clientKey)
             if (!managed || managed.destroyed || managed.intentionalDisconnect || this.$destroyed) {
                 return
             }
@@ -729,7 +729,7 @@ class MqttService extends BaseService implements MqttServiceI {
         }))
     }
 
-    private _buildCredentialsProvider (key: string, getCredentials: MqttCredentialProvider): MqttCredentialProvider {
+    private _buildCredentialsProvider (clientKey: string, getCredentials: MqttCredentialProvider): MqttCredentialProvider {
         return async () => {
             let credentials: MqttCredentials
             try {
@@ -737,28 +737,28 @@ class MqttService extends BaseService implements MqttServiceI {
             } catch (error) {
                 throw this._asTerminalConnectionError(
                     error,
-                    `MQTT credential provider for connection "${key}" failed`
+                    `MQTT credential provider for connection "${clientKey}" failed`
                 )
             }
 
             if (!credentials || typeof credentials !== 'object') {
-                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${key}" must resolve to an object`)
+                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${clientKey}" must resolve to an object`)
             }
 
             if (!this._isValidUrl(credentials.url)) {
-                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${key}" must return a valid url`)
+                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${clientKey}" must return a valid url`)
             }
 
             if (typeof credentials.username !== 'string' || !credentials.username.trim()) {
-                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${key}" must return a non-empty username`)
+                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${clientKey}" must return a non-empty username`)
             }
 
             if (typeof credentials.password !== 'string' || !credentials.password.trim()) {
-                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${key}" must return a non-empty password`)
+                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${clientKey}" must return a non-empty password`)
             }
 
             if (credentials.clientId !== undefined && (typeof credentials.clientId !== 'string' || !credentials.clientId.trim())) {
-                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${key}" must return a non-empty clientId when provided`)
+                throw this._createTerminalConnectionError(`MQTT credential provider for connection "${clientKey}" must return a non-empty clientId when provided`)
             }
 
             if (!credentials.clientId) {
@@ -785,8 +785,8 @@ class MqttService extends BaseService implements MqttServiceI {
         return error instanceof Error && (error as TerminalConnectionError).code === 'MQTT_TERMINAL_CONNECTION_ERROR'
     }
 
-    private async _destroyClientUnlocked (key: string): Promise<void> {
-        const managed = this.$clients.get(key)
+    private async _destroyClientUnlocked (clientKey: string): Promise<void> {
+        const managed = this.$clients.get(clientKey)
         if (!managed) return
 
         managed.destroyed = true
@@ -794,7 +794,7 @@ class MqttService extends BaseService implements MqttServiceI {
         managed.status = 'disconnected'
 
         this.clearReconnectTimer(managed)
-        this.rejectConnectionWaiters(managed, new Error(`MQTT connection "${key}" has been closed`))
+        this.rejectConnectionWaiters(managed, new Error(`MQTT connection "${clientKey}" has been closed`))
 
         for (const off of managed.listeners) {
             try {
@@ -816,7 +816,7 @@ class MqttService extends BaseService implements MqttServiceI {
             this._killStaleClient(client)
         }
 
-        this.$clients.delete(key)
+        this.$clients.delete(clientKey)
     }
 
     private _killStaleClient (client: MqttClient) {
@@ -975,22 +975,22 @@ class MqttService extends BaseService implements MqttServiceI {
         }
 
         const normalized: Record<string, string | string[]> = {}
-        for (const [key, value] of Object.entries(userProperties)) {
-            if (!key.trim()) {
+        for (const [clientKey, value] of Object.entries(userProperties)) {
+            if (!clientKey.trim()) {
                 throw new TypeError('MQTT publish userProperties keys must be non-empty strings')
             }
 
             if (typeof value === 'string') {
-                normalized[key] = value
+                normalized[clientKey] = value
                 continue
             }
 
             if (Array.isArray(value) && value.every(item => typeof item === 'string')) {
-                normalized[key] = value
+                normalized[clientKey] = value
                 continue
             }
 
-            throw new TypeError(`MQTT publish userProperties["${key}"] must be a string or string[]`)
+            throw new TypeError(`MQTT publish userProperties["${clientKey}"] must be a string or string[]`)
         }
 
         return Object.keys(normalized).length ? normalized : undefined
