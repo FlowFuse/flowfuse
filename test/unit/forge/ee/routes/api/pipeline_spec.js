@@ -550,7 +550,6 @@ describe('Pipelines API', function () {
                     response.statusCode.should.equal(400)
                     body.should.have.property('code', 'invalid_input')
                     body.should.have.property('error').match(/source stage not found/i)
-
                 })
                 it('Should reject if the previous stage is not part of the same pipeline', async function () {
                     const pipelineId = TestObjects.pipeline.hashid
@@ -936,14 +935,13 @@ describe('Pipelines API', function () {
                 response.statusCode.should.equal(400)
 
                 // Get pipeline stage and verify that the instance has not changed
-                getResponse = await app.inject({
+                const getResponse = await app.inject({
                     method: 'GET',
                     url: `/api/v1/pipelines/${pipelineId}/stages/${stageId}`,
                     cookies: { sid: TestObjects.tokens.alice }
                 })
 
-                getBody = await getResponse.json()
-
+                const getBody = await getResponse.json()
                 getBody.should.have.property('id')
                 getBody.should.have.property('name', 'stage-one')
                 getBody.should.not.have.property('instances')
@@ -1163,7 +1161,6 @@ describe('Pipelines API', function () {
                 getBody.should.have.property('id')
                 getBody.should.have.property('name', 'stage-one-devices')
                 getBody.should.not.have.property('devices')
-
             })
 
             it('Should unassign the old instance', async function () {
@@ -1309,7 +1306,6 @@ describe('Pipelines API', function () {
                 getBody.should.have.property('id')
                 getBody.should.have.property('name', 'stage-two-device-group')
                 getBody.should.not.have.property('deviceGroups')
-
             })
 
             it('Should not be allowed to replace 1st stage', async function () {
