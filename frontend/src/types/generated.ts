@@ -10321,6 +10321,7 @@ export interface components {
             createdAt: string;
             username: string | null;
             event: string;
+            source?: string | null;
             scope: {
                 [key: string]: unknown;
             };
@@ -10835,6 +10836,7 @@ export interface components {
             applications?: {
                 [key: string]: unknown;
             };
+            sso?: boolean;
         };
         /** TeamMemberList */
         TeamMemberList: ({

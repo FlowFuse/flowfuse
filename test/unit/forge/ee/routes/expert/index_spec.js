@@ -1009,6 +1009,38 @@ describe('Expert API', function () {
                 return captured
             }
 
+            // Build `count` distinct online device registrations (one MCP server each, each on its own
+            // device). Used to exercise the total cap and the fan-out. Device hashids/ids are unique so
+            // pass-1 grouping yields `count` instances.
+            const buildDeviceRegistrations = (count) => Array.from({ length: count }, (_, i) => {
+                const n = String(i + 1).padStart(3, '0')
+                return {
+                    id: i + 1,
+                    hashid: `mcpregdev${n}`,
+                    name: `mcp-server-device-${n}`,
+                    protocol: 'http',
+                    targetType: 'device',
+                    targetId: `${1000 + i}`,
+                    nodeId: 'mcp:node:1',
+                    endpointRoute: '/mcp',
+                    TeamId: team.id,
+                    Device: {
+                        hashid: `devicehash${n}`,
+                        id: 1000 + i,
+                        name: `device-${n}`,
+                        url: `http://device-${n}`,
+                        state: 'running',
+                        status: 'online',
+                        ApplicationId: application.id,
+                        agentVersion: '4.0.0',
+                        getSetting: sinon.stub().resolves({})
+                    },
+                    title: `Device MCP Server ${n}`,
+                    version: '1.0.0-beta',
+                    description: `Device MCP Server ${n}`
+                }
+            })
+
             it('should return 401 for instance token', async function () {
                 const token = instanceToken
                 const response = await app.inject({
@@ -1092,7 +1124,16 @@ describe('Expert API', function () {
                 })
                 response.statusCode.should.equal(200)
                 const json = response.json()
-                json.should.deepEqual({ servers: [], incompatibleServers: [], transactionId: 'abc' })
+                json.should.have.property('servers').which.is.an.Array().and.has.length(0)
+                json.should.have.property('incompatibleServers').which.is.an.Array().and.has.length(0)
+                json.should.have.property('transactionId', 'abc')
+                // the scan summary is always present, even on the empty early-return
+                json.should.have.property('summary')
+                json.summary.should.have.property('instanceCount', 0)
+                json.summary.should.have.property('mcpServerCount', 0)
+                json.summary.should.have.property('enumeratedCount', 0)
+                json.summary.should.have.property('unenumeratedCount', 0)
+                json.summary.should.have.property('limited', false)
                 getFeatures.called.should.be.false()
             })
 
@@ -1718,7 +1759,7 @@ describe('Expert API', function () {
             // Build a byTeam stub registration whose target is a remote instance (device). The MCP
             // features for devices are fetched over MQTT via deviceComms.sendCommandAwaitReply rather
             // than the launcher admin API used for hosted instances.
-            const buildDeviceRegistration = (agentVersion = '4.0.0') => ({
+            const buildDeviceRegistration = (agentVersion = '4.0.0', status = 'online') => ({
                 id: 1,
                 hashid: 'mcpregdev001',
                 name: 'mcp-server-device',
@@ -1734,6 +1775,7 @@ describe('Expert API', function () {
                     name: 'device-1',
                     url: 'http://device-1',
                     state: 'running',
+                    status, // virtual field derived from lastSeenAt; must be 'online' for the device to be queried
                     ApplicationId: application.id,
                     agentVersion,
                     getSetting: sinon.stub().resolves({}) // no special settings
@@ -1823,6 +1865,143 @@ describe('Expert API', function () {
                     result.incompatibleServers[0].should.have.property('minimumSupportedVersion', '4.0.0')
                     // the version gate happens before any MQTT round-trip - no live-state or feature request should be made
                     sendCommandAwaitReply.called.should.be.false()
+                } finally {
+                    app.comms = null
+                }
+            })
+
+            it('should skip a device whose status is not "online"', async function () {
+                const token = bobToken
+                // device is registered and its `state` is 'running', but its `status` virtual field
+                // reports 'offline' (i.e. lastSeenAt too old). It must be skipped to avoid
+                // an unnecessary MQTT round-trip that would just time out.
+                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves([buildDeviceRegistration('4.0.0', 'offline')])
+
+                const sendCommandAwaitReply = sinon.stub().resolves({ state: 'running' })
+                app.comms = { devices: { sendCommandAwaitReply } }
+                // the launcher admin API (used for hosted instances) must NOT be used for devices
+                const getFeatures = sinon.stub(app.containers, 'getMCPFeatures')
+
+                try {
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/expert/mcp/features',
+                        cookies: { sid: token },
+                        headers: { 'x-chat-transaction-id': 'abc' },
+                        payload: { context: { teamId: team.hashid } }
+                    })
+                    response.statusCode.should.equal(200)
+
+                    const result = response.json()
+                    // an offline device is neither queried for features nor reported as incompatible - it is silently skipped
+                    result.should.have.property('servers').which.is.an.Array().and.has.length(0)
+                    result.should.have.property('incompatibleServers').which.is.an.Array().and.has.length(0)
+                    // the status gate happens before any MQTT round-trip or launcher call
+                    sendCommandAwaitReply.called.should.be.false()
+                    getFeatures.called.should.be.false()
+                } finally {
+                    app.comms = null
+                }
+            })
+
+            it('should cap enumeration at MAX_SERVERS and report the remainder as unenumerated', async function () {
+                const token = bobToken
+                const TOTAL = 25 // exceeds the cap of 20 MCP servers
+                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves(buildDeviceRegistrations(TOTAL))
+
+                const sendCommandAwaitReply = sinon.stub().callsFake(async (teamHashid, deviceHashid, command, payload) => {
+                    if (command === 'get-liveState') { return { state: 'running' } }
+                    if (command === 'mcp:get-features') {
+                        return payload.mcpEndPoints.map(spec => ({ spec, features: { prompts: [{}], resources: [{}], resourceTemplates: [{}], tools: [{}] } }))
+                    }
+                    return {}
+                })
+                app.comms = { devices: { sendCommandAwaitReply } }
+
+                try {
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/expert/mcp/features',
+                        cookies: { sid: token },
+                        headers: { 'x-chat-transaction-id': 'abc' },
+                        payload: { context: { teamId: team.hashid } }
+                    })
+                    response.statusCode.should.equal(200)
+
+                    const result = response.json()
+                    // only the cap's worth of servers are enumerated and returned
+                    result.servers.should.be.an.Array().and.have.length(20)
+                    // the summary reflects the cap and the unenumerated remainder
+                    result.summary.should.have.property('instanceCount', 25)
+                    result.summary.should.have.property('mcpServerCount', 25)
+                    result.summary.should.have.property('enumeratedCount', 20)
+                    result.summary.should.have.property('unenumeratedCount', 5)
+                    result.summary.should.have.property('limit', 20)
+                    result.summary.should.have.property('limited', true)
+                    result.summary.should.have.property('deadlineReached', false)
+                    // instances beyond the cap are never contacted (each scanned device gets exactly one liveness call)
+                    const liveStateCalls = sendCommandAwaitReply.getCalls().filter(c => c.args[2] === 'get-liveState')
+                    liveStateCalls.length.should.equal(20)
+                } finally {
+                    app.comms = null
+                }
+            })
+
+            it('should skip instances that reject at any stage (liveness, deadline or features) without failing the request', async function () {
+                const enumDeadlineMs = 750 // shorten the deadline for this test
+                sinon.stub(app.config.expert, 'insights').get(() => ({ enabled: true, enumDeadlineMs })) // shorten the deadline for this test
+
+                const token = bobToken
+                // 4 devices:
+                // #1 rejects at liveness,
+                // #2 rejects at features (simulating MQTT timeouts which REJECT)
+                // #3 takes longer than the deadline (simulated with a sleep) but eventually resolves
+                // #4 responds normally.
+                // A single rejection must not sink the whole batch!
+                sinon.stub(app.db.models.MCPRegistration, 'byTeam').resolves(buildDeviceRegistrations(4))
+                const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+                const sendCommandAwaitReply = sinon.stub().callsFake(async (teamHashid, deviceHashid, command, payload) => {
+                    if (command === 'get-liveState') {
+                        if (deviceHashid === 'devicehash001') { throw new Error('Command timed out') }
+                        if (deviceHashid === 'devicehash003') {
+                            await sleep(enumDeadlineMs + 250) // simulate a response time longer than the deadline
+                        }
+                        if (deviceHashid === 'devicehash004') {
+                            await sleep(enumDeadlineMs / 2) // simulate a slowish response that is still within the deadline
+                        }
+                        return { state: 'running' }
+                    }
+                    if (command === 'mcp:get-features') {
+                        if (deviceHashid === 'devicehash002') { throw new Error('Random Error') }
+                        return payload.mcpEndPoints.map(spec => ({ spec, features: { prompts: [{}], resources: [{}], resourceTemplates: [{}], tools: [{}] } }))
+                    }
+                    return {}
+                })
+                app.comms = { devices: { sendCommandAwaitReply } }
+
+                try {
+                    const response = await app.inject({
+                        method: 'POST',
+                        url: '/api/v1/expert/mcp/features',
+                        cookies: { sid: token },
+                        headers: { 'x-chat-transaction-id': 'abc' },
+                        payload: { context: { teamId: team.hashid } }
+                    })
+                    // rejections are contained - the request still succeeds (allSettled behaviour)
+                    response.statusCode.should.equal(200)
+
+                    const result = response.json()
+                    // only the healthy device is enumerated; the two that rejected are skipped
+                    result.servers.should.be.an.Array().and.have.length(1)
+                    result.servers[0].should.have.property('instance', 'devicehash004') // device 4 was the only one that responded normally.
+                    result.summary.should.have.property('mcpServerCount', 4)
+                    result.summary.should.have.property('enumeratedCount', 1)
+                    result.summary.should.have.property('unenumeratedCount', 3)
+                    result.summary.should.have.property('limited', false)
+                    result.summary.should.have.property('deadlineReached', true)
+
+                    // rejected instances are not reported as incompatible - they are just skipped
+                    result.incompatibleServers.should.be.an.Array().and.have.length(0)
                 } finally {
                     app.comms = null
                 }

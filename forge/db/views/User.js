@@ -77,7 +77,8 @@ module.exports = function (app) {
         $id: 'TeamMemberPermissions',
         type: 'object',
         properties: {
-            applications: { type: 'object', additionalProperties: true }
+            applications: { type: 'object', additionalProperties: true },
+            sso: { type: 'boolean' }
         }
     })
     app.addSchema({
