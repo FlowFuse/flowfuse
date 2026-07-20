@@ -23,7 +23,7 @@ module.exports = async function (app) {
         response.status(404).send({ code: 'not_found', error: 'Not Found' })
     })
 
-    app.post('/:projectId/flows', async (request, response) => {
+    app.post('/:projectId/flows', { config: { rateLimit: app.config.rate_limits } }, async (request, response) => {
         const id = request.params.projectId
         // Check if the project exists first
         let flow = await app.db.models.StorageFlow.byProject(id)
@@ -38,7 +38,7 @@ module.exports = async function (app) {
 
             await flow.save()
         }
-        response.send(request.body)
+        response.type('application/json').send(flow.flow)
     })
 
     app.get('/:projectId/flows', async (request, response) => {
@@ -51,7 +51,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/:projectId/credentials', async (request, response) => {
+    app.post('/:projectId/credentials', { config: { rateLimit: app.config.rate_limits } }, async (request, response) => {
         const id = request.params.projectId
         let creds = await app.db.models.StorageCredentials.byProject(id)
         if (creds) {
@@ -64,7 +64,7 @@ module.exports = async function (app) {
             })
             await creds.save()
         }
-        response.send(request.body)
+        response.type('application/json').send(creds.credentials)
     })
 
     app.get('/:projectId/credentials', async (request, response) => {
@@ -77,7 +77,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/:projectId/settings', async (request, response) => {
+    app.post('/:projectId/settings', { config: { rateLimit: app.config.rate_limits } }, async (request, response) => {
         const id = request.params.projectId
         let settings = await app.db.models.StorageSettings.byProject(id)
         if (settings) {
@@ -90,7 +90,7 @@ module.exports = async function (app) {
             })
             await settings.save()
         }
-        response.send(request.body)
+        response.type('application/json').send(settings.settings)
     })
 
     app.get('/:projectId/settings', async (request, response) => {
@@ -103,7 +103,7 @@ module.exports = async function (app) {
         }
     })
 
-    app.post('/:projectId/sessions', async (request, response) => {
+    app.post('/:projectId/sessions', { config: { rateLimit: app.config.rate_limits } }, async (request, response) => {
         const id = request.params.projectId
         let sessions = await app.db.models.StorageSession.byProject(id)
         if (sessions) {
@@ -116,7 +116,7 @@ module.exports = async function (app) {
             })
             await sessions.save()
         }
-        response.send(request.body)
+        response.type('application/json').send(sessions.sessions)
     })
 
     app.get('/:projectId/sessions', async (request, response) => {
@@ -237,7 +237,7 @@ module.exports = async function (app) {
                 })
                 reply.push(...subPaths)
             }
-            response.send(reply)
+            response.type('application/json').send(reply)
         }
     )
 }
