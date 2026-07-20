@@ -559,7 +559,7 @@ module.exports = {
             await team.ensureTeamTypeExists()
             if (team.TeamType.getProperty('autoStackUpdate')) {
                 const autoStackUpdate = team.TeamType.getProperty('autoStackUpdate')
-                if (autoStackUpdate.enabled && !autoStackUpdate.allowDisable) {
+                if (autoStackUpdate.enabled) {
                     const days = autoStackUpdate.days
                     const hours = autoStackUpdate.hours
                     // generate random day and hour in ranges
