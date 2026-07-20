@@ -469,7 +469,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
-        ...mapState(useLiveStatusStore, { liveDeviceStatuses: 'deviceStatuses', statusChannelLive: 'live' }),
+        ...mapState(useLiveStatusStore, { liveDeviceMetadata: 'deviceMetadata', statusChannelLive: 'live' }),
         ...mapState(useUxDialogStore, ['dialog']),
         ...mapState(useUxToursStore, ['tours']),
         columns () {
@@ -606,7 +606,7 @@ export default {
                 this.setDialogDevices(devices)
             }
         },
-        liveDeviceStatuses: { handler: 'applyLiveStatus', deep: true },
+        liveDeviceMetadata: { handler: 'applyLiveStatus', deep: true },
         statusChannelLive (live) {
             if (live) {
                 this.pollTimer?.stop()
@@ -631,15 +631,16 @@ export default {
         ...mapActions(useUxDialogStore, ['setDialogDevices']),
         applyLiveStatus () {
             for (const id of this.allDeviceStatuses.keys()) {
-                const state = this.liveDeviceStatuses[id]
-                if (!state) continue
+                const meta = this.liveDeviceMetadata[id]
+                if (!meta) continue
+                const { status: state, onlineStatus } = meta
                 const statusObj = this.allDeviceStatuses.get(id)
-                if (statusObj.status !== state) {
-                    this.allDeviceStatuses.set(id, applyLiveState(statusObj, state, { device: true }))
+                if (statusObj.status !== state || (onlineStatus && statusObj.onlineStatus !== onlineStatus)) {
+                    this.allDeviceStatuses.set(id, applyLiveState(statusObj, state, { device: true, onlineStatus }))
                 }
                 const device = this.devices.get(id)
-                if (device && device.status !== state) {
-                    this.devices.set(id, applyLiveState(device, state, { device: true }))
+                if (device && (device.status !== state || (onlineStatus && device.onlineStatus !== onlineStatus))) {
+                    this.devices.set(id, applyLiveState(device, state, { device: true, onlineStatus }))
                 }
             }
         },

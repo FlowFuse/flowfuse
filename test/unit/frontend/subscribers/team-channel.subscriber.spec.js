@@ -271,8 +271,14 @@ describe('TeamChannelSubscriber', async () => {
         test('device state routes id + state into setDeviceStatus', async () => {
             const { onMessage } = await connectAndCaptureOnMessage()
             onMessage('ff/v1/team-1/d/dev-1/state', Buffer.from(JSON.stringify({ id: 'dev-1', meta: { state: 'stopped' } })))
-            expect(setDeviceStatus).toHaveBeenCalledWith('dev-1', 'stopped')
+            expect(setDeviceStatus).toHaveBeenCalledWith('dev-1', 'stopped', undefined)
             expect(setInstanceStatus).not.toHaveBeenCalled()
+        })
+
+        test('device state forwards onlineStatus when present', async () => {
+            const { onMessage } = await connectAndCaptureOnMessage()
+            onMessage('ff/v1/team-1/d/dev-1/state', Buffer.from(JSON.stringify({ id: 'dev-1', meta: { state: 'running', onlineStatus: 'online' } })))
+            expect(setDeviceStatus).toHaveBeenCalledWith('dev-1', 'running', 'online')
         })
 
         test('ignores a state message missing id or state', async () => {

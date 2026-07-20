@@ -232,7 +232,7 @@ describe('DeviceCommsHandler', function () {
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
                 await sleep(100)
                 notifySpy.calledOnce.should.be.true()
-                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'running'])
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'running', onlineStatus: 'online' }])
 
                 // same state again -> no further notification
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
@@ -243,16 +243,39 @@ describe('DeviceCommsHandler', function () {
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'stopped' }) })
                 await sleep(100)
                 notifySpy.calledTwice.should.be.true()
-                notifySpy.secondCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'stopped'])
+                notifySpy.secondCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'stopped', onlineStatus: 'online' }])
             } finally {
                 notifySpy.restore()
+            }
+        })
+
+        it('forwards an online-status flip even when the device state is unchanged', async function () {
+            const device = await app.factory.createDevice({ name: 'online-flip-device' }, TestObjects.ATeam)
+            const notifySpy = sinon.spy(app.comms.team, 'notifyDeviceState')
+            try {
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
+                await sleep(100)
+                notifySpy.resetHistory()
+
+                // Make the device look long-gone, then have it check back in with the same state
+                device.lastSeenAt = new Date(Date.now() - (31 * 60 * 1000))
+                await device.save()
+
+                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
+                await sleep(100)
+                notifySpy.calledOnce.should.be.true()
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'running', onlineStatus: 'online' }])
+            } finally {
+                notifySpy.restore()
+                await device.destroy()
             }
         })
 
         it('suppresses the transient stopped broadcast while restarting, but still records the state', async function () {
             const device = await app.factory.createDevice({ name: 'restart-mask-device' }, TestObjects.ATeam)
             const notifySpy = sinon.spy(app.comms.team, 'notifyDeviceState')
-            const setRestarting = async () => { device.state = 'restarting'; await device.save() }
+            // a restarting device is connected, so keep it recently-seen (online) to isolate the mask from the online-flip broadcast
+            const setRestarting = async () => { device.state = 'restarting'; device.lastSeenAt = new Date(); await device.save() }
             try {
                 await setRestarting()
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'stopped' }) })
@@ -266,7 +289,7 @@ describe('DeviceCommsHandler', function () {
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
                 await sleep(100)
                 notifySpy.calledOnce.should.be.true()
-                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'running'])
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'running', onlineStatus: 'online' }])
                 await device.reload()
                 device.state.should.equal('running')
 
@@ -275,7 +298,7 @@ describe('DeviceCommsHandler', function () {
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'crashed' }) })
                 await sleep(100)
                 notifySpy.calledOnce.should.be.true()
-                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'crashed'])
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'crashed', onlineStatus: 'online' }])
                 await device.reload()
                 device.state.should.equal('crashed')
 
@@ -284,7 +307,7 @@ describe('DeviceCommsHandler', function () {
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'warning' }) })
                 await sleep(100)
                 notifySpy.calledOnce.should.be.true()
-                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, 'warning'])
+                notifySpy.firstCall.args.should.eql([TestObjects.ATeam.hashid, device.hashid, { state: 'warning', onlineStatus: 'online' }])
                 await device.reload()
                 device.state.should.equal('warning')
             } finally {
