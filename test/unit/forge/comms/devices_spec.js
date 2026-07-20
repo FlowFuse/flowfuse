@@ -221,13 +221,12 @@ describe('DeviceCommsHandler', function () {
 
         it('forwards a team status notification only when the device state changes', async function () {
             const device = await app.factory.createDevice({ name: 'status-forward-device' }, TestObjects.ATeam)
+            // Seed a known online baseline so the first emit is a pure state change, not an offline->online flip (which also broadcasts)
+            device.state = 'stopped'
+            device.lastSeenAt = new Date()
+            await device.save()
             const notifySpy = sinon.spy(app.comms.team, 'notifyDeviceState')
             try {
-                // establish a known baseline regardless of the factory default state
-                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'stopped' }) })
-                await sleep(100)
-                notifySpy.resetHistory()
-
                 // state changes -> notifies with { teamHash, deviceHashid, state }
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
                 await sleep(100)
@@ -251,16 +250,12 @@ describe('DeviceCommsHandler', function () {
 
         it('forwards an online-status flip even when the device state is unchanged', async function () {
             const device = await app.factory.createDevice({ name: 'online-flip-device' }, TestObjects.ATeam)
+            // Seed a long-gone (offline) device with a known state; a same-state check-in should still broadcast the online flip
+            device.state = 'running'
+            device.lastSeenAt = new Date(Date.now() - (31 * 60 * 1000))
+            await device.save()
             const notifySpy = sinon.spy(app.comms.team, 'notifyDeviceState')
             try {
-                client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
-                await sleep(100)
-                notifySpy.resetHistory()
-
-                // Make the device look long-gone, then have it check back in with the same state
-                device.lastSeenAt = new Date(Date.now() - (31 * 60 * 1000))
-                await device.save()
-
                 client.emit('status/device', { id: device.hashid, status: JSON.stringify({ state: 'running' }) })
                 await sleep(100)
                 notifySpy.calledOnce.should.be.true()
