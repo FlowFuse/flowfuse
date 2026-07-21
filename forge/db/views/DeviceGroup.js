@@ -126,7 +126,7 @@ module.exports = function (app) {
                 description: item.description,
                 application: item.Application ? app.db.views.Application.applicationSummary(item.Application) : null,
                 deviceCount: parseInt(item.deviceCount) || 0,
-                devices: item.Devices ? item.Devices.map(app.db.views.Device.device) : [],
+                devices: group.Devices ? group.Devices.map(app.db.views.Device.device) : [],
                 settings: item.settings,
                 targetSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(item.targetSnapshot)
             }
