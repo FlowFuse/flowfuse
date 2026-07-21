@@ -16,8 +16,8 @@
 import { MinusCircleIcon, SignalIcon, SignalSlashIcon } from '@heroicons/vue/24/outline'
 import { computed } from 'vue'
 
-import { capitalize } from '../../../composables/strings/String.js'
-import daysSince from '../../../utils/daysSince'
+import { capitalize } from '@/composables/strings/String.js'
+import daysSince from '@/utils/daysSince'
 
 type OnlineStatus = 'online' | 'offline' | 'not-seen'
 
