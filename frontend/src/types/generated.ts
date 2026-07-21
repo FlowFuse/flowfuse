@@ -10321,6 +10321,7 @@ export interface components {
             createdAt: string;
             username: string | null;
             event: string;
+            source?: string | null;
             scope: {
                 [key: string]: unknown;
             };
@@ -10393,6 +10394,8 @@ export interface components {
             activeSnapshot?: components["schemas"]["SnapshotSummary"] | null;
             targetSnapshot?: components["schemas"]["SnapshotSummary"] | null;
             status: string;
+            /** @enum {string} */
+            onlineStatus: "online" | "offline" | "not-seen";
             isDeploying: boolean;
             agentVersion?: string | null;
             mode: string;
@@ -10416,6 +10419,8 @@ export interface components {
             lastSeenAt: string | null;
             lastSeenMs: number | null;
             status: string;
+            /** @enum {string} */
+            onlineStatus: "online" | "offline" | "not-seen";
             mode: string;
             isDeploying: boolean;
             links: components["schemas"]["LinksMeta"];
@@ -10431,6 +10436,8 @@ export interface components {
             lastSeenAt: string | null;
             lastSeenMs: number | null;
             status: string;
+            /** @enum {string} */
+            onlineStatus: "online" | "offline" | "not-seen";
             mode: string;
             isDeploying: boolean;
             editor?: {
@@ -10835,6 +10842,7 @@ export interface components {
             applications?: {
                 [key: string]: unknown;
             };
+            sso?: boolean;
         };
         /** TeamMemberList */
         TeamMemberList: ({

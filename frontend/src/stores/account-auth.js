@@ -201,8 +201,10 @@ export const useAccountAuthStore = defineStore('account-auth', {
             if (useAccountSettingsStore().settings['platform:sso:only']) {
                 logoutURL = useAccountSettingsStore().settings['platform:sso:only:logoutURL'] || '/'
             }
-            const teamChannel = getAppOrchestrator().$subscriberInstances.teamChannel
-            const disconnect = teamChannel ? teamChannel.disconnect().catch(() => {}) : Promise.resolve()
+            const subscribers = getAppOrchestrator().$subscribers
+            const disconnect = Promise.all(
+                Object.values(subscribers).map(subscriber => subscriber?.disconnect().catch(() => {}))
+            )
             return disconnect
                 .then(() => userApi.logout())
                 .then(() => {

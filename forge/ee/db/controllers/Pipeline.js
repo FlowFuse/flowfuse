@@ -275,7 +275,8 @@ module.exports = {
             delete options.source
         }
 
-        // Before we create the stage, we need to check a few things]
+        // Before we create the stage, we need to check a few things
+        // 0. Is the sourceStage valid and part of this pipeline? (if provided)
         // 1. When adding a device group
         //   * A device group cannot be the first stage
         //   * There can be multiple device groups but only a device group can follow a device group
@@ -322,6 +323,9 @@ module.exports = {
 
             if (source) {
                 const sourceStage = await app.db.models.PipelineStage.byId(source, { transaction })
+                if (!sourceStage || sourceStage.PipelineId !== pipeline.id) {
+                    throw new PipelineControllerError('invalid_input', 'Source stage not found', 400)
+                }
                 sourceStage.NextStageId = stage.id
                 await sourceStage.save({ transaction })
             }

@@ -24,6 +24,7 @@ describe('Audit Log > Formatters', async function () {
         should(entry.User).be.an.Object()
         should(entry).have.property('event', '<event>')
         should(entry).have.property('createdAt', '<datetime>')
+        should(entry).have.property('source', null)
         should(entry).have.property('scope')
         should(entry.scope).have.property('id', '<entityId>')
         should(entry.scope).have.property('type', '<entityType>')
@@ -465,6 +466,62 @@ describe('Audit Log > Formatters', async function () {
         should(() => {
             Formatters.updatesObject('key', undefined, 1, 'something_else')
         }).throw()
+    })
+
+    describe('Formats audit source', async function () {
+        it('Includes source field from DB row', async function () {
+            const entry = Formatters.formatLogEntry({
+                hashid: '<hashid>',
+                UserId: {},
+                User: {},
+                event: '<event>',
+                createdAt: '<datetime>',
+                entityId: '<entityId>',
+                entityType: '<entityType>',
+                source: 'mcp:expert',
+                body: {}
+            })
+
+            should(entry).have.property('source', 'mcp:expert')
+        })
+
+        it('Returns null source for entries without source', async function () {
+            const entry = Formatters.formatLogEntry({
+                hashid: '<hashid>',
+                UserId: {},
+                User: {},
+                event: '<event>',
+                createdAt: '<datetime>',
+                entityId: '<entityId>',
+                entityType: '<entityType>',
+                body: {}
+            })
+
+            should(entry).have.property('source', null)
+        })
+
+        it('Passes through sourceContext from body', async function () {
+            const sourceContext = {
+                toolName: 'get-instance',
+                correlationId: 'abc-123',
+                tokenId: 42
+            }
+            const entry = Formatters.formatLogEntry({
+                hashid: '<hashid>',
+                UserId: {},
+                User: {},
+                event: '<event>',
+                createdAt: '<datetime>',
+                entityId: '<entityId>',
+                entityType: '<entityType>',
+                source: 'mcp:expert',
+                body: JSON.stringify({ sourceContext })
+            })
+
+            should(entry).have.property('source', 'mcp:expert')
+            should(entry.body).have.property('sourceContext')
+            should(entry.body.sourceContext).deepEqual(sourceContext)
+        })
     })
 
     describe('Formats Node-RED audit log entries', async function () {
