@@ -11,6 +11,9 @@
         </Teleport>
         <router-view :key="team.id" />
     </template>
+    <template v-else-if="!canAccessTeam && isEmbeddedDashboardEnabled && isDashboardRoute && team">
+        <router-view :key="team.id" />
+    </template>
     <template v-else-if="!canAccessTeam">
         <TeamInstances :dashboard-role-only="true" />
     </template>
@@ -54,7 +57,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team', 'teamMembership']),
-        ...mapState(useAccountSettingsStore, ['requiresBilling']),
+        ...mapState(useAccountSettingsStore, ['requiresBilling', 'featuresCheck']),
         ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
         ...mapState(useUxToursStore, ['shouldPresentTour']),
         ...mapState(useProductExpertStore, ['shouldWakeUpAssistant']),
@@ -70,6 +73,12 @@ export default {
         },
         canAccessTeam: function () {
             return this.isAdminUser || this.teamMembership?.role >= Roles.Viewer
+        },
+        isEmbeddedDashboardEnabled: function () {
+            return this.featuresCheck?.isEmbeddedDashboardEnabled
+        },
+        isDashboardRoute: function () {
+            return this.$route.name === 'team-dashboards'
         }
     },
     watch: {
@@ -109,6 +118,10 @@ export default {
         ...mapActions(useProductExpertStore, ['wakeUpAssistant']),
         ...mapActions(useUxToursStore, ['setWelcomeTour', 'openModal']),
         checkRoute: async function (route) {
+            if (this.team && !this.canAccessTeam && this.isEmbeddedDashboardEnabled && route.name !== 'team-dashboards') {
+                this.$router.replace({ name: 'team-dashboards', params: { team_slug: this.team.slug } })
+                return
+            }
             const allowedRoutes = []
 
             if (this.team) {
