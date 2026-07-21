@@ -84,7 +84,8 @@ const modelTypes = [
     'TeamBrokerClient',
     'BrokerCredentials',
     'MQTTTopicSchema',
-    'TeamBrokerAgent'
+    'TeamBrokerAgent',
+    'NodeREDNodeVersions'
 ]
 
 // A local map of the known models.

@@ -7,6 +7,11 @@ module.exports = {
      */
     up: async (context, Sequelize) => {
         await context.createTable('NodeREDNodeVersions', {
+            id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true
+            },
             ownerId: {
                 type: DataTypes.STRING,
                 allowNull: false
@@ -23,15 +28,19 @@ module.exports = {
                 type: DataTypes.STRING,
                 allowNull: false
             },
-            latestVestion: {
-                types: DataTypes.STRING,
+            latestVersion: {
+                type: DataTypes.STRING,
                 allowNull: true
+            },
+            createdAt: {
+                type: DataTypes.DATE,
+                allowNull: false
+            },
+            updatedAt: {
+                type: DataTypes.DATE,
+                allowNull: false
             }
         })
-
-        await context.addIndex('NodeREDNodeVersions', {
-            
-        })
     },
-    down: async (context) => {}
+    down: async (context, Sequelize) => {}
 }
