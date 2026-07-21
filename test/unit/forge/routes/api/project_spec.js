@@ -2269,16 +2269,60 @@ describe('Project API', function () {
             const newCreds = await getProjectInfo(newProject.id, newAccessToken, 'credentials')
             Object.keys(newCreds).should.have.length(0)
         })
-        // it.only('fail to export to anther instane in different team', async function () {
-        //     const sourceProject = await setup.factory.createInstance(
-        //         { name: 'source1' },
-        //         TestObjects.ApplicationB,
-        //         TestObjects.stack1,
-        //         TestObjects.template1,
-        //         TestObjects.projectType1,
-        //         { start: false }
-        //     )
-        // })
+        it.only('fail to export to anther instane in different team', async function () {
+            const sourceProject = await app.factory.createInstance(
+                { name: 'source1' },
+                TestObjects.ApplicationB,
+                TestObjects.stack1,
+                TestObjects.template1,
+                TestObjects.projectType1,
+                { start: false }
+            )
+            TestObjects.tokens.sourceProject = (await sourceProject.refreshAuthTokens()).token
+            await addFlowsToProject(app,
+                sourceProject.id,
+                TestObjects.tokens.sourceProject,
+                TestObjects.tokens.chris,
+                 [{ id: 'node1' }],
+                { testCreds: 'abc' },
+                'key1',
+                {
+                    httpAdminRoot: '/test-red',
+                    env: [
+                        { name: 'one', value: 'a' },
+                        { name: 'two', value: 'b' }
+                    ]
+                }
+            )
+            const newProject = await duplicateProject(
+                TestObjects.project1.id,
+                TestObjects.ATeam.hashid,
+                TestObjects.template1.hashid,
+                TestObjects.stack1.hashid,
+                { flows: false, credentials: false, envVars: false },
+                TestObjects.tokens.alice
+            )
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${newProject.id}`,
+                payload: {
+                    sourceProject: {
+                        id: sourceProject.id
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(403)
+            await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
+            const newAccessToken = (await newProject.refreshAuthTokens()).token
+            // Flows should be empty
+            const newFlows = await getProjectInfo(newProject.id, newAccessToken, 'flows')
+            newFlows.should.have.length(0)
+            // Creds should be empty
+            const newCreds = await getProjectInfo(newProject.id, newAccessToken, 'credentials')
+            Object.keys(newCreds).should.have.length(0)
+        })
     })
 
     describe('Delete Instance', function () {
