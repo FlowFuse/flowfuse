@@ -201,14 +201,26 @@ module.exports = async function (app) {
                 reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
                 return
             }
+            if (device.Team.id !== request.team.id) {
+                reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+                return
+            }
         } else if (request.params.type === 'instance') {
             const project = await app.db.models.Project.byId(request.params.typeId)
             if (project.Team.id !== request.team.id) {
                 reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
                 return
             }
+            if (project.Team.id !== request.team.id) {
+                reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+                return
+            }
         } else {
             throw new Error(`Unknown MCP target type '${request.params.type}'`)
+        }
+        if (request.params.typeId !== request.session.ownerId) {
+            reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+            return
         }
         try {
             const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs(request.params.type, request.params.typeId, request.params.nodeId)

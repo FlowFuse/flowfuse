@@ -233,7 +233,7 @@ describe('MCP Server Registration', function () {
         const errMsg = appLogStub.getCall(0).args[0]
         errMsg.should.match(/Unknown MCP target type 'blah'/)
     })
-    it('should not crate mcp endpoint for non team asset', async function () {
+    it('should not create mcp endpoint for non team asset', async function () {
         // create second team
         const bTeam = await app.factory.createTeam({ name: 'BTeam' })
         const bApplicaiton = await app.factory.createApplication({ name: 'application-2' }, bTeam)
@@ -265,5 +265,48 @@ describe('MCP Server Registration', function () {
             }
         })
         response.statusCode.should.equal(403)
+    })
+    it('should delete MCP entry', async function () {
+        const { token } = await app.instance.refreshAuthTokens()
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.id}/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'foo',
+                protocol: 'http',
+                endpointRoute: '/mcp',
+                title: 'FlowFuse MCP',
+                version: '1.2.3',
+                description: 'Test MCP registration entry'
+            }
+        })
+        response.statusCode.should.equal(200)
+
+        // create second team
+        const cTeam = await app.factory.createTeam({ name: 'CTeam' })
+        const cApplicaiton = await app.factory.createApplication({ name: 'application-2' }, cTeam)
+        // create instance in BTeam
+        const cInstance = await app.factory.createInstance(
+            { name: 'projectc' },
+            cApplicaiton,
+            app.stack,
+            app.template,
+            app.projetType,
+            { start: false }
+        )
+        const cToken = (await cInstance.refreshAuthTokens()).token
+
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.id}/abcde`,
+            headers: {
+                Authorization: `Bearer ${cToken}`
+            }
+        })
+        deleteResponse.statusCode.should.equal(403)
     })
 })
