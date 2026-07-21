@@ -11,11 +11,9 @@
         </Teleport>
         <router-view :key="team.id" />
     </template>
-    <template v-else-if="!canAccessTeam && isEmbeddedDashboardEnabled && isDashboardRoute && team">
-        <router-view :key="team.id" />
-    </template>
     <template v-else-if="!canAccessTeam">
-        <TeamInstances :dashboard-role-only="true" />
+        <TeamDashboards v-if="isEmbeddedDashboardEnabled" />
+        <TeamInstances v-else :dashboard-role-only="true" />
     </template>
 </template>
 
@@ -27,6 +25,7 @@ import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import { Roles } from '../../utils/roles.js'
 
+import TeamDashboards from './Dashboards/index.vue'
 import TeamInstances from './Instances.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
@@ -39,6 +38,7 @@ import { useUxToursStore } from '@/stores/ux-tours.js'
 export default {
     name: 'TeamPage',
     components: {
+        TeamDashboards,
         TeamInstances,
         SubscriptionExpiredBanner,
         TeamSuspendedBanner,
@@ -76,9 +76,6 @@ export default {
         },
         isEmbeddedDashboardEnabled: function () {
             return this.featuresCheck?.isEmbeddedDashboardEnabled
-        },
-        isDashboardRoute: function () {
-            return this.$route.name === 'team-dashboards'
         }
     },
     watch: {
@@ -118,10 +115,6 @@ export default {
         ...mapActions(useProductExpertStore, ['wakeUpAssistant']),
         ...mapActions(useUxToursStore, ['setWelcomeTour', 'openModal']),
         checkRoute: async function (route) {
-            if (this.team && !this.canAccessTeam && this.isEmbeddedDashboardEnabled && route.name !== 'team-dashboards') {
-                this.$router.replace({ name: 'team-dashboards', params: { team_slug: this.team.slug } })
-                return
-            }
             const allowedRoutes = []
 
             if (this.team) {
