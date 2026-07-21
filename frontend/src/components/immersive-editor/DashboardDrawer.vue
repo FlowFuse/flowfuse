@@ -73,10 +73,8 @@
 import { HomeIcon, XMarkIcon } from '@heroicons/vue/20/solid'
 import { ArrowLeftIcon, ChartPieIcon } from '@heroicons/vue/24/outline'
 
-import ResizeBar from '../ResizeBar.vue'
-
-import EditorDrawerSettings from './EditorDrawerSettings.vue'
-
+import ResizeBar from '@/components/ResizeBar.vue'
+import EditorDrawerSettings from '@/components/immersive-editor/EditorDrawerSettings.vue'
 import { useImmersiveDrawer } from '@/composables/ImmersiveDrawer'
 
 defineProps({

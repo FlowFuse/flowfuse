@@ -43,15 +43,15 @@
 <script setup lang="ts">
 import { markRaw, onMounted } from 'vue'
 
-import ApplicationLink from '../../application/components/cells/ApplicationLink.vue'
-import DeploymentName from '../../application/components/cells/DeploymentName.vue'
-import SimpleTextCell from '../../application/components/cells/SimpleTextCell.vue'
-import InstanceStatusBadge from '../../instance/components/InstanceStatusBadge.vue'
-
 import EmptyState from '@/components/EmptyState.vue'
 import InstanceStatusPolling from '@/components/InstanceStatusPolling.vue'
 import { useNavigationHelper } from '@/composables/NavigationHelper.js'
 import { useTeamDashboards } from '@/composables/TeamDashboards'
+import ApplicationLink from '@/pages/application/components/cells/ApplicationLink.vue'
+import DeploymentName from '@/pages/application/components/cells/DeploymentName.vue'
+import SimpleTextCell from '@/pages/application/components/cells/SimpleTextCell.vue'
+import InstanceStatusBadge from '@/pages/instance/components/InstanceStatusBadge.vue'
+
 import { useContextStore } from '@/stores/context.js'
 
 defineOptions({ name: 'TeamDashboards' })
