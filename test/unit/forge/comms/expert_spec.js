@@ -186,7 +186,7 @@ describe('ExpertCommsHandler', function () {
         })
     })
 
-    describe('with configured centralBroker.bridgeCache options', function () {
+    describe('with configured centralBroker.heartbeat options', function () {
         let configuredApp
 
         before(async function () {
