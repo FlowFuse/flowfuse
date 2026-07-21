@@ -1,7 +1,7 @@
 <template>
     <div
         v-ff-tooltip:left="tooltip"
-        class="forge-badge"
+        class="forge-badge cursor-help"
         :class="'forge-status-' + onlineStatus"
         :data-el="`device-online-status-${onlineStatus}`"
     >
