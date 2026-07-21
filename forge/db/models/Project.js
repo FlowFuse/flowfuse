@@ -732,27 +732,6 @@ module.exports = {
                         ]
                     })
                 },
-                byApplicationForDashboard: async (applicationHashId) => {
-                    const applicationId = M.Application.decodeHashid(applicationHashId)
-                    return this.findAll({
-                        include: [
-                            {
-                                model: M.Team,
-                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
-                            },
-                            {
-                                model: M.Application,
-                                where: { id: applicationId },
-                                attributes: ['hashid', 'id', 'name', 'description', 'links']
-                            },
-                            {
-                                model: M.ProjectSettings,
-                                attributes: ['id', 'key', 'value', 'ProjectId'],
-                                where: { key: 'settings' }
-                            }
-                        ]
-                    })
-                },
                 countByState: async (states, team, applicationId, membership, isAdmin) => {
                     let teamId = team.id
                     if (typeof teamId === 'string') {
