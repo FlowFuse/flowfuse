@@ -13,48 +13,39 @@
     </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
+
 import EmptyState from '@/components/EmptyState.vue'
 import { removeSlashes } from '@/composables/strings/String.js'
 
-export default {
-    name: 'DashboardView',
-    components: {
-        EmptyState
-    },
-    props: {
-        instance: {
-            required: true,
-            type: Object
-        }
-    },
-    computed: {
-        isRunning () {
-            return this.instance?.meta?.state === 'running'
-        },
-        hasDashboard () {
-            return !!this.instance?.settings?.dashboard2UI
-        },
-        dashboardURL () {
-            if (!this.isRunning || !this.hasDashboard) {
-                return null
-            }
-            const baseURL = new URL(removeSlashes(this.instance.url, false, true))
-            baseURL.pathname = removeSlashes(this.instance.settings.dashboard2UI, true, false)
-            return baseURL.toString()
-        }
-    },
-    watch: {
-        hasDashboard: {
-            handler (hasDashboard) {
-                if (!hasDashboard) {
-                    this.$router.push({ name: 'instance-overview', params: { id: this.instance.id } })
-                }
-            },
-            immediate: true
-        }
+defineOptions({ name: 'DashboardView' })
+
+const props = defineProps<{
+    instance: Record<string, any>
+}>()
+
+const router = useRouter()
+
+const isRunning = computed(() => props.instance?.meta?.state === 'running')
+
+const hasDashboard = computed(() => !!props.instance?.settings?.dashboard2UI)
+
+const dashboardURL = computed(() => {
+    if (!isRunning.value || !hasDashboard.value) {
+        return null
     }
-}
+    const baseURL = new URL(removeSlashes(props.instance.url, false, true))
+    baseURL.pathname = removeSlashes(props.instance.settings.dashboard2UI, true, false)
+    return baseURL.toString()
+})
+
+watch(hasDashboard, (value) => {
+    if (!value) {
+        router.push({ name: 'instance-overview', params: { id: props.instance.id } })
+    }
+}, { immediate: true })
 </script>
 
 <style scoped>

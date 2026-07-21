@@ -2,19 +2,15 @@
     <dashboard-view :instance="instance" />
 </template>
 
-<script>
-
+<script setup lang="ts">
 import DashboardView from '@/components/dashboard/index.vue'
 
-export default {
+defineOptions({
     name: 'InstanceDashboard',
-    components: { DashboardView },
-    inheritAttrs: false,
-    props: {
-        instance: {
-            required: true,
-            type: Object
-        }
-    },
-}
+    inheritAttrs: false
+})
+
+defineProps<{
+    instance: Record<string, any>
+}>()
 </script>
