@@ -8,7 +8,8 @@ module.exports = [
             Gets the full details of one specific hosted instance.
             A hosted instance is a Node-RED that runs on the same environment as the FlowFuse platform.
             Use this when you already have a hosted instance ID and need to know everything about it:
-            its name, URL, settings, what application and team it belongs to, and its current state.
+            its name, URL, settings, what application and team it belongs to, its current state, and its specification (the instance type, stack, and template it uses).
+            Read the specification from this tool whenever you need to know or compare what an existing instance is running, for example to answer a question about it or to create another instance matching it.
             If you need to list all hosted instances first, call platform_get_application_hosted_instances.
             To check the live running status, call platform_get_hosted_instance_status instead.`,
         annotations: { readOnlyHint: true, destructiveHint: false },

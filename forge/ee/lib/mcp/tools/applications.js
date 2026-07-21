@@ -36,8 +36,8 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Gets all the hosted instances that live inside an application.
             A hosted instance is a Node-RED that runs on the same environment as the FlowFuse platform.
-            Use this to see which hosted instances an application has. Each result includes the instance name, URL, and basic settings.
-            To get the full details of one specific hosted instance, call platform_get_hosted_instance with its ID.
+            Use this to see which hosted instances an application has. Each result includes the instance id, name, URL, and basic settings.
+            This list does not include an instance's specification (its instance type, stack, or template). To read an instance's specification, for example to create another instance matching it, call platform_get_hosted_instance with the instance id.
             To check if hosted instances are currently running or stopped, call platform_get_application_instances_status instead.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
