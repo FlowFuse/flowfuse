@@ -65,12 +65,10 @@ class ExpertCommsHandler {
                     // SUCCESS: response received within the maxResponseTime, reset the error count
                     await this.bridgeHeartbeatCache.set('errorCount', 0)
                     await this.bridgeHeartbeatCache.del(`response:${correlationData}`)
-                    console.info(`Expert Agent bridge heartbeat successful, response received within ${maxResponseTime}ms`)
                     callback && callback(null, { errorCount: 0 })
                 } else {
                     // FAILED: no response received within the maxResponseTime, increment the error count
                     const errorCount = (await this.bridgeHeartbeatCache.get('errorCount') || 0) + 1
-                    console.warn(`Expert Agent Bridge heartbeat missed, errorCount: ${errorCount}`)
                     await this.bridgeHeartbeatCache.set('errorCount', errorCount)
                     callback && callback(new Error('Expert Agent Bridge heartbeat missed'), { errorCount })
                 }
