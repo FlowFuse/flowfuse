@@ -78,7 +78,7 @@ const sourcePlatform = {
     enable: true,
     parameters: {
         qos: 1,
-        topic: 'ff/v1/expert/+/+/platform/+/request'
+        topic: '$share/expert/ff/v1/expert/+/+/platform/+/request'
     },
     resource_opts: {
         health_check_interval: '15s'
