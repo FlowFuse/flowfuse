@@ -221,7 +221,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
-        ...mapState(useLiveStatusStore, { liveDeviceStatuses: 'deviceStatuses', statusChannelLive: 'live' }),
+        ...mapState(useLiveStatusStore, { liveDeviceMetadata: 'deviceMetadata', statusChannelLive: 'live' }),
         actionsButtonKind () {
             switch (true) {
             case this.neverConnected:
@@ -359,7 +359,7 @@ export default {
     },
     watch: {
         device: 'deviceChanged',
-        liveDeviceStatuses: { handler: 'applyLiveStatus', deep: true },
+        liveDeviceMetadata: { handler: 'applyLiveStatus', deep: true },
         statusChannelLive (live) {
             if (live) {
                 this.pollTimer?.stop()
@@ -386,9 +386,9 @@ export default {
         ...mapActions(useUxStore, ['validateUserAction']),
         ...mapActions(useContextStore, { setContextualDevice: 'setDevice' }),
         applyLiveStatus () {
-            const state = this.liveDeviceStatuses[this.device?.id]
-            if (!state || this.device?.status === state) return
-            this.device = applyLiveState(this.device, state, { device: true, clearFlags: true })
+            const meta = this.liveDeviceMetadata[this.device?.id]
+            if (!meta || this.device?.status === meta.status) return
+            this.device = applyLiveState(this.device, meta.status, { device: true, clearFlags: true })
         },
         pollTimerElapsed: async function () {
             // Only refresh device via the timer if we are on the overview page, developer mode page

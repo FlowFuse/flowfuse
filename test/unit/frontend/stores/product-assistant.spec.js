@@ -15,7 +15,7 @@ vi.mock('@/services/post-message.service.js', () => ({
 
 vi.mock('@/services/app.orchestrator.js', () => ({
     default: () => ({
-        $serviceInstances: {
+        $services: {
             postMessage: {
                 sendMessage: vi.fn().mockResolvedValue(undefined)
             }

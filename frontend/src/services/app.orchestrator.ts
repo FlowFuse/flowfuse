@@ -13,9 +13,9 @@ import type { SubscriberInstances } from '@/types/subscribers/subscriber.types'
  * App Orchestrator - boots services and subscribers with dependency injection.
  */
 class AppOrchestrator {
-    $serviceInstances: ServiceInstances = Object.fromEntries(SERVICE_REGISTRY.map(service => [service.key, null])) as ServiceInstances
+    $services: ServiceInstances = Object.fromEntries(SERVICE_REGISTRY.map(service => [service.key, null])) as ServiceInstances
 
-    $subscriberInstances: SubscriberInstances = Object.fromEntries(SUBSCRIBER_REGISTRY.map(subscriber => [subscriber.key, null])) as SubscriberInstances
+    $subscribers: SubscriberInstances = Object.fromEntries(SUBSCRIBER_REGISTRY.map(subscriber => [subscriber.key, null])) as SubscriberInstances
 
     /**
      * @type {import('vue').App} - Vue app instance
@@ -48,18 +48,18 @@ class AppOrchestrator {
         const router = this.$router
 
         for (const serviceDefinition of SERVICE_REGISTRY) {
-            ;(this.$serviceInstances as Record<string, unknown>)[serviceDefinition.key] = serviceDefinition.create({
+            ;(this.$services as Record<string, unknown>)[serviceDefinition.key] = serviceDefinition.create({
                 app,
                 router,
-                services: this.$serviceInstances
+                services: this.$services
             })
         }
 
-        await this.$serviceInstances.bootstrap.init()
+        await this.$services.bootstrap.init()
 
-        app.provide('$services', this.$serviceInstances)
+        app.provide('$services', this.$services)
 
-        return this.$serviceInstances
+        return this.$services
     }
 
     /**
@@ -69,39 +69,39 @@ class AppOrchestrator {
     async bootSubscribers (): Promise<SubscriberInstances> {
         const app = this.$app
         const router = this.$router
-        const transport = createMqttTransport(this.$serviceInstances.mqtt)
+        const transport = createMqttTransport(this.$services.mqtt)
 
         for (const subscriberDefinition of SUBSCRIBER_REGISTRY) {
-            ;(this.$subscriberInstances as Record<string, unknown>)[subscriberDefinition.key] = subscriberDefinition.create({
+            ;(this.$subscribers as Record<string, unknown>)[subscriberDefinition.key] = subscriberDefinition.create({
                 app,
                 router,
                 transport,
-                subscribers: this.$subscriberInstances
+                subscribers: this.$subscribers
             })
         }
 
-        app.provide('$subscribers', this.$subscriberInstances)
+        app.provide('$subscribers', this.$subscribers)
 
-        return this.$subscriberInstances
+        return this.$subscribers
     }
 
     async dispose () {
-        for (const subscriber of Object.keys(this.$subscriberInstances) as Array<keyof SubscriberInstances>) {
+        for (const subscriber of Object.keys(this.$subscribers) as Array<keyof SubscriberInstances>) {
             try {
-                await this.$subscriberInstances[subscriber]?.destroy?.()
+                await this.$subscribers[subscriber]?.destroy?.()
             } catch {
                 // teardown should be resilient and continue for remaining subscribers
             }
-            this.$subscriberInstances[subscriber] = null
+            this.$subscribers[subscriber] = null
         }
 
-        for (const service of Object.keys(this.$serviceInstances) as Array<keyof ServiceInstances>) {
+        for (const service of Object.keys(this.$services) as Array<keyof ServiceInstances>) {
             try {
-                await this.$serviceInstances[service]?.destroy?.()
+                await this.$services[service]?.destroy?.()
             } catch {
                 // teardown should be resilient and continue for remaining services
             }
-            this.$serviceInstances[service] = null
+            this.$services[service] = null
         }
 
         this.$app = null
