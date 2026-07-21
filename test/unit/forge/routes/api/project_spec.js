@@ -2269,7 +2269,7 @@ describe('Project API', function () {
             const newCreds = await getProjectInfo(newProject.id, newAccessToken, 'credentials')
             Object.keys(newCreds).should.have.length(0)
         })
-        it.only('fail to export to anther instane in different team', async function () {
+        it('fail to export to anther instane in different team', async function () {
             const sourceProject = await app.factory.createInstance(
                 { name: 'source1' },
                 TestObjects.ApplicationB,
