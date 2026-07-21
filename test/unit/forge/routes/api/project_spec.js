@@ -2283,7 +2283,7 @@ describe('Project API', function () {
                 sourceProject.id,
                 TestObjects.tokens.sourceProject,
                 TestObjects.tokens.chris,
-                 [{ id: 'node1' }],
+                [{ id: 'node1' }],
                 { testCreds: 'abc' },
                 'key1',
                 {
