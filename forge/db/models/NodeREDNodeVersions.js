@@ -11,12 +11,17 @@
  * @typedef {{name: string, schema: ModelAttributes, model: Model, indexes?: ModelIndexesOptions[], scopes?: ModelScopeOptions, options?: InitOptions}} FFModel
  */
 
-const { DataTypes } = require('sequelize');
+const { DataTypes } = require('sequelize')
 
 /** @type {FFModel} */
 module.exports = {
-    name: 'NodeREDNodeVersion',
+    name: 'NodeREDNodeVersions',
     schema: {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
         ownerId: {
             type: DataTypes.STRING,
             allowNull: false
@@ -38,14 +43,23 @@ module.exports = {
             allowNull: true
         }
     },
-    indexes: [],
     associations: function (M) {
         this.belongsTo(M.Project, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
     },
     finders: function (M) {
         return {
-            static: {},
+            static: {
+                updateAllLatest: async (name, version) => {
+                    await this.update({
+                        latestVersion: version
+                    }, {
+                        where: {
+                            name
+                        }
+                    })
+                }
+            },
             instance: {}
         }
     }
