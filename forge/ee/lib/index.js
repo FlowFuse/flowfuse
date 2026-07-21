@@ -57,7 +57,9 @@ module.exports = fp(async function (app, opts) {
 
         // Set the Expert Insights flag
         const isInsightsEnabled = isAiEnabled && app.config?.expert?.enabled && app.config?.expert?.insights?.enabled
-        app.config.features.register('expertInsights', isInsightsEnabled ?? false, true)
+        app.config.features.register('expertInsights', isInsightsEnabled ?? false, false)
+
+        require('./bom').init(app)
     }
 
     // Set the Team Library Feature Flag
