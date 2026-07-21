@@ -159,6 +159,9 @@ onUnmounted(() => {
 
     &.selected {
         background: var(--ff-color-bg-surface-raised);
+    }
+
+    &.selected .team-dashboards--list-item-name {
         font-weight: 600;
     }
 }
