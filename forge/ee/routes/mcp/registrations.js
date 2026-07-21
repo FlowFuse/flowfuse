@@ -117,10 +117,18 @@ module.exports = async function (app) {
                     throw new Error(`Device '${request.params.typeId}' not found`)
                 }
                 typeId = device.id
+                if (device.Team.id !== request.team.id) {
+                    reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+                    return
+                }
             } else if (request.params.type === 'instance') {
                 const project = await app.db.models.Project.byId(request.params.typeId)
                 if (!project) {
                     throw new Error(`Instance '${request.params.typeId}' not found`)
+                }
+                if (project.Team.id !== request.team.id) {
+                    reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+                    return
                 }
             } else {
                 throw new Error(`Unknown MCP target type '${request.params.type}'`)
@@ -182,6 +190,21 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        if (request.params.type === 'device') {
+            const device = await app.db.models.Device.byId(request.params.typeId)
+            if (device.Team.id !== request.team.id) {
+                reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+                return
+            }
+        } else if (request.params.type === 'instance') {
+            const project = await app.db.models.Project.byId(request.params.typeId)
+            if (project.Team.id !== request.team.id) {
+                reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+                return
+            }
+        } else {
+            throw new Error(`Unknown MCP target type '${request.params.type}'`)
+        }
         try {
             const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs(request.params.type, request.params.typeId, request.params.nodeId)
             if (mcpServer) {
