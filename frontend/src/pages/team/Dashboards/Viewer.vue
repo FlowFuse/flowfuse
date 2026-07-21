@@ -135,6 +135,9 @@ onUnmounted(() => {
 }
 
 .team-dashboards--list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
     padding: 12px;
 }
 
@@ -142,9 +145,10 @@ onUnmounted(() => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 5px;
-    padding: 5px 10px;
-    border-radius: 5px;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 6px;
     color: var(--ff-color-text);
     cursor: pointer;
     transition: background-color 0.15s ease;
@@ -154,8 +158,8 @@ onUnmounted(() => {
     }
 
     &.selected {
-        background: var(--ff-color-accent-strong);
-        color: var(--ff-color-text-on-brand);
+        background: var(--ff-color-bg-surface-raised);
+        font-weight: 600;
     }
 }
 
