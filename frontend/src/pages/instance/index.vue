@@ -147,8 +147,7 @@ export default {
             return [
                 { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id } }, tag: 'instance-overview' },
                 { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id } }, tag: 'instance-remote' },
-                { label: 'Dashboard', to: { name: 'instance-dashboard', params: { id: this.instance.id } }, tag: 'instance-dashboard', hidden: !this.hasDashboard2 },
-
+                { label: 'Dashboard', to: { name: 'instance-dashboard', params: { id: this.instance.id } }, tag: 'instance-dashboard', hidden: !this.hasDashboard2 || !this.featuresCheck.isEmbeddedDashboardEnabled },
                 { label: 'Version History', to: versionHistoryRoute, tag: 'instance-version-history' },
                 { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasPermission('project:files:list', { application: this.instance.application }) },
                 { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },
