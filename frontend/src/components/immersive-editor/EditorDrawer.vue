@@ -201,7 +201,7 @@ function notifyDrawerState () {
 
     const targetOrigin = props.entity.url || window.location.origin
     const serviceOrchestrator = getAppOrchestrator()
-    serviceOrchestrator.$serviceInstances.postMessage.sendMessage({
+    serviceOrchestrator.$services.postMessage.sendMessage({
         message: {
             type: 'drawer-state',
             payload: { open: editorImmersiveDrawer.value.state }

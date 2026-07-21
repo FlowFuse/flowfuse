@@ -121,8 +121,8 @@ describe('AppOrchestrator', () => {
         expect(subscriberArgs.subscribers).toMatchObject({ teamChannel: teamChannelSubscriber })
 
         expect(bootstrapService.init).toHaveBeenCalledTimes(1)
-        expect(app.provide).toHaveBeenCalledWith('$services', orchestrator.$serviceInstances)
-        expect(app.provide).toHaveBeenCalledWith('$subscribers', orchestrator.$subscriberInstances)
+        expect(app.provide).toHaveBeenCalledWith('$services', orchestrator.$services)
+        expect(app.provide).toHaveBeenCalledWith('$subscribers', orchestrator.$subscribers)
     })
 
     test('dispose destroys services + subscribers and resets internal state', async () => {
@@ -148,13 +148,13 @@ describe('AppOrchestrator', () => {
         expect(bootstrapService.destroy).toHaveBeenCalledTimes(1)
         expect(postMessageService.destroy).toHaveBeenCalledTimes(1)
         expect(mqttService.destroy).toHaveBeenCalledTimes(1)
-        expect(orchestrator.$serviceInstances).toEqual({
+        expect(orchestrator.$services).toEqual({
             bootstrap: null,
             postMessage: null,
             mqtt: null,
             automations: null
         })
-        expect(orchestrator.$subscriberInstances).toEqual({ teamChannel: null, liveStatus: null })
+        expect(orchestrator.$subscribers).toEqual({ teamChannel: null, liveStatus: null })
         expect(orchestrator.$app).toBeNull()
         expect(orchestrator.$router).toBeNull()
         expect(orchestrator.$cleanupRegistered).toBe(false)

@@ -201,7 +201,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
             if (useAccountSettingsStore().settings['platform:sso:only']) {
                 logoutURL = useAccountSettingsStore().settings['platform:sso:only:logoutURL'] || '/'
             }
-            const subscribers = getAppOrchestrator().$subscriberInstances
+            const subscribers = getAppOrchestrator().$subscribers
             const disconnect = Promise.all(
                 Object.values(subscribers).map(subscriber => subscriber?.disconnect().catch(() => {}))
             )
