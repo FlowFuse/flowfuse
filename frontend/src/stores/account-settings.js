@@ -6,7 +6,8 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 
 export const POSTHOG_FLAGS = {
-    FF_FEATURE_FLAGS: 'FF_FEATURE_FLAGS'
+    FF_FEATURE_FLAGS: 'FF_FEATURE_FLAGS',
+    EMBEDDED_DASHBOARD_ENABLED: 'EMBEDDED_DASHBOARD_ENABLED'
 }
 
 export const useAccountSettingsStore = defineStore('account-settings', {
@@ -49,6 +50,7 @@ export const useAccountSettingsStore = defineStore('account-settings', {
 
             // adding in PostHog Feature Flags
             checks.isPostHogFeatureFlagsEnabled = !!state.posthogFlags[POSTHOG_FLAGS.FF_FEATURE_FLAGS]
+            checks.isEmbeddedDashboardEnabled = !!state.posthogFlags[POSTHOG_FLAGS.EMBEDDED_DASHBOARD_ENABLED]
 
             return checks
         }
