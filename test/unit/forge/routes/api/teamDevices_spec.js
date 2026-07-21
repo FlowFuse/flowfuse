@@ -155,6 +155,20 @@ describe('Team Devices API', function () {
             await device3.destroy()
         })
 
+        it('includes a computed onlineStatus derived from lastSeenAt', async function () {
+            const neverSeen = await app.factory.createDevice({ name: 'never-seen device', type: 'test device' }, TestObjects.ATeam, TestObjects.Project1)
+            const online = await app.factory.createDevice({ name: 'online device', type: 'test device' }, TestObjects.ATeam, TestObjects.Project1)
+            online.lastSeenAt = new Date()
+            await online.save()
+
+            const devices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices`)
+            devices.find(d => d.id === neverSeen.hashid).should.have.property('onlineStatus', 'not-seen')
+            devices.find(d => d.id === online.hashid).should.have.property('onlineStatus', 'online')
+
+            await neverSeen.destroy()
+            await online.destroy()
+        })
+
         it('Get a sorted list of devices owned by this team', async function () {
             // first ensure we have 1 device (added in beforeEach)
             const currentDeviceCount = await app.db.models.Device.count()

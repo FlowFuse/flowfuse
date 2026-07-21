@@ -16,6 +16,16 @@ describe('applyLiveState', () => {
         expect(out.meta).toBeUndefined()
     })
 
+    test('device: writes onlineStatus when provided', () => {
+        const out = applyLiveState({ id: 1, status: 'running', onlineStatus: 'offline' }, 'running', { device: true, onlineStatus: 'online' })
+        expect(out.onlineStatus).toBe('online')
+    })
+
+    test('leaves onlineStatus untouched when not provided', () => {
+        const out = applyLiveState({ id: 1, status: 'stopped', onlineStatus: 'online' }, 'running', { device: true })
+        expect(out.onlineStatus).toBe('online')
+    })
+
     test('clearFlags clears optimistic/pending', () => {
         const out = applyLiveState({ meta: {}, optimisticStateChange: true, pendingStateChange: true }, 'running', { clearFlags: true })
         expect(out.optimisticStateChange).toBe(false)
