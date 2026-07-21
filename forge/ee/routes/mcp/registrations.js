@@ -134,6 +134,11 @@ module.exports = async function (app) {
                 throw new Error(`Unknown MCP target type '${request.params.type}'`)
             }
 
+            if (request.params.typeId !== request.session.ownerId) {
+                reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+                return
+            }
+
             await app.db.models.MCPRegistration.upsert({
                 targetType: request.params.type,
                 targetId: typeId,

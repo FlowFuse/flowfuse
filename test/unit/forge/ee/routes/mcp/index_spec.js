@@ -233,4 +233,37 @@ describe('MCP Server Registration', function () {
         const errMsg = appLogStub.getCall(0).args[0]
         errMsg.should.match(/Unknown MCP target type 'blah'/)
     })
+    it('should not crate mcp endpoint for non team asset', async function () {
+        // create second team
+        const bTeam = await app.factory.createTeam({ name: 'BTeam' })
+        const bApplicaiton = await app.factory.createApplication({ name: 'application-2' }, bTeam)
+        // create instance in BTeam
+        const bInstance = await app.factory.createInstance(
+            { name: 'projectb' },
+            bApplicaiton,
+            app.stack,
+            app.template,
+            app.projetType,
+            { start: false }
+        )
+        const { token } = await bInstance.refreshAuthTokens()
+
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.id}/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`, // Use token from instance in team b
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'foo',
+                protocol: 'http',
+                endpointRoute: '/mcp',
+                title: 'FlowFuse MCP',
+                version: '1.2.3',
+                description: 'Test MCP registration entry'
+            }
+        })
+        response.statusCode.should.equal(403)
+    })
 })
