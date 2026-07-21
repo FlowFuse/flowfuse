@@ -3631,7 +3631,8 @@ describe('Project API', function () {
                         toJSON: () => ({
                             settings: { env: { OLD: 'value' }, modules: { oldmod: '0.1.0' } },
                             flows: { flows: [{ id: 'old' }], credentials: {} }
-                        })
+                        }),
+                        ProjectId: TestObjects.project1.id
                     }
                 }
                 return originalSnapshotById.call(this, sid)
