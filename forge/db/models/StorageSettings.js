@@ -39,7 +39,6 @@ module.exports = {
                     for (const n of Object.keys(nodes)) {
                         if (n !== 'node-red') {
                             const latest = await cache.get(n)
-                            // console.log(storageSettings.ProjectId, n, nodes[n].version, latest)
                             await app.db.models.NodeREDNodeVersions.upsert({
                                 ownerId: storageSettings.ProjectId,
                                 ownerType: 'instance',
