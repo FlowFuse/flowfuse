@@ -3702,7 +3702,7 @@ describe('Project API', function () {
                 app.license = originalLicense
             }
         })
-        it('returns 404 when target is in a different team', async function () {
+        it('returns 404 when target snapshot belongs to a different instance', async function () {
             const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
                 ProjectId: 99,
                 settings: {},
