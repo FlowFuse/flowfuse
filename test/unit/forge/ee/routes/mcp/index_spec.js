@@ -143,10 +143,8 @@ describe('MCP Server Registration', function () {
         const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.id, 'abcde')
         should.not.exist(mcpServer)
     })
-    it('should return 500 and log error for unknown device', async function () {
+    it('should return 404 for unknown device', async function () {
         const { token } = await app.instance.refreshAuthTokens()
-        // stub app.log to capture error message
-        const appLogStub = sinon.stub(app.log, 'error')
 
         const response = await app.inject({
             method: 'POST',
@@ -164,19 +162,14 @@ describe('MCP Server Registration', function () {
                 description: 'Test MCP registration entry'
             }
         })
-        response.statusCode.should.equal(500)
+        response.statusCode.should.equal(404)
         const result = response.json()
         result.should.be.an.Object()
-        result.should.have.property('code', 'unexpected_error')
-        result.should.have.property('error', 'Failed to create mcp entry')
-        appLogStub.calledOnce.should.be.true()
-        const errMsg = appLogStub.getCall(0).args[0]
-        errMsg.should.match(/Device '99999' not found/)
+        result.should.have.property('code', 'not_found')
+        result.should.have.property('error', 'Device not found')
     })
-    it('should return 500 and log error for unknown instance', async function () {
+    it('should return 404 for unknown instance', async function () {
         const { token } = await app.instance.refreshAuthTokens()
-        // stub app.log to capture error message
-        const appLogStub = sinon.stub(app.log, 'error')
         const randomId = uuidv4()
         const response = await app.inject({
             method: 'POST',
@@ -194,19 +187,14 @@ describe('MCP Server Registration', function () {
                 description: 'Test MCP registration entry'
             }
         })
-        response.statusCode.should.equal(500)
+        response.statusCode.should.equal(404)
         const result = response.json()
         result.should.be.an.Object()
-        result.should.have.property('code', 'unexpected_error')
-        result.should.have.property('error', 'Failed to create mcp entry')
-        appLogStub.calledOnce.should.be.true()
-        const errMsg = appLogStub.getCall(0).args[0]
-        errMsg.should.match(new RegExp(`Instance '${randomId}' not found`))
+        result.should.have.property('code', 'not_found')
+        result.should.have.property('error', 'Instance not found')
     })
-    it('should return 500 and log error for unknown type', async function () {
+    it('should return 400 for unknown type', async function () {
         const { token } = await app.instance.refreshAuthTokens()
-        // stub app.log to capture error message
-        const appLogStub = sinon.stub(app.log, 'error')
 
         const response = await app.inject({
             method: 'POST',
@@ -224,14 +212,11 @@ describe('MCP Server Registration', function () {
                 description: 'Test MCP registration entry'
             }
         })
-        response.statusCode.should.equal(500)
+        response.statusCode.should.equal(400)
         const result = response.json()
         result.should.be.an.Object()
-        result.should.have.property('code', 'unexpected_error')
-        result.should.have.property('error', 'Failed to create mcp entry')
-        appLogStub.calledOnce.should.be.true()
-        const errMsg = appLogStub.getCall(0).args[0]
-        errMsg.should.match(/Unknown MCP target type 'blah'/)
+        result.should.have.property('code', 'invalid_request')
+        result.should.have.property('error', "Unknown MCP target type 'blah'")
     })
     it('should not create mcp endpoint for non team asset', async function () {
         // create second team
