@@ -148,6 +148,7 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Creates a new application in a team.
             An application is a container that groups together hosted instances and remote instances that work together.
+            Before creating, call platform_list_applications for this team to check whether an application with this name already exists. If one does, tell the user and ask whether to use the existing one or create a new one with the same name - do not create a duplicate without asking.
             After the application is created, ask the user if they want to be taken to it. If they do, use the ui_navigate tool with the route name "Application" and params { id: <the new application id> }.`,
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
