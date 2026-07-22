@@ -318,6 +318,116 @@ module.exports.init = async function (app) {
     }
 
     /**
+     * Given a group-name match (from the `ff-SLUG-ROLE` regex), check if it is an
+     * Application override group of the form `ff-<team>[<application>]-<role>` and,
+     * if so, record the desired application role in `desiredTeamApplicationroles`.
+     *
+     * @param {object} desiredTeamApplicationroles Accumulator keyed by team hashid -> { applicationHashid: role }
+     * @param {RegExpExecArray} match The result of running the `ff-(.+)-([^-]+)$` regex on the group name
+     * @param {object} providerOpts The SSO Provider configuration object
+     * @returns {Promise<boolean>} true if the group was an Application override group (and should not
+     *   be treated as a plain team-role group), false otherwise.
+     */
+    async function recordApplicationOverride (desiredTeamApplicationroles, match, providerOpts) {
+        const applicationRolesMatch = /(.+)\[(.+)\]/.exec(match[1])
+        if (!applicationRolesMatch) {
+            // Not an Application override group
+            return false
+        }
+        const teamSlug = applicationRolesMatch[1]
+        const applicationId = applicationRolesMatch[2]
+        const applicationRole = Roles[match[2]]
+        // From here on this is an Application override group - return true even if
+        // we cannot apply it, so the caller does not treat it as a team-role group.
+        if (applicationRole === undefined) {
+            // Unrecognised role name - ignore
+            return true
+        }
+        // Check if this team is allowed to be managed for this SSO provider before
+        // doing any database lookups.
+        if (!(providerOpts.groupAllTeams || (providerOpts.groupTeams || []).includes(teamSlug))) {
+            return true
+        }
+        const team = await app.db.models.Team.bySlug(teamSlug)
+        if (!team) {
+            // Unrecognised team - ignore
+            return true
+        }
+        const application = await team.hasApplication(applicationId)
+        if (!application) {
+            // Unrecognised application - ignore
+            return true
+        }
+        if (!desiredTeamApplicationroles[team.hashid]) {
+            desiredTeamApplicationroles[team.hashid] = {}
+        }
+        // In case we have multiple assertions for a single application,
+        // ensure we keep the highest level of access
+        desiredTeamApplicationroles[team.hashid][application.hashid] = Math.max(
+            desiredTeamApplicationroles[team.hashid][application.hashid] || 0,
+            applicationRole
+        )
+        return true
+    }
+
+    /**
+     * Apply the desired per-application role overrides to a user's team memberships
+     * and clear any SSO-managed overrides that are no longer desired.
+     *
+     * This is shared between the SAML and LDAP flows.
+     *
+     * @param {*} user The FF User object who is logging in
+     * @param {object} desiredTeamApplicationroles Accumulator keyed by team hashid -> { applicationHashid: role }
+     * @param {object} providerOpts The SSO Provider configuration object
+     */
+    async function applyApplicationOverrides (user, desiredTeamApplicationroles, providerOpts) {
+        app.log.debug(`Desired Application Roles for ${user.username} ${JSON.stringify(desiredTeamApplicationroles)}`)
+        // Work out which teams currently have SSO-managed overrides so we can clear
+        // any that are no longer desired. Only teams in scope of this provider are
+        // considered.
+        const existingOverrideTeamIds = new Set(
+            ((await app.db.models.TeamMember.getTeamsForUser(user.id, true)) || [])
+                .filter(teamMembership => {
+                    if (!teamMembership.permissions) {
+                        return false
+                    }
+                    // If the user is allowed to be a member of teams outside of SSO
+                    // control, only manage overrides on teams this provider controls.
+                    if (providerOpts.groupMapping && providerOpts.groupOtherTeams) {
+                        return (providerOpts.groupTeams || []).includes(teamMembership.Team.slug)
+                    }
+                    return true
+                })
+                .map(teamMembership => teamMembership.Team.hashid)
+        )
+        app.log.debug(`Existing Application Roles for ${user.username} ${JSON.stringify([...existingOverrideTeamIds])}`)
+
+        // First pass - apply the desired overrides. Done sequentially so that the
+        // apply and clear passes cannot race on the same membership.
+        for (const [teamId, overrides] of Object.entries(desiredTeamApplicationroles)) {
+            const membership = await app.db.models.TeamMember.getTeamMembership(user.id, teamId)
+            if (membership) {
+                const newPermissions = { applications: overrides, sso: true }
+                await app.db.controllers.Team.changeUserTeamPermissions(teamId, user.hashid, newPermissions)
+                // This team has been dealt with - don't clear it in the second pass
+                existingOverrideTeamIds.delete(teamId)
+            } else {
+                app.log.debug(`User ${user.name} not a member of Team ${teamId} so not overriding Application access`)
+            }
+        }
+
+        // Second pass - any remaining teams had overrides that are no longer
+        // desired, so clear them.
+        for (const teamId of existingOverrideTeamIds) {
+            const membership = await app.db.models.TeamMember.getTeamMembership(user.id, teamId)
+            if (membership) {
+                membership.permissions = {}
+                await membership.save()
+            }
+        }
+    }
+
+    /**
      * Update a user's team memberships according to the SAML Assertions
      * received when they logged in.
      *
@@ -337,8 +447,9 @@ module.exports.init = async function (app) {
             }
             let adminGroup = false
             const desiredTeamMemberships = {}
+            const desiredTeamApplicationroles = {}
             app.log.debug(`SAML Group Assertions for ${user.username} ${JSON.stringify(groupAssertions)}`)
-            groupAssertions.forEach(ga => {
+            for (const ga of groupAssertions) {
                 // Trim prefix/postfix from group name
                 let shortGA = ga
                 if (providerOpts.groupPrefixLength || providerOpts.groupSuffixLength) {
@@ -351,25 +462,28 @@ module.exports.init = async function (app) {
                 // Generate a slug->role object (desiredTeamMemberships)
                 const match = /^ff-(.+)-([^-]+)$/.exec(shortGA)
                 if (match) {
-                    const teamSlug = match[1]
-                    const teamRoleName = match[2]
-                    const teamRole = Roles[teamRoleName]
-                    // Check this role is a valid team role
-                    if (TeamRoles.includes(teamRole)) {
-                        // Check if this team is allowed to be managed for this SSO provider
-                        //  - either `groupAllTeams` is true (allowing all teams to be managed this way)
-                        //  - or `groupTeams` (array) contains the teamSlug
-                        if (providerOpts.groupAllTeams || (providerOpts.groupTeams || []).includes(teamSlug)) {
-                            // In case we have multiple assertions for a single team,
-                            // ensure we keep the highest level of access
-                            desiredTeamMemberships[teamSlug] = Math.max(desiredTeamMemberships[teamSlug] || 0, teamRole)
+                    // check for Application override groups of the form `ff-<team>[<application>]-<role>`
+                    if (!await recordApplicationOverride(desiredTeamApplicationroles, match, providerOpts)) {
+                        const teamSlug = match[1]
+                        const teamRoleName = match[2]
+                        const teamRole = Roles[teamRoleName]
+                        // Check this role is a valid team role
+                        if (TeamRoles.includes(teamRole)) {
+                            // Check if this team is allowed to be managed for this SSO provider
+                            //  - either `groupAllTeams` is true (allowing all teams to be managed this way)
+                            //  - or `groupTeams` (array) contains the teamSlug
+                            if (providerOpts.groupAllTeams || (providerOpts.groupTeams || []).includes(teamSlug)) {
+                                // In case we have multiple assertions for a single team,
+                                // ensure we keep the highest level of access
+                                desiredTeamMemberships[teamSlug] = Math.max(desiredTeamMemberships[teamSlug] || 0, teamRole)
+                            }
                         }
                     }
                 }
                 if (providerOpts.groupAdmin && providerOpts.groupAdminName === ga) {
                     adminGroup = true
                 }
-            })
+            }
 
             if (providerOpts.groupAdmin) {
                 if (user.admin && !adminGroup) {
@@ -461,6 +575,8 @@ module.exports.init = async function (app) {
             }
 
             await Promise.all(promises)
+            // Now all group membership has been updated, apply application overrides
+            await applyApplicationOverrides(user, desiredTeamApplicationroles, providerOpts)
         } else {
             const missingGroupAssertions = new Error(`SAML response missing ${providerOpts.groupAssertionName} assertion`)
             missingGroupAssertions.code = 'unknown_sso_user'
@@ -479,6 +595,7 @@ module.exports.init = async function (app) {
         const promises = []
         let adminGroup = false
         const desiredTeamMemberships = {}
+        const desiredTeamApplicationroles = {}
         const groupRegEx = /^ff-(.+)-([^-]+)$/
         for (const i in searchEntries) {
             let shortCN = searchEntries[i].cn
@@ -490,19 +607,22 @@ module.exports.init = async function (app) {
             }
             const match = groupRegEx.exec(shortCN)
             if (match) {
-                app.log.debug(`Found group ${searchEntries[i].cn} for user ${user.username}`)
-                const teamSlug = match[1]
-                const teamRoleName = match[2]
-                const teamRole = Roles[teamRoleName]
-                // Check this role is a valid team role
-                if (TeamRoles.includes(teamRole)) {
-                    // Check if this team is allowed to be managed for this SSO provider
-                    //  - either `groupAllTeams` is true (allowing all teams to be managed this way)
-                    //  - or `groupTeams` (array) contains the teamSlug
-                    if (providerOpts.groupAllTeams || (providerOpts.groupTeams || []).includes(teamSlug)) {
-                        // In case we have multiple assertions for a single team,
-                        // ensure we keep the highest level of access
-                        desiredTeamMemberships[teamSlug] = Math.max(desiredTeamMemberships[teamSlug] || 0, teamRole)
+                // check for Application override groups of the form `ff-<team>[<application>]-<role>`
+                if (!await recordApplicationOverride(desiredTeamApplicationroles, match, providerOpts)) {
+                    app.log.debug(`Found group ${searchEntries[i].cn} for user ${user.username}`)
+                    const teamSlug = match[1]
+                    const teamRoleName = match[2]
+                    const teamRole = Roles[teamRoleName]
+                    // Check this role is a valid team role
+                    if (TeamRoles.includes(teamRole)) {
+                        // Check if this team is allowed to be managed for this SSO provider
+                        //  - either `groupAllTeams` is true (allowing all teams to be managed this way)
+                        //  - or `groupTeams` (array) contains the teamSlug
+                        if (providerOpts.groupAllTeams || (providerOpts.groupTeams || []).includes(teamSlug)) {
+                            // In case we have multiple assertions for a single team,
+                            // ensure we keep the highest level of access
+                            desiredTeamMemberships[teamSlug] = Math.max(desiredTeamMemberships[teamSlug] || 0, teamRole)
+                        }
                     }
                 }
             }
@@ -599,6 +719,8 @@ module.exports.init = async function (app) {
         }
 
         await Promise.all(promises)
+        // Now all group membership has been updated, apply application overrides
+        await applyApplicationOverrides(user, desiredTeamApplicationroles, providerOpts)
     }
 
     return {

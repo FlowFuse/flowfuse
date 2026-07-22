@@ -863,6 +863,9 @@ export interface paths {
                         scope?: string;
                         expiresAt?: number;
                         name?: string;
+                        readOnly?: boolean;
+                        adminOptIn?: boolean;
+                        teamIds?: string[];
                     };
                 };
             };
@@ -916,6 +919,9 @@ export interface paths {
                     "application/json": {
                         scope?: string;
                         expiresAt?: number;
+                        readOnly?: boolean;
+                        adminOptIn?: boolean;
+                        teamIds?: string[];
                     };
                 };
             };
@@ -3348,6 +3354,56 @@ export interface paths {
                         "application/json": {
                             count?: number;
                             instances?: components["schemas"]["InstanceSummaryList"];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/applications/{applicationId}/dashboard-instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a list of application instances that have dashboards */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    applicationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            count?: number;
+                            projects?: components["schemas"]["DashboardInstancesSummaryList"];
                         };
                     };
                 };
@@ -10235,6 +10291,12 @@ export interface components {
             id: string;
             name: string;
             expiresAt: string | null;
+            readOnly?: boolean;
+            adminOptIn?: boolean;
+            teams?: {
+                id?: string;
+                name?: string | null;
+            }[];
         };
         /** PersonalAccessToken */
         PersonalAccessToken: {
@@ -10309,6 +10371,7 @@ export interface components {
             createdAt: string;
             username: string | null;
             event: string;
+            source?: string | null;
             scope: {
                 [key: string]: unknown;
             };
@@ -10381,6 +10444,8 @@ export interface components {
             activeSnapshot?: components["schemas"]["SnapshotSummary"] | null;
             targetSnapshot?: components["schemas"]["SnapshotSummary"] | null;
             status: string;
+            /** @enum {string} */
+            onlineStatus: "online" | "offline" | "not-seen";
             isDeploying: boolean;
             agentVersion?: string | null;
             mode: string;
@@ -10404,6 +10469,8 @@ export interface components {
             lastSeenAt: string | null;
             lastSeenMs: number | null;
             status: string;
+            /** @enum {string} */
+            onlineStatus: "online" | "offline" | "not-seen";
             mode: string;
             isDeploying: boolean;
             links: components["schemas"]["LinksMeta"];
@@ -10419,6 +10486,8 @@ export interface components {
             lastSeenAt: string | null;
             lastSeenMs: number | null;
             status: string;
+            /** @enum {string} */
+            onlineStatus: "online" | "offline" | "not-seen";
             mode: string;
             isDeploying: boolean;
             editor?: {
@@ -10823,6 +10892,7 @@ export interface components {
             applications?: {
                 [key: string]: unknown;
             };
+            sso?: boolean;
         };
         /** TeamMemberList */
         TeamMemberList: ({

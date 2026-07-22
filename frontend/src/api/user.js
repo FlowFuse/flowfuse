@@ -204,14 +204,17 @@ const getPersonalAccessTokens = async () => {
 }
 
 /**
- * Create new User Personal Access Token
+ * Create a new User Personal Access Token
  * See [routes/api/user.js](../../../forge/routes/api/user.js)
  * @param {string} name
  * @param {string} scope
  * @param {number} expiresAt
+ * @param {boolean} readOnly
+ * @param {boolean} adminOptIn
+ * @param {Array<string>} teamIds
  */
-const createPersonalAccessToken = async (name, scope, expiresAt) => {
-    return client.post('/api/v1/user/tokens', { name, scope, expiresAt }).then(res => res.data)
+const createPersonalAccessToken = async (name, scope, expiresAt, { readOnly, adminOptIn, teamIds } = {}) => {
+    return client.post('/api/v1/user/tokens', { name, scope, expiresAt, readOnly, adminOptIn, teamIds }).then(res => res.data)
 }
 
 /**
@@ -224,10 +227,18 @@ const deletePersonalAccessToken = async (id) => {
 }
 
 /**
- * Update User Personal Token
+ * Update User Personal Access Token
+ * See [routes/api/user.js](../../../forge/routes/api/user.js)
+ * @param {string} id The token ID to update
+ * @param {string} scope The token scope
+ * @param {number} expiresAt Expiration timestamp
+ * @param {Object} options Optional configuration
+ * @param {boolean} options.readOnly Whether the token is read-only
+ * @param {boolean} options.adminOptIn Whether admin opt-in is enabled
+ * @param {Array<string>} options.teamIds Array of team IDs the token is scoped to
  */
-const updatePersonalAccessToken = async (id, scope, expiresAt) => {
-    return client.put('/api/v1/user/tokens/' + id, { scope, expiresAt })
+const updatePersonalAccessToken = async (id, scope, expiresAt, { readOnly, adminOptIn, teamIds } = {}) => {
+    return client.put('/api/v1/user/tokens/' + id, { scope, expiresAt, readOnly, adminOptIn, teamIds }).then(res => res.data)
 }
 
 const enableMFA = async () => {

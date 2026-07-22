@@ -362,10 +362,9 @@ import DeviceLink from '../pages/application/components/cells/DeviceLink.vue'
 import Snapshot from '../pages/application/components/cells/Snapshot.vue'
 
 import DeviceCreatedAtCell from '../pages/device/DeviceCreatedAtCell.vue'
-import DeviceLastSeenCell from '../pages/device/components/DeviceLastSeenCell.vue'
 import DeviceModeBadge from '../pages/device/components/DeviceModeBadge.vue'
+import DeviceOnlineStatusCell from '../pages/device/components/DeviceOnlineStatusCell.vue'
 import SnapshotAssignDialog from '../pages/instance/VersionHistory/Snapshots/dialogs/SnapshotAssignDialog.vue'
-import InstanceStatusBadge from '../pages/instance/components/InstanceStatusBadge.vue'
 import DeviceAssignApplicationDialog from '../pages/team/Devices/dialogs/DeviceAssignApplicationDialog.vue'
 import DeviceAssignInstanceDialog from '../pages/team/Devices/dialogs/DeviceAssignInstanceDialog.vue'
 import DeviceCredentialsDialog from '../pages/team/Devices/dialogs/DeviceCredentialsDialog.vue'
@@ -470,7 +469,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
-        ...mapState(useLiveStatusStore, { liveDeviceStatuses: 'deviceStatuses', statusChannelLive: 'live' }),
+        ...mapState(useLiveStatusStore, { liveDeviceMetadata: 'deviceMetadata', statusChannelLive: 'live' }),
         ...mapState(useUxDialogStore, ['dialog']),
         ...mapState(useUxToursStore, ['tours']),
         columns () {
@@ -478,9 +477,8 @@ export default {
                 { label: 'Remote Instance', key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: true },
                 { label: 'Created', key: 'createdAt', class: ['w-48'], sortable: true, component: { is: markRaw(DeviceCreatedAtCell) } },
-                { label: 'Last Seen', key: 'lastSeenAt', class: ['w-48'], sortable: true, component: { is: markRaw(DeviceLastSeenCell) } },
                 { label: 'Mode', key: 'mode', class: ['w-30'], sortable: true, component: { is: markRaw(DeviceModeBadge) } },
-                { label: 'Last Known Status', class: ['w-32'], component: { is: markRaw(InstanceStatusBadge), map: { instanceId: 'id' }, extraProps: { instanceType: 'device' } } }
+                { label: 'Status', key: 'lastSeenAt', class: ['w-40'], sortable: true, component: { is: markRaw(DeviceOnlineStatusCell) } }
             ]
 
             if (this.displayingTeam) {
@@ -608,7 +606,7 @@ export default {
                 this.setDialogDevices(devices)
             }
         },
-        liveDeviceStatuses: { handler: 'applyLiveStatus', deep: true },
+        liveDeviceMetadata: { handler: 'applyLiveStatus', deep: true },
         statusChannelLive (live) {
             if (live) {
                 this.pollTimer?.stop()
@@ -633,15 +631,16 @@ export default {
         ...mapActions(useUxDialogStore, ['setDialogDevices']),
         applyLiveStatus () {
             for (const id of this.allDeviceStatuses.keys()) {
-                const state = this.liveDeviceStatuses[id]
-                if (!state) continue
+                const meta = this.liveDeviceMetadata[id]
+                if (!meta) continue
+                const { status: state, onlineStatus } = meta
                 const statusObj = this.allDeviceStatuses.get(id)
-                if (statusObj.status !== state) {
-                    this.allDeviceStatuses.set(id, applyLiveState(statusObj, state, { device: true }))
+                if (statusObj.status !== state || (onlineStatus && statusObj.onlineStatus !== onlineStatus)) {
+                    this.allDeviceStatuses.set(id, applyLiveState(statusObj, state, { device: true, onlineStatus }))
                 }
                 const device = this.devices.get(id)
-                if (device && device.status !== state) {
-                    this.devices.set(id, applyLiveState(device, state, { device: true }))
+                if (device && (device.status !== state || (onlineStatus && device.onlineStatus !== onlineStatus))) {
+                    this.devices.set(id, applyLiveState(device, state, { device: true, onlineStatus }))
                 }
             }
         },

@@ -63,7 +63,19 @@ module.exports = function (app) {
             id: { type: 'string' },
             name: { type: 'string' },
             // scope: { type: 'string', nullable: true },
-            expiresAt: { type: 'string', nullable: true }
+            expiresAt: { type: 'string', nullable: true },
+            readOnly: { type: 'boolean' },
+            adminOptIn: { type: 'boolean' },
+            teams: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        name: { type: 'string', nullable: true }
+                    }
+                }
+            }
         },
         required: ['id', 'name', 'expiresAt']
     })
@@ -81,7 +93,13 @@ module.exports = function (app) {
         const tokenSummary = {
             id: token.hashid,
             name: token.name,
-            expiresAt: token.expiresAt ?? null
+            expiresAt: token.expiresAt ?? null,
+            readOnly: token.readOnly ?? false,
+            adminOptIn: token.adminOptIn ?? false,
+            teams: (token.AccessTokenTeamScopes ?? []).map(s => ({
+                id: app.db.models.Team.encodeHashid(s.TeamId),
+                name: s.Team?.name ?? null
+            }))
         }
         return tokenSummary
     }

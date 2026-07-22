@@ -136,6 +136,7 @@ create_stack() {
 DBPASSWORD=$(kubectl --namespace "pr-$PR_NUMBER" get secret flowfuse-pr-$PR_NUMBER-postgresql -o jsonpath='{.data.password}' | base64 -d)
 kubectl run flowfuse-setup-0 \
   --namespace "pr-$PR_NUMBER" \
+  --labels="app=flowforge" \
   -it --rm \
   --restart=Never \
   --env="PGPASSWORD=$DBPASSWORD" \
@@ -147,6 +148,7 @@ kubectl run flowfuse-setup-0 \
 ### Mark platform as configured
 kubectl run flowfuse-setup-1 \
   --namespace "pr-$PR_NUMBER" \
+  --labels="app=flowforge" \
   -it --rm \
   --restart=Never \
   --env="PGPASSWORD=$DBPASSWORD" \
@@ -159,13 +161,14 @@ kubectl run flowfuse-setup-1 \
 ### Configure access token
 kubectl run flowfuse-setup-2 \
   --namespace "pr-$PR_NUMBER" \
+  --labels="app=flowforge" \
   -it --rm \
   --restart=Never \
   --env="PGPASSWORD=$DBPASSWORD" \
   --image bitnamilegacy/postgresql:14.10.0-debian-11-r3 \
   -- psql -h flowfuse-pr-$PR_NUMBER-postgresql -U forge -d flowforge -c \
-  "INSERT INTO public.\"AccessTokens\" (token,\"expiresAt\",scope,\"ownerId\",\"ownerType\",\"refreshToken\",name,\"createdAt\",\"updatedAt\") \
-    VALUES ('$INIT_CONFIG_ACCESS_TOKEN_HASH',NULL,'','1','user',NULL,'setup','2024-03-18 10:46:54.055+01','2024-03-18 10:46:54.055+01');"
+  "INSERT INTO public.\"AccessTokens\" (token,\"expiresAt\",scope,\"ownerId\",\"ownerType\",\"refreshToken\",name,\"adminOptIn\",\"createdAt\",\"updatedAt\") \
+    VALUES ('$INIT_CONFIG_ACCESS_TOKEN_HASH',NULL,'','1','user',NULL,'setup', true,'2024-03-18 10:46:54.055+01','2024-03-18 10:46:54.055+01');"
 
 ### Configure ff-npm-registry token
 echo "Configuring ff-npm-registry token"
@@ -431,6 +434,7 @@ create_user "viewer" "${INIT_CONFIG_PASSWORD}"
 ### Assign users to teams
 kubectl run flowfuse-setup-4 \
   --namespace "pr-$PR_NUMBER" \
+  --labels="app=flowforge" \
   -it --rm \
   --restart=Never \
   --env="PGPASSWORD=$DBPASSWORD" \
