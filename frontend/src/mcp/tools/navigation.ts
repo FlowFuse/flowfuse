@@ -30,12 +30,23 @@ const tools: McpToolDefinition[] = [
         async handler (args, { router }) {
             const { route: routeName, params } = args as { route: string, params?: Record<string, string> }
 
-            const resolved = router.resolve({ name: routeName, params })
+            let resolved
+            try {
+                resolved = router.resolve({ name: routeName, params })
+            } catch {
+                // router.resolve throws (rather than returning matched: []) for an unknown route name
+                resolved = null
+            }
             if (!resolved || !resolved.matched.length) {
-                return { success: false, error: `Route "${routeName}" not found` }
+                return { success: false, error: `Route "${routeName}" not found - use ui_list_routes to see valid route names` }
             }
 
-            await router.push({ name: routeName, params })
+            try {
+                await router.push({ name: routeName, params })
+            } catch (err) {
+                const message = err instanceof Error && err.message ? err.message : `Navigation to "${routeName}" failed`
+                return { success: false, error: message }
+            }
             return { success: true, route: routeName, path: resolved.fullPath }
         }
     }
