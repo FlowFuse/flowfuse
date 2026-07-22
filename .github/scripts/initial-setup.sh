@@ -434,6 +434,7 @@ create_user "viewer" "${INIT_CONFIG_PASSWORD}"
 ### Assign users to teams
 kubectl run flowfuse-setup-4 \
   --namespace "pr-$PR_NUMBER" \
+  --labels="app=flowforge" \
   -it --rm \
   --restart=Never \
   --env="PGPASSWORD=$DBPASSWORD" \
