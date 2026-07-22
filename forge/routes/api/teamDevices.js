@@ -505,13 +505,18 @@ module.exports = async function (app) {
                 let deviceGroup
                 let changeCount
                 let actualRemoveDevices
-                const transaction = await app.db.sequelize.transaction()
                 const infoBuilder = []
                 const decodedDeviceIds = request.body.devices.map(hashid => hashid && app.db.models.Device.decodeHashid(hashid))
                 const devicesCollection = await app.db.models.Device.getAll({}, { id: decodedDeviceIds }, {
                     includeDeviceGroup: true,
                     includeApplication: true
                 })
+
+                // Ensure every device belongs to the team in the URL
+                if (devicesCollection.devices.some(d => d.TeamId !== request.team.id)) {
+                    throw new ControllerError('invalid_input', 'All devices must belong to the same team', 400)
+                }
+
                 const devicesByGroup = devicesCollection.devices.filter(device => device.DeviceGroup)
                     .reduce((acc, device) => {
                         const groupId = device.DeviceGroup?.id || null
@@ -525,6 +530,7 @@ module.exports = async function (app) {
                         return acc
                     }, {})
 
+                const transaction = await app.db.sequelize.transaction()
                 try {
                     if (request.body.deviceGroup === '') {
                         // if the device group is present but empty, we need to bulk unassign devices from their respective device group
@@ -538,6 +544,10 @@ module.exports = async function (app) {
 
                         if (!deviceGroup) {
                             throw new ControllerError('invalid_input', 'Invalid device group', 400)
+                        }
+                        // The target group must belong to the team in the URL
+                        if (deviceGroup.Application?.TeamId !== request.team.id) {
+                            throw new ControllerError('invalid_input', 'Device group must belong to the same team', 400)
                         }
 
                         // we first need to bulk unassign devices from their respective device group except the device group we're assigning to

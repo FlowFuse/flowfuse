@@ -1058,6 +1058,11 @@ describe('Team Devices API', function () {
                 let group1
                 let group2
                 let auditLogSpy
+                // A device group and an app-owned device that belong to BTeam
+                let bTeamGroup
+                const bTeamDevices = {
+                    device1: null
+                }
 
                 beforeEach(async function () {
                     // Create device groups
@@ -1076,6 +1081,11 @@ describe('Team Devices API', function () {
                     await aTeamDevices.device3.update({ DeviceGroupId: group2.id })
                     // device4 remains unassigned
 
+                    // Create a BTeam group and an app-owned BTeam device assigned to it
+                    bTeamGroup = await factory.createApplicationDeviceGroup({ name: 'b-group 1' }, TestObjects.BTeamApplication)
+                    bTeamDevices.device1 = await factory.createDevice({ name: 'group-test-device-b1' }, TestObjects.BTeam, null, TestObjects.BTeamApplication)
+                    await bTeamDevices.device1.update({ DeviceGroupId: bTeamGroup.id })
+
                     // Spy on audit log
                     auditLogSpy = sinon.spy(app.auditLog.Application.application.deviceGroup, 'membersChanged')
                 })
@@ -1083,10 +1093,10 @@ describe('Team Devices API', function () {
                 afterEach(async function () {
                     await app.db.models.Device.destroy({
                         where: {
-                            name: ['group-test-device-1', 'group-test-device-2', 'group-test-device-3', 'group-test-device-4']
+                            name: ['group-test-device-1', 'group-test-device-2', 'group-test-device-3', 'group-test-device-4', 'group-test-device-b1']
                         }
                     })
-                    await app.db.models.DeviceGroup.destroy({ where: { id: [group1.id, group2.id] } })
+                    await app.db.models.DeviceGroup.destroy({ where: { id: [group1.id, group2.id, bTeamGroup.id] } })
                     auditLogSpy.restore()
                 })
 
@@ -1222,6 +1232,47 @@ describe('Team Devices API', function () {
                             deviceGroup: group1.hashid
                         })
                         response.statusCode.should.equal(400)
+                    })
+                })
+
+                describe('isolation', function () {
+                    // Bob (ATeam owner) should not be able to add a BTeam device to a BTeam group.
+                    it('Rejects reassigning another team\'s device via own team endpoint (400)', async function () {
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.bob, {
+                            devices: [bTeamDevices.device1.hashid],
+                            deviceGroup: bTeamGroup.hashid
+                        })
+                        response.statusCode.should.equal(400)
+                        response.json().should.have.property('error').and.match(/same team/)
+                        // Ensure group membership is unchanged
+                        const device = await app.db.models.Device.findByPk(bTeamDevices.device1.id)
+                        device.should.have.property('DeviceGroupId', bTeamGroup.id)
+                    })
+
+                    // Bob (ATeam owner) should not be able to unassign a BTeam device from its group.
+                    it('Rejects unassigning another team\'s device via own team endpoint (400)', async function () {
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.bob, {
+                            devices: [bTeamDevices.device1.hashid],
+                            deviceGroup: ''
+                        })
+                        response.statusCode.should.equal(400)
+                        response.json().should.have.property('error').and.match(/same team/)
+                        // Ensure the device is still in its group
+                        const device = await app.db.models.Device.findByPk(bTeamDevices.device1.id)
+                        device.should.have.property('DeviceGroupId', bTeamGroup.id)
+                    })
+
+                    // Bob (ATeam owner) should not be able to add his own device to a BTeam group.
+                    it('Rejects assigning an own-team device to another team\'s group (400)', async function () {
+                        const response = await bulkUpdateDeviceGroup(TestObjects.ATeam.hashid, TestObjects.tokens.bob, {
+                            devices: [aTeamDevices.device4.hashid],
+                            deviceGroup: bTeamGroup.hashid
+                        })
+                        response.statusCode.should.equal(400)
+                        response.json().should.have.property('error').and.match(/same team/)
+                        // Ensure the device was not added to the foreign group
+                        const device = await app.db.models.Device.findByPk(aTeamDevices.device4.id)
+                        device.should.have.property('DeviceGroupId', null)
                     })
                 })
 
