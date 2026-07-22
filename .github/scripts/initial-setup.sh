@@ -136,6 +136,7 @@ create_stack() {
 DBPASSWORD=$(kubectl --namespace "pr-$PR_NUMBER" get secret flowfuse-pr-$PR_NUMBER-postgresql -o jsonpath='{.data.password}' | base64 -d)
 kubectl run flowfuse-setup-0 \
   --namespace "pr-$PR_NUMBER" \
+  --label="app=flowforge" \
   -it --rm \
   --restart=Never \
   --env="PGPASSWORD=$DBPASSWORD" \
@@ -147,6 +148,7 @@ kubectl run flowfuse-setup-0 \
 ### Mark platform as configured
 kubectl run flowfuse-setup-1 \
   --namespace "pr-$PR_NUMBER" \
+  --label="app=flowforge" \
   -it --rm \
   --restart=Never \
   --env="PGPASSWORD=$DBPASSWORD" \
@@ -159,6 +161,7 @@ kubectl run flowfuse-setup-1 \
 ### Configure access token
 kubectl run flowfuse-setup-2 \
   --namespace "pr-$PR_NUMBER" \
+  --label="app=flowforge" \
   -it --rm \
   --restart=Never \
   --env="PGPASSWORD=$DBPASSWORD" \
