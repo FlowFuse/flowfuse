@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header title="Hosted Instances">
                 <template #context>
-                    <span>A list of all dashboards belonging to this Team.</span>
+                    <span>A list of all Node-RED instances belonging to this Team.</span>
                 </template>
                 <template #help-header>
                     Instances
