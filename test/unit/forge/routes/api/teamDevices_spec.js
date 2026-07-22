@@ -662,7 +662,7 @@ describe('Team Devices API', function () {
                         })
                         response.statusCode.should.equal(400)
                         const result = response.json()
-                        result.should.have.property('code', 'invalid_application')
+                        result.should.have.property('code', 'invalid_input')
                         result.should.have.property('error').and.match(/same team/)
                     })
 
@@ -673,8 +673,50 @@ describe('Team Devices API', function () {
                         })
                         response.statusCode.should.equal(400)
                         const result = response.json()
-                        result.should.have.property('code', 'invalid_instance')
+                        result.should.have.property('code', 'invalid_input')
                         result.should.have.property('error').and.match(/same team/)
+                    })
+
+                    // Bob (ATeam owner) should not be able to move a BTeam device onto a BTeam instance.
+                    it('Rejects moving another team\'s device onto that team\'s instance via own team endpoint (400)', async function () {
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.bob, {
+                            devices: [bTeamDevices.device1.hashid],
+                            instance: TestObjects.BTeamInstance.id
+                        })
+                        response.statusCode.should.equal(400)
+                        const result = response.json()
+                        result.should.have.property('code')
+                        result.should.have.property('error').and.match(/same team/)
+                        // Ensure the device was not reassigned
+                        const device = await app.db.models.Device.byId(bTeamDevices.device1.id)
+                        device.ProjectId.should.equal(TestObjects.BTeamInstance.id)
+                    })
+
+                    // Bob (ATeam owner) should not be able to move a BTeam device onto a BTeam application.
+                    it('Rejects moving another team\'s device onto that team\'s application via own team endpoint (400)', async function () {
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.bob, {
+                            devices: [bTeamDevices.device1.hashid],
+                            application: TestObjects.BTeamApplication.hashid
+                        })
+                        response.statusCode.should.equal(400)
+                        const result = response.json()
+                        result.should.have.property('code')
+                        result.should.have.property('error').and.match(/same team/)
+                    })
+
+                    // Bob (ATeam owner) should not be able to unassign a BTeam device.
+                    it('Rejects unassigning another team\'s device via own team endpoint (400)', async function () {
+                        const response = await bulkUpdate(TestObjects.ATeam.hashid, TestObjects.tokens.bob, {
+                            devices: [bTeamDevices.device1.hashid],
+                            instance: ''
+                        })
+                        response.statusCode.should.equal(400)
+                        const result = response.json()
+                        result.should.have.property('code')
+                        result.should.have.property('error').and.match(/same team/)
+                        // Ensure the device is still assigned to its instance
+                        const device = await app.db.models.Device.byId(bTeamDevices.device1.id)
+                        device.ProjectId.should.equal(TestObjects.BTeamInstance.id)
                     })
 
                     it('Rejects invalid input', async function () {
