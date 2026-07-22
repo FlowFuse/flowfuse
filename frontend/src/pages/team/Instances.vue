@@ -309,9 +309,6 @@ export default {
                         },
                         includeMeta: true
                     })
-                } else if (this.hasPermission('team:read')) {
-                    // Dashboards endpoint not paginated server-side; keep current behavior.
-                    response = await teamApi.getTeamDashboards(this.team.id)
                 }
                 const projects = response?.projects || []
                 this.totalRows = response?.meta?.total ?? response?.count ?? projects.length
