@@ -116,7 +116,7 @@ module.exports = async function (app) {
                 if (!device) {
                     throw new Error(`Device '${request.params.typeId}' not found`)
                 }
-                typeId = device.id
+                typeId = '' + device.id
                 if (device.Team.id !== request.team.id) {
                     reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
                     return
@@ -202,7 +202,7 @@ module.exports = async function (app) {
                 reply.code(404).send({ code: 'not_found', error: 'Device not found' })
                 return
             }
-            typeId = device.id
+            typeId = '' + device.id
             if (device.Team.id !== request.team.id) {
                 reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
                 return

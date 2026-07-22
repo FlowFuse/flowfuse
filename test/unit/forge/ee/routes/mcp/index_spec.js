@@ -330,7 +330,7 @@ describe('MCP Server Registration', function () {
         })
         response.statusCode.should.equal(200)
         // stored against the numeric device id, not the hashid
-        const stored = await app.db.models.MCPRegistration.byTypeAndIDs('device', device.id, 'nodeD')
+        const stored = await app.db.models.MCPRegistration.byTypeAndIDs('device', '' + device.id, 'nodeD')
         should.exist(stored)
 
         const deleteResponse = await app.inject({
@@ -341,7 +341,7 @@ describe('MCP Server Registration', function () {
             }
         })
         deleteResponse.statusCode.should.equal(200)
-        const afterDelete = await app.db.models.MCPRegistration.byTypeAndIDs('device', device.id, 'nodeD')
+        const afterDelete = await app.db.models.MCPRegistration.byTypeAndIDs('device', '' + device.id, 'nodeD')
         should.not.exist(afterDelete)
     })
     it('should not create MCP entry when teamId does not match the asset team', async function () {
