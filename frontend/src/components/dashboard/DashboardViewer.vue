@@ -1,23 +1,23 @@
 <template>
-    <div class="ff--immersive-editor-wrapper team-dashboards" :class="{ resizing: isResizing }" data-el="team-dashboards-viewer">
+    <div class="ff--immersive-editor-wrapper dashboards-viewer" :class="{ resizing: isResizing }" data-el="dashboards-viewer">
         <DashboardDrawer :home-route="homeRoute" @resizing="v => isResizing = v">
             <ff-loading v-if="loading && instances.length === 0" message="Loading Dashboards..." />
-            <ul v-else-if="instances.length" class="team-dashboards--list">
+            <ul v-else-if="instances.length" class="dashboards-viewer--list">
                 <li
                     v-for="instance in instances"
                     :key="instance.id"
-                    class="team-dashboards--list-item"
+                    class="dashboards-viewer--list-item"
                     :class="{ selected: instance.id === selectedId }"
                     data-el="dashboard-list-item"
                     @click="selectDashboard(instance.id)"
                 >
-                    <span class="team-dashboards--list-item-name">{{ instance.name }}</span>
+                    <span class="dashboards-viewer--list-item-name">{{ instance.name }}</span>
                     <InstanceStatusBadge :status="instance.status" :instanceId="instance.id" instanceType="instance" />
                 </li>
             </ul>
         </DashboardDrawer>
 
-        <div class="ff-layout--immersive--content team-dashboards--content">
+        <div class="ff-layout--immersive--content dashboards-viewer--content">
             <DashboardView v-if="selectedInstance" :instance="selectedInstance" :disable-events="isResizing" />
             <DrawerTrigger :is-hidden="drawerOpen" @toggle="drawersStore.toggleEditorImmersiveDrawer" />
         </div>
@@ -41,43 +41,38 @@ import InstanceStatusPolling from '@/components/InstanceStatusPolling.vue'
 import DashboardView from '@/components/dashboard/index.vue'
 import DashboardDrawer from '@/components/immersive-editor/DashboardDrawer.vue'
 import DrawerTrigger from '@/components/immersive-editor/DrawerTrigger.vue'
-import { useTeamDashboards } from '@/composables/TeamDashboards'
+import { useDashboardScope, useDashboards } from '@/composables/Dashboards'
 import InstanceStatusBadge from '@/pages/instance/components/InstanceStatusBadge.vue'
-import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
-defineOptions({ name: 'TeamDashboardViewer' })
+defineOptions({ name: 'DashboardViewer' })
+
+const props = defineProps({
+    scope: {
+        type: String,
+        default: 'team'
+    }
+})
 
 const route = useRoute()
 const router = useRouter()
 const contextStore = useContextStore()
 const drawersStore = useUxDrawersStore()
 
-const { instances, instancesMap, loading, statusChannelLive, fetchData, instanceUpdated } = useTeamDashboards()
+const { context, fetch, viewerRouteName, homeRoute, ensureContext } = useDashboardScope(props.scope)
+const { instances, instancesMap, loading, statusChannelLive, fetchData, instanceUpdated } = useDashboards(fetch)
 
 const selectedId = ref<string | null>(null)
 const isResizing = ref(false)
 
-const team = computed(() => contextStore.team)
 const drawerOpen = computed(() => drawersStore.editorImmersiveDrawer.state)
 const selectedInstance = computed(() => instancesMap.value.get(selectedId.value) || null)
-const homeRoute = computed(() => {
-    if (!team.value) return null
-    return { name: 'team-dashboards', params: { team_slug: team.value.slug } }
-})
-
-function ensureTeam () {
-    const slug = route.params.team_slug
-    if (slug && contextStore.team?.slug !== slug) {
-        useAccountStore().setTeam(slug)
-    }
-}
 
 function selectDashboard (id) {
     selectedId.value = id
     if (route.params.instanceId !== id) {
-        router.replace({ name: 'team-dashboards-view', params: { ...route.params, instanceId: id } })
+        router.replace({ name: viewerRouteName, params: { ...route.params, instanceId: id } })
     }
 }
 
@@ -99,7 +94,8 @@ function resolveSelection () {
 }
 
 watch(instances, resolveSelection)
-watch(() => route.params.team_slug, ensureTeam)
+watch(context, fetchData)
+watch(() => route.params, ensureContext, { deep: true })
 watch(() => route.params.instanceId as string, id => {
     if (id && instancesMap.value.has(id)) {
         selectedId.value = id
@@ -107,7 +103,7 @@ watch(() => route.params.instanceId as string, id => {
 })
 
 onMounted(() => {
-    ensureTeam()
+    ensureContext()
     contextStore.setIsImmersive(true)
     fetchData()
 })
@@ -118,7 +114,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.team-dashboards {
+.dashboards-viewer {
     display: flex;
     flex-direction: row;
     flex: 1;
@@ -127,21 +123,21 @@ onUnmounted(() => {
     overflow: hidden;
 }
 
-.team-dashboards--content {
+.dashboards-viewer--content {
     flex: 1;
     min-width: 0;
     height: 100%;
     position: relative;
 }
 
-.team-dashboards--list {
+.dashboards-viewer--list {
     display: flex;
     flex-direction: column;
     gap: 2px;
     padding: 12px;
 }
 
-.team-dashboards--list-item {
+.dashboards-viewer--list-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -161,12 +157,12 @@ onUnmounted(() => {
         background: var(--ff-color-bg-surface-raised);
     }
 
-    &.selected .team-dashboards--list-item-name {
+    &.selected .dashboards-viewer--list-item-name {
         font-weight: 600;
     }
 }
 
-.team-dashboards--list-item-name {
+.dashboards-viewer--list-item-name {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

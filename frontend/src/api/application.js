@@ -65,6 +65,21 @@ const getApplication = (applicationId) => {
 }
 
 /**
+ * Get the instances within an application that have a dashboard installed
+ * @param {string} applicationId
+ */
+const getApplicationDashboards = async (applicationId) => {
+    const res = await client.get(`/api/v1/applications/${applicationId}/dashboard-instances`)
+    res.data.projects = res.data.projects.map(r => {
+        r.createdSince = daysSince(r.createdAt)
+        r.updatedSince = daysSince(r.updatedAt)
+        r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)
+        return r
+    })
+    return res.data
+}
+
+/**
  * Get the audit log for an application
  * @param {string} applicationId
  * @param {object} params
@@ -371,6 +386,7 @@ export default {
     deleteApplication,
     getSnapshots,
     getApplication,
+    getApplicationDashboards,
     getApplicationAuditLog,
     getApplicationDevices,
     getApplicationInstances,

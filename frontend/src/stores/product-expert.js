@@ -159,7 +159,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                 return router.push({ name: expertRouteName, params: contextStore.route.params })
             }
 
-            if (contextStore.route?.name === 'team-dashboards-view') {
+            if (['team-dashboards-view', 'application-dashboards-view'].includes(contextStore.route?.name)) {
                 const drawersStore = useUxDrawersStore()
                 if (!drawersStore.editorImmersiveDrawer.state) {
                     drawersStore.openEditorImmersiveDrawer()
