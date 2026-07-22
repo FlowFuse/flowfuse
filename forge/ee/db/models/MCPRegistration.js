@@ -91,14 +91,16 @@ module.exports = {
                         include
                     })
                 },
-                byTypeAndIDs: async (targetType, targetId, nodeId) => {
-                    return this.findOne({
-                        where: {
-                            targetType,
-                            targetId,
-                            nodeId
-                        }
-                    })
+                byTypeAndIDs: async (targetType, targetId, nodeId, teamId) => {
+                    const where = {
+                        targetType,
+                        targetId,
+                        nodeId
+                    }
+                    if (teamId !== undefined) {
+                        where.TeamId = teamId
+                    }
+                    return this.findOne({ where })
                 },
                 byId: async (idOrHash, { includeAssociations = false } = {}) => {
                     let id = idOrHash

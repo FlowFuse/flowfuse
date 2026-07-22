@@ -134,7 +134,7 @@ module.exports = async function (app) {
                 throw new Error(`Unknown MCP target type '${request.params.type}'`)
             }
 
-            if (request.params.typeId !== request.session.ownerId) {
+            if (String(typeId) !== String(request.session.ownerId)) {
                 reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
                 return
             }
@@ -195,20 +195,22 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        let typeId = request.params.typeId
         if (request.params.type === 'device') {
             const device = await app.db.models.Device.byId(request.params.typeId)
-            if (device.Team.id !== request.team.id) {
-                reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+            if (!device) {
+                reply.code(404).send({ code: 'not_found', error: 'Device not found' })
                 return
             }
+            typeId = device.id
             if (device.Team.id !== request.team.id) {
                 reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
                 return
             }
         } else if (request.params.type === 'instance') {
             const project = await app.db.models.Project.byId(request.params.typeId)
-            if (project.Team.id !== request.team.id) {
-                reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+            if (!project) {
+                reply.code(404).send({ code: 'not_found', error: 'Instance not found' })
                 return
             }
             if (project.Team.id !== request.team.id) {
@@ -216,14 +218,17 @@ module.exports = async function (app) {
                 return
             }
         } else {
-            throw new Error(`Unknown MCP target type '${request.params.type}'`)
+            reply.code(400).send({ code: 'invalid_request', error: `Unknown MCP target type '${request.params.type}'` })
+            return
         }
-        if (request.params.typeId !== request.session.ownerId) {
+
+        if (String(typeId) !== String(request.session.ownerId)) {
             reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
             return
         }
+
         try {
-            const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs(request.params.type, request.params.typeId, request.params.nodeId)
+            const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs(request.params.type, typeId, request.params.nodeId, request.team.id)
             if (mcpServer) {
                 await mcpServer.destroy()
                 reply.send({})

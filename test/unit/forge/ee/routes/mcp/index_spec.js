@@ -309,4 +309,86 @@ describe('MCP Server Registration', function () {
         })
         deleteResponse.statusCode.should.equal(403)
     })
+    it('should let a device register and delete its own MCP entry', async function () {
+        const created = await app.factory.createDevice({ name: 'mcp-device' }, app.team)
+        // reload so the Team association is hydrated for token generation
+        const device = await app.db.models.Device.byId(created.id)
+        const { token } = await device.refreshAuthTokens()
+
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/device/${device.hashid}/nodeD`,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'device-mcp',
+                protocol: 'http',
+                endpointRoute: '/mcp'
+            }
+        })
+        response.statusCode.should.equal(200)
+        // stored against the numeric device id, not the hashid
+        const stored = await app.db.models.MCPRegistration.byTypeAndIDs('device', device.id, 'nodeD')
+        should.exist(stored)
+
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/device/${device.hashid}/nodeD`,
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        deleteResponse.statusCode.should.equal(200)
+        const afterDelete = await app.db.models.MCPRegistration.byTypeAndIDs('device', device.id, 'nodeD')
+        should.not.exist(afterDelete)
+    })
+    it('should not create MCP entry when teamId does not match the asset team', async function () {
+        // second team, used only for the URL teamId
+        const bTeam = await app.factory.createTeam({ name: 'BTeamMismatch' })
+        const { token } = await app.instance.refreshAuthTokens()
+
+        // caller's own token and own instance id, but a foreign team in the URL
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${bTeam.hashid}/mcp/instance/${app.instance.id}/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'foo',
+                protocol: 'http',
+                endpointRoute: '/mcp'
+            }
+        })
+        response.statusCode.should.equal(403)
+    })
+    it('should not delete MCP entry when teamId does not match the asset team', async function () {
+        const bTeam = await app.factory.createTeam({ name: 'BTeamMismatchDelete' })
+        const { token } = await app.instance.refreshAuthTokens()
+
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${bTeam.hashid}/mcp/instance/${app.instance.id}/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        deleteResponse.statusCode.should.equal(403)
+    })
+    it('should return 404 when deleting MCP entry for a missing instance', async function () {
+        const { token } = await app.instance.refreshAuthTokens()
+        const randomId = uuidv4()
+
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${randomId}/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        deleteResponse.statusCode.should.equal(404)
+    })
 })
