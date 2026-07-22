@@ -46,7 +46,7 @@ const sourceChat = {
     enable: true,
     parameters: {
         qos: 1,
-        topic: 'ff/v1/expert/+/+/+/+/support/chat/response'
+        topic: '$share/expert/ff/v1/expert/+/+/+/+/support/chat/response'
     },
     resource_opts: {
         health_check_interval: '15s'
@@ -62,7 +62,7 @@ const sourceInflight = {
     enable: true,
     parameters: {
         qos: 1,
-        topic: 'ff/v1/expert/+/+/+/+/support/inflight/+/request'
+        topic: '$share/expert/ff/v1/expert/+/+/+/+/support/inflight/+/request'
     },
     resource_opts: {
         health_check_interval: '15s'
