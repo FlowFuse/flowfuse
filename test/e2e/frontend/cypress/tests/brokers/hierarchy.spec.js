@@ -17,7 +17,7 @@ describe('FlowFuse - Brokers Hierarchy', () => {
             cy.get('[data-nav="team-unified-namespace"]').should('not.exist')
             cy.visit('team/ateam/brokers/team-broker/hierarchy')
 
-            cy.get('[data-el="instances-table"]').should('exist')
+            cy.get('[data-el="dashboards-list"]').should('exist')
         })
     })
 })
