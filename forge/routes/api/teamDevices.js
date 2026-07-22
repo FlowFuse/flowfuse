@@ -498,7 +498,7 @@ module.exports = async function (app) {
             if (request.body.instance !== undefined || request.body.application !== undefined) {
                 const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team.getFeatureProperty('rbacApplication', false)
                 // Only pass through the teamMembership object if application RBAC is enabled
-                const updatedDevices = await deviceController.moveDevices(request.body.devices, request.body.application, request.body.instance, request.session?.User, applicationRBACEnabled ? request.teamMembership : null)
+                const updatedDevices = await deviceController.moveDevices(request.team, request.body.devices, request.body.application, request.body.instance, request.session?.User, applicationRBACEnabled ? request.teamMembership : null)
                 updatedDevices.devices = updatedDevices.devices.map(d => app.db.views.Device.device(d))
                 reply.send(updatedDevices)
             } else if (Object.prototype.hasOwnProperty.call(request.body, 'deviceGroup')) {
