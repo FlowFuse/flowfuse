@@ -31,10 +31,9 @@
             <div class="banner-wrapper">
                 <FeatureUnavailableToTeam v-if="!instancesAvailable" />
             </div>
-            <ff-loading v-if="loading && !instancesMap.size && !hasFilter" message="Loading Instances..." />
-            <template v-else-if="instancesAvailable">
+            <template v-if="instancesAvailable">
                 <ff-data-table
-                    v-if="instances.length > 0 || hasFilter"
+                    v-if="loading || instances.length > 0 || hasFilter"
                     data-el="instances-table" :columns="columns" :rows="instances" :show-search="true"
                     search-placeholder="Search Instances..."
                     :initialSortKey="sort.key" :initialSortOrder="sort.order"
@@ -209,7 +208,7 @@ export default {
     },
     data () {
         return {
-            loading: false,
+            loading: true,
             fetchSeq: 0,
             instancesMap: new Map(),
             page: 1,
@@ -308,8 +307,11 @@ export default {
             this.fetchData()
         },
         async fetchData () {
-            if (!this.team.id || !this.instancesAvailable) {
+            if (!this.instancesAvailable) {
                 this.loading = false
+                return
+            }
+            if (!this.team.id) {
                 return
             }
             const seq = ++this.fetchSeq
