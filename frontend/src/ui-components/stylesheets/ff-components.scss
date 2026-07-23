@@ -891,6 +891,26 @@ li.ff-kebab-item {
         background-color: transparent;
         color: inherit;
       }
+      .ff-data-table--skeleton-row .ff-data-table--cell {
+        .ff-data-table--skeleton-bar {
+          height: 24px;
+          width: 80%;
+          border-radius: 4px;
+          background-color: var(--ff-color-bg-emphasis);
+        }
+        .ff-data-table--skeleton-btn {
+          height: 24px;
+          width: 140px;
+          border-radius: 6px;
+          background-color: var(--ff-color-bg-emphasis);
+        }
+        .ff-data-table--skeleton-kebab {
+          height: 24px;
+          width: 4px;
+          border-radius: 4px;
+          background-color: var(--ff-color-bg-emphasis);
+        }
+      }
     }
   }
   &--row {

@@ -59,7 +59,28 @@
                     <tbody>
                         <!-- ROWS -->
                         <slot name="rows">
-                            <ff-data-table-row v-if="loading">
+                            <template v-if="loading && loadingType === 'skeleton'">
+                                <ff-data-table-row
+                                    v-for="n in skeletonRowCount" :key="'skeleton-' + n"
+                                    class="ff-data-table--skeleton-row"
+                                >
+                                    <ff-data-table-cell v-if="collapsibleRow" class="w-5" />
+                                    <ff-data-table-cell v-if="showRowCheckboxes" class="w-5" />
+                                    <ff-data-table-cell v-for="(col, $index) in columns" :key="$index" :class="col.class">
+                                        <div class="ff-data-table--skeleton-bar animate-pulse" />
+                                    </ff-data-table-cell>
+                                    <ff-data-table-cell v-if="hasRowActions" style="width: 1px; white-space: nowrap;">
+                                        <div class="ff-data-table--row-actions">
+                                            <div class="ff-data-table--skeleton-btn animate-pulse" />
+                                            <div class="ff-data-table--skeleton-btn animate-pulse" />
+                                        </div>
+                                    </ff-data-table-cell>
+                                    <ff-data-table-cell v-if="hasContextMenu" style="width: 50px">
+                                        <div class="ff-data-table--skeleton-kebab animate-pulse" />
+                                    </ff-data-table-cell>
+                                </ff-data-table-row>
+                            </template>
+                            <ff-data-table-row v-else-if="loading">
                                 <ff-data-table-cell class="status-message" :colspan="messageColSpan">
                                     {{ loadingMessage }}
                                 </ff-data-table-cell>
@@ -268,6 +289,10 @@ export default {
             type: String,
             default: 'Loading Data...'
         },
+        loadingType: {
+            type: String,
+            default: 'text'
+        },
         noDataMessage: {
             type: String,
             default: 'No Data Found'
@@ -334,6 +359,9 @@ export default {
         },
         hasContextMenu: function () {
             return this.$slots['context-menu']
+        },
+        skeletonRowCount: function () {
+            return this.pagination?.pageSize || this.rows?.length || 10
         },
         messageColSpan: function () {
             let colspan = this.columns.length
