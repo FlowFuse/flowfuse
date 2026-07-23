@@ -903,6 +903,10 @@ li.ff-kebab-item {
           width: 140px;
           border-radius: 6px;
           background-color: var(--ff-color-bg-emphasis);
+
+          @media (max-width: 639px) {
+            width: 36px;
+          }
         }
         .ff-data-table--skeleton-kebab {
           height: 24px;

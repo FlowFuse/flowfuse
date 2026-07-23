@@ -240,7 +240,7 @@ export default {
                 },
                 {
                     label: 'Application',
-                    class: ['grow-[0.25]'],
+                    class: ['w-70'],
                     key: 'application.name',
                     sortable: true,
                     component: {
