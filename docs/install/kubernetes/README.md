@@ -11,45 +11,6 @@ meta:
       - mqtt
 ---
 
-<script>     
-    class ChecklistItem extends HTMLElement {
-
-       static observedAttributes = ["type", "task"];
-
-       constructor() {
-          super();   
-          this.type = 'required'
-          this.task = ''
-       }
-
-       attributeChangedCallback(name, oldValue, newValue) {
-         if (name === "type") {
-             this.type = newValue;
-         } else if (name === "task") {
-             this.task = newValue;
-         }
-       }
-
-       connectedCallback () {
-         const iconRequired = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`
-         const iconRecommended = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`
-         const iconOptional = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`
-
-         let icon = iconRequired
-         let tooltip = "Required for Operation"
-         if (this.type === 'recommended') {
-           icon = iconRecommended
-           tooltip = "Recommended for Production"
-         } else if (this.type === 'optional') {
-           icon = iconOptional
-           tooltip = "Optional"
-         }
-         this.innerHTML = `<div class="checklist-item checklist-item--${this.type}"><span class="tooltip" data-tooltip="${tooltip}"><span class="checklist-item-status">${icon}</span><span>${this.task}</span></span></div>`
-       }
-    }
-
-    customElements.define('checklist-item', ChecklistItem);
- </script>
 
 # Kubernetes Install
 
@@ -62,19 +23,26 @@ By the end, you will have a fully functioning FlowFuse instance running on a Kub
    <div class="checklist">
      <label>Prerequisites</label>
      <div>
-       <checklist-item task="Domain Name"></checklist-item>
-       <checklist-item task="Kubernetes cluster"></checklist-item>
-       <checklist-item type="recommended" task="Setup Dedicated Database"></checklist-item>
-       <checklist-item type="recommended" task="Prepare TLS Certificates"></checklist-item>
+       ::ChecklistItem{task="Domain Name"}
+       ::
+       ::ChecklistItem{task="Kubernetes cluster"}
+       ::
+       ::ChecklistItem{type="recommended" task="Setup Dedicated Database"}
+       ::
+       ::ChecklistItem{type="recommended" task="Prepare TLS Certificates"}
+       ::
      </div>
    </div>
 
    <div class="checklist">
      <label>Installation</label>
      <div>
-       <checklist-item task="Download FlowFuse"></checklist-item>
-       <checklist-item task="Configure FlowFuse"></checklist-item>
-       <checklist-item type="recommended" task="Enable HTTPS"></checklist-item>
+       ::ChecklistItem{task="Download FlowFuse"}
+       ::
+       ::ChecklistItem{task="Configure FlowFuse"}
+       ::
+       ::ChecklistItem{type="recommended" task="Enable HTTPS"}
+       ::
      </div>
    </div>
  </div>

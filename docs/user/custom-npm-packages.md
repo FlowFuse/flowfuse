@@ -35,7 +35,7 @@ only need to be done once.
 The credentials can be found by navigating to the "Custom Nodes" tab under 
 the Team Library and clicking on the "Publish" button.
 
-![Publish Custom Package](./images/publish-custom-package.png){data-zoomable}{style="max-width: 600px;"}
+![Publish Custom Package](./images/publish-custom-package.png){style="max-width: 600px;"}
 _Screenshot fo the "Publish Custom Package" dialog shown in the FlowFuse UI_
 
 ```
@@ -77,7 +77,7 @@ npm publish
 Once published you should see the Node listed in the "Custom Nodes" section 
 of the Team Library.
 
-![Screenshot of the "Custom Nodes" view in the Team Library](./images/custom-node-library.png){data-zoomable}{style="max-width: 850px;"}
+![Screenshot of the "Custom Nodes" view in the Team Library](./images/custom-node-library.png){style="max-width: 850px;"}
 _Screenshot of the "Custom Nodes" view in the Team Library_
 
 ### Installing Nodes
@@ -85,7 +85,7 @@ _Screenshot of the "Custom Nodes" view in the Team Library_
 Any packages uploaded to the Team Library will be published to your Instances 
 under a custom catalogue with the name "FlowFuse Team [team name] Catalogue"
 
-![Node-RED Custom Catalogue](./images/custom-catalogue.png){data-zoomable}{style="max-width: 600px;"}
+![Node-RED Custom Catalogue](./images/custom-catalogue.png){style="max-width: 600px;"}
 _Screenshot of the contents of a FlowFUse catalogue appearing in the "install" tab of the Node-RED Palette Manager_
 
 ## 3rd Party NPM Registries or Private npmjs.org packages
@@ -101,7 +101,7 @@ in the Instance Settings.
 
 This can include authentication tokens to access private packages.
 
-![.npmrc file](./images/instance-settings-npmrc.png){data-zoomable}{style="max-width: 600px;"}
+![.npmrc file](./images/instance-settings-npmrc.png){style="max-width: 600px;"}
 _Screenshot from the FlowFuse platform, showing the input for defining an .npmrc file_
 
 ### Node-RED Catalogues
@@ -110,5 +110,5 @@ In order to be able to install packages in the Node-RED editor they need to
 in a Node-RED Catalogue file that is loaded from a HTTPS URL. You can 
 supply a list of Catalogue URLs in the Instance Settings.
 
-![Node Catalogues](./images/instance-settings-catalogues.png){data-zoomable}{style="max-width: 600px;"}
+![Node Catalogues](./images/instance-settings-catalogues.png){style="max-width: 600px;"}
 _Screenshot of the listed Node Catalogues configured on an Instance_

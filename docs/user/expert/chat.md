@@ -16,7 +16,7 @@ While in Immersive Mode you also have access to all [instance settings](/docs/us
 
 > **Note:** Note: As of v2.29, the FlowFuse Expert panel opens automatically whenever you enter the FlowFuse platform or an instance. If you close the panel, your preference is saved — Expert will remain closed on your next visit so it doesn’t get in your way. To open or close the panel while within the editor, click the FlowFuse drawer button in the top-left corner of the editor.
 
-!["Chat interface of FlowFuse Expert alongside the Node-RED editor"](../images/assistant/flowfuse-expert-drawer.png){data-zoomable}
+!["Chat interface of FlowFuse Expert alongside the Node-RED editor"](../images/assistant/flowfuse-expert-drawer.png)
 
 ## Chat Modes
 
@@ -59,7 +59,7 @@ Expert can act on your requests directly by adding tabs, placing and wiring node
 
 To use it, describe what you want to build in the chat input, the same way you would ask a question. Expert will start working immediately, and you can follow along via real-time status updates in the chat panel as each step completes. When it finishes, the result is live on your canvas. You can continue refining it through chat by asking Expert to adjust a configuration, add a node, or change a topic path, or you can edit the canvas directly as normal.
 
-![FlowFuse Expert building and configuring a flow directly on the Node-RED canvas](../images/assistant/flowfuse-expert-building-flow.gif){data-zoomable}
+![FlowFuse Expert building and configuring a flow directly on the Node-RED canvas](../images/assistant/flowfuse-expert-building-flow.gif)
 
 Some prompts that work well:
 
@@ -117,7 +117,7 @@ This allows you to ask questions like:
 
 The Expert can use palette context to tailor its suggestions - for example, recommending nodes you actually have installed rather than suggesting ones that are not available.
 
-![Palette Context discussion with the FlowFuse Expert.](../images/assistant/palette-context.gif){data-zoomable}
+![Palette Context discussion with the FlowFuse Expert.](../images/assistant/palette-context.gif)
 
 ##### Flow Context
 
@@ -132,7 +132,7 @@ This allows you to ask questions like:
 
 Flow Context is what makes the Expert genuinely useful as a debugging and code review tool - it can see the same flow you're looking at and reason about it directly.
 
-![FlowFuse Context discussion with the FlowFuse Expert.](../images/assistant/flow-context.gif){data-zoomable}
+![FlowFuse Context discussion with the FlowFuse Expert.](../images/assistant/flow-context.gif)
 
 ##### Debug Context
 
@@ -151,7 +151,7 @@ This allows you to ask questions like:
 
 Debug Context is especially useful in combination with Flow Context - together they give the Expert both the structure of your flow and the actual data it is producing, making debugging significantly more effective.
 
-![Debug Context discussion with the FlowFuse Expert.](../images/assistant/expert-debug-context.gif){data-zoomable}
+![Debug Context discussion with the FlowFuse Expert.](../images/assistant/expert-debug-context.gif)
 
 #### Resetting Context
 
@@ -223,7 +223,7 @@ If you have multiple questions, consider asking them separately so the Expert ca
 
 When a newer version of FlowFuse Expert is available, a banner appears in the chat area to let you know. You can update with a single click directly from the notification, without leaving your current workflow.
 
-![FlowFuse Expert Update Banner](../images/assistant/ff-expert-update-banner.gif){data-zoomable}
+![FlowFuse Expert Update Banner](../images/assistant/ff-expert-update-banner.gif)
 
 <style>
   .assistant-feature {
