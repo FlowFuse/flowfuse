@@ -104,6 +104,13 @@ module.exports = {
                 if (!snapshot) {
                     throw new ValidationError('Snapshot does not exist')
                 }
+                // ensure the snapshot belongs to the same team as the device group's
+                // application - never trust a payload-supplied snapshot id to be in-team
+                const snapshotTeamId = await snapshot.getTeamId()
+                const application = await deviceGroup.getApplication()
+                if (!snapshotTeamId || !application || snapshotTeamId !== application.TeamId) {
+                    throw new ValidationError('Snapshot does not belong to the same team')
+                }
                 snapshotId = snapshot.id
             }
 

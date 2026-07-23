@@ -529,6 +529,37 @@ describe('Application Device Groups API', function () {
             app.comms.devices.sendCommand.callCount.should.equal(0) // no devices should have been sent an update
         })
 
+        // Bob (BTeam owner) should not be able to point his BTeam device group at an ATeam snapshot.
+        it('Rejects a targetSnapshot that belongs to another team (400)', async function () {
+            const { sid, application, deviceGroup, device1of2, device2of2, snapshot } = await prepare()
+
+            // Create an application, instance and snapshot owned by ATeam (foreign to bob's BTeam group)
+            const foreignApplication = await factory.createApplication({ name: generateName('foreign-app') }, TestObjects.ATeam)
+            const foreignInstance = await factory.createInstance({ name: generateName('foreign-instance') }, foreignApplication, app.stack, app.template, app.projectType, { start: false })
+            const foreignSnapshot = await factory.createSnapshot({ name: generateName('foreign-snapshot') }, foreignInstance, TestObjects.alice)
+
+            // now call the API to point the group at the foreign snapshot
+            const response = await callUpdate(sid, application, deviceGroup, {
+                targetSnapshotId: foreignSnapshot.hashid
+            })
+
+            // should fail
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invalid_input')
+
+            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            const updatedDevice1 = await app.db.models.Device.byId(device1of2.hashid)
+            const updatedDevice2 = await app.db.models.Device.byId(device2of2.hashid)
+
+            // should not have updated the group or devices - still the original in-team snapshot
+            updatedDeviceGroup.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice1.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice2.should.have.property('targetSnapshotId', snapshot.id)
+
+            // check no devices got an update command
+            app.comms.devices.sendCommand.callCount.should.equal(0)
+        })
+
         it('Cannot update a device group with empty name', async function () {
             const sid = await login('bob', 'bbPassword')
             const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
