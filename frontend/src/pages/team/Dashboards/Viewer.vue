@@ -39,7 +39,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import InstanceStatusPolling from '@/components/InstanceStatusPolling.vue'
 import DashboardView from '@/components/dashboard/index.vue'
-import DashboardDrawer from '@/components/immersive-editor/DashboardDrawer.vue'
+import DashboardDrawer from '@/components/drawers/dashboard/DashboardDrawer.vue'
 import DrawerTrigger from '@/components/immersive-editor/DrawerTrigger.vue'
 import { useTeamDashboards } from '@/composables/TeamDashboards'
 import InstanceStatusBadge from '@/pages/instance/components/InstanceStatusBadge.vue'
