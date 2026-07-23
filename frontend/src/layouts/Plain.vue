@@ -22,16 +22,12 @@
 <script>
 import { mapState } from 'pinia'
 
-import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useUxStore } from '@/stores/ux.js'
 
 export default {
     name: 'ff-layout-plain',
     computed: {
-        ...mapState(useUxStore, ['overlay']),
-        ...mapState(useProductBrokersStore, ['interview']),
-        ...mapState(useAccountSettingsStore, ['hasAvailableTeams'])
+        ...mapState(useUxStore, ['overlay'])
     }
 }
 </script>

@@ -241,15 +241,6 @@ export default [
         meta: {
             title: 'Register Remote Instance',
             layout: 'plain'
-            // menu: {
-            //     type: 'back',
-            //     backTo: ({ team }) => {
-            //         return {
-            //             label: 'Cancel registration',
-            //             to: { name: 'Team', params: { team_slug: team?.slug } }
-            //         }
-            //     }
-            // }
         }
     },
     {
