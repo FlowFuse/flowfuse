@@ -303,16 +303,16 @@ describe('FlowFuse - RBAC GUI Management', () => {
             cy.get('[data-nav="user-access"]').should('not.exist')
 
             // checking that a plain dashboard user has access to all application instances when he has no additional rbac permissions set
-            cy.get('[data-el="instances-table"]').should('exist')
-            cy.get('[data-el="instances-table"] tbody tr').should('have.length', 5)
+            cy.get('[data-el="dashboards-table"]').should('exist')
+            cy.get('[data-el="dashboards-table"] tbody tr').should('have.length', 5)
             // application 1 should not be visible to anyone
-            cy.get('[data-el="instances-table"] [data-el="row-application-1-instance-1"]').should('not.exist')
+            cy.get('[data-el="dashboards-table"] [data-el="row-application-1-instance-1"]').should('not.exist')
             // application 2 should be visible to dashboard users
-            cy.get('[data-el="instances-table"] [data-el="row-application-2-instance-1"]').should('exist')
-            cy.get('[data-el="instances-table"] [data-el="row-application-3-instance-1"]').should('exist')
-            cy.get('[data-el="instances-table"] [data-el="row-application-4-instance-1"]').should('exist')
-            cy.get('[data-el="instances-table"] [data-el="row-application-5-instance-1"]').should('exist')
-            cy.get('[data-el="instances-table"] [data-el="row-application-6-instance-1"]').should('exist')
+            cy.get('[data-el="dashboards-table"] [data-el="row-application-2-instance-1"]').should('exist')
+            cy.get('[data-el="dashboards-table"] [data-el="row-application-3-instance-1"]').should('exist')
+            cy.get('[data-el="dashboards-table"] [data-el="row-application-4-instance-1"]').should('exist')
+            cy.get('[data-el="dashboards-table"] [data-el="row-application-5-instance-1"]').should('exist')
+            cy.get('[data-el="dashboards-table"] [data-el="row-application-6-instance-1"]').should('exist')
         })
     })
 })

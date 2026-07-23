@@ -29,7 +29,7 @@ describe('FlowFuse - Brokers Clients', () => {
             cy.get('[data-nav="team-brokers"]').should('not.exist')
             cy.visit('team/ateam/brokers/team-broker/clients')
 
-            cy.get('[data-el="instances-table"]').should('exist')
+            cy.get('[data-el="dashboards-list"]').should('exist')
         })
     })
 })

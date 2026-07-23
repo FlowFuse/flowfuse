@@ -251,8 +251,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 },
                                 tag: 'team-dashboards',
                                 icon: ChartPieIcon,
-                                disabled: requiresBilling,
-                                hidden: features.isEmbeddedDashboardEnabled
+                                disabled: requiresBilling
                             },
                             {
                                 label: 'Groups',
