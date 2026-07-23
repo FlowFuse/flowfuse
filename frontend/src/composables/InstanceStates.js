@@ -49,16 +49,6 @@ export function useInstanceStates () {
     const isStoppedState = (state) => stoppedStates.includes(state)
     const isTransitionState = (state) => transitionStates.includes(state)
 
-    const knownStates = [...new Set([...runningStates, ...errorStates, ...stoppedStates])]
-
-    const resolveSearchStates = (term) => {
-        if (!term) return null
-        const key = term.trim().toLowerCase()
-        if (statesMap[key]) return statesMap[key]
-        if (knownStates.includes(key)) return [key]
-        return null
-    }
-
     const groupBySimplifiedStates = (instanceStateCounts) => {
         return {
             running: instanceStateCounts
@@ -89,7 +79,6 @@ export function useInstanceStates () {
         transitionStates,
         isTransitionState,
         statesMap,
-        groupBySimplifiedStates,
-        resolveSearchStates
+        groupBySimplifiedStates
     }
 }

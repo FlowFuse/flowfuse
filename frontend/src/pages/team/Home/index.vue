@@ -243,7 +243,7 @@ export default {
         },
         onStatClick (payload) {
             if (payload.type === 'hosted') {
-                this.$router.push({ name: 'Instances', query: { searchQuery: payload.state } })
+                this.$router.push({ name: 'Instances', query: { status: payload.state } })
             } else {
                 const states = Object.prototype.hasOwnProperty.call(this.instanceStatesMap, payload.state)
                     ? this.instanceStatesMap[payload.state]
