@@ -82,6 +82,11 @@ export default {
                     // icon: CpuChipIcon
                 },
                 {
+                    label: 'Dashboards',
+                    to: { name: 'ApplicationDashboards' },
+                    tag: 'application-dashboards'
+                },
+                {
                     label: 'Device Groups',
                     to: { name: 'ApplicationDeviceGroups' },
                     tag: 'application-devices-groups-overview',

@@ -1,5 +1,5 @@
 import {
-    BookOpenIcon, ChartBarIcon, ChatBubbleOvalLeftEllipsisIcon, ChevronLeftIcon, CircleStackIcon, Cog8ToothIcon,
+    BookOpenIcon, ChartBarIcon, ChartPieIcon, ChatBubbleOvalLeftEllipsisIcon, ChevronLeftIcon, CircleStackIcon, Cog8ToothIcon,
     ComputerDesktopIcon, CpuChipIcon, CurrencyDollarIcon,
     HomeIcon, LockClosedIcon, RectangleGroupIcon, RectangleStackIcon,
     RssIcon, SwatchIcon, TableCellsIcon, UserGroupIcon, UsersIcon
@@ -241,6 +241,16 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                                 },
                                 tag: 'team-applications',
                                 icon: RectangleGroupIcon,
+                                disabled: requiresBilling
+                            },
+                            {
+                                label: 'Dashboards',
+                                to: {
+                                    name: 'team-dashboards',
+                                    params: { team_slug: team.slug }
+                                },
+                                tag: 'team-dashboards',
+                                icon: ChartPieIcon,
                                 disabled: requiresBilling
                             },
                             {

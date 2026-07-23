@@ -159,6 +159,18 @@ export const useProductExpertStore = defineStore('product-expert', {
                 return router.push({ name: expertRouteName, params: contextStore.route.params })
             }
 
+            if (['team-dashboards-view', 'application-dashboards-view'].includes(contextStore.route?.name)) {
+                const drawersStore = useUxDrawersStore()
+                if (!drawersStore.editorImmersiveDrawer.state) {
+                    drawersStore.openEditorImmersiveDrawer()
+                }
+                return import('../components/expert/Expert.vue')
+                    .then(({ default: ExpertPanel }) => drawersStore.openRightDrawer({
+                        component: markRaw(ExpertPanel),
+                        header: { title: 'Expert' }
+                    }))
+            }
+
             if (this.agentMode === INSIGHTS_AGENT) {
                 useProductExpertInsightsAgentStore().getCapabilities()
             }

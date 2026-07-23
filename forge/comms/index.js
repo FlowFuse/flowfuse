@@ -3,6 +3,7 @@ const fp = require('fastify-plugin')
 const ACLManager = require('./aclManager')
 const { CommsClient } = require('./commsClient')
 const { DeviceCommsHandler } = require('./devices')
+const { ExpertCommsHandler } = require('./expert')
 const { InstanceCommsHandler } = require('./instances')
 const { PlatformAutomationHandler } = require('./platformAutomation.js')
 
@@ -34,6 +35,7 @@ module.exports = fp(async function (app, _opts) {
         const deviceCommsHandler = DeviceCommsHandler(app, client)
         const instanceCommsHandler = InstanceCommsHandler(app, client)
         const platformAutomationHandler = PlatformAutomationHandler(app, client)
+        const expertCommsHandler = new ExpertCommsHandler(app, client)
 
         // Not in the current release, but when we handle Launcher status
         // via MQTT, it will arrive here. Compare to the status/device handler in `devices.js`
@@ -47,6 +49,7 @@ module.exports = fp(async function (app, _opts) {
             instances: instanceCommsHandler,
             aclManager: ACLManager(app),
             platformAutomation: platformAutomationHandler,
+            expert: expertCommsHandler,
             platform: {
                 settings: {
                     sync: function (key) {
