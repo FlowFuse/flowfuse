@@ -1,6 +1,6 @@
 <template>
     <div class="instance-dashboard" data-el="instance-dashboard">
-        <EmptyState v-if="!isRunning">
+        <EmptyState v-if="!isRunning" class="instance-dashboard--empty">
             <template #img>
                 <img src="@/images/empty-states/no-access_dashboard-only.png" alt="no-dashboard">
             </template>
@@ -59,11 +59,26 @@ watch(hasDashboard, value => {
     flex-direction: column;
     height: 100%;
     width: 100%;
+    background: var(--ff-color-bg-app);
 }
 
 .instance-dashboard iframe {
     flex: 1;
     width: 100%;
     border: none;
+}
+
+.instance-dashboard--empty {
+    flex: 1;
+    display: flex;
+    padding: 1.75rem;
+}
+
+.instance-dashboard--empty :deep(.ff-empty-state) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 </style>
