@@ -250,20 +250,20 @@ export default [
         name: 'team-dashboards-view',
         path: '/team/:team_slug/dashboards/:instanceId',
         component: DashboardViewer,
-        props: { scope: 'team' },
         meta: {
             title: 'Team - Dashboards',
-            layout: 'immersive'
+            layout: 'immersive',
+            scope: 'team'
         }
     },
     {
         name: 'application-dashboards-view',
         path: '/team/:team_slug/applications/:id/dashboards/:instanceId',
         component: DashboardViewer,
-        props: { scope: 'application' },
         meta: {
             title: 'Application - Dashboards',
-            layout: 'immersive'
+            layout: 'immersive',
+            scope: 'application'
         }
     },
     {
