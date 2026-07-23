@@ -1,7 +1,7 @@
 <template>
     <div class="ff-layout--box">
         <div class="ff-layout--box--wrapper" :class="{'md:grid-cols-2 max-w-6xl': !!$slots['splash-content'], 'max-w-2xl': !$slots['splash-content']}">
-            <div v-if="!!$slots['splash-content']" class="ff-layout--box--left hidden md:flex">
+            <div v-if="!!$slots['splash-content']" class="ff-layout--box--left flex">
                 <div class="ff-layout--box--content">
                     <div class="ff-logo">
                         <img class="ff-logo--light" src="/ff-logo--wordmark--light.png">

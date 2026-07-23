@@ -44,7 +44,10 @@ $nav_height: 60px;
 
     &.ff--center-box {
         flex-direction: column;
-        min-height: fit-content;
+        justify-content: safe center;
+        min-height: 0;
+        max-height: 100vh;
+        max-height: 100dvh;
         overflow: auto;
 
         .ff-layout--box--wrapper {
@@ -102,6 +105,26 @@ $nav_height: 60px;
 
 .ff-layout--box--content {
     width: 100%;
+}
+
+@media screen and (max-width: ($ff-screen-md - 1px)) {
+    .ff-signup {
+        .ff-layout--box--wrapper {
+            flex-direction: column;
+            gap: 0;
+        }
+        .ff-layout--box--left,
+        .ff-layout--box--right {
+            height: auto;
+        }
+        .ff-layout--box--left .ff-layout--box--content {
+            padding: 32px 24px 0;
+        }
+        .ff-layout--box--right .ff-layout--box--content {
+            min-height: 0;
+            padding-top: 16px;
+        }
+    }
 }
 
 .ff-layout--box--right .ff-layout--box--content {
