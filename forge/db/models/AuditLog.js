@@ -13,7 +13,8 @@ module.exports = {
         event: { type: DataTypes.STRING },
         body: { type: DataTypes.TEXT },
         entityId: { type: DataTypes.STRING },
-        entityType: { type: DataTypes.STRING }
+        entityType: { type: DataTypes.STRING },
+        source: { type: DataTypes.STRING, allowNull: true, defaultValue: null }
     },
     options: {
         updatedAt: false

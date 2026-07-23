@@ -156,6 +156,18 @@ class CommsClient extends EventEmitter {
                             onSuccess, // success callback
                             onError // failure callback
                         )
+                    } else if (userId === 'expert-agent' && sessionId === 'bridge' && channelCommand === 'heartbeat' && direction === 'request') {
+                        // We re-use the platform request-response channel for the heartbeat, so we can verify end-to-end connectivity between
+                        // the platform and the expert agent. However, this is a special case - it is done in reverse direction.
+                        // By design, platform requests come from the agent and the platform responds on the response topic.
+                        // In this special case, we re-use this channel (for e2e bridge check), the forge platform initiates a heartbeat
+                        // by publishing on the /response topic, and the expert agent will echo it back on the /request topic.
+                        // This is a bit confusing, but it works.
+                        this.emit(
+                            'response/platform/expert/bridge/heartbeat', // this is the response to the heartbeat request!
+                            payload.data || {}, // data
+                            mqttOptions.properties // properties
+                        )
                     }
                 } else if (ownerType === 'p') {
                     this.emit('status/project', {
@@ -232,8 +244,12 @@ class CommsClient extends EventEmitter {
                 'ff/v1/+/d/+/resources/heartbeat',
                 // Platform sync messages
                 'ff/v1/platform/sync',
-                // Listen for Expert platform requests
-                'ff/v1/expert/+/+/platform/+/request'
+                // Listen for Expert platform requests.
+                // Uses a dedicated shared subscription group. The group name defines the set
+                // of consumers that share the workload, so keeping Expert separate from the
+                // "platform" group prevents unrelated features from sharing a consumer pool and
+                // allows them to scale independently.
+                '$share/expert/ff/v1/expert/+/+/platform/+/request'
             ])
         }
     }
