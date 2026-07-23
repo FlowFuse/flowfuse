@@ -271,7 +271,7 @@ export default {
                 },
                 {
                     label: 'Application',
-                    class: ['w-70'],
+                    class: ['w-72'],
                     key: 'application.name',
                     sortable: true,
                     component: {
