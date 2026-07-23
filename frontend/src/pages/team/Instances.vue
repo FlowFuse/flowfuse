@@ -210,6 +210,7 @@ export default {
     data () {
         return {
             loading: false,
+            fetchSeq: 0,
             instancesMap: new Map(),
             page: 1,
             pageSize: 25,
@@ -311,6 +312,7 @@ export default {
                 this.loading = false
                 return
             }
+            const seq = ++this.fetchSeq
             this.loading = true
             try {
                 let response
@@ -326,6 +328,9 @@ export default {
                         includeMeta: true,
                         states: this.stateFilter
                     })
+                }
+                if (seq !== this.fetchSeq) {
+                    return
                 }
                 const projects = response?.projects || []
                 this.totalRows = response?.meta?.total ?? response?.count ?? projects.length
@@ -343,9 +348,13 @@ export default {
                 this.instancesMap = nextMap
                 this.applyLiveStatus()
             } catch (e) {
-                Alerts.emit('Failed to load instances.', 'warning')
+                if (seq === this.fetchSeq) {
+                    Alerts.emit('Failed to load instances.', 'warning')
+                }
             } finally {
-                this.loading = false
+                if (seq === this.fetchSeq) {
+                    this.loading = false
+                }
             }
         },
         applyLiveStatus () {
@@ -374,7 +383,7 @@ export default {
             }
             this.page = 1
             this.fetchData()
-        }, 200),
+        }, 300),
         updateSort (key, order) {
             this.sort.key = key
             this.sort.order = order
