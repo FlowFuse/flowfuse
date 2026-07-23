@@ -96,7 +96,7 @@ module.exports = [
             A remote instance is a Node-RED that runs on the user's own hardware rather than on the same environment as the FlowFuse platform.
             This only registers the device on the platform, it does not install anything on the user's hardware.
             The response includes credentials that the user will need to configure on their device to connect it to the platform.
-            If the user wants to assign it to an application, call platform_assign_remote_instance_to_application after creation.
+            If the user names or references an application for this device, call platform_assign_remote_instance_to_application immediately after creation. Otherwise, ask the user whether they want it assigned to an application.
             After the device is created, ask the user if they want to be taken to it. If they do, use the ui_navigate tool with the route name "device-overview" and params { id: <the new device id> }.`,
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {

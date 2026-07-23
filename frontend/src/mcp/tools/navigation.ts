@@ -9,6 +9,7 @@ const tools: McpToolDefinition[] = [
             Use ui_list_routes to discover valid route names and the parameters they need.
             Before navigating, call ui_get_context to remember what page the user is currently on, so you can go back if something goes wrong.
             After calling this tool, call ui_get_context again to verify the navigation actually worked and the user ended up on the right page.
+            success: true only means the route name matched and the browser was pushed to that URL - it does not confirm that an id param refers to a real entity, which is why the ui_get_context check above is required, not optional.
             If the navigation failed, it might be because a newly created entity has not finished setting up yet. Wait a few seconds and try the navigation again.
             If it still does not work after retrying, navigate the user back to the page they were on before and let them know what happened.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
@@ -21,7 +22,7 @@ const tools: McpToolDefinition[] = [
                 },
                 params: {
                     type: 'object',
-                    description: 'Route parameters (e.g. { id: "abc123" } or { team_slug: "my-team" })',
+                    description: 'Route parameters (e.g. { id: "abc123" } or { team_slug: "my-team" }). Each id must be the entity\'s real id (hashid) as returned by a list/get tool - never its display name.',
                     additionalProperties: { type: 'string' }
                 }
             },
@@ -30,12 +31,23 @@ const tools: McpToolDefinition[] = [
         async handler (args, { router }) {
             const { route: routeName, params } = args as { route: string, params?: Record<string, string> }
 
-            const resolved = router.resolve({ name: routeName, params })
+            let resolved
+            try {
+                resolved = router.resolve({ name: routeName, params })
+            } catch {
+                // router.resolve throws (rather than returning matched: []) for an unknown route name
+                resolved = null
+            }
             if (!resolved || !resolved.matched.length) {
-                return { success: false, error: `Route "${routeName}" not found` }
+                return { success: false, error: `Route "${routeName}" not found - use ui_list_routes to see valid route names` }
             }
 
-            await router.push({ name: routeName, params })
+            try {
+                await router.push({ name: routeName, params })
+            } catch (err) {
+                const message = err instanceof Error && err.message ? err.message : `Navigation to "${routeName}" failed`
+                return { success: false, error: message }
+            }
             return { success: true, route: routeName, path: resolved.fullPath }
         }
     }

@@ -4,7 +4,7 @@ import type { McpToolDefinition } from '@/types'
 
 function getRouteList (router: Router) {
     return router.getRoutes()
-        .filter(route => route.name && !route.redirect)
+        .filter(route => route.name)
         .map(route => ({
             name: route.name as string,
             path: route.path,

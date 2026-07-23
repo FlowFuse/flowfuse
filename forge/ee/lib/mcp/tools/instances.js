@@ -94,7 +94,7 @@ module.exports = [
             2. If they want a specific Node-RED version or stack, or just the latest. Call platform_list_stacks for the chosen instance type to get the options. If the user has no preference, use the instance type's defaultStack, which is the latest recommended version.
             3. If they want to start from a blueprint (pre-built starter flows). Call platform_list_blueprints to show them what is available. This is optional.
             4. Call platform_list_templates to get the template. If only one template exists, use it automatically. If there are multiple, ask the user which one to use.
-            5. Call platform_check_hosted_instance_name_availability to make sure the chosen name is not already taken.
+            5. Call platform_check_hosted_instance_name_availability to make sure the chosen name is not already taken. This step is required, not optional - skipping it is the most common cause of a failed creation. If the name is taken, do not silently pick a new one yourself - propose a few alternative options (e.g. with a suffix) and let the user choose, then check that chosen name's availability too.
             When generating a name, always use hyphens to separate multiple words (e.g. "my-new-instance" not "my new instance").
             After the instance is created, wait a few seconds to give it time to boot up, then ask the user if they want to be taken to it. If they do, use the ui_navigate tool with the route name "instance-overview" and params { id: <the new instance id> }.`,
         annotations: { readOnlyHint: false, destructiveHint: false },
