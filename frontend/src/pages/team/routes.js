@@ -7,6 +7,8 @@ import TeamAuditLog from './AuditLog.vue'
 import TeamBillOfMaterials from './BOM/index.vue'
 import TeamBilling from './Billing/index.vue'
 import BrokersRoutes from './Brokers/routes.js'
+import TeamDashboardViewer from './Dashboards/Viewer.vue'
+import TeamDashboards from './Dashboards/index.vue'
 import DeviceGroups from './DeviceGroups/index.vue'
 import TeamDevices from './Devices/index.vue'
 import TeamHome from './Home/index.vue'
@@ -50,6 +52,14 @@ export default [
                         path: 'overview',
                         name: 'team-home',
                         component: TeamHome
+                    },
+                    {
+                        name: 'team-dashboards',
+                        path: 'dashboards',
+                        component: TeamDashboards,
+                        meta: {
+                            title: 'Team - Dashboards'
+                        }
                     },
                     {
                         path: 'applications',
@@ -233,6 +243,15 @@ export default [
                 }
             }
         ]
+    },
+    {
+        name: 'team-dashboards-view',
+        path: '/team/:team_slug/dashboards/:instanceId',
+        component: TeamDashboardViewer,
+        meta: {
+            title: 'Team - Dashboards',
+            layout: 'immersive'
+        }
     },
     {
         path: '/deploy/blueprint',
