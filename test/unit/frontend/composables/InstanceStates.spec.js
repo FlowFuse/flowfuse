@@ -23,3 +23,30 @@ describe('useInstanceStates().isTransitionState', () => {
         expect(isTransitionState('')).toBe(false)
     })
 })
+
+describe('useInstanceStates().resolveSearchStates', () => {
+    const { resolveSearchStates, statesMap } = useInstanceStates()
+
+    test('group words expand to their group', () => {
+        expect(resolveSearchStates('running')).toEqual(statesMap.running)
+        expect(resolveSearchStates('error')).toEqual(statesMap.error)
+        expect(resolveSearchStates('stopped')).toEqual(statesMap.stopped)
+    })
+
+    test('individual known states resolve to that exact state', () => {
+        expect(resolveSearchStates('warning')).toEqual(['warning'])
+        expect(resolveSearchStates('crashed')).toEqual(['crashed'])
+        expect(resolveSearchStates('suspended')).toEqual(['suspended'])
+    })
+
+    test('is case-insensitive and trims whitespace', () => {
+        expect(resolveSearchStates('  Warning ')).toEqual(['warning'])
+    })
+
+    test('null for unrecognised terms and empty input', () => {
+        expect(resolveSearchStates('prod-api')).toBe(null)
+        expect(resolveSearchStates('runn')).toBe(null)
+        expect(resolveSearchStates('')).toBe(null)
+        expect(resolveSearchStates(null)).toBe(null)
+    })
+})

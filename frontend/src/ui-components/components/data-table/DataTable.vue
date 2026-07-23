@@ -289,6 +289,10 @@ export default {
         pagination: {
             type: Object,
             default: null
+        },
+        serverSideSearch: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked', 'update:page', 'update:page-size'],
@@ -394,7 +398,8 @@ export default {
             return this.filteredRows.filter((row) => this.checks[row[this.checkKeyProp]])
         },
         emptyStateMessage () {
-            if (!this.loading && this.rows?.length > 0 && this.filteredRows?.length === 0) {
+            const searchActive = this.serverSideSearch ? !!this.internalSearch : this.rows?.length > 0
+            if (!this.loading && searchActive && this.filteredRows?.length === 0) {
                 return 'No Data Found. Try Another Search.'
             }
 
@@ -441,6 +446,9 @@ export default {
             return this.rows
         },
         filterRows (rows) {
+            if (this.serverSideSearch) {
+                return rows
+            }
             const search = this.internalSearch
             if (!search) {
                 return rows

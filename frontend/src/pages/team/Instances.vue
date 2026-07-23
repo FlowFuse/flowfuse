@@ -32,15 +32,16 @@
             <div class="banner-wrapper">
                 <FeatureUnavailableToTeam v-if="!instancesAvailable" />
             </div>
-            <ff-loading v-if="loading && !instancesMap.size && searchTerm === null" message="Loading Instances..." />
+            <ff-loading v-if="loading && !instancesMap.size && !hasFilter" message="Loading Instances..." />
             <template v-else-if="instancesAvailable">
                 <ff-data-table
-                    v-if="instances.length > 0 || searchTerm !== null"
+                    v-if="instances.length > 0 || hasFilter"
                     data-el="instances-table" :columns="columns" :rows="instances" :show-search="true"
                     search-placeholder="Search Instances..."
                     :initialSortKey="sort.key" :initialSortOrder="sort.order"
                     :rows-selectable="!dashboardRoleOnly"
                     :pagination="paginationProps"
+                    :server-side-search="!dashboardRoleOnly"
                     @row-selected="openInstance"
                     @update:search="updateSearch"
                     @update:sort="updateSort"
@@ -212,11 +213,11 @@ export default {
         }
     },
     setup () {
-        const { isRunningState } = useInstanceStates()
+        const { isRunningState, resolveSearchStates } = useInstanceStates()
         const { navigateTo } = useNavigationHelper()
         const { hasPermission } = usePermissions()
 
-        return { hasPermission, isRunningState, navigateTo }
+        return { hasPermission, isRunningState, navigateTo, resolveSearchStates }
     },
     data () {
         return {
@@ -226,6 +227,7 @@ export default {
             pageSize: 25,
             totalRows: 0,
             searchTerm: null,
+            stateFilter: null,
             sort: {
                 key: 'flowLastUpdatedAt',
                 order: 'desc'
@@ -291,6 +293,9 @@ export default {
                 pageSize: this.pageSize,
                 total: this.totalRows
             }
+        },
+        hasFilter () {
+            return this.searchTerm !== null || this.stateFilter !== null
         }
     },
     watch: {
@@ -298,6 +303,15 @@ export default {
         liveInstanceMetadata: { handler: 'applyLiveStatus', deep: true }
     },
     mounted () {
+        if (this.$route.query.searchQuery) {
+            const term = this.$route.query.searchQuery
+            const states = this.resolveSearchStates(term)
+            if (states) {
+                this.stateFilter = states
+            } else {
+                this.searchTerm = term
+            }
+        }
         this.fullReload()
     },
     methods: {
@@ -322,7 +336,8 @@ export default {
                             sort: this.sort.key || null,
                             dir: this.sort.order || null
                         },
-                        includeMeta: true
+                        includeMeta: true,
+                        states: this.stateFilter
                     })
                 } else if (this.hasPermission('team:read')) {
                     // Dashboards endpoint not paginated server-side; keep current behavior.
@@ -365,7 +380,14 @@ export default {
             }
         },
         updateSearch: debounce(function (term) {
-            this.searchTerm = term
+            const states = this.resolveSearchStates(term)
+            if (states) {
+                this.stateFilter = states
+                this.searchTerm = null
+            } else {
+                this.searchTerm = term
+                this.stateFilter = null
+            }
             this.page = 1
             this.fetchData()
         }, 200),
