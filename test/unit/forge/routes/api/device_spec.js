@@ -471,6 +471,159 @@ describe('Device API', async function () {
         })
     })
 
+    describe('Async device registration', async function () {
+
+        it('session token status check requires user session', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/devices/_/register/status/invalid_session_token'
+            })
+            // 401 as this is unauthorized rather than non-existent
+            response.statusCode.should.equal(401)
+        })
+        it('rejects if the session token is invalid', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/devices/_/register/status/invalid_session_token',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            // 404 as this is non-existent rather than unauthorized
+            response.statusCode.should.equal(404)
+        })
+        it('rejects if the done token is invalid', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: '/api/v1/devices/_/register/done/invalid_done_token',
+            })
+            response.statusCode.should.equal(404)
+        })
+        it('starts a device registration session', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices/_/register'
+                // No cookie as this is an anonymous request to start the registration process
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.should.have.property('registerUrl').and.be.a.String()
+            result.should.have.property('doneUrl').and.be.a.String()
+
+            const sessionToken = result.registerUrl.split('/').pop()
+            // Verify status cannot be checked without a valid user session
+            let statusResponse = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/_/register/status/${sessionToken}`
+            })
+            // 401 as this is unauthorized rather than non-existent
+            statusResponse.statusCode.should.equal(401)
+
+            // Verify status can be checked with a valid user session
+            statusResponse = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/_/register/status/${sessionToken}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            statusResponse.statusCode.should.equal(202)
+
+            // Verify done URL can be checked without a valid user session
+            let doneResponse = await app.inject({
+                method: 'GET',
+                url: result.doneUrl
+            })
+            doneResponse.statusCode.should.equal(202)
+
+            // The user will now do the UI walkthrough to complete the registration process.
+            // This will result in a post to the create endpoint, including the sessionToken
+            // which we recreate here:
+
+            const createResponse = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    name: 'my device',
+                    type: 'test device',
+                    team: TestObjects.ATeam.hashid,
+                    application: TestObjects.Application1.hashid,
+                    registrationSession: sessionToken
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            createResponse.statusCode.should.equal(200)
+            const createResult = createResponse.json()
+            createResult.should.have.property('id')
+            createResult.should.have.property('name', 'my device')
+            createResult.should.have.property('type', 'test device')
+            createResult.should.have.property('team').and.be.an.Object()
+            createResult.should.have.property('application').and.be.an.Object()
+            createResult.should.have.property('credentials').and.be.an.Object()
+            createResult.team.should.have.property('id', TestObjects.ATeam.hashid)
+            createResult.application.should.have.property('id', TestObjects.Application1.hashid)
+            createResult.credentials.should.have.property('otc')
+            const deviceOTC = createResult.credentials.otc
+
+            // Verify sessionToken now returns a 404 on the status endpoint
+            statusResponse = await app.inject({
+                method: 'GET',
+                url: `/api/v1/devices/_/register/status/${sessionToken}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            statusResponse.statusCode.should.equal(404)
+
+            // At this point, the session still exists and will do until `doneURL` is polled.
+            //Verify we can't reuse the sessionToken to create another device within this window
+            const createResponse2 = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    name: 'my device 2',
+                    type: 'test device',
+                    team: TestObjects.ATeam.hashid,
+                    application: TestObjects.Application1.hashid,
+                    registrationSession: sessionToken
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            createResponse2.statusCode.should.equal(400)
+            const result2 = createResponse2.json()
+            result2.should.have.property('error', 'Invalid registration session')
+            result2.should.have.property('code', 'invalid_request')
+
+            // Verify the doneUrl now returns a 200 and includes the device credentials
+            doneResponse = await app.inject({
+                method: 'GET',
+                url: result.doneUrl
+            })
+            doneResponse.statusCode.should.equal(200)
+            const doneResult = doneResponse.json()
+            doneResult.should.have.property('otc', deviceOTC)
+
+            // Verify the doneURL now returns a 404 on subsequent requests
+            doneResponse = await app.inject({
+                method: 'GET',
+                url: result.doneUrl
+            })
+            doneResponse.statusCode.should.equal(404)
+        })
+        it('rejects attempting to create device with an invalid registration session token', async function () {
+            const createResponse = await app.inject({
+                method: 'POST',
+                url: '/api/v1/devices',
+                body: {
+                    name: 'my device',
+                    type: 'test device',
+                    team: TestObjects.ATeam.hashid,
+                    application: TestObjects.Application1.hashid,
+                    registrationSession: 'invalid_session_token'
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            createResponse.statusCode.should.equal(400)
+            const result = createResponse.json()
+            result.should.have.property('error', 'Invalid registration session')
+            result.should.have.property('code', 'invalid_request')
+        })
+    })
+
     describe('Generate Device credentials', function () {
         it('regenerates a devices credentials', async function () {
             const response = await app.inject({

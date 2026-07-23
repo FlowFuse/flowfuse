@@ -12,7 +12,7 @@
                 >
                     <template #icon><MagnifyingGlassIcon /></template>
                     <template #icon-right>
-                        <x-icon
+                        <XMarkIcon
                             v-if="searchTerm.length"
                             class="ff-icon ff-icon-sm absolute right-0 top-o z-10 text-gray-600 mr-1 transition-all duration-300 ease-in-out cursor-pointer"
                             @click="searchTerm = ''"
@@ -108,7 +108,7 @@
 </template>
 
 <script>
-import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
 import usePermissions from '../../../../composables/Permissions.js'
 
@@ -119,7 +119,7 @@ import IconNodeRedSolid from '../../../icons/NodeRedSolid.js'
 
 export default {
     name: 'ApplicationStep',
-    components: { FormRow, IconDeviceSolid, IconNodeRedSolid, MagnifyingGlassIcon },
+    components: { FormRow, IconDeviceSolid, IconNodeRedSolid, MagnifyingGlassIcon, XMarkIcon },
     props: {
         slug: {
             required: true,

@@ -193,7 +193,8 @@ $nav_height: 60px;
     flex-direction: column;
 }
 
-.ff-layout--platform--wrapper{
+.ff-layout--platform--wrapper,
+.ff-layout--plain--wrapper {
     padding-top: $nav_height;
     position: absolute;
     width: 100%;
@@ -221,17 +222,6 @@ $nav_height: 60px;
     }
 }
 
-.ff-layout--plain--wrapper {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-
-    main {
-        background-color: var(--ff-color-bg-surface);
-        flex: 1;
-    }
-}
 
 .ff-notifications {
     position: absolute;
@@ -853,9 +843,14 @@ $nav_height: 60px;
                 left: 0;
             }
         }
-
+        .ff-layout--plain--wrapper {
+            .ff-view {
+                margin-left:  0;
+            }
+        }
         .ff-view {
             margin-left:  -$sidenav_width;
         }
     }
+
 }

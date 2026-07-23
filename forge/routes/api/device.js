@@ -200,6 +200,17 @@ module.exports = async function (app) {
                     }
                 } else if (request.body?.team && request.session.User) {
                     // User action: check if the user is in the team and has the required role
+                    if (request.body.application) {
+                        // This request is to create the device and assign directly to an application
+                        // Validate application is in the team
+                        const application = await app.db.models.Application.byId(request.body.application)
+                        if (!application || application.Team.hashid !== request.body.team) {
+                            reply.code(400).send({ code: 'invalid_application', error: 'Invalid application' })
+                            return
+                        }
+                        // Attach to the request so Granular RBAC checks can be applied
+                        request.application = application
+                    }
                     request.teamMembership = await request.session.User.getTeamMembership(request.body.team)
                     const hasPermission = app.needsPermission('device:create')
                     await hasPermission(request, reply) // hasPermission sends the error response if required which stops the request
@@ -225,7 +236,8 @@ module.exports = async function (app) {
                         allOf: [
                             { required: ['setup'] }, // when provided, setup must be `true` (see enum below)
                             { not: { required: ['name'] } }, // neither of name or team are allowed when setting up a device
-                            { not: { required: ['team'] } }
+                            { not: { required: ['team'] } },
+                            { not: { required: ['application'] } }
                         ]
                     }
                 ],
@@ -233,8 +245,10 @@ module.exports = async function (app) {
                     name: { type: 'string' },
                     type: { type: 'string' },
                     team: { type: 'string' },
+                    application: { type: 'string' },
                     setup: { type: 'boolean', enum: [true] }, // enum only permits a value of true for setup
-                    agentHost: { type: 'string' } // future, for audit log
+                    agentHost: { type: 'string' }, // future, for audit log
+                    registrationSession: { type: 'string' } // optional, for async device registration flow
                 }
             },
             response: {
@@ -316,6 +330,16 @@ module.exports = async function (app) {
             }
             const teamMembership = await request.session.User.getTeamMembership(request.body.team, true)
             team = teamMembership.get('Team')
+            // If application was provided, the preHandler will have already populated request.application
+            application = request.application || null
+
+            if (request.body.registrationSession) {
+                request.body.asyncSession = await app.db.models.AsyncLoginSession.bySessionToken(request.body.registrationSession)
+                if (!request.body.asyncSession || request.body.asyncSession.status !== 'pending') {
+                    reply.code(400).send({ code: 'invalid_request', error: 'Invalid registration session' })
+                    return
+                }
+            }
         }
 
         const transaction = await app.db.sequelize.transaction()
@@ -353,7 +377,7 @@ module.exports = async function (app) {
                 await app.auditLog.Team.team.device.created(actionedBy, null, team, device)
 
                 // When device provisioning: if a project was specified, add the device to the project
-                if (provisioningMode && application) {
+                if (application) {
                     await assignDeviceToApplication(device, application)
                     await device.save()
                     await device.reload({
@@ -381,6 +405,14 @@ module.exports = async function (app) {
                 response.meta = {
                     ffVersion: app.config.version
                 }
+
+                if (request.body.asyncSession) {
+                    // This is an async registration session that started with a POST to /_/register.
+                    // We need to update the AsyncLoginSession with the result of this device creation
+                    request.body.asyncSession.status = 'success'
+                    request.body.asyncSession.result = JSON.stringify({ id: device.hashid, otc: credentials.otc })
+                    await request.body.asyncSession.save()
+                }
                 reply.send(response)
             } finally {
                 if (app.license.active() && app.billing) {
@@ -390,6 +422,89 @@ module.exports = async function (app) {
         } catch (err) {
             await transaction.rollback()
             reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
+        }
+    })
+
+    app.post('/_/register', {
+        config: { allowAnonymous: true },
+        schema: {
+            summary: 'Start an asynchronous registration for a device',
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        registerUrl: { type: 'string' },
+                        doneUrl: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        // Create a new AsyncLoginSession with a unique sessionToken and doneToken
+        const session = await app.db.models.AsyncLoginSession.createToken()
+        // TODO: this should be a front-end URL
+        const registerUrl = `/register/remote-instance/${session.sessionToken}`
+        const doneUrl = `/api/v1/devices/_/register/done/${session.doneToken}`
+        reply.send({ registerUrl, doneUrl })
+    })
+    app.get('/_/register/status/:sessionToken', {
+        schema: {
+            summary: 'Get the status of an asynchronous registration session',
+            response: {
+                202: {
+                    type: 'object',
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        // Check if the session exists and is still pending
+        const session = await app.db.models.AsyncLoginSession.bySessionToken(request.params.sessionToken)
+        if (!session || session.status !== 'pending') {
+            reply.code(404).send({ code: 'not_found', error: 'Not found' })
+            return
+        }
+        reply.code(202).send({})
+    })
+    app.get('/_/register/done/:doneToken', {
+        config: { allowAnonymous: true },
+        schema: {
+            summary: 'Get the completion result of an asynchronous registration for a device',
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        otc: { type: 'string' }
+                    }
+                },
+                202: {
+                    type: 'object'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const session = await app.db.models.AsyncLoginSession.getAndExpireByDoneToken(request.params.doneToken)
+        if (!session) {
+            reply.code(404).send({ code: 'not_found', error: 'Not found' })
+            return
+        }
+        if (session.status === 'pending') {
+            reply.header('retry-after', '5').code(202).send({})
+        } else if (session.status === 'success') {
+            const result = JSON.parse(session.result)
+            reply.code(200).send(result)
+        } else if (session.status === 'error') {
+            reply.code(400).send({ code: 'unexpected_error', error: session.result })
+        } else {
+            reply.code(400).send({ code: 'unexpected_error', error: 'Unexpected error' })
         }
     })
 

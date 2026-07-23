@@ -28,8 +28,8 @@ import ChangeTeamType from './changeType.vue'
 import CreateTeam from './create.vue'
 import CreateApplication from './createApplication.vue'
 import CreateInstance from './createInstance.vue'
-
 import Team from './index.vue'
+import RegisterDevice from './registerDevice.vue'
 
 export default [
     {
@@ -233,6 +233,15 @@ export default [
                 }
             }
         ]
+    },
+    {
+        path: '/register/remote-instance/:sessionToken',
+        component: RegisterDevice,
+        name: 'RegisterDevice',
+        meta: {
+            title: 'Register Remote Instance',
+            layout: 'plain'
+        }
     },
     {
         path: '/deploy/blueprint',

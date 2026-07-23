@@ -34,7 +34,6 @@ import PlatformDialog from '../components/dialogs/PlatformDialog.vue'
 import LeftDrawer from '../components/drawers/LeftDrawer.vue'
 import RightDrawer from '../components/drawers/RightDrawer.vue'
 
-import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useUxStore } from '@/stores/ux.js'
 
@@ -50,27 +49,7 @@ export default {
     },
     computed: {
         ...mapState(useUxStore, ['overlay']),
-        ...mapState(useProductBrokersStore, ['interview']),
-        ...mapState(useAccountSettingsStore, ['hasAvailableTeams'])
-    },
-    watch: {
-        $route: function () {
-            this.checkRouteMeta()
-        }
-    },
-    mounted () {
-        this.checkRouteMeta()
-    },
-    methods: {
-        checkRouteMeta () {
-            for (let l = 0; l < this.$route.matched.length; l++) {
-                const level = this.$route.matched[l]
-                if (level.meta.hideSideMenu) {
-                    this.hideTeamOptions = true
-                    break
-                }
-            }
-        }
+        ...mapState(useProductBrokersStore, ['interview'])
     }
 }
 </script>
