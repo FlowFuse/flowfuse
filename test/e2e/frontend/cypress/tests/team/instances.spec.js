@@ -75,23 +75,21 @@ describe('Team - Instances', () => {
             cy.contains('There are no dashboards in this team.')
         })
 
-        it('are shown a list of instances when dashboard instances are found', () => {
+        it('are shown a list of dashboards and can open one in the viewer', () => {
             cy.login('dashboard-dave', 'ddPassword')
             cy.visit('/team/ateam')
 
             cy.wait('@getTeam')
 
-            cy.contains('instance-1-2')
-                .closest('tr')
-                .within(() => {
-                    cy.get('[data-action="open-dashboard"]').should('be.disabled')
-                })
+            cy.get('[data-el="dashboards-table"]').within(() => {
+                cy.contains('instance-1-1')
+                cy.contains('instance-1-2')
+            })
 
-            cy.contains('instance-1-1')
-                .closest('tr')
-                .within(() => {
-                    cy.get('[data-action="open-dashboard"]').should('not.be.disabled')
-                })
+            cy.contains('instance-1-1').closest('tr').click()
+
+            cy.url().should('include', '/dashboards/')
+            cy.get('[data-el="dashboards-viewer"]').should('exist')
         })
     })
 })

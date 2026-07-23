@@ -1,10 +1,9 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header :title="dashboardRoleOnly ? 'Dashboards' : 'Hosted Instances'">
+            <ff-page-header title="Hosted Instances">
                 <template #context>
-                    <span v-if="!dashboardRoleOnly">A list of all dashboards belonging to this Team.</span>
-                    <span v-else>A list of Node-RED instances with Dashboards belonging to this Team.</span>
+                    <span>A list of all Node-RED instances belonging to this Team.</span>
                 </template>
                 <template #help-header>
                     Instances
@@ -14,14 +13,14 @@
                 </template>
                 <template #helptext>
                     <p>
-                        This is a list of <span v-if="!dashboardRoleOnly">all</span> Node-RED instances belonging to this team running
+                        This is a list of all Node-RED instances belonging to this team running
                         in this FlowFuse.
                     </p>
                     <p>
                         Each Instance is a customised version of Node-RED that includes various
                         FlowFuse plugins to integrate it with the platform.
                     </p>
-                    <p v-if="!dashboardRoleOnly">
+                    <p>
                         A number of the standard Node-RED settings are exposed for customisation,
                         and they can be preset by applying a Template upon creation of an Instance.
                     </p>
@@ -39,7 +38,7 @@
                     data-el="instances-table" :columns="columns" :rows="instances" :show-search="true"
                     search-placeholder="Search Instances..."
                     :initialSortKey="sort.key" :initialSortOrder="sort.order"
-                    :rows-selectable="!dashboardRoleOnly"
+                    :rows-selectable="true"
                     :pagination="paginationProps"
                     @row-selected="openInstance"
                     @update:search="updateSearch"
@@ -103,7 +102,7 @@
                         />
                     </template>
                 </ff-data-table>
-                <EmptyState v-else-if="!dashboardRoleOnly">
+                <EmptyState v-else>
                     <template #img>
                         <img src="../../images/empty-states/team-instances.png">
                     </template>
@@ -134,12 +133,6 @@
                             Create Instance
                         </ff-button>
                     </template>
-                </EmptyState>
-                <EmptyState v-else>
-                    <template #img>
-                        <img src="../../images/empty-states/team-instances.png">
-                    </template>
-                    <template #header>There are no dashboards in this team.</template>
                 </EmptyState>
             </template>
             <template v-else>
@@ -204,13 +197,6 @@ export default {
         FeatureUnavailableToTeam
     },
     mixins: [instanceActionsMixin],
-    props: {
-        dashboardRoleOnly: {
-            required: false,
-            default: false,
-            type: Boolean
-        }
-    },
     setup () {
         const { isRunningState } = useInstanceStates()
         const { navigateTo } = useNavigationHelper()
@@ -285,7 +271,6 @@ export default {
             return this.featuresCheck?.isHostedInstancesEnabledForTeam
         },
         paginationProps () {
-            if (this.dashboardRoleOnly) return null
             return {
                 page: this.page,
                 pageSize: this.pageSize,
@@ -324,9 +309,6 @@ export default {
                         },
                         includeMeta: true
                     })
-                } else if (this.hasPermission('team:read')) {
-                    // Dashboards endpoint not paginated server-side; keep current behavior.
-                    response = await teamApi.getTeamDashboards(this.team.id)
                 }
                 const projects = response?.projects || []
                 this.totalRows = response?.meta?.total ?? response?.count ?? projects.length

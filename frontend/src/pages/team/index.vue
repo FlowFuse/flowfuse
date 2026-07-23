@@ -12,8 +12,7 @@
         <router-view :key="team.id" />
     </template>
     <template v-else-if="!canAccessTeam">
-        <TeamDashboards v-if="isEmbeddedDashboardEnabled" />
-        <TeamInstances v-else :dashboard-role-only="true" />
+        <TeamDashboards />
     </template>
 </template>
 
@@ -26,7 +25,6 @@ import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import { Roles } from '../../utils/roles.js'
 
 import TeamDashboards from './Dashboards/index.vue'
-import TeamInstances from './Instances.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -39,7 +37,6 @@ export default {
     name: 'TeamPage',
     components: {
         TeamDashboards,
-        TeamInstances,
         SubscriptionExpiredBanner,
         TeamSuspendedBanner,
         TeamTrialBanner
@@ -57,7 +54,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team', 'teamMembership']),
-        ...mapState(useAccountSettingsStore, ['requiresBilling', 'featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['requiresBilling']),
         ...mapState(useAccountAuthStore, ['user', 'isAdminUser']),
         ...mapState(useUxToursStore, ['shouldPresentTour']),
         ...mapState(useProductExpertStore, ['shouldWakeUpAssistant']),
@@ -73,9 +70,6 @@ export default {
         },
         canAccessTeam: function () {
             return this.isAdminUser || this.teamMembership?.role >= Roles.Viewer
-        },
-        isEmbeddedDashboardEnabled: function () {
-            return this.featuresCheck?.isEmbeddedDashboardEnabled
         }
     },
     watch: {

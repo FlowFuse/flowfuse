@@ -65,7 +65,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useAccountSettingsStore, ['features', 'featuresCheck']),
+        ...mapState(useAccountSettingsStore, ['features']),
         ...mapState(useLiveStatusStore, { liveInstanceMetadata: 'instanceMetadata', statusChannelLive: 'live' }),
         navigation () {
             const routes = [
@@ -84,8 +84,7 @@ export default {
                 {
                     label: 'Dashboards',
                     to: { name: 'ApplicationDashboards' },
-                    tag: 'application-dashboards',
-                    hidden: !this.featuresCheck?.isEmbeddedDashboardEnabled
+                    tag: 'application-dashboards'
                 },
                 {
                     label: 'Device Groups',
