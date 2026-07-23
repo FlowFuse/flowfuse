@@ -312,7 +312,25 @@ module.exports = {
         teamLogger.team.device.bulkDeleted(user, null, team, devices)
     },
 
-    moveDevices: async function (app, deviceIds, targetApplicationId, targetInstanceId, user, teamMembership) {
+    /**
+     * Bulk move (assign/unassign) devices to/from an application or instance.
+     *
+     * All devices and the target application/instance MUST belong to `team`.
+     * `team` is the authoritative owner (the caller's URL-scoped team, whose
+     * membership the route preHandler has already verified) - it must NOT be
+     * derived from the payload-supplied device ids
+     * @param {*} app - Forge app instance
+     * @param {*} team - The team the caller is acting within (authoritative owner)
+     * @param {Array<string>} deviceIds - Array of device hashids
+     * @param {string} [targetApplicationId] - Target application hashid (or null)
+     * @param {string} [targetInstanceId] - Target instance hashid (or null)
+     * @param {*} user - User performing the move (required for audit logging)
+     * @param {*} teamMembership - Team membership of the user (required for rbac checks)
+     */
+    moveDevices: async function (app, team, deviceIds, targetApplicationId, targetInstanceId, user, teamMembership) {
+        if (!team) {
+            throw new ControllerError('not_found', 'No team found', 404)
+        }
         // target is either a project or an application
         if (targetApplicationId && targetInstanceId) {
             throw new ControllerError('invalid_input', 'Target must be either an application or an instance', 400)
@@ -332,10 +350,6 @@ module.exports = {
         const assignTo = targetInstanceId ? 'instance' : (targetApplicationId ? 'application' : null)
         const assignToApplication = assignTo === 'application' ? await app.db.models.Application.byId(targetApplicationId) : null
         const assignToProject = assignTo === 'instance' ? await app.db.models.Project.byId(targetInstanceId) : null
-        const team = await app.db.models.Team.byId(devices[0].TeamId)
-        if (!team) {
-            throw new ControllerError('not_found', 'No team found', 404)
-        }
         if (assignTo === 'application' && !assignToApplication) {
             throw new ControllerError('not_found', 'No application found', 404)
         }
