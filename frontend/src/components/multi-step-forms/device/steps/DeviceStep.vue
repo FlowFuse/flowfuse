@@ -34,13 +34,13 @@
                 </div>
             </div>
             <!-- Billing details -->
-            <div v-if="features.billing" class="my-5 text-left">
-                <!-- <InstanceChargesTable
-                    :project-type="selectedInstanceType"
+            <div v-if="deviceIsBillable" class="my-5 text-left">
+                <InstanceChargesTable
+                    :project-type="deviceBillingInformation"
                     :subscription="subscription"
-                    :trialMode="isTrialProjectSelected"
+                    :trialMode="false"
                     :prorationMode="team?.type?.properties?.billing?.proration"
-                /> -->
+                />
             </div>
         </form>
     </section>
@@ -51,7 +51,7 @@ import { mapState } from 'pinia'
 
 import billingApi from '../../../../api/billing.js'
 import { getTeamProperty } from '../../../../composables/TeamProperties.js'
-// import InstanceChargesTable from '../../../../pages/instance/components/InstanceChargesTable.vue'
+import InstanceChargesTable from '../../../../pages/instance/components/InstanceChargesTable.vue'
 import FfTextInput from '../../../../ui-components/components/form/TextInput.vue'
 
 import FeatureUnavailableToTeam from '../../../banners/FeatureUnavailableToTeam.vue'
@@ -62,7 +62,7 @@ import { useContextStore } from '@/stores/context.js'
 export default {
     name: 'DeviceStep',
     components: {
-        // InstanceChargesTable,
+        InstanceChargesTable,
         FeatureUnavailableToTeam,
         FfTextInput
     },
@@ -123,6 +123,38 @@ export default {
             }
             return false
         },
+        deviceIsBillable () {
+            let freeAllocation = getTeamProperty(this.team, 'devices.free') || 0
+            let deviceCount = this.team.deviceCount
+            if (getTeamProperty(this.team, 'devices.combinedFreeType')) {
+                deviceCount += this.team.instanceCountByType?.[getTeamProperty(this.team, 'devices.combinedFreeType')] || 0
+                freeAllocation = getTeamProperty(this.team, `instances.${getTeamProperty(this.team, 'devices.combinedFreeType')}.free`) || 0
+            }
+            return this.features.billing && // billing enabled
+                !this.team.billing?.unmanaged &&
+                getTeamProperty(this.team, 'devices.description') && // >0 per device cost
+                freeAllocation <= deviceCount // no remaining free allocation
+        },
+        deviceBillingInformation () {
+            if (this.deviceIsBillable) {
+                let descriptionKey = 'devices.description'
+                if (this.team.billing?.interval === 'year') {
+                    descriptionKey = 'devices.yrDescription'
+                }
+                if (getTeamProperty(this.team, descriptionKey)) {
+                    const [price, priceInterval] = getTeamProperty(this.team, descriptionKey).split('/')
+                    const currency = price.replace(/[\d.]+/, '')
+                    const cost = (Number(price.replace(/[^\d.]+/, '')) || 0) * 100
+                    return {
+                        name: 'Remote Instance',
+                        currency,
+                        cost,
+                        priceInterval
+                    }
+                }
+            }
+            return null
+        },
     },
     watch: {
         input: {
@@ -182,6 +214,7 @@ export default {
             if (this.features.billing && !this.team.billing?.unmanaged && !getTeamProperty(this.team, 'billing.disabled')) {
                 try {
                     this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
+                    console.log(this.subscription)
                 } catch (err) {
                     if (err.response?.data?.code === 'not_found') {
                         // This team has no subscription.
