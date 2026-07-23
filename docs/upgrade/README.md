@@ -28,6 +28,20 @@ Details of how to upgrade can be found for each deployment model:
 To upgrade the version of Node-RED your Instances run (for example, moving to
 Node-RED 5.0), see [Upgrading the Node-RED version](./nodered-version.md).
 
+### Upgrading to 2.31.2
+
+#### Kubernetes: MQTT broker is now EMQX
+
+From Helm chart v2.78.0 (FlowFuse 2.31.2), the chart deploys [EMQX](https://www.emqx.io/)
+as the platform MQTT broker, replacing Mosquitto. The migration happens automatically as
+part of upgrading the chart; it is not possible to stay on Mosquitto when using the Helm
+chart. If the broker is enabled, the
+[EMQX Operator](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html)
+must be installed on the cluster before upgrading, otherwise the upgrade will fail.
+
+See [MQTT Broker configuration](../install/configuration.md#mqtt-broker-configuration)
+for which platform features depend on the broker.
+
 ### Upgrading to 2.6.0
 
 #### Required AWS EKS configuration change
