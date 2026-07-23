@@ -29,7 +29,7 @@ module.exports = {
             defaultValue: 'pending'
         },
         result: {
-            type: DataTypes.STRING
+            type: DataTypes.TEXT
         }
     },
     indexes: [
@@ -39,7 +39,7 @@ module.exports = {
         return {
             static: {
                 createToken: async () => {
-                    const sessionToken = generateToken(32)
+                    const sessionToken = generateToken(16)
                     const doneToken = generateToken(32)
                     const session = await this.create({
                         sessionToken,

@@ -19,7 +19,7 @@ module.exports = {
                 defaultValue: 'pending'
             },
             result: {
-                type: DataTypes.STRING
+                type: DataTypes.TEXT
             },
             createdAt: {
                 type: DataTypes.DATE,
