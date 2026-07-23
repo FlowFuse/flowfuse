@@ -1,8 +1,13 @@
+const { z } = require('zod')
+
 module.exports = [
     {
         name: 'platform_list_hosted_instance_types',
         title: 'List Hosted Instance Types',
-        description: 'FlowFuse platform automation tool: List all available hosted instance types. Use this to find valid projectType values when creating a hosted instance.',
+        description: `FlowFuse platform automation tool:
+            Lists the available hosted instance types.
+            Use this to find valid projectType values when creating a hosted instance.
+            Each type includes a defaultStack, which is the recommended (latest) stack for that type.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {},
         handler: async (args, { inject }) => {
@@ -13,11 +18,16 @@ module.exports = [
     {
         name: 'platform_list_stacks',
         title: 'List Stacks',
-        description: 'FlowFuse platform automation tool: List all available stacks (Node-RED versions). Use this to find valid stack values when creating a hosted instance.',
+        description: `FlowFuse platform automation tool:
+            Lists the available stacks (Node-RED versions) for a given hosted instance type.
+            Use this to find valid stack values when creating a hosted instance.
+            When the user has no preference, use the instance type's defaultStack (from platform_list_hosted_instance_types), which is the latest recommended version.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {},
+        inputSchema: {
+            instanceType: z.string().describe('The ID of the hosted instance type to list stacks for (use platform_list_hosted_instance_types to find valid values)')
+        },
         handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: '/api/v1/stacks' })
+            const response = await inject({ method: 'GET', url: `/api/v1/stacks?projectType=${args.instanceType}` })
             return response
         }
     },

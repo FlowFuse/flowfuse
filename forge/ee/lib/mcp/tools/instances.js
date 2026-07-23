@@ -8,7 +8,8 @@ module.exports = [
             Gets the full details of one specific hosted instance.
             A hosted instance is a Node-RED that runs on the same environment as the FlowFuse platform.
             Use this when you already have a hosted instance ID and need to know everything about it:
-            its name, URL, settings, what application and team it belongs to, and its current state.
+            its name, URL, settings, what application and team it belongs to, its current state, and its specification (the instance type, stack, and template it uses).
+            Read the specification from this tool whenever you need to know or compare what an existing instance is running, for example to answer a question about it or to create another instance matching it.
             If you need to list all hosted instances first, call platform_get_application_hosted_instances.
             To check the live running status, call platform_get_hosted_instance_status instead.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
@@ -90,7 +91,7 @@ module.exports = [
             Creates a new hosted Node-RED instance inside an application. The instance starts automatically after creation.
             Before calling this tool, gather the required parameters:
             1. Call platform_list_hosted_instance_types first to see what instance types are available on this platform, then ask the user which one they want.
-            2. If they want a specific Node-RED version or stack, or just the latest. Call platform_list_stacks to get the options. If the user has no preference, use the latest available stack.
+            2. If they want a specific Node-RED version or stack, or just the latest. Call platform_list_stacks for the chosen instance type to get the options. If the user has no preference, use the instance type's defaultStack, which is the latest recommended version.
             3. If they want to start from a blueprint (pre-built starter flows). Call platform_list_blueprints to show them what is available. This is optional.
             4. Call platform_list_templates to get the template. If only one template exists, use it automatically. If there are multiple, ask the user which one to use.
             5. Call platform_check_hosted_instance_name_availability to make sure the chosen name is not already taken.
