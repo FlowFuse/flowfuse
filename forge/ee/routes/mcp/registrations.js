@@ -1,3 +1,44 @@
+// Resolves the device/instance named by request.params.type/typeId, checks it
+// belongs to request.team, and that it matches the session's own owner id.
+// Replies with the appropriate status code and returns null on any failure,
+// otherwise returns the resolved (string) typeId - shared by POST and DELETE
+// so both report the same status code for the same failure.
+async function resolveTarget (app, request, reply) {
+    let typeId = request.params.typeId
+    if (request.params.type === 'device') {
+        const device = await app.db.models.Device.byId(request.params.typeId)
+        if (!device) {
+            reply.code(404).send({ code: 'not_found', error: 'Device not found' })
+            return null
+        }
+        typeId = '' + device.id
+        if (device.Team.id !== request.team.id) {
+            reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+            return null
+        }
+    } else if (request.params.type === 'instance') {
+        const project = await app.db.models.Project.byId(request.params.typeId)
+        if (!project) {
+            reply.code(404).send({ code: 'not_found', error: 'Instance not found' })
+            return null
+        }
+        if (project.Team.id !== request.team.id) {
+            reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+            return null
+        }
+    } else {
+        reply.code(400).send({ code: 'invalid_request', error: `Unknown MCP target type '${request.params.type}'` })
+        return null
+    }
+
+    if (String(typeId) !== String(request.session.ownerId)) {
+        reply.code(403).send({ code: 'unauthorized', error: 'Unauthorized' })
+        return null
+    }
+
+    return typeId
+}
+
 module.exports = async function (app) {
     app.addHook('preHandler', async (request, reply) => {
         if (request.params.teamId !== undefined || request.params.teamSlug !== undefined) {
@@ -103,29 +144,21 @@ module.exports = async function (app) {
                 200: {
                     type: 'object'
                 },
+                '4xx': {
+                    $ref: 'APIError'
+                },
                 500: {
                     $ref: 'APIError'
                 }
             }
         }
     }, async (request, reply) => {
-        try {
-            let typeId = request.params.typeId
-            if (request.params.type === 'device') {
-                const device = await app.db.models.Device.byId(request.params.typeId)
-                if (!device) {
-                    throw new Error(`Device '${request.params.typeId}' not found`)
-                }
-                typeId = device.id
-            } else if (request.params.type === 'instance') {
-                const project = await app.db.models.Project.byId(request.params.typeId)
-                if (!project) {
-                    throw new Error(`Instance '${request.params.typeId}' not found`)
-                }
-            } else {
-                throw new Error(`Unknown MCP target type '${request.params.type}'`)
-            }
+        const typeId = await resolveTarget(app, request, reply)
+        if (typeId === null) {
+            return
+        }
 
+        try {
             await app.db.models.MCPRegistration.upsert({
                 targetType: request.params.type,
                 targetId: typeId,
@@ -182,8 +215,13 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        const typeId = await resolveTarget(app, request, reply)
+        if (typeId === null) {
+            return
+        }
+
         try {
-            const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs(request.params.type, request.params.typeId, request.params.nodeId)
+            const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs(request.params.type, typeId, request.params.nodeId, request.team.id)
             if (mcpServer) {
                 await mcpServer.destroy()
                 reply.send({})

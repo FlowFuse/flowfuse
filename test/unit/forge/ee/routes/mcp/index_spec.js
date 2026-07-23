@@ -143,10 +143,8 @@ describe('MCP Server Registration', function () {
         const mcpServer = await app.db.models.MCPRegistration.byTypeAndIDs('instance', app.instance.id, 'abcde')
         should.not.exist(mcpServer)
     })
-    it('should return 500 and log error for unknown device', async function () {
+    it('should return 404 for unknown device', async function () {
         const { token } = await app.instance.refreshAuthTokens()
-        // stub app.log to capture error message
-        const appLogStub = sinon.stub(app.log, 'error')
 
         const response = await app.inject({
             method: 'POST',
@@ -164,19 +162,14 @@ describe('MCP Server Registration', function () {
                 description: 'Test MCP registration entry'
             }
         })
-        response.statusCode.should.equal(500)
+        response.statusCode.should.equal(404)
         const result = response.json()
         result.should.be.an.Object()
-        result.should.have.property('code', 'unexpected_error')
-        result.should.have.property('error', 'Failed to create mcp entry')
-        appLogStub.calledOnce.should.be.true()
-        const errMsg = appLogStub.getCall(0).args[0]
-        errMsg.should.match(/Device '99999' not found/)
+        result.should.have.property('code', 'not_found')
+        result.should.have.property('error', 'Device not found')
     })
-    it('should return 500 and log error for unknown instance', async function () {
+    it('should return 404 for unknown instance', async function () {
         const { token } = await app.instance.refreshAuthTokens()
-        // stub app.log to capture error message
-        const appLogStub = sinon.stub(app.log, 'error')
         const randomId = uuidv4()
         const response = await app.inject({
             method: 'POST',
@@ -194,19 +187,14 @@ describe('MCP Server Registration', function () {
                 description: 'Test MCP registration entry'
             }
         })
-        response.statusCode.should.equal(500)
+        response.statusCode.should.equal(404)
         const result = response.json()
         result.should.be.an.Object()
-        result.should.have.property('code', 'unexpected_error')
-        result.should.have.property('error', 'Failed to create mcp entry')
-        appLogStub.calledOnce.should.be.true()
-        const errMsg = appLogStub.getCall(0).args[0]
-        errMsg.should.match(new RegExp(`Instance '${randomId}' not found`))
+        result.should.have.property('code', 'not_found')
+        result.should.have.property('error', 'Instance not found')
     })
-    it('should return 500 and log error for unknown type', async function () {
+    it('should return 400 for unknown type', async function () {
         const { token } = await app.instance.refreshAuthTokens()
-        // stub app.log to capture error message
-        const appLogStub = sinon.stub(app.log, 'error')
 
         const response = await app.inject({
             method: 'POST',
@@ -224,13 +212,168 @@ describe('MCP Server Registration', function () {
                 description: 'Test MCP registration entry'
             }
         })
-        response.statusCode.should.equal(500)
+        response.statusCode.should.equal(400)
         const result = response.json()
         result.should.be.an.Object()
-        result.should.have.property('code', 'unexpected_error')
-        result.should.have.property('error', 'Failed to create mcp entry')
-        appLogStub.calledOnce.should.be.true()
-        const errMsg = appLogStub.getCall(0).args[0]
-        errMsg.should.match(/Unknown MCP target type 'blah'/)
+        result.should.have.property('code', 'invalid_request')
+        result.should.have.property('error', "Unknown MCP target type 'blah'")
+    })
+    it('should not create mcp endpoint for non team asset', async function () {
+        // create second team
+        const bTeam = await app.factory.createTeam({ name: 'BTeam' })
+        const bApplicaiton = await app.factory.createApplication({ name: 'application-2' }, bTeam)
+        // create instance in BTeam
+        const bInstance = await app.factory.createInstance(
+            { name: 'projectb' },
+            bApplicaiton,
+            app.stack,
+            app.template,
+            app.projetType,
+            { start: false }
+        )
+        const { token } = await bInstance.refreshAuthTokens()
+
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.id}/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`, // Use token from instance in team b
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'foo',
+                protocol: 'http',
+                endpointRoute: '/mcp',
+                title: 'FlowFuse MCP',
+                version: '1.2.3',
+                description: 'Test MCP registration entry'
+            }
+        })
+        response.statusCode.should.equal(403)
+    })
+    it('should delete MCP entry', async function () {
+        const { token } = await app.instance.refreshAuthTokens()
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.id}/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'foo',
+                protocol: 'http',
+                endpointRoute: '/mcp',
+                title: 'FlowFuse MCP',
+                version: '1.2.3',
+                description: 'Test MCP registration entry'
+            }
+        })
+        response.statusCode.should.equal(200)
+
+        // create second team
+        const cTeam = await app.factory.createTeam({ name: 'CTeam' })
+        const cApplicaiton = await app.factory.createApplication({ name: 'application-2' }, cTeam)
+        // create instance in BTeam
+        const cInstance = await app.factory.createInstance(
+            { name: 'projectc' },
+            cApplicaiton,
+            app.stack,
+            app.template,
+            app.projetType,
+            { start: false }
+        )
+        const cToken = (await cInstance.refreshAuthTokens()).token
+
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${app.instance.id}/abcde`,
+            headers: {
+                Authorization: `Bearer ${cToken}`
+            }
+        })
+        deleteResponse.statusCode.should.equal(403)
+    })
+    it('should let a device register and delete its own MCP entry', async function () {
+        const created = await app.factory.createDevice({ name: 'mcp-device' }, app.team)
+        // reload so the Team association is hydrated for token generation
+        const device = await app.db.models.Device.byId(created.id)
+        const { token } = await device.refreshAuthTokens()
+
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/device/${device.hashid}/nodeD`,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'device-mcp',
+                protocol: 'http',
+                endpointRoute: '/mcp'
+            }
+        })
+        response.statusCode.should.equal(200)
+        // stored against the numeric device id, not the hashid
+        const stored = await app.db.models.MCPRegistration.byTypeAndIDs('device', '' + device.id, 'nodeD')
+        should.exist(stored)
+
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/device/${device.hashid}/nodeD`,
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        deleteResponse.statusCode.should.equal(200)
+        const afterDelete = await app.db.models.MCPRegistration.byTypeAndIDs('device', '' + device.id, 'nodeD')
+        should.not.exist(afterDelete)
+    })
+    it('should not create MCP entry when teamId does not match the asset team', async function () {
+        // second team, used only for the URL teamId
+        const bTeam = await app.factory.createTeam({ name: 'BTeamMismatch' })
+        const { token } = await app.instance.refreshAuthTokens()
+
+        // caller's own token and own instance id, but a foreign team in the URL
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/v1/teams/${bTeam.hashid}/mcp/instance/${app.instance.id}/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: {
+                name: 'foo',
+                protocol: 'http',
+                endpointRoute: '/mcp'
+            }
+        })
+        response.statusCode.should.equal(403)
+    })
+    it('should not delete MCP entry when teamId does not match the asset team', async function () {
+        const bTeam = await app.factory.createTeam({ name: 'BTeamMismatchDelete' })
+        const { token } = await app.instance.refreshAuthTokens()
+
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${bTeam.hashid}/mcp/instance/${app.instance.id}/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        deleteResponse.statusCode.should.equal(403)
+    })
+    it('should return 404 when deleting MCP entry for a missing instance', async function () {
+        const { token } = await app.instance.refreshAuthTokens()
+        const randomId = uuidv4()
+
+        const deleteResponse = await app.inject({
+            method: 'DELETE',
+            url: `/api/v1/teams/${app.team.hashid}/mcp/instance/${randomId}/abcde`,
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        deleteResponse.statusCode.should.equal(404)
     })
 })
