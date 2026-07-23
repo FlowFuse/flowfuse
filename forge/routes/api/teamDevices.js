@@ -498,20 +498,25 @@ module.exports = async function (app) {
             if (request.body.instance !== undefined || request.body.application !== undefined) {
                 const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team.getFeatureProperty('rbacApplication', false)
                 // Only pass through the teamMembership object if application RBAC is enabled
-                const updatedDevices = await deviceController.moveDevices(request.body.devices, request.body.application, request.body.instance, request.session?.User, applicationRBACEnabled ? request.teamMembership : null)
+                const updatedDevices = await deviceController.moveDevices(request.team, request.body.devices, request.body.application, request.body.instance, request.session?.User, applicationRBACEnabled ? request.teamMembership : null)
                 updatedDevices.devices = updatedDevices.devices.map(d => app.db.views.Device.device(d))
                 reply.send(updatedDevices)
             } else if (Object.prototype.hasOwnProperty.call(request.body, 'deviceGroup')) {
                 let deviceGroup
                 let changeCount
                 let actualRemoveDevices
-                const transaction = await app.db.sequelize.transaction()
                 const infoBuilder = []
                 const decodedDeviceIds = request.body.devices.map(hashid => hashid && app.db.models.Device.decodeHashid(hashid))
                 const devicesCollection = await app.db.models.Device.getAll({}, { id: decodedDeviceIds }, {
                     includeDeviceGroup: true,
                     includeApplication: true
                 })
+
+                // Ensure every device belongs to the team in the URL
+                if (devicesCollection.devices.some(d => d.TeamId !== request.team.id)) {
+                    throw new ControllerError('invalid_input', 'All devices must belong to the same team', 400)
+                }
+
                 const devicesByGroup = devicesCollection.devices.filter(device => device.DeviceGroup)
                     .reduce((acc, device) => {
                         const groupId = device.DeviceGroup?.id || null
@@ -525,6 +530,7 @@ module.exports = async function (app) {
                         return acc
                     }, {})
 
+                const transaction = await app.db.sequelize.transaction()
                 try {
                     if (request.body.deviceGroup === '') {
                         // if the device group is present but empty, we need to bulk unassign devices from their respective device group
@@ -538,6 +544,10 @@ module.exports = async function (app) {
 
                         if (!deviceGroup) {
                             throw new ControllerError('invalid_input', 'Invalid device group', 400)
+                        }
+                        // The target group must belong to the team in the URL
+                        if (deviceGroup.Application?.TeamId !== request.team.id) {
+                            throw new ControllerError('invalid_input', 'Device group must belong to the same team', 400)
                         }
 
                         // we first need to bulk unassign devices from their respective device group except the device group we're assigning to

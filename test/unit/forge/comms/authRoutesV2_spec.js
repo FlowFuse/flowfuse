@@ -1315,6 +1315,62 @@ describe('Broker Auth v2 API', async function () {
                         topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/BAD-ENTITY-ID/support/inflight/command/request`
                     })
                 })
+
+                // Bridge heartbeat topics - special-cased literal topics used to keep the
+                // platform <-> Expert Broker bridge alive (see checkExpertPlatformTopic)
+                it('allows subscription to the heartbeat response topic', async function () {
+                    await allowRead({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/response'
+                    })
+                })
+                it('denies publish to the heartbeat response topic', async function () {
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/response'
+                    })
+                })
+                it('allows publish to the heartbeat request topic', async function () {
+                    await allowWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/request'
+                    })
+                })
+                it('denies subscription to the heartbeat request topic', async function () {
+                    await denyRead({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/request'
+                    })
+                })
+            })
+
+            describe('Platform (forge_platform)', async function () {
+                // Bridge heartbeat topics - special-cased literal topics used to keep the
+                // platform <-> Expert Broker bridge alive (see checkExpertPlatformTopic)
+                it('allows publish to the heartbeat response topic', async function () {
+                    await allowWrite({
+                        username: 'forge_platform',
+                        topic: 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/response'
+                    })
+                })
+                it('denies subscription to the heartbeat response topic', async function () {
+                    await denyRead({
+                        username: 'forge_platform',
+                        topic: 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/response'
+                    })
+                })
+                it('allows subscription to the heartbeat request topic', async function () {
+                    await allowRead({
+                        username: 'forge_platform',
+                        topic: 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/request'
+                    })
+                })
+                it('denies publish to the heartbeat request topic', async function () {
+                    await denyWrite({
+                        username: 'forge_platform',
+                        topic: 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/request'
+                    })
+                })
             })
 
             // TODO: tests for Application RBACs (ensure project/device in an application with reduced permissions are suitably restricted in the ACLs)
