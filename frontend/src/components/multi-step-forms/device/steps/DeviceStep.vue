@@ -2,9 +2,8 @@
     <section class="ff-instance-step text-center flex flex-col gap-4 pt-6" data-step="instance">
         <h2>Setup your Remote Instance</h2>
         <form class="max-w-2xl m-auto w-full text-left flex flex-col gap-7">
-            <FeatureUnavailableToTeam v-if="teamRuntimeLimitReached" fullMessage="You have reached the runtime limit for this team." />
-
-            <FeatureUnavailableToTeam v-else-if="teamInstanceLimitReached" fullMessage="You have reached the instance limit for this team." />
+            <FeatureUnavailableToTeam v-if="teamDeviceLimitReached" fullMessage="You have reached the limit for Remote Instances in this team." />
+            <FeatureUnavailableToTeam v-else-if="teamRuntimeLimitReached" fullMessage="You have reached the limit for Instances in this team." />
 
             <div class="ff-instance-name ff-input-wrapper flex flex-col gap-1">
                 <label class="mb-1">Name</label>
@@ -51,9 +50,6 @@
 import { mapState } from 'pinia'
 
 import billingApi from '../../../../api/billing.js'
-import {
-    useInstanceFormHelper
-} from '../../../../composables/Components/multi-step-forms/instance/InstanceFormHelper.js'
 import { getTeamProperty } from '../../../../composables/TeamProperties.js'
 // import InstanceChargesTable from '../../../../pages/instance/components/InstanceChargesTable.vue'
 import FfTextInput from '../../../../ui-components/components/form/TextInput.vue'
@@ -88,11 +84,8 @@ export default {
     },
     emits: ['step-updated'],
     setup (props) {
-        const { teamRuntimeLimitReached } = useInstanceFormHelper()
-
         return {
             initialState: props.state,
-            teamRuntimeLimitReached
         }
     },
     data () {
@@ -103,25 +96,33 @@ export default {
             },
             errors: {
                 name: this.initialErrors.name ?? null,
-                type: this.initialErrors.type ?? null
+                type: this.initialErrors.type ?? null,
+                limitsRuntime: this.initialErrors.limitsRuntime ?? null,
+                limitsDevice: this.initialErrors.limitsDevice ?? null
             },
             subscription: null,
-            loading: true
+            loading: true,
         }
     },
     computed: {
         ...mapState(useAccountSettingsStore, ['features']),
         ...mapState(useContextStore, ['team']),
-        teamInstanceLimitReached () {
+        teamRuntimeLimitReached () {
+            let teamTypeRuntimeLimit = getTeamProperty(this.team, 'runtimes.limit')
+            const currentRuntimeCount = this.team.deviceCount + this.team.instanceCount
+            if (this.team.billing?.trial && !this.team.billing?.active && getTeamProperty(this.team, 'trial.runtimesLimit')) {
+                teamTypeRuntimeLimit = getTeamProperty(this.team, 'trial.runtimesLimit')
+            }
+            return (teamTypeRuntimeLimit > 0 && currentRuntimeCount >= teamTypeRuntimeLimit)
+        },
+        teamDeviceLimitReached () {
+            const teamTypeDeviceLimit = getTeamProperty(this.team, 'devices.limit')
+            if (teamTypeDeviceLimit > 0 && this.team.deviceCount >= teamTypeDeviceLimit) {
+                // Device specific limit has been reached
+                return true
+            }
             return false
-            // TODO: update for device limits
-
-            // this.projectTypes.length > 0 : There are Instance Types defined
-            // this.activeInstanceTypeCount : How instance types are available for the user to select
-            //                               taking into account their limits
-            // Hence, if activeInstanceTypeCount === 0, then they are at their limit of usage
-            return this.instanceTypes.length > 0 && this.activeInstanceTypeCount === 0
-        }
+        },
     },
     watch: {
         input: {
@@ -145,6 +146,26 @@ export default {
             deep: true,
             handler: function () {
                 this.updateParent()
+            }
+        },
+        teamRuntimeLimitReached: {
+            immediate: true,
+            handler: function (value) {
+                if (value) {
+                    this.errors.limitsRuntime = 'You have reached the limit for Remote Instances in this team.'
+                } else {
+                    this.errors.limitsRuntime = null
+                }
+            }
+        },
+        teamDeviceLimitReached: {
+            immediate: true,
+            handler: function (value) {
+                if (value) {
+                    this.errors.limitsDevice = 'You have reached the limit for Remote Instances in this team.'
+                } else {
+                    this.errors.limitsDevice = null
+                }
             }
         }
     },
@@ -171,6 +192,7 @@ export default {
                 }
             }
         },
+
         updateParent () {
             let hasErrors = false
 
