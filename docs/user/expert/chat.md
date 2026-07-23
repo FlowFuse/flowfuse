@@ -70,7 +70,93 @@ Some prompts that work well:
 
 The more specific your prompt, the closer the result will be to what you need. Include node names, topic paths, endpoints, or field names where you have them. Expert will use them directly rather than substituting placeholders.
 
-> Availability: This feature is in open beta on FlowFuse Cloud (Starter, Team, and Enterprise tiers), no request needed. It is also available on Self-Hosted Enterprise: [contact us](https://flowfuse.com/contact-us/?subject=FlowFuse%20Expert%20Application%20Building) to get it set up as Self-hosted requires a provisioning token and the bridge to be configured on the instance. Agentic flow building works on both Hosted and Remote Instances, and requires the nr-assistant plugin at v0.16.0 or newer. FlowFuse Expert will let you know when an update is available in your instance's immersive editor.
+> **Availability:** This feature is available on **FlowFuse Cloud** for all tiers, and from v2.32, to Self-Hosted Enterprise tiers. For Self-Hosted Enterprise tiers it requires a configuration for your instance. [Contact us](https://flowfuse.com/contact-us/?subject=FlowFuse%20Expert%20Application%20Building) to get access.
+
+#### Staying in Control of What Expert Does
+
+When Expert builds on your canvas, you stay in control of what it does and when. Three features let you steer it before and during a build: it can ask clarifying questions, propose a plan for your approval, and request permission before running individual actions.
+
+> **Availability:** Clarifying questions, plan mode, and tool permissions are available to FlowFuse Cloud and self-hosted users from v2.32.
+
+##### Clarifying Questions
+
+Rather than guessing when a request is ambiguous, Expert can ask you a few questions before it starts. It presents up to four questions in a single turn, each as its own option group, either single-select or multi-select depending on the question. You answer all of them together and submit once, and Expert uses your answers to build exactly what you intended. You can edit an answered question and resubmit if you change your mind, up until you send a new message.
+
+![The Expert asking grouped clarifying questions before building, each with selectable options](../images/assistant/follow-up-questions.png){data-zoomable}
+
+You can control how often Expert asks from the **Follow-up questions** setting in the Expert settings dialog, choosing whether it asks all its questions **all at once** or **one at a time**.
+
+##### Plan Mode
+
+Plan mode lets you review Expert's approach before it changes anything on your canvas. Turn it on using the **plan mode** toggle in the composer. While it is enabled, Expert responds to your request with a proposed plan instead of acting on it.
+
+The plan is shown as its own card with four actions:
+
+- **Approve:** Expert exits plan mode and carries out the plan.
+- **Edit:** the plan text is loaded into the composer so you can adjust it directly and resubmit.
+- **Request changes:** describe what you'd like changed in your own words, and Expert proposes an updated plan.
+- **Reject:** the plan is abandoned and nothing is built.
+
+![A plan card in the Expert, showing the proposed plan with Approve, Edit, Request changes, and Reject actions](../images/assistant/plan-mode.png){data-zoomable}
+
+Once you send a newer message, an earlier plan card is disabled so you can't act on a stale plan.
+
+##### Controlling What Expert Can Do
+
+You decide which actions Expert is allowed to take on your behalf, and which require your approval first. These cover both the flow-building actions Expert runs on your canvas and the platform actions it can take across FlowFuse outside the editor. Each action, such as reading a flow, writing nodes to the canvas, or creating an instance, carries an action type of **Read**, **Write**, or **Delete**, and each is governed by a permission.
+
+**Approving actions in chat.** When an action is set to require approval, Expert pauses and shows an approval card in the chat before running it. The card shows the friendly name of the action, its type (Read / Write / Delete), and the exact parameters of the call as formatted JSON, so you can see precisely what Expert is about to do. You can then choose:
+
+- **Allow:** run this action once.
+- **Always allow:** run this action, and don't ask again for it for the rest of this chat.
+- **Deny:** skip this action; Expert adapts and explains what it did instead.
+- **Always deny:** skip it and don't ask again for it for the rest of this chat.
+
+![FlowFuse Expert pausing for approval mid-build, showing the Adding Nodes action awaiting your decision](../images/assistant/expert-tool-approval-card.png){data-zoomable}
+
+Expert waits as long as you need, with no timeout on the decision. Stopping the chat while a card is open cancels the pending action (treated as a denial). "Always allow" and "Always deny" choices apply only to the current conversation and reset when you use **Start Over** or refresh. If you want to keep one, click **Make permanent** to save that choice for future chats.
+
+Once you approve an action, the card collapses to show what was decided, and the build continues.
+
+![The chat after actions have been approved, each card showing its action type and that it is allowed for the current chat](../images/assistant/expert-tool-approval-chat.png){data-zoomable}
+
+**Configuring permissions in settings.** You can set your team's permissions ahead of time from the Expert settings dialog. To open it:
+
+1. Open the FlowFuse Expert panel and select **Support** mode.
+2. Click the settings (gear) icon at the top-right of the composer.
+
+Permissions are saved **per team** and persist across your chats in that team, so each team can have its own policy. Switching to another team starts from the defaults again.
+
+![The Expert settings dialog showing follow-up question cadence and the tool permission defaults for each action type](../images/assistant/expert-tool-permissions-settings.png){data-zoomable}
+
+For each action type you set a **default** for all Read actions, all Write actions, and all Delete actions, choosing between **Always allow**, **Ask**, and **Always deny**. You can then override individual actions where you want different behaviour; an override stays in place until you reset it. Each default shows how many actions are "set individually", with a **Reset** control to return those actions to the default.
+
+The settings split actions into two groups: **Flow Building Tools**, the actions Expert takes on your canvas inside the editor, and **FlowFuse Platform Tools**, the actions it takes across the wider FlowFuse platform, such as listing your applications and instances, checking an instance's status or logs, and creating a new instance. Which group is shown first depends on where you are: flow-building tools lead inside the editor, and platform tools lead in the app. Flow-building tools only run inside an instance editor, so open one to let the Expert use them, though you can set their permissions here at any time.
+
+**Role-based limits.** Permissions respect your team role. Read-only team members cannot enable or trigger actions that write or delete, and will see why they are unavailable. This is enforced by Expert itself, not just hidden in the interface.
+
+**Example permission setups.** A few common ways to configure this:
+
+- **Balanced (the default):** Read is set to *Always allow*, Write and Delete to *Ask*. Expert reads your flows freely and checks with you before changing or removing anything.
+- **Fast building session:** set Write to *Always allow* so Expert builds without interrupting you, while leaving Delete on *Ask* so removals still need a nod. You can also grant a single tool *Always allow* from its approval card to skip repeat prompts for just that action for the rest of the chat.
+- **Review-only / locked down:** set Delete to *Always deny* and Write to *Ask*, so Expert can propose and build step by step but can never remove anything.
+
+For example, if you ask Expert to "add three nodes" with Write set to *Ask*, it pauses on the first *Adding Nodes* call and shows you the payload. Choose **Allow** to let just that call through, or **Always allow** so the remaining node additions in this chat don't prompt you again.
+
+**Flow-building actions reference.** The flow-building actions available today, grouped by action type. New actions are added over time and some are gated to your instance's Expert version, so your list may differ slightly.
+
+| Action type | What it covers | Actions |
+|---|---|---|
+| **Read** | View only, no changes | Describing Node Type, Describing Property, Getting Flow, Getting Nodes, Getting Palette, Listing Config Nodes, Listing Node Types, Listing Nodes, Listing Subflows, Listing Tabs, Searching Canvas, Selecting Nodes, Showing Workspace |
+| **Write** | Create or change resources | Adding Nodes, Adding Subflow, Adding Tab, Arranging Nodes, Creating Subroutine, Managing Groups, Opening Palette Manager, Setting Links, Setting Wires, Updating Nodes, Updating Tab |
+| **Delete** | Remove resources | Removing Nodes, Removing Tab |
+
+**Platform actions reference.** The actions in the FlowFuse Platform Tools group, for working with your platform outside the editor. These are read and write only. There are no delete actions.
+
+| Action type | What it covers | Actions |
+|---|---|---|
+| **Read** | View only, no changes | List Applications, Get Application, Get Application Hosted Instances, Get Application Remote Instances, Get Application Instances Status, Get Application Audit Log, List Teams, Get Team, Get Hosted Instance, Get Hosted Instance Status, Get Hosted Instance Logs, Check Hosted Instance Name Availability, List Team Remote Instances, Get Remote Instance, Get Remote Instance Status, List Hosted Instance Snapshots, List Remote Instance Snapshots, List Hosted Instance Types, List Stacks, List Templates, List Blueprints, Open Hosted Instance, Open Hosted Instance Editor |
+| **Write** | Create or change resources | Create Application, Create Hosted Instance, Create Remote Instance, Assign Remote Instance To Application, Create Hosted Instance Snapshot, Create Remote Instance Snapshot |
 
 #### Context: What the Expert Can See
 
@@ -162,6 +248,10 @@ If the Expert starts giving unexpected or inconsistent answers, it may be due to
 **Insights mode** connects the Expert to your live data via **Model Context Protocol (MCP)**. Use it when you want to query, analyze, or interact with real-world data - not just your Node-RED flows.
 
 In Insights mode, you first select an MCP Server that you've built using [FlowFuse MCP Server Nodes](https://flowfuse.com/node-red/flowfuse/mcp/). The Expert can then use the tools and resources exposed by that server to answer questions against your live operational data. If you haven't built an MCP Server yet, see the guide on [building an MCP Server using FlowFuse](https://flowfuse.com/blog/2025/10/building-mcp-server-using-flowfuse/).
+
+As of v2.32, Insights mode also reaches your **remote instances** at the edge, not just hosted instances. Point the Expert at a remote instance and ask about its live machine or operational data in plain language, with no dashboard to build and no query to write.
+
+> **Note:** Insights on remote and self-hosted instances relies on a change to how data is routed through the platform in v2.32. Remote instances need Device Agent 4.0.0 or newer, and existing hosted instances on FlowFuse Cloud need to update to Launcher 2.23.0 or newer to keep working.
 
 Typical use cases in Insights mode:
 - You have an MCP Resource named `production_lines_facilities_list` that returns a list of your production lines, their facility names and the facility types (stamping, assembly, packaging etc)
