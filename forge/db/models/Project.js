@@ -564,7 +564,8 @@ module.exports = {
                     includeSettings = false,
                     includeMeta = false,
                     orderByMostRecentFlows = false,
-                    excludeApplications = null
+                    excludeApplications = null,
+                    states = null
                 } = {}) => {
                     const {
                         page = null,
@@ -681,6 +682,21 @@ module.exports = {
                         } else {
                             queryObject.where = excludeQuery
                         }
+                    }
+
+                    if (states && states.length) {
+                        const stateSet = new Set(states)
+                        const candidates = await this.findAll({
+                            attributes: ['id', 'state'],
+                            include: [{ model: M.Team, where: { id: teamId }, attributes: [] }],
+                            where: queryObject.where
+                        })
+                        const resolved = await Promise.all(candidates.map(async candidate => ({
+                            id: candidate.id,
+                            liveState: (await Controllers.Project.getLatestProjectState(candidate.id)) ?? candidate.state
+                        })))
+                        const matchingIds = resolved.filter(c => stateSet.has(c.liveState)).map(c => c.id)
+                        queryObject.where = { id: { [Op.in]: matchingIds } }
                     }
 
                     if (withTotal) {

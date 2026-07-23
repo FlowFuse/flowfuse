@@ -242,12 +242,14 @@ export default {
                 })
         },
         onStatClick (payload) {
-            const searchQuery = Object.prototype.hasOwnProperty.call(this.instanceStatesMap, payload.state)
-                ? this.instanceStatesMap[payload.state].join(' | ')
-                : ''
-            const name = payload.type === 'hosted' ? 'Instances' : 'TeamDevices'
-
-            this.$router.push({ name, query: { searchQuery } })
+            if (payload.type === 'hosted') {
+                this.$router.push({ name: 'Instances', query: { status: payload.state } })
+            } else {
+                const states = Object.prototype.hasOwnProperty.call(this.instanceStatesMap, payload.state)
+                    ? this.instanceStatesMap[payload.state]
+                    : []
+                this.$router.push({ name: 'TeamDevices', query: { searchQuery: states.join(' | ') } })
+            }
         },
         getInstanceStateCounts () {
             return TeamAPI.getTeamInstanceCounts(this.team.id, [], 'hosted')

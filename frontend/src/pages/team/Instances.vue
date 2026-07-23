@@ -31,15 +31,17 @@
             <div class="banner-wrapper">
                 <FeatureUnavailableToTeam v-if="!instancesAvailable" />
             </div>
-            <ff-loading v-if="loading && !instancesMap.size && searchTerm === null" message="Loading Instances..." />
-            <template v-else-if="instancesAvailable">
+            <template v-if="instancesAvailable">
                 <ff-data-table
-                    v-if="instances.length > 0 || searchTerm !== null"
+                    v-if="loading || instances.length > 0 || hasFilter"
                     data-el="instances-table" :columns="columns" :rows="instances" :show-search="true"
-                    search-placeholder="Search Instances..."
+                    search-placeholder="Search by name..."
                     :initialSortKey="sort.key" :initialSortOrder="sort.order"
                     :rows-selectable="true"
                     :pagination="paginationProps"
+                    :server-side-search="true"
+                    :loading="loading"
+                    loading-type="skeleton"
                     @row-selected="openInstance"
                     @update:search="updateSearch"
                     @update:sort="updateSort"
@@ -47,6 +49,30 @@
                     @update:page-size="onPageSizeChange"
                 >
                     <template #actions>
+                        <ff-popover
+                            :button-text="selectedStatusGroups.length ? `Status (${selectedStatusGroups.length})` : 'Status'"
+                            button-kind="secondary"
+                            data-el="status-filter"
+                        >
+                            <template #panel>
+                                <section>
+                                    <popover-item
+                                        v-for="filter in statusFilters" :key="filter.key"
+                                        :title="filter.label"
+                                        :data-action="'filter-' + filter.key"
+                                        @click="toggleStatusGroup(filter.key)"
+                                    >
+                                        <template #icon>
+                                            <ff-checkbox
+                                                :model-value="selectedStatusGroups.includes(filter.key)"
+                                                style="top: -8px;"
+                                                @click.stop.prevent="toggleStatusGroup(filter.key)"
+                                            />
+                                        </template>
+                                    </popover-item>
+                                </section>
+                            </template>
+                        </ff-popover>
                         <ff-button
                             v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                             data-action="create-project"
@@ -184,6 +210,7 @@ import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useLiveStatusStore } from '@/stores/live-status'
+import PopoverItem from '@/ui-components/components/PopoverItem.vue'
 
 export default {
     name: 'TeamInstances',
@@ -194,24 +221,32 @@ export default {
         DashboardLink,
         PlusSmallIcon,
         EmptyState,
-        FeatureUnavailableToTeam
+        FeatureUnavailableToTeam,
+        PopoverItem
     },
     mixins: [instanceActionsMixin],
     setup () {
-        const { isRunningState } = useInstanceStates()
+        const { isRunningState, statesMap } = useInstanceStates()
         const { navigateTo } = useNavigationHelper()
         const { hasPermission } = usePermissions()
 
-        return { hasPermission, isRunningState, navigateTo }
+        return { hasPermission, isRunningState, navigateTo, statesMap }
     },
     data () {
         return {
-            loading: false,
+            loading: true,
+            fetchSeq: 0,
             instancesMap: new Map(),
             page: 1,
             pageSize: 25,
             totalRows: 0,
             searchTerm: null,
+            selectedStatusGroups: [],
+            statusFilters: [
+                { key: 'running', label: 'Running' },
+                { key: 'error', label: 'Error' },
+                { key: 'stopped', label: 'Not Running' }
+            ],
             sort: {
                 key: 'flowLastUpdatedAt',
                 order: 'desc'
@@ -236,7 +271,7 @@ export default {
                 },
                 {
                     label: 'Application',
-                    class: ['grow-[0.25]'],
+                    class: ['w-72'],
                     key: 'application.name',
                     sortable: true,
                     component: {
@@ -276,6 +311,13 @@ export default {
                 pageSize: this.pageSize,
                 total: this.totalRows
             }
+        },
+        statusFilter () {
+            if (this.selectedStatusGroups.length === 0) return null
+            return this.selectedStatusGroups.flatMap(group => this.statesMap[group] || [])
+        },
+        hasFilter () {
+            return this.searchTerm !== null || this.selectedStatusGroups.length > 0
         }
     },
     watch: {
@@ -283,6 +325,14 @@ export default {
         liveInstanceMetadata: { handler: 'applyLiveStatus', deep: true }
     },
     mounted () {
+        const statusParam = this.$route.query.status
+        if (statusParam) {
+            const groups = Array.isArray(statusParam) ? statusParam : [statusParam]
+            this.selectedStatusGroups = groups.filter(group => this.statusFilters.some(f => f.key === group))
+        }
+        if (this.$route.query.searchQuery) {
+            this.searchTerm = this.$route.query.searchQuery
+        }
         this.fullReload()
     },
     methods: {
@@ -291,10 +341,14 @@ export default {
             this.fetchData()
         },
         async fetchData () {
-            if (!this.team.id || !this.instancesAvailable) {
+            if (!this.instancesAvailable) {
                 this.loading = false
                 return
             }
+            if (!this.team.id) {
+                return
+            }
+            const seq = ++this.fetchSeq
             this.loading = true
             try {
                 let response
@@ -307,8 +361,12 @@ export default {
                             sort: this.sort.key || null,
                             dir: this.sort.order || null
                         },
-                        includeMeta: true
+                        includeMeta: true,
+                        states: this.statusFilter
                     })
+                }
+                if (seq !== this.fetchSeq) {
+                    return
                 }
                 const projects = response?.projects || []
                 this.totalRows = response?.meta?.total ?? response?.count ?? projects.length
@@ -326,9 +384,13 @@ export default {
                 this.instancesMap = nextMap
                 this.applyLiveStatus()
             } catch (e) {
-                Alerts.emit('Failed to load instances.', 'warning')
+                if (seq === this.fetchSeq) {
+                    Alerts.emit('Failed to load instances.', 'warning')
+                }
             } finally {
-                this.loading = false
+                if (seq === this.fetchSeq) {
+                    this.loading = false
+                }
             }
         },
         applyLiveStatus () {
@@ -346,11 +408,21 @@ export default {
                 })
             }
         },
+        toggleStatusGroup (key) {
+            const index = this.selectedStatusGroups.indexOf(key)
+            if (index === -1) {
+                this.selectedStatusGroups.push(key)
+            } else {
+                this.selectedStatusGroups.splice(index, 1)
+            }
+            this.page = 1
+            this.fetchData()
+        },
         updateSearch: debounce(function (term) {
             this.searchTerm = term
             this.page = 1
             this.fetchData()
-        }, 200),
+        }, 300),
         updateSort (key, order) {
             this.sort.key = key
             this.sort.order = order

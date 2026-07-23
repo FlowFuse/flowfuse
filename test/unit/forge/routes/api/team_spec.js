@@ -651,6 +651,87 @@ describe('Team API', function () {
             result.should.have.property('projects').and.be.an.Array()
             result.projects.should.have.a.property('length', 4)
         })
+        it('Filters the project list by live state', async function () {
+            const warningInstance = await app.factory.createInstance(
+                { name: 'list-instance-warning' },
+                teamAApplication1,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            // Live state lives in a cache and must win over the `state` column:
+            // teamAInstance3 is crashed live, so it is excluded from a running-group query.
+            await app.db.controllers.Project.setLatestProjectState(warningInstance.id, 'warning')
+            await app.db.controllers.Project.setLatestProjectState(teamAInstance3.id, 'crashed')
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?state=warning&state=running`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            const names = result.projects.map((p) => p.name)
+            names.should.containEql('list-instance-warning')
+            names.should.not.containEql('list-instance-3')
+        })
+        it('Reflects the filtered total in pagination meta', async function () {
+            const makeWarning = async (name) => {
+                const instance = await app.factory.createInstance(
+                    { name }, teamAApplication1, app.stack, app.template, app.projectType, { start: false }
+                )
+                await app.db.controllers.Project.setLatestProjectState(instance.id, 'warning')
+                return instance
+            }
+            await makeWarning('list-instance-warn-1')
+            await makeWarning('list-instance-warn-2')
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?state=warning&page=1&limit=1`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            // total reflects the filtered set (2), not every project in the team
+            result.meta.should.have.property('total', 2)
+            result.projects.should.have.length(1)
+        })
+        it('Returns an empty filtered page when no instance matches the state', async function () {
+            // no instance has a live/column state of `warning` in a fresh test
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?state=warning&page=1&limit=25`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.projects.should.have.length(0)
+            result.meta.should.have.property('total', 0)
+        })
+        it('Filters by a single state value (coerced to an array)', async function () {
+            const warningInstance = await app.factory.createInstance(
+                { name: 'list-instance-warning-single' },
+                teamAApplication1,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            await app.db.controllers.Project.setLatestProjectState(warningInstance.id, 'warning')
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?state=warning`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            const names = result.projects.map((p) => p.name)
+            names.should.containEql('list-instance-warning-single')
+            names.should.not.containEql('list-instance-1')
+        })
         it('RBAC filters team project list', async function () {
             // Create a user for RBAC testing
             const rbacUser = await app.db.models.User.create({
