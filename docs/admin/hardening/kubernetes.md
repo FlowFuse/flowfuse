@@ -285,9 +285,12 @@ spec:
         - ipBlock:
             cidr: 0.0.0.0/0
             except:
-              - 10.0.0.0/8
-              - 172.16.0.0/12
-              - 192.168.0.0/16
+              - 10.0.0.0/8         # RFC1918 private range
+              - 172.16.0.0/12      # RFC1918 private range
+              - 192.168.0.0/16     # RFC1918 private range
+              - 169.254.0.0/16     # link-local: blocks the cloud metadata endpoint (169.254.169.254) and node-local DNS
+              - 100.64.0.0/10      # CGNAT range used internally by some managed clusters (GKE, EKS) 
+              
       ports:
         - protocol: TCP
           port: 443
