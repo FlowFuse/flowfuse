@@ -98,6 +98,7 @@ watch(() => route.params.instanceId as string, id => {
 onMounted(() => {
     ensureContext()
     contextStore.setIsImmersive(true)
+    drawersStore.closeRightDrawerPreservingExpertState()
     fetchData()
 })
 

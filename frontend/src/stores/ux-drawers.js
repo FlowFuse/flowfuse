@@ -166,6 +166,14 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
             this.rightDrawer.pinned = false
         },
 
+        closeRightDrawerPreservingExpertState () {
+            this._closeRightDrawerImmediate()
+            const uxStore = useUxStore()
+            if (uxStore.overlay) {
+                uxStore.closeOverlay()
+            }
+        },
+
         /**
          * Updates the right drawer header.
          *
