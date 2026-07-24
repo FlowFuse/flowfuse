@@ -22,43 +22,39 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 
 import DropdownMenu from './DropdownMenu.vue'
 
-const props = defineProps({
-    label: {
-        type: String,
-        default: ''
-    },
-    dataAction: {
-        type: String,
-        default: null
-    },
-    primary: {
-        type: Boolean,
-        default: false
-    },
-    disabled: {
-        type: Boolean,
-        default: false
-    },
-    dropdownDisabled: {
-        type: Boolean,
-        default: null
-    },
-    disabledReason: {
-        type: String,
-        default: null
-    },
-    options: {
-        type: Array,
-        default: () => []
-    }
+interface DropdownOption {
+    name: string
+    action?: (event?: Event) => void
+    disabled?: boolean
+    [key: string]: unknown
+}
+
+const props = withDefaults(defineProps<{
+    label?: string
+    dataAction?: string | null
+    primary?: boolean
+    disabled?: boolean
+    dropdownDisabled?: boolean | null
+    disabledReason?: string | null
+    options?: DropdownOption[]
+}>(), {
+    label: '',
+    dataAction: null,
+    primary: false,
+    disabled: false,
+    dropdownDisabled: null,
+    disabledReason: null,
+    options: () => []
 })
 
-defineEmits(['primary-click'])
+defineEmits<{
+    'primary-click': [event: MouseEvent]
+}>()
 
 const resolvedDropdownDisabled = computed(() => props.dropdownDisabled ?? props.disabled)
 </script>
