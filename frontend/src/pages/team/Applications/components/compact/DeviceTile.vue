@@ -100,7 +100,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useLiveStatusStore, { liveDeviceStatuses: 'deviceStatuses' }),
+        ...mapState(useLiveStatusStore, { liveDeviceMetadata: 'deviceMetadata' }),
         neverConnected () {
             return !this.device.lastSeenAt
         }
@@ -110,13 +110,13 @@ export default {
             this.localDevice = newValue
             this.applyLiveStatus()
         },
-        liveDeviceStatuses: { handler: 'applyLiveStatus', deep: true }
+        liveDeviceMetadata: { handler: 'applyLiveStatus', deep: true }
     },
     methods: {
         applyLiveStatus () {
-            const state = this.liveDeviceStatuses[this.localDevice?.id]
-            if (!state || this.localDevice?.status === state) return
-            this.localDevice = applyLiveState(this.localDevice, state, { device: true })
+            const meta = this.liveDeviceMetadata[this.localDevice?.id]
+            if (!meta || this.localDevice?.status === meta.status) return
+            this.localDevice = applyLiveState(this.localDevice, meta.status, { device: true })
         },
         shouldDisplayKebabMenu () {
             return this.hasPermission('device:edit') ||
