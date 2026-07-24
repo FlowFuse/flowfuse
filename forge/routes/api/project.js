@@ -1542,6 +1542,13 @@ module.exports = async function (app) {
                     code: 'not_found',
                     error: 'Snapshot not found'
                 })
+            } else {
+                if (targetSnapshot.ProjectId !== request.project.id) {
+                    return reply.code(404).send({
+                        code: 'not_found',
+                        error: 'Snapshot not found'
+                    })
+                }
             }
             break
         }
