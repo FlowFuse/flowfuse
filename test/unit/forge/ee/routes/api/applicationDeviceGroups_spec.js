@@ -563,6 +563,53 @@ describe('Application Device Groups API', function () {
             app.comms.devices.sendCommand.callCount.should.equal(0)
         })
 
+        // Bob (BTeam) should not be able to point his BTeam device group at a same-team
+        // snapshot that belongs to a different BTeam application.
+        it('Rejects a targetSnapshot that belongs to a different application in the same team (400)', async function () {
+            const { sid, application, deviceGroup, device1of2, device2of2, snapshot } = await prepare()
+            // Create a second BTeam application (same team, different application) with its own instance snapshot
+            const otherApplication = await factory.createApplication({ name: generateName('other-app') }, TestObjects.BTeam)
+            const otherInstance = await factory.createInstance({ name: generateName('other-instance') }, otherApplication, app.stack, app.template, app.projectType, { start: false })
+            const otherInstanceSnapshot = await factory.createSnapshot({ name: generateName('other-instance-snapshot') }, otherInstance, TestObjects.bob)
+            const response = await callUpdate(sid, application, deviceGroup, {
+                targetSnapshotId: otherInstanceSnapshot.hashid
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invalid_input')
+            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            const updatedDevice1 = await app.db.models.Device.byId(device1of2.hashid)
+            const updatedDevice2 = await app.db.models.Device.byId(device2of2.hashid)
+            updatedDeviceGroup.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice1.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice2.should.have.property('targetSnapshotId', snapshot.id)
+            app.comms.devices.sendCommand.callCount.should.equal(0)
+        })
+        // Same scenario, but the foreign snapshot belongs to an application-owned device
+        // rather than an instance - exercises the device-owned branch of the fix.
+        it('Rejects a device-owned targetSnapshot that belongs to a different application in the same team (400)', async function () {
+            const { sid, application, deviceGroup, device1of2, device2of2, snapshot } = await prepare()
+            const otherApplication = await factory.createApplication({ name: generateName('other-app') }, TestObjects.BTeam)
+            const otherDevice = await factory.createDevice({ name: generateName('other-device') }, TestObjects.BTeam, null, otherApplication)
+            const otherDeviceSnapshot = await app.db.models.ProjectSnapshot.create({
+                name: generateName('other-device-snapshot'),
+                DeviceId: otherDevice.id,
+                settings: {},
+                flows: {}
+            })
+            const response = await callUpdate(sid, application, deviceGroup, {
+                targetSnapshotId: otherDeviceSnapshot.hashid
+            })
+            response.statusCode.should.equal(400)
+            response.json().should.have.property('code', 'invalid_input')
+            const updatedDeviceGroup = await app.db.models.DeviceGroup.byId(deviceGroup.hashid)
+            const updatedDevice1 = await app.db.models.Device.byId(device1of2.hashid)
+            const updatedDevice2 = await app.db.models.Device.byId(device2of2.hashid)
+            updatedDeviceGroup.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice1.should.have.property('targetSnapshotId', snapshot.id)
+            updatedDevice2.should.have.property('targetSnapshotId', snapshot.id)
+            app.comms.devices.sendCommand.callCount.should.equal(0)
+        })
+
         it('Cannot update a device group with empty name', async function () {
             const sid = await login('bob', 'bbPassword')
             const application = await factory.createApplication({ name: generateName('app') }, TestObjects.BTeam)
