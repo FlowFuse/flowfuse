@@ -2,19 +2,35 @@
     <div class="ff--immersive-editor-wrapper dashboards-viewer" :class="{ resizing: isResizing }" data-el="dashboards-viewer">
         <DashboardDrawer :home-route="homeRoute" @resizing="v => isResizing = v">
             <ff-loading v-if="loading && instances.length === 0" message="Loading Dashboards..." />
-            <ul v-else-if="instances.length" class="dashboards-viewer--list">
-                <li
-                    v-for="instance in instances"
-                    :key="instance.id"
-                    class="dashboards-viewer--list-item"
-                    :class="{ selected: instance.id === selectedId }"
-                    data-el="dashboard-list-item"
-                    @click="selectDashboard(instance.id)"
-                >
-                    <span class="dashboards-viewer--list-item-name">{{ instance.name }}</span>
-                    <InstanceStatusBadge :status="instance.status" :instanceId="instance.id" instanceType="instance" />
-                </li>
-            </ul>
+            <template v-else-if="instances.length">
+                <div class="dashboards-viewer--search">
+                    <ff-text-input
+                        v-model="searchTerm"
+                        data-form="search-dashboards"
+                        placeholder="Search dashboards..."
+                    >
+                        <template #icon>
+                            <MagnifyingGlassIcon />
+                        </template>
+                    </ff-text-input>
+                </div>
+                <ul ref="listRef" class="dashboards-viewer--list">
+                    <li
+                        v-for="instance in visibleInstances"
+                        :key="instance.id"
+                        class="dashboards-viewer--list-item"
+                        :class="{ selected: instance.id === selectedId }"
+                        data-el="dashboard-list-item"
+                        @click="selectDashboard(instance.id)"
+                    >
+                        <span class="dashboards-viewer--list-item-name">{{ instance.name }}</span>
+                        <InstanceStatusBadge :status="instance.status" :instanceId="instance.id" instanceType="instance" />
+                    </li>
+                    <li v-if="visibleInstances.length === 0" class="dashboards-viewer--list-empty">
+                        No dashboards match "{{ searchTerm }}".
+                    </li>
+                </ul>
+            </template>
         </DashboardDrawer>
 
         <div class="ff-layout--immersive--content dashboards-viewer--content">
@@ -34,7 +50,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import InstanceStatusPolling from '@/components/InstanceStatusPolling.vue'
@@ -58,9 +75,18 @@ const { instances, instancesMap, loading, statusChannelLive, fetchData, instance
 
 const selectedId = ref<string | null>(null)
 const isResizing = ref(false)
+const searchTerm = ref('')
+const listRef = ref<HTMLElement | null>(null)
 
 const drawerOpen = computed(() => drawersStore.editorImmersiveDrawer.state)
 const selectedInstance = computed(() => instancesMap.value.get(selectedId.value) || null)
+
+const sortedInstances = computed(() => [...instances.value].sort((a, b) => (a.name || '').localeCompare(b.name || '')))
+const visibleInstances = computed(() => {
+    const term = searchTerm.value.trim().toLowerCase()
+    if (!term) return sortedInstances.value
+    return sortedInstances.value.filter(instance => (instance.name || '').toLowerCase().includes(term))
+})
 
 function selectDashboard (id) {
     selectedId.value = id
@@ -69,9 +95,14 @@ function selectDashboard (id) {
     }
 }
 
+function scrollSelectedIntoView () {
+    nextTick(() => {
+        listRef.value?.querySelector('.dashboards-viewer--list-item.selected')?.scrollIntoView({ block: 'center' })
+    })
+}
+
 function resolveSelection () {
-    const ids = Array.from(instancesMap.value.keys())
-    if (ids.length === 0) {
+    if (instancesMap.value.size === 0) {
         selectedId.value = null
         return
     }
@@ -82,7 +113,7 @@ function resolveSelection () {
     if (paramId && instancesMap.value.has(paramId)) {
         selectedId.value = paramId
     } else {
-        selectDashboard(ids[0])
+        selectDashboard(sortedInstances.value[0].id)
     }
 }
 
@@ -95,11 +126,12 @@ watch(() => route.params.instanceId as string, id => {
     }
 })
 
-onMounted(() => {
+onMounted(async () => {
     ensureContext()
     contextStore.setIsImmersive(true)
     drawersStore.closeRightDrawerPreservingExpertState()
-    fetchData()
+    await fetchData()
+    scrollSelectedIntoView()
 })
 
 onUnmounted(() => {
@@ -124,11 +156,29 @@ onUnmounted(() => {
     position: relative;
 }
 
+.dashboards-viewer--search {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 12px 12px 8px;
+    background: var(--ff-color-bg-app);
+}
+
+.dashboards-viewer--search :deep(.ff-text-input) {
+    width: 100%;
+}
+
 .dashboards-viewer--list {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding: 12px;
+    padding: 0 12px 12px;
+}
+
+.dashboards-viewer--list-empty {
+    padding: 8px 12px;
+    color: var(--ff-color-text-subtle);
+    font-size: 0.875rem;
 }
 
 .dashboards-viewer--list-item {
