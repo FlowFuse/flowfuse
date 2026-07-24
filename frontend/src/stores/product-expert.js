@@ -667,66 +667,12 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
         },
         // Session timing actions
-        startSessionTimer () {
+        _startSessionCheckInterval () {
             const agentStore = this._agentStore
-
-            // Clear any existing timer
-            if (agentStore.sessionCheckTimer) {
-                clearInterval(agentStore.sessionCheckTimer)
-            }
-
-            // Set session start time
-            agentStore.sessionStartTime = Date.now()
-            agentStore.sessionWarningShown = false
-            agentStore.sessionExpiredShown = false
-
-            // Check every 30 seconds if we've reached the warning/expiration threshold
             const timer = setInterval(() => {
                 const elapsed = Date.now() - agentStore.sessionStartTime
                 const warningThreshold = 25 * 60 * 1000 // 25 minutes
                 const expirationThreshold = 28 * 60 * 1000 // 28 minutes
-
-                // Show 25-minute warning
-                if (elapsed >= warningThreshold && !agentStore.sessionWarningShown) {
-                    agentStore.sessionWarningShown = true
-                    this.addSystemMessage({
-                        message: 'Your conversation history will expire soon. You can start a new conversation when this one expires.',
-                        type: 'warning'
-                    })
-                }
-
-                // Show 30-minute expiration
-                if (elapsed >= expirationThreshold && !agentStore.sessionExpiredShown) {
-                    agentStore.sessionExpiredShown = true
-                    this.addSystemMessage({
-                        message: 'Your conversation history has expired. Chat is now disabled. Click "Start Over" to begin a new conversation.',
-                        type: 'expired'
-                    })
-                }
-            }, 30000) // Check every 30 seconds
-
-            agentStore.setSessionCheckTimer(timer)
-        },
-        resetSessionTimer () {
-            const agentStore = this._agentStore
-            if (agentStore.sessionCheckTimer) {
-                clearInterval(agentStore.sessionCheckTimer)
-                agentStore.sessionCheckTimer = null
-            }
-            agentStore.sessionStartTime = null
-            agentStore.sessionWarningShown = false
-            agentStore.sessionExpiredShown = false
-        },
-        // Restart the session check interval without resetting sessionStartTime.
-        // Used after page refresh to let the persisted timer continue its course.
-        resumeSessionTimer () {
-            const agentStore = this._agentStore
-            if (!agentStore.sessionStartTime || agentStore.sessionCheckTimer) return
-
-            const timer = setInterval(() => {
-                const elapsed = Date.now() - agentStore.sessionStartTime
-                const warningThreshold = 25 * 60 * 1000
-                const expirationThreshold = 28 * 60 * 1000
 
                 if (elapsed >= warningThreshold && !agentStore.sessionWarningShown) {
                     agentStore.sessionWarningShown = true
@@ -746,6 +692,36 @@ export const useProductExpertStore = defineStore('product-expert', {
             }, 30000)
 
             agentStore.setSessionCheckTimer(timer)
+        },
+        startSessionTimer () {
+            const agentStore = this._agentStore
+
+            if (agentStore.sessionCheckTimer) {
+                clearInterval(agentStore.sessionCheckTimer)
+            }
+
+            agentStore.sessionStartTime = Date.now()
+            agentStore.sessionWarningShown = false
+            agentStore.sessionExpiredShown = false
+
+            this._startSessionCheckInterval()
+        },
+        resetSessionTimer () {
+            const agentStore = this._agentStore
+            if (agentStore.sessionCheckTimer) {
+                clearInterval(agentStore.sessionCheckTimer)
+                agentStore.sessionCheckTimer = null
+            }
+            agentStore.sessionStartTime = null
+            agentStore.sessionWarningShown = false
+            agentStore.sessionExpiredShown = false
+        },
+        // Restart the session check interval without resetting sessionStartTime.
+        // Used after page refresh to let the persisted timer continue its course.
+        resumeSessionTimer () {
+            const agentStore = this._agentStore
+            if (!agentStore.sessionStartTime || agentStore.sessionCheckTimer) return
+            this._startSessionCheckInterval()
         },
         /**
          *
