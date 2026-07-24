@@ -1,5 +1,6 @@
 import ApplicationActivity from './Activity.vue'
 import ApplicationCreateInstanceMultiStep from './CreateInstanceMultiStep.vue'
+import ApplicationDashboards from './Dashboards.vue'
 import Dependencies from './Dependencies/Dependencies.vue'
 import ApplicationDeviceGroupSettingsEnvironment from './DeviceGroup/Settings/Environment.vue'
 import ApplicationDeviceGroupSettingsGeneral from './DeviceGroup/Settings/General.vue'
@@ -46,6 +47,14 @@ export default [
                 component: ApplicationOverview,
                 meta: {
                     title: 'Application - Instances'
+                }
+            },
+            {
+                path: 'dashboards',
+                name: 'ApplicationDashboards',
+                component: ApplicationDashboards,
+                meta: {
+                    title: 'Application - Dashboards'
                 }
             },
             {

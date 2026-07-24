@@ -12,7 +12,7 @@
         <router-view :key="team.id" />
     </template>
     <template v-else-if="!canAccessTeam">
-        <TeamInstances :dashboard-role-only="true" />
+        <TeamDashboards />
     </template>
 </template>
 
@@ -24,7 +24,7 @@ import TeamSuspendedBanner from '../../components/banners/TeamSuspended.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import { Roles } from '../../utils/roles.js'
 
-import TeamInstances from './Instances.vue'
+import TeamDashboards from './Dashboards/index.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -36,7 +36,7 @@ import { useUxToursStore } from '@/stores/ux-tours.js'
 export default {
     name: 'TeamPage',
     components: {
-        TeamInstances,
+        TeamDashboards,
         SubscriptionExpiredBanner,
         TeamSuspendedBanner,
         TeamTrialBanner
