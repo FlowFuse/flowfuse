@@ -20,6 +20,7 @@ module.exports = function (app) {
                 allOf: [{ $ref: 'SnapshotSummary' }]
             },
             status: { type: 'string' },
+            onlineStatus: { type: 'string', enum: ['online', 'offline', 'not-seen'] },
             isDeploying: { type: 'boolean' },
             agentVersion: { nullable: true, type: 'string' },
             mode: { type: 'string' },
@@ -36,7 +37,7 @@ module.exports = function (app) {
             localLoginEnabled: { type: 'boolean' }
         },
         // POST /devices/ extends this via allOf with credentials + meta.
-        required: ['id', 'lastSeenAt', 'lastSeenMs', 'status', 'mode', 'isDeploying']
+        required: ['id', 'lastSeenAt', 'lastSeenMs', 'status', 'onlineStatus', 'mode', 'isDeploying']
     })
 
     function device (device, { statusOnly = false } = {}) {
@@ -52,6 +53,7 @@ module.exports = function (app) {
                 lastSeenAt: result.lastSeenAt,
                 lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
                 status: result.state || 'offline',
+                onlineStatus: device.status,
                 mode: result.mode || 'autonomous',
                 isDeploying: app.db.controllers.Device.isDeploying(device)
             }
@@ -69,6 +71,7 @@ module.exports = function (app) {
             targetSnapshot: app.db.views.ProjectSnapshot.snapshotSummary(device.targetSnapshot),
             links: result.links,
             status: result.state || 'offline',
+            onlineStatus: device.status,
             agentVersion: result.agentVersion,
             mode: result.mode || 'autonomous',
             ownerType: result.ownerType,
@@ -106,6 +109,7 @@ module.exports = function (app) {
             lastSeenAt: { nullable: true, type: 'string' },
             lastSeenMs: { nullable: true, type: 'number' },
             status: { type: 'string' },
+            onlineStatus: { type: 'string', enum: ['online', 'offline', 'not-seen'] },
             mode: { type: 'string' },
             isDeploying: { type: 'boolean' },
             links: { $ref: 'LinksMeta' },
@@ -113,7 +117,7 @@ module.exports = function (app) {
             mostRecentAuditLogCreatedAt: { type: 'string' },
             mostRecentAuditLogEvent: { type: 'string' }
         },
-        required: ['id', 'ownerType', 'name', 'type', 'lastSeenAt', 'lastSeenMs', 'status', 'mode', 'isDeploying', 'links'],
+        required: ['id', 'ownerType', 'name', 'type', 'lastSeenAt', 'lastSeenMs', 'status', 'onlineStatus', 'mode', 'isDeploying', 'links'],
         additionalProperties: false
     })
     app.addSchema({
@@ -134,6 +138,7 @@ module.exports = function (app) {
                 lastSeenAt: result.lastSeenAt,
                 lastSeenMs: result.lastSeenAt ? (Date.now() - new Date(result.lastSeenAt).valueOf()) : null,
                 status: result.state || 'offline',
+                onlineStatus: device.status,
                 mode: result.mode || 'autonomous',
                 isDeploying: app.db.controllers.Device.isDeploying(device),
                 links: result.links
@@ -163,11 +168,12 @@ module.exports = function (app) {
             lastSeenAt: { nullable: true, type: 'string' },
             lastSeenMs: { nullable: true, type: 'number' },
             status: { type: 'string' },
+            onlineStatus: { type: 'string', enum: ['online', 'offline', 'not-seen'] },
             mode: { type: 'string' },
             isDeploying: { type: 'boolean' },
             editor: { type: 'object', additionalProperties: true }
         },
-        required: ['id', 'lastSeenAt', 'lastSeenMs', 'status', 'mode', 'isDeploying'],
+        required: ['id', 'lastSeenAt', 'lastSeenMs', 'status', 'onlineStatus', 'mode', 'isDeploying'],
         additionalProperties: false
     })
     app.addSchema({
@@ -186,6 +192,7 @@ module.exports = function (app) {
                 lastSeenAt: summary.lastSeenAt,
                 lastSeenMs: summary.lastSeenMs,
                 status: summary.status,
+                onlineStatus: summary.onlineStatus,
                 mode: summary.mode,
                 isDeploying: summary.isDeploying
             }
