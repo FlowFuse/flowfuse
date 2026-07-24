@@ -298,6 +298,7 @@ spec:
           port: 80
 ```
 
+The `except` list is what makes this rule safe: it blocks instances from reaching internal networks even while internet access is open. Note the `169.254.0.0/16` entry in particular as it blocks the cloud metadata endpoint (`169.254.169.254`), which would otherwise let a compromised flow retrieve the node's cloud IAM credentials. `100.64.0.0/10` covers the CGNAT range that some managed Kubernetes providers use internally. Include it if your cluster does. Note that excluding `169.254.0.0/16` also blocks node-local DNS cache, which runs on a link-local address. If your cluster uses it, add an egress rule allowing UDP/TCP `53` to that address (commonly `169.254.20.10`) so DNS keeps resolving.
 ## TLS for Ingress
 
 Without TLS, all traffic between users and the platform, including login credentials, session cookies, API tokens and flow data, travels in plaintext. Anyone able to observe the network path (a compromised router, a shared Wi-Fi network, a malicious intermediary) can read or tamper with it. Enabling TLS encrypts this traffic and lets clients verify they are talking to the genuine platform, protecting against eavesdropping and man-in-the-middle attacks. Serving the platform over HTTPS is a baseline requirement for any production deployment.
