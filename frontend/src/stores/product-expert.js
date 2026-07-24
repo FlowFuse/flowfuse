@@ -144,6 +144,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                 this.setAgentMode(INSIGHTS_AGENT)
             }
 
+            // Resume the session check interval if a persisted session exists (e.g. after page refresh)
+            this.resumeSessionTimer()
+
             // In immersive editor context, navigate to the Expert tab instead of opening RightDrawer
             const contextStore = useContextStore()
             if (contextStore.isImmersiveEditor) {
@@ -713,6 +716,36 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.sessionStartTime = null
             agentStore.sessionWarningShown = false
             agentStore.sessionExpiredShown = false
+        },
+        // Restart the session check interval without resetting sessionStartTime.
+        // Used after page refresh to let the persisted timer continue its course.
+        resumeSessionTimer () {
+            const agentStore = this._agentStore
+            if (!agentStore.sessionStartTime || agentStore.sessionCheckTimer) return
+
+            const timer = setInterval(() => {
+                const elapsed = Date.now() - agentStore.sessionStartTime
+                const warningThreshold = 25 * 60 * 1000
+                const expirationThreshold = 28 * 60 * 1000
+
+                if (elapsed >= warningThreshold && !agentStore.sessionWarningShown) {
+                    agentStore.sessionWarningShown = true
+                    this.addSystemMessage({
+                        message: 'Your conversation history will expire soon. You can start a new conversation when this one expires.',
+                        type: 'warning'
+                    })
+                }
+
+                if (elapsed >= expirationThreshold && !agentStore.sessionExpiredShown) {
+                    agentStore.sessionExpiredShown = true
+                    this.addSystemMessage({
+                        message: 'Your conversation history has expired. Chat is now disabled. Click "Start Over" to begin a new conversation.',
+                        type: 'expired'
+                    })
+                }
+            }, 30000)
+
+            agentStore.setSessionCheckTimer(timer)
         },
         /**
          *
@@ -1300,7 +1333,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     persist: {
-        pick: ['shouldWakeUpAssistant', 'questionCadence'],
+        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode'],
         storage: localStorage
     }
 })
