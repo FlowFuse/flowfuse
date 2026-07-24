@@ -235,7 +235,7 @@ export default {
     data () {
         return {
             loading: true,
-            fetchSeq: 0,
+            abortController: null,
             instancesMap: new Map(),
             page: 1,
             pageSize: 25,
@@ -335,6 +335,9 @@ export default {
         }
         this.fullReload()
     },
+    beforeUnmount () {
+        this.abortController?.abort()
+    },
     methods: {
         fullReload () {
             this.page = 1
@@ -348,7 +351,9 @@ export default {
             if (!this.team.id) {
                 return
             }
-            const seq = ++this.fetchSeq
+            this.abortController?.abort()
+            const controller = markRaw(new AbortController())
+            this.abortController = controller
             this.loading = true
             try {
                 let response
@@ -362,11 +367,9 @@ export default {
                             dir: this.sort.order || null
                         },
                         includeMeta: true,
-                        states: this.statusFilter
+                        states: this.statusFilter,
+                        signal: controller.signal
                     })
-                }
-                if (seq !== this.fetchSeq) {
-                    return
                 }
                 const projects = response?.projects || []
                 this.totalRows = response?.meta?.total ?? response?.count ?? projects.length
@@ -383,13 +386,14 @@ export default {
                 })
                 this.instancesMap = nextMap
                 this.applyLiveStatus()
-            } catch (e) {
-                if (seq === this.fetchSeq) {
+            } catch (error) {
+                if (error.name !== 'AbortError' && error.name !== 'CanceledError') {
                     Alerts.emit('Failed to load instances.', 'warning')
                 }
             } finally {
-                if (seq === this.fetchSeq) {
+                if (!controller.signal.aborted) {
                     this.loading = false
+                    this.abortController = null
                 }
             }
         },
