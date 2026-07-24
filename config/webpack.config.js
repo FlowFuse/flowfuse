@@ -158,9 +158,12 @@ module.exports = function (env, argv) {
             new DotenvPlugin(),
             new DefinePlugin({
                 __VUE_OPTIONS_API__: true,
-                __VUE_PROD_DEVTOOLS__: devMode
+                __VUE_PROD_DEVTOOLS__: devMode,
+                __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: devMode,
+                'process.env.hotReloading': devMode && process.env.NODE_RUN_HOT === 'hot'
             })
         ],
+        cache: { type: 'filesystem' },
         optimization: {
             moduleIds: 'deterministic',
             runtimeChunk: 'single',
@@ -182,8 +185,42 @@ module.exports = function (env, argv) {
             }
         },
         devServer: {
-            port: 3000,
-            historyApiFallback: true
+            client: {
+                overlay: { errors: true, warnings: false },
+                logging: 'error'
+            },
+            port: 8080,
+            historyApiFallback: true,
+            static: {
+                directory: getPath('frontend/dist')
+            },
+            compress: true,
+            hot: true,
+            liveReload: false,
+            devMiddleware: {
+                writeToDisk: true
+            },
+            proxy: [
+                {
+                    context: ['/api/v1', '/account/', '/storage', '/ee/billing'],
+                    target: 'http://localhost:3000',
+                    // target: 'https://forge.flowfuse.local',
+                    changeOrigin: true
+                },
+                {
+                    context: ['/api'],
+                    target: 'https://registry.npmjs.com',
+                    changeOrigin: true,
+                    pathRewrite: { '^/api': '' }
+                },
+                {
+                    context: ['/api/**/projects/**/resources/stream', '/api/**/devices/**/editor/proxy/comms'],
+                    target: 'ws://localhost:3000',
+                    // target: 'https://forge.flowfuse.local',
+                    ws: true,
+                    changeOrigin: true
+                }
+            ]
         },
         watchOptions: {
             poll: 1000,
