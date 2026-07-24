@@ -415,6 +415,12 @@ export default {
             } else {
                 this.selectedStatusGroups.splice(index, 1)
             }
+            this.$router.replace({
+                query: {
+                    ...this.$route.query,
+                    status: this.selectedStatusGroups.length ? this.selectedStatusGroups : undefined
+                }
+            })
             this.page = 1
             this.fetchData()
         },
