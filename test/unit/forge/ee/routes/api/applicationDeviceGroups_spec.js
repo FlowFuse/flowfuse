@@ -442,10 +442,13 @@ describe('Application Device Groups API', function () {
 
             // first lets verify the devices have the snapshot set as target
             device1of2.should.have.property('targetSnapshotId', snapshot.id)
-            device1of2.should.have.property('targetSnapshotId', snapshot.id)
+            device2of2.should.have.property('targetSnapshotId', snapshot.id)
 
-            // create a new snapshot
-            const newSnapshot = await factory.createSnapshot({ name: generateName('snapshot') }, TestObjects.instance, TestObjects.bob)
+            // create a new snapshot on an instance in the group's own application -
+            // TestObjects.instance lives in a different BTeam application and would
+            // now be rejected by the application-scope check
+            const ownInstance = await factory.createInstance({ name: generateName('instance') }, application, app.stack, app.template, app.projectType, { start: false })
+            const newSnapshot = await factory.createSnapshot({ name: generateName('snapshot') }, ownInstance, TestObjects.bob)
 
             // now call the API to update targetSnapshot only
             const response = await callUpdate(sid, application, deviceGroup, {
