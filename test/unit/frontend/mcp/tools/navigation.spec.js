@@ -56,6 +56,6 @@ describe('ui_navigate tool', () => {
 
         const result = await navigateTool.handler({ route: 'application-activity' }, { router })
 
-        expect(result).toEqual({ success: false, error: 'navigation aborted' })
+        expect(result).toEqual({ success: false, error: 'Navigation to "application-activity" failed: navigation aborted' })
     })
 })
