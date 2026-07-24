@@ -90,8 +90,8 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Creates a new hosted Node-RED instance inside an application. The instance starts automatically after creation.
             Before calling this tool, gather the required parameters:
-            1. Call platform_list_hosted_instance_types first to see what instance types are available on this platform, then ask the user which one they want.
-            2. If they want a specific Node-RED version or stack, or just the latest. Call platform_list_stacks for the chosen instance type to get the options. If the user has no preference, use the instance type's defaultStack, which is the latest recommended version.
+            1. Call platform_list_hosted_instance_types first to see what instance types (and their stacks) this team can create, then ask the user which one they want.
+            2. If they want a specific Node-RED version or stack, or just the latest. Use platform_list_hosted_instance_types with the chosen projectType to see its stacks. If the user has no preference, use the instance type's defaultStack, which is the latest recommended version.
             3. If they want to start from a blueprint (pre-built starter flows). Call platform_list_blueprints to show them what is available. This is optional.
             4. Call platform_list_templates to get the template. If only one template exists, use it automatically. If there are multiple, ask the user which one to use.
             5. Call platform_check_hosted_instance_name_availability to make sure the chosen name is not already taken. This step is required, not optional - skipping it is the most common cause of a failed creation. If the name is taken, do not silently pick a new one yourself - propose a few alternative options (e.g. with a suffix) and let the user choose, then check that chosen name's availability too.
@@ -102,7 +102,7 @@ module.exports = [
             name: z.string().regex(/^[a-zA-Z][a-zA-Z0-9-]*$/).describe('Name for the new hosted instance. When generating a name, always use hyphens to separate multiple words (e.g. "my-new-instance" not "my new instance").'),
             applicationId: z.string().describe('The ID or hashid of the application'),
             projectType: z.string().describe('The ID of the hosted instance type (use platform_list_hosted_instance_types to find valid values)'),
-            stack: z.string().describe('The ID of the stack (use platform_list_stacks to find valid values)'),
+            stack: z.string().describe('The ID of the stack (use platform_list_hosted_instance_types to find valid values)'),
             template: z.string().describe('The ID of the template (use platform_list_templates to find valid values)'),
             flowBlueprintId: z.string().optional().describe('Optional blueprint ID to initialize the hosted instance with starter flows (use platform_list_blueprints to find valid values)')
         },
