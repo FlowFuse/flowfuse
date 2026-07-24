@@ -9,7 +9,7 @@ const tools: McpToolDefinition[] = [
             Use ui_list_routes to discover valid route names and the parameters they need.
             Before navigating, call ui_get_context to remember what page the user is currently on, so you can go back if something goes wrong.
             After calling this tool, call ui_get_context again to verify the navigation actually worked and the user ended up on the right page.
-            success: true only means the route name matched and the browser was pushed to that URL - it does not confirm that an id param refers to a real entity, which is why the ui_get_context check above is required, not optional.
+            { success: true } only confirms the route name matched and the browser navigated. It does not confirm that an id param points to a real entity, which is why the ui_get_context check above is required.
             If the navigation failed, it might be because a newly created entity has not finished setting up yet. Wait a few seconds and try the navigation again.
             If it still does not work after retrying, navigate the user back to the page they were on before and let them know what happened.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
