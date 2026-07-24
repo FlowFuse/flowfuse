@@ -1,3 +1,5 @@
+import { describeError } from './errors'
+
 import type { McpToolDefinition } from '@/types'
 
 const tools: McpToolDefinition[] = [
@@ -45,8 +47,7 @@ const tools: McpToolDefinition[] = [
             try {
                 await router.push({ name: routeName, params })
             } catch (err) {
-                const message = err instanceof Error && err.message ? err.message : `Navigation to "${routeName}" failed`
-                return { success: false, error: message }
+                return { success: false, error: `Navigation to "${routeName}" failed: ${describeError(err)}` }
             }
             return { success: true, route: routeName, path: resolved.fullPath }
         }

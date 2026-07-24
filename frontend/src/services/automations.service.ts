@@ -1,25 +1,8 @@
 import { BaseService } from './service.contract'
 
 import allTools from '@/mcp/tools'
+import { describeError } from '@/mcp/tools/errors'
 import type { AutomationsServiceI, CreateServiceOptions, McpToolDefinition, McpToolWireDefinition } from '@/types'
-
-// Some thrown errors (e.g. vue-router's production-build NavigationFailure) carry
-// no message, only extra own properties, so fall back to those instead of losing the reason.
-function describeError (err: unknown): string {
-    if (err instanceof Error) {
-        if (err.message) {
-            return err.message
-        }
-        const details = { ...err }
-        return Object.keys(details).length
-            ? `${err.name}: ${JSON.stringify(details)}`
-            : err.name
-    }
-    if (typeof err === 'string' && err) {
-        return err
-    }
-    return JSON.stringify(err) ?? 'Unknown error'
-}
 
 class AutomationsService extends BaseService implements AutomationsServiceI {
     private $tools: Map<string, McpToolDefinition>
