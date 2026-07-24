@@ -61,7 +61,7 @@ FlowFuse Cloud offers a Trial and an Enterprise Team Type, aimed at different so
 
 ### Enterprise
 
-All features from the Team Level plus
+Enterprise includes:
 
  - HA for Instances
  - SSO
