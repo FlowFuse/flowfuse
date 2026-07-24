@@ -42,12 +42,6 @@ export const useAccountAuthStore = defineStore('account-auth', {
             return this.sessionId
         },
         login (user) {
-            // Clear persisted expert chat when the authenticated user changes
-            // (covers SSO account switches, re-login as a different user, etc.)
-            useProductExpertSupportAgentStore().$reset()
-            useProductExpertInsightsAgentStore().$reset()
-            useProductExpertStore().$reset()
-
             this.user = user
             this.loginInflight = false
         },
@@ -167,6 +161,10 @@ export const useAccountAuthStore = defineStore('account-auth', {
                         console.error('posthog error resetting user')
                     }
                 }
+
+                useProductExpertSupportAgentStore().$reset()
+                useProductExpertInsightsAgentStore().$reset()
+                useProductExpertStore().$reset()
 
                 if (router.currentRoute.value.meta.requiresLogin !== false) {
                     const currentPath = router.currentRoute.value.fullPath === '/'
