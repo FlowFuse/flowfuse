@@ -61,7 +61,7 @@
                         </ff-button>
                     </template>
                     <template #row-actions="{row}">
-                        <dashboard-link v-if="!!row.settings?.dashboard2UI?.length" :disabled="row.status !== 'running'" :instance="row" />
+                        <dashboard-link v-if="!!row.settings?.dashboard2UI?.length" :disabled="row.status !== 'running'" :instance="row" scope="team" />
                         <instance-editor-link
                             v-if="hasPermission('team:projects:list')"
                             :instance="row"
