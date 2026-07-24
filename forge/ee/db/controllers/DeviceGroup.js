@@ -104,12 +104,22 @@ module.exports = {
                 if (!snapshot) {
                     throw new ValidationError('Snapshot does not exist')
                 }
-                // ensure the snapshot belongs to the same team as the device group's
-                // application - never trust a payload-supplied snapshot id to be in-team
-                const snapshotTeamId = await snapshot.getTeamId()
+                // ensure the snapshot belongs to the same application as the device
+                // group - never trust a payload-supplied snapshot id to be in-scope.
+                // Scoped to application (not just team) because granular RBAC can
+                // authorize a caller for this application without authorizing them
+                // for another application in the same team.
                 const application = await deviceGroup.getApplication()
-                if (!snapshotTeamId || !application || snapshotTeamId !== application.TeamId) {
-                    throw new ValidationError('Snapshot does not belong to the same team')
+                let snapshotApplicationId = null
+                if (snapshot.ownerType === 'instance') {
+                    const project = await snapshot.getProject()
+                    snapshotApplicationId = project?.ApplicationId
+                } else if (snapshot.ownerType === 'device') {
+                    const device = await snapshot.getDevice()
+                    snapshotApplicationId = device?.ApplicationId || (device?.ProjectId ? (await device.getProject())?.ApplicationId : null)
+                }
+                if (!application || !snapshotApplicationId || snapshotApplicationId !== application.id) {
+                    throw new ValidationError('Snapshot does not belong to the same application')
                 }
                 snapshotId = snapshot.id
             }
