@@ -421,6 +421,15 @@ module.exports = async function (app) {
             }
         } catch (err) {
             await transaction.rollback()
+            if (request.body.asyncSession) {
+                try {
+                    // This is an async registration session that started with a POST to /_/register.
+                    // We need to update the AsyncLoginSession with the result of this device creation
+                    request.body.asyncSession.status = 'error'
+                    request.body.asyncSession.result = JSON.stringify({ error: 'Failed to register device' })
+                    await request.body.asyncSession.save()
+                } catch (err) { }
+            }
             reply.code(400).send({ code: 'unexpected_error', error: err.toString() })
         }
     })
@@ -445,7 +454,6 @@ module.exports = async function (app) {
     }, async (request, reply) => {
         // Create a new AsyncLoginSession with a unique sessionToken and doneToken
         const session = await app.db.models.AsyncLoginSession.createToken()
-        // TODO: this should be a front-end URL
         const registerUrl = `/register/remote-instance/${session.sessionToken}`
         const doneUrl = `/api/v1/devices/_/register/done/${session.doneToken}`
         reply.send({ registerUrl, doneUrl })
