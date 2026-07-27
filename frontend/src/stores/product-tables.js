@@ -38,7 +38,7 @@ export const useProductTablesStore = defineStore('product-tables', {
         },
         selectedTable: (state) => {
             if (Object.keys(state.tables).includes(state.databaseSelection)) {
-                return state.tables[state.databaseSelection]?.find(t => t.name === state.tableSelection)
+                return state.tables[state.databaseSelection]?.find(t => t.name === state.tableSelection?.name && t.dbSchema === state.tableSelection?.dbSchema)
             }
             return null
         }
@@ -63,30 +63,32 @@ export const useProductTablesStore = defineStore('product-tables', {
             tables = tables.map(({ schema, ...table }) => ({ ...table, dbSchema: schema }))
             tables = [...tables].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }))
             this.tables[databaseId] = tables
-            if (tables.length > 0) this.tableSelection = tables[0].name
+            if (tables.length > 0) this.tableSelection = { name: tables[0].name, dbSchema: tables[0].dbSchema }
             return tables
         },
         clearState () { this.$reset() },
-        updateTableSelection (tableName) { this.tableSelection = tableName },
+        updateTableSelection (table) { this.tableSelection = table },
         updateDatabaseSelection (databaseId) { this.databaseSelection = databaseId },
-        async getTableSchema ({ databaseId, tableName, teamId }) {
-            const schema = await tablesApi.getTableSchema(teamId, databaseId, tableName)
+        async getTableSchema ({ databaseId, tableName, teamId, schemaName }) {
+            const schema = await tablesApi.getTableSchema(teamId, databaseId, tableName, schemaName)
             schema.forEach(col => { col.safeName = hashString(col.name) })
             Object.keys(this.tables[databaseId]).forEach(key => {
-                if (this.tables[databaseId][key].name === tableName) {
-                    this.tables[databaseId][key].schema = schema
+                const table = this.tables[databaseId][key]
+                if (table.name === tableName && (!schemaName || table.dbSchema === schemaName)) {
+                    table.schema = schema
                 }
             })
         },
-        async getTableData ({ databaseId, tableName, teamId }) {
-            const data = await tablesApi.getTableData(teamId, databaseId, tableName)
+        async getTableData ({ databaseId, tableName, teamId, schemaName }) {
+            const data = await tablesApi.getTableData(teamId, databaseId, tableName, schemaName)
             const payload = {
                 data,
                 safe: data.map(row => Object.fromEntries(Object.entries(row).map(([k, v]) => [hashString(k), v])))
             }
             Object.keys(this.tables[databaseId]).forEach(key => {
-                if (this.tables[databaseId][key].name === tableName) {
-                    this.tables[databaseId][key].payload = payload
+                const table = this.tables[databaseId][key]
+                if (table.name === tableName && (!schemaName || table.dbSchema === schemaName)) {
+                    table.payload = payload
                 }
             })
         },
@@ -100,8 +102,8 @@ export const useProductTablesStore = defineStore('product-tables', {
             })
             return tablesApi.createTable(team.id, databaseId, { name: this.newTable.name, columns: sanitizedColumns })
         },
-        deleteTable ({ teamId, databaseId, tableName }) {
-            return tablesApi.deleteTable(teamId, databaseId, tableName)
+        deleteTable ({ teamId, databaseId, tableName, schemaName }) {
+            return tablesApi.deleteTable(teamId, databaseId, tableName, schemaName)
         },
         addNewTableColumn () { this.newTable.columns.push({ ...emptyColumn }) },
         removeNewTableColumn (columnKey) { this.newTable.columns.splice(columnKey, 1) },

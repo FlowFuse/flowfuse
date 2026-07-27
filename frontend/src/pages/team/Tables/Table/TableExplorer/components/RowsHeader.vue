@@ -53,7 +53,8 @@ export default {
             return this.getTableData({
                 teamId: this.team.id,
                 databaseId: this.$route.params.id,
-                tableName: this.tableSelection
+                tableName: this.tableSelection?.name,
+                schemaName: this.tableSelection?.dbSchema
             }).finally(() => this.setTableLoadingState(false))
         }
     }

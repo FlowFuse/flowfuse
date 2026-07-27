@@ -21,8 +21,8 @@
                 v-for="table in filteredTables" :key="table.id"
                 :title="table.name"
                 class="item relative"
-                :class="{active: table.name === tableSelection}"
-                @click="updateTableSelection(table.name)"
+                :class="{active: table.name === tableSelection?.name && table.dbSchema === tableSelection?.dbSchema}"
+                @click="updateTableSelection({ name: table.name, dbSchema: table.dbSchema })"
             >
                 <span class="icon-toggle">
                     <TableCellsIcon class="ff-icon ff-icon-sm" />
