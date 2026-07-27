@@ -35,7 +35,7 @@
                 </button>
             </div>
         </div>
-        <ExpertPanel />
+        <ExpertPanel ref="panel" />
     </div>
 </template>
 
@@ -90,9 +90,9 @@ export default {
         }
     },
     mounted () {
-        // Wait for drawer slide-in animation to complete (300ms) before focusing
+        // Wait for drawer slide-in animation to complete (300ms) before focusing the chat input
         setTimeout(() => {
-            this.$refs.drawer?.focus()
+            this.$refs.panel?.focusInput()
         }, 350)
     },
     methods: {
