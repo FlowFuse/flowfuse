@@ -6,6 +6,7 @@
                 <div class="dashboards-viewer--search">
                     <ff-text-input
                         v-model="searchTerm"
+                        class="ff-data-table--search"
                         data-form="search-dashboards"
                         placeholder="Search dashboards..."
                     >
@@ -85,7 +86,10 @@ const sortedInstances = computed(() => [...instances.value].sort((a, b) => (a.na
 const visibleInstances = computed(() => {
     const term = searchTerm.value.trim().toLowerCase()
     if (!term) return sortedInstances.value
-    return sortedInstances.value.filter(instance => (instance.name || '').toLowerCase().includes(term))
+    return sortedInstances.value.filter(instance =>
+        (instance.name || '').toLowerCase().includes(term) ||
+        (instance.id || '').toLowerCase().includes(term)
+    )
 })
 
 function selectDashboard (id) {
@@ -162,10 +166,6 @@ onUnmounted(() => {
     z-index: 1;
     padding: 12px 12px 8px;
     background: var(--ff-color-bg-app);
-}
-
-.dashboards-viewer--search :deep(.ff-text-input) {
-    width: 100%;
 }
 
 .dashboards-viewer--list {
