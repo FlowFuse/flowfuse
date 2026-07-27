@@ -49,7 +49,7 @@ module.exports = {
                         }
                     }
                 } catch (err) {
-                    // console.log(err)
+                    // swallowing error as this is an async hook triggered by an update to the underlying table
                 }
             }
         }

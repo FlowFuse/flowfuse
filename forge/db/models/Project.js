@@ -260,14 +260,13 @@ module.exports = {
                         app.log.error(`Error removing MCPRegistrations for deleted instance ${project.id}: ${err.message}`)
                     }
                 }
-                if (app.db.models.NodeREDNodeVersions?.destory) {
-                    await app.db.models.destory({
-                        where: {
-                            ownerType: 'instance',
-                            ownerId: project.id
-                        }
-                    })
-                }
+                // Remove version info when Project removed
+                await app.db.models.NodeREDNodeVersions.destory({
+                    where: {
+                        ownerType: 'instance',
+                        ownerId: project.id
+                    }
+                })
             }
         }
     },
