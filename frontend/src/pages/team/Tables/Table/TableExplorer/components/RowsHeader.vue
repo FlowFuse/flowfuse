@@ -12,9 +12,9 @@
             <ArrowPathIcon class="ff-icon ff-icon-md" aria-hidden="true" />
         </button>
         <span v-if="selectedTable" class="table-title truncate">
-            {{ selectedTable.name }}
-            <span class="schema-label">{{ selectedTable.dbSchema }}</span>
+            {{ selectedTable.dbSchema }}.{{ selectedTable.name }}
         </span>
+        <TextCopier v-if="selectedTable" :text="qualifiedTableName" :show-text="false" />
     </section>
 </template>
 
@@ -25,12 +25,13 @@ import { mapActions, mapState } from 'pinia'
 import MenuCollapse from '../../.././../../../components/icons/menu-collapse.js'
 import MenuExpand from '../../.././../../../components/icons/menu-expand.js'
 
+import TextCopier from '@/components/TextCopier.vue'
 import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default {
     name: 'RowsHeader',
-    components: { MenuCollapse, MenuExpand, ArrowPathIcon },
+    components: { MenuCollapse, MenuExpand, ArrowPathIcon, TextCopier },
     props: {
         menuCollapsed: {
             type: Boolean,
@@ -40,7 +41,10 @@ export default {
     emits: ['toggle-collapse'],
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useProductTablesStore, ['tableSelection', 'selectedTable'])
+        ...mapState(useProductTablesStore, ['tableSelection', 'selectedTable']),
+        qualifiedTableName () {
+            return `"${this.selectedTable.dbSchema}"."${this.selectedTable.name}"`
+        }
     },
     methods: {
         ...mapActions(useProductTablesStore, ['getTableData', 'setTableLoadingState']),
@@ -70,12 +74,6 @@ export default {
     .table-title {
         font-weight: bold;
         color: var(--ff-color-text-deep);
-
-        .schema-label {
-            font-weight: normal;
-            font-size: 0.75rem;
-            color: var(--ff-color-text-subtle);
-        }
     }
 }
 </style>
