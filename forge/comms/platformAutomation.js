@@ -99,14 +99,20 @@ class PlatformAutomationHandler {
                 const user = await this.app.db.models.User.byId(userId)
                 if (user) {
                     const { token } = await this.app.expert.mcp.getOrCreatePlatformToken(user)
-                    const inject = (opts) => this.app.inject({
-                        ...opts,
-                        headers: {
-                            ...opts.headers,
-                            authorization: `Bearer ${token}`,
-                            'x-ff-automation-source': 'expert'
-                        }
-                    })
+                    const inject = (opts) => {
+                        const nonce = this.app.nonceStore.createSourceNonce({
+                            source: 'mcp:expert',
+                            toolName
+                        })
+                        return this.app.inject({
+                            ...opts,
+                            headers: {
+                                ...opts.headers,
+                                authorization: `Bearer ${token}`,
+                                'x-ff-source-nonce': nonce
+                            }
+                        })
+                    }
 
                     const { formatResponse } = require('../ee/lib/mcp/toolLoader')
                     const response = await tool.handler(args, { inject })

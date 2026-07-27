@@ -10,8 +10,8 @@ describe('live-status store', () => {
 
     it('starts empty and not live', () => {
         const store = useLiveStatusStore()
-        expect(store.instanceStatuses).toEqual({})
-        expect(store.deviceStatuses).toEqual({})
+        expect(store.instanceMetadata).toEqual({})
+        expect(store.deviceMetadata).toEqual({})
         expect(store.live).toBe(false)
     })
 
@@ -19,30 +19,50 @@ describe('live-status store', () => {
         it('records instance status in the map', () => {
             const store = useLiveStatusStore()
             store.setInstanceStatus('inst-1', 'running')
-            expect(store.instanceStatuses['inst-1']).toBe('running')
+            expect(store.instanceMetadata['inst-1']).toEqual({ status: 'running', versions: undefined })
+        })
+
+        it('records versions alongside the status when provided', () => {
+            const store = useLiveStatusStore()
+            store.setInstanceStatus('inst-1', 'running', { 'node-red': '5.0.0', launcher: '2.31.3' })
+            expect(store.instanceMetadata['inst-1']).toEqual({ status: 'running', versions: { 'node-red': '5.0.0', launcher: '2.31.3' } })
+        })
+
+        it('retains previously-seen versions when a later status carries none', () => {
+            const store = useLiveStatusStore()
+            store.setInstanceStatus('inst-1', 'starting', { 'node-red': '5.0.0' })
+            store.setInstanceStatus('inst-1', 'running')
+            expect(store.instanceMetadata['inst-1']).toEqual({ status: 'running', versions: { 'node-red': '5.0.0' } })
         })
 
         it('records device status independently of instance status', () => {
             const store = useLiveStatusStore()
             store.setInstanceStatus('inst-1', 'running')
-            store.setDeviceStatus('dev-1', 'stopped')
-            expect(store.deviceStatuses['dev-1']).toBe('stopped')
+            store.setDeviceStatus('dev-1', 'stopped', 'online')
+            expect(store.deviceMetadata['dev-1']).toEqual({ status: 'stopped', onlineStatus: 'online' })
             // the two maps don't bleed into each other
-            expect(store.instanceStatuses['dev-1']).toBeUndefined()
-            expect(store.deviceStatuses['inst-1']).toBeUndefined()
+            expect(store.instanceMetadata['dev-1']).toBeUndefined()
+            expect(store.deviceMetadata['inst-1']).toBeUndefined()
+        })
+
+        it('retains a previously-seen onlineStatus when a later status carries none', () => {
+            const store = useLiveStatusStore()
+            store.setDeviceStatus('dev-1', 'running', 'online')
+            store.setDeviceStatus('dev-1', 'stopped')
+            expect(store.deviceMetadata['dev-1']).toEqual({ status: 'stopped', onlineStatus: 'online' })
         })
 
         it('overwrites an existing id with the latest state', () => {
             const store = useLiveStatusStore()
             store.setInstanceStatus('inst-1', 'running')
             store.setInstanceStatus('inst-1', 'suspended')
-            expect(store.instanceStatuses['inst-1']).toBe('suspended')
+            expect(store.instanceMetadata['inst-1'].status).toBe('suspended')
         })
 
         it('leaves an unknown id undefined', () => {
             const store = useLiveStatusStore()
-            expect(store.instanceStatuses.nope).toBeUndefined()
-            expect(store.deviceStatuses.nope).toBeUndefined()
+            expect(store.instanceMetadata.nope).toBeUndefined()
+            expect(store.deviceMetadata.nope).toBeUndefined()
         })
     })
 
@@ -65,8 +85,8 @@ describe('live-status store', () => {
 
             store.clear()
 
-            expect(store.instanceStatuses).toEqual({})
-            expect(store.deviceStatuses).toEqual({})
+            expect(store.instanceMetadata).toEqual({})
+            expect(store.deviceMetadata).toEqual({})
             expect(store.live).toBe(false)
         })
     })

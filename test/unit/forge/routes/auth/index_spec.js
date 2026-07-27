@@ -1170,4 +1170,125 @@ describe('Accounts API', async function () {
             response.cookies[0].maxAge.should.equal(300)
         })
     })
+
+    describe('Source context resolution', async function () {
+        // These tests verify that resolveSourceContext in the auth layer
+        // correctly populates (or does not populate) the source context
+        // based on the x-ff-source-nonce header or PAT session.
+        // Verification is done by triggering an audit log write (PUT /api/v1/user)
+        // and checking the AuditLog source column.
+        let nameCounter = 0
+
+        before(async function () {
+            app = await setup()
+        })
+        after(async function () {
+            await app.close()
+        })
+
+        async function getLatestAuditEntry () {
+            return app.db.models.AuditLog.findOne({
+                order: [['createdAt', 'DESC']]
+            })
+        }
+
+        async function triggerAuditViaUserUpdate (authOpts) {
+            nameCounter++
+            return app.inject({
+                method: 'PUT',
+                url: '/api/v1/user',
+                payload: { name: `Source Test User ${nameCounter}` },
+                ...authOpts
+            })
+        }
+
+        it('bogus nonce does not populate source', async function () {
+            await login('alice', 'aaPassword')
+            const response = await triggerAuditViaUserUpdate({
+                cookies: { sid: TestObjects.tokens.alice },
+                headers: { 'x-ff-source-nonce': 'not-a-real-nonce' }
+            })
+            response.statusCode.should.equal(200)
+            const entry = await getLatestAuditEntry()
+            should(entry.source).be.null()
+        })
+
+        it('expired nonce does not populate source', async function () {
+            await login('alice', 'aaPassword')
+            const nonce = app.nonceStore.createSourceNonce({ source: 'mcp:expert', toolName: 'test-tool' }, 1)
+            // Wait for the nonce to expire
+            await new Promise(resolve => setTimeout(resolve, 50))
+            const response = await triggerAuditViaUserUpdate({
+                cookies: { sid: TestObjects.tokens.alice },
+                headers: { 'x-ff-source-nonce': nonce }
+            })
+            response.statusCode.should.equal(200)
+            const entry = await getLatestAuditEntry()
+            should(entry.source).be.null()
+        })
+
+        it('valid nonce populates source from nonce metadata', async function () {
+            await login('alice', 'aaPassword')
+            const nonce = app.nonceStore.createSourceNonce({
+                source: 'mcp:expert',
+                correlationId: 'test-corr-id',
+                toolName: 'get-instance'
+            })
+            const response = await triggerAuditViaUserUpdate({
+                cookies: { sid: TestObjects.tokens.alice },
+                headers: { 'x-ff-source-nonce': nonce }
+            })
+            response.statusCode.should.equal(200)
+            const entry = await getLatestAuditEntry()
+            entry.source.should.equal('mcp:expert')
+            const body = JSON.parse(entry.body)
+            body.sourceContext.should.have.property('correlationId', 'test-corr-id')
+            body.sourceContext.should.have.property('toolName', 'get-instance')
+        })
+
+        it('PAT without nonce gets source api with tokenId', async function () {
+            const patUser = await app.factory.createUser({
+                username: 'patUser',
+                name: 'PAT User',
+                email: 'pat@example.com',
+                password: 'ppPassword'
+            })
+            const pat = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                patUser, '', null, 'Test PAT'
+            )
+            const response = await triggerAuditViaUserUpdate({
+                headers: { authorization: `Bearer ${pat.token}` }
+            })
+            response.statusCode.should.equal(200)
+            const entry = await getLatestAuditEntry()
+            entry.source.should.equal('api')
+            const body = JSON.parse(entry.body)
+            body.sourceContext.should.have.property('tokenId')
+        })
+
+        it('nonce is single-use and does not populate source on reuse', async function () {
+            await login('alice', 'aaPassword')
+            const nonce = app.nonceStore.createSourceNonce({
+                source: 'mcp:expert',
+                correlationId: 'single-use-test'
+            })
+            // First request consumes the nonce
+            const first = await triggerAuditViaUserUpdate({
+                cookies: { sid: TestObjects.tokens.alice },
+                headers: { 'x-ff-source-nonce': nonce }
+            })
+            first.statusCode.should.equal(200)
+            const firstEntry = await getLatestAuditEntry()
+            firstEntry.source.should.equal('mcp:expert')
+
+            // Second request with same nonce should not get source
+            const second = await triggerAuditViaUserUpdate({
+                cookies: { sid: TestObjects.tokens.alice },
+                headers: { 'x-ff-source-nonce': nonce }
+            })
+            second.statusCode.should.equal(200)
+            const secondEntry = await getLatestAuditEntry()
+            should(secondEntry.source).be.null()
+        })
+    })
 })

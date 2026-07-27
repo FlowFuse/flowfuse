@@ -564,7 +564,8 @@ module.exports = {
                     includeSettings = false,
                     includeMeta = false,
                     orderByMostRecentFlows = false,
-                    excludeApplications = null
+                    excludeApplications = null,
+                    states = null
                 } = {}) => {
                     const {
                         page = null,
@@ -683,6 +684,21 @@ module.exports = {
                         }
                     }
 
+                    if (states && states.length) {
+                        const stateSet = new Set(states)
+                        const candidates = await this.findAll({
+                            attributes: ['id', 'state'],
+                            include: [{ model: M.Team, where: { id: teamId }, attributes: [] }],
+                            where: queryObject.where
+                        })
+                        const resolved = await Promise.all(candidates.map(async candidate => ({
+                            id: candidate.id,
+                            liveState: (await Controllers.Project.getLatestProjectState(candidate.id)) ?? candidate.state
+                        })))
+                        const matchingIds = resolved.filter(c => stateSet.has(c.liveState)).map(c => c.id)
+                        queryObject.where = { id: { [Op.in]: matchingIds } }
+                    }
+
                     if (withTotal) {
                         const countInclude = [{
                             model: M.Team,
@@ -722,6 +738,27 @@ module.exports = {
                             },
                             {
                                 model: M.Application,
+                                attributes: ['hashid', 'id', 'name', 'description', 'links']
+                            },
+                            {
+                                model: M.ProjectSettings,
+                                attributes: ['id', 'key', 'value', 'ProjectId'],
+                                where: { key: 'settings' }
+                            }
+                        ]
+                    })
+                },
+                byApplicationForDashboard: async (applicationHashId) => {
+                    const applicationId = M.Application.decodeHashid(applicationHashId)
+                    return this.findAll({
+                        include: [
+                            {
+                                model: M.Team,
+                                attributes: ['hashid', 'id', 'name', 'slug', 'links', 'TeamTypeId', 'suspended']
+                            },
+                            {
+                                model: M.Application,
+                                where: { id: applicationId },
                                 attributes: ['hashid', 'id', 'name', 'description', 'links']
                             },
                             {

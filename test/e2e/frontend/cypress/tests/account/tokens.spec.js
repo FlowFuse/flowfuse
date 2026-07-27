@@ -86,10 +86,11 @@ describe('FlowFuse - Personal Access Tokens', () => {
     })
 
     it('can be added with an expiry date', () => {
-        // count how many tokens we already have
-        const rows = Cypress.$('[data-el="tokens-table"] tbody').find('tr.ff-data-table--row').length
-
         cy.intercept('POST', '/api/*/user/tokens').as('addPersonalAccessToken')
+
+        // retryable read - a synchronous Cypress.$ count can beat the table render on slow CI, undercounting the baseline
+        let rows
+        cy.get('[data-el="tokens-table"] tbody').find('tr.ff-data-table--row').then($rows => { rows = $rows.length })
 
         cy.get('[data-action="new-token"]').click()
 
@@ -108,10 +109,12 @@ describe('FlowFuse - Personal Access Tokens', () => {
         cy.get('[data-el="add-token-confirmation"] [data-action="token-confirmation-done"]').click()
 
         // check we have one more token than before
-        cy.get('[data-el="tokens-table"] tbody').find('tr').should('have.length', rows + 1)
-        cy.get('[data-el="tokens-table"] tbody').find('tr').last().should('contain', '31')
-        cy.get('[data-el="tokens-table"] tbody').find('tr').last().should('contain', '12')
-        cy.get('[data-el="tokens-table"] tbody').find('tr').last().should('contain', '2050')
+        cy.get('[data-el="tokens-table"] tbody').find('tr.ff-data-table--row').should($rows => {
+            expect($rows).to.have.length(rows + 1)
+        })
+        // the cell renders Date.parse(expiresAt).toLocaleDateString(); derive the label the same way so the assertion is timezone-independent
+        const expiryLabel = new Date(Date.parse('2050-12-31')).toLocaleDateString()
+        cy.get('[data-el="tokens-table"] tbody').find('tr').last().should('contain', expiryLabel)
     })
 
     it('can be added with read-only enabled', () => {

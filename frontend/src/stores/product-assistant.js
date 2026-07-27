@@ -779,7 +779,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             const orchestrator = getAppOrchestrator()
             const contextStore = useContextStore()
 
-            orchestrator.$serviceInstances.postMessage.sendMessage({
+            orchestrator.$services.postMessage.sendMessage({
                 message: {
                     ...payload,
                     ...this.scope

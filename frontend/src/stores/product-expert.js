@@ -159,6 +159,18 @@ export const useProductExpertStore = defineStore('product-expert', {
                 return router.push({ name: expertRouteName, params: contextStore.route.params })
             }
 
+            if (['team-dashboards-view', 'application-dashboards-view'].includes(contextStore.route?.name)) {
+                const drawersStore = useUxDrawersStore()
+                if (!drawersStore.editorImmersiveDrawer.state) {
+                    drawersStore.openEditorImmersiveDrawer()
+                }
+                return import('../components/expert/Expert.vue')
+                    .then(({ default: ExpertPanel }) => drawersStore.openRightDrawer({
+                        component: markRaw(ExpertPanel),
+                        header: { title: 'Expert' }
+                    }))
+            }
+
             if (this.agentMode === INSIGHTS_AGENT) {
                 useProductExpertInsightsAgentStore().getCapabilities()
             }
@@ -278,7 +290,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         async sendMqttQuery ({ query, toolApprovals } = {}) {
             const servicesOrchestrator = getAppOrchestrator()
-            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const mqttService = servicesOrchestrator.$services.mqtt
             const mqttTopicHelper = useMqttExpertTopicHelper()
 
             const transactionId = uuidv4()
@@ -329,7 +341,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         async establishMqttComms () {
             const servicesOrchestrator = getAppOrchestrator()
-            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const mqttService = servicesOrchestrator.$services.mqtt
 
             await mqttService.createClient(this.mqttConnectionKey, {
                 getCredentials: () => userApi.initiateExpertChat({ sessionId: this.sessionId }),
@@ -372,7 +384,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             const assistantStore = useProductAssistantStore()
             const topicHelper = useMqttExpertTopicHelper()
 
-            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const mqttService = servicesOrchestrator.$services.mqtt
             const parsedTopic = topicHelper.parseTopic(topic)
             const payload = JSON.parse(message.toString())
 
@@ -407,7 +419,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             case parsedTopic.inflightType === 'automation-ui:mcp-get-features': {
                 // handle UI MCP features request
                 try {
-                    const automationsService = servicesOrchestrator.$serviceInstances.automations
+                    const automationsService = servicesOrchestrator.$services.automations
                     const tools = automationsService.getToolDefinitions()
 
                     await mqttService.publishMessage(this.mqttConnectionKey, {
@@ -429,7 +441,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             case parsedTopic.inflightType === 'automation-ui:mcp-call-tool': {
                 // handle UI MCP tool invocation request
                 try {
-                    const automationsService = servicesOrchestrator.$serviceInstances.automations
+                    const automationsService = servicesOrchestrator.$services.automations
                     const { name, input } = payload?.data || {}
                     const result = await automationsService.dispatch(name, input)
 
@@ -597,7 +609,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             if (this.shouldUseMqtt) {
                 const servicesOrchestrator = getAppOrchestrator()
-                const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+                const mqttService = servicesOrchestrator.$services.mqtt
 
                 await mqttService.destroyClient(this.mqttConnectionKey)
             }
@@ -884,7 +896,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             const servicesOrchestrator = getAppOrchestrator()
-            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const mqttService = servicesOrchestrator.$services.mqtt
 
             // if the last message was an error, it means we just reconnected after a failure
             // letting users know that everything is all right
@@ -958,7 +970,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             this._clearInFlightUpdates()
 
             const servicesOrchestrator = getAppOrchestrator()
-            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const mqttService = servicesOrchestrator.$services.mqtt
 
             const rand = Math.floor(Math.random() * 3)
             let payload = {
@@ -1247,7 +1259,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (this.shouldUseMqtt) {
                 const inFlightRequest = this._inFlightRequests.values().next().value
                 const servicesOrchestrator = getAppOrchestrator()
-                const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+                const mqttService = servicesOrchestrator.$services.mqtt
 
                 const hasMqttClient = mqttService.hasClient(this.mqttConnectionKey) &&
                     (mqttService.getManagedClient(this.mqttConnectionKey)).status === 'connected'

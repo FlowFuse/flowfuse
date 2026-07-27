@@ -1,10 +1,9 @@
 <template>
     <ff-page>
         <template #header>
-            <ff-page-header :title="dashboardRoleOnly ? 'Dashboards' : 'Hosted Instances'">
+            <ff-page-header title="Hosted Instances">
                 <template #context>
-                    <span v-if="!dashboardRoleOnly">A list of all dashboards belonging to this Team.</span>
-                    <span v-else>A list of Node-RED instances with Dashboards belonging to this Team.</span>
+                    <span>A list of all Node-RED instances belonging to this Team.</span>
                 </template>
                 <template #help-header>
                     Instances
@@ -14,14 +13,14 @@
                 </template>
                 <template #helptext>
                     <p>
-                        This is a list of <span v-if="!dashboardRoleOnly">all</span> Node-RED instances belonging to this team running
+                        This is a list of all Node-RED instances belonging to this team running
                         in this FlowFuse.
                     </p>
                     <p>
                         Each Instance is a customised version of Node-RED that includes various
                         FlowFuse plugins to integrate it with the platform.
                     </p>
-                    <p v-if="!dashboardRoleOnly">
+                    <p>
                         A number of the standard Node-RED settings are exposed for customisation,
                         and they can be preset by applying a Template upon creation of an Instance.
                     </p>
@@ -32,15 +31,17 @@
             <div class="banner-wrapper">
                 <FeatureUnavailableToTeam v-if="!instancesAvailable" />
             </div>
-            <ff-loading v-if="loading && !instancesMap.size && searchTerm === null" message="Loading Instances..." />
-            <template v-else-if="instancesAvailable">
+            <template v-if="instancesAvailable">
                 <ff-data-table
-                    v-if="instances.length > 0 || searchTerm !== null"
+                    v-if="loading || instances.length > 0 || hasFilter"
                     data-el="instances-table" :columns="columns" :rows="instances" :show-search="true"
-                    search-placeholder="Search Instances..."
+                    search-placeholder="Search by name..."
                     :initialSortKey="sort.key" :initialSortOrder="sort.order"
-                    :rows-selectable="!dashboardRoleOnly"
+                    :rows-selectable="true"
                     :pagination="paginationProps"
+                    :server-side-search="true"
+                    :loading="loading"
+                    loading-type="skeleton"
                     @row-selected="openInstance"
                     @update:search="updateSearch"
                     @update:sort="updateSort"
@@ -48,6 +49,30 @@
                     @update:page-size="onPageSizeChange"
                 >
                     <template #actions>
+                        <ff-popover
+                            :button-text="selectedStatusGroups.length ? `Status (${selectedStatusGroups.length})` : 'Status'"
+                            button-kind="secondary"
+                            data-el="status-filter"
+                        >
+                            <template #panel>
+                                <section>
+                                    <popover-item
+                                        v-for="filter in statusFilters" :key="filter.key"
+                                        :title="filter.label"
+                                        :data-action="'filter-' + filter.key"
+                                        @click="toggleStatusGroup(filter.key)"
+                                    >
+                                        <template #icon>
+                                            <ff-checkbox
+                                                :model-value="selectedStatusGroups.includes(filter.key)"
+                                                style="top: -8px;"
+                                                @click.stop.prevent="toggleStatusGroup(filter.key)"
+                                            />
+                                        </template>
+                                    </popover-item>
+                                </section>
+                            </template>
+                        </ff-popover>
                         <ff-button
                             v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                             data-action="create-project"
@@ -62,7 +87,7 @@
                         </ff-button>
                     </template>
                     <template #row-actions="{row}">
-                        <dashboard-link v-if="!!row.settings?.dashboard2UI?.length" :disabled="row.status !== 'running'" :instance="row" />
+                        <dashboard-link v-if="!!row.settings?.dashboard2UI?.length" :disabled="row.status !== 'running'" :instance="row" scope="team" />
                         <instance-editor-link
                             v-if="hasPermission('team:projects:list')"
                             :instance="row"
@@ -103,7 +128,7 @@
                         />
                     </template>
                 </ff-data-table>
-                <EmptyState v-else-if="!dashboardRoleOnly">
+                <EmptyState v-else>
                     <template #img>
                         <img src="../../images/empty-states/team-instances.png">
                     </template>
@@ -134,12 +159,6 @@
                             Create Instance
                         </ff-button>
                     </template>
-                </EmptyState>
-                <EmptyState v-else>
-                    <template #img>
-                        <img src="../../images/empty-states/team-instances.png">
-                    </template>
-                    <template #header>There are no dashboards in this team.</template>
                 </EmptyState>
             </template>
             <template v-else>
@@ -191,6 +210,7 @@ import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useLiveStatusStore } from '@/stores/live-status'
+import PopoverItem from '@/ui-components/components/PopoverItem.vue'
 
 export default {
     name: 'TeamInstances',
@@ -201,31 +221,32 @@ export default {
         DashboardLink,
         PlusSmallIcon,
         EmptyState,
-        FeatureUnavailableToTeam
+        FeatureUnavailableToTeam,
+        PopoverItem
     },
     mixins: [instanceActionsMixin],
-    props: {
-        dashboardRoleOnly: {
-            required: false,
-            default: false,
-            type: Boolean
-        }
-    },
     setup () {
-        const { isRunningState } = useInstanceStates()
+        const { isRunningState, statesMap } = useInstanceStates()
         const { navigateTo } = useNavigationHelper()
         const { hasPermission } = usePermissions()
 
-        return { hasPermission, isRunningState, navigateTo }
+        return { hasPermission, isRunningState, navigateTo, statesMap }
     },
     data () {
         return {
-            loading: false,
+            loading: true,
+            abortController: null,
             instancesMap: new Map(),
             page: 1,
             pageSize: 25,
             totalRows: 0,
             searchTerm: null,
+            selectedStatusGroups: [],
+            statusFilters: [
+                { key: 'running', label: 'Running' },
+                { key: 'error', label: 'Error' },
+                { key: 'stopped', label: 'Not Running' }
+            ],
             sort: {
                 key: 'flowLastUpdatedAt',
                 order: 'desc'
@@ -250,7 +271,7 @@ export default {
                 },
                 {
                     label: 'Application',
-                    class: ['grow-[0.25]'],
+                    class: ['w-72'],
                     key: 'application.name',
                     sortable: true,
                     component: {
@@ -277,7 +298,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
-        ...mapState(useLiveStatusStore, { liveInstanceStatuses: 'instanceStatuses', statusChannelLive: 'live' }),
+        ...mapState(useLiveStatusStore, { liveInstanceMetadata: 'instanceMetadata', statusChannelLive: 'live' }),
         instances () {
             return Array.from(this.instancesMap.values())
         },
@@ -285,20 +306,37 @@ export default {
             return this.featuresCheck?.isHostedInstancesEnabledForTeam
         },
         paginationProps () {
-            if (this.dashboardRoleOnly) return null
             return {
                 page: this.page,
                 pageSize: this.pageSize,
                 total: this.totalRows
             }
+        },
+        statusFilter () {
+            if (this.selectedStatusGroups.length === 0) return null
+            return this.selectedStatusGroups.flatMap(group => this.statesMap[group] || [])
+        },
+        hasFilter () {
+            return this.searchTerm !== null || this.selectedStatusGroups.length > 0
         }
     },
     watch: {
         team: 'fullReload',
-        liveInstanceStatuses: { handler: 'applyLiveStatus', deep: true }
+        liveInstanceMetadata: { handler: 'applyLiveStatus', deep: true }
     },
     mounted () {
+        const statusParam = this.$route.query.status
+        if (statusParam) {
+            const groups = Array.isArray(statusParam) ? statusParam : [statusParam]
+            this.selectedStatusGroups = groups.filter(group => this.statusFilters.some(f => f.key === group))
+        }
+        if (this.$route.query.searchQuery) {
+            this.searchTerm = this.$route.query.searchQuery
+        }
         this.fullReload()
+    },
+    beforeUnmount () {
+        this.abortController?.abort()
     },
     methods: {
         fullReload () {
@@ -306,10 +344,16 @@ export default {
             this.fetchData()
         },
         async fetchData () {
-            if (!this.team.id || !this.instancesAvailable) {
+            if (!this.instancesAvailable) {
                 this.loading = false
                 return
             }
+            if (!this.team.id) {
+                return
+            }
+            this.abortController?.abort()
+            const controller = markRaw(new AbortController())
+            this.abortController = controller
             this.loading = true
             try {
                 let response
@@ -322,11 +366,10 @@ export default {
                             sort: this.sort.key || null,
                             dir: this.sort.order || null
                         },
-                        includeMeta: true
+                        includeMeta: true,
+                        states: this.statusFilter,
+                        signal: controller.signal
                     })
-                } else if (this.hasPermission('team:read')) {
-                    // Dashboards endpoint not paginated server-side; keep current behavior.
-                    response = await teamApi.getTeamDashboards(this.team.id)
                 }
                 const projects = response?.projects || []
                 this.totalRows = response?.meta?.total ?? response?.count ?? projects.length
@@ -343,31 +386,53 @@ export default {
                 })
                 this.instancesMap = nextMap
                 this.applyLiveStatus()
-            } catch (e) {
-                Alerts.emit('Failed to load instances.', 'warning')
+            } catch (error) {
+                if (error.name !== 'AbortError' && error.name !== 'CanceledError') {
+                    Alerts.emit('Failed to load instances.', 'warning')
+                }
             } finally {
-                this.loading = false
+                if (!controller.signal.aborted) {
+                    this.loading = false
+                    this.abortController = null
+                }
             }
         },
         applyLiveStatus () {
-            const statuses = this.liveInstanceStatuses
+            const metadata = this.liveInstanceMetadata
             for (const id of this.instancesMap.keys()) {
-                const state = statuses[id]
-                if (!state) continue
+                const meta = metadata[id]
+                if (!meta?.status) continue
+                const state = meta.status
                 const row = this.instancesMap.get(id)
                 if (row.status === state && row.meta?.state === state) continue
                 this.instancesMap.set(id, {
-                    ...applyLiveState(row, state, { clearFlags: true }),
+                    ...applyLiveState(row, state, { versions: meta.versions, clearFlags: true }),
                     running: this.isRunningState(state),
                     notSuspended: state !== 'suspended'
                 })
             }
         },
+        toggleStatusGroup (key) {
+            const index = this.selectedStatusGroups.indexOf(key)
+            if (index === -1) {
+                this.selectedStatusGroups.push(key)
+            } else {
+                this.selectedStatusGroups.splice(index, 1)
+            }
+            this.$router.replace({
+                query: {
+                    ...this.$route.query,
+                    status: this.selectedStatusGroups.length ? this.selectedStatusGroups : undefined
+                }
+            })
+            this.page = 1
+            this.fetchData()
+        },
         updateSearch: debounce(function (term) {
             this.searchTerm = term
             this.page = 1
             this.fetchData()
-        }, 200),
+        }, 300),
         updateSort (key, order) {
             this.sort.key = key
             this.sort.order = order
