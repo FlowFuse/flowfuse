@@ -15,6 +15,5 @@ module.exports = {
         await app.db.models.OAuthSession.destroy({ where: { createdAt: { [Op.lt]: Date.now() - 1000 * 60 * 5 } } })
         // Remove any AsyncLoginSession objects that were created more than 30 minutes ago
         await app.db.models.AsyncLoginSession.destroy({ where: { createdAt: { [Op.lt]: Date.now() - 1000 * 60 * 30 } } })
-
     }
 }

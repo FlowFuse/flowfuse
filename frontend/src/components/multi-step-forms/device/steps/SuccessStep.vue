@@ -35,13 +35,13 @@
 
 <script>
 import { mapState } from 'pinia'
+
 import deviceApi from '@/api/devices.js'
 
 import FfLoading from '@/components/Loading.vue'
 import TextCopier from '@/components/TextCopier.vue'
-import { createPollTimer } from '@/utils/timers.js'
-
 import { useContextStore } from '@/stores/context.js'
+import { createPollTimer } from '@/utils/timers.js'
 
 // This isn't really a MultiStepForm step, but it is a step in the flow, so we are using the same pattern for consistency
 export default {
