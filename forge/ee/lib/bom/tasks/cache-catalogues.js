@@ -38,6 +38,10 @@ module.exports = {
                     for (const mod of modules) {
                         const name = mod.id
                         const version = mod.version
+                        const current = await cache.get(name)
+                        if (current && current !== version) {
+                            await app.models.NodeREDNodeVersions.updateAllLatest(name, version)
+                        }
                         cache.set(name, version)
                     }
                 }
