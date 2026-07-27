@@ -12,7 +12,7 @@ export interface Subscriber {
     destroy?: () => (void | Promise<void>)
 }
 
-export interface TeamChannelSubscriberI extends Subscriber {
+export interface TeamSubscriberI extends Subscriber {
     connect(team: TeamRef | null | undefined): Promise<void>
     disconnect(): Promise<void>
     destroy(): Promise<void>
@@ -20,7 +20,8 @@ export interface TeamChannelSubscriberI extends Subscriber {
 }
 
 export type SubscriberInstances = {
-    teamChannel: TeamChannelSubscriberI | null
+    teamChannel: TeamSubscriberI | null
+    liveStatus: TeamSubscriberI | null
 }
 
 export interface CreateSubscriberOptions<TTransport extends Transport = Transport> {
