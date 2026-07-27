@@ -133,7 +133,7 @@ watch(() => route.params.instanceId as string, id => {
 onMounted(async () => {
     ensureContext()
     contextStore.setIsImmersive(true)
-    drawersStore.closeRightDrawerPreservingExpertState()
+    drawersStore.closeRightDrawer({ preserveExpertState: true })
     await fetchData()
     scrollSelectedIntoView()
 })

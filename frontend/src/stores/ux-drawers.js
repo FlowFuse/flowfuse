@@ -115,14 +115,14 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
             }
         },
 
-        closeRightDrawer () {
+        closeRightDrawer ({ preserveExpertState = false } = {}) {
             // In immersive editor context, pop the editor drawer view stack
             if (this.editorImmersiveDrawer.active && this.editorImmersiveDrawer.viewStack.length > 0) {
                 this.popEditorImmersiveView()
                 return
             }
 
-            if (this.rightDrawer.component?.name === 'ExpertDrawer') {
+            if (!preserveExpertState && this.rightDrawer.component?.name === 'ExpertDrawer') {
                 // save the ExpertDrawer pinned/open state (expertState is persistent)
                 this.rightDrawer.expertState.open = false
                 this.rightDrawer.expertState.pinned = this.rightDrawer.fixed
@@ -164,14 +164,6 @@ export const useUxDrawersStore = defineStore('ux-drawers', {
             this.rightDrawer.state = false
             this.rightDrawer.fixed = false
             this.rightDrawer.pinned = false
-        },
-
-        closeRightDrawerPreservingExpertState () {
-            this._closeRightDrawerImmediate()
-            const uxStore = useUxStore()
-            if (uxStore.overlay) {
-                uxStore.closeOverlay()
-            }
         },
 
         /**
