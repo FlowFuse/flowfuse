@@ -27,7 +27,7 @@ Alternatively, you can click on that instance and then you will find the "Open E
 
 ### Creating Additional Instances
 
-For utilizing various other FlowFuse features (e.g., DevOps Pipelines), it's highly beneficial to create a second Node-RED instance. A second Node-RED instance is included in both our Starter Tier and the Trial Phase of FlowFuse Cloud.
+For utilizing various other FlowFuse features (e.g., DevOps Pipelines), it's highly beneficial to create a second Node-RED instance. A second Node-RED instance is included in the Trial Phase of FlowFuse Cloud.
 
 **From the Home Page:**
 
