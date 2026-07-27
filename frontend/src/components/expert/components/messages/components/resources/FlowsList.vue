@@ -4,7 +4,7 @@
         <h4 class="section-title">
             <streamable-content v-model="streamingTitle" :should-stream="shouldStream" />
         </h4>
-        <div v-if="streamingTitle.streamed" class="resources-grid">
+        <div v-if="!shouldStream || streamingTitle.streamed" class="resources-grid">
             <FlowResourceCard
                 v-for="(flow, index) in visibleItems" :key="index"
                 :flow="flow"
