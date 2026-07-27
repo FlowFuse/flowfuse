@@ -19,7 +19,7 @@ jobs:
           cp node_modules/@flowfuse/flowfuse/etc/flowforge.yml etc/
           ls -lh node_modules/.bin
       - name: start server in background
-        uses: JarvusInnovations/background-action@2428e7b970a846423095c79d43f759abf979a635 # v1.0.7
+        uses: JarvusInnovations/background-action@1f5e5fa2462e48a95f97b54b4842d076d1008e3b # v2.0.0
         with:
           run: |
             node_modules/.bin/flowfuse
