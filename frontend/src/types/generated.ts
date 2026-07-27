@@ -5599,10 +5599,12 @@ export interface paths {
                         name?: string;
                         type?: string;
                         team?: string;
+                        application?: string;
                         /** @enum {boolean} */
                         setup?: true;
                         agentHost?: string;
-                    } & ((unknown & unknown & unknown) | (unknown & unknown & unknown));
+                        registrationSession?: string;
+                    } & ((unknown & unknown & unknown) | (unknown & unknown & unknown & unknown));
                 };
             };
             responses: {
