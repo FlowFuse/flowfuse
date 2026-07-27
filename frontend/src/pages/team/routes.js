@@ -7,6 +7,8 @@ import TeamAuditLog from './AuditLog.vue'
 import TeamBillOfMaterials from './BOM/index.vue'
 import TeamBilling from './Billing/index.vue'
 import BrokersRoutes from './Brokers/routes.js'
+import TeamDashboards from './Dashboards/index.vue'
+
 import DeviceGroups from './DeviceGroups/index.vue'
 import TeamDevices from './Devices/index.vue'
 import TeamHome from './Home/index.vue'
@@ -31,6 +33,8 @@ import CreateInstance from './createInstance.vue'
 import Team from './index.vue'
 import RegisterDevice from './registerDevice.vue'
 
+import DashboardViewer from '@/components/dashboard/DashboardViewer.vue'
+
 export default [
     {
         path: '/team',
@@ -50,6 +54,14 @@ export default [
                         path: 'overview',
                         name: 'team-home',
                         component: TeamHome
+                    },
+                    {
+                        name: 'team-dashboards',
+                        path: 'dashboards',
+                        component: TeamDashboards,
+                        meta: {
+                            title: 'Team - Dashboards'
+                        }
                     },
                     {
                         path: 'applications',
@@ -241,6 +253,26 @@ export default [
         meta: {
             title: 'Register Remote Instance',
             layout: 'plain'
+        }
+    },
+    {
+        name: 'team-dashboards-view',
+        path: '/team/:team_slug/dashboards/:instanceId',
+        component: DashboardViewer,
+        meta: {
+            title: 'Team - Dashboards',
+            layout: 'immersive',
+            scope: 'team'
+        }
+    },
+    {
+        name: 'application-dashboards-view',
+        path: '/team/:team_slug/applications/:id/dashboards/:instanceId',
+        component: DashboardViewer,
+        meta: {
+            title: 'Application - Dashboards',
+            layout: 'immersive',
+            scope: 'application'
         }
     },
     {

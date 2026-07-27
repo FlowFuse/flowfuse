@@ -10093,6 +10093,15 @@ export interface paths {
                         "application/json": components["schemas"]["APIError"];
                     };
                 };
+                /** @description Default Response */
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["APIError"];
+                    };
+                };
             };
         };
         delete: {
