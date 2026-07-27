@@ -16,7 +16,7 @@ For example, a single Node-RED instance may contain a set of utility flows that
 you want to reuse in other instances. Rather than copy the flows around, the
 Project Nodes allow you to easily call those flows and get the result back.
 
-The project nodes are only available in the Team and Enterprise tiers of FlowFuse.
+The project nodes are only available in the Enterprise tier of FlowFuse.
 
 ### Nodes
 
