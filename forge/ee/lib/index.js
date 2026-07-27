@@ -61,7 +61,7 @@ module.exports = fp(async function (app, opts) {
             (Object.prototype.hasOwnProperty.call(app.config?.expert ?? {}, 'insights') ? !!app.config?.expert?.insights?.enabled : true)
 
         app.config.features.register('expertInsights', isInsightsEnabled ?? false, true)
-        
+
         require('./bom').init(app)
     }
 
