@@ -19,40 +19,33 @@
             </ff-button>
 
             <!-- Full view: split dropdown button -->
-            <div v-else class="editor-link-split" :class="{ 'editor-link-split--primary': primary }">
-                <button
-                    :title="buttonDisabled ? disabledReason : undefined"
-                    class="editor-link-split__action"
-                    :class="{ 'editor-link-split--disabled': buttonDisabled }"
-                    data-action="open-editor"
-                    :disabled="buttonDisabled"
-                    @click.stop.prevent="openImmersiveEditor"
-                    @click.middle.stop.prevent="openImmersiveEditor"
-                >
+            <SplitButton
+                v-else
+                :label="editorDisabled ? 'Editor Disabled' : 'Open Editor'"
+                data-action="open-editor"
+                :primary="primary"
+                :disabled="buttonDisabled"
+                :disabled-reason="disabledReason"
+                :options="dropdownOptions"
+                @primary-click="openImmersiveEditor"
+            >
+                <template #icon>
                     <ProjectIcon class="ff-btn--icon mr-2" />
-                    <span class="hidden sm:inline editor-link-text">{{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}</span>
-                </button>
-                <DropdownMenu
-                    class="editor-link-split__dropdown"
-                    :buttonClass="'editor-link-split__toggle' + (buttonDisabled ? ' editor-link-split--disabled' : '')"
-                    :options="dropdownOptions"
-                    :disabled="buttonDisabled"
-                    @click.stop
-                />
-            </div>
+                </template>
+            </SplitButton>
         </slot>
     </div>
 </template>
 
 <script>
-import DropdownMenu from '../../../components/DropdownMenu.vue'
+import SplitButton from '../../../components/SplitButton.vue'
 import ProjectIcon from '../../../components/icons/Projects.js'
 
 export default {
     name: 'DeviceEditorLink',
     components: {
         ProjectIcon,
-        DropdownMenu
+        SplitButton
     },
     props: {
         editorDisabled: {
@@ -105,7 +98,3 @@ export default {
     }
 }
 </script>
-
-<style scoped lang="scss">
-
-</style>

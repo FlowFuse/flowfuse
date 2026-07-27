@@ -1,6 +1,6 @@
 <template>
     <div v-if="!hidden" class="flex justify-end">
-        <DashboardLink :disabled="disabled" :disabledReason="disabledReason" :instance="instance" />
+        <DashboardLink :disabled="disabled" :disabledReason="disabledReason" :instance="instance" :scope="scope" />
     </div>
 </template>
 
@@ -27,6 +27,10 @@ export default {
         hidden: {
             default: false,
             type: Boolean
+        },
+        scope: {
+            default: null,
+            type: String
         }
     }
 }
