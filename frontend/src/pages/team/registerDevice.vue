@@ -28,13 +28,15 @@
                 </template>
             </ff-page-header>
         </template>
-
         <ff-loading v-if="loading" />
         <template v-else-if="invalidSession">
             <section class="flex flex-col gap-4 text-center">
                 <h1 class="text-2xl font-semibold">Invalid registration session</h1>
                 <p class="opacity-50">
-                    The registration session you are trying to use is invalid or has expired. Please start the registration process again.
+                    The registration session you are trying to use is invalid or has expired. Please restart the registration process.
+                </p>
+                <p class="m-auto text-center mt-8">
+                    <ff-button kind="secondary" @click="$router.push('/')">Back to Dashboard</ff-button>
                 </p>
             </section>
         </template>
@@ -62,9 +64,6 @@ import MultiStepDeviceForm from '../../components/multi-step-forms/device/MultiS
 
 import SuccessStep from '../../components/multi-step-forms/device/steps/SuccessStep.vue'
 
-// import LocalStorageService from '../../services/storage/local-storage.service.js'
-
-// import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
@@ -81,13 +80,6 @@ export default {
             mounted: false,
             device: null,
             invalidSession: false,
-            testDevice: {
-                id: 'O65j9bmX8e',
-                name: 'My Remote Instance',
-                credentials: {
-                    otc: 'phantom-secret-potato'
-                }
-            },
             form: {
                 nextButtonState: false,
                 previousButtonState: false,

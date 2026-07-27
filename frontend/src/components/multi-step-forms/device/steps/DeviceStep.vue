@@ -214,7 +214,6 @@ export default {
             if (this.features.billing && !this.team.billing?.unmanaged && !getTeamProperty(this.team, 'billing.disabled')) {
                 try {
                     this.subscription = await billingApi.getSubscriptionInfo(this.team.id)
-                    console.log(this.subscription)
                 } catch (err) {
                     if (err.response?.data?.code === 'not_found') {
                         // This team has no subscription.

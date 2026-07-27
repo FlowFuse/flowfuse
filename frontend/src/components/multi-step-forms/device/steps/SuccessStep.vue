@@ -1,41 +1,45 @@
 <template>
-    <section class="ff-instance-step text-center flex flex-col gap-4 pt-6 max-w-md m-auto">
+    <section class="ff-instance-step text-center flex flex-col gap-4 pt-6 max-w-md m-auto h-full">
         <h1>Registration Complete</h1>
-        <p>
-            Close this window and return to the Device Agent to complete the setup.
-        </p>
-        <p>
-            If prompted, enter the following One-Time Code (OTC) in the Device Agent to complete the registration
-        </p>
-        <!-- make this text larger and bold-->
-        <p class="font-bold text-lg border border-gray-300 rounded-full p-2 bg-gray-100">
-            <TextCopier :text="device.credentials.otc" />
-        </p>
-        <p>
-            <img src="../../../../images/empty-states/team-devices.png">
-        </p>
-        <!-- <template #actions>
-                <ff-button
-                    v-ff-tooltip:bottom="!hasPermission('device:create') && 'Your role does not allow creating remote instances. Contact a team admin to change your role.'"
-                    class="font-normal ff-btn-icon"
-                    kind="primary"
-                    :disabled="teamDeviceLimitReached || teamRuntimeLimitReached || !hasPermission('device:create', applicationContext)"
-                    data-action="register-device"
-                    @click="showCreateDeviceDialog"
-                >
-                    <template #icon-left>
-                        <PlusSmallIcon />
-                    </template>
-                    <span class="hidden sm:inline add-remote-instance-text">Add Remote Instance</span>
-                </ff-button>
-            </template> -->
+        <template v-if="!deviceConnected">
+            <p>
+                Return to the Device Agent to complete the setup.
+            </p>
+            <p>
+                Keep this window open to view your Remote Instance once it has connected.
+            </p>
+            <p class="flex flex-col gap-2">
+                <ff-loading scale="small" message=" " />
+            </p>
+            <p>
+                If prompted, enter the following One-Time Code (OTC) in the Device Agent to complete the registration
+            </p>
+            <!-- make this text larger and bold-->
+            <p class="font-bold border border-gray-300 rounded-full p-1 bg-gray-100">
+                <TextCopier :text="device.credentials.otc" />
+            </p>
+        </template>
+        <template v-else>
+            <p>
+                Remote Instance Connected
+            </p>
+            <p>
+                Starting Node-RED...
+            </p>
+            <p class="flex flex-col gap-2">
+                <ff-loading scale="small" message=" " />
+            </p>
+        </template>
     </section>
 </template>
 
 <script>
 import { mapState } from 'pinia'
+import deviceApi from '@/api/devices.js'
 
-import TextCopier from '../../../TextCopier.vue'
+import FfLoading from '@/components/Loading.vue'
+import TextCopier from '@/components/TextCopier.vue'
+import { createPollTimer } from '@/utils/timers.js'
 
 import { useContextStore } from '@/stores/context.js'
 
@@ -43,7 +47,8 @@ import { useContextStore } from '@/stores/context.js'
 export default {
     name: 'SuccessStep',
     components: {
-        TextCopier
+        TextCopier,
+        FfLoading
     },
     props: {
         device: {
@@ -53,12 +58,59 @@ export default {
     },
     data () {
         return {
+            pollTimer: null,
+            polledDevice: null
         }
     },
     computed: {
-        ...mapState(useContextStore, ['team'])
+        ...mapState(useContextStore, ['team']),
+        deviceConnected () {
+            return this.polledDevice?.lastSeenMs > 0
+        },
+        deviceNRRunning () {
+            return this.deviceConnected && this.polledDevice?.status === 'running'
+        }
+    },
+    mounted () {
+        this.startPolling()
+    },
+    unmounted () {
+        this.stopPolling()
+    },
+    beforeUnmount () {
+        this.stopPolling()
     },
     methods: {
+        async pollStatus () {
+            try {
+                const device = await deviceApi.getDevice(this.device.id)
+                if (device.lastSeenMs > 0) {
+                    // Only update the device now so we don't wipe the OTC as that isn't returned by the API after the first call
+                    this.polledDevice = device
+                }
+                if (device.status === 'running') {
+                    // Stop polling once NR is running
+                    this.stopPolling()
+                    await deviceApi.setMode(this.device.id, 'developer')
+                    await deviceApi.enableEditorTunnel(this.device.id)
+                    this.$router.push({
+                        name: 'device-editor',
+                        params: { id: this.device.id }
+                    })
+                }
+            } catch (err) {
+                console.error('Error polling device status', err)
+            }
+        },
+        startPolling () {
+            this.pollTimer = createPollTimer(this.pollStatus, 5000)
+        },
+        stopPolling () {
+            if (this.pollTimer) {
+                this.pollTimer.stop()
+                this.pollTimer = null
+            }
+        }
     }
 }
 </script>
