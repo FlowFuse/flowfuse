@@ -38,6 +38,7 @@
                 :disabled="!editorAvailable"
                 :show-text="showButtonLabels"
                 :minimal-view="minimalView"
+                scope="application"
             />
 
             <InstanceEditorLink

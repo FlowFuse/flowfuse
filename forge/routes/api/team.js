@@ -377,7 +377,8 @@ module.exports = async function (app) {
                                 enum: ['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']
                             },
                             includeMeta: { type: 'boolean', default: false },
-                            orderByMostRecentFlows: { type: 'boolean', default: false }
+                            orderByMostRecentFlows: { type: 'boolean', default: false },
+                            state: { type: 'array', items: { type: 'string' }, default: [] }
                         }
                     }
                 ]
@@ -392,7 +393,8 @@ module.exports = async function (app) {
             pagination,
             query: request.query.query?.trim() || null,
             includeMeta,
-            orderByMostRecentFlows: request.query.orderByMostRecentFlows
+            orderByMostRecentFlows: request.query.orderByMostRecentFlows,
+            states: request.query.state?.length ? request.query.state : null
         }
 
         const applicationRBACEnabled = app.config.features.enabled('rbacApplication') && request.team?.getFeatureProperty('rbacApplication', false)

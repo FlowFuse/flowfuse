@@ -18,7 +18,7 @@
         <!-- Updates Available Banner -->
         <update-banner v-if="isEditorContext && isInstanceRunning" />
 
-        <expert-chat-input @stop="handleStopGeneration" />
+        <expert-chat-input ref="chatInput" @stop="handleStopGeneration" />
     </div>
 </template>
 
@@ -153,6 +153,9 @@ export default {
         ]),
         ...mapActions(useProductExpertInsightsAgentStore, ['getCapabilities']),
         ...mapActions(useProductAssistantStore, ['reset']),
+        focusInput () {
+            this.$refs.chatInput?.focusInput()
+        },
         handleStopGeneration () {
             if (this.abortController) {
                 this.abortController.abort()
