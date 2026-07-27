@@ -287,7 +287,7 @@ describe('Tables: Postgres LocalFS Driver', function () {
             const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
             result.rows.should.eql([{ id: 1, name: 'foo' }])
             client.connect.calledOnce.should.be.true()
-            client.query.calledWith('SELECT * FROM "table1" LIMIT $1', [5]).should.be.true()
+            client.query.calledWith('SELECT * FROM "public"."table1" LIMIT $1', [5]).should.be.true()
             client.end.calledOnce.should.be.true()
         })
         it('should return empty array if no rows', async function () {
@@ -305,8 +305,25 @@ describe('Tables: Postgres LocalFS Driver', function () {
             const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
             result.rows.should.eql([])
             client.connect.calledOnce.should.be.true()
-            client.query.calledWith('SELECT * FROM "table1" LIMIT $1', [5]).should.be.true()
+            client.query.calledWith('SELECT * FROM "public"."table1" LIMIT $1', [5]).should.be.true()
             client.end.calledOnce.should.be.true()
+        })
+        it('should look up and use the table\'s actual schema when it is not in public', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            const dbObj = { TeamId: 1 }
+            app.db.models.Table.byId.resolves(dbObj)
+            await driver.init(app, options)
+            const query = sinon.stub()
+            query.onFirstCall().resolves({ rows: [{ schemaname: 'other_schema' }] })
+            query.onSecondCall().resolves({ rows: [{ id: 1, name: 'foo' }] })
+            pgClients[team.hashid] = {
+                connect: sinon.stub().resolves(),
+                query,
+                end: sinon.stub().resolves()
+            }
+            const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
+            result.rows.should.eql([{ id: 1, name: 'foo' }])
+            query.secondCall.calledWith('SELECT * FROM "other_schema"."table1" LIMIT $1', [5]).should.be.true()
         })
         it('should throw if db does not exist', async function () {
             app.db.models.Table.byId.resolves(null)

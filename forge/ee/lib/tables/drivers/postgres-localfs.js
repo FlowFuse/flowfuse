@@ -126,7 +126,7 @@ module.exports = {
             const teamClient = libPg.newClient({ ...this._options.database, database: team.hashid })
             try {
                 await teamClient.connect()
-                const res = await teamClient.query('SELECT "tablename" FROM "pg_catalog"."pg_tables" WHERE "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\'')
+                const res = await teamClient.query('SELECT "tablename", "schemaname" FROM "pg_catalog"."pg_tables" WHERE "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\'')
                 if (res.rows && res.rows.length > 0) {
                     const tables = res.rows.map(row => {
                         return {
@@ -202,8 +202,12 @@ module.exports = {
             const teamClient = libPg.newClient({ ...this._options.database, database: team.hashid })
             try {
                 await teamClient.connect()
+                // look up the table's schema instead of relying on the default search_path ("public")
+                const schemaRes = await teamClient.query('SELECT "schemaname" FROM "pg_catalog"."pg_tables" WHERE "tablename" = $1 AND "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\' LIMIT 1', [table])
+                const schemaName = schemaRes.rows[0]?.schemaname || 'public'
+                const escapedSchema = libPg.pg.escapeIdentifier(schemaName)
                 const escapedTable = libPg.pg.escapeIdentifier(table)
-                const query = `SELECT * FROM ${escapedTable} LIMIT $1`
+                const query = `SELECT * FROM ${escapedSchema}.${escapedTable} LIMIT $1`
                 const res = await teamClient.query(query, [rows || 10])
                 if (res.rows && res.rows.length > 0) {
                     return {
