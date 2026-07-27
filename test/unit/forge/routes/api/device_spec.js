@@ -472,7 +472,6 @@ describe('Device API', async function () {
     })
 
     describe('Async device registration', async function () {
-
         it('session token status check requires user session', async function () {
             const response = await app.inject({
                 method: 'GET',
@@ -570,7 +569,7 @@ describe('Device API', async function () {
             statusResponse.statusCode.should.equal(404)
 
             // At this point, the session still exists and will do until `doneURL` is polled.
-            //Verify we can't reuse the sessionToken to create another device within this window
+            // Verify we can't reuse the sessionToken to create another device within this window
             const createResponse2 = await app.inject({
                 method: 'POST',
                 url: '/api/v1/devices',
