@@ -63,7 +63,7 @@
         "@fastify/formbody": "^8.0.2",
         "@fastify/helmet": "^13.0.2",
         "@fastify/multipart": "^10.0.0",
-        "@fastify/passport": "^3.0.2",
+        "@fastify/passport": "^4.0.0",
         "@fastify/rate-limit": "^11.0.0",
         "@fastify/request-context": "^7.0.0",
         "@fastify/routes": "^6.0.2",
