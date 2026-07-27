@@ -11,6 +11,10 @@
         >
             <ArrowPathIcon class="ff-icon ff-icon-md" aria-hidden="true" />
         </button>
+        <span v-if="selectedTable" class="table-title truncate">
+            {{ selectedTable.name }}
+            <span class="schema-label">{{ selectedTable.dbSchema }}</span>
+        </span>
     </section>
 </template>
 
@@ -36,7 +40,7 @@ export default {
     emits: ['toggle-collapse'],
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useProductTablesStore, ['tableSelection'])
+        ...mapState(useProductTablesStore, ['tableSelection', 'selectedTable'])
     },
     methods: {
         ...mapActions(useProductTablesStore, ['getTableData', 'setTableLoadingState']),
@@ -57,9 +61,21 @@ export default {
     margin-bottom: 15px;
     padding-bottom: 15px;
     border-bottom: 1px solid var(--ff-color-border);
+    align-items: center;
 
     .toggle-collapse, .refresh-table {
         border: 1px solid transparent;
+    }
+
+    .table-title {
+        font-weight: bold;
+        color: var(--ff-color-text-deep);
+
+        .schema-label {
+            font-weight: normal;
+            font-size: 0.75rem;
+            color: var(--ff-color-text-subtle);
+        }
     }
 }
 </style>

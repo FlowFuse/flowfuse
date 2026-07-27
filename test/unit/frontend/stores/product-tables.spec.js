@@ -126,6 +126,14 @@ describe('product-tables store', () => {
             await store.getTables('db-1')
             expect(store.tableSelection).toBeNull()
         })
+
+        it('maps the API schema field to dbSchema, leaving schema free for column definitions', async () => {
+            const store = useProductTablesStore()
+            tablesApi.getTables.mockResolvedValue([{ name: 'orders', schema: 'reports' }])
+            await store.getTables('db-1')
+            expect(store.tables['db-1'][0].dbSchema).toBe('reports')
+            expect(store.tables['db-1'][0].schema).toBeUndefined()
+        })
     })
 
     describe('clearState', () => {

@@ -58,6 +58,9 @@ export const useProductTablesStore = defineStore('product-tables', {
         async getTables (databaseId) {
             const team = useContextStore().team
             let tables = await tablesApi.getTables(team.id, databaseId)
+            // dbSchema (the Postgres schema/namespace) is kept separate from `schema`,
+            // which getTableSchema below repurposes to hold the table's column definitions
+            tables = tables.map(({ schema, ...table }) => ({ ...table, dbSchema: schema }))
             tables = [...tables].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }))
             this.tables[databaseId] = tables
             if (tables.length > 0) this.tableSelection = tables[0].name
