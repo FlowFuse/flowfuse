@@ -720,7 +720,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         // Used after page refresh to let the persisted timer continue its course.
         resumeSessionTimer () {
             const agentStore = this._agentStore
-            if (!agentStore.sessionStartTime || agentStore.sessionCheckTimer) return
+            if (!agentStore.sessionStartTime || agentStore.sessionCheckTimer || agentStore.sessionExpiredShown) return
             this._startSessionCheckInterval()
         },
         /**
