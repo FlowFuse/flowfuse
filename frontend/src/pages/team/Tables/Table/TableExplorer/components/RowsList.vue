@@ -57,16 +57,19 @@ export default defineComponent({
         }
     },
     watch: {
-        tableSelection (tableName) {
+        tableSelection (table) {
+            if (!table) return
             this.getTableSchema({
                 teamId: this.team.id,
                 databaseId: this.$route.params.id,
-                tableName
+                tableName: table.name,
+                schemaName: table.dbSchema
             })
                 .then(() => this.getTableData({
                     teamId: this.team.id,
                     databaseId: this.$route.params.id,
-                    tableName
+                    tableName: table.name,
+                    schemaName: table.dbSchema
                 }))
                 .catch(e => e)
         }
