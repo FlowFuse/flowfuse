@@ -261,7 +261,7 @@ module.exports = {
                     }
                 }
                 // Remove version info when Project removed
-                await app.db.models.NodeREDNodeVersions.destory({
+                await app.db.models.NodeREDNodeVersions.destroy({
                     where: {
                         ownerType: 'instance',
                         ownerId: project.id
