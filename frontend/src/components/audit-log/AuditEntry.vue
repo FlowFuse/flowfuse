@@ -29,8 +29,9 @@
             </div>
         </div>
         <!-- User/Trigger -->
-        <div v-if="entry.trigger.name !== 'unknown'" class="ff-audit-entry-trigger lg:w-36">
-            {{ entry.trigger.name }}
+        <div v-if="entry.trigger.name !== 'unknown'" class="ff-audit-entry-trigger lg:w-36 flex items-center flex-nowrap">
+            <span class="flex-1 text-right">{{ entry.trigger.name }}</span>
+            <span v-if="sourceIcon" v-ff-tooltip:left="sourceLabel" class="flex-0 cursor-help"><component :is="sourceIcon" class="ff-icon-sm ml-1" /></span>
         </div>
         <div v-else class="ff-audit-entry-trigger lg:w-36">
             &nbsp;
@@ -40,7 +41,7 @@
 
 <script>
 
-import { CpuChipIcon, RectangleGroupIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
+import { CommandLineIcon, CpuChipIcon, RectangleGroupIcon, SparklesIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
 
 import ProjectsIcon from '../../components/icons/Projects.js'
 
@@ -67,9 +68,38 @@ export default {
         AuditEntryIcon,
         AuditEntryVerbose,
         ProjectsIcon,
+        CommandLineIcon,
         CpuChipIcon,
         RectangleGroupIcon,
+        SparklesIcon,
         UserGroupIcon
+    },
+    computed: {
+        sourceIcon () {
+            if (!this.entry.source) {
+                return null
+            }
+            if (this.entry.source.startsWith('mcp')) {
+                return SparklesIcon
+            }
+            if (this.entry.source === 'api') {
+                return CommandLineIcon
+            }
+            return null
+        },
+        sourceLabel () {
+            const toolName = this.entry.body?.sourceContext?.toolName
+            if (this.entry.source === 'mcp:expert') {
+                return toolName ? `via Expert (Tool name: ${toolName})` : 'via Expert'
+            }
+            if (this.entry.source === 'mcp') {
+                return toolName ? `via MCP (Tool name: ${toolName})` : 'via MCP'
+            }
+            if (this.entry.source === 'api') {
+                return 'via API'
+            }
+            return ''
+        }
     },
     methods: {
         getApplication (association) {
