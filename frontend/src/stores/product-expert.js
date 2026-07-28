@@ -1310,6 +1310,6 @@ export const useProductExpertStore = defineStore('product-expert', {
     },
     persist: {
         pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode'],
-        storage: localStorage
+        storage: sessionStorage
     }
 })

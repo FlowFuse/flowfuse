@@ -49,8 +49,8 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
     },
     persist: {
         pick: ['messages', 'sessionId', 'sessionStartTime', 'sessionWarningShown', 'sessionExpiredShown', 'selectedCapabilities'],
-        storage: localStorage,
-        afterHydrate (store) {
+        storage: sessionStorage,
+        afterHydrate ({ store }) {
             store.messages.forEach(msg => {
                 msg._streamed = true
                 if (msg.answer) {
