@@ -242,7 +242,7 @@ drop-down menu in the stack table. This allows the platform to notify users
 that an update is available for their instance, allowing them to upgrade the stack
 at their convenience.
 
-![Screenshot of FlowFuse showing where admins can create new stacks](./images/admin-stacks-create-new-version.png){data-zoomable}
+![Screenshot of FlowFuse showing where admins can create new stacks](./images/admin-stacks-create-new-version.png)
 <em>Screenshot of FlowFuse showing where admins can create new stacks</em>
 
 Node-RED instances that use the old stack will offer the new stack as a one-click upgrade option.
@@ -251,7 +251,7 @@ Node-RED instances that use the old stack will offer the new stack as a one-clic
 
 Alternatively, click 'Create stack' to create an entirely new stack.
 
-![Screenshot of FlowFuse showing the "Create Stack" dialog](./images/admin-stack-create.png){data-zoomable}
+![Screenshot of FlowFuse showing the "Create Stack" dialog](./images/admin-stack-create.png)
 <em>Screenshot of FlowFuse showing the "Create Stack" dialog</em>
 
 When prompted for the Node-RED version, the value here depends on the setup you're running:

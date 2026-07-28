@@ -103,12 +103,12 @@ When inviting a new team member:
 1. Navigate to the Team Members
 2. Click **Invite Member**
 
-![Invite team member popup](images/invite-members.png){data-zoomable}
+![Invite team member popup](images/invite-members.png)
 
 3. Enter the user's username or email address  
 4. Select the initial role (Owner, Member, Viewer, or Dashboard Only)
 
-![Select role while inviting](images/invite-popup.png){data-zoomable}
+![Select role while inviting](images/invite-popup.png)
 
 5. Send the invitation
 
@@ -123,7 +123,7 @@ To change a team member's role:
 3. Click the three-dot icon next to their username  
 4. Select **Change Role**
 
-![Change member role](images/change-role.png){data-zoomable}
+![Change member role](images/change-role.png)
 
 5. Choose the new role from the popup (similar to the invitation process)  
 6. Confirm the change
@@ -169,11 +169,11 @@ Team Owners can configure application-level roles:
 2. Open **Application Settings** → **User Access**  
 3. Click the three-dot icon next to the user and select **Edit Permission**
 
-![Application user access settings](images/application-rbac.png){data-zoomable}
+![Application user access settings](images/application-rbac.png)
 
 4. In the popup, assign the desired application-level role
 
-![Application RBAC popup](images/application-rbac-popup.png){data-zoomable}
+![Application RBAC popup](images/application-rbac-popup.png)
 
 5. Changes apply immediately
 

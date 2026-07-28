@@ -15,19 +15,6 @@ meta:
       - contributing
 ---
 
-<script>     
-   class IconChevronRight extends HTMLElement {
-      constructor() {
-         super();
-         this.attachShadow({ 'mode': 'open' })
-      }
-      
-      connectedCallback () {
-         this.shadowRoot.innerHTML = `<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>`
-      }
-   }
-   customElements.define('icon-chevron-right', IconChevronRight);
-</script>
 
 # FlowFuse Documentation
 
@@ -45,31 +32,31 @@ It covers everything from setup, to usage, and development. All [contributions](
          <li class="ff-offering-cta">
             <a href="/docs/quick-start/">
                Quick Start Instructions
-               <icon-chevron-right class="ff-icon ff-icon-sm" />
+               <svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
             </a>
          </li>
          <li class="ff-offering-cta">
             <a href="/docs/install/introduction/">
                Install FlowFuse Self-Hosted
-               <icon-chevron-right class="ff-icon ff-icon-sm" />
+               <svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
             </a>
          </li>
          <li>
             <a href="/docs/upgrade">
                Upgrade Your FlowFuse Instance
-               <icon-chevron-right class="ff-icon ff-icon-sm" />
+               <svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
             </a>
          </li>
          <li>
             <a href="/docs/upgrade/open-source-to-premium/">
                Unlock Enterprise Features
-               <icon-chevron-right class="ff-icon ff-icon-sm" />
+               <svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
             </a>
          </li>
          <li>
             <a href="/docs/admin/introduction/">
                Administering FlowFuse
-               <icon-chevron-right class="ff-icon ff-icon-sm" />
+               <svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
             </a>
          </li>
       </ul>
@@ -78,10 +65,10 @@ It covers everything from setup, to usage, and development. All [contributions](
       <label>FlowFuse Cloud</label>
       <p>Hosted solution, nothing to install anything, jump straight in.</p>
       <ul style="margin-top: 0; margin-bottom: 0;">
-         <li class="ff-offering-cta"><a href="https://app.flowfuse.com/account/create">Sign Up for Free<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="">Upgrading Teams<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="/docs/cloud/billing/">Billing<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="/docs/cloud/introduction/#single-sign-on">Single Sign On<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li class="ff-offering-cta"><a href="https://app.flowfuse.com/account/create">Sign Up for Free<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
+         <li><a href="">Upgrading Teams<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
+         <li><a href="/docs/cloud/billing/">Billing<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
+         <li><a href="/docs/cloud/introduction/#single-sign-on">Single Sign On<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
       </ul>
    </div>
 </div>
@@ -140,9 +127,7 @@ Here are some quick reference links to our most popular topics. You can also vie
    </a>
    <a class="ff-tile ff-product-feature-tile" href="/docs/user/device-groups/">
       <div class="ff-product-feature-tile-decorator">
-         <svg class="ff-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g><path d="M16.2 11.63H11.63V16.2H16.2V11.63Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M8.27997 16.18V18.13C8.27997 18.5 8.42997 18.87 8.69997 19.14C8.96997 19.41 9.32997 19.56 9.70997 19.56H11.66V20.67C11.66 20.82 11.72 20.97 11.83 21.08C12.05 21.3 12.43 21.3 12.65 21.08C12.76 20.97 12.82 20.83 12.82 20.67V19.56H15.03V20.67C15.03 20.82 15.09 20.97 15.2 21.08C15.42 21.3 15.8 21.3 16.02 21.08C16.13 20.97 16.19 20.83 16.19 20.67V19.56H18.14C18.51 19.56 18.88 19.41 19.15 19.14C19.42 18.87 19.57 18.51 19.57 18.13V16.18H20.68C20.83 16.18 20.98 16.12 21.09 16.01C21.2 15.9 21.26 15.75 21.26 15.6C21.26 15.45 21.2 15.3 21.09 15.19C20.98 15.08 20.84 15.02 20.68 15.02H19.57V12.81H20.68C20.83 12.81 20.98 12.75 21.09 12.64C21.2 12.53 21.26 12.38 21.26 12.23C21.26 12.08 21.2 11.93 21.09 11.82C20.98 11.71 20.83 11.65 20.68 11.65H19.57V9.69996C19.57 9.32996 19.42 8.95996 19.15 8.68996C18.88 8.41996 18.52 8.26996 18.14 8.26996H12.82V7.15996C12.82 7.00996 12.76 6.85996 12.65 6.74996C12.43 6.52996 12.05 6.52996 11.83 6.74996C11.72 6.85996 11.66 6.99996 11.66 7.15996V8.26996H9.70997C9.32997 8.26996 8.96997 8.41996 8.69997 8.68996C8.43997 8.94996 8.27997 9.31996 8.27997 9.69996V11.65H7.16997C7.01997 11.65 6.86997 11.71 6.75997 11.82C6.64997 11.93 6.58997 12.08 6.58997 12.23C6.58997 12.38 6.64997 12.53 6.75997 12.64C6.86997 12.75 7.01997 12.81 7.16997 12.81H8.27997V16.18ZM18.4 18.39H9.43997V9.42996H18.4V18.39Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M8.28997 15.02H6.07997V6.05996H15.04V8.26996H16.2V6.31996C16.2 5.94996 16.05 5.57996 15.78 5.30996C15.52 5.04996 15.15 4.88996 14.77 4.88996H12.82V3.77996C12.82 3.62996 12.76 3.47996 12.65 3.36996C12.43 3.14996 12.05 3.14996 11.83 3.36996C11.72 3.47996 11.66 3.61996 11.66 3.77996V4.88996H9.44997V3.77996C9.44997 3.62996 9.38997 3.47996 9.27997 3.36996C9.05997 3.14996 8.67997 3.14996 8.45997 3.36996C8.34997 3.47996 8.28997 3.61996 8.28997 3.77996V4.88996H6.33997C5.95997 4.88996 5.59997 5.03996 5.32997 5.30996C5.06997 5.56996 4.90997 5.93996 4.90997 6.31996V8.26996H3.79997C3.64997 8.26996 3.49997 8.32996 3.38997 8.43996C3.27997 8.54996 3.21997 8.69996 3.21997 8.84996C3.21997 8.99996 3.27997 9.14996 3.38997 9.25996C3.49997 9.36996 3.64997 9.42996 3.79997 9.42996H4.90997V11.64H3.79997C3.64997 11.64 3.49997 11.7 3.38997 11.81C3.27997 11.92 3.21997 12.06 3.21997 12.22C3.21997 12.38 3.27997 12.52 3.38997 12.63C3.49997 12.74 3.64997 12.8 3.79997 12.8H4.90997V14.75C4.90997 15.12 5.05997 15.49 5.32997 15.76C5.59997 16.03 5.95997 16.18 6.33997 16.18H8.27997V15.02H8.28997Z" fill="currentColor"/></g><defs></defs>
-</svg>
-
+         <svg class="ff-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g><path d="M16.2 11.63H11.63V16.2H16.2V11.63Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M8.27997 16.18V18.13C8.27997 18.5 8.42997 18.87 8.69997 19.14C8.96997 19.41 9.32997 19.56 9.70997 19.56H11.66V20.67C11.66 20.82 11.72 20.97 11.83 21.08C12.05 21.3 12.43 21.3 12.65 21.08C12.76 20.97 12.82 20.83 12.82 20.67V19.56H15.03V20.67C15.03 20.82 15.09 20.97 15.2 21.08C15.42 21.3 15.8 21.3 16.02 21.08C16.13 20.97 16.19 20.83 16.19 20.67V19.56H18.14C18.51 19.56 18.88 19.41 19.15 19.14C19.42 18.87 19.57 18.51 19.57 18.13V16.18H20.68C20.83 16.18 20.98 16.12 21.09 16.01C21.2 15.9 21.26 15.75 21.26 15.6C21.26 15.45 21.2 15.3 21.09 15.19C20.98 15.08 20.84 15.02 20.68 15.02H19.57V12.81H20.68C20.83 12.81 20.98 12.75 21.09 12.64C21.2 12.53 21.26 12.38 21.26 12.23C21.26 12.08 21.2 11.93 21.09 11.82C20.98 11.71 20.83 11.65 20.68 11.65H19.57V9.69996C19.57 9.32996 19.42 8.95996 19.15 8.68996C18.88 8.41996 18.52 8.26996 18.14 8.26996H12.82V7.15996C12.82 7.00996 12.76 6.85996 12.65 6.74996C12.43 6.52996 12.05 6.52996 11.83 6.74996C11.72 6.85996 11.66 6.99996 11.66 7.15996V8.26996H9.70997C9.32997 8.26996 8.96997 8.41996 8.69997 8.68996C8.43997 8.94996 8.27997 9.31996 8.27997 9.69996V11.65H7.16997C7.01997 11.65 6.86997 11.71 6.75997 11.82C6.64997 11.93 6.58997 12.08 6.58997 12.23C6.58997 12.38 6.64997 12.53 6.75997 12.64C6.86997 12.75 7.01997 12.81 7.16997 12.81H8.27997V16.18ZM18.4 18.39H9.43997V9.42996H18.4V18.39Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M8.28997 15.02H6.07997V6.05996H15.04V8.26996H16.2V6.31996C16.2 5.94996 16.05 5.57996 15.78 5.30996C15.52 5.04996 15.15 4.88996 14.77 4.88996H12.82V3.77996C12.82 3.62996 12.76 3.47996 12.65 3.36996C12.43 3.14996 12.05 3.14996 11.83 3.36996C11.72 3.47996 11.66 3.61996 11.66 3.77996V4.88996H9.44997V3.77996C9.44997 3.62996 9.38997 3.47996 9.27997 3.36996C9.05997 3.14996 8.67997 3.14996 8.45997 3.36996C8.34997 3.47996 8.28997 3.61996 8.28997 3.77996V4.88996H6.33997C5.95997 4.88996 5.59997 5.03996 5.32997 5.30996C5.06997 5.56996 4.90997 5.93996 4.90997 6.31996V8.26996H3.79997C3.64997 8.26996 3.49997 8.32996 3.38997 8.43996C3.27997 8.54996 3.21997 8.69996 3.21997 8.84996C3.21997 8.99996 3.27997 9.14996 3.38997 9.25996C3.49997 9.36996 3.64997 9.42996 3.79997 9.42996H4.90997V11.64H3.79997C3.64997 11.64 3.49997 11.7 3.38997 11.81C3.27997 11.92 3.21997 12.06 3.21997 12.22C3.21997 12.38 3.27997 12.52 3.38997 12.63C3.49997 12.74 3.64997 12.8 3.79997 12.8H4.90997V14.75C4.90997 15.12 5.05997 15.49 5.32997 15.76C5.59997 16.03 5.95997 16.18 6.33997 16.18H8.27997V15.02H8.28997Z" fill="currentColor"/></g><defs></defs></svg>
       </div>
       <div>
          <label>Device Groups</label>
@@ -168,7 +153,6 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
    <a class="ff-tile ff-product-feature-tile" href="/docs/user/custom-hostnames/">
       <div class="ff-product-feature-tile-decorator">
          <svg class="ff-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" /></svg>
-
       </div>
       <div>
          <label>Custom Domains</label>
@@ -194,38 +178,38 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
       <label>FlowFuse Node-RED Nodes</label>
       <p>A complete set of FlowFuse-maintained nodes for data sharing between instances, MQTT messaging, AI/ONNX models, MCP agent integrations, and enterprise data features.<p>
       <ul>
-         <li><a href="/docs/user/projectnodes/">FlowFuse Project Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="https://flowfuse.com/node-red/flowfuse/mcp/">FlowFuse MCP Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="https://flowfuse.com/node-red/flowfuse/flowfuse-tables/">FlowFuse Tables Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="https://flowfuse.com/node-red/flowfuse/ai/">FlowFuse AI Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="/docs/user/mqtt-nodes/">FlowFuse MQTT Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="https://flowfuse.com/node-red/flowfuse/">See all the Nodes<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="/docs/user/projectnodes/">FlowFuse Project Nodes<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
+         <li><a href="https://flowfuse.com/node-red/flowfuse/mcp/">FlowFuse MCP Nodes<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
+         <li><a href="https://flowfuse.com/node-red/flowfuse/flowfuse-tables/">FlowFuse Tables Nodes<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
+         <li><a href="https://flowfuse.com/node-red/flowfuse/ai/">FlowFuse AI Nodes<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
+         <li><a href="/docs/user/mqtt-nodes/">FlowFuse MQTT Nodes<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
+         <li><a href="https://flowfuse.com/node-red/flowfuse/">See all the Nodes<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
       </ul>
    </div>
    <div class="ff-tile ff-offering-tile">
       <label>FlowFuse Dashboard</label>
       <p>Create interactive, responsive and secure Dashboards in Node-RED.<p>
       <ul>
-         <li><a href="https://dashboard.flowfuse.com">Install FlowFuse Dashboard<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="https://dashboard.flowfuse.com">Build Your First Dashboard<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="https://dashboard.flowfuse.com/user/multi-tenancy.html">Multi Tenant Dashboards<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="https://dashboard.flowfuse.com">Install FlowFuse Dashboard<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
+         <li><a href="https://dashboard.flowfuse.com">Build Your First Dashboard<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
+         <li><a href="https://dashboard.flowfuse.com/user/multi-tenancy.html">Multi Tenant Dashboards<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
       </ul>
    </div>
    <div class="ff-tile ff-offering-tile">
       <label>FlowFuse Device Agent</label>
       <p>Manage thousands of Node-RED Instances remotely with the FlowFuse Device Agent.<p>
       <ul>
-         <li><a href="/docs/device-agent/install/">Install the Device Agent<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="/docs/device-agent/register/">Registering Devices in FlowFuse<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="/docs/device-agent/deploy/">Deploying Flows to your Device<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
-         <li><a href="/docs/device-agent/deploy/">Editing Flows on your Device<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="/docs/device-agent/install/">Install the Device Agent<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
+         <li><a href="/docs/device-agent/register/">Registering Devices in FlowFuse<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
+         <li><a href="/docs/device-agent/deploy/">Deploying Flows to your Device<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
+         <li><a href="/docs/device-agent/deploy/">Editing Flows on your Device<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
       </ul>
    </div>
    <div class="ff-tile ff-offering-tile">
       <label>FlowFuse Assistant</label>
       <p>AI in the Node-RED Editor to help build your flows.<p>
       <ul>
-         <li><a href="/docs/user/expert/">Getting Started Guide<icon-chevron-right class="ff-icon ff-icon-sm" /></a></li>
+         <li><a href="/docs/user/expert/">Getting Started Guide<svg class="ff-icon ff-icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg></a></li>
       </ul>
    </div>
 </div>
@@ -240,106 +224,3 @@ Once you're more comfortable with FlowFuse, you may want to explore some of our 
  - [Development Setup](./contribute/introduction/#development-setup) - Configure your local development environment to contribute to FlowFuse.
  - [Testing](./contribute/introduction/#testing) - Understand our testing philosophy at FlowFuse.
 
-<style>
-.st0 {
-   fill: currentColor;
-   stroke-width: 1.5;
-   stroke-linecap: round;
-   stroke-linejoin: round;
-}
-</style>
-
-
-<style>
-   a label {
-      cursor: pointer;
-   }
-   .ff-tile,
-   .ff-offering-tile ul li a {
-      gap: 6px;
-      border: 1px solid #e2e8f0;
-      border-radius: 0.5rem;
-   }
-   .ff-tile span {
-      display: block;
-      color: #374151;
-      font-size: 0.875rem;
-      font-weight: 300;
-      line-height: 1.25rem;
-   }
-   .ff-offering-tiles {
-      display: grid;
-      gap: 1rem;
-   }
-   .ff-offering-tile {
-      padding: 1rem;
-   }
-   .ff-offering-tile .ff-offering-cta {
-      /* margin-bottom: 1.5rem; */
-   }
-   .ff-offering-tile label {
-      font-size: 1.25rem;
-      font-weight: 500;
-      color: #4b5563;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-   }
-   .ff-offering-tile label img {
-      width: 32px;
-   }
-   .ff-offering-tile ul {
-      list-style: none;
-      padding: 0;
-      margin-bottom: 0;
-   }
-   .ff-offering-tile ul li {
-      padding-left: 0;
-   }
-   .ff-offering-tile ul li:last-child {
-      margin-bottom: 0;
-   }
-   .ff-offering-tile ul li a {
-      display: flex;
-      padding: 6px 9px;
-      text-decoration: none;
-      align-items: center;
-      justify-content: space-between;
-   }
-   .ff-offering-tile ul li a:hover,
-   .ff-product-feature-tile:hover {
-      cursor: pointer;
-      border: 1px solid #4F46E5;
-      text-decoration: none;
-   }
-   .ff-offering-tile ul li .ff-icon {
-      padding-right: 0;      
-   }
-   .ff-product-feature-tiles {
-      display: grid;
-      gap: 1rem;
-   }
-   .ff-product-feature-tile {
-      display: flex;
-      padding: 6px;
-      text-decoration: none;
-   }
-   .ff-product-feature-tile label,
-   .ff-product-feature-tile .ff-product-feature-tile-decorator {
-      color: #2463eb;
-   }
-   .ff-product-feature-tile .ff-icon {
-      width: 32px;
-      height: 32px;
-      stroke-width: 1.5px;
-   }
-   .ff-product-feature-tile-decorator {
-      background-color: #EEF2FF;
-      padding: 3px;
-      width: 42px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-shrink: 0;
-   }
-</style>

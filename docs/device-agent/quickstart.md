@@ -12,7 +12,7 @@ meta:
 
 This guide will walk you through the process of adding a device to FlowFuse, connecting it to the platform, and deploying your Node-RED flows remotely. FlowFuse's Device Agent helps unlock the power of your devices by allowing you to manage and deploy Node-RED flows running on those devices securely and remotely.
 
-![FlowFuse Device Agent Workflow](./images/device-agent-workflow.png){data-zoomable}
+![FlowFuse Device Agent Workflow](./images/device-agent-workflow.png)
 _Workflow to onboard new Remote Instances through the FlowFuse Platform and Device Agent_
 
 ## Video Walkthrough
@@ -28,13 +28,13 @@ This video will walk you through every step from creating a remote instance, ins
 3. Click **Add Remote Instance.**
 4. Fill in the **Name** & **Type** and select an **Application**
 
-    ![Screenshot of the dialog form to fill out when registering a Device](./images/add_remote_instance.png){data-zoomable}{ style="max-width: 600px"; }
+    ![Screenshot of the dialog form to fill out when registering a Device](./images/add_remote_instance.png){ style="max-width: 600px"; }
     _Screenshot of the dialog form to fill out when registering a Device_
     
 5. Click **Add**
 6. You will be presented with a **Device Configuration** that you will need in the next step. _(Do not close this window just yet.)_
 
-    ![Screenshot of the dialog shown to a user when a Device is registered](./images/config_yml2a.png){data-zoomable}
+    ![Screenshot of the dialog shown to a user when a Device is registered](./images/config_yml2a.png)
     _Screenshot of the dialog shown to a user when a Device is registered_
 
 7. Copy the installation command. You will need it in next step.
@@ -46,7 +46,7 @@ This video will walk you through every step from creating a remote instance, ins
 3. Answer prompts as needed.
 4. Installer will set up the runtime and configure the Device Agent, and summarize on successful completion.
 
-    ![Example output in a Terminal showing a device agent successfully installed](./images/installer_output.png){data-zoomable}
+    ![Example output in a Terminal showing a device agent successfully installed](./images/installer_output.png)
     _Example output in a Terminal showing a device agent successfully installed_
 
 Your device is now connected to FlowFuse and ready to be used.
@@ -65,22 +65,22 @@ There are two approaches to deploying flows to your Remote Instances.
 3. Locate your newly added device and **click** on your Remote Instance.
 4. Then Click **Developer Mode** toggle button on upper right.
 
-    ![The "Developer Mode" toggle button available on the Device screen](./images/developer.png){data-zoomable}
+    ![The "Developer Mode" toggle button available on the Device screen](./images/developer.png)
     _The "Developer Mode" toggle button available on the Device screen_
 
 5. This will enable editor access for your device.
 
-    ![The "Device Editor" button available on the Device screen](./images/editorEnabled.png){data-zoomable}
+    ![The "Device Editor" button available on the Device screen](./images/editorEnabled.png)
     _The "Device Editor" button available on the Device screen_
 
 6. Clicking **Device Editor** will launch the editor.
 
-    ![Screenshot of a Node-RED Editor for a Device](./images/nr_editor.png){data-zoomable}
+    ![Screenshot of a Node-RED Editor for a Device](./images/nr_editor.png)
     _Screenshot of a Node-RED Editor for a Device_
 
 ### DevOps Pipelines
 
-![Screenshot showing the user interface for creating and running DevOps Pipelines in FlowFuse](./images/ui-devops-pipelines.png){width=750}{data-zoomable}
+![Screenshot showing the user interface for creating and running DevOps Pipelines in FlowFuse](./images/ui-devops-pipelines.png){width=750}
 _Screenshot showing the user interface for creating and running DevOps Pipelines in FlowFuse_
 
 To work with Pipelines, you need at least one other Hosted Instance or Remote Device to push _from_/_to_. You can follow the instructions on setting up a Pipeline and deploying your flows between Hosted Instances/Remote Instances [DevOps Pipelines](/docs/user/devops-pipelines.md).

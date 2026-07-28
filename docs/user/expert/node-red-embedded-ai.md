@@ -119,7 +119,7 @@ If your instance supports external modules, you can ask for a function node that
 
 FlowFuse Expert adds a code lens to the function node editor that allows you to generate code directly within the editor.
 
-![inline code lens](../images/assistant/function-node-inline-code-lens.png){data-zoomable}
+![inline code lens](../images/assistant/function-node-inline-code-lens.png)
 
 This is useful when you want to quickly add or rewrite code within an existing function node without generating a full new function node from scratch.
 

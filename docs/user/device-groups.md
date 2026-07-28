@@ -8,7 +8,7 @@ navTitle: Groups
 
 ## Overview
 
-![Groups UI](./images/groups.png){data-zoomable}
+![Groups UI](./images/groups.png)
 
 Groups help you organize and manage multiple devices that run the same [snapshot](./snapshots.md) configuration. By grouping devices logically, you can deploy updates to dozens or even hundreds of devices simultaneously through [DevOps Pipelines](./devops-pipelines.md).
 
@@ -32,7 +32,7 @@ Groups help you organize and manage multiple devices that run the same [snapshot
 
 ## Creating a Group
 
-![Create Group](./images/create-device-group.png){data-zoomable}
+![Create Group](./images/create-device-group.png)
 
 1. Navigate to your Application
 2. Select the **Groups** tab
@@ -45,7 +45,7 @@ Groups help you organize and manage multiple devices that run the same [snapshot
 
 ### Adding and Removing Devices
 
-![Edit Group Members](./images/ui-device-group-member-edit.png){data-zoomable}
+![Edit Group Members](./images/ui-device-group-member-edit.png)
 
 1. Click the group you want to modify from the table
 2. Click **Edit**

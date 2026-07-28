@@ -77,7 +77,7 @@ the Remote Instance can be placed in Developer Mode that enables remote access t
 
 * Local access to the editor can be enabled by defining a Username & Password in the Device 
   Settings -> Security and enabling "Allow offline access"
-  ![Device Allow Offline Access Settings](./images/device-local-access.png){data-zoomable}
+  ![Device Allow Offline Access Settings](./images/device-local-access.png)
   _Device Allow Offline Access Srttings_
 
 Whilst in Developer Mode the Remote Instance will not receive new updates from the platform.
