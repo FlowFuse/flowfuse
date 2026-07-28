@@ -1,6 +1,7 @@
 import { BaseService } from './service.contract'
 
 import allTools from '@/mcp/tools'
+import { describeError } from '@/mcp/tools/errors'
 import type { AutomationsServiceI, CreateServiceOptions, McpToolDefinition, McpToolWireDefinition } from '@/types'
 
 class AutomationsService extends BaseService implements AutomationsServiceI {
@@ -46,8 +47,7 @@ class AutomationsService extends BaseService implements AutomationsServiceI {
         try {
             return await tool.handler(args, { router: this.$router! })
         } catch (err) {
-            const message = err instanceof Error ? err.message : String(err)
-            return { error: `Tool "${toolName}" failed: ${message}` }
+            return { error: `Tool "${toolName}" failed: ${describeError(err)}` }
         }
     }
 }

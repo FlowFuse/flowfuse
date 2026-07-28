@@ -616,7 +616,8 @@ module.exports = {
                         include.push({
                             model: M.ProjectSettings,
                             attributes: ['id', 'key', 'value', 'ProjectId'],
-                            where: { key: 'settings' }
+                            where: { key: 'settings' },
+                            required: false
                         })
                     }
 
@@ -846,7 +847,8 @@ module.exports = {
                             {
                                 model: M.ProjectSettings,
                                 attributes: ['id', 'key', 'value', 'ProjectId'],
-                                where: { key: 'settings' }
+                                where: { key: 'settings' },
+                                required: false
                             },
                             {
                                 model: M.Application,
