@@ -71,6 +71,7 @@ export const useContextStore = defineStore('context', {
                 : null
             const applicationId = state.device?.application?.id ??
                 state.instance?.application?.id ??
+                state.application?.id ??
                 (state.route.fullPath.includes('/applications/') ? state.route.params?.id : null)
             const deviceId = state.route.fullPath.includes('/device/')
                 ? state.route.params?.id
