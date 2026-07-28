@@ -55,6 +55,7 @@ export const useContextStore = defineStore('context', {
                     instanceId: null,
                     deviceId: null,
                     applicationId: null,
+                    deviceOwnerType: null,
                     isTrialAccount: this.isTrialAccount,
                     nodeRedVersion: assistantStore.nodeRedVersion,
                     pageName: null,
@@ -66,9 +67,8 @@ export const useContextStore = defineStore('context', {
                 }
             }
 
-            const instanceId = state.route.fullPath.includes('/instance/')
-                ? state.route.params?.id
-                : null
+            const instanceId = state.device?.instance?.id ??
+                (state.route.fullPath.includes('/instance/') ? state.route.params?.id : null)
             const applicationId = state.device?.application?.id ??
                 state.instance?.application?.id ??
                 state.application?.id ??
@@ -107,6 +107,7 @@ export const useContextStore = defineStore('context', {
                 instanceId: instanceId ?? null,
                 deviceId: deviceId ?? null,
                 applicationId: applicationId ?? null,
+                deviceOwnerType: state.device?.ownerType ?? null,
                 isTrialAccount: this.isTrialAccount,
                 pageName: state.route.name,
                 nodeRedVersion: assistantStore.nodeRedVersion,

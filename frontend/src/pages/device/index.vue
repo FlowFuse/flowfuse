@@ -375,9 +375,12 @@ export default {
         this.mounted = true
         await this.loadDevice()
         this.setContextualDevice(this.device)
+        this.setContextualOwner()
     },
     beforeUnmount () {
         this.setContextualDevice(null)
+        this.setContextualInstance(null)
+        this.setContextualApplication(null)
     },
     unmounted () {
         this.pollTimer?.stop()
@@ -385,7 +388,18 @@ export default {
     },
     methods: {
         ...mapActions(useUxStore, ['validateUserAction']),
-        ...mapActions(useContextStore, { setContextualDevice: 'setDevice' }),
+        ...mapActions(useContextStore, {
+            setContextualDevice: 'setDevice',
+            setContextualInstance: 'setInstance',
+            setContextualApplication: 'setApplication'
+        }),
+        setContextualOwner () {
+            if (this.device?.ownerType === 'application' && this.device.application) {
+                this.setContextualApplication(this.device.application)
+            } else if (this.device?.ownerType === 'instance' && this.device.instance) {
+                this.setContextualInstance(this.device.instance)
+            }
+        },
         applyLiveStatus () {
             const meta = this.liveDeviceMetadata[this.device?.id]
             if (!meta || (this.device?.status === meta.status && this.device?.onlineStatus === meta.onlineStatus)) return
