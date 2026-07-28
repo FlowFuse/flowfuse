@@ -651,6 +651,22 @@ describe('Team API', function () {
             result.should.have.property('projects').and.be.an.Array()
             result.projects.should.have.a.property('length', 4)
         })
+        it('Counts and returns instances missing their settings row', async function () {
+            const instances = await app.db.models.Project.byTeam(TestObjects.ATeam.hashid)
+            const victim = instances.find((p) => p.name === 'list-instance-1')
+            await app.db.models.ProjectSettings.destroy({ where: { ProjectId: victim.id, key: KEY_SETTINGS } })
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?page=1&limit=25`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.meta.should.have.property('total', 4)
+            result.projects.should.have.length(4)
+            result.projects.map((p) => p.name).should.containEql('list-instance-1')
+        })
         it('Filters the project list by live state', async function () {
             const warningInstance = await app.factory.createInstance(
                 { name: 'list-instance-warning' },
