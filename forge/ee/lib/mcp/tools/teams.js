@@ -32,11 +32,16 @@ module.exports = [
         title: 'List Team Databases',
         description: `FlowFuse platform automation tool:
             Lists the FlowFuse Tables databases for a team.
-            FlowFuse Tables is a plan-gated feature; if it is not enabled for the team's plan, the underlying API's error response is returned as-is.
-            The underlying API response includes a credentials object with connection details, including a password. This tool strips that object before returning results, so no credentials are ever exposed.`,
+            FlowFuse Tables is a plan-gated feature; if it is not enabled for the team's plan, the underlying API's error response is returned as-is.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             teamId: z.string().describe('The ID or hashid of the team')
+        },
+        outputSchema: {
+            databases: z.array(z.object({
+                id: z.string(),
+                name: z.string()
+            }).passthrough())
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/databases` })
@@ -46,7 +51,7 @@ module.exports = [
             const databases = response.json().map(redactDatabaseCredentials)
             return {
                 statusCode: response.statusCode,
-                json: () => databases
+                json: () => ({ databases })
             }
         }
     },
@@ -55,12 +60,17 @@ module.exports = [
         title: 'Get Team Database',
         description: `FlowFuse platform automation tool:
             Gets a single FlowFuse Tables database for a team.
-            FlowFuse Tables is a plan-gated feature; if it is not enabled for the team's plan, the underlying API's error response is returned as-is.
-            The underlying API response includes a credentials object with connection details, including a password. This tool strips that object before returning the result, so no credentials are ever exposed.`,
+            FlowFuse Tables is a plan-gated feature; if it is not enabled for the team's plan, the underlying API's error response is returned as-is.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             teamId: z.string().describe('The ID or hashid of the team'),
             databaseId: z.string().describe('database hashid')
+        },
+        outputSchema: {
+            database: z.object({
+                id: z.string(),
+                name: z.string()
+            }).passthrough()
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}` })
@@ -70,7 +80,7 @@ module.exports = [
             const database = redactDatabaseCredentials(response.json())
             return {
                 statusCode: response.statusCode,
-                json: () => database
+                json: () => ({ database })
             }
         }
     },
@@ -87,6 +97,14 @@ module.exports = [
             teamId: z.string().describe('The ID or hashid of the team'),
             databaseId: z.string().describe('database hashid')
         },
+        outputSchema: {
+            count: z.number(),
+            tables: z.array(z.object({
+                name: z.string(),
+                schema: z.string()
+            })),
+            meta: z.record(z.string(), z.any())
+        },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables` })
             return response
@@ -96,7 +114,7 @@ module.exports = [
         name: 'platform_get_database_table',
         title: 'Get Database Table',
         description: `FlowFuse platform automation tool:
-            Gets the schema definition of a single table in a FlowFuse Tables database (column names, types, and constraints). Does not return row data or credentials.
+            Gets the schema definition of a single table in a FlowFuse Tables database (column names, types, and constraints).
             schemaName is required, since the same table name can exist in more than one schema; get it from platform_list_database_tables.
             FlowFuse Tables is a plan-gated feature; if it is not enabled for the team's plan, the underlying API's error response is returned as-is.
             Use platform_query_database_table_data to read row data instead.`,
@@ -107,10 +125,31 @@ module.exports = [
             tableName: z.string().describe('Name of the database table'),
             schemaName: z.string().describe('Schema the table lives in, as returned by platform_list_database_tables')
         },
+        outputSchema: {
+            database: z.string(),
+            tableName: z.string(),
+            schemaName: z.string(),
+            columns: z.array(z.object({
+                name: z.string(),
+                type: z.string()
+            }).passthrough())
+        },
         handler: async (args, { inject }) => {
             const url = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${args.tableName}/${encodeURIComponent(args.schemaName)}`
             const response = await inject({ method: 'GET', url })
-            return response
+            if (response.statusCode >= 400) {
+                return response
+            }
+            const columns = response.json()
+            return {
+                statusCode: response.statusCode,
+                json: () => ({
+                    database: args.databaseId,
+                    tableName: args.tableName,
+                    schemaName: args.schemaName,
+                    columns
+                })
+            }
         }
     },
     {
@@ -129,6 +168,11 @@ module.exports = [
             tableName: z.string().describe('Name of the database table'),
             schemaName: z.string().describe('Schema the table lives in, as returned by platform_list_database_tables'),
             limit: z.number().int().min(1).max(10).default(10).describe('Maximum number of rows to return (1-10, default 10)')
+        },
+        outputSchema: {
+            count: z.number(),
+            rows: z.array(z.record(z.string(), z.any())),
+            meta: z.record(z.string(), z.any())
         },
         handler: async (args, { inject }) => {
             const url = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${args.tableName}/data/${encodeURIComponent(args.schemaName)}${args.limit !== undefined ? `?limit=${encodeURIComponent(args.limit)}` : ''}`

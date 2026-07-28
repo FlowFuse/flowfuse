@@ -48,7 +48,7 @@ describe('MCP Tables Tools', function () {
             inject.firstCall.args[0].should.eql({ method: 'GET', url: '/api/v1/teams/team1/databases' })
         })
 
-        it('strips credentials from every returned database', async function () {
+        it('strips credentials from every returned database and wraps them in a databases object', async function () {
             inject.resolves({
                 statusCode: 200,
                 json: () => [
@@ -58,11 +58,12 @@ describe('MCP Tables Tools', function () {
             })
             const response = await tool.handler({ teamId: 'team1' }, { inject })
             response.statusCode.should.equal(200)
-            const databases = response.json()
-            databases.should.eql([
-                { id: 'db1', name: 'one' },
-                { id: 'db2', name: 'two' }
-            ])
+            response.json().should.eql({
+                databases: [
+                    { id: 'db1', name: 'one' },
+                    { id: 'db2', name: 'two' }
+                ]
+            })
         })
 
         it('passes through error responses unmodified, including any credentials', async function () {
@@ -87,14 +88,14 @@ describe('MCP Tables Tools', function () {
             inject.firstCall.args[0].should.eql({ method: 'GET', url: '/api/v1/teams/team1/databases/db1' })
         })
 
-        it('strips credentials from the returned database', async function () {
+        it('strips credentials from the returned database and wraps it in a database object', async function () {
             inject.resolves({
                 statusCode: 200,
                 json: () => ({ id: 'db1', name: 'one', credentials: { password: 'secret1' } })
             })
             const response = await tool.handler({ teamId: 'team1', databaseId: 'db1' }, { inject })
             response.statusCode.should.equal(200)
-            response.json().should.eql({ id: 'db1', name: 'one' })
+            response.json().should.eql({ database: { id: 'db1', name: 'one' } })
         })
 
         it('passes through error responses unmodified, including any credentials', async function () {
@@ -124,12 +125,25 @@ describe('MCP Tables Tools', function () {
     describe('platform_get_database_table', function () {
         const tool = getTool('platform_get_database_table')
 
-        it('calls the table endpoint with the table name and schema, and returns the response unmodified', async function () {
-            const injectResponse = { statusCode: 200, json: () => ({ name: 'table1', columns: [] }) }
-            inject.resolves(injectResponse)
+        it('calls the table endpoint with the table name and schema, and wraps the columns with the identifying fields', async function () {
+            const columns = [{ name: 'id', type: 'integer' }]
+            inject.resolves({ statusCode: 200, json: () => columns })
             const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'table1', schemaName: 'public' }, { inject })
             inject.firstCall.args[0].should.eql({ method: 'GET', url: '/api/v1/teams/team1/databases/db1/tables/table1/public' })
-            response.should.equal(injectResponse)
+            response.statusCode.should.equal(200)
+            response.json().should.eql({
+                database: 'db1',
+                tableName: 'table1',
+                schemaName: 'public',
+                columns
+            })
+        })
+
+        it('passes through error responses unmodified', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'table_not_found', error: 'Table not found' }) }
+            inject.resolves(errorResponse)
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'table1', schemaName: 'public' }, { inject })
+            response.should.equal(errorResponse)
         })
     })
 
