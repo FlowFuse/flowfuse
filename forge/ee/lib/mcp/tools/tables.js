@@ -110,7 +110,7 @@ module.exports = [
             }).loose())
         },
         handler: async (args, { inject }) => {
-            const url = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${args.tableName}/${encodeURIComponent(args.schemaName)}`
+            const url = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${encodeURIComponent(args.tableName)}/${encodeURIComponent(args.schemaName)}`
             const response = await inject({ method: 'GET', url })
             if (response.statusCode >= 400) {
                 return response
@@ -149,7 +149,7 @@ module.exports = [
             meta: recordSchema
         },
         handler: async (args, { inject }) => {
-            const url = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${args.tableName}/data/${encodeURIComponent(args.schemaName)}${args.limit !== undefined ? `?limit=${encodeURIComponent(args.limit)}` : ''}`
+            const url = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${encodeURIComponent(args.tableName)}/data/${encodeURIComponent(args.schemaName)}${args.limit !== undefined ? `?limit=${encodeURIComponent(args.limit)}` : ''}`
             const response = await inject({ method: 'GET', url })
             return response
         }
