@@ -41,6 +41,21 @@ describe('PlatformAutomationHandler', function () {
         })
     }
 
+    function invokeGetFeatures ({ hashOnly } = {}) {
+        return new Promise((resolve) => {
+            const onSuccess = (result) => resolve({ ok: true, result })
+            const onError = (message, code, err) => resolve({ ok: false, message, code, err })
+            handler.eventHandler(
+                {
+                    command: 'mcp-get-features',
+                    data: hashOnly ? { hashOnly: true } : {}
+                },
+                onSuccess,
+                onError
+            )
+        })
+    }
+
     before(async function () {
         app = await setup({
             license,
@@ -174,6 +189,55 @@ describe('PlatformAutomationHandler', function () {
 
             res.ok.should.be.true()
             res.result.should.have.property('error', 'Device communications not available')
+        })
+    })
+
+    describe('mcp-get-features', function () {
+        it('returns the tool list along with a catalogHash', async function () {
+            const res = await invokeGetFeatures()
+
+            res.ok.should.be.true()
+            res.result.should.have.property('tools').which.is.an.Array()
+            res.result.tools.length.should.be.greaterThan(0)
+            res.result.should.have.property('catalogHash').which.is.a.String()
+            res.result.catalogHash.should.match(/^\d+-\d+-[0-9a-f]+$/)
+        })
+
+        it('returns only the catalogHash when hashOnly is set, omitting tools', async function () {
+            const res = await invokeGetFeatures({ hashOnly: true })
+
+            res.ok.should.be.true()
+            res.result.should.have.property('catalogHash').which.is.a.String()
+            res.result.should.not.have.property('tools')
+        })
+
+        it('returns the same catalogHash for both hashOnly and full requests', async function () {
+            const full = await invokeGetFeatures()
+            const hashOnly = await invokeGetFeatures({ hashOnly: true })
+
+            full.result.catalogHash.should.equal(hashOnly.result.catalogHash)
+        })
+
+        it('returns a deterministic catalogHash across repeated calls', async function () {
+            const first = await invokeGetFeatures()
+            const second = await invokeGetFeatures()
+
+            first.result.catalogHash.should.equal(second.result.catalogHash)
+        })
+
+        it('returns the same catalogHash from a freshly constructed handler for the same catalog', async function () {
+            const otherHandler = PlatformAutomationHandler(app, mockClient())
+
+            const res = await invokeGetFeatures()
+            const otherHash = otherHandler.getCatalogHash()
+
+            res.result.catalogHash.should.equal(otherHash)
+        })
+
+        it('getCatalogHash() matches the catalogHash returned over the event handler', async function () {
+            const res = await invokeGetFeatures()
+
+            handler.getCatalogHash().should.equal(res.result.catalogHash)
         })
     })
 
