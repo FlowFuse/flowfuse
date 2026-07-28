@@ -41,6 +41,7 @@
                             v-if="hasDashboard2"
                             :instance="instance"
                             :disabled="!editorAvailable"
+                            scope="application"
                         />
                         <InstanceEditorLink
                             :editorDisabled="instance.settings.disableEditor || isHA"
