@@ -39,7 +39,7 @@ module.exports = fp(async function (app, opts) {
         await app.register(require('./expert'))
 
         // Set the AI Features Flag (global gate for all AI features)
-        const isAiEnabled = app.config?.ai?.enabled ?? true
+        const isAiEnabled = !!(app.config?.ai?.enabled ?? true)
         app.config.features.register('ai', isAiEnabled, true)
 
         // Set the Generate Snapshot Description Feature Flag
@@ -49,15 +49,18 @@ module.exports = fp(async function (app, opts) {
         // Set the assistant inline completions Feature Flag
         app.config.features.register('assistantInlineCompletions', isAssistantConfigured, true)
 
-        // Set the expert assistant Feature Flag
-        app.config.features.register('expertAssistant', isAiEnabled && (app.config?.expert?.enabled ?? false), true)
-
         // Set the expert platform automation Feature Flag (MCP platform tools server)
         app.config.features.register('expertPlatformAutomation', isAiEnabled && (app.config?.expert?.enabled ?? false), true)
 
-        // temporary until FF Expert Insights can be enabled on Self Hosted EE instance
-        const isInsightsEnabled = isAiEnabled && app.config?.expert?.enabled && app.config?.expert?.insights?.enabled
-        app.config.features.register('expertInsights', isInsightsEnabled ?? false, false)
+        // Set the expert assistant Feature Flag
+        app.config.features.register('expertAssistant', isAiEnabled && (app.config?.expert?.enabled ?? false), true)
+
+        // Set the Expert Insights flag
+        const isInsightsEnabled = isAiEnabled &&
+            !!app.config?.expert?.enabled &&
+            (Object.prototype.hasOwnProperty.call(app.config?.expert ?? {}, 'insights') ? !!app.config?.expert?.insights?.enabled : true)
+
+        app.config.features.register('expertInsights', isInsightsEnabled ?? false, true)
     }
 
     // Set the Team Library Feature Flag

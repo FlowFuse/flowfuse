@@ -1,36 +1,52 @@
 <template>
-    <ff-button
-        v-if="!hidden"
-        :kind="minimalView ? 'tertiary' : 'secondary'"
-        data-action="open-dashboard"
-        :disabled="buttonDisabled"
-        class="whitespace-nowrap"
-        @click.stop="openDashboard"
-    >
-        <template v-if="!minimalView" #icon-left>
-            <ChartPieIcon />
-        </template>
-        <template v-else #icon>
-            <ChartPieIcon />
-        </template>
-        <template v-if="!minimalView">
-            <span class="hidden sm:inline dashboard-link-text">Dashboard</span>
-        </template>
-    </ff-button>
+    <div v-if="!hidden" :data-type="`${isEmbedded ? 'embedded' : 'direct'}-dashboard`">
+        <ff-button
+            v-if="!isEmbedded || minimalView"
+            :kind="minimalView ? 'tertiary' : 'secondary'"
+            data-action="open-dashboard"
+            :disabled="buttonDisabled"
+            class="whitespace-nowrap"
+            :emit-instead-of-navigate="true"
+            @click.stop.prevent="openPrimary"
+            @click.middle.stop.prevent="openPrimary"
+        >
+            <template v-if="!minimalView" #icon-left>
+                <ChartPieIcon />
+            </template>
+            <template v-else #icon>
+                <ChartPieIcon />
+            </template>
+            <template v-if="!minimalView">
+                <span class="hidden sm:inline dashboard-link-text">Dashboard</span>
+            </template>
+        </ff-button>
+
+        <SplitButton
+            v-else
+            label="Dashboard"
+            data-action="open-dashboard"
+            :disabled="buttonDisabled"
+            :options="dropdownOptions"
+            @primary-click="openEmbedded"
+        >
+            <template #icon>
+                <ChartPieIcon class="ff-btn--icon mr-2" />
+            </template>
+        </SplitButton>
+    </div>
 </template>
 
 <script>
 import { ChartPieIcon } from '@heroicons/vue/24/outline'
 
+import SplitButton from '../../../components/SplitButton.vue'
 import { useNavigationHelper } from '../../../composables/NavigationHelper.js'
-
 import { removeSlashes } from '../../../composables/strings/String.js'
-
-const { openInANewTab } = useNavigationHelper()
+import { useContextStore } from '../../../stores/context.js'
 
 export default {
     name: 'DashboardLink',
-    components: { ChartPieIcon },
+    components: { ChartPieIcon, SplitButton },
     inheritAttrs: false,
     props: {
         disabled: {
@@ -52,7 +68,17 @@ export default {
         minimalView: {
             type: Boolean,
             default: false
+        },
+        scope: {
+            type: String,
+            default: null,
+            validator: value => value === null || ['team', 'application'].includes(value)
         }
+    },
+    setup () {
+        const { openInANewTab, navigateTo } = useNavigationHelper()
+        const contextStore = useContextStore()
+        return { openInANewTab, navigateTo, contextStore }
     },
     computed: {
         buttonDisabled () {
@@ -70,14 +96,48 @@ export default {
         },
         target () {
             return '_db2_' + (this.instance?.id || '')
+        },
+        isEmbedded () {
+            return this.scope === 'team' || this.scope === 'application'
+        },
+        viewerRoute () {
+            const teamSlug = this.contextStore.team?.slug
+            if (!teamSlug || !this.instance?.id) {
+                return null
+            }
+            if (this.scope === 'application') {
+                const applicationId = this.instance.application?.id || this.contextStore.application?.id
+                if (!applicationId) {
+                    return null
+                }
+                return { name: 'application-dashboards-view', params: { team_slug: teamSlug, id: applicationId, instanceId: this.instance.id } }
+            }
+            return { name: 'team-dashboards-view', params: { team_slug: teamSlug, instanceId: this.instance.id } }
+        },
+        dropdownOptions () {
+            return [
+                { name: 'Open Direct URL', action: this.openDashboard }
+            ]
         }
     },
     methods: {
+        openPrimary (evt) {
+            if (this.isEmbedded) {
+                return this.openEmbedded(evt)
+            }
+            return this.openDashboard()
+        },
+        openEmbedded (evt) {
+            if (this.buttonDisabled || !this.viewerRoute) {
+                return
+            }
+            this.navigateTo(this.viewerRoute, evt)
+        },
         openDashboard () {
             if (this.buttonDisabled) {
                 return
             }
-            openInANewTab(this.dashboardURL, this.target)
+            this.openInANewTab(this.dashboardURL, this.target)
         }
     }
 }

@@ -20,7 +20,7 @@ catalogue file. FlowFuse has two solutions for this:
 
 If you want to create a Node-RED node for private use by Instances in your 
 FlowFuse Team then you can publish them to the FlowFuse Custom Node Registry 
-(available to Teams and Enterprise level teams on FlowFuse Cloud).
+(available to Enterprise level teams on FlowFuse Cloud).
 
 ### Publishing Nodes
 
@@ -90,7 +90,7 @@ _Screenshot of the contents of a FlowFUse catalogue appearing in the "install" t
 
 ## 3rd Party NPM Registries or Private npmjs.org packages
 
-The following features are available to Team and Enterprise users of FlowFuse
+The following features are available to Enterprise users of FlowFuse
 Cloud.
 
 ### NPM Registries

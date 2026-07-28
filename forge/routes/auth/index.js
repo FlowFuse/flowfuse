@@ -62,6 +62,23 @@ async function init (app, opts) {
      * @static
      * @memberof forge
      */
+    function resolveSourceContext (request) {
+        const nonceHeader = request.headers?.['x-ff-source-nonce']
+        if (nonceHeader && app.nonceStore) {
+            const metadata = app.nonceStore.consume(nonceHeader)
+            if (metadata) {
+                request.requestContext.set('sourceContext', metadata)
+                return
+            }
+        }
+        if (request.session?.isPAT) {
+            request.requestContext.set('sourceContext', {
+                source: 'api',
+                tokenId: request.session.pat?.id
+            })
+        }
+    }
+
     async function verifySession (request, reply) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
@@ -75,6 +92,7 @@ async function init (app, opts) {
 
                 if (emailVerified && passwordNotExpired && !suspended && !mfaMissing) {
                     Sentry.setUser({ id: request.session.User.hashid, username: request.session.User.username, email: request.session.User.email, name: request.session.User.name })
+                    resolveSourceContext(request)
                     return
                 }
                 if (request.routeOptions.config.allowAnonymous) {
@@ -121,6 +139,49 @@ async function init (app, opts) {
                         }
                         Sentry.setUser({ id: request.session.User.hashid, username: request.session.User.username, email: request.session.User.email, name: request.session.User.name })
                         if (accessToken.name) {
+                            const scopes = accessToken.AccessTokenTeamScopes ?? []
+                            let teamScopes = null
+
+                            if (scopes.length > 0) {
+                                const teamIds = scopes.map(s => s.TeamId)
+                                const memberships = await app.db.models.TeamMember.findAll({
+                                    where: { UserId: request.session.User.id, TeamId: teamIds }
+                                })
+                                const roleByTeamId = {}
+                                for (const m of memberships) {
+                                    roleByTeamId[m.TeamId] = m.role
+                                }
+                                teamScopes = scopes.map(s => ({
+                                    [app.db.models.Team.encodeHashid(s.TeamId)]: roleByTeamId[s.TeamId] ?? null
+                                }))
+                            }
+
+                            const patMetadata = {
+                                id: accessToken.id,
+                                readOnly: accessToken.readOnly,
+                                adminOptIn: accessToken.adminOptIn,
+                                teamScopes
+                            }
+
+                            request.session.isPAT = true
+                            request.session.pat = patMetadata
+                            request.requestContext.set('isPAT', true)
+                            request.requestContext.set('pat', patMetadata)
+
+                            // When adminOptIn is false, shadow the admin flag on
+                            // the session User so all downstream permission checks
+                            // treat this request as non-admin.
+                            // Using Object.defineProperty instead of direct assignment
+                            // to avoid mutating the Sequelize model's dataValues,
+                            // which would persist to the database if .save() is
+                            // called later in the request lifecycle.
+                            if (request.session.User.admin && !patMetadata.adminOptIn) {
+                                Object.defineProperty(request.session.User, 'admin', {
+                                    value: false,
+                                    configurable: true
+                                })
+                            }
+
                             // Temp hack to give token full user scope
                             delete request.session.scope
                         }
@@ -163,6 +224,7 @@ async function init (app, opts) {
                         reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                         return
                     }
+                    resolveSourceContext(request)
                     return
                 }
                 reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
@@ -177,6 +239,7 @@ async function init (app, opts) {
         }
         reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
     }
+
     app.decorate('verifySession', verifySession)
 
     /**
@@ -193,6 +256,20 @@ async function init (app, opts) {
         }
         reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
         return new Error()
+    })
+
+    /**
+     * preHandler function that blocks requests authenticated via a Personal Access Token.
+     * Use on routes that must not be callable by PATs (e.g. creating or updating PATs).
+     *
+     * @name blockPAT
+     * @static
+     * @memberof forge
+     */
+    app.decorate('blockPAT', async (request, reply) => {
+        if (request.session?.isPAT) {
+            reply.code(403).send({ code: 'pat_cannot_create_pat', error: 'PATs cannot create other PATs' })
+        }
     })
 
     app.decorateRequest('session', null)

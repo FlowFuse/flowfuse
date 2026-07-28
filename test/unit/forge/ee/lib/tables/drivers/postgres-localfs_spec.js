@@ -243,13 +243,50 @@ describe('Tables: Postgres LocalFS Driver', function () {
             const dbObj = { TeamId: 1 }
             app.db.models.Table.byId.resolves(dbObj)
             await driver.init(app, options)
+            const query = sinon.stub()
+            query.onFirstCall().resolves({ rows: [{ schemaname: 'public' }] })
+            query.onSecondCall().resolves({ rows: [{ column_name: 'id', udt_name: 'int4', is_nullable: 'NO', column_default: null, is_generated: 'NEVER' }] })
             pgClients[team.hashid] = {
                 connect: sinon.stub().resolves(),
-                query: sinon.stub().resolves({ rows: [{ column_name: 'id', udt_name: 'int4', is_nullable: 'NO', column_default: null, is_generated: 'NEVER' }] }),
+                query,
                 end: sinon.stub().resolves()
             }
             const result = await driver.getTable(team, team.hashid, 'table1')
             result.should.eql([{ name: 'id', type: 'int4', nullable: false, default: null, generated: false }])
+            query.secondCall.calledWith('SELECT column_name, udt_name, is_nullable, column_default, character_maximum_length, is_generated FROM information_schema.columns WHERE table_name = $1 AND table_schema = $2', ['table1', 'public']).should.be.true()
+        })
+        it('should use the given schemaName without looking it up', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            const dbObj = { TeamId: 1 }
+            app.db.models.Table.byId.resolves(dbObj)
+            await driver.init(app, options)
+            const query = sinon.stub().resolves({ rows: [{ column_name: 'id', udt_name: 'int4', is_nullable: 'NO', column_default: null, is_generated: 'NEVER' }] })
+            pgClients[team.hashid] = {
+                connect: sinon.stub().resolves(),
+                query,
+                end: sinon.stub().resolves()
+            }
+            const result = await driver.getTable(team, team.hashid, 'table1', 'reports')
+            result.should.eql([{ name: 'id', type: 'int4', nullable: false, default: null, generated: false }])
+            query.calledOnce.should.be.true()
+            query.calledWith('SELECT column_name, udt_name, is_nullable, column_default, character_maximum_length, is_generated FROM information_schema.columns WHERE table_name = $1 AND table_schema = $2', ['table1', 'reports']).should.be.true()
+        })
+        it('should query without a schema qualifier when the table\'s schema cannot be resolved', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            const dbObj = { TeamId: 1 }
+            app.db.models.Table.byId.resolves(dbObj)
+            await driver.init(app, options)
+            const query = sinon.stub()
+            query.onFirstCall().resolves({ rows: [] })
+            query.onSecondCall().resolves({ rows: [{ column_name: 'id', udt_name: 'int4', is_nullable: 'NO', column_default: null, is_generated: 'NEVER' }] })
+            pgClients[team.hashid] = {
+                connect: sinon.stub().resolves(),
+                query,
+                end: sinon.stub().resolves()
+            }
+            const result = await driver.getTable(team, team.hashid, 'table1')
+            result.should.eql([{ name: 'id', type: 'int4', nullable: false, default: null, generated: false }])
+            query.secondCall.calledWith('SELECT column_name, udt_name, is_nullable, column_default, character_maximum_length, is_generated FROM information_schema.columns WHERE table_name = $1', ['table1']).should.be.true()
         })
         it('should throw if table is not found', async function () {
             const team = { id: 1, hashid: 't1hash' }
@@ -277,17 +314,19 @@ describe('Tables: Postgres LocalFS Driver', function () {
             const dbObj = { TeamId: 1 }
             app.db.models.Table.byId.resolves(dbObj)
             await driver.init(app, options)
-            // Patch Client for getTableData
+            const query = sinon.stub()
+            query.onFirstCall().resolves({ rows: [{ schemaname: 'public' }] })
+            query.onSecondCall().resolves({ rows: [{ id: 1, name: 'foo' }] })
             pgClients[team.hashid] = {
                 connect: sinon.stub().resolves(),
-                query: sinon.stub().resolves({ rows: [{ id: 1, name: 'foo' }] }),
+                query,
                 end: sinon.stub().resolves()
             }
             const client = pgClients[team.hashid] // Use the team hashid as key
             const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
             result.rows.should.eql([{ id: 1, name: 'foo' }])
             client.connect.calledOnce.should.be.true()
-            client.query.calledWith('SELECT * FROM "table1" LIMIT $1', [5]).should.be.true()
+            query.secondCall.calledWith('SELECT * FROM "public"."table1" LIMIT $1', [5]).should.be.true()
             client.end.calledOnce.should.be.true()
         })
         it('should return empty array if no rows', async function () {
@@ -295,23 +334,130 @@ describe('Tables: Postgres LocalFS Driver', function () {
             const dbObj = { TeamId: 1 }
             app.db.models.Table.byId.resolves(dbObj)
             await driver.init(app, options)
-            // Patch Client for getTableData
+            const query = sinon.stub()
+            query.onFirstCall().resolves({ rows: [{ schemaname: 'public' }] })
+            query.onSecondCall().resolves({ rows: [] })
             pgClients[team.hashid] = {
                 connect: sinon.stub().resolves(),
-                query: sinon.stub().resolves({ rows: [] }),
+                query,
                 end: sinon.stub().resolves()
             }
             const client = pgClients[team.hashid] // Use the team hashid as key
             const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
             result.rows.should.eql([])
             client.connect.calledOnce.should.be.true()
-            client.query.calledWith('SELECT * FROM "table1" LIMIT $1', [5]).should.be.true()
+            query.secondCall.calledWith('SELECT * FROM "public"."table1" LIMIT $1', [5]).should.be.true()
             client.end.calledOnce.should.be.true()
+        })
+        it('should look up and use the table\'s actual schema when it is not in public', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            const dbObj = { TeamId: 1 }
+            app.db.models.Table.byId.resolves(dbObj)
+            await driver.init(app, options)
+            const query = sinon.stub()
+            query.onFirstCall().resolves({ rows: [{ schemaname: 'other_schema' }] })
+            query.onSecondCall().resolves({ rows: [{ id: 1, name: 'foo' }] })
+            pgClients[team.hashid] = {
+                connect: sinon.stub().resolves(),
+                query,
+                end: sinon.stub().resolves()
+            }
+            const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
+            result.rows.should.eql([{ id: 1, name: 'foo' }])
+            query.secondCall.calledWith('SELECT * FROM "other_schema"."table1" LIMIT $1', [5]).should.be.true()
+        })
+        it('should not run the schema lookup and use the given schema when schemaName is provided', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            const dbObj = { TeamId: 1 }
+            app.db.models.Table.byId.resolves(dbObj)
+            await driver.init(app, options)
+            const query = sinon.stub().resolves({ rows: [{ id: 1, name: 'foo' }] })
+            pgClients[team.hashid] = {
+                connect: sinon.stub().resolves(),
+                query,
+                end: sinon.stub().resolves()
+            }
+            const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 }, 'reports')
+            result.rows.should.eql([{ id: 1, name: 'foo' }])
+            query.calledOnce.should.be.true()
+            query.calledWith('SELECT * FROM "reports"."table1" LIMIT $1', [5]).should.be.true()
+        })
+        it('should query without a schema qualifier when the table\'s schema cannot be resolved', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            const dbObj = { TeamId: 1 }
+            app.db.models.Table.byId.resolves(dbObj)
+            await driver.init(app, options)
+            const query = sinon.stub()
+            query.onFirstCall().resolves({ rows: [] })
+            query.onSecondCall().resolves({ rows: [{ id: 1, name: 'foo' }] })
+            pgClients[team.hashid] = {
+                connect: sinon.stub().resolves(),
+                query,
+                end: sinon.stub().resolves()
+            }
+            const result = await driver.getTableData(team, team.hashid, 'table1', { limit: 5 })
+            result.rows.should.eql([{ id: 1, name: 'foo' }])
+            query.secondCall.calledWith('SELECT * FROM "table1" LIMIT $1', [5]).should.be.true()
         })
         it('should throw if db does not exist', async function () {
             app.db.models.Table.byId.resolves(null)
             await driver.init(app, options)
             await driver.getTableData({ id: 1, hashid: 't1hash' }, 'dbid', 'table1', 5).should.be.rejectedWith('Database dbid for team t1hash does not exist')
+        })
+    })
+
+    describe('dropTable', function () {
+        it('should look up the schema and drop the qualified table', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            const dbObj = { TeamId: 1, credentials: { host: 'localhost', port: 5432, database: 't1hash', user: 't1hash', password: 'secret' } }
+            app.db.models.Table.byId.resolves(dbObj)
+            await driver.init(app, options)
+            const query = sinon.stub()
+            query.onFirstCall().resolves({ rows: [{ schemaname: 'reports' }] })
+            query.onSecondCall().resolves({ rows: [] })
+            pgClients[team.hashid] = {
+                connect: sinon.stub().resolves(),
+                query,
+                end: sinon.stub().resolves()
+            }
+            await driver.dropTable(team, team.hashid, 'table1')
+            query.secondCall.calledWith('DROP TABLE "reports"."table1"').should.be.true()
+        })
+        it('should use the given schemaName without looking it up', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            const dbObj = { TeamId: 1, credentials: { host: 'localhost', port: 5432, database: 't1hash', user: 't1hash', password: 'secret' } }
+            app.db.models.Table.byId.resolves(dbObj)
+            await driver.init(app, options)
+            const query = sinon.stub().resolves({ rows: [] })
+            pgClients[team.hashid] = {
+                connect: sinon.stub().resolves(),
+                query,
+                end: sinon.stub().resolves()
+            }
+            await driver.dropTable(team, team.hashid, 'table1', 'reports')
+            query.calledOnce.should.be.true()
+            query.calledWith('DROP TABLE "reports"."table1"').should.be.true()
+        })
+        it('should drop without a schema qualifier when the table\'s schema cannot be resolved', async function () {
+            const team = { id: 1, hashid: 't1hash' }
+            const dbObj = { TeamId: 1, credentials: { host: 'localhost', port: 5432, database: 't1hash', user: 't1hash', password: 'secret' } }
+            app.db.models.Table.byId.resolves(dbObj)
+            await driver.init(app, options)
+            const query = sinon.stub()
+            query.onFirstCall().resolves({ rows: [] })
+            query.onSecondCall().resolves({ rows: [] })
+            pgClients[team.hashid] = {
+                connect: sinon.stub().resolves(),
+                query,
+                end: sinon.stub().resolves()
+            }
+            await driver.dropTable(team, team.hashid, 'table1')
+            query.secondCall.calledWith('DROP TABLE "table1"').should.be.true()
+        })
+        it('should throw if db does not exist', async function () {
+            app.db.models.Table.byId.resolves(null)
+            await driver.init(app, options)
+            await driver.dropTable({ id: 1, hashid: 't1hash' }, 'dbid', 'table1').should.be.rejectedWith('Database dbid for team t1hash does not exist')
         })
     })
 })

@@ -21,14 +21,15 @@
                 v-for="table in filteredTables" :key="table.id"
                 :title="table.name"
                 class="item relative"
-                :class="{active: table.name === tableSelection}"
-                @click="updateTableSelection(table.name)"
+                :class="{active: table.name === tableSelection?.name && table.dbSchema === tableSelection?.dbSchema}"
+                @click="updateTableSelection({ name: table.name, dbSchema: table.dbSchema })"
             >
                 <span class="icon-toggle">
                     <TableCellsIcon class="ff-icon ff-icon-sm" />
                     <PencilSquareIcon class="ff-icon ff-icon-sm edit" @click="showSchema(table)" />
                 </span>
                 <span class="truncate">{{ table.name }}</span>
+                <span class="schema-label truncate">{{ table.dbSchema }}</span>
             </li>
         </ul>
 
@@ -122,10 +123,18 @@ export default defineComponent({
         .item {
             display: flex;
             gap: 5px;
+            padding: 0 12px;
             line-height: 2;
             align-items: center;
             transition: ease-in-out .3s;
             cursor: pointer;
+
+            .schema-label {
+                margin-left: auto;
+                flex-shrink: 0;
+                font-size: 0.75rem;
+                color: var(--ff-color-text-subtle);
+            }
 
             &:hover, &.active {
                 color: var(--ff-color-focus);

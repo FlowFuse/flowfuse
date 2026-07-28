@@ -198,7 +198,9 @@ const getTeamInstancesList = async (teamId) => {
 const getInstances = async (teamId, {
     pagination = null,
     includeMeta = false,
-    orderByMostRecentFlows = false
+    orderByMostRecentFlows = false,
+    states = null,
+    signal = null
 } = {}) => {
     const {
         page = null,
@@ -217,8 +219,9 @@ const getInstances = async (teamId, {
     if (dir) params.append('dir', dir)
     if (includeMeta) params.append('includeMeta', includeMeta.toString())
     if (orderByMostRecentFlows) params.append('orderByMostRecentFlows', orderByMostRecentFlows.toString())
+    if (states?.length) states.forEach(state => params.append('state', state))
 
-    const res = await client.get(`/api/v1/teams/${teamId}/projects?${params.toString()}`)
+    const res = await client.get(`/api/v1/teams/${teamId}/projects?${params.toString()}`, { signal })
     res.data.projects = res.data.projects.map(r => {
         if (r.flowLastUpdatedAt) {
             r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)

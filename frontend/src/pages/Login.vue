@@ -259,7 +259,7 @@ export default {
             }
         },
         async directSSO (id) {
-            const matched = this.redirectUrlAfterLogin.match(/^\/account\/request\/([a-zA-Z0-9\-_]+)(\/editor)?$/)
+            const matched = this.redirectUrlAfterLogin?.match(/^\/account\/request\/([a-zA-Z0-9\-_]+)(\/editor)?$/)
             window.location = `/ee/sso/login?p=${id}${this.$route.query.r ? `&r=${this.$route.query.r}` : ''}${matched?.[1] ? `&t=${matched[1]}` : ''}`
         }
     }
