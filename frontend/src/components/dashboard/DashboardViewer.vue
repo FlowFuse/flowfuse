@@ -36,7 +36,7 @@
 
         <div class="ff-layout--immersive--content dashboards-viewer--content">
             <DashboardView v-if="selectedInstance" :instance="selectedInstance" :disable-events="isResizing" />
-            <DrawerTrigger :is-hidden="drawerOpen" @toggle="drawersStore.toggleEditorImmersiveDrawer" />
+            <DrawerTrigger :is-hidden="drawerOpen" side="right" @toggle="drawersStore.toggleEditorImmersiveDrawer" />
         </div>
 
         <template v-if="!statusChannelLive">
