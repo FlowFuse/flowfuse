@@ -15,13 +15,15 @@ const createDatabase = (teamId, name) => {
         .then(res => res.data)
 }
 
-const getTableSchema = (teamId, databaseId, tableName) => {
-    return client.get(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}`)
+const getTableSchema = (teamId, databaseId, tableName, schemaName) => {
+    const suffix = schemaName ? `/${schemaName}` : ''
+    return client.get(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}${suffix}`)
         .then(res => res.data)
 }
 
-const getTableData = (teamId, databaseId, tableName) => {
-    return client.get(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}/data`)
+const getTableData = (teamId, databaseId, tableName, schemaName) => {
+    const suffix = schemaName ? `/${schemaName}` : ''
+    return client.get(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}/data${suffix}`)
         .then(res => res.data.rows)
 }
 
@@ -30,8 +32,9 @@ const createTable = (teamId, databaseId, payload) => {
         .then(res => res.data)
 }
 
-const deleteTable = (teamId, databaseId, tableName) => {
-    return client.delete(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}`)
+const deleteTable = (teamId, databaseId, tableName, schemaName) => {
+    const suffix = schemaName ? `/${schemaName}` : ''
+    return client.delete(`/api/v1/teams/${teamId}/databases/${databaseId}/tables/${tableName}${suffix}`)
         .then(res => res.data)
 }
 
