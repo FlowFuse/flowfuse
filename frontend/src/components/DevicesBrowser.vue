@@ -475,10 +475,10 @@ export default {
         columns () {
             const columns = [
                 { label: 'Remote Instance', key: 'name', sortable: true, component: { is: markRaw(DeviceLink) } },
+                { label: 'Status', key: 'lastSeenAt', class: ['w-40'], sortable: true, component: { is: markRaw(DeviceOnlineStatusCell) } },
                 { label: 'Type', key: 'type', class: ['w-48'], sortable: true },
                 { label: 'Created', key: 'createdAt', class: ['w-48'], sortable: true, component: { is: markRaw(DeviceCreatedAtCell) } },
                 { label: 'Mode', key: 'mode', class: ['w-30'], sortable: true, component: { is: markRaw(DeviceModeBadge) } },
-                { label: 'Status', key: 'lastSeenAt', class: ['w-40'], sortable: true, component: { is: markRaw(DeviceOnlineStatusCell) } }
             ]
 
             if (this.displayingTeam) {
