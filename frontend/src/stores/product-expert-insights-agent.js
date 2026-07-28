@@ -46,5 +46,17 @@ export const useProductExpertInsightsAgentStore = defineStore('product-expert-in
             const data = await expertApi.getCapabilities({ context: { teamId: team.id } })
             this.capabilityServers = data.servers || []
         }
+    },
+    persist: {
+        pick: ['messages', 'sessionId', 'sessionStartTime', 'sessionWarningShown', 'sessionExpiredShown', 'selectedCapabilities'],
+        storage: sessionStorage,
+        afterHydrate ({ store }) {
+            store.messages.forEach(msg => {
+                msg._streamed = true
+                if (msg.answer) {
+                    msg.answer.forEach(a => { a._streamed = true })
+                }
+            })
+        }
     }
 })
