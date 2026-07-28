@@ -134,6 +134,49 @@ describe('PlatformAutomationHandler', function () {
         })
     })
 
+    describe('platform_get_remote_instance_status', function () {
+        afterEach(function () {
+            delete app.comms
+        })
+
+        it('forwards device comms to the tool so it can query live state', async function () {
+            app.comms = {
+                devices: {
+                    sendCommandAwaitReply: sinon.stub().resolves({ state: 'running', health: 'ok', snapshot: 'snapshot-1' })
+                }
+            }
+            const tool = handler.findTool('platform_get_remote_instance_status')
+
+            const res = await invokeToolCall({
+                userId: app.adminUser.hashid,
+                toolName: 'platform_get_remote_instance_status',
+                args: { teamId: app.team.hashid, remoteInstanceId: 'device-1' },
+                meta: { toolDefinition: { annotations: tool.annotations } }
+            })
+
+            res.ok.should.be.true()
+            res.result.should.have.property('state', 'running')
+            app.comms.devices.sendCommandAwaitReply.calledOnce.should.be.true()
+            app.comms.devices.sendCommandAwaitReply.firstCall.args[0].should.equal(app.team.hashid)
+            app.comms.devices.sendCommandAwaitReply.firstCall.args[1].should.equal('device-1')
+        })
+
+        it('returns a structured error, not a false "comms unavailable", when no comms is configured', async function () {
+            delete app.comms
+            const tool = handler.findTool('platform_get_remote_instance_status')
+
+            const res = await invokeToolCall({
+                userId: app.adminUser.hashid,
+                toolName: 'platform_get_remote_instance_status',
+                args: { teamId: app.team.hashid, remoteInstanceId: 'device-1' },
+                meta: { toolDefinition: { annotations: tool.annotations } }
+            })
+
+            res.ok.should.be.true()
+            res.result.should.have.property('error', 'Device communications not available')
+        })
+    })
+
     describe('end-to-end audit trail', function () {
         it('tool call produces audit entry with source mcp:expert and toolName', async function () {
             const tool = handler.findTool('platform_create_application')

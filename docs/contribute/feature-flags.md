@@ -13,8 +13,7 @@ When adding features to the platform it is sometimes a requirement to be able to
 restrict the feature to licensed platforms, and furthermore to certain types of team
 on the platform.
 
-Most typically this will be a feature that should only be available to the `Team`
-or `Enterprise` tiers on FlowFuse Cloud.
+Most typically this will be a feature that should only be available to the `Enterprise` tier on FlowFuse Cloud.
 
 This is a quick guide for how to add a feature flag - both at the platform-wide
 level and against individual `TeamTypes`.

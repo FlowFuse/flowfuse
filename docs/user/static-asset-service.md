@@ -16,7 +16,7 @@ The Static Asset Service allows you to store files permanently within your FlowF
 ### FlowFuse Cloud
 
 - A Instance Stack with a launcher version of 2.8.0 or greater.
-- Pro or Enterprise Team Type.
+- Enterprise Team Type.
 
 ### Self-Hosted
 

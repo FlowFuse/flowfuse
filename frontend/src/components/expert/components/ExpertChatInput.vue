@@ -242,6 +242,11 @@ export default {
         }
     },
     watch: {
+        isWaitingForResponse (waiting, wasWaiting) {
+            if (wasWaiting && !waiting) {
+                this.$nextTick(() => this.$refs.textarea?.focus())
+            }
+        },
         pendingInput (text) {
             if (text) {
                 this.inputText = text
@@ -282,6 +287,9 @@ export default {
     methods: {
         ...mapActions(useProductAssistantStore, ['resetContextSelection']),
         ...mapActions(useProductExpertStore, ['startOver', 'handleQuery', 'setPendingInput', 'setComposerCommand', 'setQuestionCadence', 'setPlanMode', 'fetchToolCatalog']),
+        focusInput () {
+            this.$refs.textarea?.focus()
+        },
         openSettings () {
             this.$refs.settingsDialog.show()
         },
@@ -295,15 +303,10 @@ export default {
                 this.togglePinWithWidth()
             }
 
-            // handleQuery renders the reply itself (see the store); the composer only needs
-            // to refocus the input once the turn is on its way.
-            this.handleQuery({ query: message })
-                .then(() => {
-                    this.$nextTick(() => {
-                        this.$refs.textarea.focus()
-                    })
-                })
-                .catch(e => e)
+            // handleQuery renders the reply itself (see the store); the isWaitingForResponse
+            // watcher refocuses the input once the response completes (works for both HTTP
+            // and MQTT, where the promise resolves before the actual response arrives).
+            this.handleQuery({ query: message }).catch(e => e)
 
             this.inputText = ''
             this.requestingPlanChange = false

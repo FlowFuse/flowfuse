@@ -11,6 +11,7 @@ import { applyLiveState } from '@/utils/applyLiveState.js'
 
 interface DashboardInstance {
     id: string
+    name?: string
     status?: string
     meta?: { state?: string, [key: string]: unknown }
     settings?: { dashboard2UI?: string, [key: string]: unknown }

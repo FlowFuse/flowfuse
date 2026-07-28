@@ -104,7 +104,7 @@ When a Device Group stage is triggered, it will push the current active snapshot
 
 Git Repository stages can be used to push and pull snapshots to and from a remote Git repository. FlowFuse supports GitHub, Azure DevOps, and any other Git server that is accessible over HTTPS, for example GitLab, Bitbucket, Gitea, or a self-hosted instance.
 
-> This feature is available to Team and Enterprise tier teams on FlowFuse Cloud, and to Enterprise licensed self-hosted installations from version 2.32 onwards. Support for generic HTTPS Git servers (anything other than GitHub and Azure DevOps) requires version 2.32 or later.
+> This feature is available to Enterprise tier teams on FlowFuse Cloud, and to Enterprise licensed self-hosted installations from version 2.32 onwards. Support for generic HTTPS Git servers (anything other than GitHub and Azure DevOps) requires version 2.32 or later.
 
 ##### Adding a Git token
 
