@@ -100,11 +100,11 @@ describe('MCP Tables Tools', function () {
     describe('platform_get_database_table', function () {
         const tool = getTool('platform_get_database_table')
 
-        it('calls the table endpoint with the table name and returns the response unmodified', async function () {
+        it('calls the table endpoint with the table name and schema, and returns the response unmodified', async function () {
             const injectResponse = { statusCode: 200, json: () => ({ name: 'table1', columns: [] }) }
             inject.resolves(injectResponse)
-            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'table1' }, { inject })
-            inject.firstCall.args[0].should.eql({ method: 'GET', url: '/api/v1/teams/team1/databases/db1/tables/table1' })
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'table1', schemaName: 'public' }, { inject })
+            inject.firstCall.args[0].should.eql({ method: 'GET', url: '/api/v1/teams/team1/databases/db1/tables/table1/public' })
             response.should.equal(injectResponse)
         })
     })
@@ -115,10 +115,10 @@ describe('MCP Tables Tools', function () {
         it('includes the limit query param when limit is provided', async function () {
             const injectResponse = { statusCode: 200, json: () => [{ col: 'value' }] }
             inject.resolves(injectResponse)
-            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'table1', limit: 5 }, { inject })
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'table1', schemaName: 'public', limit: 5 }, { inject })
             inject.firstCall.args[0].should.eql({
                 method: 'GET',
-                url: '/api/v1/teams/team1/databases/db1/tables/table1/data?limit=5'
+                url: '/api/v1/teams/team1/databases/db1/tables/table1/data/public?limit=5'
             })
             response.should.equal(injectResponse)
         })
@@ -126,12 +126,22 @@ describe('MCP Tables Tools', function () {
         it('omits the query string when limit is undefined', async function () {
             const injectResponse = { statusCode: 200, json: () => [] }
             inject.resolves(injectResponse)
-            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'table1' }, { inject })
+            const response = await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'table1', schemaName: 'public' }, { inject })
             inject.firstCall.args[0].should.eql({
                 method: 'GET',
-                url: '/api/v1/teams/team1/databases/db1/tables/table1/data'
+                url: '/api/v1/teams/team1/databases/db1/tables/table1/data/public'
             })
             response.should.equal(injectResponse)
+        })
+
+        it('includes a non-public schema segment', async function () {
+            const injectResponse = { statusCode: 200, json: () => [{ col: 'value' }] }
+            inject.resolves(injectResponse)
+            await tool.handler({ teamId: 'team1', databaseId: 'db1', tableName: 'table1', schemaName: 'custom', limit: 5 }, { inject })
+            inject.firstCall.args[0].should.eql({
+                method: 'GET',
+                url: '/api/v1/teams/team1/databases/db1/tables/table1/data/custom?limit=5'
+            })
         })
     })
 })
