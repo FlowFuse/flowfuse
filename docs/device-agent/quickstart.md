@@ -21,7 +21,7 @@ You will need:
 
 If you do not currently have a FlowFuse platform account, this guide will help you set up a trial account on FlowFuse Cloud.
 
-### Step 1: Install the Device Agent
+## Step 1: Install the Device Agent
 
 The Device Agent Installer is a one-line command that will:
 
