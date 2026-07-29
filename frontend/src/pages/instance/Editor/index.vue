@@ -179,15 +179,11 @@ export default {
             this.setInstance(instance)
         }
     },
-    mounted () {
-        this.setIsImmersive(true)
-    },
     unmounted () {
         this.clearInstance()
-        this.setIsImmersive(false)
     },
     methods: {
-        ...mapActions(useContextStore, ['setIsImmersive', 'setInstance', 'clearInstance']),
+        ...mapActions(useContextStore, ['setInstance', 'clearInstance']),
         ...mapActions(useUxDrawersStore, ['toggleEditorImmersiveDrawer']),
         notifyDrawerState () {
             this.$refs.editorDrawer?.notifyDrawerState()
