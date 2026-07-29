@@ -24,5 +24,5 @@ The Device Agent can be installed on any hardware capable of running Node.js / N
 
 The [Quick Start Guide](/docs/device-agent/quickstart.md) will get the Device Agent installed and connected to FlowFuse in under 5 minutes.
 
-For a more detailed information on installing and running the Device Agent, the full [installation guide](/docs/device-agent/install/overview.md) has you covered.
+For more detailed information on installing and running the Device Agent, the full [installation guide](/docs/device-agent/install/overview.md) has you covered.
 
