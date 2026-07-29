@@ -25,8 +25,8 @@ FlowFuse Expert works in two distinct ways inside your environment.
 The Chat Interface is a conversational AI panel built into the FlowFuse Platform and accessible directly within the Node-RED editor. With agentic flow building enabled, you can describe what you want to build and Expert will build it on your canvas for you. It can also answer questions, debug flows, and query live operational data via MCP.
 
 The Chat Interface supports two modes:
-- **Support**: flow-building assistance, including asking questions, debugging, and building flows on the canvas
-- **Insights**: query live operational data via MCP tools and resources exposed by your own MCP servers
+- **Support**: flow-building assistance, including asking questions, debugging, and building flows on the canvas. Expert can ask clarifying questions, propose a plan before it acts, and ask for your approval before running actions, and it can also take actions across the FlowFuse platform such as looking up your instances and creating new ones
+- **Insights**: query live operational data via MCP tools and resources exposed by your own MCP servers, on both hosted and remote instances
 
 [Learn more about the Chat Interface](/docs/user/expert/chat/)
 

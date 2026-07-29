@@ -9815,7 +9815,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/teams/{teamId}/databases/{databaseId}/tables/{tableName}": {
+    "/api/v1/teams/{teamId}/databases/{databaseId}/tables/{tableName}/{schemaName}?": {
         parameters: {
             query?: never;
             header?: never;
@@ -9829,6 +9829,7 @@ export interface paths {
                 path: {
                     databaseId: string;
                     tableName: string;
+                    schemaName: string;
                 };
                 cookie?: never;
             };
@@ -9872,6 +9873,7 @@ export interface paths {
                 path: {
                     databaseId: string;
                     tableName: string;
+                    schemaName: string;
                 };
                 cookie?: never;
             };
@@ -9911,7 +9913,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/teams/{teamId}/databases/{databaseId}/tables/{tableName}/data": {
+    "/api/v1/teams/{teamId}/databases/{databaseId}/tables/{tableName}/data/{schemaName}?": {
         parameters: {
             query?: never;
             header?: never;
@@ -9933,6 +9935,7 @@ export interface paths {
                 path: {
                     databaseId: string;
                     tableName: string;
+                    schemaName: string;
                 };
                 cookie?: never;
             };

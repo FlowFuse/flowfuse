@@ -62,7 +62,8 @@ export default defineComponent({
             }, () => this.deleteTable({
                 teamId: this.team.id,
                 databaseId: this.$route.params.id,
-                tableName: this.table.name
+                tableName: this.table.name,
+                schemaName: this.table.dbSchema
             })
                 .then(() => this.getTables(this.$route.params.id))
                 .then(() => this.closeRightDrawer())

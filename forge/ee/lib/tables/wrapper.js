@@ -53,16 +53,16 @@ module.exports = {
             throw new Error('Database driver does not support getTables')
         }
     },
-    getTable: async (team, databaseId, tableName) => {
+    getTable: async (team, databaseId, tableName, schemaName) => {
         if (this._driver.getTable) {
-            return this._driver.getTable(team, databaseId, tableName)
+            return this._driver.getTable(team, databaseId, tableName, schemaName)
         } else {
             throw new Error('Database driver does not support getTable')
         }
     },
-    getTableData: async (team, databaseId, table, paginationOptions) => {
+    getTableData: async (team, databaseId, table, paginationOptions, schemaName) => {
         if (this._driver.getTableData) {
-            return this._driver.getTableData(team, databaseId, table, paginationOptions)
+            return this._driver.getTableData(team, databaseId, table, paginationOptions, schemaName)
         } else {
             throw new Error('Database driver does not support getTableData')
         }
@@ -92,10 +92,10 @@ module.exports = {
             throw new Error('Database driver does not support createTable')
         }
     },
-    dropTable: async (team, databaseId, table) => {
+    dropTable: async (team, databaseId, table, schemaName) => {
         if (this._driver.dropTable) {
             this._app.log.info(`Removing table '${table}' to database '${databaseId}' for '${team.hashid}'`)
-            return this._driver.dropTable(team, databaseId, table)
+            return this._driver.dropTable(team, databaseId, table, schemaName)
         } else {
             throw new Error('Database driver does not support dropTable')
         }
