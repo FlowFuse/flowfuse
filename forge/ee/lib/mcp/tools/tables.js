@@ -149,7 +149,13 @@ module.exports = [
             meta: recordSchema
         },
         handler: async (args, { inject }) => {
-            const url = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${encodeURIComponent(args.tableName)}/data/${encodeURIComponent(args.schemaName)}${args.limit !== undefined ? `?limit=${encodeURIComponent(args.limit)}` : ''}`
+            const basePath = `/api/v1/teams/${args.teamId}/databases/${args.databaseId}/tables/${encodeURIComponent(args.tableName)}/data/${encodeURIComponent(args.schemaName)}`
+            const params = new URLSearchParams()
+            if (args.limit !== undefined) {
+                params.set('limit', String(args.limit))
+            }
+            const qs = params.toString()
+            const url = `${basePath}${qs ? `?${qs}` : ''}`
             const response = await inject({ method: 'GET', url })
             return response
         }

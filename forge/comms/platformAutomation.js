@@ -162,7 +162,7 @@ class PlatformAutomationHandler {
                     }
 
                     const { formatResponse } = require('../ee/lib/mcp/toolLoader')
-                    const response = await tool.handler(args, { inject, comms: this.app.comms?.devices })
+                    const response = await tool.handler(args, { inject, app: this.app })
                     result = formatResponse(response)
                 }
                 break
