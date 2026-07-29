@@ -31,8 +31,8 @@ meta:
 - Node.js 18 or later (for Manual install and for running locally). Supported versions are 18, 20, 22, and 24. Device Agent v4 (and its installer and official Docker image) defaults to Node.js 22 — this is the recommended runtime. Note that Node.js 20 reached end-of-life in April 2026.
 - Supported OS: Linux, macOS, Windows, or Docker container
 - Networking: allow outbound access on 443 to:
-  - app.flowfuse.com
-  - mqtt.flowfuse.cloud
+  - `app.flowfuse.com`
+  - `mqtt.flowfuse.cloud`
 - Access to npm registry when snapshots are installed: https://registry.npmjs.com
 
 Note: The Device Agent downloads the required Node-RED version and any nodes specified by the assigned snapshot. Ensure firewall/proxy permits access to the npm registry or see [Running with no access to npmjs.org](../running.md#running-with-no-access-to-npmjs.org).
@@ -43,14 +43,14 @@ If you're working behind a firewall, and need to configure it to allow the Devic
 
 Allow outbound TCP 443 to:
 
-- app.flowfuse.com
-- mqtt.flowfuse.cloud
-- registry.flowfuse.cloud
-- registry.flowfuse.com
+- `app.flowfuse.com`
+- `mqtt.flowfuse.cloud`
+- `registry.flowfuse.cloud`
+- `registry.flowfuse.com`
 
 Ensure access to npm registry to download Node-RED and nodes:
 
-- https://registry.npmjs.com
+- `https://registry.npmjs.com`
 
 For offline environments, see [Running with no access to npmjs.org](../running.md#running-with-no-access-to-npmjs.org).
 
@@ -60,7 +60,7 @@ For offline environments, see [Running with no access to npmjs.org](../running.m
 After installing by any method:
 
 1. Ensure a working directory exists (default is `/opt/flowfuse-device` or `c:\opt\flowfuse-device`).
-2. Provide a device configuration (via Quick Connect, provisioning, or manual `device.yml`). See [Register your Remote Instance](../register.md).
+2. Run the agent and it will help you get it registered, or provide a device configuration you have already created (via Quick Connect, provisioning, or manual `device.yml`). See [Register your Remote Instance](../register.md).
 3. Start the agent (service or CLI) and open `http://<device-ip>:1880` when assigned and running.
 
 ## What’s next

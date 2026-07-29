@@ -12,44 +12,80 @@ meta:
 
 This guide will walk you through the process of adding a device to FlowFuse, connecting it to the platform, and deploying your Node-RED flows remotely. FlowFuse's Device Agent helps unlock the power of your devices by allowing you to manage and deploy Node-RED flows running on those devices securely and remotely.
 
-![FlowFuse Device Agent Workflow](./images/device-agent-workflow.png){data-zoomable}
-_Workflow to onboard new Remote Instances through the FlowFuse Platform and Device Agent_
+## Before you begin
 
-## Video Walkthrough
-This video will walk you through every step from creating a remote instance, installing the Device Agent, and connecting the two. It is focused on the Free tier, but applies to all users.
-<iframe width="560" height="315" src="https://www.youtube.com/embed/JFY0s8X5RVo?si=MDgOaO8Iqzmc-KCk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+You will need:
 
-## Setup & Installation
+ - A terminal or command prompt on the device you wish to install the Agent on
+ - A FlowFuse platform account; either on [FlowFuse Cloud](https://app.flowfuse.com) or a self-hosted platform.
 
-### Step 1: Register a Remote Instance (On FlowFuse Platform)
+If you do not currently have a FlowFuse platform account, this guide will get help you setup up a Trial account on FlowFuse cloud.
 
-1. Open your web browser and go to your FlowFuse application page.
-2. Navigate to the **Remote Instances** section.
-3. Click **Add Remote Instance.**
-4. Fill in the **Name** & **Type** and select an **Application**
+### Step 1: Install the Device Agent
 
-    ![Screenshot of the dialog form to fill out when registering a Device](./images/add_remote_instance.png){data-zoomable}{ style="max-width: 600px"; }
-    _Screenshot of the dialog form to fill out when registering a Device_
-    
-5. Click **Add**
-6. You will be presented with a **Device Configuration** that you will need in the next step. _(Do not close this window just yet.)_
+The Device Agent Installer is a one-line command that will:
 
-    ![Screenshot of the dialog shown to a user when a Device is registered](./images/config_yml2a.png){data-zoomable}
-    _Screenshot of the dialog shown to a user when a Device is registered_
+ - Install Node.js
+ - Get your device registered on a FlowFuse platform
+ - Configure it to run as a local service
 
-7. Copy the installation command. You will need it in next step.
+It is the quickest way to get started.
 
-### Step 2. Install and Configure the Device Agent (On Device)
+If you already have Node.js v22+ installed, or need to customize the setup, check the [manual installation guide](./install/manual.md).
 
-1. Open a Terminal/Windows Command Prompt (run elevated[^1]) on the Device.
-2. Paste the command you copied from the previous step and execute it.
-3. Answer prompts as needed.
-4. Installer will set up the runtime and configure the Device Agent, and summarize on successful completion.
+##### Linux/MacOS
 
-    ![Example output in a Terminal showing a device agent successfully installed](./images/installer_output.png){data-zoomable}
-    _Example output in a Terminal showing a device agent successfully installed_
+```bash
+/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && ./flowfuse-device-agent-installer
+```
 
-Your device is now connected to FlowFuse and ready to be used.
+##### Windows
+
+```bash
+powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1 | iex" && flowfuse-device-agent-installer.exe
+```
+
+{% note %}
+The installer checks to see if port 1880 is available to use. If it isn't, it will let you know before exiting. This is typically because you already have Node-RED running locally. You can tell the installer to configure its Node-RED to use a different port using the `-p <port>` argument. Pick a different port, for example `1881` and re-run the above command with `-p 1881` added to the end.
+{% endnote %}
+
+{% note %}
+By default, the installer will use `/opt/flowfuse-agent` (Linux/MacOS) or `c:\opt\flowfuse-device` (Windows) as the install location. To use a different location, use the `--dir` option with the install command. For example, `--dir /path/to/custom/location`.
+{% endnote %}
+
+## Step 2: Follow the installer prompts
+
+The installer will step you through the whole setup process.
+
+It will ask if you are registering a new instance or connecting with a One-Time Code (OTC).
+
+##### Registering a new instance
+
+Select this option if you have not yet registered the instance on your FlowFuse platform.
+
+It will give you a URL to open in your browser where you can register the instance. Once you complete the registration, keep the browser tab open and switch back to the terminal.
+
+##### Connecting with a One-Time Code
+
+If you have already registered the instance on FlowFuse, the platform will have given you a One-Time Code to use when installing the Device Agent.
+
+Enter the code when asked and the Device Agent will get connected.
+
+## Step 3: Import existing flows
+
+The Agent will check common locations for existing Node-RED flows. If it finds any, it will ask if you want to import those flows into your Device Agent managed Node-RED. This makes it easy to migrate an existing Node-RED setup into a fully managed FlowFuse instance. If you want to run an entirely separate instance, you can skip this step.
+
+## Step 4: Setup a system service
+
+The Installer will then setup a system service so the Device Agent automatically runs when the device is restarted.
+
+## Step 5: Start editing your flows
+
+Once the Device Agent is running, and Node-RED has started, you can start editing your flows.
+
+If you still have the browser window open from registering the device, it will automatically put the instance into 'Developer Mode' and open up the Node-RED editor.
+
+From there you can start building your applications.
 
 ## Deploy Flows to Remote Instances
 
