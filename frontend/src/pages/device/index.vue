@@ -374,7 +374,6 @@ export default {
     async mounted () {
         this.mounted = true
         await this.loadDevice()
-        this.setContextualDevice(this.device)
     },
     beforeUnmount () {
         this.setContextualDevice(null)
@@ -385,7 +384,9 @@ export default {
     },
     methods: {
         ...mapActions(useUxStore, ['validateUserAction']),
-        ...mapActions(useContextStore, { setContextualDevice: 'setDevice' }),
+        ...mapActions(useContextStore, {
+            setContextualDevice: 'setDevice',
+        }),
         applyLiveStatus () {
             const meta = this.liveDeviceMetadata[this.device?.id]
             if (!meta || (this.device?.status === meta.status && this.device?.onlineStatus === meta.onlineStatus)) return
@@ -583,6 +584,7 @@ export default {
         },
         deviceChanged () {
             this.deviceStateMutator = new DeviceStateMutator(this.device)
+            this.setContextualDevice(this.device)
         },
         showConfirmDeleteDialog () {
             Dialog.show({

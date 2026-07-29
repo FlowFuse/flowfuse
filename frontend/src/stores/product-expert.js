@@ -144,6 +144,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                 this.setAgentMode(INSIGHTS_AGENT)
             }
 
+            // Resume the session check interval if a persisted session exists (e.g. after page refresh)
+            this.resumeSessionTimer()
+
             // In immersive editor context, navigate to the Expert tab instead of opening RightDrawer
             const contextStore = useContextStore()
             if (contextStore.isImmersiveEditor) {
@@ -664,26 +667,13 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
         },
         // Session timing actions
-        startSessionTimer () {
+        _startSessionCheckInterval () {
             const agentStore = this._agentStore
-
-            // Clear any existing timer
-            if (agentStore.sessionCheckTimer) {
-                clearInterval(agentStore.sessionCheckTimer)
-            }
-
-            // Set session start time
-            agentStore.sessionStartTime = Date.now()
-            agentStore.sessionWarningShown = false
-            agentStore.sessionExpiredShown = false
-
-            // Check every 30 seconds if we've reached the warning/expiration threshold
             const timer = setInterval(() => {
                 const elapsed = Date.now() - agentStore.sessionStartTime
                 const warningThreshold = 25 * 60 * 1000 // 25 minutes
                 const expirationThreshold = 28 * 60 * 1000 // 28 minutes
 
-                // Show 25-minute warning
                 if (elapsed >= warningThreshold && !agentStore.sessionWarningShown) {
                     agentStore.sessionWarningShown = true
                     this.addSystemMessage({
@@ -692,7 +682,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                     })
                 }
 
-                // Show 30-minute expiration
                 if (elapsed >= expirationThreshold && !agentStore.sessionExpiredShown) {
                     agentStore.sessionExpiredShown = true
                     this.addSystemMessage({
@@ -700,9 +689,22 @@ export const useProductExpertStore = defineStore('product-expert', {
                         type: 'expired'
                     })
                 }
-            }, 30000) // Check every 30 seconds
+            }, 30000)
 
             agentStore.setSessionCheckTimer(timer)
+        },
+        startSessionTimer () {
+            const agentStore = this._agentStore
+
+            if (agentStore.sessionCheckTimer) {
+                clearInterval(agentStore.sessionCheckTimer)
+            }
+
+            agentStore.sessionStartTime = Date.now()
+            agentStore.sessionWarningShown = false
+            agentStore.sessionExpiredShown = false
+
+            this._startSessionCheckInterval()
         },
         resetSessionTimer () {
             const agentStore = this._agentStore
@@ -713,6 +715,13 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.sessionStartTime = null
             agentStore.sessionWarningShown = false
             agentStore.sessionExpiredShown = false
+        },
+        // Restart the session check interval without resetting sessionStartTime.
+        // Used after page refresh to let the persisted timer continue its course.
+        resumeSessionTimer () {
+            const agentStore = this._agentStore
+            if (!agentStore.sessionStartTime || agentStore.sessionCheckTimer || agentStore.sessionExpiredShown) return
+            this._startSessionCheckInterval()
         },
         /**
          *
@@ -1300,7 +1309,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     persist: {
-        pick: ['shouldWakeUpAssistant', 'questionCadence'],
-        storage: localStorage
+        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode'],
+        storage: sessionStorage
     }
 })

@@ -17,7 +17,7 @@ module.exports = async function (app) {
                 await request.team.ensureTeamTypeExists()
                 if (!request.team.getFeatureProperty('npm', false)) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                    return // eslint-disable-line no-useless-return
+                    return
                 }
             }
             if (!request.teamMembership && request.session.User) {

@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 /**
  * Add ProjectSnapshots table
  */

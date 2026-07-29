@@ -85,6 +85,7 @@ const modelTypes = [
     'BrokerCredentials',
     'MQTTTopicSchema',
     'TeamBrokerAgent',
+    'AsyncLoginSession',
     'NodeREDNodeVersions'
 ]
 

@@ -9,13 +9,13 @@
             <div>
                 <span v-if="fullMessage">
                     {{ fullMessage }}
-                    Please <router-link class="ff-link" href="#" :to="navigateToUpgrade">upgrade</router-link>
+                    Please <router-link class="ff-link" href="#" :to="upgradePath">upgrade</router-link>
                     your Team to continue.
                 </span>
                 <span v-else>
                     {{ featureName }} is not available for your current Team.
                     Please
-                    <router-link class="ff-link" href="#" :to="navigateToUpgrade">upgrade</router-link> your Team in order to use it.
+                    <router-link class="ff-link" href="#" :to="upgradePath">upgrade</router-link> your Team in order to use it.
                 </span>
             </div>
         </slot>
@@ -54,11 +54,6 @@ export default {
         ...mapState(useContextStore, ['team']),
         upgradePath () {
             return { name: 'TeamChangeType', params: { team_slug: this.team.slug } }
-        }
-    },
-    methods: {
-        navigateToUpgrade () {
-            this.$router.push(this.upgradePath)
         }
     }
 }

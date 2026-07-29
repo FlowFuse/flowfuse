@@ -162,6 +162,10 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     }
                 }
 
+                useProductExpertSupportAgentStore().$reset()
+                useProductExpertInsightsAgentStore().$reset()
+                useProductExpertStore().$reset()
+
                 if (router.currentRoute.value.meta.requiresLogin !== false) {
                     const currentPath = router.currentRoute.value.fullPath === '/'
                         ? window.location.pathname + window.location.search + window.location.hash
@@ -207,25 +211,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
             )
             return disconnect
                 .then(() => userApi.logout())
-                .then(() => {
-                    useAccountAuthStore().$reset()
-                    useAccountStore().$reset()
-                    useUxLoadingStore().$reset()
-                    useAccountSettingsStore().$reset()
-                    useUxDialogStore().$reset()
-                    useUxToursStore().$reset()
-                    useUxNavigationStore().$reset()
-                    useUxDrawersStore().$reset()
-                    useUxStore().$reset()
-                    useContextStore().$reset()
-                    useCookieConsentStore().reset()
-                    useProductTablesStore().$reset()
-                    useProductBrokersStore().$reset()
-                    useProductAssistantStore().$reset()
-                    useProductExpertSupportAgentStore().$reset()
-                    useProductExpertInsightsAgentStore().$reset()
-                    useProductExpertStore().$reset()
-                })
+                .then(() => this.clearStores())
                 .catch(_ => {})
                 .finally(() => {
                     if (window._hsq) {
@@ -233,6 +219,25 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     }
                     window.location = logoutURL
                 })
+        },
+        clearStores () {
+            useAccountAuthStore().$reset()
+            useAccountStore().$reset()
+            useUxLoadingStore().$reset()
+            useAccountSettingsStore().$reset()
+            useUxDialogStore().$reset()
+            useUxToursStore().$reset()
+            useUxNavigationStore().$reset()
+            useUxDrawersStore().$reset()
+            useUxStore().$reset()
+            useContextStore().$reset()
+            useCookieConsentStore().reset()
+            useProductTablesStore().$reset()
+            useProductBrokersStore().$reset()
+            useProductAssistantStore().$reset()
+            useProductExpertSupportAgentStore().$reset()
+            useProductExpertInsightsAgentStore().$reset()
+            useProductExpertStore().$reset()
         }
     },
     persist: {

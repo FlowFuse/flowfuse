@@ -11,7 +11,7 @@ module.exports = async function (app) {
             }
             await request.team.ensureTeamTypeExists()
             if (!request.team.getFeatureProperty('tables', false)) {
-                reply.code(404).send({ code: 'not_found', error: 'Not Found - not available on team' })
+                reply.code(404).send({ code: 'not_found', error: 'Not Found - FlowFuse Tables is not enabled for this team' })
                 return // eslint-disable-line no-useless-return
             }
         }

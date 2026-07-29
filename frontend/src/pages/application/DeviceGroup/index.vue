@@ -61,7 +61,7 @@
 <script>
 import { CheckCircleIcon, Cog8ToothIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
 import ApplicationApi from '../../../api/application.js'
 
@@ -148,7 +148,11 @@ export default {
     mounted () {
         this.mounted = true
     },
+    beforeUnmount () {
+        this.setContextualApplication(null)
+    },
     methods: {
+        ...mapActions(useContextStore, { setContextualApplication: 'setApplication' }),
         async load () {
             const applicationId = this.$route.params.applicationId
             // See https://github.com/FlowFuse/flowfuse/issues/2929
@@ -160,6 +164,7 @@ export default {
                 this.applicationInstances = []
                 this.deviceGroup = await ApplicationApi.getDeviceGroup(applicationId, this.$route.params.deviceGroupId)
                 this.application = await ApplicationApi.getApplication(applicationId)
+                this.setContextualApplication(this.application)
 
                 // Need to load all devices in the application - which could be more than a single page
                 const devices = []
