@@ -95,17 +95,15 @@ module.exports = [
             cursor: z.string().optional().describe('Cursor for pagination (the ID of the last entry from the previous page)')
         },
         handler: async (args, { inject }) => {
-            let url = `/api/v1/projects/${args.hostedInstanceId}/logs`
-            const params = []
+            const params = new URLSearchParams()
             if (args.limit) {
-                params.push(`limit=${args.limit}`)
+                params.set('limit', String(args.limit))
             }
             if (args.cursor) {
-                params.push(`cursor=${args.cursor}`)
+                params.set('cursor', args.cursor)
             }
-            if (params.length > 0) {
-                url += '?' + params.join('&')
-            }
+            const qs = params.toString()
+            const url = `/api/v1/projects/${args.hostedInstanceId}/logs${qs ? `?${qs}` : ''}`
             const response = await inject({ method: 'GET', url })
             return response
         }
@@ -206,18 +204,21 @@ async function listApplicationHostedInstances (args, { inject }) {
 }
 
 async function listTeamHostedInstances (args, { inject }) {
-    const params = [`page=${args.page || 1}`, `limit=${args.limit || 10}`]
+    const params = new URLSearchParams({
+        page: String(args.page || 1),
+        limit: String(args.limit || 10)
+    })
     if (args.query) {
-        params.push(`query=${encodeURIComponent(args.query)}`)
+        params.set('query', args.query)
     }
     if (args.state?.length) {
-        expandStateGroups(args.state).forEach((state) => params.push(`state=${state}`))
+        expandStateGroups(args.state).forEach((state) => params.append('state', state))
     }
     if (args.includeLiveStatus) {
-        params.push('includeMeta=true')
+        params.set('includeMeta', 'true')
     }
 
-    const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/projects?${params.join('&')}` })
+    const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/projects?${params}` })
     if (response.statusCode >= 400) {
         return response
     }

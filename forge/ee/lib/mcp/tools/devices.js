@@ -24,18 +24,22 @@ module.exports = [
             limit: z.number().min(1).max(10).default(10).describe('How many results to return per page')
         },
         handler: async (args, { inject, app }) => {
-            const params = [`page=${args.page || 1}`, `limit=${args.limit || 10}`]
+            const params = new URLSearchParams({
+                page: String(args.page || 1),
+                limit: String(args.limit || 10)
+            })
             if (args.query) {
-                params.push(`query=${encodeURIComponent(args.query)}`)
+                params.set('query', args.query)
             }
             if (args.mode) {
-                params.push(`filters=${encodeURIComponent(`mode:${args.mode}`)}`)
+                params.set('filters', `mode:${args.mode}`)
             }
-            const url = args.hostedInstanceId
-                ? `/api/v1/projects/${args.hostedInstanceId}/devices?${params.join('&')}`
+            const basePath = args.hostedInstanceId
+                ? `/api/v1/projects/${args.hostedInstanceId}/devices`
                 : args.applicationId
-                    ? `/api/v1/applications/${args.applicationId}/devices?${params.join('&')}`
-                    : `/api/v1/teams/${args.teamId}/devices?${params.join('&')}`
+                    ? `/api/v1/applications/${args.applicationId}/devices`
+                    : `/api/v1/teams/${args.teamId}/devices`
+            const url = `${basePath}?${params}`
 
             const response = await inject({ method: 'GET', url })
             if (response.statusCode >= 400) {

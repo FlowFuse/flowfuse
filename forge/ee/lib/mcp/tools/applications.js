@@ -48,26 +48,24 @@ module.exports = [
             scope: z.string().optional().describe('What level of entries to include: "application", "project", or "device" (default "application")')
         },
         handler: async (args, { inject }) => {
-            let url = `/api/v1/applications/${args.applicationId}/audit-log`
-            const params = []
+            const params = new URLSearchParams()
             if (args.cursor) {
-                params.push(`cursor=${args.cursor}`)
+                params.set('cursor', args.cursor)
             }
             if (args.limit) {
-                params.push(`limit=${args.limit}`)
+                params.set('limit', String(args.limit))
             }
             if (args.event) {
-                params.push(`event=${args.event}`)
+                params.set('event', args.event)
             }
             if (args.username) {
-                params.push(`username=${args.username}`)
+                params.set('username', args.username)
             }
             if (args.scope) {
-                params.push(`scope=${args.scope}`)
+                params.set('scope', args.scope)
             }
-            if (params.length > 0) {
-                url += '?' + params.join('&')
-            }
+            const qs = params.toString()
+            const url = `/api/v1/applications/${args.applicationId}/audit-log${qs ? `?${qs}` : ''}`
             const response = await inject({ method: 'GET', url })
             return response
         }
