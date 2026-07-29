@@ -126,10 +126,6 @@ export const useContextStore = defineStore('context', {
             this.setApplication(instance?.application ?? null)
         },
         setDevice (device) {
-            // The device's `instance` is an InstanceSummary, which never carries its own
-            // `application` - the owning application is only ever resolved server-side onto
-            // the device itself (see forge/db/views/Device.js), so it's read from `device.application`
-            // here regardless of whether the device is instance- or application-owned.
             this.device = device ?? null
             this.instance = device?.instance ?? null
             this.setApplication(device?.application ?? null)
