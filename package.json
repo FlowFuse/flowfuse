@@ -204,5 +204,12 @@
         "no-code",
         "low-code",
         "node-red"
-    ]
+    ],
+    "overrides": {
+        "serialize-javascript@<7.0.7": "7.0.7",
+        "minimatch@>=9 <9.0.9": "9.0.9",
+        "uuid@8": "11.1.1",
+        "uuid@9": "11.1.1",
+        "vite": "6.4.3"
+    }
 }
