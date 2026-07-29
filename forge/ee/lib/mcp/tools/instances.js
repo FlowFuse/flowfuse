@@ -1,6 +1,48 @@
 const { z } = require('zod')
 
+// Mirrors the runningStates/errorStates/stoppedStates groups in frontend/src/composables/InstanceStates.js,
+// the same grouping the dashboard's own Running/Error/Not Running status filter uses (frontend/src/pages/team/Instances.vue).
+const STATE_GROUPS = {
+    running: ['importing', 'connected', 'info', 'success', 'pushing', 'pulling', 'loading', 'updating', 'installing', 'safe', 'protected', 'running', 'warning', 'starting'],
+    error: ['error', 'crashed'],
+    notRunning: ['stopping', 'restarting', 'suspending', 'rollback', 'stopped', 'suspended', 'offline', 'unknown']
+}
+
+function expandStateGroups (groups) {
+    return groups.flatMap((group) => STATE_GROUPS[group])
+}
+
 module.exports = [
+    {
+        name: 'platform_list_hosted_instances',
+        title: 'List Hosted Instances',
+        description: `FlowFuse platform automation tool:
+            Lists hosted instances, either across a whole team or narrowed down to one application.
+            A hosted instance is a Node-RED that runs on the same environment as the FlowFuse platform.
+            Pass applicationId to list only the instances inside one application (unpaginated, no live status unless includeLiveStatus is set).
+            Omit applicationId to list every hosted instance in the team (paginated with page/limit, each result includes its instance type, stack, and template).
+            Use state to filter by high-level status group ("running", "error", or "notRunning", the same groups as the dashboard's Running/Error/Not Running filter).
+            Set includeLiveStatus to true to also fetch each instance's real-time running state (running, stopped, deploying, etc) - this is slower since it queries the underlying containers, so only set it when the user actually needs to know what's happening right now.
+            To read the full settings of one specific instance, call platform_get_hosted_instance with its ID.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId: z.string().describe('The ID or hashid of the team'),
+            applicationId: z.string().optional().describe('Restrict results to hosted instances inside this application. Omit to list every hosted instance in the team.'),
+            query: z.string().optional().describe('Search hosted instances by name'),
+            state: z.array(z.enum(['running', 'error', 'notRunning'])).optional()
+                .describe('Filter by high-level status group, matching the dashboard\'s own status filter: "running" (includes starting/warning/deploying-type states), "error" (error/crashed), "notRunning" (stopped/suspended/offline/unknown, i.e. "Not Running" in the dashboard - note this is broader than just the "stopped" state). Team-wide, this filters on the last-known cached state. Scoped to an application, this requires a live status fetch, so it is applied after fetching (implies includeLiveStatus).'),
+            includeLiveStatus: z.boolean().optional()
+                .describe('If true, also fetch each instance\'s real-time running state. Slower than filtering by state, since it queries every matching instance\'s container.'),
+            page: z.number().min(1).optional().describe('Page number to fetch (1-based). Ignored when applicationId is set, since that listing is not paginated.'),
+            limit: z.number().min(1).max(10).default(10).describe('How many results to return per page. Ignored when applicationId is set.')
+        },
+        handler: async (args, { inject }) => {
+            if (args.applicationId) {
+                return listApplicationHostedInstances(args, { inject })
+            }
+            return listTeamHostedInstances(args, { inject })
+        }
+    },
     {
         name: 'platform_get_hosted_instance',
         title: 'Get Hosted Instance',
@@ -10,7 +52,7 @@ module.exports = [
             Use this when you already have a hosted instance ID and need to know everything about it:
             its name, URL, settings, what application and team it belongs to, its current state, and its specification (the instance type, stack, and template it uses).
             Read the specification from this tool whenever you need to know or compare what an existing instance is running, for example to duplicate it.
-            If you need to list all hosted instances first, call platform_get_application_hosted_instances.
+            If you need to list all hosted instances first, call platform_list_hosted_instances.
             To check the live running status, call platform_get_hosted_instance_status instead.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -122,3 +164,84 @@ module.exports = [
         }
     }
 ]
+
+async function listApplicationHostedInstances (args, { inject }) {
+    const needsLiveStatus = args.includeLiveStatus || args.state?.length > 0
+    const calls = [inject({ method: 'GET', url: `/api/v1/applications/${args.applicationId}/instances` })]
+    if (needsLiveStatus) {
+        calls.push(inject({ method: 'GET', url: `/api/v1/applications/${args.applicationId}/instances/status` }))
+    }
+    const [listResponse, statusResponse] = await Promise.all(calls)
+    if (listResponse.statusCode >= 400) {
+        return listResponse
+    }
+    if (statusResponse && statusResponse.statusCode >= 400) {
+        return statusResponse
+    }
+
+    const stateByInstance = statusResponse
+        ? new Map(statusResponse.json().instances.map((instance) => [instance.id, instance.meta?.state]))
+        : new Map()
+
+    let instances = listResponse.json().instances || []
+    if (args.query) {
+        const search = args.query.toLowerCase()
+        instances = instances.filter((instance) => instance.name.toLowerCase().includes(search))
+    }
+    if (args.state?.length) {
+        const wantedStates = new Set(expandStateGroups(args.state))
+        instances = instances.filter((instance) => wantedStates.has(stateByInstance.get(instance.id)))
+    }
+    instances = instances.map((instance) => ({
+        id: instance.id,
+        name: instance.name,
+        url: instance.url,
+        state: stateByInstance.get(instance.id)
+    }))
+
+    return {
+        statusCode: listResponse.statusCode,
+        json: () => ({ count: instances.length, instances })
+    }
+}
+
+async function listTeamHostedInstances (args, { inject }) {
+    const params = [`page=${args.page || 1}`, `limit=${args.limit || 10}`]
+    if (args.query) {
+        params.push(`query=${encodeURIComponent(args.query)}`)
+    }
+    if (args.state?.length) {
+        expandStateGroups(args.state).forEach((state) => params.push(`state=${state}`))
+    }
+    if (args.includeLiveStatus) {
+        params.push('includeMeta=true')
+    }
+
+    const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/projects?${params.join('&')}` })
+    if (response.statusCode >= 400) {
+        return response
+    }
+
+    const body = response.json()
+    const instances = (body.projects || []).map((project) => ({
+        id: project.id,
+        name: project.name,
+        url: project.url,
+        application: project.application ? { id: project.application.id, name: project.application.name } : undefined,
+        projectType: project.projectType ? { id: project.projectType.id, name: project.projectType.name } : undefined,
+        stack: project.stack ? { id: project.stack.id, name: project.stack.name, label: project.stack.label } : undefined,
+        template: project.template ? { id: project.template.id, name: project.template.name } : undefined,
+        state: project.meta?.state
+    }))
+
+    return {
+        statusCode: response.statusCode,
+        json: () => ({
+            count: body.meta?.total ?? body.count,
+            meta: body.meta
+                ? { page: body.meta.page, pageSize: body.meta.pageSize, total: body.meta.total, pageCount: body.meta.pageCount }
+                : undefined,
+            instances
+        })
+    }
+}
