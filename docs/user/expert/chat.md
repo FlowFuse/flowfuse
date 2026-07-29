@@ -125,7 +125,7 @@ Once you approve an action, the card collapses to show what was decided, and the
 1. Open the FlowFuse Expert panel and select **Support** mode.
 2. Click the settings (gear) icon at the top-right of the composer.
 
-Permissions are saved **per team** and persist across your chats in that team, so each team can have its own policy. Switching to another team starts from the defaults again.
+Permissions are saved per user, for the team you currently have active. If you switch to another team, your settings there are kept separately, so you can maintain a different policy per team without losing your choices when you switch back.
 
 ![The Expert settings dialog showing follow-up question cadence and the tool permission defaults for each action type](../images/assistant/expert-tool-permissions-settings.png){data-zoomable}
 
