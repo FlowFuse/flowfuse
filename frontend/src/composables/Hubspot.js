@@ -11,7 +11,6 @@ export function useHubspotHelper () {
             confirmLabel: 'Close',
             canBeCanceled: false,
             is: {
-
                 component: defineComponent({
                     computed: {
                         url () {
