@@ -267,18 +267,16 @@ export default {
         }
     },
     mounted () {
-        this.setIsImmersive(true)
         this.loadDevice()
     },
     beforeUnmount () {
-        this.setIsImmersive(false)
+        this.setContextualDevice(null)
     },
     unmounted () {
         this.stopPolling()
     },
     methods: {
         ...mapActions(useContextStore, {
-            setIsImmersive: 'setIsImmersive',
             setContextualDevice: 'setDevice'
         }),
         ...mapActions(useUxDrawersStore, ['toggleEditorImmersiveDrawer']),

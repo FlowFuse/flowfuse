@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline'
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import InstanceStatusPolling from '@/components/InstanceStatusPolling.vue'
@@ -61,14 +61,12 @@ import DashboardDrawer from '@/components/drawers/dashboard/DashboardDrawer.vue'
 import DrawerTrigger from '@/components/immersive-editor/DrawerTrigger.vue'
 import { useDashboardScope, useDashboards } from '@/composables/Dashboards'
 import InstanceStatusBadge from '@/pages/instance/components/InstanceStatusBadge.vue'
-import { useContextStore } from '@/stores/context.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 defineOptions({ name: 'DashboardViewer' })
 
 const route = useRoute()
 const router = useRouter()
-const contextStore = useContextStore()
 const drawersStore = useUxDrawersStore()
 
 const { context, fetch, viewerRouteName, homeRoute, ensureContext } = useDashboardScope(route.meta.scope as string)
@@ -132,14 +130,9 @@ watch(() => route.params.instanceId as string, id => {
 
 onMounted(async () => {
     ensureContext()
-    contextStore.setIsImmersive(true)
     drawersStore.closeRightDrawer({ preserveExpertState: true })
     await fetchData()
     scrollSelectedIntoView()
-})
-
-onUnmounted(() => {
-    contextStore.setIsImmersive(false)
 })
 </script>
 

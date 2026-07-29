@@ -17,10 +17,12 @@ export const useContextStore = defineStore('context', {
         instance: null,
         device: null,
         team: null,
-        teamMembership: null,
-        isImmersive: false
+        teamMembership: null
     }),
     getters: {
+        isImmersive (state) {
+            return state.route?.meta?.layout === 'immersive'
+        },
         isFreeTeamType (state) {
             return !!(state.team?.type?.properties?.billing?.disabled)
         },
@@ -55,36 +57,22 @@ export const useContextStore = defineStore('context', {
                     instanceId: null,
                     deviceId: null,
                     applicationId: null,
+                    deviceOwnerType: null,
                     isTrialAccount: this.isTrialAccount,
                     nodeRedVersion: assistantStore.nodeRedVersion,
                     pageName: null,
                     rawRoute: {},
                     selectedNodes: null,
-                    scope: 'ff-app',
+                    scope: this.isImmersive ? 'immersive' : 'ff-app',
                     questionCadence: useProductExpertStore().questionCadence,
                     planMode: useProductExpertStore().planMode
                 }
             }
 
-            const instanceId = state.route.fullPath.includes('/instance/')
-                ? state.route.params?.id
-                : null
-            const applicationId = state.route.fullPath.includes('/applications/')
-                ? state.route.params?.id
-                : null
-            const deviceId = state.route.fullPath.includes('/device/')
-                ? state.route.params?.id
-                : null
-            const scope =
-                (state.route.fullPath.startsWith('/instance/') || state.route.fullPath.startsWith('/device/')) &&
-                state.route.fullPath.includes('/editor')
-                    ? 'immersive'
-                    : 'ff-app'
-
             const { matched, redirectedFrom, ...rawRoute } = state.route ?? {}
             let selectedNodes = null
 
-            if (scope === 'immersive' && assistantStore.selectedNodes.length > 0) {
+            if (this.isImmersive && assistantStore.selectedNodes.length > 0) {
                 if (useProductExpertStore().isSupportAgent) {
                     selectedNodes = assistantStore.selectedNodes
                 }
@@ -103,15 +91,16 @@ export const useContextStore = defineStore('context', {
                 userId: authStore.user?.id || null,
                 teamId: state.team?.id || null,
                 teamSlug: state.team?.slug || null,
-                instanceId: instanceId ?? null,
-                deviceId: deviceId ?? null,
-                applicationId: applicationId ?? null,
+                instanceId: state.instance ? state.instance.id : null,
+                deviceId: state.device ? state.device.id : null,
+                applicationId: state.application ? state.application.id : null,
+                deviceOwnerType: state.device?.ownerType ?? null,
                 isTrialAccount: this.isTrialAccount,
                 pageName: state.route.name,
                 nodeRedVersion: assistantStore.nodeRedVersion,
                 rawRoute,
                 selectedNodes,
-                scope,
+                scope: this.isImmersive ? 'immersive' : 'ff-app',
                 supportsPlatformAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
                 supportsPlatformUIAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
                 questionCadence: useProductExpertStore().questionCadence,
@@ -132,11 +121,27 @@ export const useContextStore = defineStore('context', {
     },
     actions: {
         updateRoute (route) { this.route = route },
-        setInstance (instance) { this.instance = instance },
-        setDevice (device) { this.device = device },
-        setApplication (application) { this.application = application },
-        setIsImmersive (isImmersive) { this.isImmersive = isImmersive },
-        clearInstance () { this.instance = null },
+        setInstance (instance) {
+            this.instance = instance ?? null
+            this.setApplication(instance?.application ?? null)
+        },
+        setDevice (device) {
+            this.device = device ?? null
+            this.instance = device?.instance ?? null
+            this.setApplication(device?.application ?? null)
+        },
+        setApplication (application) {
+            if (application) {
+                this.application = {
+                    id: application.id,
+                    name: application.name,
+                    description: application.description,
+                }
+            } else {
+                this.application = null
+            }
+        },
+        clearInstance () { this.setInstance(null) },
         setTeam (team) {
             this.team = team
         },
