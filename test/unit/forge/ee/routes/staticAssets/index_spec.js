@@ -1,4 +1,4 @@
-const FormData = require('form-data') // eslint-disable-line
+const FormData = require('form-data')
 const should = require('should') // eslint-disable-line
 const setup = require('../../setup')
 

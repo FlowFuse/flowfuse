@@ -1,10 +1,8 @@
-// eslint-disable-next-line n/no-extraneous-import
 import { offset } from '@floating-ui/dom'
 import { useShepherd } from 'vue-shepherd'
 
 import Product from '../services/product.js'
 
-// eslint-disable-next-line n/no-extraneous-import
 import 'shepherd.js/dist/css/shepherd.css'
 
 import { useUxToursStore } from '@/stores/ux-tours.js'

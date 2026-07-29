@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /**
  * This migration ensures that all EE tables exist in the correct state.
  * This is only relevant for users running OSS version who installed <2.1.0.

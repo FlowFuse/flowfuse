@@ -51,8 +51,7 @@ export default {
     props: {
         steps: {
             type: Array,
-            required: true,
-            default: () => []
+            required: true
         },
         startingStep: {
             type: Number,
