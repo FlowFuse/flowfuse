@@ -291,6 +291,10 @@ class DeviceCommsHandler {
                 const stateChanged = !maskTransientStop && payload.state !== previousState
                 const cameOnline = previousOnlineStatus !== 'online'
                 if (stateChanged || cameOnline) {
+                    this.app.db.controllers.Device.updateLiveCachedState(
+                        device.hashid,
+                        payload.state
+                    )
                     this.app.comms.team.notifyDeviceState(teamId, status.id, { state: payload.state, onlineStatus: 'online' })
                 }
 

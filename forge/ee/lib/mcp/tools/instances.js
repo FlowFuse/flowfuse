@@ -33,7 +33,7 @@ module.exports = [
                 .describe('Filter by high-level status group, matching the dashboard\'s own status filter: "running" (includes starting/warning/deploying-type states), "error" (error/crashed), "notRunning" (stopped/suspended/offline/unknown, i.e. "Not Running" in the dashboard - note this is broader than just the "stopped" state). Team-wide, this filters on the last-known cached state. Scoped to an application, this requires a live status fetch, so it is applied after fetching (implies includeLiveStatus).'),
             includeLiveStatus: z.boolean().optional()
                 .describe('If true, also fetch each instance\'s real-time running state. Slower than filtering by state, since it queries every matching instance\'s container.'),
-            page: z.number().min(1).optional().describe('Page number to fetch (1-based). Ignored when applicationId is set, since that listing is not paginated.'),
+            page: z.number().min(1).default(1).optional().describe('Page number to fetch (1-based). Ignored when applicationId is set, since that listing is not paginated.'),
             limit: z.number().min(1).max(10).default(10).describe('How many results to return per page. Ignored when applicationId is set.')
         },
         handler: async (args, { inject }) => {

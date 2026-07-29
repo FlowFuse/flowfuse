@@ -20,10 +20,10 @@ module.exports = [
             query: z.string().optional().describe('Search remote instances by name or type'),
             mode: z.enum(['autonomous', 'developer']).optional()
                 .describe('Filter by mode: "autonomous" (Fleet Mode, running its assigned snapshot independently) or "developer" (Developer Mode, connected to the editor for live development). Matches the dashboard\'s own mode filter.'),
-            page: z.number().min(1).optional().describe('Page number to fetch (1-based). Defaults to 1.'),
+            page: z.number().min(1).default(1).optional().describe('Page number to fetch (1-based). Defaults to 1.'),
             limit: z.number().min(1).max(10).default(10).describe('How many results to return per page')
         },
-        handler: async (args, { inject }) => {
+        handler: async (args, { inject, app }) => {
             const params = [`page=${args.page || 1}`, `limit=${args.limit || 10}`]
             if (args.query) {
                 params.push(`query=${encodeURIComponent(args.query)}`)
@@ -43,17 +43,21 @@ module.exports = [
             }
 
             const body = response.json()
-            const devices = (body.devices || []).map((device) => ({
-                id: device.id,
-                name: device.name,
-                ownerType: device.ownerType,
-                mode: device.mode,
-                status: device.status,
-                onlineStatus: device.onlineStatus,
-                lastSeenAt: device.lastSeenAt,
-                lastSeenMs: device.lastSeenMs,
-                team: device.team ? { id: device.team.id, name: device.team.name } : undefined,
-                application: device.application ? { id: device.application.id, name: device.application.name } : undefined
+            const devices = await Promise.all((body.devices || []).map(async (device) => {
+                const cachedLiveState = app ? await app.db.controllers.Device.getLiveCachedState(args.hostedInstanceId) : null
+
+                return {
+                    id: device.id,
+                    name: device.name,
+                    ownerType: device.ownerType,
+                    mode: device.mode,
+                    requiredStatus: device.status,
+                    liveStatus: cachedLiveState || device.onlineStatus,
+                    lastSeenAt: device.lastSeenAt,
+                    lastSeenMs: device.lastSeenMs,
+                    team: device.team ? { id: device.team.id, name: device.team.name } : undefined,
+                    application: device.application ? { id: device.application.id, name: device.application.name } : undefined
+                }
             }))
 
             return {
@@ -80,9 +84,28 @@ module.exports = [
         inputSchema: {
             remoteInstanceId: z.string().describe('The ID or hashid of the remote instance')
         },
-        handler: async (args, { inject }) => {
+        handler: async (args, { inject, app }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/devices/${args.remoteInstanceId}` })
-            return response
+
+            if (response.statusCode >= 400) {
+                return response
+            }
+
+            const body = response.json()
+            const { status, onlineStatus } = body
+            delete body.onlineStatus
+            delete body.status
+
+            const cachedLiveState = app ? await app.db.controllers.Device.getLiveCachedState(args.remoteInstanceId) : null
+
+            return {
+                statusCode: response.statusCode,
+                json: () => ({
+                    ...body,
+                    requiredStatus: status,
+                    liveStatus: cachedLiveState || onlineStatus
+                })
+            }
         }
     },
     {
@@ -99,14 +122,21 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             teamId: z.string().describe('The hashid of the team that owns the remote instance. You can get this from platform_get_remote_instance or ui_get_context.'),
-            remoteInstanceId: z.string().describe('The ID or hashid of the remote instance')
+            remoteInstanceId: z.string().describe('The hashid of the remote instance')
         },
-        handler: async (args, { comms }) => {
-            if (!comms) {
+        handler: async (args, { app }) => {
+            if (!app.comms?.devices) {
                 return { error: 'Device communications not available' }
             }
             try {
-                const response = await comms.sendCommandAwaitReply(args.teamId, args.remoteInstanceId, 'get-liveState', {}, { timeout: 3000 })
+                if (app) {
+                    const liveCachedState = await app.db.controllers.Device.getLiveCachedState(args.remoteInstanceId)
+                    if (liveCachedState) {
+                        return liveCachedState
+                    }
+                }
+
+                const response = await app.comms.devices.sendCommandAwaitReply(args.teamId, args.remoteInstanceId, 'get-liveState', {}, { timeout: 3000 })
                 return {
                     state: response?.state || 'unknown',
                     health: response?.health ?? null,

@@ -6,7 +6,27 @@ const { ControllerError } = require('../../lib/errors')
 /** @type {import('../../auditLog/team').getLoggers} */
 const getTeamLogger = (app) => { return app.auditLog.Team }
 
+const deviceStateCache = 'device-live-state'
+
 module.exports = {
+    init (app) {
+        app.caches.createCache(deviceStateCache, {
+            max: 1000,
+            ttl: 65 * 1000,
+            updateAgeOnGet: false,
+        })
+    },
+
+    updateLiveCachedState (app, deviceHashId, state) {
+        const cache = app.caches.getCache(deviceStateCache)
+        return cache.set(String(deviceHashId), state)
+    },
+
+    async getLiveCachedState (app, deviceHashId) {
+        const cache = app.caches.getCache(deviceStateCache)
+        return cache.get(String(deviceHashId)) ?? null
+    },
+
     isDeploying: function (app, device) {
         // Needs to have a target to be considered deploying
         if (!device.targetSnapshotId) {

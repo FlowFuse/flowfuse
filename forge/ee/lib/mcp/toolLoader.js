@@ -29,10 +29,10 @@ function loadToolDefinitions () {
  * @param {Function} inject - app.inject helper bound to the request's auth token
  * @param {Function} checkScope - scope check function (stub for now)
  * @param {Object} [options] - optional extra context passed to tool handlers
- * @param {Object} [options.comms] - device comms handler for MQTT commands
+ * @param {Object} [options.app] - the forge app
  */
 function registerTools (server, toolDefinitions, inject, checkScope, options = {}) {
-    const { comms } = options
+    const { app } = options
     for (const tool of toolDefinitions) {
         const config = {
             title: tool.title,
@@ -51,7 +51,7 @@ function registerTools (server, toolDefinitions, inject, checkScope, options = {
             if (scopeError) {
                 return scopeError
             }
-            const response = await tool.handler(args, { inject, comms })
+            const response = await tool.handler(args, { inject, app })
             return typeof response?.json === 'function' ? formatResponse(response) : response
         })
     }
