@@ -637,4 +637,109 @@ describe('Team Members API', function () {
             secondResponse.statusCode.should.equal(200)
         })
     })
+
+    describe('PAT team scope cleanup on member removal', function () {
+        before(async function () {
+            if (app) await app.close()
+            app = await setup()
+            TestObjects.ATeam = await app.db.models.Team.byName('ATeam')
+            TestObjects.BTeam = await app.db.models.Team.create({ name: 'BTeam', TeamTypeId: app.defaultTeamType.id })
+            TestObjects.CTeam = await app.db.models.Team.create({ name: 'CTeam', TeamTypeId: app.defaultTeamType.id })
+            delete TestObjects.DTeam
+        })
+        after(async function () {
+            await app.close()
+        })
+
+        it('removing user from team deletes AccessTokenTeamScope entries for that team', async function () {
+            await setupUsers()
+            // bob is member of ATeam and BTeam. Create a PAT scoped to both.
+            const token = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                TestObjects.bob, '', null, 'Multi Team PAT',
+                { teamIds: [TestObjects.ATeam.hashid, TestObjects.BTeam.hashid] }
+            )
+
+            // Verify both scopes exist
+            let scopes = await app.db.models.AccessTokenTeamScope.findAll({
+                where: { UserId: TestObjects.bob.id }
+            })
+            scopes.should.have.length(2)
+
+            // Remove bob from ATeam
+            await app.db.controllers.Team.removeUser(TestObjects.ATeam, TestObjects.bob)
+
+            // ATeam scope should be gone, BTeam scope should remain
+            scopes = await app.db.models.AccessTokenTeamScope.findAll({
+                where: { UserId: TestObjects.bob.id }
+            })
+            scopes.should.have.length(1)
+            scopes[0].TeamId.should.equal(TestObjects.BTeam.id)
+
+            // Token itself should still exist
+            const tokenRecord = await app.db.models.AccessToken.findOne({
+                where: { id: app.db.models.AccessToken.decodeHashid(token.id) }
+            })
+            should(tokenRecord).not.be.null()
+        })
+
+        it('deletes token when last team scope is removed', async function () {
+            await setupUsers()
+            // bob is member of ATeam. Create a PAT scoped only to ATeam.
+            const token = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                TestObjects.bob, '', null, 'Single Team PAT',
+                { teamIds: [TestObjects.ATeam.hashid] }
+            )
+            const tokenId = app.db.models.AccessToken.decodeHashid(token.id)
+
+            // Remove bob from ATeam: last scope removed, token should be deleted
+            await app.db.controllers.Team.removeUser(TestObjects.ATeam, TestObjects.bob)
+
+            const tokenRecord = await app.db.models.AccessToken.findOne({ where: { id: tokenId } })
+            should(tokenRecord).be.null()
+
+            const scopes = await app.db.models.AccessTokenTeamScope.findAll({
+                where: { UserId: TestObjects.bob.id }
+            })
+            scopes.should.have.length(0)
+        })
+
+        it('team-agnostic tokens are unaffected by membership removal', async function () {
+            await setupUsers()
+            // Create a PAT with no team scopes
+            const token = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                TestObjects.bob, '', null, 'Global PAT'
+            )
+            const tokenId = app.db.models.AccessToken.decodeHashid(token.id)
+
+            // Remove bob from ATeam
+            await app.db.controllers.Team.removeUser(TestObjects.ATeam, TestObjects.bob)
+
+            // Token should still exist
+            const tokenRecord = await app.db.models.AccessToken.findOne({ where: { id: tokenId } })
+            should(tokenRecord).not.be.null()
+        })
+
+        it('tokens scoped to other teams are unaffected', async function () {
+            await setupUsers()
+            // Create a PAT scoped only to BTeam
+            const token = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                TestObjects.bob, '', null, 'BTeam Only PAT',
+                { teamIds: [TestObjects.BTeam.hashid] }
+            )
+            const tokenId = app.db.models.AccessToken.decodeHashid(token.id)
+
+            // Remove bob from ATeam (not BTeam)
+            await app.db.controllers.Team.removeUser(TestObjects.ATeam, TestObjects.bob)
+
+            // Token and its BTeam scope should be untouched
+            const tokenRecord = await app.db.models.AccessToken.findOne({ where: { id: tokenId } })
+            should(tokenRecord).not.be.null()
+
+            const scopes = await app.db.models.AccessTokenTeamScope.findAll({
+                where: { AccessTokenId: tokenId }
+            })
+            scopes.should.have.length(1)
+            scopes[0].TeamId.should.equal(TestObjects.BTeam.id)
+        })
+    })
 })

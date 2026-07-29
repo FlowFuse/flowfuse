@@ -17,10 +17,13 @@ export default {
     computed: {
         mainClasses () {
             const classes = ['flex-1', 'overflow-auto', 'h-full', 'w-full', 'flex', 'flex-col']
-            if (!this.noPadding) {
+            if (!this.noPadding && !this.hasRouteDeclaredNoPadding) {
                 classes.push('px-7', 'py-7')
             }
             return classes
+        },
+        hasRouteDeclaredNoPadding () {
+            return this.$route.meta?.noPagePadding ?? false
         }
     }
 }

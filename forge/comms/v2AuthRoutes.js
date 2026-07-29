@@ -43,6 +43,7 @@ module.exports = async function (app) {
                 password
             )
             if (isValid) {
+                reply.logProperties = { username, clientId, result: 'allow' }
                 reply.send({
                     result: 'allow',
                     is_superuser: false,
@@ -51,6 +52,7 @@ module.exports = async function (app) {
                     }
                 })
             } else {
+                reply.logProperties = { username, clientId, result: 'deny' }
                 reply.send({
                     result: 'deny'
                 })
@@ -60,6 +62,7 @@ module.exports = async function (app) {
             const teamId = parts[1]
             const agent = await app.db.models.TeamBrokerAgent.byTeam(teamId)
             if (agent && agent.auth === password) {
+                reply.logProperties = { username, clientId, result: 'allow' }
                 reply.send({
                     result: 'allow',
                     is_superuser: false,
@@ -68,6 +71,7 @@ module.exports = async function (app) {
                     }
                 })
             } else {
+                reply.logProperties = { username, clientId, result: 'deny' }
                 reply.send({
                     result: 'deny'
                 })
@@ -96,6 +100,7 @@ module.exports = async function (app) {
                 if (authorized) {
                     // we might pass ACL values here
                     // const user = await app.db.models.TeamBrokerClient.byUsername(parts[0], parts[1])
+                    reply.logProperties = { username, clientId, result: 'deny' }
                     return reply.send({
                         result: 'allow',
                         is_superuser: false,
@@ -105,6 +110,7 @@ module.exports = async function (app) {
                     })
                 }
             }
+            reply.logProperties = { username, clientId, result: 'deny' }
             reply.send({
                 result: 'deny'
             })
@@ -152,15 +158,19 @@ module.exports = async function (app) {
                         app.teamBroker.addUsedTopic(m[2], m[1])
                     }
                 }
+                reply.logProperties = { username, topic, action, result: 'allow' }
                 reply.send({ result: 'allow' })
             } else {
+                reply.logProperties = { username, topic, action, result: 'deny' }
                 reply.send({ result: 'deny' })
             }
             // return
         } else if (username.startsWith('agent:')) {
             if (action === 'subscribe') {
+                reply.logProperties = { username, topic, action, result: 'allow' }
                 reply.send({ result: 'allow' })
             } else {
+                reply.logProperties = { username, topic, action, result: 'deny' }
                 reply.send({ result: 'deny' })
             }
         } else {
@@ -184,6 +194,7 @@ module.exports = async function (app) {
                         if (request.body.action === 'subscribe') {
                             if (mqttMatch(acl.pattern, request.body.topic)) {
                                 if (acl.action === 'both' || acl.action === 'subscribe') {
+                                    reply.logProperties = { username, topic, action, result: 'allow' }
                                     reply.send({ result: 'allow' })
                                     return
                                 }
@@ -192,6 +203,7 @@ module.exports = async function (app) {
                             if (mqttMatch(acl.pattern, request.body.topic)) {
                                 if (acl.action === 'both' || acl.action === 'publish') {
                                     app.teamBroker.addUsedTopic(request.body.topic, teamId)
+                                    reply.logProperties = { username, topic, action, result: 'allow' }
                                     reply.send({ result: 'allow' })
                                     return
                                 }
@@ -200,6 +212,7 @@ module.exports = async function (app) {
                     }
                 }
             }
+            reply.logProperties = { username, topic, action, result: 'deny' }
             reply.send({ result: 'deny' })
         }
     })

@@ -277,6 +277,7 @@ class DeviceCommsHandler {
             const startTime = Date.now()
             try {
                 const previousState = device.state
+                const previousOnlineStatus = device.status
                 const payload = JSON.parse(status.status)
                 await this.app.db.controllers.Device.updateState(device, payload)
 
@@ -287,8 +288,10 @@ class DeviceCommsHandler {
                 }
 
                 const maskTransientStop = previousState === 'restarting' && payload.state === 'stopped'
-                if (!maskTransientStop && payload.state !== previousState) {
-                    this.app.comms.team.notifyDeviceState(teamId, status.id, payload.state)
+                const stateChanged = !maskTransientStop && payload.state !== previousState
+                const cameOnline = previousOnlineStatus !== 'online'
+                if (stateChanged || cameOnline) {
+                    this.app.comms.team.notifyDeviceState(teamId, status.id, { state: payload.state, onlineStatus: 'online' })
                 }
 
                 // If the status state===unknown, the device is waiting for confirmation

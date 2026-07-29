@@ -56,6 +56,11 @@ export default {
                 this.$emit('streaming-complete')
             }
         }
+    },
+    mounted () {
+        if (!this.shouldStream) {
+            this.$emit('streaming-complete')
+        }
     }
 }
 </script>

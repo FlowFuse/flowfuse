@@ -192,7 +192,7 @@ module.exports = {
             const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
             try {
                 await teamClient.connect()
-                const res = await teamClient.query('SELECT "tablename" FROM "pg_catalog"."pg_tables" WHERE "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\'')
+                const res = await teamClient.query('SELECT "tablename", "schemaname" FROM "pg_catalog"."pg_tables" WHERE "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\'')
                 if (res.rows && res.rows.length > 0) {
                     const tables = res.rows.map(row => {
                         return {
@@ -220,7 +220,7 @@ module.exports = {
             throw new Error(`Failed to retrieve tables for team ${team.hashid}: ${err.message}`)
         }
     },
-    getTable: async function (team, databaseId, tableName) {
+    getTable: async function (team, databaseId, tableName, schemaName) {
         // SELECT column_name, data_type, is_nullable, column_default
         // FROM information_schema.columns
         // WHERE table_name = 'your_table_name';
@@ -232,7 +232,18 @@ module.exports = {
             const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
             try {
                 await teamClient.connect()
-                const res = await teamClient.query('SELECT column_name, udt_name, is_nullable, column_default, character_maximum_length, is_generated FROM information_schema.columns WHERE table_name = $1', [tableName])
+                let resolvedSchema = schemaName
+                if (!resolvedSchema) {
+                    const schemaRes = await teamClient.query('SELECT "schemaname" FROM "pg_catalog"."pg_tables" WHERE "tablename" = $1 AND "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\' LIMIT 1', [tableName])
+                    resolvedSchema = schemaRes.rows[0]?.schemaname
+                }
+                let query = 'SELECT column_name, udt_name, is_nullable, column_default, character_maximum_length, is_generated FROM information_schema.columns WHERE table_name = $1'
+                const params = [tableName]
+                if (resolvedSchema) {
+                    query += ' AND table_schema = $2'
+                    params.push(resolvedSchema)
+                }
+                const res = await teamClient.query(query, params)
                 if (res.rows && res.rows.length > 0) {
                     return res.rows.map(row => {
                         const col = {
@@ -258,7 +269,7 @@ module.exports = {
             throw new Error(`Failed to retrieve table ${tableName} for team ${team.hashid}: ${err.message}`)
         }
     },
-    getTableData: async function (team, database, table, pagination) {
+    getTableData: async function (team, database, table, pagination, schemaName) {
         const rows = Math.min(parseInt(pagination.limit) || 10, 10)
         const databaseExists = await this._app.db.models.Table.byId(team.id, database)
         if (!databaseExists || databaseExists.TeamId !== team.id) {
@@ -268,8 +279,14 @@ module.exports = {
             const teamClient = libPg.newClient({ ...this._options.backend, database: team.hashid })
             try {
                 await teamClient.connect()
+                let resolvedSchema = schemaName
+                if (!resolvedSchema) {
+                    const schemaRes = await teamClient.query('SELECT "schemaname" FROM "pg_catalog"."pg_tables" WHERE "tablename" = $1 AND "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\' LIMIT 1', [table])
+                    resolvedSchema = schemaRes.rows[0]?.schemaname
+                }
                 const escapedTable = libPg.pg.escapeIdentifier(table)
-                const query = `SELECT * FROM ${escapedTable} LIMIT $1`
+                const qualifiedTable = resolvedSchema ? `${libPg.pg.escapeIdentifier(resolvedSchema)}.${escapedTable}` : escapedTable
+                const query = `SELECT * FROM ${qualifiedTable} LIMIT $1`
                 const res = await teamClient.query(query, [rows || 10])
                 if (res.rows && res.rows.length > 0) {
                     return {
@@ -380,7 +397,7 @@ module.exports = {
             throw new Error(`Failed to create table ${tableName} for team ${team.hashid}: ${err.message}`)
         }
     },
-    dropTable: async function (team, databaseId, tableName) {
+    dropTable: async function (team, databaseId, tableName, schemaName) {
         const databaseExists = await this._app.db.models.Table.byId(team.id, databaseId)
         if (!databaseExists || databaseExists.TeamId !== team.id) {
             throw new Error(`Database ${databaseId} for team ${team.hashid} does not exist`)
@@ -397,7 +414,14 @@ module.exports = {
             const teamClient = libPg.newClient(options)
             try {
                 await teamClient.connect()
-                await teamClient.query(`DROP TABLE ${libPg.pg.escapeIdentifier(tableName)}`)
+                let resolvedSchema = schemaName
+                if (!resolvedSchema) {
+                    const schemaRes = await teamClient.query('SELECT "schemaname" FROM "pg_catalog"."pg_tables" WHERE "tablename" = $1 AND "schemaname" != \'pg_catalog\' AND "schemaname" != \'information_schema\' LIMIT 1', [tableName])
+                    resolvedSchema = schemaRes.rows[0]?.schemaname
+                }
+                const escapedTable = libPg.pg.escapeIdentifier(tableName)
+                const qualifiedTable = resolvedSchema ? `${libPg.pg.escapeIdentifier(resolvedSchema)}.${escapedTable}` : escapedTable
+                await teamClient.query(`DROP TABLE ${qualifiedTable}`)
             } finally {
                 teamClient.end()
             }

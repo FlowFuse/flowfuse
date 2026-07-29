@@ -60,8 +60,6 @@
 }
 
 .ff-audit-entry-trigger, .ff-audit-entry-time {
-    grid-area: time;
-    display: block;
     color: var(--ff-color-text-subtle);
     overflow-x: hidden;
     white-space: nowrap;

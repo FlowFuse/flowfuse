@@ -182,10 +182,57 @@ module.exports = function (app) {
             }
 
             try {
-                const [, userId, sessionId, command] = topicParts
+                const [fullTopic, userId, sessionId, command] = topicParts
+                const [usernameUserId] = usernameParts
                 if (!userId || !sessionId || !command) {
                     throw ValidationError('invalid topic format')
                 }
+
+                // Heartbeat topics. Here we re-use the command pathways to ensure end-to-end connectivity between the
+                //  platform and the expert agent (via the bridge). See NOTE below about reversed request/response topics.
+                // 1. Platform → AppBroker (publish) - platform publishes heartbeat
+                // 2. AppBroker → ExpertBroker (subscribe) - agent subscribes for the heartbeat
+                // 3. ExpertBroker → AppBroker (publish) - agent publishes its response to the heartbeat
+                // 4. AppBroker → Platform (subscribe) - platform subscribes for the agent's response to the heartbeat
+                // These special cases are allowed and are strictly limited to the single EXACT heartbeat topics
+                //  and the user MUST be the platform or expert user depending on the direction of the message.
+                // NOTE: request and response are reversed in the topic name because the platform is reusing the command channel
+                //  designed for the agent to send requests to the platform. In this case, the platform is sending a request
+                //  to the agent, so the topics are reversed. This seems odd, but is correct.
+
+                // 1. Platform → AppBroker (heartbeat request) - allow platform to publish the heartbeat message
+                if (fullTopic === 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/response') {
+                    if (usernameUserId === 'forge_platform' && acl.isPub) {
+                        return true
+                    }
+                    throw ValidationError('heartbeat topic not permitted for this user')
+                }
+
+                // 2. ExpertBroker → AppBroker (heartbeat request) - allow agent to subscribe to the heartbeat request
+                if (fullTopic === 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/response') {
+                    if (usernameUserId === 'expert-agent' && acl.isSub) {
+                        return true
+                    }
+                    throw ValidationError('heartbeat topic not permitted for this user')
+                }
+
+                // 3. ExpertBroker → AppBroker (heartbeat response) - allow agent to publish to the heartbeat response
+                if (fullTopic === 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/request') {
+                    if (usernameUserId === 'expert-agent' && acl.isPub) {
+                        return true
+                    }
+                    throw ValidationError('heartbeat topic not permitted for this user')
+                }
+
+                // 4. Platform → AppBroker (heartbeat response) - allow platform to subscribe to the heartbeat response
+                if (fullTopic === 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/request') {
+                    if (usernameUserId === 'forge_platform' && acl.isSub) {
+                        return true
+                    }
+                    throw ValidationError('heartbeat topic not permitted for this user')
+                }
+
+                // Platform Command (non-heartbeat) topics are validated below:
 
                 if (command === '+') {
                     if (!acl.allowWildcard?.command) {

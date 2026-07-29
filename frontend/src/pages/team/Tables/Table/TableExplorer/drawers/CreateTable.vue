@@ -13,6 +13,7 @@
                 <div v-if="errors.name" data-el="form-row-error" class="ml-4 text-red-400 text-xs">
                     {{ errors.name }}
                 </div>
+                <p class="schema-hint">This table will be created in your database's default schema.</p>
             </div>
             <div class="section table-columns">
                 <h3>Define Columns</h3>
@@ -185,6 +186,12 @@ export default defineComponent({
 
            .columns {
                margin-bottom: 20px;
+           }
+
+           .schema-hint {
+               margin-top: 8px;
+               font-size: 0.75rem;
+               color: var(--ff-color-text-subtle);
            }
        }
     }

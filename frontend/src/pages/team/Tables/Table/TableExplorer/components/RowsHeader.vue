@@ -11,6 +11,10 @@
         >
             <ArrowPathIcon class="ff-icon ff-icon-md" aria-hidden="true" />
         </button>
+        <span v-if="selectedTable" class="table-title truncate">
+            {{ selectedTable.dbSchema }}.{{ selectedTable.name }}
+        </span>
+        <TextCopier v-if="selectedTable" :text="qualifiedTableName" :show-text="false" />
     </section>
 </template>
 
@@ -21,12 +25,13 @@ import { mapActions, mapState } from 'pinia'
 import MenuCollapse from '../../.././../../../components/icons/menu-collapse.js'
 import MenuExpand from '../../.././../../../components/icons/menu-expand.js'
 
+import TextCopier from '@/components/TextCopier.vue'
 import { useContextStore } from '@/stores/context.js'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
 export default {
     name: 'RowsHeader',
-    components: { MenuCollapse, MenuExpand, ArrowPathIcon },
+    components: { MenuCollapse, MenuExpand, ArrowPathIcon, TextCopier },
     props: {
         menuCollapsed: {
             type: Boolean,
@@ -36,7 +41,10 @@ export default {
     emits: ['toggle-collapse'],
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useProductTablesStore, ['tableSelection'])
+        ...mapState(useProductTablesStore, ['tableSelection', 'selectedTable']),
+        qualifiedTableName () {
+            return `"${this.selectedTable.dbSchema}"."${this.selectedTable.name}"`
+        }
     },
     methods: {
         ...mapActions(useProductTablesStore, ['getTableData', 'setTableLoadingState']),
@@ -45,7 +53,8 @@ export default {
             return this.getTableData({
                 teamId: this.team.id,
                 databaseId: this.$route.params.id,
-                tableName: this.tableSelection
+                tableName: this.tableSelection?.name,
+                schemaName: this.tableSelection?.dbSchema
             }).finally(() => this.setTableLoadingState(false))
         }
     }
@@ -57,9 +66,15 @@ export default {
     margin-bottom: 15px;
     padding-bottom: 15px;
     border-bottom: 1px solid var(--ff-color-border);
+    align-items: center;
 
     .toggle-collapse, .refresh-table {
         border: 1px solid transparent;
+    }
+
+    .table-title {
+        font-weight: bold;
+        color: var(--ff-color-text-deep);
     }
 }
 </style>

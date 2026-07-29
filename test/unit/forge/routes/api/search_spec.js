@@ -342,6 +342,24 @@ describe('Search API', function () {
             })
         })
 
+        it('finds an instance that is missing its settings row', async function () {
+            const teamHashId = app.db.models.Team.encodeHashid(TestObjects.BTeam.id)
+            await app.db.models.ProjectSettings.destroy({ where: { ProjectId: TestObjects.App1Instance1.id, key: 'settings' } })
+            try {
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/search/instances',
+                    query: { team: teamHashId, query: 'instance-app-one-abc' },
+                    cookies: { sid: TestObjects.tokens.bob }
+                })
+                response.statusCode.should.equal(200)
+                const result = response.json()
+                result.results.map(r => r.name).should.containEql('instance-app-one-abc')
+            } finally {
+                await TestObjects.App1Instance1.updateSetting('settings', { header: { title: 'instance-app-one-abc' } })
+            }
+        })
+
         it('returns empty results for valid team but blank query', async function () {
             const teamHashId = app.db.models.Team.encodeHashid(TestObjects.BTeam.id)
             const response = await app.inject({

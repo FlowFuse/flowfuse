@@ -11,8 +11,11 @@
             </template>
             <template #status>
                 <div class="flex flex-wrap gap-2">
-                    <DeviceLastSeenBadge :last-seen-at="device.lastSeenAt" :last-seen-ms="device.lastSeenMs" :last-seen-since="device.lastSeenSince" />
-                    <StatusBadge :status="device.status" :instanceId="device.id" instanceType="device" />
+                    <DeviceOnlineStatusCell
+                        :onlineStatus="device.onlineStatus"
+                        :status="device.status"
+                        :lastSeenAt="device.lastSeenAt"
+                    />
                     <DeviceModeBadge v-if="isDevModeAvailable " :mode="device.mode" />
                 </div>
             </template>
@@ -143,7 +146,6 @@ import deviceApi from '../../api/devices.js'
 import DropdownMenu from '../../components/DropdownMenu.vue'
 import FinishSetupButton from '../../components/FinishSetup.vue'
 import SectionNavigationHeader from '../../components/SectionNavigationHeader.vue'
-import StatusBadge from '../../components/StatusBadge.vue'
 import SubscriptionExpiredBanner from '../../components/banners/SubscriptionExpired.vue'
 import TeamTrialBanner from '../../components/banners/TeamTrial.vue'
 import { useInstanceStates } from '../../composables/InstanceStates.js'
@@ -165,8 +167,8 @@ import AssignDeviceDialog from './components/AssignDeviceDialog.vue'
 
 import DeveloperModeToggle from './components/DeveloperModeToggle.vue'
 import DeviceEditorLink from './components/DeviceEditorLink.vue'
-import DeviceLastSeenBadge from './components/DeviceLastSeenBadge.vue'
 import DeviceModeBadge from './components/DeviceModeBadge.vue'
+import DeviceOnlineStatusCell from './components/DeviceOnlineStatusCell.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
@@ -186,10 +188,9 @@ export default {
         FinishSetupButton,
         DeveloperModeToggle,
         DeviceModeBadge,
-        DeviceLastSeenBadge,
+        DeviceOnlineStatusCell,
         DropdownMenu,
         SectionNavigationHeader,
-        StatusBadge,
         SubscriptionExpiredBanner,
         TeamTrialBanner,
         AssignDeviceDialog,
@@ -221,7 +222,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
-        ...mapState(useLiveStatusStore, { liveDeviceStatuses: 'deviceStatuses', statusChannelLive: 'live' }),
+        ...mapState(useLiveStatusStore, { liveDeviceMetadata: 'deviceMetadata', statusChannelLive: 'live' }),
         actionsButtonKind () {
             switch (true) {
             case this.neverConnected:
@@ -359,7 +360,7 @@ export default {
     },
     watch: {
         device: 'deviceChanged',
-        liveDeviceStatuses: { handler: 'applyLiveStatus', deep: true },
+        liveDeviceMetadata: { handler: 'applyLiveStatus', deep: true },
         statusChannelLive (live) {
             if (live) {
                 this.pollTimer?.stop()
@@ -386,9 +387,9 @@ export default {
         ...mapActions(useUxStore, ['validateUserAction']),
         ...mapActions(useContextStore, { setContextualDevice: 'setDevice' }),
         applyLiveStatus () {
-            const state = this.liveDeviceStatuses[this.device?.id]
-            if (!state || this.device?.status === state) return
-            this.device = applyLiveState(this.device, state, { device: true, clearFlags: true })
+            const meta = this.liveDeviceMetadata[this.device?.id]
+            if (!meta || (this.device?.status === meta.status && this.device?.onlineStatus === meta.onlineStatus)) return
+            this.device = applyLiveState(this.device, meta.status, { device: true, clearFlags: true, onlineStatus: meta.onlineStatus })
         },
         pollTimerElapsed: async function () {
             // Only refresh device via the timer if we are on the overview page, developer mode page

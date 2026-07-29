@@ -14,6 +14,7 @@ module.exports = function (app) {
             createdAt: { type: 'string' },
             username: { type: 'string', nullable: true },
             event: { type: 'string' },
+            source: { type: 'string', nullable: true },
             scope: { type: 'object', additionalProperties: true },
             trigger: { type: 'object', additionalProperties: true },
             body: { type: 'object', additionalProperties: true }
@@ -55,6 +56,7 @@ module.exports = function (app) {
                 createdAt: e.createdAt,
                 username: e.User ? e.User.username : null, // Kept for compatibility. To remove once UI complete
                 event: e.event,
+                source: e.source || null,
                 scope,
                 trigger: sanitiseObjectIds(e.trigger),
                 body: e.body

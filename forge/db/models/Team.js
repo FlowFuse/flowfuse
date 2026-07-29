@@ -780,6 +780,20 @@ module.exports = {
                 unsuspend: async function () {
                     this.suspended = false
                     await this.save()
+                },
+                hasApplication: async function (nameOrId) {
+                    const applicationId = M.Application.decodeHashid(nameOrId)
+                    const application = await app.db.models.Application.findOne({
+                        where: {
+                            [Op.or]: [
+                                { name: nameOrId },
+                                { id: applicationId }
+                            ],
+                            TeamId: this.id
+                        }
+                    })
+
+                    return application
                 }
             }
         }

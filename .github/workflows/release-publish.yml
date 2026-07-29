@@ -8,11 +8,11 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           token: ${{ secrets.MAINTENANCE_SYNC_TOKEN }}
           fetch-depth: 0
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
       - run: npm ci
@@ -21,3 +21,23 @@ jobs:
       - uses: JS-DevTools/npm-publish@0fd2f4369c5d6bcfcde6091a7c527d810b9b5c3f # v4.1.5
         with:
           token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+  notify-slack:
+    name: Notify about release failure
+    needs: [publish]
+    if: failure()
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Notify Slack
+      uses: FlowFuse/github-actions-workflows/actions/slack_notification@slack_notification/v1
+      with:
+        bot-token: ${{ secrets.SLACK_GHBOT_TOKEN }}
+        mode: channel
+        blocks: |
+          [
+            { "type": "header", "text": { "type": "plain_text", "text": ":x: ${{ github.workflow }} workflow failed", "emoji": true } },
+            { "type": "divider" },
+            { "type": "section", "text": { "type": "mrkdwn", "text": "<${{ github.server_url }}/${{ github.repository }}/actions/workflows/release-publish.yml|${{ github.workflow }}> workflow failed to complete successfully." } },
+            { "type": "section", "text": { "type": "mrkdwn", "text": "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>" } }
+          ]

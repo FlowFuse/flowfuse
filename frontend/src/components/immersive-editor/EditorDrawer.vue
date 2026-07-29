@@ -116,20 +116,15 @@
 import { HomeIcon, XMarkIcon } from '@heroicons/vue/20/solid'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import { storeToRefs } from 'pinia'
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, nextTick, onMounted, watch } from 'vue'
 
 import getAppOrchestrator from '../../services/app.orchestrator'
 import ResizeBar from '../ResizeBar.vue'
 
 import EditorDrawerSettings from './EditorDrawerSettings.vue'
 
+import { useImmersiveDrawer } from '@/composables/ImmersiveDrawer'
 import { useContextStore } from '@/stores/context.js'
-import { useUxDrawersStore } from '@/stores/ux-drawers.js'
-
-const DRAWER_MIN_WIDTH = 310
-const DRAWER_MAX_VIEWPORT_MARGIN = 200
-const DRAWER_MAX_WIDTH_RATIO = 0.9
 
 const props = defineProps({
     navigation: {
@@ -148,42 +143,19 @@ const props = defineProps({
 
 const emit = defineEmits(['resizing'])
 
-const drawersStore = useUxDrawersStore()
 const contextStore = useContextStore()
-const { editorImmersiveDrawer } = storeToRefs(drawersStore)
 const { editorEntityType } = storeToRefs(contextStore)
-const route = useRoute()
 
-const resizing = ref(false)
-const startX = ref(0)
-const startWidth = ref(0)
-const windowWidth = ref(window.innerWidth)
-
-const isEditorResizing = computed(() => resizing.value)
-
-const drawerStyle = computed(() => {
-    if (!editorImmersiveDrawer.value.state) return {}
-    const width = Math.min(
-        editorImmersiveDrawer.value.width,
-        windowWidth.value * DRAWER_MAX_WIDTH_RATIO,
-        windowWidth.value - DRAWER_MAX_VIEWPORT_MARGIN
-    )
-    return { width: `${width}px`, order: editorImmersiveDrawer.value.side === 'right' ? 1 : -1 }
-})
-
-const hasStackedView = computed(() => editorImmersiveDrawer.value.viewStack.length > 0)
-const currentStackView = computed(() => {
-    const stack = editorImmersiveDrawer.value.viewStack
-    return stack[stack.length - 1] || null
-})
-const stackedActions = computed(() => {
-    const view = currentStackView.value
-    if (!view?.actions) return []
-    return view.actions.filter(action => {
-        if (typeof action.hidden === 'function') return !action.hidden()
-        return !action.hidden
-    })
-})
+const {
+    drawersStore,
+    editorImmersiveDrawer,
+    isResizing: isEditorResizing,
+    drawerStyle,
+    hasStackedView,
+    currentStackView,
+    stackedActions,
+    startResize: startEditorResize
+} = useImmersiveDrawer({ onResizingChange: resizing => emit('resizing', resizing) })
 
 const homeRoute = computed(() => {
     if (!props.entity?.id) return null
@@ -201,7 +173,7 @@ function notifyDrawerState () {
 
     const targetOrigin = props.entity.url || window.location.origin
     const serviceOrchestrator = getAppOrchestrator()
-    serviceOrchestrator.$serviceInstances.postMessage.sendMessage({
+    serviceOrchestrator.$services.postMessage.sendMessage({
         message: {
             type: 'drawer-state',
             payload: { open: editorImmersiveDrawer.value.state }
@@ -211,160 +183,13 @@ function notifyDrawerState () {
     })
 }
 
-function handleResize (e) {
-    if (!resizing.value) return
-
-    const isLeftSide = editorImmersiveDrawer.value.side === 'left'
-    const delta = isLeftSide
-        ? e.clientX - startX.value
-        : startX.value - e.clientX
-
-    const newWidth = Math.min(
-        Math.max(DRAWER_MIN_WIDTH, startWidth.value + delta),
-        window.innerWidth * DRAWER_MAX_WIDTH_RATIO,
-        window.innerWidth - DRAWER_MAX_VIEWPORT_MARGIN
-    )
-
-    drawersStore.setEditorImmersiveDrawerWidth(newWidth)
-}
-
-function stopResize () {
-    resizing.value = false
-    emit('resizing', false)
-    document.removeEventListener('mousemove', handleResize)
-    document.removeEventListener('mouseup', stopResize)
-}
-
-function startEditorResize (e) {
-    resizing.value = true
-    emit('resizing', true)
-    startX.value = e.clientX
-    startWidth.value = editorImmersiveDrawer.value.width
-
-    document.addEventListener('mousemove', handleResize)
-    document.addEventListener('mouseup', stopResize)
-}
-
-function onWindowResize () {
-    windowWidth.value = window.innerWidth
-}
-
 watch(() => editorImmersiveDrawer.value.state, () => {
     nextTick(notifyDrawerState)
 })
 
-watch(() => route.name, () => {
-    drawersStore.clearEditorImmersiveViewStack()
-})
-
 onMounted(() => {
-    drawersStore.setEditorImmersiveActive(true)
-    window.addEventListener('resize', onWindowResize)
     nextTick(notifyDrawerState)
-})
-
-onUnmounted(() => {
-    drawersStore.setEditorImmersiveActive(false)
-    drawersStore.clearEditorImmersiveViewStack()
-    window.removeEventListener('resize', onWindowResize)
-    document.removeEventListener('mousemove', handleResize)
-    document.removeEventListener('mouseup', stopResize)
 })
 
 defineExpose({ notifyDrawerState })
 </script>
-
-<style lang="scss">
-.ff--immersive-editor-wrapper .tabs-wrapper.drawer {
-    &.pinned {
-        position: relative;
-        left: auto;
-        top: auto;
-        height: 100%;
-        transform: none;
-        box-shadow: none;
-
-        &.open {
-            border-right: 1px solid var(--ff-color-border);
-
-            &.side-right {
-                border-right: none;
-                border-left: 1px solid var(--ff-color-border);
-            }
-        }
-    }
-
-    &:not(.pinned).side-right {
-        left: auto;
-        right: 0;
-        transform: translateX(100%);
-
-        &.open {
-            transform: translateX(0);
-            box-shadow: -5px 0 8px rgba(0, 0, 0, 0.10);
-        }
-    }
-
-    .ff-layout--immersive--fullscreen &:not(.pinned) {
-        top: 0;
-        height: 100%;
-    }
-
-    &.side-right .resize-bar {
-        left: 0;
-        right: auto;
-        border-right: none;
-        border-left: 1px solid var(--ff-color-border-strong);
-
-        &::before {
-            left: -3px;
-        }
-    }
-
-    .header,
-    .header--stacked {
-        min-height: 46px;
-    }
-
-    .drawer-header-btn {
-        align-self: stretch;
-        background: none;
-        border: none;
-        padding: 0 15px;
-        color: var(--ff-color-text-subtle);
-        font: inherit;
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-
-        .ff-btn--icon {
-            width: 18px;
-            height: 18px;
-        }
-
-        &:hover {
-            background: var(--ff-color-bg-surface-raised);
-            color: var(--ff-color-text-muted);
-        }
-
-        &:active {
-            background: var(--ff-color-bg-emphasis);
-        }
-    }
-
-    .editor-drawer-stack-title {
-        flex: 1;
-        font-weight: 600;
-        font-size: 14px;
-        color: var(--ff-color-text);
-        padding: 0 10px;
-        display: flex;
-        align-items: center;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-}
-</style>

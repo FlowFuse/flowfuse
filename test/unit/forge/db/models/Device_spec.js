@@ -208,6 +208,35 @@ describe('Device model', function () {
             should(settings).be.an.Object().and.have.a.property('autoSnapshot', false)
         })
     })
+    describe('Virtual fields', function () {
+        let app
+        before(async function () {
+            app = await setup()
+        })
+        after(async function () {
+            await app.close()
+        })
+        beforeEach(async () => {
+            // increase license limits
+            app.license.defaults.devices = 20
+            app.license.defaults.instances = 20
+        })
+
+        describe('status', function () {
+            it('is "not-seen" when lastSeenAt is null', async function () {
+                const device = await app.db.models.Device.create({ name: 'D1', type: 'PI', credentialSecret: '', lastSeenAt: null })
+                device.status.should.equal('not-seen')
+            })
+            it('is "online" when lastSeenAt is within the last 30 minutes', async function () {
+                const device = await app.db.models.Device.create({ name: 'D2', type: 'PI', credentialSecret: '', lastSeenAt: new Date(Date.now() - (29 * 60 * 1000)) })
+                device.status.should.equal('online')
+            })
+            it('is "offline" when lastSeenAt is older than 30 minutes', async function () {
+                const device = await app.db.models.Device.create({ name: 'D4', type: 'PI', credentialSecret: '', lastSeenAt: new Date(Date.now() - (31 * 60 * 1000)) })
+                device.status.should.equal('offline')
+            })
+        })
+    })
     describe('Relations', function () {
         let app
         let Application, Project, Team, Device
