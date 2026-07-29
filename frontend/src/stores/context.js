@@ -17,10 +17,12 @@ export const useContextStore = defineStore('context', {
         instance: null,
         device: null,
         team: null,
-        teamMembership: null,
-        isImmersive: false
+        teamMembership: null
     }),
     getters: {
+        isImmersive (state) {
+            return state.route?.meta?.layout === 'immersive'
+        },
         isFreeTeamType (state) {
             return !!(state.team?.type?.properties?.billing?.disabled)
         },
@@ -61,7 +63,7 @@ export const useContextStore = defineStore('context', {
                     pageName: null,
                     rawRoute: {},
                     selectedNodes: null,
-                    scope: state.isImmersive ? 'immersive' : 'ff-app',
+                    scope: this.isImmersive ? 'immersive' : 'ff-app',
                     questionCadence: useProductExpertStore().questionCadence,
                     planMode: useProductExpertStore().planMode
                 }
@@ -70,7 +72,7 @@ export const useContextStore = defineStore('context', {
             const { matched, redirectedFrom, ...rawRoute } = state.route ?? {}
             let selectedNodes = null
 
-            if (state.isImmersive && assistantStore.selectedNodes.length > 0) {
+            if (this.isImmersive && assistantStore.selectedNodes.length > 0) {
                 if (useProductExpertStore().isSupportAgent) {
                     selectedNodes = assistantStore.selectedNodes
                 }
@@ -98,7 +100,7 @@ export const useContextStore = defineStore('context', {
                 nodeRedVersion: assistantStore.nodeRedVersion,
                 rawRoute,
                 selectedNodes,
-                scope: state.isImmersive ? 'immersive' : 'ff-app',
+                scope: this.isImmersive ? 'immersive' : 'ff-app',
                 supportsPlatformAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
                 supportsPlatformUIAutomation: useAccountSettingsStore().featuresCheck?.isExpertPlatformAutomationFeatureEnabled ?? false,
                 questionCadence: useProductExpertStore().questionCadence,
@@ -120,31 +122,13 @@ export const useContextStore = defineStore('context', {
     actions: {
         updateRoute (route) { this.route = route },
         setInstance (instance) {
-            if (instance) {
-                this.instance = instance
-                if (instance.application) {
-                    this.setApplication(instance.application)
-                }
-            } else {
-                this.instance = null
-                this.setApplication(null)
-            }
+            this.instance = instance ?? null
+            this.setApplication(instance?.application ?? null)
         },
         setDevice (device) {
-            switch (true) {
-            case !!device && !!device.instance:
-                this.device = device
-                this.setApplication(device.application)
-                this.setInstance(device.instance)
-                break
-            case !!device && !!device.application:
-                this.device = device
-                this.setApplication(device.application)
-                break
-            default:
-                this.device = null
-                this.setApplication(null)
-            }
+            this.device = device ?? null
+            this.instance = device?.instance ?? null
+            this.setApplication(device?.application ?? null)
         },
         setApplication (application) {
             if (application) {
@@ -157,8 +141,7 @@ export const useContextStore = defineStore('context', {
                 this.application = null
             }
         },
-        setIsImmersive (isImmersive) { this.isImmersive = isImmersive },
-        clearInstance () { this.instance = null },
+        clearInstance () { this.setInstance(null) },
         setTeam (team) {
             this.team = team
         },

@@ -71,6 +71,21 @@ describe('context store', () => {
             expect(store.instance).toEqual(instance)
         })
 
+        it('setInstance registers the instance owning application', () => {
+            const store = useContextStore()
+            const application = { id: 'app-1', name: 'App' }
+            store.setInstance({ id: 1, name: 'Instance', application })
+            expect(store.application).toEqual({ id: 'app-1', name: 'App', description: undefined })
+        })
+
+        it('setInstance(null) also clears the application', () => {
+            const store = useContextStore()
+            store.setInstance({ id: 1, name: 'Instance', application: { id: 'app-1' } })
+            store.setInstance(null)
+            expect(store.instance).toBeNull()
+            expect(store.application).toBeNull()
+        })
+
         it('setDevice sets the device', () => {
             const store = useContextStore()
             const device = { id: 2, name: 'Device' }
@@ -78,11 +93,58 @@ describe('context store', () => {
             expect(store.device).toEqual(device)
         })
 
+        it('setDevice registers the device owning application when directly owned', () => {
+            const store = useContextStore()
+            const application = { id: 'app-1', name: 'App' }
+            store.setDevice({ id: 2, application })
+            expect(store.application).toEqual({ id: 'app-1', name: 'App', description: undefined })
+            expect(store.instance).toBeNull()
+        })
+
+        it('setDevice registers the owning instance and its application when owned by an instance', () => {
+            const store = useContextStore()
+            // The device's `instance` is an InstanceSummary and never carries its own `application` -
+            // the backend resolves the owning application onto the device itself as a sibling field.
+            const application = { id: 'app-1', name: 'App' }
+            const instance = { id: 'inst-1', name: 'Instance' }
+            store.setDevice({ id: 2, instance, application })
+            expect(store.instance).toEqual(instance)
+            expect(store.application).toEqual({ id: 'app-1', name: 'App', description: undefined })
+        })
+
+        it('setDevice keeps the device but clears any stale owner when the device has no owner', () => {
+            const store = useContextStore()
+            store.setInstance({ id: 'inst-1', application: { id: 'app-1' } })
+            const device = { id: 2, name: 'Unassigned device' }
+            store.setDevice(device)
+            expect(store.device).toEqual(device)
+            expect(store.instance).toBeNull()
+            expect(store.application).toBeNull()
+        })
+
+        it('setDevice(null) clears the device, instance and application', () => {
+            const store = useContextStore()
+            const application = { id: 'app-1' }
+            const instance = { id: 'inst-1' }
+            store.setDevice({ id: 2, instance, application })
+            store.setDevice(null)
+            expect(store.device).toBeNull()
+            expect(store.instance).toBeNull()
+            expect(store.application).toBeNull()
+        })
+
         it('clearInstance sets instance to null', () => {
             const store = useContextStore()
             store.setInstance({ id: 1 })
             store.clearInstance()
             expect(store.instance).toBeNull()
+        })
+
+        it('clearInstance also clears the application it cascaded to', () => {
+            const store = useContextStore()
+            store.setInstance({ id: 1, application: { id: 'app-1' } })
+            store.clearInstance()
+            expect(store.application).toBeNull()
         })
     })
 
@@ -176,6 +238,25 @@ describe('context store', () => {
     })
 
     describe('getters', () => {
+        describe('isImmersive', () => {
+            it('returns false when there is no route', () => {
+                const store = useContextStore()
+                expect(store.isImmersive).toBe(false)
+            })
+
+            it('returns false when the route layout is not immersive', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-overview', meta: { layout: 'platform' } })
+                expect(store.isImmersive).toBe(false)
+            })
+
+            it('returns true when the route layout is immersive', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-editor', meta: { layout: 'immersive' } })
+                expect(store.isImmersive).toBe(true)
+            })
+        })
+
         describe('isFreeTeamType', () => {
             it('returns false when team is null', () => {
                 const store = useContextStore()
@@ -288,6 +369,56 @@ describe('context store', () => {
                 const expert = store.expert
                 expect(expert.teamId).toBe('team-42')
                 expect(expert.teamSlug).toBe('my-team')
+            })
+
+            it('resolves applicationId for a device owned directly by an application', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-overview' })
+                store.teamMembership = { role: 30 }
+                store.setDevice({ id: 'device-1', ownerType: 'application', application: { id: 'app-1' } })
+                const expert = store.expert
+                expect(expert.deviceId).toBe('device-1')
+                expect(expert.applicationId).toBe('app-1')
+                expect(expert.instanceId).toBeNull()
+                expect(expert.deviceOwnerType).toBe('application')
+            })
+
+            it('resolves instanceId and applicationId for a device owned by an instance', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-overview' })
+                store.teamMembership = { role: 30 }
+                store.setDevice({
+                    id: 'device-1',
+                    ownerType: 'instance',
+                    instance: { id: 'instance-1' },
+                    application: { id: 'app-1' }
+                })
+                const expert = store.expert
+                expect(expert.deviceId).toBe('device-1')
+                expect(expert.instanceId).toBe('instance-1')
+                expect(expert.applicationId).toBe('app-1')
+                expect(expert.deviceOwnerType).toBe('instance')
+            })
+
+            it('resolves deviceId with a null applicationId/instanceId for an unassigned device', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-overview' })
+                store.teamMembership = { role: 30 }
+                store.setDevice({ id: 'device-1', ownerType: null })
+                const expert = store.expert
+                expect(expert.deviceId).toBe('device-1')
+                expect(expert.applicationId).toBeNull()
+                expect(expert.instanceId).toBeNull()
+                expect(expert.deviceOwnerType).toBeNull()
+            })
+
+            it('reflects the route layout in scope', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-overview', meta: {} })
+                store.teamMembership = { role: 30 }
+                expect(store.expert.scope).toBe('ff-app')
+                store.updateRoute({ name: 'device-editor', meta: { layout: 'immersive' } })
+                expect(store.expert.scope).toBe('immersive')
             })
         })
     })
