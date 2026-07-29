@@ -1,6 +1,6 @@
 const redisClient = require('@redis/client')
 
-const should = require('should') // eslint-disable-line
+const should = require('should')
 const sinon = require('sinon')
 
 const REDIS_CACHE_PATH = '../../../../forge/caches/redis-cache.js'

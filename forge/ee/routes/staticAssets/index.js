@@ -19,7 +19,7 @@ module.exports = async function (app) {
                     await request.project.Team.ensureTeamTypeExists()
                     if (!request.project.Team.getFeatureProperty('staticAssets', false)) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found - not available on team' })
-                        return // eslint-disable-line no-useless-return
+                        return
                     }
                     if (request.session.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id)

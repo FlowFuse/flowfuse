@@ -2,7 +2,7 @@ const crypto = require('crypto')
 const sleep = require('util').promisify(setTimeout)
 
 const jwt = require('jsonwebtoken')
-const should = require('should') // eslint-disable-line
+const should = require('should')
 const sinon = require('sinon')
 
 const { addFlowsToProject } = require('../../../../lib/Snapshots')
