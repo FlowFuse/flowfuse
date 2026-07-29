@@ -24,7 +24,6 @@
 </template>
 
 <script>
-/* eslint-disable no-template-curly-in-string */
 
 import FFAccordion from '../Accordion.vue'
 

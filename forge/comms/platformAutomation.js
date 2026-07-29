@@ -6,10 +6,10 @@ const { default: z } = require('zod')
 
 /**
  * Cheap, non-cryptographic fingerprint of the platform tool catalog, over each tool's
- * name/title/description/inputSchema/annotations/_meta. Sorted for stability across
- * enumeration order, so a caller can detect catalog changes before pulling the full list.
+ * name/title/description/inputSchema/outputSchema/annotations/_meta. Sorted for stability
+ * across enumeration order, so a caller can detect catalog changes before pulling the full list.
  *
- * @param {Array<{name:string,title?:string,description?:string,inputSchema?:object,annotations?:object,_meta?:object}>} tools
+ * @param {Array<{name:string,title?:string,description?:string,inputSchema?:object,outputSchema?:object,annotations?:object,_meta?:object}>} tools
  * @returns {string}
  */
 function computeCatalogHash (tools) {
@@ -17,6 +17,7 @@ function computeCatalogHash (tools) {
         n: t.name,
         d: t.description || '',
         s: t.inputSchema || null,
+        o: t.outputSchema || null,
         a: t.annotations || null,
         m: t._meta || null,
         t: t.title || null
@@ -62,11 +63,12 @@ class PlatformAutomationHandler {
         if (!this._fullToolDefinitions) {
             const { loadToolDefinitions } = require('../ee/lib/mcp/toolLoader')
             this._fullToolDefinitions = loadToolDefinitions()
-            this._wireToolDefinitions = this._fullToolDefinitions.map(({ name, title, description, inputSchema, annotations, _meta }) => ({
+            this._wireToolDefinitions = this._fullToolDefinitions.map(({ name, title, description, inputSchema, outputSchema, annotations, _meta }) => ({
                 name,
                 title,
                 description,
                 inputSchema: inputSchema && z.toJSONSchema(z.object(inputSchema)),
+                outputSchema: outputSchema && z.toJSONSchema(z.object(outputSchema)),
                 annotations,
                 _meta
             }))

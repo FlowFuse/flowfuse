@@ -270,7 +270,9 @@ const updateHTTPToken = async (deviceId, tokenId, scope, expiresAt) => {
 const deleteHTTPToken = async (deviceId, tokenId) => {
     return client.delete(`/api/v1/devices/${deviceId}/httpTokens/${tokenId}`)
 }
-
+const checkRegistrationSession = async (sessionToken) => {
+    return client.get(`/api/v1/devices/_/register/status/${sessionToken}`).then(res => res.data)
+}
 export default {
     create,
     getDevice,
@@ -300,5 +302,6 @@ export default {
     getHTTPTokens,
     createHTTPToken,
     updateHTTPToken,
-    deleteHTTPToken
+    deleteHTTPToken,
+    checkRegistrationSession
 }

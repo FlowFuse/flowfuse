@@ -4,7 +4,7 @@
         :class="{'theme-light': resolvedColor == 'black', 'theme-dark': resolvedColor == 'white'}"
         data-el="loading"
     >
-        <div class="text-center w-64">
+        <div :class="['text-center', scaleClass]">
             <lottie-animation v-if="resolvedColor == 'white'" :animationData="require('../images/lottie/ff-loading-white.json')" :loop="true" />
             <lottie-animation v-else :animationData="require('../images/lottie/ff-loading-black.json')" :loop="true" />
             <h4>{{ message || 'Loading...' }}</h4>
@@ -26,12 +26,24 @@ export default {
         message: {
             default: null,
             type: String
+        },
+        scale: {
+            default: 'regular',
+            type: String
         }
     },
     computed: {
         ...mapState(useThemeStore, ['effective']),
         resolvedColor () {
             return this.color || (this.effective === 'dark' ? 'white' : 'black')
+        },
+        scaleClass () {
+            if (this.scale === 'small') {
+                return 'w-32'
+            } else if (this.scale === 'tiny') {
+                return 'w-16'
+            }
+            return 'w-64'
         }
     }
 }
