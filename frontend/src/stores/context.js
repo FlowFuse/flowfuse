@@ -70,7 +70,7 @@ export const useContextStore = defineStore('context', {
             const { matched, redirectedFrom, ...rawRoute } = state.route ?? {}
             let selectedNodes = null
 
-            if (scope === 'immersive' && assistantStore.selectedNodes.length > 0) {
+            if (state.isImmersive && assistantStore.selectedNodes.length > 0) {
                 if (useProductExpertStore().isSupportAgent) {
                     selectedNodes = assistantStore.selectedNodes
                 }
