@@ -19,7 +19,7 @@ You will need:
  - A terminal or command prompt on the device you wish to install the Agent on
  - A FlowFuse platform account; either on [FlowFuse Cloud](https://app.flowfuse.com) or a self-hosted platform.
 
-If you do not currently have a FlowFuse platform account, this guide will get help you setup up a Trial account on FlowFuse cloud.
+If you do not currently have a FlowFuse platform account, this guide will help you set up a trial account on FlowFuse Cloud.
 
 ### Step 1: Install the Device Agent
 
