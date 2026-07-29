@@ -42,6 +42,9 @@ function registerTools (server, toolDefinitions, inject, checkScope, options = {
         if (tool.inputSchema && Object.keys(tool.inputSchema).length > 0) {
             config.inputSchema = tool.inputSchema
         }
+        if (tool.outputSchema && Object.keys(tool.outputSchema).length > 0) {
+            config.outputSchema = tool.outputSchema
+        }
 
         server.registerTool(tool.name, config, async (args) => {
             const scopeError = checkScope(tool)
