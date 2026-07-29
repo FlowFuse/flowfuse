@@ -50,7 +50,7 @@ The installer checks to see if port 1880 is available to use. If it isn't, it wi
 {% endnote %}
 
 {% note %}
-By default, the installer will use `/opt/flowfuse-agent` (Linux/MacOS) or `c:\opt\flowfuse-device` (Windows) as the install location. To use a different location, use the `--dir` option with the install command. For example, `--dir /path/to/custom/location`.
+By default, the installer will use `/opt/flowfuse-device` (Linux/MacOS) or `c:\opt\flowfuse-device` (Windows) as the install location. To use a different location, use the `--dir` option with the install command. For example, `--dir /path/to/custom/location`.
 {% endnote %}
 
 ## Step 2: Follow the installer prompts
