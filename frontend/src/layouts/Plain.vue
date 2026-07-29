@@ -1,10 +1,12 @@
 <template>
     <div class="ff-layout--plain">
         <div class="ff-header">
-            <!-- Mobile: Icon-only logo -->
-            <img class="ff-logo lg:hidden" src="/ff-minimal-red.svg" alt="FlowFuse">
-            <!-- Desktop: Full wordmark logo -->
-            <img class="ff-logo hidden lg:block" src="/ff-logo--wordmark--light.svg" alt="FlowFuse">
+            <router-link :to="homeLink" class="ff-logo-wrapper">
+                <!-- Mobile: Icon-only logo -->
+                <img class="ff-logo lg:hidden" src="/ff-minimal-red.svg" alt="FlowFuse">
+                <!-- Desktop: Full wordmark logo -->
+                <img class="ff-logo hidden lg:block" src="/ff-logo--wordmark--light.svg" alt="FlowFuse">
+            </router-link>
         </div>
         <div class="ff-layout--plain--wrapper">
             <!-- <LeftDrawer /> -->
@@ -22,10 +24,13 @@
 <script>
 import { mapState } from 'pinia'
 
+import navigationMixin from '../mixins/Navigation.js'
+
 import { useUxStore } from '@/stores/ux.js'
 
 export default {
     name: 'ff-layout-plain',
+    mixins: [navigationMixin],
     computed: {
         ...mapState(useUxStore, ['overlay'])
     }
