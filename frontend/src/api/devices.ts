@@ -1,11 +1,26 @@
-import product from '../services/product.js'
-import daysSince from '../utils/daysSince.js'
-import elapsedTime from '../utils/elapsedTime.js'
-import paginateUrl from '../utils/paginateUrl.js'
+import type { Device, DeviceSummary, InstanceHttpTokenSummaryList } from '@/types'
 
-import client from './client.js'
+import product from '../services/product'
+import daysSince from '../utils/daysSince'
+import elapsedTime from '../utils/elapsedTime'
+import paginateUrl from '../utils/paginateUrl'
 
-const getDevices = async (cursor, limit) => {
+import client from './client'
+
+type DeviceView = DeviceSummary & { lastSeenSince: string }
+
+type DeviceDetailView = Device & { lastSeenSince: string }
+
+type DeviceActionTarget = {
+    id: string
+    ownerType?: string | null
+    team?: { id?: string } | null
+    instance?: { id?: string } | null
+    application?: { id?: string } | null
+    project?: { id?: string } | null
+}
+
+const getDevices = async (cursor?: string, limit?: number): Promise<{ devices: DeviceView[] }> => {
     const url = paginateUrl('/api/v1/devices', cursor, limit)
     return client.get(url).then(res => {
         res.data.devices.forEach(device => {
@@ -15,7 +30,7 @@ const getDevices = async (cursor, limit) => {
     })
 }
 
-const create = async (options) => {
+const create = async (options: { type?: string } & Record<string, unknown>) => {
     return client.post('/api/v1/devices/', options).then(res => {
         const props = {
             'device-type': options.type,
@@ -28,7 +43,7 @@ const create = async (options) => {
         return res.data
     })
 }
-const deleteDevice = async (deviceId, teamId) => {
+const deleteDevice = async (deviceId: string, teamId: string) => {
     return await client.delete(`/api/v1/devices/${deviceId}`).then(() => {
         product.capture('$ff-device-deleted', {
             'deleted-at': (new Date()).toISOString()
@@ -40,7 +55,7 @@ const deleteDevice = async (deviceId, teamId) => {
         })
     })
 }
-const getDevice = async (deviceId) => {
+const getDevice = async (deviceId: string): Promise<DeviceDetailView> => {
     return await client.get(`/api/v1/devices/${deviceId}`).then(res => {
         const device = res.data
         device.lastSeenSince = device.lastSeenAt ? elapsedTime(0, device.lastSeenMs) + ' ago' : ''
@@ -48,31 +63,31 @@ const getDevice = async (deviceId) => {
         return res.data
     })
 }
-const updateDevice = async (deviceId, options) => {
+const updateDevice = async (deviceId: string, options: Record<string, unknown>) => {
     return client.put(`/api/v1/devices/${deviceId}`, options).then(res => {
         return res.data
     })
 }
 
-const generateCredentials = async (deviceId) => {
+const generateCredentials = async (deviceId: string) => {
     return client.post(`/api/v1/devices/${deviceId}/generate_credentials`).then(res => {
         return res.data
     })
 }
 
-const getSettings = async (deviceId) => {
+const getSettings = async (deviceId: string) => {
     return client.get(`/api/v1/devices/${deviceId}/settings`).then(res => {
         return res.data
     })
 }
 
-const updateSettings = async (deviceId, settings) => {
+const updateSettings = async (deviceId: string, settings: Record<string, unknown>) => {
     return client.put(`/api/v1/devices/${deviceId}/settings`, settings).then(res => {
         return res.data
     })
 }
 
-const enableEditorTunnel = async (deviceId) => {
+const enableEditorTunnel = async (deviceId: string) => {
     // * Enable Device Editor (Step 2) - (frontendApi->forge:HTTP) {put} /api/v1/devices/{deviceId}/editor { enabled: true }
     return client.put(`/api/v1/devices/${deviceId}/editor`, { enabled: true }).then(res => {
         // * Enable Device Editor (Step 12) - (frontendApi->browser) return result step 1 (THE END)
@@ -80,19 +95,19 @@ const enableEditorTunnel = async (deviceId) => {
     })
 }
 
-const disableEditorTunnel = async (deviceId) => {
+const disableEditorTunnel = async (deviceId: string) => {
     // (api->forge) {put} /api/v1/devices/{deviceId}/editor { tunnel: 'disable' }
     return client.put(`/api/v1/devices/${deviceId}/editor`, { enabled: false }).then(res => {
         return res.data
     })
 }
 
-const getMode = async (deviceId) => {
+const getMode = async (deviceId: string): Promise<string | undefined> => {
     const device = await getDevice(deviceId)
     return device?.mode
 }
 
-const setMode = async (deviceId, mode) => {
+const setMode = async (deviceId: string, mode: string) => {
     return client.put(`/api/v1/devices/${deviceId}/mode`, { mode }).then(res => {
         return res.data
     })
@@ -106,7 +121,7 @@ const setMode = async (deviceId, mode) => {
  * @param {string} [options.description] - the description of the snapshot
  * @param {boolean} [options.setAsTarget] - set the snapshot as the new target for all devices
  */
-const createSnapshot = async (device, options) => {
+const createSnapshot = async (device: DeviceActionTarget, options: { name: string, description?: string, setAsTarget?: boolean }) => {
     const ownerType = device.ownerType || (device.instance?.id ? 'instance' : (device.application?.id ? 'application' : null))
     const instanceId = device.instance?.id
     const applicationId = device.application?.id
@@ -138,7 +153,7 @@ const createSnapshot = async (device, options) => {
 }
 
 // TODO: move to deviceSnapshots.js
-const getDeviceSnapshot = (deviceId, snapshotId) => {
+const getDeviceSnapshot = (deviceId: string, snapshotId: string) => {
     return client.get(`/api/v1/devices/${deviceId}/snapshots/${snapshotId}`).then(res => {
         res.data.createdSince = daysSince(res.data.createdAt)
         res.data.updatedSince = daysSince(res.data.updatedAt)
@@ -147,7 +162,7 @@ const getDeviceSnapshot = (deviceId, snapshotId) => {
 }
 
 // TODO: move to deviceSnapshots.js
-const getDeviceSnapshots = (deviceId, cursor, limit, query = null) => {
+const getDeviceSnapshots = (deviceId: string, cursor?: string, limit?: number, query: string | null = null) => {
     const url = paginateUrl(`/api/v1/devices/${deviceId}/snapshots`, cursor, limit, query)
     return client.get(url).then(res => {
         res.data.snapshots = res.data.snapshots.map(ss => {
@@ -160,7 +175,7 @@ const getDeviceSnapshots = (deviceId, cursor, limit, query = null) => {
 }
 
 // TODO: move to deviceSnapshots.js
-const deleteSnapshot = async (deviceId, snapshotId) => {
+const deleteSnapshot = async (deviceId: string, snapshotId: string) => {
     return client.delete(`/api/v1/devices/${deviceId}/snapshots/${snapshotId}`).then(res => {
         product.capture('$ff-snapshot-deleted', {
             'snapshot-id': snapshotId,
@@ -172,45 +187,45 @@ const deleteSnapshot = async (deviceId, snapshotId) => {
     })
 }
 
-const setSnapshotAsTarget = async (deviceId, snapshotId) => {
+const setSnapshotAsTarget = async (deviceId: string, snapshotId: string) => {
     return (await updateDevice(deviceId, { targetSnapshot: snapshotId }))
 }
 
-const getDeviceAuditLog = async (deviceId, params, cursor, limit) => {
+const getDeviceAuditLog = async (deviceId: string, params: Record<string, unknown>, cursor?: string, limit?: number) => {
     const url = paginateUrl(`/api/v1/devices/${deviceId}/audit-log`, cursor, limit)
     return client.get(url, { params }).then(res => res.data)
 }
 
-const getDeviceLogCreds = async (deviceId) => {
+const getDeviceLogCreds = async (deviceId: string) => {
     const url = `/api/v1/devices/${deviceId}/logs`
     return client.post(url).then(res => res.data)
 }
 
-const getDeviceResourcesCreds = async (deviceId) => {
+const getDeviceResourcesCreds = async (deviceId: string) => {
     const url = `/api/v1/devices/${deviceId}/resources`
     return client.post(url).then(res => res.data)
 }
 
-const startDevice = async (device) => {
+const startDevice = async (device: DeviceActionTarget) => {
     return client.post(`/api/v1/devices/${device.id}/actions/start`).then((res) => {
         productCaptureDeviceAction('start', device)
         return res.data
     })
 }
-const restartDevice = async (device) => {
+const restartDevice = async (device: DeviceActionTarget) => {
     return client.post(`/api/v1/devices/${device.id}/actions/restart`).then((res) => {
         productCaptureDeviceAction('restart', device)
         return res.data
     })
 }
-const suspendDevice = async (device) => {
+const suspendDevice = async (device: DeviceActionTarget) => {
     return client.post(`/api/v1/devices/${device.id}/actions/suspend`).then((res) => {
         productCaptureDeviceAction('suspend', device)
         return res.data
     })
 }
 
-function productCaptureDeviceAction (action, device) {
+function productCaptureDeviceAction (action: string, device: DeviceActionTarget) {
     if (!device) {
         return
     }
@@ -235,22 +250,22 @@ function productCaptureDeviceAction (action, device) {
  * description information.
  * @throws {Error} If the API call fails or an error occurs during the process.
  */
-const generateSnapshotDescription = async (deviceId, target) => {
+const generateSnapshotDescription = async (deviceId: string, target: string) => {
     return client.post(`/api/v1/devices/${deviceId}/generate/snapshot-description`, { target })
         .then(res => {
             return res.data.data
         })
 }
 
-const getDeviceEditorProxy = async (editorUrl) => {
+const getDeviceEditorProxy = async (editorUrl: string) => {
     return client.get(editorUrl)
 }
 
-const getHTTPTokens = async (deviceId) => {
+const getHTTPTokens = async (deviceId: string): Promise<InstanceHttpTokenSummaryList> => {
     return client.get(`/api/v1/devices/${deviceId}/httpTokens`).then(res => res.data)
 }
 
-const createHTTPToken = async (deviceId, name, scope, expiresAt) => {
+const createHTTPToken = async (deviceId: string, name: string, scope: string, expiresAt?: string) => {
     const data = {
         name,
         scope,
@@ -259,7 +274,7 @@ const createHTTPToken = async (deviceId, name, scope, expiresAt) => {
     return client.post(`/api/v1/devices/${deviceId}/httpTokens`, data).then(res => res.data)
 }
 
-const updateHTTPToken = async (deviceId, tokenId, scope, expiresAt) => {
+const updateHTTPToken = async (deviceId: string, tokenId: string, scope: string, expiresAt?: string) => {
     const data = {
         scope,
         expiresAt
@@ -267,10 +282,10 @@ const updateHTTPToken = async (deviceId, tokenId, scope, expiresAt) => {
     return client.put(`/api/v1/devices/${deviceId}/httpTokens/${tokenId}`, data).then(res => res.data)
 }
 
-const deleteHTTPToken = async (deviceId, tokenId) => {
+const deleteHTTPToken = async (deviceId: string, tokenId: string) => {
     return client.delete(`/api/v1/devices/${deviceId}/httpTokens/${tokenId}`)
 }
-const checkRegistrationSession = async (sessionToken) => {
+const checkRegistrationSession = async (sessionToken: string) => {
     return client.get(`/api/v1/devices/_/register/status/${sessionToken}`).then(res => res.data)
 }
 export default {
