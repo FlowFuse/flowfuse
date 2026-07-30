@@ -41,7 +41,15 @@ If you already have Node.js v22+ installed, or need to customize the setup, chec
 
 ##### Windows
 
-    powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1 | iex; .\flowfuse-device-agent-installer.exe"
+1. Open a powershell terminal with elevated permission:
+  ```bash
+powershell -Command "Start-Process 'cmd' -Verb RunAs"
+```
+
+2. Run the follow command in that terminal to download and run the installer:
+  ```bash
+powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1 | iex; .\flowfuse-device-agent-installer.exe"
+```
 
 {% note %}
 The installer checks to see if port 1880 is available to use. If it isn't, it will let you know before exiting. This is typically because you already have Node-RED running locally. You can tell the installer to configure its Node-RED to use a different port using the `--port <port>` argument. Pick a different port, for example `1881` and re-run the above command with `--port 1881` added to the end.
