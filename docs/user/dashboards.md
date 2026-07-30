@@ -26,7 +26,7 @@ Each Application has its own **Dashboards** tab, showing only the Dashboards bel
 
 ![The Dashboards tab on an Application page, listing Dashboards for instances in that Application](./images/application-dashboard.png){data-zoomable}
 
-## Instance Dashboard tab
+## Instance Dashboard Tab
 
 An individual hosted instance's page has a **Dashboard** tab, for viewing its Dashboard without leaving the instance's context.
 
