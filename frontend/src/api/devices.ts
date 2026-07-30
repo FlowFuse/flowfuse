@@ -1,11 +1,11 @@
-import type { Device, DeviceSummary, InstanceHttpTokenSummaryList } from '@/types'
-
 import product from '../services/product'
 import daysSince from '../utils/daysSince'
 import elapsedTime from '../utils/elapsedTime'
 import paginateUrl from '../utils/paginateUrl'
 
 import client from './client'
+
+import type { Device, DeviceSummary, InstanceHttpTokenSummaryList } from '@/types'
 
 type DeviceView = DeviceSummary & { lastSeenSince: string }
 
