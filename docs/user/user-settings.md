@@ -49,7 +49,7 @@ Personal Access Tokens are useful for interacting with [FlowFuse APIs](https://f
 
 ![Creating a new scoped Personal Access Token](./images/scoped-pat.png){data-zoomable}
 
-### Scoping a token
+### Scoping a Token
 
 - **Read Only** - restricts the token to read-only operations. Write operations, such as creating, updating, or deleting resources, are denied.
 - **Team Scope** - limits the token to specific Teams. If no Teams are selected, the token can access every Team you belong to, including Teams you join in the future. If specific Teams are selected, the token does not automatically gain access to any new Team you join later - you need to edit the token to add it.
