@@ -420,7 +420,7 @@ module.exports.init = async function (app) {
         // desired, so clear them.
         for (const teamId of existingOverrideTeamIds) {
             const membership = await app.db.models.TeamMember.getTeamMembership(user.id, teamId)
-            if (membership && membership.permissions.sso) {
+            if (membership && membership.permissions?.sso) {
                 membership.permissions = {}
                 await membership.save()
             }
