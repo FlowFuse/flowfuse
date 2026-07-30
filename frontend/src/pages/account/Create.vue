@@ -51,6 +51,7 @@
                         <SpinnerIcon v-if="busy || tooManyRequests" class="ff-icon ml-3 w-3.5!" />
                     </span>
                 </ff-button>
+                <GoogleLoginButton label="Sign up with Google" :disabled="busy" />
                 <p class="flex text-gray-400 font-light mt-6 gap-2 w-full justify-center">
                     Already registered? <a href="/" data-action="login">Log in here</a>
                 </p>
@@ -70,6 +71,7 @@ import { useRoute } from 'vue-router'
 
 import userApi from '../../api/user.js'
 
+import GoogleLoginButton from '../../components/GoogleLoginButton.vue'
 import SpinnerIcon from '../../components/icons/Spinner.js'
 import FFLayoutBox from '../../layouts/Box.vue'
 
@@ -82,6 +84,7 @@ export default {
     name: 'AccountCreate',
     components: {
         'ff-layout-box': FFLayoutBox,
+        GoogleLoginButton,
         SpinnerIcon
     },
     data () {
