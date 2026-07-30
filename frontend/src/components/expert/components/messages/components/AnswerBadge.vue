@@ -1,23 +1,12 @@
 <template>
     <div class="guide-badge">
-        <span>{{ title }}</span>
+        <span>Setup Guide</span>
     </div>
 </template>
 
 <script>
 export default {
-    name: 'AnswerBadge',
-    props: {
-        kind: {
-            required: true,
-            type: String
-        }
-    },
-    computed: {
-        title () {
-            return this.kind === 'resources' ? 'Resources' : 'Setup Guide'
-        }
-    }
+    name: 'AnswerBadge'
 }
 </script>
 
