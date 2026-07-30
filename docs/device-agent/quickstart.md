@@ -67,7 +67,7 @@ It will give you a URL to open in your browser where you can register the instan
 
 If you have already registered the instance on FlowFuse, the platform will have given you a One-Time Code to use when installing the Device Agent.
 
-Enter the code when asked and the Device Agent will get connected.
+Enter the code when prompted and the Device Agent will connect.
 
 ## Step 3: Import existing flows
 
@@ -75,7 +75,7 @@ The Agent will check common locations for existing Node-RED flows. If it finds a
 
 ## Step 4: Setup a system service
 
-The Installer will then setup a system service so the Device Agent automatically runs when the device is restarted.
+The Installer will then setup a system service so the Device Agent automatically runs when the device restarts.
 
 ## Step 5: Start editing your flows
 

@@ -20,7 +20,7 @@ The Agent creates a secure connection between the FlowFuse Platform and your dev
 
 ### Get Started
 
-The Device Agent can be installed on any hardware capable of running Node.js / Node-RED.
+You can install the Device Agent on any hardware capable of running Node.js / Node-RED.
 
 The [Quick Start Guide](/docs/device-agent/quickstart.md) will get the Device Agent installed and connected to FlowFuse in under 5 minutes.
 
