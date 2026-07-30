@@ -57,7 +57,7 @@ vi.mock('@/utils/elapsedTime', () => {
     Tests
 */
 describe('Team API', async () => {
-    const TeamAPI = await import('../../../../frontend/src/api/team.js')
+    const TeamAPI = await import('../../../../frontend/src/api/team.ts')
 
     afterEach(() => {
         mockGet.mockClear()
