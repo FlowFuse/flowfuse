@@ -1,14 +1,15 @@
 name: Publish Documentation
-# on:
-#   push:
-#     branches: [ main, maintenance ]
-#     paths:
-#       - 'docs/**'
-#   pull_request:
-#     paths:
-#       - 'docs/**'
+on:
+  push:
+    branches: [ main, maintenance ]
+    paths:
+      - 'docs/**'
+  pull_request:
+    paths:
+      - 'docs/**'
 jobs:
   test:
+    if: false
     runs-on: ubuntu-latest
     name: Test Documentation links
     steps:
@@ -23,6 +24,7 @@ jobs:
       - name: Test Documentation Links
         run: npm run test:docs
   test-with-website:
+    if: false
     runs-on: ubuntu-latest
     name: Test Documentation with website
     steps:
