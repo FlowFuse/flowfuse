@@ -55,6 +55,6 @@ Personal Access Tokens are useful for interacting with [FlowFuse APIs](https://f
 - **Team Scope** - limits the token to specific Teams. If no Teams are selected, the token can access every Team you belong to, including Teams you join in the future. If specific Teams are selected, the token does not automatically gain access to any new Team you join later - you need to edit the token to add it.
 - **Admin Access** - only shown if your account has admin privileges. A token does not carry admin privileges by default, even if your account does; this must be enabled explicitly for that token.
 
-These restrictions can only narrow a token's access - a token can never do more than your own account is permitted to do.is
+These restrictions can only narrow a token's access - a token can never do more than your own account is permitted to do.
 
 
