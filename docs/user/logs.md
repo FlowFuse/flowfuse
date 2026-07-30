@@ -51,7 +51,7 @@ This log contains all events since the team was created. Tou can view older data
 
 <img src="images/teamauditlog.png" width="500" />
 
-### MCP and API activity
+### MCP and API Activity
 
 For entries triggered via the API or an MCP client, both this log and the instance/application-level [Audit Log](#audit-log) above show an icon next to the entry, indicating which:
 
