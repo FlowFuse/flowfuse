@@ -39,7 +39,7 @@ To set up Two-factor authentication, click on `Enable two factor authentication`
 
 Personal Access Tokens are useful for interacting with [FlowFuse APIs](https://flowfuse.com/docs/api/). You can set these tokens to have a limited or unlimited lifespan. Tokens can be revoked at any time by removing them from your account. Remember, tokens with an expiry date will automatically delete upon reaching that date. It's important to note that the token value is only displayed once, at the time of creation. There is no way to retrieve the token value after this point.
 
-### Creating a token
+### Creating a Token
 
 1. Click **Add Token**.
 2. Enter a name for the token.
