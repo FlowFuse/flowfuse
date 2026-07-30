@@ -50,3 +50,14 @@ This includes:
 This log contains all events since the team was created. Tou can view older data using the `Load More...` link at the bottom of the log.
 
 <img src="images/teamauditlog.png" width="500" />
+
+### MCP and API Activity
+
+For entries triggered via the API or an MCP client, both this log and the instance/application-level [Audit Log](#audit-log) above show an icon next to the entry, indicating which:
+
+- A sparkle icon means the action was performed by FlowFuse Expert, or another MCP client, acting on the user's behalf. Hovering over the icon shows the name of the tool that was called.
+- A terminal icon means the action was made via the API, using a [Personal Access Token](./user-settings.md#personal-access-tokens).
+
+Entries for actions made directly through the FlowFuse UI show no icon.
+
+This gives you a reviewable record of what an AI client did on your platform, and under whose authority - the same accountability you already have for actions taken by people.

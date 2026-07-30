@@ -35,8 +35,26 @@ Two-factor authentication adds an extra layer of security to your account. It re
 
 To set up Two-factor authentication, click on `Enable two factor authentication` and follow the instructions.
 
-### Access Tokens
+### Personal Access Tokens
 
-Access Tokens are useful for interacting with [FlowFuse APIs](https://flowfuse.com/docs/api/). You can set these tokens to have a limited or unlimited lifespan. Tokens can be revoked at any time by removing them from your account. Remember, tokens with an expiry date will automatically delete upon reaching that date. It's important to note that the token value is only displayed once, at the time of creation. There is no way to retrieve the token value after this point.
+Personal Access Tokens are useful for interacting with [FlowFuse APIs](https://flowfuse.com/docs/api/). You can set these tokens to have a limited or unlimited lifespan. Tokens can be revoked at any time by removing them from your account. Remember, tokens with an expiry date will automatically delete upon reaching that date. It's important to note that the token value is only displayed once, at the time of creation. There is no way to retrieve the token value after this point.
+
+### Creating a Token
+
+1. Click **Add Token**.
+2. Enter a name for the token.
+3. Optionally, tick **Add Expiry Date** and choose a date.
+4. Configure the token's scope (see below).
+5. Click **Create**.
+
+![Creating a new scoped Personal Access Token](./images/scoped-pat.png){data-zoomable}
+
+### Scoping a Token
+
+- **Read Only** - restricts the token to read-only operations. Write operations, such as creating, updating, or deleting resources, are denied.
+- **Team Scope** - limits the token to specific Teams. If no Teams are selected, the token can access every Team you belong to, including Teams you join in the future. If specific Teams are selected, the token does not automatically gain access to any new Team you join later - you need to edit the token to add it.
+- **Admin Access** - only shown if your account has admin privileges. A token does not carry admin privileges by default, even if your account does; this must be enabled explicitly for that token.
+
+These restrictions can only narrow a token's access - a token can never do more than your own account is permitted to do.is
 
 
