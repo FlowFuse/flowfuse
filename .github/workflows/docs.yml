@@ -1,12 +1,12 @@
 name: Publish Documentation
-on:
-  push:
-    branches: [ main, maintenance ]
-    paths:
-      - 'docs/**'
-  pull_request:
-    paths:
-      - 'docs/**'
+# on:
+#   push:
+#     branches: [ main, maintenance ]
+#     paths:
+#       - 'docs/**'
+#   pull_request:
+#     paths:
+#       - 'docs/**'
 jobs:
   test:
     runs-on: ubuntu-latest
