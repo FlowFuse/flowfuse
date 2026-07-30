@@ -1,3 +1,12 @@
+import product from '../services/product'
+
+import daysSince from '../utils/daysSince'
+import elapsedTime from '../utils/elapsedTime'
+import paginateUrl from '../utils/paginateUrl'
+import { RoleNames, Roles } from '../utils/roles'
+
+import client from './client'
+
 import type {
     AuditLogEntry,
     DeviceSummary,
@@ -7,15 +16,6 @@ import type {
     TeamSummary,
     UserTeamList
 } from '@/types'
-
-import product from '../services/product'
-
-import daysSince from '../utils/daysSince'
-import elapsedTime from '../utils/elapsedTime'
-import paginateUrl from '../utils/paginateUrl'
-import { RoleNames, Roles } from '../utils/roles'
-
-import client from './client'
 
 type RouterLink = { name: string, params: Record<string, string> }
 
