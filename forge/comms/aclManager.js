@@ -491,6 +491,8 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/state$/ },
                 // - ff/v1/<team>/d/<device>/state
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/state$/ },
+                // - ff/v1/<team>/a/<application>/created|updated|deleted
+                { topic: /^ff\/v1\/[^/]+\/a\/[^/]+\/(created|updated|deleted)$/ },
                 // ff/v1/platform/sync
                 { topic: /^ff\/v1\/platform\/sync$/ },
                 // ff/v1/platform/leader
@@ -560,7 +562,9 @@ module.exports = function (app) {
                 // - ff/v1/<team>/p/+/state
                 { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/state$/, verify: 'checkTeamStateSub' },
                 // - ff/v1/<team>/d/+/state
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/state$/, verify: 'checkTeamStateSub' }
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/state$/, verify: 'checkTeamStateSub' },
+                // - ff/v1/<team>/a/+/created|updated|deleted
+                { topic: /^ff\/v1\/([^/]+)\/a\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' }
             ],
             pub: []
         },
