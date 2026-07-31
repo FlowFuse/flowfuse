@@ -43,6 +43,7 @@ If you already have Node.js v22+ installed, or need to customize the setup, chec
 
 1. Open a powershell terminal with elevated permission:
   ```bash
+# From Windows Run dialog or a terminal window, enter:
 powershell -Command "Start-Process 'powershell' -Verb RunAs"
 ```
 
