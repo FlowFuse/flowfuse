@@ -138,4 +138,3 @@ Here are a few to get you started:
 * [Logs](../user/logs.md)
 
 
-[^1]: Run `powershell -Command "Start-Process 'cmd' -Verb runAs` to launching an elevated command prompt window (e.g. as an admin user)
