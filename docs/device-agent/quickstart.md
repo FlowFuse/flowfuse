@@ -43,12 +43,13 @@ If you already have Node.js v22+ installed, or need to customize the setup, chec
 
 1. Open a powershell terminal with elevated permission:
   ```bash
-powershell -Command "Start-Process 'cmd' -Verb RunAs"
+# From Windows Run dialog or a terminal window, enter:
+powershell -Command "Start-Process 'powershell' -Verb RunAs"
 ```
 
-2. Run the follow command in that terminal to download and run the installer:
+2. Run the follow command in the elevated terminal to download and run the installer:
   ```bash
-powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1 | iex; .\flowfuse-device-agent-installer.exe"
+Set-Location $env:USERPROFILE; powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1 | iex"; .\flowfuse-device-agent-installer.exe
 ```
 
 {% note %}
@@ -138,4 +139,3 @@ Here are a few to get you started:
 * [Logs](../user/logs.md)
 
 
-[^1]: Run `powershell -Command "Start-Process 'cmd' -Verb runAs` to launching an elevated command prompt window (e.g. as an admin user)
