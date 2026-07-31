@@ -43,7 +43,7 @@ If you already have Node.js v22+ installed, or need to customize the setup, chec
 
 1. Open a powershell terminal with elevated permission:
   ```bash
-powershell -Command "Start-Process 'cmd' -Verb RunAs"
+powershell -Command "Start-Process 'powershell' -Verb RunAs"
 ```
 
 2. Run the follow command in the elevated terminal to download and run the installer:
