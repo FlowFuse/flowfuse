@@ -12,8 +12,6 @@ meta:
 
 This guide will walk you through the process of adding a device to FlowFuse, connecting it to the platform, and deploying your Node-RED flows remotely. FlowFuse's Device Agent helps unlock the power of your devices by allowing you to manage and deploy Node-RED flows running on those devices securely and remotely.
 
-![The installer running in a terminal, walking through sign-up and connection to FlowFuse](.docs/device-agent/images/device-agent-install.gif){data-zoomable}
-
 ## Before you begin
 
 You will need:
@@ -49,7 +47,7 @@ If you already have Node.js v22+ installed, or need to customize the setup, chec
 powershell -Command "Start-Process 'powershell' -Verb RunAs"
 ```
 
-2. Run the follow command in the elevated terminal to download and run the installer:
+2. Run the following command in the elevated terminal to download and run the installer:
   ```bash
 Set-Location $env:USERPROFILE; powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1 | iex"; .\flowfuse-device-agent-installer.exe
 ```
@@ -84,7 +82,7 @@ Enter the code when prompted and the Device Agent will connect.
 
 The Agent will check common locations for existing Node-RED flows. If it finds any, it will ask if you want to import those flows into your Device Agent managed Node-RED. This makes it easy to migrate an existing Node-RED setup into a fully managed FlowFuse instance. If you want to run an entirely separate instance, you can skip this step.
 
-## Step 4: Setup a system service
+## Step 4: Set up a system service
 
 The Installer will then setup a system service so the Device Agent automatically runs when the device restarts.
 
