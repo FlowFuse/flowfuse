@@ -28,9 +28,9 @@ For a single Remote Instance, or small batch of Remote Instances, you can manual
 
 ### Add Remote Instance
 
-1. Go to your teams's **Remote Instances** page.
+1. Go to your team's **Remote Instances** page.
 2. Click the **Add Remote Instance** button.
-3. You will be prompted to give the Remote Instance a **Name**, an optional **Type** and to chose which **Application**, if any, the Instance should be assigned to.
+3. You will be prompted to give the Remote Instance a **Name**, an optional **Type** and to choose which **Application**, if any, the Instance should be assigned to.
    * <img src="images/add_remote_instance.png" width=500 />
    * The **Type** field can be used to record additional meta information about the Remote Instance.
    * If you do not wish to assign the Remote Instance to an **Application** at this time, you can do so later.
@@ -51,7 +51,7 @@ Running this command on hardware with the Device Agent installed will automatica
 
 #### Manual Setup
 
-For older versions of the device agent, you can expand the the **Manual Setup** section
+For older versions of the device agent, you can expand the **Manual Setup** section
 and use the configuration data with the [Device Agent Web UI](#device-agent-web-ui) or the [Manual Download](#manual-download) methods instead.
 
 Repeat these steps for each Remote Instance you want to connect to the platform.
@@ -68,7 +68,7 @@ This approach provides you with a single "Provisioning Token" for all of your Re
 2. Open the **Provisioning** tab.
 3. Click the **Add Token** button.
 4. Enter a value for **Token Name**
-5. Optionally, chose whether the device should Auto Assign to an **Instance**, an **Application**, or be left unassigned.
+5. Optionally, choose whether the device should Auto Assign to an **Instance**, an **Application**, or be left unassigned.
    * Select an **Instance** if you want the device to be automatically assigned to an instance.
    * Select an **Application** if you want the device to be automatically assigned to an application.
 6. Click **Create**
@@ -91,7 +91,7 @@ Once the token is created, it will be shown in the list of tokens on the **Provi
 
 ### Install the configuration
 
-The Device Agent requires information about the FlowFuse Platform, and how to connect. This comes in the form of a a **Device Configuration** file or a **Device Provisioning Configuration** 
+The Device Agent requires information about the FlowFuse Platform, and how to connect. This comes in the form of a **Device Configuration** file or a **Device Provisioning Configuration** 
 file present in its working directory
 
 There are three methods by which you can get this configuration onto your hardware:
@@ -107,7 +107,7 @@ There are three methods by which you can get this configuration onto your hardwa
 
 The Quick Connect method was introduced in FlowFuse v2.1. This is the fastest way to connect your hardware to the platform.
 
-When registering your hardware you would have been presented the following dialog, with a one-time-passcode that the Device Agent can use to retrieve it's configuration:
+When registering your hardware you would have been presented the following dialog, with a one-time-passcode that the Device Agent can use to retrieve its configuration:
 
 <img src="images/config_yml1.png" width="500px" style="margin: auto;" />
 
@@ -169,7 +169,7 @@ This step will permit you to push Snapshots to your Remote Instance via [DevOps 
 
 #### Assign to Application
 
-1. Go to your teams's **Remote Instances** page.
+1. Go to your team's **Remote Instances** page.
 2. Open the dropdown menu to the right of the Remote Instance you want to assign and
    select the **Add to Application** option.
 3. Select the application in the dialog and click **Add** to continue.
@@ -178,7 +178,7 @@ This step will permit you to push Snapshots to your Remote Instance via [DevOps 
 
 To remove the Remote Instance from an application:
 
-1. Go to your teams's **Remote Instances** page.
+1. Go to your team's **Remote Instances** page.
 2. Open the dropdown menu to the right of the Remote Instance you want to remove and
    select the **Remove from Application** option.
 3. Confirm the action by clicking the **Remove** option.
@@ -188,7 +188,7 @@ until it is assigned to another application or instance.
 
 #### Bulk Assigning Remote Instances to an Application
 
-If you have a large number of Remote Instances to assign to an application, you can use do them all at once:
+If you have a large number of Remote Instances to assign to an application, you can do them all at once:
 
 1. Select the Remote Instances you want to assign and open the **Actions** dropdown menu.
 2. Select the **Move to Application** option and then select the application or instance you want to assign the Remote Instances to.
@@ -221,7 +221,7 @@ This method establishes a deployment relationship where a Hosted Instance become
 
 To remove the Remote Instance from a Node-RED instance:
 
-1. Go to your teams's **Remote Instances** page.
+1. Go to your team's **Remote Instances** page.
 2. Open the dropdown menu to the right of the Remote Instance you want to remove and
    select the **Remove from Hosted Instance** option.
 3. Confirm the action by clicking the **Remove** option.
@@ -231,7 +231,7 @@ until it is assigned to another Hosted Instance or Application
 
 ### Bulk Assigning Remote Instances to a Hosted Instance
 
-If you have a number of Remote Instance to assign to an instance, you can do them all at once.
+If you have a number of Remote Instances to assign to an instance, you can do them all at once.
 1. Select the Remote Instances you want to assign and open the **Actions** dropdown menu adjacent to the **Add Remote Instance** button.
 2. Select the **Move to Instance** option and then select the instance you want to assign the Remote Instances to.
 3. Click **Move** to continue.
