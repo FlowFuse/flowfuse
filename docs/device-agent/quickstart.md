@@ -12,6 +12,8 @@ meta:
 
 This guide will walk you through the process of adding a device to FlowFuse, connecting it to the platform, and deploying your Node-RED flows remotely. FlowFuse's Device Agent helps unlock the power of your devices by allowing you to manage and deploy Node-RED flows running on those devices securely and remotely.
 
+![The installer running in a terminal, walking through sign-up and connection to FlowFuse](.docs/device-agent/images/device-agent-install.gif){data-zoomable}
+
 ## Before you begin
 
 You will need:
