@@ -78,7 +78,10 @@ module.exports = async function (app) {
         await app.auditLog.Team.application.created(request.session.User, null, team, application)
         await app.auditLog.Application.application.created(request.session.User, null, application)
 
-        reply.send(app.db.views.Application.application(application))
+        const applicationView = app.db.views.Application.application(application)
+        app.comms?.team?.notifyEntityLifecycle(team.hashid, 'a', application.hashid, 'created', applicationView)
+
+        reply.send(applicationView)
     })
 
     /**
@@ -178,7 +181,12 @@ module.exports = async function (app) {
         }
         await app.auditLog.Application.application.updated(request.session.User, null, request.application, updates)
 
-        reply.send(app.db.views.Application.application(request.application))
+        const applicationView = app.db.views.Application.application(request.application)
+        if (team) {
+            app.comms?.team?.notifyEntityLifecycle(team.hashid, 'a', request.application.hashid, 'updated', applicationView)
+        }
+
+        reply.send(applicationView)
     })
 
     /**
@@ -217,8 +225,15 @@ module.exports = async function (app) {
                 return reply.code(422).send({ code: 'invalid_application', error: 'Please delete the instances within the application first' })
             }
 
+            const teamHash = request.application.Team?.hashid
+            const applicationHash = request.application.hashid
+
             await request.application.destroy()
             await app.auditLog.Team.application.deleted(request.session.User, null, request.application.Team, request.application)
+
+            if (teamHash) {
+                app.comms?.team?.notifyEntityLifecycle(teamHash, 'a', applicationHash, 'deleted')
+            }
 
             reply.send({ status: 'okay' })
         } catch (err) {

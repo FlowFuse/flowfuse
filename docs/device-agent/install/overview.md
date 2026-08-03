@@ -16,6 +16,24 @@ meta:
 
 **Recommended for most users:** Use the Device Agent Installer (Quick Start), the fastest way to deploy with minimal configuration. Power users can choose Manual (using `npm`), Docker, or Kubernetes deployments.
 
+### Quick install
+
+Run the one-line installer on your device. It installs Node.js, registers the device on your FlowFuse platform, and configures it to run as a local service.
+
+**Linux / macOS**
+
+```bash
+/bin/bash -c "$(curl -fsSL https://flowfuse.github.io/device-agent/get.sh)" && ./flowfuse-device-agent-installer
+```
+
+**Windows** — run in an elevated PowerShell terminal:
+
+```powershell
+Set-Location $env:USERPROFILE; powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1 | iex"; .\flowfuse-device-agent-installer.exe
+```
+
+See the [Quick Start guide](../quickstart.md) for the full walkthrough, or the [Installer reference](./device-agent-installer.md) for all options and service management.
+
 - Recommended: Use the Device Agent Installer
   - Fastest way to get started with a one-line command in the [Quick Start guide](../quickstart.md)
   - Full options and service management in the [Installer reference](./device-agent-installer.md)
