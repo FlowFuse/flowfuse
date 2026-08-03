@@ -196,6 +196,30 @@ describe('data-farm-applications store', () => {
         })
     })
 
+    describe('loadActiveApplication', () => {
+        it('fetches the application, sets it active, and returns it', async () => {
+            vi.spyOn(applicationApi, 'getApplication').mockResolvedValue({ id: 'a1', name: 'Detail' })
+            const store = useDataFarmApplicationsStore()
+
+            const application = await store.loadActiveApplication('a1')
+
+            expect(applicationApi.getApplication).toHaveBeenCalledWith('a1')
+            expect(application).toEqual({ id: 'a1', name: 'Detail' })
+            expect(store.activeApplication).toEqual({ id: 'a1', name: 'Detail' })
+            expect(store.isLoadingActiveApplication).toBe(false)
+            // the active app is cached but not a member of the team list
+            expect(store.teamApplicationIds).toEqual([])
+        })
+
+        it('clears the loading flag even when the fetch rejects', async () => {
+            vi.spyOn(applicationApi, 'getApplication').mockRejectedValue(new Error('boom'))
+            const store = useDataFarmApplicationsStore()
+
+            await expect(store.loadActiveApplication('a1')).rejects.toThrow('boom')
+            expect(store.isLoadingActiveApplication).toBe(false)
+        })
+    })
+
     describe('setActiveApplication / activeApplication', () => {
         it('returns null when no active application is set', () => {
             const store = useDataFarmApplicationsStore()

@@ -11,6 +11,7 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
     const loadedTeamId = ref<string | null>(null)
     const isLoadingTeamApplications = ref(false)
     const activeApplicationId = ref<string | null>(null)
+    const isLoadingActiveApplication = ref(false)
 
     const teamApplications = computed(() => teamApplicationIds.value
         .map(id => applicationsById.value[id]))
@@ -86,6 +87,18 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         activeApplicationId.value = application.id
     }
 
+    async function loadActiveApplication (id: string): Promise<ApplicationSummary | null> {
+        if (!id) return null
+        isLoadingActiveApplication.value = true
+        try {
+            const application = await applicationApi.getApplication(id)
+            setActiveApplication(application)
+            return application
+        } finally {
+            isLoadingActiveApplication.value = false
+        }
+    }
+
     function applyRealtimeEvent (event: { id?: string, action?: string, data?: ApplicationSummary }): void {
         if (!event?.id || !event.action) return
         if (event.action === 'deleted') {
@@ -101,6 +114,7 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         loadedTeamId.value = null
         isLoadingTeamApplications.value = false
         activeApplicationId.value = null
+        isLoadingActiveApplication.value = false
     }
 
     return {
@@ -109,6 +123,7 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         loadedTeamId,
         isLoadingTeamApplications,
         activeApplicationId,
+        isLoadingActiveApplication,
         teamApplications,
         activeApplication,
         upsertApplication,
@@ -118,6 +133,7 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         updateApplication,
         deleteApplication,
         setActiveApplication,
+        loadActiveApplication,
         applyRealtimeEvent,
         reset
     }

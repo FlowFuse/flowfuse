@@ -61,9 +61,9 @@ export default {
     },
     emits: ['application-updated'],
     setup () {
-        const { application, loadActiveApplication, clearActiveApplication } = useActiveApplication()
+        const { application, isLoadingActiveApplication, loadActiveApplication, clearActiveApplication } = useActiveApplication()
 
-        return { application, loadActiveApplication, clearActiveApplication }
+        return { application, isLoadingActiveApplication, loadActiveApplication, clearActiveApplication }
     },
     data () {
         return {
@@ -83,7 +83,7 @@ export default {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
         isLoading () {
-            return this.loading || !this.team
+            return this.loading || !this.team || this.isLoadingActiveApplication
         }
     },
     async created () {

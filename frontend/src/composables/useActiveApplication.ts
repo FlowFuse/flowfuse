@@ -1,21 +1,18 @@
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 
-import applicationApi from '@/api/application.js'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 import type { ApplicationSummary } from '@/types'
 
 export function useActiveApplication () {
     const router = useRouter()
     const applicationsStore = useDataFarmApplicationsStore()
-    const { activeApplication } = storeToRefs(applicationsStore)
+    const { activeApplication, isLoadingActiveApplication } = storeToRefs(applicationsStore)
 
     async function loadActiveApplication (id: string): Promise<ApplicationSummary | null> {
         if (!id) return null
         try {
-            const application = await applicationApi.getApplication(id)
-            applicationsStore.setActiveApplication(application)
-            return application
+            return await applicationsStore.loadActiveApplication(id)
         } catch {
             const current = router.currentRoute.value
             router.push({
@@ -32,5 +29,5 @@ export function useActiveApplication () {
         applicationsStore.setActiveApplication(null)
     }
 
-    return { application: activeApplication, loadActiveApplication, clearActiveApplication }
+    return { application: activeApplication, isLoadingActiveApplication, loadActiveApplication, clearActiveApplication }
 }

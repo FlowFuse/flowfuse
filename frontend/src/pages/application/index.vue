@@ -1,7 +1,7 @@
 <template>
     <ff-loading v-if="loading.deleting" message="Deleting Application..." />
     <ff-loading v-else-if="loading.suspend" message="Suspending Application..." />
-    <main v-else-if="!application?.id" class="ff-with-status-header flex flex-col h-full w-full overflow-auto" data-el="application-page-loading">
+    <main v-else-if="isLoadingActiveApplication || !application?.id" class="ff-with-status-header flex flex-col h-full w-full overflow-auto" data-el="application-page-loading">
         <ApplicationDetailSkeleton />
     </main>
     <main v-else class="ff-with-status-header flex flex-col h-full w-full overflow-auto" data-el="application-page">
@@ -65,13 +65,14 @@ export default {
     mixins: [instanceActionsMixin],
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
-        const { application, loadActiveApplication, clearActiveApplication } = useActiveApplication()
+        const { application, isLoadingActiveApplication, loadActiveApplication, clearActiveApplication } = useActiveApplication()
         const applicationsStore = useDataFarmApplicationsStore()
 
         return {
             hasPermission,
             isVisitingAdmin,
             application,
+            isLoadingActiveApplication,
             loadActiveApplication,
             clearActiveApplication,
             deleteApplicationEntity: applicationsStore.deleteApplication
