@@ -243,8 +243,13 @@ describe('Permissions API', async () => {
                     expectPass(await sendRequest('team:read', EXPERT_PLATFORM_TOKEN_TEAM_MEMBER))
                 })
                 it('Prevents access to scopes not in the implicit list', async () => {
+                    // team:delete is not implicitly granted, so even an owner token is denied
+                    expectFail(await sendRequest('team:delete', EXPERT_PLATFORM_TOKEN_TEAM_OWNER))
+                })
+                it('Grants an implicitly-listed scope only when the role allows it', async () => {
+                    // team:edit is implicitly granted for billing reads; the scope's owner role still applies
+                    expectPass(await sendRequest('team:edit', EXPERT_PLATFORM_TOKEN_TEAM_OWNER))
                     expectFail(await sendRequest('team:edit', EXPERT_PLATFORM_TOKEN_TEAM_MEMBER))
-                    expectFail(await sendRequest('team:edit', EXPERT_PLATFORM_TOKEN_TEAM_OWNER))
                 })
                 it('Does not grant broad access to a plain user token carrying the scope', async () => {
                     expectFail(await sendRequest('team:read', USER_TOKEN_EXPERT_PLATFORM_SCOPE_TEAM_MEMBER))
