@@ -35,10 +35,13 @@
 <script>
 import { mapState } from 'pinia'
 
+import applicationApi from '../../api/application.js'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import usePermissions from '../../composables/Permissions.js'
 
+import { useActiveApplication } from '../../composables/useActiveApplication'
 import instanceActionsMixin from '../../mixins/InstanceActions.js'
+import alerts from '../../services/alerts.js'
 import { applyLiveState } from '../../utils/applyLiveState.js'
 
 import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
@@ -46,9 +49,6 @@ import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmIns
 import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog.vue'
 import ApplicationDetailSkeleton from './components/ApplicationDetailSkeleton.vue'
 
-import applicationApi from '@/api/application.js'
-import { useActiveApplication } from '@/composables/useActiveApplication'
-import alerts from '@/services/alerts.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'

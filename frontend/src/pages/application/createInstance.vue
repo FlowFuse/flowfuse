@@ -40,10 +40,10 @@ import { mapState } from 'pinia'
 
 import instanceApi from '../../api/instances.js'
 
+import { useActiveApplication } from '../../composables/useActiveApplication'
 import Alerts from '../../services/alerts.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
 
-import { useActiveApplication } from '@/composables/useActiveApplication'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 

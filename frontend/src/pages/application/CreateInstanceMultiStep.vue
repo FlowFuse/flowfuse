@@ -46,7 +46,8 @@ import MultiStepInstanceForm from '../../components/multi-step-forms/instance/Mu
 
 import { getTeamProperty } from '../../composables/TeamProperties.js'
 
-import { useActiveApplication } from '@/composables/useActiveApplication'
+import { useActiveApplication } from '../../composables/useActiveApplication'
+
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
