@@ -196,11 +196,50 @@ describe('data-farm-applications store', () => {
         })
     })
 
+    describe('setActiveApplication / activeApplication', () => {
+        it('returns null when no active application is set', () => {
+            const store = useDataFarmApplicationsStore()
+            expect(store.activeApplication).toBe(null)
+        })
+
+        it('sets the active application and caches it WITHOUT adding it to the team list', () => {
+            const store = useDataFarmApplicationsStore()
+
+            store.setActiveApplication({ id: 'a1', name: 'Detail' })
+
+            expect(store.activeApplication).toEqual({ id: 'a1', name: 'Detail' })
+            // the active app is not a list member — viewing it must not pollute teamApplications
+            expect(store.teamApplicationIds).toEqual([])
+            expect(store.teamApplications).toEqual([])
+        })
+
+        it('merges into an existing list entry without duplicating its id', async () => {
+            vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({
+                applications: [{ id: 'a1', name: 'One', instanceCount: 2 }]
+            })
+            const store = useDataFarmApplicationsStore()
+            await store.ensureTeamApplicationsLoaded('team-1')
+
+            store.setActiveApplication({ id: 'a1', name: 'One', description: 'd' })
+
+            expect(store.activeApplication).toEqual({ id: 'a1', name: 'One', description: 'd', instanceCount: 2 })
+            expect(store.teamApplicationIds).toEqual(['a1'])
+        })
+
+        it('clears the active application on null', () => {
+            const store = useDataFarmApplicationsStore()
+            store.setActiveApplication({ id: 'a1', name: 'Detail' })
+            store.setActiveApplication(null)
+            expect(store.activeApplication).toBe(null)
+        })
+    })
+
     describe('reset', () => {
         it('resets all state (team-switch / logout teardown)', async () => {
             vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [{ id: 'a1' }] })
             const store = useDataFarmApplicationsStore()
             await store.ensureTeamApplicationsLoaded('team-1')
+            store.setActiveApplication({ id: 'a1' })
 
             store.reset()
 
@@ -208,6 +247,7 @@ describe('data-farm-applications store', () => {
             expect(store.teamApplicationIds).toEqual([])
             expect(store.loadedTeamId).toBe(null)
             expect(store.isLoadingTeamApplications).toBe(false)
+            expect(store.activeApplication).toBe(null)
         })
     })
 })

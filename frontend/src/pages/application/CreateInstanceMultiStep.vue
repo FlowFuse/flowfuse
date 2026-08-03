@@ -45,8 +45,8 @@ import { mapState } from 'pinia'
 import MultiStepInstanceForm from '../../components/multi-step-forms/instance/MultiStepInstanceForm.vue'
 
 import { getTeamProperty } from '../../composables/TeamProperties.js'
-import applicationMixin from '../../mixins/Application.js'
 
+import { useActiveApplication } from '@/composables/useActiveApplication'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
@@ -55,9 +55,13 @@ export default {
     components: {
         MultiStepInstanceForm
     },
-    mixins: [applicationMixin],
     inheritAttrs: false,
     emits: ['application-updated'],
+    setup () {
+        const { application, loadActiveApplication, clearActiveApplication } = useActiveApplication()
+
+        return { application, loadActiveApplication, clearActiveApplication }
+    },
     data () {
         return {
             loading: false,
@@ -107,7 +111,10 @@ export default {
             })
         }
 
-        await this.updateApplication()
+        await this.loadActiveApplication(this.$route.params.id)
+    },
+    beforeUnmount () {
+        this.clearActiveApplication()
     },
     methods: {
         async onInstanceCreated () {

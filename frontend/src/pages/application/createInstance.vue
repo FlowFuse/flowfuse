@@ -40,10 +40,10 @@ import { mapState } from 'pinia'
 
 import instanceApi from '../../api/instances.js'
 
-import applicationMixin from '../../mixins/Application.js'
 import Alerts from '../../services/alerts.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
 
+import { useActiveApplication } from '@/composables/useActiveApplication'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
@@ -52,7 +52,6 @@ export default {
     components: {
         InstanceForm
     },
-    mixins: [applicationMixin],
     inheritAttrs: false,
     props: {
         sourceInstanceId: {
@@ -61,6 +60,11 @@ export default {
         }
     },
     emits: ['application-updated'],
+    setup () {
+        const { application, loadActiveApplication, clearActiveApplication } = useActiveApplication()
+
+        return { application, loadActiveApplication, clearActiveApplication }
+    },
     data () {
         return {
             icons: {
@@ -83,7 +87,7 @@ export default {
         }
     },
     async created () {
-        await this.updateApplication()
+        await this.loadActiveApplication(this.$route.params.id)
 
         if (this.sourceInstanceId) {
             instanceApi.getInstance(this.sourceInstanceId).then(instance => {
@@ -95,6 +99,9 @@ export default {
     },
     async mounted () {
         this.mounted = true
+    },
+    beforeUnmount () {
+        this.clearActiveApplication()
     },
     methods: {
         async handleFormSubmit (formData, copyParts) {

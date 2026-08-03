@@ -1,9 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-import applicationApi from '../api/application.js'
-import teamApi from '../api/team.js'
-
+import applicationApi from '@/api/application.js'
+import teamApi from '@/api/team.js'
 import type { ApplicationSummary } from '@/types'
 
 export const useDataFarmApplicationsStore = defineStore('data-farm-applications', () => {
@@ -11,9 +10,14 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
     const teamApplicationIds = ref<string[]>([])
     const loadedTeamId = ref<string | null>(null)
     const isLoadingTeamApplications = ref(false)
+    const activeApplicationId = ref<string | null>(null)
 
     const teamApplications = computed(() => teamApplicationIds.value
         .map(id => applicationsById.value[id]))
+
+    const activeApplication = computed(() => (activeApplicationId.value
+        ? applicationsById.value[activeApplicationId.value] ?? null
+        : null))
 
     function upsertApplication (application: ApplicationSummary): void {
         if (!application?.id) return
@@ -72,6 +76,16 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         removeApplication(id)
     }
 
+    function setActiveApplication (application: ApplicationSummary | null): void {
+        if (!application?.id) {
+            activeApplicationId.value = null
+            return
+        }
+        const existing = applicationsById.value[application.id]
+        applicationsById.value[application.id] = { ...existing, ...application }
+        activeApplicationId.value = application.id
+    }
+
     function applyRealtimeEvent (event: { id?: string, action?: string, data?: ApplicationSummary }): void {
         if (!event?.id || !event.action) return
         if (event.action === 'deleted') {
@@ -86,6 +100,7 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         teamApplicationIds.value = []
         loadedTeamId.value = null
         isLoadingTeamApplications.value = false
+        activeApplicationId.value = null
     }
 
     return {
@@ -93,13 +108,16 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         teamApplicationIds,
         loadedTeamId,
         isLoadingTeamApplications,
+        activeApplicationId,
         teamApplications,
+        activeApplication,
         upsertApplication,
         removeApplication,
         ensureTeamApplicationsLoaded,
         createApplication,
         updateApplication,
         deleteApplication,
+        setActiveApplication,
         applyRealtimeEvent,
         reset
     }

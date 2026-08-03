@@ -1,8 +1,8 @@
 <template>
     <ff-loading v-if="loading.deleting" message="Deleting Application..." />
     <ff-loading v-else-if="loading.suspend" message="Suspending Application..." />
-    <main v-else-if="!application?.id">
-        <ff-loading message="Loading Application..." />
+    <main v-else-if="!application?.id" class="ff-with-status-header flex flex-col h-full w-full overflow-auto" data-el="application-page-loading">
+        <ApplicationDetailSkeleton />
     </main>
     <main v-else class="ff-with-status-header flex flex-col h-full w-full overflow-auto" data-el="application-page">
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
@@ -17,7 +17,7 @@
                 :application="application"
                 :instances="instancesArray"
                 :is-visiting-admin="isVisitingAdmin"
-                @application-updated="updateApplication"
+                @application-updated="loadApplicationData"
                 @application-delete="showConfirmDeleteApplicationDialog"
                 @instance-start="instanceStart"
                 @instance-restart="instanceRestart"
@@ -38,35 +38,64 @@ import { mapState } from 'pinia'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import usePermissions from '../../composables/Permissions.js'
 
-import applicationMixin from '../../mixins/Application.js'
 import instanceActionsMixin from '../../mixins/InstanceActions.js'
 import { applyLiveState } from '../../utils/applyLiveState.js'
 
 import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
 
 import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicationDeleteDialog.vue'
+import ApplicationDetailSkeleton from './components/ApplicationDetailSkeleton.vue'
 
+import applicationApi from '@/api/application.js'
+import { useActiveApplication } from '@/composables/useActiveApplication'
+import alerts from '@/services/alerts.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 import { useLiveStatusStore } from '@/stores/live-status'
 
 export default {
     name: 'ApplicationPage',
     components: {
+        ApplicationDetailSkeleton,
         ConfirmApplicationDeleteDialog,
         ConfirmInstanceDeleteDialog,
         InstanceStatusPolling
     },
-    mixins: [applicationMixin, instanceActionsMixin],
+    mixins: [instanceActionsMixin],
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
+        const { application, loadActiveApplication, clearActiveApplication } = useActiveApplication()
+        const applicationsStore = useDataFarmApplicationsStore()
 
-        return { hasPermission, isVisitingAdmin }
+        return {
+            hasPermission,
+            isVisitingAdmin,
+            application,
+            loadActiveApplication,
+            clearActiveApplication,
+            deleteApplicationEntity: applicationsStore.deleteApplication
+        }
+    },
+    data () {
+        return {
+            applicationInstances: new Map(),
+            loading: {
+                deleting: false,
+                suspend: false
+            }
+        }
     },
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
         ...mapState(useLiveStatusStore, { liveInstanceMetadata: 'instanceMetadata', statusChannelLive: 'live' }),
+        instancesArray () {
+            if (this.applicationInstances.size === 0) {
+                return []
+            }
+            return Array.from(this.applicationInstances.values()).filter(el => el)
+        },
         navigation () {
             const routes = [
                 {
@@ -141,12 +170,56 @@ export default {
     },
     watch: {
         '$route.params': {
-            handler: 'updateApplication',
+            handler: 'loadApplicationData',
             immediate: true
         },
         liveInstanceMetadata: { handler: 'applyLiveStatus', deep: true }
     },
+    beforeUnmount () {
+        this.clearActiveApplication()
+    },
     methods: {
+        async loadApplicationData () {
+            const applicationId = this.$route.params.id
+            if (!applicationId) {
+                return
+            }
+            this.applicationInstances = new Map()
+            const application = await this.loadActiveApplication(applicationId)
+            if (!application) {
+                return
+            }
+            if (this.team?.slug !== application.team?.slug) {
+                return
+            }
+            const instances = await applicationApi.getApplicationInstances(applicationId)
+            const nextInstances = new Map()
+            instances.forEach(instance => nextInstances.set(instance.id, instance))
+            this.applicationInstances = nextInstances
+            applicationApi.getApplicationInstancesStatuses(applicationId)
+                .then(statuses => {
+                    statuses.forEach(status => {
+                        this.applicationInstances.set(status.id, { ...this.applicationInstances.get(status.id), ...status })
+                    })
+                })
+                .catch(err => console.error(err))
+        },
+        async deleteApplication () {
+            this.loading.deleting = true
+            try {
+                await this.deleteApplicationEntity(this.application.id, this.team.id)
+                await useContextStore().refreshTeam()
+                this.$router.push({ name: 'Applications' })
+                alerts.emit('Application successfully deleted.', 'confirmation')
+            } catch (err) {
+                if (err.response?.data?.error) {
+                    alerts.emit(`Application failed to delete: ${err.response.data.error}`, 'warning', 10000)
+                } else {
+                    alerts.emit('Application failed to delete', 'warning')
+                }
+            }
+            this.loading.deleting = false
+        },
         applyLiveStatus () {
             for (const id of this.applicationInstances.keys()) {
                 const meta = this.liveInstanceMetadata[id]
