@@ -82,6 +82,17 @@ const deleteTeam = async (teamId: string) => {
     })
 }
 
+/**
+ * Get a list of applications
+ * This function does not get instance status
+ * @param {string} teamId The Team ID (hash) to get applications and instances for
+ * @param associationsLimit
+ * @param includeApplicationSummary
+ * @param includeInstances
+ * @param includeApplicationDevices
+ * @param excludeOwnerFiltering
+ * @returns An array of application objects containing an array of instances
+ */
 const getTeamApplications = async (teamId: string, {
     associationsLimit,
     includeApplicationSummary = false,
@@ -116,6 +127,11 @@ const getTeamApplications = async (teamId: string, {
     return result.data
 }
 
+/**
+ * Get a list of applications, their instances, their devices, and the status of each
+ * @param {string} teamId The Team ID (hash) to get statuses for
+ * @returns An array of application ids containing an array of instance and device statuses
+ */
 const getTeamApplicationsAssociationsStatuses = async (teamId: string, { associationsLimit }: { associationsLimit?: number } = {}) => {
     const options: { params?: Record<string, unknown> } = {}
     if (associationsLimit) {
@@ -132,6 +148,12 @@ const getTeamApplicationsAssociationsStatuses = async (teamId: string, { associa
     return result.data
 }
 
+/**
+ * Get a list of ALL instances within a team regardless of application
+ * The status of each instance will be added to the instance object.
+ * @param {string} teamId The Team ID (hash) to get instances for
+ * @deprecated This is a leftover from before the application model was introduced
+ */
 const getTeamInstances = async (teamId: string) => {
     const res = await client.get(`/api/v1/teams/${teamId}/projects`)
     const promises = []
@@ -168,6 +190,14 @@ const getTeamDashboards = async (teamId: string) => {
     return res.data
 }
 
+/**
+ * Get a the name and id of of ALL instances within a team regardless of application
+ * This function does not include instance status
+ * @param {string} teamId The Team ID (hash) to get instance for
+ * @see getTeamInstances
+ * @returns {[{id: string, name: string, application: {id: string, name: string}}]} An array of objects containing instance summary
+ * @deprecated This is a leftover from before the application model was introduced
+ */
 const getTeamInstancesList = async (teamId: string) => {
     const res = await client.get(`/api/v1/teams/${teamId}/projects`)
     const list = res.data.projects.map(r => {
@@ -387,6 +417,12 @@ const getTeamLibrary = async (teamId: string, parentDir?: string, cursor?: strin
     }
 }
 
+/**
+ *
+ * @param {*} teamId Team ID (hash)
+ * @param {*} name Name of file to delete
+ * @param {*} type File type e.g. flows/functions filter
+ */
 const deleteFromTeamLibrary = async (teamId: string, name: string, type: string | null = null) => {
     let query = ''
     if (type) {
@@ -396,12 +432,28 @@ const deleteFromTeamLibrary = async (teamId: string, name: string, type: string 
     return await client.delete(`/storage/library/${teamId}/${name}${query}`)
 }
 
+/**
+ *
+ * @param {string} teamId Team ID (hash)
+ * @param {*} cursor The next page cursor (not implemented)
+ * @param {number} limit The number of results to return (not implemented)
+ * @returns { meta: { next_cursor }, tokens: [ { } ] }
+ */
 const getTeamDeviceProvisioningTokens = async (teamId: string, cursor?: string, limit?: number) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/devices/provisioning`, cursor, limit)
     const res = await client.get(url)
     return res.data
 }
 
+/**
+ * Generate an auto provisioning token
+ * @param {string} teamId The team ID (hash)
+ * @param {object} options
+ * @param {string} options.name The name of the token
+ * @param {string} [options.project] The project ID (hash)
+ * @param {string} [options.expiresAt] The expiry date of the token
+ * @returns
+ */
 const generateTeamDeviceProvisioningToken = async (teamId: string, options: { name?: string, application?: string, instance?: string, expiresAt?: string } = {}) => {
     options = options || {}
     const { name, application, instance, expiresAt } = options
@@ -417,6 +469,15 @@ const generateTeamDeviceProvisioningToken = async (teamId: string, options: { na
     })
 }
 
+/**
+ * Update an auto provisioning token
+ * @param {string} teamId The team ID (hash)
+ * @param {string} tokenId The token ID (hash)
+ * @param {object} options
+ * @param {string} [options.instance] The instance ID (hash)
+ * @param {string} [options.expiresAt] The expiry date of the token
+ * @returns
+ */
 const updateTeamDeviceProvisioningToken = async (teamId: string, tokenId: string, options: { application?: string, instance?: string, expiresAt?: string } = {}) => {
     options = options || {}
     const { application, instance, expiresAt } = options
@@ -431,14 +492,35 @@ const updateTeamDeviceProvisioningToken = async (teamId: string, tokenId: string
     })
 }
 
+/**
+ * Delete a provisioning token
+ * @param {string} teamId The team ID (hash)
+ * @param {string} tokenId The token ID (hash)
+ * @returns
+ */
 const deleteTeamDeviceProvisioningToken = async (teamId: string, tokenId: string) => {
     return await client.delete(`/api/v1/teams/${teamId}/devices/provisioning/${tokenId}`)
 }
 
+/**
+ * Bulk delete devices
+ * @param {string} teamId - Team ID (hash)
+ * @param {Array<string>} devices - Array of device IDs (hash)
+ * @returns
+ */
 const bulkDeviceDelete = async (teamId: string, devices: string[]) => {
     return await client.delete(`/api/v1/teams/${teamId}/devices/bulk`, { data: { devices } })
 }
 
+/**
+ * Bulk move devices
+ * @param {string} teamId - Team ID (hash)
+ * @param {Array<string>} devices - Array of device IDs (hash)
+ * @param {object} options
+ * @param {'instance' | 'application' | 'unassigned'} options.moveTo - Destination to move devices to. Can be 'instance', 'application', or 'unassigned'
+ * @param {string} [options.id] - ID (hash) of the destination
+ * @returns
+ */
 const bulkDeviceMove = async (teamId: string, devices: string[], moveTo: 'instance' | 'application' | 'unassigned' | 'group', id: string | null | undefined = undefined): Promise<{ devices: DeviceView[] }> => {
     const url = `/api/v1/teams/${teamId}/devices/bulk`
     const data: { devices: string[], instance?: string | null, application?: string | null, deviceGroup?: string | null } = { devices }
@@ -464,6 +546,11 @@ const bulkDeviceMove = async (teamId: string, devices: string[], moveTo: 'instan
     return res.data
 }
 
+/**
+ * Get a list of Dependencies / Bill of Materials
+ * @param teamId
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
 const getDependencies = (teamId: string) => {
     return client.get(`/api/v1/teams/${teamId}/bom`)
         .then(res => res.data)
