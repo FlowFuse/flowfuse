@@ -9,7 +9,6 @@ on:
       - 'docs/**'
 jobs:
   test:
-    if: false
     runs-on: ubuntu-latest
     name: Test Documentation links
     steps:
@@ -24,7 +23,6 @@ jobs:
       - name: Test Documentation Links
         run: npm run test:docs
   test-with-website:
-    if: false
     runs-on: ubuntu-latest
     name: Test Documentation with website
     steps:
