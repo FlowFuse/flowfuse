@@ -51,7 +51,7 @@ This log contains all events since the team was created. Tou can view older data
 
 <img src="images/teamauditlog.png" width="500" />
 
-### MCP and API Activity
+### AI Agents and API Activity
 
 For actions performed through FlowFuse Expert MCP tools or the FlowFuse platform API, both this log and the instance/application-level [Audit Log](#audit-log) show an icon indicating how the action was performed:
 
