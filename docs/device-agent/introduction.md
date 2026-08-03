@@ -12,6 +12,8 @@ meta:
 
 # FlowFuse Device Agent
 
+![The installer running in a terminal, walking through sign-up and connection to FlowFuse](./images/device-agent-install.gif){data-zoomable}
+
 ### Overview
 
 FlowFuse Device Agent allows you to remotely manage Node-RED instances running on your hardware, for example, devices on your factory floor.
