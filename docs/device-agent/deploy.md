@@ -43,7 +43,7 @@ When running in the default of Fleet Mode, the device agent does not allow local
 Node-RED editor. This ensures the Remote Instance is running the deployed snapshot without modification.
 
 When running on FlowFuse Cloud, or a premium licensed FlowFuse instance (with the
-[MQTT broker enabled](https://flowfuse.com/docs/contribute/local/#setting-up-mosquitto-(optional)))
+[MQTT broker enabled](https://flowfuse.com/docs/contribute/local/#setting-up-mosquitto-optional))
 the Remote Instance can be placed in Developer Mode that enables remote access to the editor. 
 
 This can then be used to develop the flows directly on the Remote Instance and a new snapshot
@@ -72,7 +72,7 @@ Access to the editor is only available when:
 * The Remote Instance is in Developer Mode
 
 * When running on FlowFuse Cloud, or a premium licensed FlowFuse instance (with the
-[MQTT broker enabled](https://flowfuse.com/docs/contribute/local/#setting-up-mosquitto-(optional))
+[MQTT broker enabled](https://flowfuse.com/docs/contribute/local/#setting-up-mosquitto-optional)
 the Remote Instance can be placed in Developer Mode that enables remote access to the editor.
 
 * Local access to the editor can be enabled by defining a Username & Password in the Device 

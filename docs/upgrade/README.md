@@ -142,7 +142,7 @@ This release introduces an MQTT Broker into the FlowFuse platform used to commun
 between devices and the core platform.
 
 For LocalFS users, they will need to manually setup the broker and ensure it is
-properly configured. The documentation for this is available [here](../contribute/local#setting-up-mosquitto-(optional))
+properly configured. The documentation for this is available [here](../contribute/local#setting-up-mosquitto-optional)
 
 #### LocalFS Users
 
