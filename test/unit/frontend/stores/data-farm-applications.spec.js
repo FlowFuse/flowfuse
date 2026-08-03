@@ -147,6 +147,55 @@ describe('data-farm-applications store', () => {
         })
     })
 
+    describe('applyRealtimeEvent', () => {
+        it('upserts on a created event (cross-session add)', async () => {
+            vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [{ id: 'a1', name: 'One' }] })
+            const store = useDataFarmApplicationsStore()
+            await store.ensureTeamApplicationsLoaded('team-1')
+
+            store.applyRealtimeEvent({ id: 'a2', action: 'created', data: { id: 'a2', name: 'Two' } })
+
+            expect(store.teamApplicationIds).toEqual(['a1', 'a2'])
+            expect(store.teamApplications.map(a => a.name)).toEqual(['One', 'Two'])
+        })
+
+        it('merges on an updated event without dropping summary fields', async () => {
+            vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({
+                applications: [{ id: 'a1', name: 'Old', instanceCount: 3 }]
+            })
+            const store = useDataFarmApplicationsStore()
+            await store.ensureTeamApplicationsLoaded('team-1')
+
+            store.applyRealtimeEvent({ id: 'a1', action: 'updated', data: { id: 'a1', name: 'Renamed' } })
+
+            expect(store.applicationsById.a1).toEqual({ id: 'a1', name: 'Renamed', instanceCount: 3 })
+        })
+
+        it('removes on a deleted event (cross-session remove)', async () => {
+            vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [{ id: 'a1' }, { id: 'a2' }] })
+            const store = useDataFarmApplicationsStore()
+            await store.ensureTeamApplicationsLoaded('team-1')
+
+            store.applyRealtimeEvent({ id: 'a1', action: 'deleted' })
+
+            expect(store.teamApplicationIds).toEqual(['a2'])
+            expect(store.applicationsById.a1).toBeUndefined()
+        })
+
+        it('ignores an event missing id or action', () => {
+            const store = useDataFarmApplicationsStore()
+            store.applyRealtimeEvent({ action: 'created', data: { id: 'a1' } })
+            store.applyRealtimeEvent({ id: 'a1' })
+            expect(store.teamApplicationIds).toEqual([])
+        })
+
+        it('ignores a created/updated event with no data payload', () => {
+            const store = useDataFarmApplicationsStore()
+            store.applyRealtimeEvent({ id: 'a1', action: 'created' })
+            expect(store.teamApplicationIds).toEqual([])
+        })
+    })
+
     describe('reset', () => {
         it('resets all state (team-switch / logout teardown)', async () => {
             vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [{ id: 'a1' }] })
