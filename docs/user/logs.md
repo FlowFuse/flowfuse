@@ -55,7 +55,7 @@ This log contains all events since the team was created. Tou can view older data
 
 For actions performed through FlowFuse Expert MCP tools or the FlowFuse platform API, both this log and the instance/application-level [Audit Log](#audit-log) show an icon indicating how the action was performed:
 
-- A sparkle icon means the action was performed by FlowFuse Expert through an MCP tool on the user's behalf. Hovering over the icon shows the name of the tool that was called.
+- A sparkle icon means the action was performed by FlowFuse Expert on the user's behalf. Hovering over the icon shows the name of the tool that was called.
 - A terminal icon means the action was performed through the FlowFuse API using a [Personal Access Token](./user-settings.md#personal-access-tokens).
 
 Actions performed directly through the FlowFuse UI do not show an icon.
