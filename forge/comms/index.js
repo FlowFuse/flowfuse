@@ -92,6 +92,12 @@ module.exports = fp(async function (app, _opts) {
                     const meta = { state }
                     if (versions) meta.versions = versions
                     client.publish(`ff/v1/${teamHash}/p/${id}/state`, JSON.stringify({ id, meta }))
+                },
+                notifyEntityLifecycle: function (teamHash, type, id, action, data) {
+                    if (!teamHash || !type || !id || !action) return
+                    const msg = { id, action }
+                    if (data !== undefined) msg.data = data
+                    client.publish(`ff/v1/${teamHash}/${type}/${id}/${action}`, JSON.stringify(msg))
                 }
             }
         })
