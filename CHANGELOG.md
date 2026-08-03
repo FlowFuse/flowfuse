@@ -1,3 +1,7 @@
+#### 2.33.1: Release
+
+ - docs: fix the broken screenshot and stray characters in the token scoping docs (#8010)
+
 #### 2.33.0: Release
 
  - [7952] Integrate Google Sign-In in Account Creation (#7996)
