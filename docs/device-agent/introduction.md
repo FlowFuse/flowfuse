@@ -12,7 +12,7 @@ meta:
 
 # FlowFuse Device Agent
 
-![The installer running in a terminal, walking through sign-up and connection to FlowFuse](.docs/device-agent/images/device-agent-install.gif){data-zoomable}
+![The installer running in a terminal, walking through sign-up and connection to FlowFuse](./images/device-agent-install.gif){data-zoomable}
 
 ### Overview
 
