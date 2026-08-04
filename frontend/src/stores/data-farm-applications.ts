@@ -72,6 +72,15 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         removeApplication(id)
     }
 
+    function applyRealtimeEvent (event: { id?: string, action?: string, data?: ApplicationSummary }): void {
+        if (!event?.id || !event.action) return
+        if (event.action === 'deleted') {
+            removeApplication(event.id)
+        } else if (event.data) {
+            upsertApplication(event.data)
+        }
+    }
+
     function reset (): void {
         applicationsById.value = {}
         teamApplicationIds.value = []
@@ -91,6 +100,7 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         createApplication,
         updateApplication,
         deleteApplication,
+        applyRealtimeEvent,
         reset
     }
 })
