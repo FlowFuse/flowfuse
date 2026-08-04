@@ -33,68 +33,72 @@
             </ff-page-header>
         </template>
         <div class="space-y-6">
-            <ApplicationsListSkeleton v-if="isLoadingTeamApplications" />
-
-            <template v-else-if="teamApplications.length > 0">
-                <ff-text-input
-                    v-model="filterTerm"
-                    class="ff-data-table--search"
-                    data-form="search"
-                    placeholder="Search Applications, Instances and Devices..."
-                >
-                    <template #icon><MagnifyingGlassIcon /></template>
-                </ff-text-input>
-                <ul v-if="filteredApplications.length > 0" class="ff-applications-list relative" data-el="applications-list">
-                    <transition-group name="fade-slide">
-                        <ApplicationListItem
-                            v-for="application in filteredApplications"
-                            :key="application.id"
-                            data-el="application-item"
-                            :application="application"
-                            @instance-deleted="refreshApplications"
-                            @device-deleted="refreshApplications"
-                        />
-                    </transition-group>
-                </ul>
-                <p v-else class="no-results">
-                    No Data Found. Try Another Search.
-                </p>
-            </template>
-
-            <EmptyState v-else>
-                <template #img>
-                    <img src="../../../images/empty-states/team-applications.png">
+            <PageLoader :loading="isLoadingTeamApplications" loader-key="team-applications">
+                <template #loading>
+                    <ApplicationsListSkeleton />
                 </template>
-                <template #header>Get Started with your First Application</template>
-                <template #message>
-                    <p>Applications in FlowFuse are used to manage groups of Node-RED Instances</p>
-                    <p>
-                        Instances within Applications can be connected as
-                        <a class="ff-link" href="https://flowfuse.com/docs/user/staged-deployments" target="_blank">Staged Deployments.</a>
-                    </p>
-                </template>
-                <template #actions>
-                    <ff-button
-                        v-if="hasPermission('project:create')"
-                        data-action="create-application"
-                        kind="primary"
-                        type="anchor"
-                        :to="{name: 'CreateTeamApplication'}"
+
+                <template v-if="teamApplications.length > 0">
+                    <ff-text-input
+                        v-model="filterTerm"
+                        class="ff-data-table--search"
+                        data-form="search"
+                        placeholder="Search Applications, Instances and Devices..."
                     >
-                        <template #icon-left>
-                            <PlusSmallIcon />
-                        </template>
-                        Create Application
-                    </ff-button>
-                </template>
-                <template #note>
-                    <p>
-                        The FlowFuse team also have more planned for Applications, including
-                        <a class="ff-link" href="https://github.com/FlowFuse/flowfuse/issues/1734" target="_blank">
-                            shared settings across Instances</a>.
+                        <template #icon><MagnifyingGlassIcon /></template>
+                    </ff-text-input>
+                    <ul v-if="filteredApplications.length > 0" class="ff-applications-list relative" data-el="applications-list">
+                        <transition-group name="fade-slide">
+                            <ApplicationListItem
+                                v-for="application in filteredApplications"
+                                :key="application.id"
+                                data-el="application-item"
+                                :application="application"
+                                @instance-deleted="refreshApplications"
+                                @device-deleted="refreshApplications"
+                            />
+                        </transition-group>
+                    </ul>
+                    <p v-else class="no-results">
+                        No Data Found. Try Another Search.
                     </p>
                 </template>
-            </EmptyState>
+
+                <EmptyState v-else>
+                    <template #img>
+                        <img src="../../../images/empty-states/team-applications.png">
+                    </template>
+                    <template #header>Get Started with your First Application</template>
+                    <template #message>
+                        <p>Applications in FlowFuse are used to manage groups of Node-RED Instances</p>
+                        <p>
+                            Instances within Applications can be connected as
+                            <a class="ff-link" href="https://flowfuse.com/docs/user/staged-deployments" target="_blank">Staged Deployments.</a>
+                        </p>
+                    </template>
+                    <template #actions>
+                        <ff-button
+                            v-if="hasPermission('project:create')"
+                            data-action="create-application"
+                            kind="primary"
+                            type="anchor"
+                            :to="{name: 'CreateTeamApplication'}"
+                        >
+                            <template #icon-left>
+                                <PlusSmallIcon />
+                            </template>
+                            Create Application
+                        </ff-button>
+                    </template>
+                    <template #note>
+                        <p>
+                            The FlowFuse team also have more planned for Applications, including
+                            <a class="ff-link" href="https://github.com/FlowFuse/flowfuse/issues/1734" target="_blank">
+                                shared settings across Instances</a>.
+                        </p>
+                    </template>
+                </EmptyState>
+            </PageLoader>
         </div>
         <router-view />
     </ff-page>
@@ -106,6 +110,7 @@ import { MagnifyingGlassIcon, PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
 import EmptyState from '../../../components/EmptyState.vue'
+import PageLoader from '../../../components/PageLoader.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import ApplicationListItem from './components/Application.vue'
@@ -121,6 +126,7 @@ export default {
         ApplicationListItem,
         ApplicationsListSkeleton,
         EmptyState,
+        PageLoader,
         PlusSmallIcon
     },
     setup () {

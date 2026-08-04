@@ -42,6 +42,36 @@ describe('ux-loading store', () => {
         })
     })
 
+    describe('page loaders', () => {
+        it('starts with no active page loaders', () => {
+            const store = useUxLoadingStore()
+            expect(store.pageLoaders).toEqual({})
+            expect(store.isPageLoading).toBe(false)
+        })
+
+        it('setPageLoader registers a key and marks the app as page-loading', () => {
+            const store = useUxLoadingStore()
+            store.setPageLoader('team-applications')
+            expect(store.isPageLoading).toBe(true)
+        })
+
+        it('isPageLoading stays true until every registered loader clears', () => {
+            const store = useUxLoadingStore()
+            store.setPageLoader('a')
+            store.setPageLoader('b')
+            store.clearPageLoader('a')
+            expect(store.isPageLoading).toBe(true)
+            store.clearPageLoader('b')
+            expect(store.isPageLoading).toBe(false)
+        })
+
+        it('clearing an unknown key is a no-op', () => {
+            const store = useUxLoadingStore()
+            store.clearPageLoader('nope')
+            expect(store.isPageLoading).toBe(false)
+        })
+    })
+
     describe('$reset', () => {
         it('restores default state', () => {
             const store = useUxLoadingStore()
