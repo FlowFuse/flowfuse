@@ -1,5 +1,23 @@
 const { z } = require('zod')
 
+const {
+    teamId,
+    applicationId,
+    basePagination,
+    basePaginationKeys,
+    searchQuery,
+    searchQueryKeys,
+    auditLogFilters,
+    auditLogFilterKeys,
+    appendQuery
+} = require('../schemas')
+
+// Audit-log routes accept cursor+limit pagination, free-text query, event
+// (single name or array) and username. scope narrows which entity levels are
+// returned and its allowed values differ per route (the device route has none);
+// includeChildren pulls in descendant entries within the chosen scope.
+const includeChildren = z.boolean().optional().describe('Also include audit entries from child entities within the chosen scope')
+
 module.exports = [
     {
         name: 'platform_list_applications',
@@ -10,7 +28,7 @@ module.exports = [
             Call platform_get_remote_instance to get details of a specific remote instance or platform_get_hosted_instance to get details of a specific hosted instance.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            teamId: z.string().describe('The ID or hashid of the team')
+            teamId
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/applications?includeInstances=false&includeApplicationDevices=false` })
@@ -23,7 +41,7 @@ module.exports = [
         description: 'FlowFuse platform automation tool: Use this tool to retrieve application metadata (name, description, link, team createdAt and updatedAt)',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            applicationId: z.string().describe('The ID or hashid of the application')
+            applicationId
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/applications/${args.applicationId}` })
@@ -37,35 +55,21 @@ module.exports = [
             Gets the audit log (activity history) for an application. Think of it as a diary that writes down everything that happened: who did what, and when.
             Use this to find out what changed, who made a change, or to figure out what went wrong by looking at recent activity.
             Results come back newest first. Use cursor to page through older entries.
-            You can narrow down results by event type, username, or scope (application, project, or device).`,
+            You can narrow down results by event type, username, or scope (application, project, or device).
+            Set format to "csv" to export the log as a downloadable CSV file instead of reading entries directly.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            applicationId: z.string().describe('The ID or hashid of the application'),
-            cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last entry from the previous page)'),
-            limit: z.number().min(1).max(100).describe('How many entries to return'),
-            event: z.string().optional().describe('Filter by event type (e.g. "application.created", "project.snapshot.device-target-set")'),
-            username: z.string().optional().describe('Filter by the username of whoever triggered the event'),
-            scope: z.string().optional().describe('What level of entries to include: "application", "project", or "device" (default "application")')
+            applicationId,
+            ...basePagination,
+            ...searchQuery,
+            ...auditLogFilters,
+            scope: z.enum(['application', 'project', 'device']).optional().describe('Which entries to include by scope (default application)'),
+            includeChildren,
+            format: z.enum(['json', 'csv']).optional().describe('Output format. "json" (default) reads entries directly; "csv" exports the log as a downloadable CSV file.')
         },
         handler: async (args, { inject }) => {
-            const params = new URLSearchParams()
-            if (args.cursor) {
-                params.set('cursor', args.cursor)
-            }
-            if (args.limit) {
-                params.set('limit', String(args.limit))
-            }
-            if (args.event) {
-                params.set('event', args.event)
-            }
-            if (args.username) {
-                params.set('username', args.username)
-            }
-            if (args.scope) {
-                params.set('scope', args.scope)
-            }
-            const qs = params.toString()
-            const url = `/api/v1/applications/${args.applicationId}/audit-log${qs ? `?${qs}` : ''}`
+            const suffix = args.format === 'csv' ? '/audit-log/export' : '/audit-log'
+            const url = appendQuery(`/api/v1/applications/${args.applicationId}${suffix}`, args, [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys, 'scope', 'includeChildren'])
             const response = await inject({ method: 'GET', url })
             return response
         }
@@ -81,7 +85,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             name: z.string().describe('Name for the new application'),
-            teamId: z.string().describe('The ID or hashid of the team to create the application in'),
+            teamId,
             description: z.string().optional().describe('Optional description for the application')
         },
         handler: async (args, { inject }) => {
@@ -90,6 +94,42 @@ module.exports = [
                 payload.description = args.description
             }
             const response = await inject({ method: 'POST', url: '/api/v1/applications', payload })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_application_snapshots',
+        title: 'List Application Snapshots',
+        description: `FlowFuse platform automation tool:
+            Lists the snapshots belonging to an application.
+            A snapshot is a saved copy of an instance's flows, credentials and settings at a point in time.
+            Use this to see what snapshots are available for the hosted instances inside an application.
+            Use cursor or limit to page through results.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            applicationId,
+            ...basePagination
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/applications/${args.applicationId}/snapshots`, args, basePaginationKeys)
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_application_statuses',
+        title: 'List Team Application Statuses',
+        description: `FlowFuse platform automation tool:
+            Lists the applications in a team along with the live status of their associated hosted instances and remote instances.
+            Use this to get a status overview across an entire team without querying each application individually.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId,
+            associationsLimit: z.number().optional().describe('Maximum number of associated instances and devices to include per application')
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/teams/${args.teamId}/applications/status`, args, ['associationsLimit'])
+            const response = await inject({ method: 'GET', url })
             return response
         }
     }
