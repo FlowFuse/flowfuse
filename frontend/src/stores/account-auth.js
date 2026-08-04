@@ -62,6 +62,12 @@ export const useAccountAuthStore = defineStore('account-auth', {
         setRedirectUrl (url) {
             this.redirectUrlAfterLogin = url
         },
+        async disconnectSubscribers () {
+            const subscribers = getAppOrchestrator().$subscribers
+            await Promise.all(
+                Object.values(subscribers).map(subscriber => subscriber?.disconnect().catch(() => {}))
+            )
+        },
         async checkIfAuthenticated () {
             const user = await userApi.getUser()
             this.user = user
@@ -206,11 +212,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
             if (useAccountSettingsStore().settings['platform:sso:only']) {
                 logoutURL = useAccountSettingsStore().settings['platform:sso:only:logoutURL'] || '/'
             }
-            const subscribers = getAppOrchestrator().$subscribers
-            const disconnect = Promise.all(
-                Object.values(subscribers).map(subscriber => subscriber?.disconnect().catch(() => {}))
-            )
-            return disconnect
+            return this.disconnectSubscribers()
                 .then(() => userApi.logout())
                 .then(() => this.clearStores())
                 .catch(_ => {})
