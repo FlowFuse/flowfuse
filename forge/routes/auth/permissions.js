@@ -62,7 +62,7 @@ const IMPLICIT_TOKEN_SCOPES = {
         // devices
         'device:read', // get remote instance details
         'device:create', // create remote instance
-        'device:edit', // assign remote instance to application
+        'device:edit', // assign remote instance to application, list remote instance HTTP tokens
         // hosted instances
         'project:create', // create application, create hosted instance, check instance name
         'project-type:read',
@@ -73,6 +73,12 @@ const IMPLICIT_TOKEN_SCOPES = {
         'project:snapshot:create', // create hosted instance snapshot
         'device:snapshot:list', // list remote instance snapshots
         'device:snapshot:create', // create remote instance snapshot
+        // instance configuration
+        'project:edit', // get instance custom hostname, custom hostname status and HTTP tokens
+        'project:files:list', // list instance files
+        'project:audit-log', // get hosted instance audit log
+        'project:history', // get hosted instance history
+        'device:history', // get remote instance history (merged instance history tool)
         // teams
         'user:team:list', // list teams
         'team:read', // get team details
