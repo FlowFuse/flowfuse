@@ -33,72 +33,66 @@
             </ff-page-header>
         </template>
         <div class="space-y-6">
-            <PageLoader :loading="isLoadingTeamApplications" loader-key="team-applications">
-                <template #loading>
-                    <ApplicationsListSkeleton />
-                </template>
+            <template v-if="teamApplications.length > 0">
+                <ff-text-input
+                    v-model="filterTerm"
+                    class="ff-data-table--search"
+                    data-form="search"
+                    placeholder="Search Applications, Instances and Devices..."
+                >
+                    <template #icon><MagnifyingGlassIcon /></template>
+                </ff-text-input>
+                <ul v-if="filteredApplications.length > 0" class="ff-applications-list relative" data-el="applications-list">
+                    <transition-group name="fade-slide">
+                        <ApplicationListItem
+                            v-for="application in filteredApplications"
+                            :key="application.id"
+                            data-el="application-item"
+                            :application="application"
+                            @instance-deleted="refreshApplications"
+                            @device-deleted="refreshApplications"
+                        />
+                    </transition-group>
+                </ul>
+                <p v-else class="no-results">
+                    No Data Found. Try Another Search.
+                </p>
+            </template>
 
-                <template v-if="teamApplications.length > 0">
-                    <ff-text-input
-                        v-model="filterTerm"
-                        class="ff-data-table--search"
-                        data-form="search"
-                        placeholder="Search Applications, Instances and Devices..."
-                    >
-                        <template #icon><MagnifyingGlassIcon /></template>
-                    </ff-text-input>
-                    <ul v-if="filteredApplications.length > 0" class="ff-applications-list relative" data-el="applications-list">
-                        <transition-group name="fade-slide">
-                            <ApplicationListItem
-                                v-for="application in filteredApplications"
-                                :key="application.id"
-                                data-el="application-item"
-                                :application="application"
-                                @instance-deleted="refreshApplications"
-                                @device-deleted="refreshApplications"
-                            />
-                        </transition-group>
-                    </ul>
-                    <p v-else class="no-results">
-                        No Data Found. Try Another Search.
+            <EmptyState v-else>
+                <template #img>
+                    <img src="../../../images/empty-states/team-applications.png">
+                </template>
+                <template #header>Get Started with your First Application</template>
+                <template #message>
+                    <p>Applications in FlowFuse are used to manage groups of Node-RED Instances</p>
+                    <p>
+                        Instances within Applications can be connected as
+                        <a class="ff-link" href="https://flowfuse.com/docs/user/staged-deployments" target="_blank">Staged Deployments.</a>
                     </p>
                 </template>
-
-                <EmptyState v-else>
-                    <template #img>
-                        <img src="../../../images/empty-states/team-applications.png">
-                    </template>
-                    <template #header>Get Started with your First Application</template>
-                    <template #message>
-                        <p>Applications in FlowFuse are used to manage groups of Node-RED Instances</p>
-                        <p>
-                            Instances within Applications can be connected as
-                            <a class="ff-link" href="https://flowfuse.com/docs/user/staged-deployments" target="_blank">Staged Deployments.</a>
-                        </p>
-                    </template>
-                    <template #actions>
-                        <ff-button
-                            v-if="hasPermission('project:create')"
-                            data-action="create-application"
-                            kind="primary"
-                            type="anchor"
-                            :to="{name: 'CreateTeamApplication'}"
-                        >
-                            <template #icon-left>
-                                <PlusSmallIcon />
-                            </template>
-                            Create Application
-                        </ff-button>
-                    </template>
-                    <template #note>
-                        <p>
-                            The FlowFuse team also have more planned for Applications, including
-                            <a class="ff-link" href="https://github.com/FlowFuse/flowfuse/issues/1734" target="_blank">
-                                shared settings across Instances</a>.
-                        </p>
-                    </template>
-                </EmptyState>
-            </PageLoader>
+                <template #actions>
+                    <ff-button
+                        v-if="hasPermission('project:create')"
+                        data-action="create-application"
+                        kind="primary"
+                        type="anchor"
+                        :to="{name: 'CreateTeamApplication'}"
+                    >
+                        <template #icon-left>
+                            <PlusSmallIcon />
+                        </template>
+                        Create Application
+                    </ff-button>
+                </template>
+                <template #note>
+                    <p>
+                        The FlowFuse team also have more planned for Applications, including
+                        <a class="ff-link" href="https://github.com/FlowFuse/flowfuse/issues/1734" target="_blank">
+                            shared settings across Instances</a>.
+                    </p>
+                </template>
+            </EmptyState>
         </div>
         <router-view />
     </ff-page>
@@ -110,23 +104,20 @@ import { MagnifyingGlassIcon, PlusSmallIcon } from '@heroicons/vue/24/outline'
 import { mapActions, mapState } from 'pinia'
 
 import EmptyState from '../../../components/EmptyState.vue'
-import PageLoader from '../../../components/PageLoader.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import ApplicationListItem from './components/Application.vue'
-import ApplicationsListSkeleton from './components/ApplicationsListSkeleton.vue'
 
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'TeamApplications',
     components: {
         MagnifyingGlassIcon,
         ApplicationListItem,
-        ApplicationsListSkeleton,
         EmptyState,
-        PageLoader,
         PlusSmallIcon
     },
     setup () {
@@ -145,7 +136,10 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useDataFarmApplicationsStore, ['teamApplications', 'isLoadingTeamApplications']),
+        ...mapState(useDataFarmApplicationsStore, ['teamApplications', 'applicationsListHydrated']),
+        shouldShowPageLoader () {
+            return !this.applicationsListHydrated
+        },
         filteredApplications () {
             if (this.filterTerm.length) {
                 return this.teamApplications
@@ -159,20 +153,30 @@ export default {
         }
     },
     watch: {
-        team: 'loadApplications'
+        applicationsListHydrated: {
+            handler () {
+                if (!this.applicationsListHydrated && this.team?.id) {
+                    this.ensureTeamApplicationsLoaded(this.team.id)
+                }
+            },
+            immediate: true
+        },
+        shouldShowPageLoader: {
+            handler (show) {
+                this.setPageLoader(show, 'Loading Applications...')
+            },
+            immediate: true
+        }
     },
-    async mounted () {
-        await this.loadApplications()
-
+    mounted () {
         this.setSearchQuery()
+    },
+    beforeUnmount () {
+        this.setPageLoader(false)
     },
     methods: {
         ...mapActions(useDataFarmApplicationsStore, ['ensureTeamApplicationsLoaded']),
-        loadApplications () {
-            if (this.team?.id) {
-                return this.ensureTeamApplicationsLoaded(this.team.id)
-            }
-        },
+        ...mapActions(useUxLoadingStore, ['setPageLoader']),
         refreshApplications () {
             if (this.team?.id) {
                 return this.ensureTeamApplicationsLoaded(this.team.id, { force: true })

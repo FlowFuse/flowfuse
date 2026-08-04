@@ -1,11 +1,18 @@
 <template>
-    <slot name="header" />
-    <main :class="mainClasses">
-        <slot name="default" />
-    </main>
+    <div v-if="!pageLoader">
+        <slot name="header" />
+        <main :class="mainClasses">
+            <slot name="default" />
+        </main>
+    </div>
+    <ff-loading v-else :message="pageLoaderMessage" />
 </template>
 
 <script>
+import { mapState } from 'pinia'
+
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
+
 export default {
     name: 'PageLayout',
     props: {
@@ -15,6 +22,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useUxLoadingStore, ['pageLoader', 'pageLoaderMessage']),
         mainClasses () {
             const classes = ['flex-1', 'overflow-auto', 'h-full', 'w-full', 'flex', 'flex-col']
             if (!this.noPadding && !this.hasRouteDeclaredNoPadding) {

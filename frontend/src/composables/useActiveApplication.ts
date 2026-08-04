@@ -7,7 +7,7 @@ import type { ApplicationSummary } from '@/types'
 export function useActiveApplication () {
     const router = useRouter()
     const applicationsStore = useDataFarmApplicationsStore()
-    const { activeApplication, isLoadingActiveApplication } = storeToRefs(applicationsStore)
+    const { activeApplication, applicationHydrated } = storeToRefs(applicationsStore)
 
     async function loadActiveApplication (id: string): Promise<ApplicationSummary | null> {
         if (!id) return null
@@ -29,5 +29,5 @@ export function useActiveApplication () {
         applicationsStore.setActiveApplication(null)
     }
 
-    return { application: activeApplication, isLoadingActiveApplication, loadActiveApplication, clearActiveApplication }
+    return { application: activeApplication, applicationHydrated, loadActiveApplication, clearActiveApplication }
 }

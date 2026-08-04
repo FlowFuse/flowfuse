@@ -9,9 +9,9 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
     const applicationsById = ref<Record<string, ApplicationSummary>>({})
     const teamApplicationIds = ref<string[]>([])
     const loadedTeamId = ref<string | null>(null)
-    const isLoadingTeamApplications = ref(false)
     const activeApplicationId = ref<string | null>(null)
-    const isLoadingActiveApplication = ref(false)
+    const applicationsListHydrated = ref(false)
+    const applicationHydrated = ref(false)
 
     const teamApplications = computed(() => teamApplicationIds.value
         .map(id => applicationsById.value[id]))
@@ -38,26 +38,22 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         if (!teamId) return
         if (!force && loadedTeamId.value === teamId) return
 
-        isLoadingTeamApplications.value = true
-        try {
-            const response = await teamApi.getTeamApplications(teamId, {
-                includeApplicationSummary: true,
-                includeInstances: false,
-                includeApplicationDevices: false
-            })
-            const applications: ApplicationSummary[] = response.applications ?? []
-            const byId: Record<string, ApplicationSummary> = {}
-            const ids: string[] = []
-            applications.forEach(application => {
-                byId[application.id] = application
-                ids.push(application.id)
-            })
-            applicationsById.value = byId
-            teamApplicationIds.value = ids
-            loadedTeamId.value = teamId
-        } finally {
-            isLoadingTeamApplications.value = false
-        }
+        const response = await teamApi.getTeamApplications(teamId, {
+            includeApplicationSummary: true,
+            includeInstances: false,
+            includeApplicationDevices: false
+        })
+        const applications: ApplicationSummary[] = response.applications ?? []
+        const byId: Record<string, ApplicationSummary> = {}
+        const ids: string[] = []
+        applications.forEach(application => {
+            byId[application.id] = application
+            ids.push(application.id)
+        })
+        applicationsById.value = byId
+        teamApplicationIds.value = ids
+        loadedTeamId.value = teamId
+        applicationsListHydrated.value = true
     }
 
     async function createApplication (payload: { name?: string, description?: string, teamId: string }): Promise<ApplicationSummary> {
@@ -80,6 +76,7 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
     function setActiveApplication (application: ApplicationSummary | null): void {
         if (!application?.id) {
             activeApplicationId.value = null
+            applicationHydrated.value = false
             return
         }
         const existing = applicationsById.value[application.id]
@@ -89,14 +86,11 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
 
     async function loadActiveApplication (id: string): Promise<ApplicationSummary | null> {
         if (!id) return null
-        isLoadingActiveApplication.value = true
-        try {
-            const application = await applicationApi.getApplication(id)
-            setActiveApplication(application)
-            return application
-        } finally {
-            isLoadingActiveApplication.value = false
-        }
+        applicationHydrated.value = false
+        const application = await applicationApi.getApplication(id)
+        setActiveApplication(application)
+        applicationHydrated.value = true
+        return application
     }
 
     function applyRealtimeEvent (event: { id?: string, action?: string, data?: ApplicationSummary }): void {
@@ -112,18 +106,18 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         applicationsById.value = {}
         teamApplicationIds.value = []
         loadedTeamId.value = null
-        isLoadingTeamApplications.value = false
         activeApplicationId.value = null
-        isLoadingActiveApplication.value = false
+        applicationsListHydrated.value = false
+        applicationHydrated.value = false
     }
 
     return {
         applicationsById,
         teamApplicationIds,
         loadedTeamId,
-        isLoadingTeamApplications,
         activeApplicationId,
-        isLoadingActiveApplication,
+        applicationsListHydrated,
+        applicationHydrated,
         teamApplications,
         activeApplication,
         upsertApplication,

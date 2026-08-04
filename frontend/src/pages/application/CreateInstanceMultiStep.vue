@@ -59,9 +59,9 @@ export default {
     inheritAttrs: false,
     emits: ['application-updated'],
     setup () {
-        const { application, isLoadingActiveApplication, loadActiveApplication, clearActiveApplication } = useActiveApplication()
+        const { application, applicationHydrated, loadActiveApplication, clearActiveApplication } = useActiveApplication()
 
-        return { application, isLoadingActiveApplication, loadActiveApplication, clearActiveApplication }
+        return { application, applicationHydrated, loadActiveApplication, clearActiveApplication }
     },
     data () {
         return {
@@ -80,7 +80,7 @@ export default {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
         isLoading () {
-            return this.loading || !this.team || this.isLoadingActiveApplication
+            return this.loading || !this.team || !this.applicationHydrated
         }
     },
     async created () {

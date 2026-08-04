@@ -19,8 +19,9 @@ describe('data-farm-applications store', () => {
         expect(store.applicationsById).toEqual({})
         expect(store.teamApplicationIds).toEqual([])
         expect(store.loadedTeamId).toBe(null)
-        expect(store.isLoadingTeamApplications).toBe(false)
         expect(store.teamApplications).toEqual([])
+        expect(store.applicationsListHydrated).toBe(false)
+        expect(store.applicationHydrated).toBe(false)
     })
 
     describe('ensureTeamApplicationsLoaded', () => {
@@ -36,7 +37,7 @@ describe('data-farm-applications store', () => {
             expect(store.loadedTeamId).toBe('team-1')
             expect(store.teamApplicationIds).toEqual(['a1', 'a2'])
             expect(store.teamApplications.map(a => a.name)).toEqual(['One', 'Two'])
-            expect(store.isLoadingTeamApplications).toBe(false)
+            expect(store.applicationsListHydrated).toBe(true)
         })
 
         it('does not refetch when the team is already loaded', async () => {
@@ -72,12 +73,12 @@ describe('data-farm-applications store', () => {
             expect(store.teamApplicationIds).toEqual(['b1'])
         })
 
-        it('clears the loading flag even when the fetch rejects', async () => {
+        it('does not mark the list hydrated when the fetch rejects', async () => {
             vi.spyOn(teamApi, 'getTeamApplications').mockRejectedValue(new Error('boom'))
             const store = useDataFarmApplicationsStore()
 
             await expect(store.ensureTeamApplicationsLoaded('team-1')).rejects.toThrow('boom')
-            expect(store.isLoadingTeamApplications).toBe(false)
+            expect(store.applicationsListHydrated).toBe(false)
         })
     })
 
@@ -206,17 +207,17 @@ describe('data-farm-applications store', () => {
             expect(applicationApi.getApplication).toHaveBeenCalledWith('a1')
             expect(application).toEqual({ id: 'a1', name: 'Detail' })
             expect(store.activeApplication).toEqual({ id: 'a1', name: 'Detail' })
-            expect(store.isLoadingActiveApplication).toBe(false)
+            expect(store.applicationHydrated).toBe(true)
             // the active app is cached but not a member of the team list
             expect(store.teamApplicationIds).toEqual([])
         })
 
-        it('clears the loading flag even when the fetch rejects', async () => {
+        it('does not mark the application hydrated when the fetch rejects', async () => {
             vi.spyOn(applicationApi, 'getApplication').mockRejectedValue(new Error('boom'))
             const store = useDataFarmApplicationsStore()
 
             await expect(store.loadActiveApplication('a1')).rejects.toThrow('boom')
-            expect(store.isLoadingActiveApplication).toBe(false)
+            expect(store.applicationHydrated).toBe(false)
         })
     })
 
@@ -250,11 +251,13 @@ describe('data-farm-applications store', () => {
             expect(store.teamApplicationIds).toEqual(['a1'])
         })
 
-        it('clears the active application on null', () => {
+        it('clears the active application and its hydration flag on null', () => {
             const store = useDataFarmApplicationsStore()
             store.setActiveApplication({ id: 'a1', name: 'Detail' })
+            store.applicationHydrated = true
             store.setActiveApplication(null)
             expect(store.activeApplication).toBe(null)
+            expect(store.applicationHydrated).toBe(false)
         })
     })
 
@@ -270,8 +273,9 @@ describe('data-farm-applications store', () => {
             expect(store.applicationsById).toEqual({})
             expect(store.teamApplicationIds).toEqual([])
             expect(store.loadedTeamId).toBe(null)
-            expect(store.isLoadingTeamApplications).toBe(false)
             expect(store.activeApplication).toBe(null)
+            expect(store.applicationsListHydrated).toBe(false)
+            expect(store.applicationHydrated).toBe(false)
         })
     })
 })
