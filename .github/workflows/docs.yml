@@ -9,7 +9,6 @@ on:
       - 'docs/**'
 jobs:
   test:
-    if: false
     runs-on: ubuntu-latest
     name: Test Documentation links
     steps:
@@ -24,7 +23,6 @@ jobs:
       - name: Test Documentation Links
         run: npm run test:docs
   test-with-website:
-    if: false
     runs-on: ubuntu-latest
     name: Test Documentation with website
     steps:
@@ -77,9 +75,9 @@ jobs:
   publish:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    # Deliberately gated on nothing while `test` and `test-with-website` are disabled:
-    # a skipped job skips whatever needs it, which is why merging a docs change stopped
-    # triggering a website rebuild. Restore the `needs` when those two come back.
+    needs:
+      - test
+      - test-with-website
     name: Publish Documentation
     steps:
       - name: Generate token
