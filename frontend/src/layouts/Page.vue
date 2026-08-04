@@ -1,5 +1,5 @@
 <template>
-    <div v-if="!pageLoader">
+    <div v-if="!pageLoader" class="flex flex-col flex-1 w-full min-h-0">
         <slot name="header" />
         <main :class="mainClasses">
             <slot name="default" />
