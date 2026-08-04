@@ -60,4 +60,4 @@ For actions performed through FlowFuse Expert or the FlowFuse platform API, both
 
 Actions performed directly through the FlowFuse UI do not show an icon.
 
-These logs provide visibility into supported FlowFuse Expert MCP tool actions and API actions only. They do not include all MCP activity, such as actions performed through an instance MCP server.
+These logs provide visibility into supported FlowFuse Expert and API actions only.
