@@ -77,9 +77,9 @@ jobs:
   publish:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: 
-      - test
-      - test-with-website
+    # Deliberately gated on nothing while `test` and `test-with-website` are disabled:
+    # a skipped job skips whatever needs it, which is why merging a docs change stopped
+    # triggering a website rebuild. Restore the `needs` when those two come back.
     name: Publish Documentation
     steps:
       - name: Generate token
