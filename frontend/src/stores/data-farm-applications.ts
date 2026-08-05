@@ -93,6 +93,10 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         return application
     }
 
+    function clearActiveApplication (): void {
+        setActiveApplication(null)
+    }
+
     function applyRealtimeEvent (event: { id?: string, action?: string, data?: ApplicationSummary }): void {
         if (!event?.id || !event.action) return
         if (event.action === 'deleted') {
@@ -126,6 +130,7 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         deleteApplication,
         setActiveApplication,
         loadActiveApplication,
+        clearActiveApplication,
         applyRealtimeEvent,
         reset
     }

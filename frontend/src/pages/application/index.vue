@@ -61,15 +61,13 @@ export default {
     mixins: [instanceActionsMixin],
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
-        const { application, loadActiveApplication, clearActiveApplication } = useActiveApplication()
+        const { loadActiveApplication } = useActiveApplication()
         const applicationsStore = useDataFarmApplicationsStore()
 
         return {
             hasPermission,
             isVisitingAdmin,
-            application,
             loadActiveApplication,
-            clearActiveApplication,
             deleteApplicationEntity: applicationsStore.deleteApplication
         }
     },
@@ -82,7 +80,7 @@ export default {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
         ...mapState(useLiveStatusStore, { liveInstanceMetadata: 'instanceMetadata', statusChannelLive: 'live' }),
-        ...mapState(useDataFarmApplicationsStore, ['applicationHydrated', 'activeApplicationId']),
+        ...mapState(useDataFarmApplicationsStore, { application: 'activeApplication', applicationHydrated: 'applicationHydrated', activeApplicationId: 'activeApplicationId' }),
         ...mapState(useUxLoadingStore, ['pageLoader']),
         routeApplicationHydrated () {
             return this.applicationHydrated && this.activeApplicationId === this.$route.params.id
@@ -197,6 +195,7 @@ export default {
     },
     methods: {
         ...mapActions(useUxLoadingStore, ['setPageLoader']),
+        ...mapActions(useDataFarmApplicationsStore, ['clearActiveApplication']),
         async loadApplicationData () {
             const applicationId = this.$route.params.id
             if (!applicationId) {

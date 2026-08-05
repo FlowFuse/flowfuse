@@ -281,6 +281,15 @@ describe('data-farm-applications store', () => {
             expect(store.activeApplication).toBe(null)
             expect(store.applicationHydrated).toBe(false)
         })
+
+        it('clearActiveApplication resets the active application and its hydration flag', () => {
+            const store = useDataFarmApplicationsStore()
+            store.setActiveApplication({ id: 'a1', name: 'Detail' })
+            store.applicationHydrated = true
+            store.clearActiveApplication()
+            expect(store.activeApplication).toBe(null)
+            expect(store.applicationHydrated).toBe(false)
+        })
     })
 
     describe('reset', () => {
