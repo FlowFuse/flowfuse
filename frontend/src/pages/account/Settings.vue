@@ -306,6 +306,7 @@ export default {
                        This action cannot be undone.`,
                 confirmLabel: 'Delete'
             }, async () => {
+                await useAccountAuthStore().disconnectSubscribers()
                 userApi.deleteUser()
                     .then(() => {
                         if (this.settings['user:offboarding-required']) {
