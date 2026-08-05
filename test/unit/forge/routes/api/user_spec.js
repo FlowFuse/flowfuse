@@ -1,4 +1,6 @@
 const should = require('should') // eslint-disable-line
+const sinon = require('sinon')
+
 const setup = require('../setup')
 
 const FF_UTIL = require('flowforge-test-utils')
@@ -1612,6 +1614,153 @@ describe('User API', async function () {
                     response.json().should.have.property('code', 'pat_cannot_create_pat')
                 })
             })
+        })
+    })
+
+    describe('Browser session presence', async function () {
+        let patToken
+
+        before(async function () {
+            await login('alice', 'aaPassword')
+            const createResponse = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/tokens',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: { name: 'Presence Test PAT', scope: '', adminOptIn: true }
+            })
+            createResponse.statusCode.should.equal(200)
+            patToken = createResponse.json().token
+        })
+
+        beforeEach(function () {
+            sinon.stub(app.comms, 'publishTabHeartbeat')
+        })
+
+        afterEach(function () {
+            app.comms.publishTabHeartbeat.restore()
+        })
+
+        it('publishes an update on POST /browser-sessions/heartbeat', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/browser-sessions/heartbeat',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    sessionId: 'session-1234',
+                    kind: 'editor',
+                    entityType: 'p',
+                    entityId: 'instance-abc',
+                    instanceId: 'instance-abc',
+                    capabilities: ['platform_ui', 'flow_building']
+                }
+            })
+            response.statusCode.should.equal(200)
+            response.json().should.have.property('status', 'okay')
+
+            app.comms.publishTabHeartbeat.calledOnce.should.be.true()
+            const call = app.comms.publishTabHeartbeat.firstCall
+            call.args[0].should.equal(TestObjects.alice.hashid)
+            call.args[1].should.equal('session-1234')
+            call.args[2].should.equal('update')
+            call.args[3].should.deepEqual({
+                kind: 'editor',
+                entityType: 'p',
+                entityId: 'instance-abc',
+                instanceId: 'instance-abc',
+                capabilities: ['platform_ui', 'flow_building']
+            })
+        })
+
+        it('defaults instanceId to null when omitted', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/browser-sessions/heartbeat',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    sessionId: 'session-5678',
+                    kind: 'platform',
+                    entityType: 't',
+                    entityId: 'team-xyz',
+                    capabilities: ['platform_ui']
+                }
+            })
+            response.statusCode.should.equal(200)
+            app.comms.publishTabHeartbeat.firstCall.args[3].should.have.property('instanceId', null)
+        })
+
+        it('rejects a heartbeat missing required fields', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/browser-sessions/heartbeat',
+                cookies: { sid: TestObjects.tokens.alice },
+                payload: {
+                    sessionId: 'session-9999',
+                    kind: 'platform'
+                }
+            })
+            response.statusCode.should.equal(400)
+            app.comms.publishTabHeartbeat.called.should.be.false()
+        })
+
+        it('publishes a clear on DELETE /browser-sessions/:sessionId', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user/browser-sessions/session-1234',
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(204)
+
+            app.comms.publishTabHeartbeat.calledOnce.should.be.true()
+            const call = app.comms.publishTabHeartbeat.firstCall
+            call.args[0].should.equal(TestObjects.alice.hashid)
+            call.args[1].should.equal('session-1234')
+            call.args[2].should.equal('clear')
+            call.args[3].should.deepEqual({})
+        })
+
+        it('scopes presence to the calling session user', async function () {
+            await login('frank', 'ffPassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/browser-sessions/heartbeat',
+                cookies: { sid: TestObjects.tokens.frank },
+                payload: {
+                    sessionId: 'session-frank',
+                    kind: 'platform',
+                    entityType: 't',
+                    entityId: 'team-xyz',
+                    capabilities: ['platform_ui']
+                }
+            })
+            response.statusCode.should.equal(200)
+            app.comms.publishTabHeartbeat.firstCall.args[0].should.equal(TestObjects.frank.hashid)
+        })
+
+        it('blocks PAT-authenticated POST /browser-sessions/heartbeat', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/user/browser-sessions/heartbeat',
+                headers: { authorization: `Bearer ${patToken}` },
+                payload: {
+                    sessionId: 'session-pat',
+                    kind: 'platform',
+                    entityType: 't',
+                    entityId: 'team-xyz',
+                    capabilities: ['platform_ui']
+                }
+            })
+            response.statusCode.should.equal(403)
+            app.comms.publishTabHeartbeat.called.should.be.false()
+        })
+
+        it('blocks PAT-authenticated DELETE /browser-sessions/:sessionId', async function () {
+            const response = await app.inject({
+                method: 'DELETE',
+                url: '/api/v1/user/browser-sessions/session-pat',
+                headers: { authorization: `Bearer ${patToken}` }
+            })
+            response.statusCode.should.equal(403)
+            app.comms.publishTabHeartbeat.called.should.be.false()
         })
     })
 

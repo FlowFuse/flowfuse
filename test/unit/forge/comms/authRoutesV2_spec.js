@@ -1373,6 +1373,75 @@ describe('Broker Auth v2 API', async function () {
                 })
             })
 
+            describe('Expert Gateway', async function () {
+                // The central MCP gateway is a distinct broker identity scoped to the
+                // third-party MCP ingress and the platform execution leg it runs tools on.
+                it('denies subscription to project topics', async function () {
+                    await denyRead({
+                        username: 'mcp-gateway:api:v1',
+                        topic: `ff/v1/${TestObjects.ATeam.hashid}/p/${TestObjects.ProjectA.id}/res/#`
+                    })
+                })
+                it('denies publish/subscribe to platform topics', async function () {
+                    await denyRead({
+                        username: 'mcp-gateway:api:v1',
+                        topic: 'ff/v1/platform/sync'
+                    })
+                    await denyWrite({
+                        username: 'mcp-gateway:api:v1',
+                        topic: 'ff/v1/platform/sync'
+                    })
+                })
+
+                // third-party MCP ingress
+                it('allows subscription to third-party MCP request topics', async function () {
+                    await allowRead({
+                        username: 'mcp-gateway:api:v1',
+                        topic: 'ff/v1/mcp/platform1/+/+/request'
+                    })
+                })
+                it('allows publish to third-party MCP response topics', async function () {
+                    await allowWrite({
+                        username: 'mcp-gateway:api:v1',
+                        topic: `ff/v1/mcp/platform1/${TestObjects.alice.hashid}/session123/response`
+                    })
+                })
+                it('denies subscription to third-party MCP response topics', async function () {
+                    await denyRead({
+                        username: 'mcp-gateway:api:v1',
+                        topic: 'ff/v1/mcp/platform1/+/+/response'
+                    })
+                })
+
+                // platform execution leg
+                it('allows subscription to platform response topics', async function () {
+                    await allowRead({
+                        username: 'mcp-gateway:api:v1',
+                        topic: 'ff/v1/expert/+/+/platform/+/response'
+                    })
+                })
+                it('allows publish to platform request topics', async function () {
+                    await allowWrite({
+                        username: 'mcp-gateway:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/platform/automation:mcp-call-tool/request`
+                    })
+                })
+
+                // scoped out of the support chat leg that the expert-agent serves
+                it('denies publish to support chat response topics', async function () {
+                    await denyWrite({
+                        username: 'mcp-gateway:api:v1',
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/${TestObjects.ProjectA.id}/support/chat/response`
+                    })
+                })
+                it('denies subscription to support chat request topics', async function () {
+                    await denyRead({
+                        username: 'mcp-gateway:api:v1',
+                        topic: 'ff/v1/expert/+/+/+/+/support/chat/request'
+                    })
+                })
+            })
+
             // TODO: tests for Application RBACs (ensure project/device in an application with reduced permissions are suitably restricted in the ACLs)
         })
 

@@ -254,6 +254,23 @@ const initiateExpertChat = async ({ sessionId }) => {
     return client.post('/api/v1/user/expert-creds', { sessionId }).then(res => res.data)
 }
 
+/**
+ * Announce this browser tab's presence for third-party MCP tool targeting.
+ * See [routes/api/user.js](../../../forge/routes/api/user.js)
+ */
+const heartbeatBrowserSession = async ({ sessionId, kind, entityType, entityId, instanceId, capabilities }) => {
+    return client.post('/api/v1/user/browser-sessions/heartbeat', { sessionId, kind, entityType, entityId, instanceId, capabilities }).then(res => res.data)
+}
+
+/**
+ * Clear this browser tab's presence.
+ * See [routes/api/user.js](../../../forge/routes/api/user.js)
+ * @param {string} sessionId
+ */
+const clearBrowserSession = async (sessionId) => {
+    return client.delete('/api/v1/user/browser-sessions/' + sessionId).then(res => res.data)
+}
+
 export default {
     registerUser,
     getUser,
@@ -282,5 +299,7 @@ export default {
     enableMFA,
     verifyMFA,
     disableMFA,
-    initiateExpertChat
+    initiateExpertChat,
+    heartbeatBrowserSession,
+    clearBrowserSession
 }

@@ -1,4 +1,6 @@
 const fp = require('fastify-plugin')
+
+const { generateToken } = require('../../../db/utils')
 // decorate the app with the expert helpers and cache utilities
 
 const TOKEN_CACHE_NAME = 'ExpertMCPAccessTokenCache'
@@ -7,6 +9,9 @@ const EXPERT_MCP_SCOPE = 'ff-expert:mcp'
 const EXPERT_MCP_PLATFORM_SCOPE = 'ff-expert:platform'
 // Dedicated owner type so platform-automation tokens are not treated as general user tokens
 const EXPERT_MCP_PLATFORM_OWNER_TYPE = 'user:expert-mcp'
+// A named token is required for the request pipeline to treat a token as a
+// scoped token and apply its readOnly and team-scope caps
+const EXPERT_MCP_PLATFORM_TOKEN_NAME = 'FlowFuse Expert MCP Platform Token'
 
 const EXPERT_MCP_SCOPES = [
     EXPERT_MCP_SCOPE,
@@ -135,23 +140,67 @@ module.exports = fp(async function (app, _opts) {
         return readCachedMcpAccessToken(instanceId)
     }
 
-    async function getOrCreateMcpPlatformToken (user) {
-        const cacheKey = `platform:${user.hashid}`
+    // Mint a platform-automation token that is capped to a caller-provided
+    // scope. The token carries a name so the request pipeline treats it as a
+    // scoped token and enforces its readOnly flag and team scopes, ensuring an
+    // injected request cannot exceed the caller's scope.
+    async function mintCappedMcpPlatformToken (user, expiresAt, { readOnly, teams }) {
+        const userId = typeof user === 'number' ? user : user.id
+        const token = generateToken(32, 'ffu')
+        await app.db.sequelize.transaction(async (t) => {
+            const accessToken = await app.db.models.AccessToken.create({
+                name: EXPERT_MCP_PLATFORM_TOKEN_NAME,
+                token,
+                scope: [EXPERT_MCP_PLATFORM_SCOPE],
+                expiresAt,
+                readOnly,
+                ownerId: '' + userId,
+                ownerType: EXPERT_MCP_PLATFORM_OWNER_TYPE
+            }, { transaction: t })
+            if (teams.length > 0) {
+                const teamScopes = teams.map(teamId => ({
+                    AccessTokenId: accessToken.id,
+                    TeamId: app.db.models.Team.decodeHashid(teamId),
+                    UserId: userId
+                }))
+                await app.db.models.AccessTokenTeamScope.bulkCreate(teamScopes, { transaction: t })
+            }
+        })
+        return token
+    }
+
+    async function getOrCreateMcpPlatformToken (user, scope) {
+        const capped = !!scope
+        const readOnly = capped && scope.readOnly === true
+        const teams = (capped && Array.isArray(scope.teams)) ? scope.teams : []
+
+        let cacheKey = `platform:${user.hashid}`
+        if (capped) {
+            const teamsKey = [...teams].sort().join('|')
+            cacheKey = `platform:${user.hashid}:readOnly=${readOnly}:teams=${teamsKey}`
+        }
+
         const cached = await readCachedMcpAccessToken(cacheKey)
         if (cached) {
             return cached
         }
 
         const expiresAt = new Date(Date.now() + TOKEN_TTL)
-        const { token } = await app.db.controllers.AccessToken.createTokenForUser(
-            user,
-            expiresAt,
-            [EXPERT_MCP_PLATFORM_SCOPE],
-            undefined,
-            EXPERT_MCP_PLATFORM_OWNER_TYPE
-        )
+        let entry
+        if (capped) {
+            const token = await mintCappedMcpPlatformToken(user, expiresAt, { readOnly, teams })
+            entry = { token }
+        } else {
+            const { token } = await app.db.controllers.AccessToken.createTokenForUser(
+                user,
+                expiresAt,
+                [EXPERT_MCP_PLATFORM_SCOPE],
+                undefined,
+                EXPERT_MCP_PLATFORM_OWNER_TYPE
+            )
+            entry = { token }
+        }
 
-        const entry = { token }
         await tokenCache().set(cacheKey, {
             value: entry,
             expiresAt: Date.now() + TOKEN_TTL

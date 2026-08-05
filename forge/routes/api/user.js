@@ -464,4 +464,78 @@ module.exports = async function (app) {
         const clientCreds = await app.db.controllers.BrokerClient.createClientForExpertClient(request.session.User, request.body.sessionId)
         reply.send(clientCreds)
     })
+
+    /**
+     * Announce this browser tab's presence for third-party MCP tool targeting.
+     * The heartbeat is relayed to the central MCP gateway, which holds an
+     * in-memory TTL map, so the tab republishes on a fixed cadence.
+     * /api/v1/user/browser-sessions/heartbeat
+     */
+    app.post('/browser-sessions/heartbeat', {
+        preHandler: app.blockPAT,
+        schema: {
+            summary: 'Announce this browser tab\'s presence',
+            tags: ['User'],
+            body: {
+                type: 'object',
+                required: ['sessionId', 'kind', 'entityType', 'entityId', 'capabilities'],
+                properties: {
+                    sessionId: { type: 'string', minLength: 8 },
+                    kind: { type: 'string', enum: ['platform', 'editor'] },
+                    entityType: { type: 'string', enum: ['t', 'a', 'p', 'd'] },
+                    entityId: { type: 'string' },
+                    instanceId: { type: 'string', nullable: true },
+                    capabilities: { type: 'array', items: { type: 'string' } }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const body = request.body
+        app.comms?.publishTabHeartbeat(request.session.User.hashid, body.sessionId, 'update', {
+            kind: body.kind,
+            entityType: body.entityType,
+            entityId: body.entityId,
+            instanceId: body.instanceId || null,
+            capabilities: body.capabilities
+        })
+        reply.send({ status: 'okay' })
+    })
+
+    /**
+     * Clear this browser tab's presence.
+     * /api/v1/user/browser-sessions/:sessionId
+     */
+    app.delete('/browser-sessions/:sessionId', {
+        preHandler: app.blockPAT,
+        schema: {
+            summary: 'Clear this browser tab\'s presence',
+            tags: ['User'],
+            params: {
+                type: 'object',
+                properties: {
+                    sessionId: { type: 'string' }
+                }
+            },
+            response: {
+                204: {
+                    type: 'null',
+                    description: 'empty response'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        app.comms?.publishTabHeartbeat(request.session.User.hashid, request.params.sessionId, 'clear', {})
+        reply.code(204).send()
+    })
 }

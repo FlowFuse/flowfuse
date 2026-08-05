@@ -33,6 +33,7 @@ import PlatformAlerts from '../components/PlatformAlerts.vue'
 import PlatformDialog from '../components/dialogs/PlatformDialog.vue'
 import LeftDrawer from '../components/drawers/LeftDrawer.vue'
 import RightDrawer from '../components/drawers/RightDrawer.vue'
+import { useBrowserSessionPresence } from '../composables/services/BrowserSessionPresence.js'
 
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useUxStore } from '@/stores/ux.js'
@@ -46,6 +47,9 @@ export default {
         PlatformAlerts,
         PlatformDialog,
         InterviewPopup
+    },
+    setup () {
+        useBrowserSessionPresence('platform')
     },
     computed: {
         ...mapState(useUxStore, ['overlay']),
