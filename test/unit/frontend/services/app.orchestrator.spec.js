@@ -6,6 +6,7 @@ const mockCreateMessagingService = vi.fn()
 const mockCreateMqttService = vi.fn()
 const mockCreateTeamChannelSubscriber = vi.fn()
 const mockCreateLiveStatusSubscriber = vi.fn()
+const mockCreateApplicationsSubscriber = vi.fn()
 const mockCreateMqttTransport = vi.fn()
 
 vi.mock('../../../../frontend/src/services/automations.service.js', () => {
@@ -50,6 +51,12 @@ vi.mock('../../../../frontend/src/subscribers/live-status.subscriber.js', () => 
     }
 })
 
+vi.mock('../../../../frontend/src/subscribers/applications.subscriber.js', () => {
+    return {
+        createApplicationsSubscriber: mockCreateApplicationsSubscriber
+    }
+})
+
 async function loadOrchestratorModule () {
     vi.resetModules()
     return await import('../../../../frontend/src/services/app.orchestrator.ts')
@@ -62,6 +69,7 @@ function seedServices () {
     const mqttService = { name: 'mqtt', destroy: vi.fn().mockResolvedValue() }
     const teamChannelSubscriber = { name: 'teamChannel', destroy: vi.fn().mockResolvedValue() }
     const liveStatusSubscriber = { name: 'liveStatus', destroy: vi.fn().mockResolvedValue() }
+    const applicationsSubscriber = { name: 'applications', destroy: vi.fn().mockResolvedValue() }
     const transport = { name: 'mqtt-transport' }
 
     mockCreateAutomationsService.mockReturnValue(automationsService)
@@ -71,8 +79,9 @@ function seedServices () {
     mockCreateMqttTransport.mockReturnValue(transport)
     mockCreateTeamChannelSubscriber.mockReturnValue(teamChannelSubscriber)
     mockCreateLiveStatusSubscriber.mockReturnValue(liveStatusSubscriber)
+    mockCreateApplicationsSubscriber.mockReturnValue(applicationsSubscriber)
 
-    return { automationsService, bootstrapService, postMessageService, mqttService, teamChannelSubscriber, liveStatusSubscriber, transport }
+    return { automationsService, bootstrapService, postMessageService, mqttService, teamChannelSubscriber, liveStatusSubscriber, applicationsSubscriber, transport }
 }
 
 describe('AppOrchestrator', () => {
@@ -154,7 +163,7 @@ describe('AppOrchestrator', () => {
             mqtt: null,
             automations: null
         })
-        expect(orchestrator.$subscribers).toEqual({ teamChannel: null, liveStatus: null })
+        expect(orchestrator.$subscribers).toEqual({ teamChannel: null, liveStatus: null, applications: null })
         expect(orchestrator.$app).toBeNull()
         expect(orchestrator.$router).toBeNull()
         expect(orchestrator.$cleanupRegistered).toBe(false)

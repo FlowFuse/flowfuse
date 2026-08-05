@@ -132,11 +132,11 @@ module.exports = {
 
         if (config.assistant?.enabled === true && !config.assistant.service?.url) {
             config.assistant.service = config.assistant.service || {}
-            config.assistant.service.url = 'https://expert.flowfuse/v1/openai'
+            config.assistant.service.url = 'https://expert.flowfuse.com/v1/openai'
         }
         if (config.expert?.enabled === true && !config.expert.service?.url) {
             config.expert.service = config.expert.service || {}
-            config.expert.service.url = 'https://expert.flowfuse/v4/expert'
+            config.expert.service.url = 'https://expert.flowfuse.com/v4/expert'
         }
 
         const defaultLogging = {
