@@ -1,5 +1,6 @@
 ---
 navGroup: Support
+navGroupOrder: 5
 navOrder: 3
 navTitle: Premium Support
 meta:
