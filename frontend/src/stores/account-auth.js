@@ -11,6 +11,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useCookieConsentStore } from '@/stores/cookie-consent'
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
@@ -60,6 +61,12 @@ export const useAccountAuthStore = defineStore('account-auth', {
         },
         setRedirectUrl (url) {
             this.redirectUrlAfterLogin = url
+        },
+        async disconnectSubscribers () {
+            const subscribers = getAppOrchestrator().$subscribers
+            await Promise.all(
+                Object.values(subscribers).map(subscriber => subscriber?.disconnect().catch(() => {}))
+            )
         },
         async checkIfAuthenticated () {
             const user = await userApi.getUser()
@@ -205,11 +212,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
             if (useAccountSettingsStore().settings['platform:sso:only']) {
                 logoutURL = useAccountSettingsStore().settings['platform:sso:only:logoutURL'] || '/'
             }
-            const subscribers = getAppOrchestrator().$subscribers
-            const disconnect = Promise.all(
-                Object.values(subscribers).map(subscriber => subscriber?.disconnect().catch(() => {}))
-            )
-            return disconnect
+            return this.disconnectSubscribers()
                 .then(() => userApi.logout())
                 .then(() => this.clearStores())
                 .catch(_ => {})
@@ -232,6 +235,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
             useUxStore().$reset()
             useContextStore().$reset()
             useCookieConsentStore().reset()
+            useDataFarmApplicationsStore().reset()
             useProductTablesStore().$reset()
             useProductBrokersStore().$reset()
             useProductAssistantStore().$reset()
