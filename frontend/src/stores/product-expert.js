@@ -356,6 +356,25 @@ export const useProductExpertStore = defineStore('product-expert', {
                 onDisconnect: this._onMqttDisconnect
             })
         },
+        async establishPresenceSession () {
+            // Make this tab targetable by third-party MCP tools the moment FlowFuse loads,
+            // without waiting for the user to open Expert or send a message. Announcing
+            // presence and answering an action both need a live session and the inflight
+            // subscription, so mint the session and connect on mount. The broker credential
+            // is single-use, so this leaks nothing when a tab is never used for a chat.
+            if (!this.shouldUseMqtt) {
+                return
+            }
+            const agentStore = this._agentStore
+            if (!agentStore.sessionId) {
+                agentStore.sessionId = uuidv4()
+            }
+            const servicesOrchestrator = getAppOrchestrator()
+            const mqttService = servicesOrchestrator.$services.mqtt
+            if (!mqttService.hasClient(this.mqttConnectionKey)) {
+                await this.establishMqttComms()
+            }
+        },
         async fetchToolCatalog () {
             // Fetch the tool catalog for the permissions UI (#421) over HTTP, not MQTT:
             // the catalog is needed before any chat, so we must not open the broker
@@ -374,15 +393,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
         },
         async handleInFlightRequest ({ topic, message, transactionId, sessionId, chatTransactionId } = {}) {
-            // Match the originating chat request explicitly (not just the first entry) so a
-            // concurrent in-flight request — e.g. an open tool approval — can't shadow it and
-            // cause us to drop a valid in-flight request.
-            const inFlightRequest = Array.from(this._inFlightRequests.values())
-                .find(r => r.transactionId === chatTransactionId)
-
-            // dismiss inFlight requests that don't match the existing sessionId or the inFlight message transactionId
-            if (sessionId !== this.sessionId || !inFlightRequest) return
-
             const servicesOrchestrator = getAppOrchestrator()
             const assistantStore = useProductAssistantStore()
             const topicHelper = useMqttExpertTopicHelper()
@@ -391,7 +401,28 @@ export const useProductExpertStore = defineStore('product-expert', {
             const parsedTopic = topicHelper.parseTopic(topic)
             const payload = JSON.parse(message.toString())
 
-            this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
+            // Match the originating chat request explicitly (not just the first entry) so a
+            // concurrent in-flight request — e.g. an open tool approval — can't shadow it and
+            // cause us to drop a valid in-flight request.
+            const inFlightRequest = Array.from(this._inFlightRequests.values())
+                .find(r => r.transactionId === chatTransactionId)
+
+            // Action executions (flow-building apply and platform-UI tools) can be driven by a
+            // third-party agent that has no local chat turn, so they are gated only on the
+            // request targeting this tab's session — the broker ACL already restricts who may
+            // publish here. Chat-progress updates only make sense against a live local turn, so
+            // those still require a matching in-flight request.
+            const isActionExecution = parsedTopic.inflightType?.startsWith('automation:') ||
+                parsedTopic.inflightType === 'automation-ui:mcp-call-tool' ||
+                parsedTopic.inflightType === 'automation-ui:mcp-get-features'
+
+            if (sessionId !== this.sessionId) return
+            if (!isActionExecution && !inFlightRequest) return
+
+            // Surface progress in the chat UI only when this resolves a local chat turn.
+            if (inFlightRequest) {
+                this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
+            }
 
             const responseTopic = topicHelper.buildTopic({
                 entityType: parsedTopic.entityType,
@@ -840,9 +871,6 @@ export const useProductExpertStore = defineStore('product-expert', {
             })
         },
         async _onMqttMessage  (topic, message, packet) {
-            // ignore any messages if inFlightRequests has been cleared (it means that the chat was stopped mid-flight)
-            if (this._inFlightRequests.size === 0) return
-
             const topicHelper = useMqttExpertTopicHelper()
             const parsedTopic = topicHelper.parseTopic(topic)
             const transactionId = packet.properties?.correlationData ? new TextDecoder().decode(packet.properties.correlationData) : null
@@ -863,12 +891,15 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             switch (true) {
             case parsedTopic.isReply: // final chat response
+                // A reply only resolves a live chat turn; if the chat was stopped
+                // (no in-flight turns), there is nothing to resolve, so ignore it.
+                if (this._inFlightRequests.size === 0) return
                 // remove inFlight request because it is now resolved
                 this._inFlightRequests.delete(transactionId)
                 // handle the response
                 await this.handleMessageResponse(JSON.parse(message.toString()))
                 break
-            case parsedTopic.isInflightRequest: // in-flight request from the agent (e.g., action invocation, status update)
+            case parsedTopic.isInflightRequest: // in-flight request from the agent or a third-party gateway (action invocation, status update)
                 await this.handleInFlightRequest({
                     topic,
                     message,

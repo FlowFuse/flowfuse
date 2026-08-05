@@ -47,8 +47,8 @@ export function useBrowserSessionPresence (kind) {
 
     function beat () {
         const payload = collect()
-        // The expert-client session id is only established once the expert chat
-        // connects; until then a tab has nothing to announce, so no-op.
+        // No session means MQTT targeting is not available for this tab (e.g. the
+        // external-broker feature is off), so there is nothing to announce.
         if (!payload) {
             return
         }
@@ -82,7 +82,11 @@ export function useBrowserSessionPresence (kind) {
         }
     }
 
-    onMounted(() => {
+    onMounted(async () => {
+        // Establish the session + inflight subscription up front so the tab is targetable
+        // as soon as FlowFuse is open — the user does not need to open Expert or send a
+        // message first (that would defeat the point of driving it from a 3rd-party agent).
+        await expertStore.establishPresenceSession()
         beat()
         timer = setInterval(beat, HEARTBEAT_INTERVAL)
         window.addEventListener('beforeunload', clearOnUnload)
