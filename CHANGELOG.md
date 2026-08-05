@@ -1,3 +1,28 @@
+#### 2.33.2: Release
+
+ - build(deps): bump ip-address from 10.2.0 to 10.4.0 (#8054)
+ - feat(mcp): shared query schema fragments for platform tools (#7714)
+ - [8064] Flaky spec > Offboarding redirect sometimes lands on login page (#8065)
+ - [7652] Data Farm > Applications 3 - subscriber (#8030)
+ - Gate docs publishing on the two documentation checks (#8062)
+ - build(deps-dev): bump undici from 7.28.0 to 7.29.0 (#8056)
+ - Re-enable the documentation checks (#8024)
+ - Ensure Azure Git URLs accept project names (#8058)
+ - Fix the mcp audit log section url (#8059)
+ - Fix self-hosted Expert default service URL and log chat transport (#8057)
+ - Clarify MCP Audit Log Scope (#8028)
+ - Let docs publish run while the checks are disabled (#8029)
+ - [7651] Data-farm > Applications 2 - store + first consumer (#8021)
+ - [8015] Typescript: API Modules > devices.js → devices.ts (#8016)
+ - [8013] Typescript: API Modules > team.js → team.ts (#8014)
+ - Resync package-lock.json for globals 17.9.0 (#8027)
+ - [7650] Data-farm > Applications 1 - backend: publish lifecycle events (#8020)
+ - [8011] Typescript: API Modules > client.js → client.ts (#8012)
+ - build(deps): bump aws-actions/configure-aws-credentials from 6.2.2 to 6.2.3 (#7961)
+ - Correct broken image path (#8023)
+ - Update device agent docs and link to from node-red (#8022)
+ - Fix device agent setup for windows PowerShell instructions in quickstart.md (#8018)
+
 #### 2.33.1: Release
 
  - docs: fix the broken screenshot and stray characters in the token scoping docs (#8010)
