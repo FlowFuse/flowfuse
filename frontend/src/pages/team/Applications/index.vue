@@ -108,7 +108,6 @@ import usePermissions from '../../../composables/Permissions.js'
 
 import ApplicationListItem from './components/Application.vue'
 
-import { useContextStore } from '@/stores/context.js'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
@@ -135,7 +134,6 @@ export default {
         }
     },
     computed: {
-        ...mapState(useContextStore, ['team']),
         ...mapState(useDataFarmApplicationsStore, ['teamApplications', 'applicationsListHydrated']),
         shouldShowPageLoader () {
             return !this.applicationsListHydrated
@@ -154,9 +152,9 @@ export default {
     },
     watch: {
         applicationsListHydrated: {
-            handler () {
-                if (!this.applicationsListHydrated && this.team?.id) {
-                    this.ensureTeamApplicationsLoaded(this.team.id)
+            handler (isHydrated) {
+                if (!isHydrated) {
+                    this.ensureTeamApplicationsLoaded()
                 }
             },
             immediate: true
@@ -178,9 +176,7 @@ export default {
         ...mapActions(useDataFarmApplicationsStore, ['ensureTeamApplicationsLoaded']),
         ...mapActions(useUxLoadingStore, ['setPageLoader']),
         refreshApplications () {
-            if (this.team?.id) {
-                return this.ensureTeamApplicationsLoaded(this.team.id, { force: true })
-            }
+            return this.ensureTeamApplicationsLoaded({ force: true })
         },
         setSearchQuery () {
             if (this.$route?.query && Object.prototype.hasOwnProperty.call(this.$route.query, 'searchQuery')) {

@@ -3,11 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import applicationApi from '@/api/application.js'
 import teamApi from '@/api/team.js'
+import { useContextStore } from '@/stores/context.js'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 
 describe('data-farm-applications store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
+        useContextStore().team = { id: 'team-1' }
     })
 
     afterEach(() => {
@@ -18,7 +20,6 @@ describe('data-farm-applications store', () => {
         const store = useDataFarmApplicationsStore()
         expect(store.applicationsById).toEqual({})
         expect(store.teamApplicationIds).toEqual([])
-        expect(store.loadedTeamId).toBe(null)
         expect(store.teamApplications).toEqual([])
         expect(store.applicationsListHydrated).toBe(false)
         expect(store.applicationHydrated).toBe(false)
@@ -31,10 +32,9 @@ describe('data-farm-applications store', () => {
             })
             const store = useDataFarmApplicationsStore()
 
-            await store.ensureTeamApplicationsLoaded('team-1')
+            await store.ensureTeamApplicationsLoaded()
 
             expect(spy).toHaveBeenCalledWith('team-1', expect.objectContaining({ includeApplicationSummary: true }))
-            expect(store.loadedTeamId).toBe('team-1')
             expect(store.teamApplicationIds).toEqual(['a1', 'a2'])
             expect(store.teamApplications.map(a => a.name)).toEqual(['One', 'Two'])
             expect(store.applicationsListHydrated).toBe(true)
@@ -44,8 +44,8 @@ describe('data-farm-applications store', () => {
             const spy = vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [{ id: 'a1' }] })
             const store = useDataFarmApplicationsStore()
 
-            await store.ensureTeamApplicationsLoaded('team-1')
-            await store.ensureTeamApplicationsLoaded('team-1')
+            await store.ensureTeamApplicationsLoaded()
+            await store.ensureTeamApplicationsLoaded()
 
             expect(spy).toHaveBeenCalledTimes(1)
         })
@@ -54,22 +54,23 @@ describe('data-farm-applications store', () => {
             const spy = vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [{ id: 'a1' }] })
             const store = useDataFarmApplicationsStore()
 
-            await store.ensureTeamApplicationsLoaded('team-1')
-            await store.ensureTeamApplicationsLoaded('team-1', { force: true })
+            await store.ensureTeamApplicationsLoaded()
+            await store.ensureTeamApplicationsLoaded({ force: true })
 
             expect(spy).toHaveBeenCalledTimes(2)
         })
 
-        it('refetches and replaces the list when the team changes', async () => {
+        it('replaces the list after reset when the team changes', async () => {
             vi.spyOn(teamApi, 'getTeamApplications')
                 .mockResolvedValueOnce({ applications: [{ id: 'a1' }] })
                 .mockResolvedValueOnce({ applications: [{ id: 'b1' }] })
             const store = useDataFarmApplicationsStore()
 
-            await store.ensureTeamApplicationsLoaded('team-1')
-            await store.ensureTeamApplicationsLoaded('team-2')
+            await store.ensureTeamApplicationsLoaded()
+            store.reset()
+            useContextStore().team = { id: 'team-2' }
+            await store.ensureTeamApplicationsLoaded()
 
-            expect(store.loadedTeamId).toBe('team-2')
             expect(store.teamApplicationIds).toEqual(['b1'])
         })
 
@@ -77,7 +78,28 @@ describe('data-farm-applications store', () => {
             vi.spyOn(teamApi, 'getTeamApplications').mockRejectedValue(new Error('boom'))
             const store = useDataFarmApplicationsStore()
 
-            await expect(store.ensureTeamApplicationsLoaded('team-1')).rejects.toThrow('boom')
+            await expect(store.ensureTeamApplicationsLoaded()).rejects.toThrow('boom')
+            expect(store.applicationsListHydrated).toBe(false)
+        })
+
+        it('reads the current team from the context store', async () => {
+            const spy = vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [] })
+            useContextStore().team = { id: 'team-9' }
+            const store = useDataFarmApplicationsStore()
+
+            await store.ensureTeamApplicationsLoaded()
+
+            expect(spy).toHaveBeenCalledWith('team-9', expect.any(Object))
+        })
+
+        it('does nothing when no team is set in context', async () => {
+            const spy = vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [] })
+            useContextStore().team = null
+            const store = useDataFarmApplicationsStore()
+
+            await store.ensureTeamApplicationsLoaded()
+
+            expect(spy).not.toHaveBeenCalled()
             expect(store.applicationsListHydrated).toBe(false)
         })
     })
@@ -87,7 +109,7 @@ describe('data-farm-applications store', () => {
             vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [{ id: 'a1', name: 'One' }] })
             vi.spyOn(applicationApi, 'createApplication').mockResolvedValue({ id: 'a2', name: 'New' })
             const store = useDataFarmApplicationsStore()
-            await store.ensureTeamApplicationsLoaded('team-1')
+            await store.ensureTeamApplicationsLoaded()
 
             const created = await store.createApplication({ name: 'New', teamId: 'team-1' })
 
@@ -105,7 +127,7 @@ describe('data-farm-applications store', () => {
             })
             vi.spyOn(applicationApi, 'updateApplication').mockResolvedValue({ id: 'a1', name: 'Renamed', description: 'd' })
             const store = useDataFarmApplicationsStore()
-            await store.ensureTeamApplicationsLoaded('team-1')
+            await store.ensureTeamApplicationsLoaded()
 
             await store.updateApplication('a1', { name: 'Renamed', description: 'd' })
 
@@ -122,7 +144,7 @@ describe('data-farm-applications store', () => {
             })
             vi.spyOn(applicationApi, 'deleteApplication').mockResolvedValue(undefined)
             const store = useDataFarmApplicationsStore()
-            await store.ensureTeamApplicationsLoaded('team-1')
+            await store.ensureTeamApplicationsLoaded()
 
             await store.deleteApplication('a1', 'team-1')
 
@@ -152,7 +174,7 @@ describe('data-farm-applications store', () => {
         it('upserts on a created event (cross-session add)', async () => {
             vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [{ id: 'a1', name: 'One' }] })
             const store = useDataFarmApplicationsStore()
-            await store.ensureTeamApplicationsLoaded('team-1')
+            await store.ensureTeamApplicationsLoaded()
 
             store.applyRealtimeEvent({ id: 'a2', action: 'created', data: { id: 'a2', name: 'Two' } })
 
@@ -165,7 +187,7 @@ describe('data-farm-applications store', () => {
                 applications: [{ id: 'a1', name: 'Old', instanceCount: 3 }]
             })
             const store = useDataFarmApplicationsStore()
-            await store.ensureTeamApplicationsLoaded('team-1')
+            await store.ensureTeamApplicationsLoaded()
 
             store.applyRealtimeEvent({ id: 'a1', action: 'updated', data: { id: 'a1', name: 'Renamed' } })
 
@@ -175,7 +197,7 @@ describe('data-farm-applications store', () => {
         it('removes on a deleted event (cross-session remove)', async () => {
             vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [{ id: 'a1' }, { id: 'a2' }] })
             const store = useDataFarmApplicationsStore()
-            await store.ensureTeamApplicationsLoaded('team-1')
+            await store.ensureTeamApplicationsLoaded()
 
             store.applyRealtimeEvent({ id: 'a1', action: 'deleted' })
 
@@ -243,7 +265,7 @@ describe('data-farm-applications store', () => {
                 applications: [{ id: 'a1', name: 'One', instanceCount: 2 }]
             })
             const store = useDataFarmApplicationsStore()
-            await store.ensureTeamApplicationsLoaded('team-1')
+            await store.ensureTeamApplicationsLoaded()
 
             store.setActiveApplication({ id: 'a1', name: 'One', description: 'd' })
 
@@ -265,14 +287,13 @@ describe('data-farm-applications store', () => {
         it('resets all state (team-switch / logout teardown)', async () => {
             vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [{ id: 'a1' }] })
             const store = useDataFarmApplicationsStore()
-            await store.ensureTeamApplicationsLoaded('team-1')
+            await store.ensureTeamApplicationsLoaded()
             store.setActiveApplication({ id: 'a1' })
 
             store.reset()
 
             expect(store.applicationsById).toEqual({})
             expect(store.teamApplicationIds).toEqual([])
-            expect(store.loadedTeamId).toBe(null)
             expect(store.activeApplication).toBe(null)
             expect(store.applicationsListHydrated).toBe(false)
             expect(store.applicationHydrated).toBe(false)

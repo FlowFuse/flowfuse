@@ -63,6 +63,14 @@ describe('ux-loading store', () => {
             expect(store.pageLoader).toBe(false)
             expect(store.pageLoaderMessage).toBeNull()
         })
+
+        it('setPageLoader with true and no message clears a previously-set message', () => {
+            const store = useUxLoadingStore()
+            store.setPageLoader(true, 'Loading Applications...')
+            store.setPageLoader(true)
+            expect(store.pageLoader).toBe(true)
+            expect(store.pageLoaderMessage).toBeNull()
+        })
     })
 
     describe('$reset', () => {
@@ -70,9 +78,12 @@ describe('ux-loading store', () => {
             const store = useUxLoadingStore()
             store.appLoader = false
             store.offline = true
+            store.setPageLoader(true, 'Loading Applications...')
             store.$reset()
             expect(store.appLoader).toBe(true)
             expect(store.offline).toBeNull()
+            expect(store.pageLoader).toBe(false)
+            expect(store.pageLoaderMessage).toBeNull()
         })
     })
 })

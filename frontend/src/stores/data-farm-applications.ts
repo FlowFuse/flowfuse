@@ -3,12 +3,12 @@ import { computed, ref } from 'vue'
 
 import applicationApi from '@/api/application.js'
 import teamApi from '@/api/team.js'
+import { useContextStore } from '@/stores/context.js'
 import type { ApplicationSummary } from '@/types'
 
 export const useDataFarmApplicationsStore = defineStore('data-farm-applications', () => {
     const applicationsById = ref<Record<string, ApplicationSummary>>({})
     const teamApplicationIds = ref<string[]>([])
-    const loadedTeamId = ref<string | null>(null)
     const activeApplicationId = ref<string | null>(null)
     const applicationsListHydrated = ref(false)
     const applicationHydrated = ref(false)
@@ -34,9 +34,10 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         teamApplicationIds.value = teamApplicationIds.value.filter(applicationId => applicationId !== id)
     }
 
-    async function ensureTeamApplicationsLoaded (teamId: string, { force = false } = {}): Promise<void> {
+    async function ensureTeamApplicationsLoaded ({ force = false } = {}): Promise<void> {
+        const teamId = useContextStore().team?.id
         if (!teamId) return
-        if (!force && loadedTeamId.value === teamId) return
+        if (!force && applicationsListHydrated.value) return
 
         const response = await teamApi.getTeamApplications(teamId, {
             includeApplicationSummary: true,
@@ -52,7 +53,6 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
         })
         applicationsById.value = byId
         teamApplicationIds.value = ids
-        loadedTeamId.value = teamId
         applicationsListHydrated.value = true
     }
 
@@ -105,7 +105,6 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
     function reset (): void {
         applicationsById.value = {}
         teamApplicationIds.value = []
-        loadedTeamId.value = null
         activeApplicationId.value = null
         applicationsListHydrated.value = false
         applicationHydrated.value = false
@@ -114,7 +113,6 @@ export const useDataFarmApplicationsStore = defineStore('data-farm-applications'
     return {
         applicationsById,
         teamApplicationIds,
-        loadedTeamId,
         activeApplicationId,
         applicationsListHydrated,
         applicationHydrated,

@@ -83,6 +83,7 @@ export default {
         ...mapState(useAccountSettingsStore, ['features']),
         ...mapState(useLiveStatusStore, { liveInstanceMetadata: 'instanceMetadata', statusChannelLive: 'live' }),
         ...mapState(useDataFarmApplicationsStore, ['applicationHydrated', 'activeApplicationId']),
+        ...mapState(useUxLoadingStore, ['pageLoader']),
         routeApplicationHydrated () {
             return this.applicationHydrated && this.activeApplicationId === this.$route.params.id
         },
@@ -183,7 +184,7 @@ export default {
             immediate: true
         },
         application (application, previous) {
-            if (previous && !application && !this.loading.deleting && this.$route.params.id) {
+            if (previous && !application && !this.pageLoader && this.$route.params.id) {
                 alerts.emit('This application has been deleted.', 'warning')
                 this.$router.push({ name: 'Applications', params: { team_slug: this.team?.slug } })
             }
