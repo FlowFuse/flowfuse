@@ -74,6 +74,7 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 import { useThemeStore } from '@/stores/theme.ts'
 
 export default {
@@ -110,7 +111,7 @@ export default {
     },
     computed: {
         ...mapState(useAccountSettingsStore, ['settings']),
-        ...mapState(useAccountStore, { storeTeams: 'teams' }),
+        ...mapState(useDataFarmTeamsStore, { storeTeams: 'teamList' }),
         themeLabel () {
             const opt = this.themeOptions.find(o => o.value === useThemeStore().mode)
             return opt ? opt.label : ''
@@ -332,9 +333,9 @@ export default {
                     .then(() => {
                         alerts.emit('Team successfully deleted', 'confirmation')
                         // refresh teams
-                        return useAccountStore().refreshTeams()
+                        return useDataFarmTeamsStore().fetchTeamList()
                     }).then(() => {
-                        const teams = useAccountStore().teams
+                        const teams = useDataFarmTeamsStore().teamList
                         const team = useContextStore().team
                         // check if the active team is one deleted
                         if (team?.id === teamId) {

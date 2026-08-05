@@ -83,8 +83,8 @@ import alerts from '../../../services/alerts.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 
 export default {
     name: 'TeamSettingsGeneral',
@@ -177,7 +177,7 @@ export default {
 
             teamApi.updateTeam(this.team.id, options).then(async result => {
                 this.editing = false
-                await useAccountStore().refreshTeams()
+                await useDataFarmTeamsStore().fetchTeamList()
                 await useContextStore().refreshTeam()
                 alerts.emit('Team Settings updated.', 'confirmation')
             }).catch(err => {
