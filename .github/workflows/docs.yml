@@ -7,6 +7,8 @@ on:
   pull_request:
     paths:
       - 'docs/**'
+      # A change to this workflow should be exercised by this workflow.
+      - '.github/workflows/docs.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
