@@ -30,7 +30,7 @@
         <ff-loading v-if="isLoading" />
 
         <MultiStepInstanceForm
-            v-else
+            v-else-if="application"
             ref="multiStepForm" :application="application" @instance-created="onInstanceCreated"
             @previous-step-state-changed="form.previousButtonState = $event"
             @next-step-state-changed="form.nextButtonState = $event"

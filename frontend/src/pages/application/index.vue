@@ -1,7 +1,7 @@
 <template>
     <ff-page no-padding>
         <template #header>
-            <ff-page-header :title="application.name" :tabs="navigation">
+            <ff-page-header :title="application?.name" :tabs="navigation">
                 <template #breadcrumbs>
                     <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
                 </template>
@@ -9,7 +9,7 @@
         </template>
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
-        <div class="px-3 py-3 md:px-6 md:py-6 flex-1 flex flex-col h-full overflow-auto" data-el="application-page">
+        <div v-if="application" class="px-3 py-3 md:px-6 md:py-6 flex-1 flex flex-col h-full overflow-auto" data-el="application-page">
             <router-view
                 :application="application"
                 :instances="instancesArray"
