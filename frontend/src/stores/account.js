@@ -7,6 +7,7 @@ import getAppOrchestrator from '@/services/app.orchestrator'
 import product from '@/services/product.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
 function ensureTeamChannelConnected (team) {
@@ -132,6 +133,7 @@ export const useAccountStore = defineStore('account', {
         },
         clearOtherStores () {
             useProductTablesStore().clearState()
+            useDataFarmApplicationsStore().reset()
         }
     }
 })

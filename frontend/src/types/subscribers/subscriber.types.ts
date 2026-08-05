@@ -22,6 +22,7 @@ export interface TeamSubscriberI extends Subscriber {
 export type SubscriberInstances = {
     teamChannel: TeamSubscriberI | null
     liveStatus: TeamSubscriberI | null
+    applications: TeamSubscriberI | null
 }
 
 export interface CreateSubscriberOptions<TTransport extends Transport = Transport> {
