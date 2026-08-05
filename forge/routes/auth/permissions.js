@@ -82,7 +82,11 @@ const IMPLICIT_TOKEN_SCOPES = {
         'stack:list',
         'flow-blueprint:list',
         'project:status',
-        'template:list'
+        'template:list',
+        // pipelines
+        'team:pipeline:list', // list team pipelines
+        'application:pipeline:list', // list application pipelines
+        'pipeline:read' // get pipeline stage details
     ]
 }
 
