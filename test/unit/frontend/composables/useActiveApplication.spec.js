@@ -1,8 +1,8 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { useActiveApplication } from '@/composables/useActiveApplication'
-import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
+import { useActiveApplication } from '../../../../frontend/src/composables/useActiveApplication.ts'
+import { useDataFarmApplicationsStore } from '../../../../frontend/src/stores/data-farm-applications.ts'
 
 const routerMock = vi.hoisted(() => ({
     push: vi.fn(),
