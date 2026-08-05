@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
 
 import flowBlueprintsApi from '@/api/flowBlueprints.js'
-import teamApi from '@/api/team.js'
 import userApi from '@/api/user.js'
 import getAppOrchestrator from '@/services/app.orchestrator'
 import product from '@/services/product.js'
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
 function ensureTeamChannelConnected (team) {
@@ -52,12 +52,12 @@ export const useAccountStore = defineStore('account', {
     actions: {
         async setTeam (team) {
             const context = useContextStore()
+            const teams = useDataFarmTeamsStore()
             const currentTeam = context.team
             this.pendingTeamChange = true
-            let teamMembership
             if (typeof team === 'string') {
                 if (!currentTeam || currentTeam.slug !== team) {
-                    team = await teamApi.getTeam({ slug: team })
+                    team = await teams.fetchTeam({ slug: team })
                 } else {
                     ensureTeamChannelConnected(currentTeam)
                     this.pendingTeamChange = false
@@ -73,23 +73,21 @@ export const useAccountStore = defineStore('account', {
                     // without clearing other stores
                     if (team?.id) {
                         context.setTeam(team)
-                        context.setTeamMembership(await teamApi.getTeamUserMembership(team.id))
+                        await context.refreshTeamMembership()
                     }
                     ensureTeamChannelConnected(team || currentTeam)
                     this.pendingTeamChange = false
                     return
                 }
             }
-            if (team?.id) {
-                teamMembership = await teamApi.getTeamUserMembership(team.id)
-            }
             product.setTeam(team)
             context.setTeam(team)
             this.clearOtherStores()
-            context.setTeamMembership(teamMembership)
             if (team?.id) {
+                await context.refreshTeamMembership()
                 ensureTeamChannelConnected(team)
             } else {
+                context.setTeamMembership(null)
                 disconnectTeamSubscribers()
             }
             this.pendingTeamChange = false

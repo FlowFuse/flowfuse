@@ -94,16 +94,77 @@ describe('data-farm-teams store', () => {
         })
     })
 
+    describe('active team', () => {
+        it('sets and clears the active team + membership', () => {
+            const store = useDataFarmTeamsStore()
+            store.setActiveTeam({ id: 't1', slug: 'a' })
+            store.setActiveTeamMembership({ role: 50 })
+            expect(store.activeTeam).toEqual({ id: 't1', slug: 'a' })
+            expect(store.activeTeamMembership).toEqual({ role: 50 })
+
+            store.setActiveTeam(null)
+            expect(store.activeTeam).toBe(null)
+        })
+
+        it('fetchTeam resolves a team without changing active state', async () => {
+            vi.spyOn(teamApi, 'getTeam').mockResolvedValue({ id: 't5', slug: 'q' })
+            const store = useDataFarmTeamsStore()
+
+            const team = await store.fetchTeam({ slug: 'q' })
+
+            expect(teamApi.getTeam).toHaveBeenCalledWith({ slug: 'q' })
+            expect(team).toEqual({ id: 't5', slug: 'q' })
+            expect(store.activeTeam).toBe(null)
+        })
+
+        it('refreshActiveTeam refetches the team and membership', async () => {
+            vi.spyOn(teamApi, 'getTeam').mockResolvedValue({ id: 't1', slug: 'a', name: 'Fresh' })
+            vi.spyOn(teamApi, 'getTeamUserMembership').mockResolvedValue({ role: 30 })
+            const store = useDataFarmTeamsStore()
+            store.setActiveTeam({ id: 't1', slug: 'a' })
+
+            const team = await store.refreshActiveTeam()
+
+            expect(teamApi.getTeam).toHaveBeenCalledWith('t1')
+            expect(store.activeTeam).toEqual({ id: 't1', slug: 'a', name: 'Fresh' })
+            expect(store.activeTeamMembership).toEqual({ role: 30 })
+            expect(team).toEqual({ id: 't1', slug: 'a', name: 'Fresh' })
+        })
+
+        it('refreshActiveTeam does nothing when no active team is set', async () => {
+            const spy = vi.spyOn(teamApi, 'getTeam')
+            const store = useDataFarmTeamsStore()
+
+            expect(await store.refreshActiveTeam()).toBe(null)
+            expect(spy).not.toHaveBeenCalled()
+        })
+
+        it('refreshActiveMembership refetches only the membership', async () => {
+            vi.spyOn(teamApi, 'getTeamUserMembership').mockResolvedValue({ role: 40 })
+            const store = useDataFarmTeamsStore()
+            store.setActiveTeam({ id: 't1' })
+
+            await store.refreshActiveMembership()
+
+            expect(teamApi.getTeamUserMembership).toHaveBeenCalledWith('t1')
+            expect(store.activeTeamMembership).toEqual({ role: 40 })
+        })
+    })
+
     describe('reset', () => {
-        it('clears the list', async () => {
+        it('clears the list and the active team', async () => {
             vi.spyOn(teamApi, 'getTeams').mockResolvedValue({ teams: [{ id: 't1' }] })
             const store = useDataFarmTeamsStore()
             await store.fetchTeamList()
+            store.setActiveTeam({ id: 't1' })
+            store.setActiveTeamMembership({ role: 50 })
 
             store.reset()
 
             expect(store.teamList).toEqual([])
             expect(store.hasAvailableTeams).toBe(false)
+            expect(store.activeTeam).toBe(null)
+            expect(store.activeTeamMembership).toBe(null)
         })
     })
 })
