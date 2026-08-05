@@ -1,5 +1,6 @@
 ---
 navGroup: Support
+navGroupOrder: 5
 navOrder: 1
 navTitle: Community Support
 redirect: 
