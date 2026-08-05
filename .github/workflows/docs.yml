@@ -75,7 +75,7 @@ jobs:
   publish:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: 
+    needs:
       - test
       - test-with-website
     name: Publish Documentation
