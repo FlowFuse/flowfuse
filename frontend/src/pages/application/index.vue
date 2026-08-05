@@ -174,6 +174,12 @@ export default {
             handler: 'loadApplicationData',
             immediate: true
         },
+        application (application, previous) {
+            if (previous && !application && !this.loading.deleting && this.$route.params.id) {
+                alerts.emit('This application has been deleted.', 'warning')
+                this.$router.push({ name: 'Applications', params: { team_slug: this.team?.slug } })
+            }
+        },
         liveInstanceMetadata: { handler: 'applyLiveStatus', deep: true }
     },
     beforeUnmount () {
