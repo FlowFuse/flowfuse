@@ -1,5 +1,6 @@
 ---
 navGroup: FlowFuse Self-Hosted
+navGroupOrder: 4
 navOrder: 3
 navTitle: Upgrading FlowFuse
 meta:
