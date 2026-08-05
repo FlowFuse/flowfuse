@@ -36,7 +36,7 @@ module.exports.init = async function (app) {
             const url = new URL(repoOptions.url)
             url.username = token
 
-            const match = /^https:\/\/dev.azure.com\/(?<org>.+)\/_git\/.+$/.exec(repoOptions.url)
+            const match = /^https:\/\/dev.azure.com\/(?<org>[^/]+)(\/(?<project>[^/]+))?\/_git\/.+$/.exec(repoOptions.url)
             const orgName = match.groups?.org
 
             // 2. get user details so we can properly attribute the commit
