@@ -1,12 +1,12 @@
 <template>
-    <div class="guide-badge">
+    <div class="setup-guide-badge">
         <span>Setup Guide</span>
     </div>
 </template>
 
 <script>
 export default {
-    name: 'AnswerBadge'
+    name: 'SetupGuideBadge'
 }
 </script>
 
@@ -17,7 +17,7 @@ export default {
     color: var(--ff-color-text-strong);
 }
 
-.guide-badge {
+.setup-guide-badge {
     display: inline-flex;
     align-self: flex-start;
 
