@@ -28,6 +28,7 @@
         "start-watch": "cross-env NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
         "start-watch-repl": "cross-env NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js --repl",
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
+        "build-watch-hmr": "cross-env NODE_RUN_HOT=hot webpack serve --mode=development -c ./config/webpack.config.js",
         "lint": "npm-run-all --sequential lint:eslint lint:colors",
         "lint:eslint": "eslint forge frontend test",
         "lint:fix": "eslint forge frontend test --fix",

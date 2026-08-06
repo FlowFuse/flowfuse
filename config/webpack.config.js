@@ -158,9 +158,12 @@ module.exports = function (env, argv) {
             new DotenvPlugin(),
             new DefinePlugin({
                 __VUE_OPTIONS_API__: true,
-                __VUE_PROD_DEVTOOLS__: devMode
+                __VUE_PROD_DEVTOOLS__: devMode,
+                __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: devMode,
+                'process.env.hotReloading': devMode && process.env.NODE_RUN_HOT === 'hot'
             })
         ],
+        cache: { type: 'filesystem' },
         optimization: {
             moduleIds: 'deterministic',
             runtimeChunk: 'single',
@@ -182,8 +185,18 @@ module.exports = function (env, argv) {
             }
         },
         devServer: {
-            port: 3000,
-            historyApiFallback: true
+            port: 2880,
+            hot: true,
+            liveReload: false,
+            allowedHosts: 'all',
+            devMiddleware: {
+                writeToDisk: true
+            },
+            client: {
+                webSocketURL: 'ws://localhost:2880/ws',
+                overlay: { errors: true, warnings: false },
+                logging: 'error'
+            }
         },
         watchOptions: {
             poll: 1000,
