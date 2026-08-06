@@ -19,7 +19,7 @@ export default {
     },
     methods: {
         signOut () {
-            this.$router.push({ name: 'Sign out' })
+            this.$router.push({ name: 'sign-out' })
         }
     }
 }

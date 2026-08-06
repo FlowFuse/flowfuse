@@ -91,7 +91,7 @@ export default [
 
     {
         path: '/account/create',
-        name: 'Sign up',
+        name: 'sign-up',
         meta: {
             requiresLogin: false,
             title: 'Sign Up'
@@ -99,7 +99,7 @@ export default [
         component: AccountCreate
     },
     {
-        name: 'VerifyPendingEmailChange',
+        name: 'verify-pending-email-change',
         path: '/account/email_change/:token',
         props: true,
         meta: {
@@ -112,7 +112,7 @@ export default [
         profileLink: true,
         profileMenuIndex: 999,
         path: '/account/logout',
-        name: 'Sign out',
+        name: 'sign-out',
         redirect: function () {
             useAccountAuthStore().logout()
             return { path: '/' }
@@ -120,7 +120,7 @@ export default [
     },
     {
         path: '/account/forgot-password',
-        name: 'ForgotPassword',
+        name: 'forgot-password',
         component: ForgotPassword,
         meta: {
             title: 'Forgot Password',
@@ -129,7 +129,7 @@ export default [
     },
     {
         path: '/account/change-password/:token',
-        name: 'PasswordReset',
+        name: 'password-reset',
         component: PasswordReset,
         meta: {
             requiresLogin: false
