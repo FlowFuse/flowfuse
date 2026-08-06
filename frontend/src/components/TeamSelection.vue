@@ -118,7 +118,7 @@ export default {
         },
         createTeam () {
             return this.$router.push({
-                name: 'CreateTeam'
+                name: 'team-create'
             })
         },
         inviteMembers () {

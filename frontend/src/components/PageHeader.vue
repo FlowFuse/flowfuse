@@ -59,7 +59,7 @@
                     v-if="canCreateTeam"
                     label="Create New Team" :icon="plusIcon"
                     class="create"
-                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
+                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'team-create'})"
                 />
             </ul>
         </div>
