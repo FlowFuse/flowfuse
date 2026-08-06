@@ -33,6 +33,8 @@
                 :search="searchTerm"
                 search-placeholder="Search Instances"
                 :rows-selectable="true"
+                :loading="tableLoading"
+                loading-type="skeleton"
                 @row-selected="selectedCloudRow"
             >
                 <template #actions>
@@ -177,6 +179,10 @@ export default {
         instances: {
             type: Array,
             required: true
+        },
+        loadingInstanceStatuses: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start'],
@@ -230,6 +236,9 @@ export default {
         filteredInstances () {
             if (!this.statusFilter) return this.instances
             return this.instances.filter(instance => this.statusFilter.has(instance.meta?.state))
+        },
+        tableLoading () {
+            return this.loadingInstanceStatuses && !!this.statusFilter
         },
         cloudRows () {
             return this.filteredInstances.map((instance) => {

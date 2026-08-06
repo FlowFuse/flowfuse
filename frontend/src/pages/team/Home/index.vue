@@ -170,12 +170,11 @@ export default {
         TeamDeviceCreateDialog
     },
     setup () {
-        const { groupBySimplifiedStates, statesMap: instanceStatesMap } = useInstanceStates()
+        const { groupBySimplifiedStates } = useInstanceStates()
 
         const { hasPermission } = usePermissions()
         return {
             groupBySimplifiedStates,
-            instanceStatesMap,
             hasPermission
         }
     },
@@ -242,14 +241,8 @@ export default {
                 })
         },
         onStatClick (payload) {
-            if (payload.type === 'hosted') {
-                this.$router.push({ name: 'Instances', query: { status: payload.state } })
-            } else {
-                const states = Object.prototype.hasOwnProperty.call(this.instanceStatesMap, payload.state)
-                    ? this.instanceStatesMap[payload.state]
-                    : []
-                this.$router.push({ name: 'TeamDevices', query: { searchQuery: states.join(' | ') } })
-            }
+            const name = payload.type === 'hosted' ? 'Instances' : 'TeamDevices'
+            this.$router.push({ name, query: { status: payload.state } })
         },
         getInstanceStateCounts () {
             return TeamAPI.getTeamInstanceCounts(this.team.id, [], 'hosted')
