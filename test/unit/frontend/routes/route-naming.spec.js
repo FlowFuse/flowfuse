@@ -1,5 +1,6 @@
-import { readdirSync, readFileSync, statSync } from 'fs'
+import { readFileSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
+
 import { describe, expect, test } from 'vitest'
 
 const KEBAB_CASE_PATTERN = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/
