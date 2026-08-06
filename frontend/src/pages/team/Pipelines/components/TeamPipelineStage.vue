@@ -99,7 +99,7 @@ export default {
             case this.isDeviceStage:
                 return { name: 'Device', params: { id: this.targetId } }
             case this.isDeviceGroupsStage:
-                return { name: 'ApplicationDeviceGroupIndex', params: { deviceGroupId: this.targetId, applicationId: this.application.id } }
+                return { name: 'application-device-group', params: { deviceGroupId: this.targetId, applicationId: this.application.id } }
             default:
                 return '#'
             }

@@ -251,7 +251,7 @@ export default {
         },
         goToGroup (row) {
             return this.$router.push({
-                name: 'ApplicationDeviceGroupIndex',
+                name: 'application-device-group',
                 params: {
                     deviceGroupId: row.id,
                     applicationId: row.application.id

@@ -15,10 +15,10 @@
                 <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'Applications', params: {team_slug: team.slug}}">
                     Applications
                 </ff-nav-breadcrumb>
-                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'Application', params: {team_slug: team.slug, id: application.id}}">
+                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'application', params: {team_slug: team.slug, id: application.id}}">
                     {{ application.name }}
                 </ff-nav-breadcrumb>
-                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'ApplicationDeviceGroups', params: {id: application?.id}}">
+                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'application-device-groups', params: {id: application?.id}}">
                     Device Groups
                 </ff-nav-breadcrumb>
             </template>
@@ -41,7 +41,7 @@
             <template #context>
                 <div>
                     Application:
-                    <router-link :to="{name: 'Application', params: {id: application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ application?.name }}</router-link>
+                    <router-link :to="{name: 'application', params: {id: application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ application?.name }}</router-link>
                 </div>
             </template>
         </ff-page-header>
@@ -101,7 +101,7 @@ export default {
                 {
                     label: 'Devices',
                     to: {
-                        name: 'ApplicationDeviceGroupDevices',
+                        name: 'application-device-group-devices',
                         params: {
                             applicationId: this.application?.id,
                             deviceGroupId: this.deviceGroup?.id
@@ -113,7 +113,7 @@ export default {
                 {
                     label: 'Settings',
                     to: {
-                        name: 'ApplicationDeviceGroupSettings',
+                        name: 'application-device-group-settings',
                         params: {
                             applicationId: this.application?.id,
                             deviceGroupId: this.deviceGroup?.id
