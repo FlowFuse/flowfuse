@@ -130,7 +130,7 @@ export default {
     methods: {
         entrySelected (entry) {
             this.$router.push({
-                name: 'LibraryTeamLibrary',
+                name: 'team-library-files',
                 params: {
                     entryPath: entry.path.split('/')
                 }

@@ -131,7 +131,7 @@ export default [
                         meta: {
                             title: 'Team - Library'
                         },
-                        redirect: { name: 'LibraryTeamLibrary' },
+                        redirect: { name: 'team-library-files' },
                         children: [...LibraryRoutes]
                     },
                     {
