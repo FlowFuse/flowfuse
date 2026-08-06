@@ -90,7 +90,7 @@ export default [
                         path: 'instances',
                         children: [
                             {
-                                name: 'Instances',
+                                name: 'team-hosted-instances',
                                 path: '',
                                 component: TeamInstances,
                                 meta: {
@@ -108,7 +108,7 @@ export default [
                                         backTo: (params) => {
                                             return {
                                                 label: 'Back to Instances',
-                                                to: { name: 'Instances', params }
+                                                to: { name: 'team-hosted-instances', params }
                                             }
                                         }
                                     }
@@ -117,7 +117,7 @@ export default [
                         ]
                     },
                     {
-                        name: 'TeamDevices',
+                        name: 'team-remote-instances',
                         path: 'devices',
                         component: TeamDevices,
                         meta: {

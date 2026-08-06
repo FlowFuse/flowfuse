@@ -12,7 +12,7 @@
             </div>
             <div class="actions">
                 <ff-button @click="$router.back()">Go Back</ff-button>
-                <router-link :to="{name: 'Home'}" class="ff-btn ff-btn--primary">Go to Homepage</router-link>
+                <router-link :to="{name: 'home'}" class="ff-btn ff-btn--primary">Go to Homepage</router-link>
             </div>
         </div>
     </main>

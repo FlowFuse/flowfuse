@@ -39,8 +39,8 @@
                 </p>
             </template>
             <template #actions>
-                <ff-button v-if="featuresCheck.isSharedLibraryFeatureEnabled" :to="{name: 'Instances'}" data-el="go-to-instances">Go To Instances</ff-button>
-                <ff-button v-else :to="{name: 'Instances'}" :disabled="true">
+                <ff-button v-if="featuresCheck.isSharedLibraryFeatureEnabled" :to="{name: 'team-hosted-instances'}" data-el="go-to-instances">Go To Instances</ff-button>
+                <ff-button v-else :to="{name: 'team-hosted-instances'}" :disabled="true">
                     Add To Library
                     <template #icon-right><PlusIcon /></template>
                 </ff-button>
