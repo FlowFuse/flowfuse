@@ -125,7 +125,7 @@ export default [
                         }
                     },
                     {
-                        name: 'TeamLibrary',
+                        name: 'team-library',
                         path: 'library',
                         component: Library,
                         meta: {
@@ -148,7 +148,7 @@ export default [
                         ]
                     },
                     {
-                        name: 'AuditLog',
+                        name: 'team-audit-log',
                         path: 'audit-log',
                         component: TeamAuditLog,
                         meta: {
@@ -159,7 +159,7 @@ export default [
                         path: 'settings',
                         children: [
                             {
-                                name: 'TeamSettings',
+                                name: 'team-settings',
                                 path: '',
                                 component: TeamSettings,
                                 meta: {
@@ -168,7 +168,7 @@ export default [
                                 redirect: { name: 'team-settings-general' },
                                 children: [
                                     { name: 'team-settings-general', path: 'general', component: TeamSettingsGeneral },
-                                    { name: 'TeamSettingsDevices', path: 'devices', component: TeamSettingsDevices },
+                                    { name: 'team-settings-devices', path: 'devices', component: TeamSettingsDevices },
                                     { name: 'team-settings-integrations', path: 'integrations', component: TeamSettingsIntegrations },
                                     { name: 'team-settings-danger', path: 'danger', component: TeamSettingsDanger }
 
@@ -185,7 +185,7 @@ export default [
                         ]
                     },
                     {
-                        name: 'Billing',
+                        name: 'team-billing',
                         path: 'billing',
                         component: TeamBilling,
                         meta: {
@@ -249,7 +249,7 @@ export default [
     {
         path: '/register/remote-instance/:sessionToken',
         component: RegisterDevice,
-        name: 'RegisterDevice',
+        name: 'register-device',
         meta: {
             title: 'Register Remote Instance',
             layout: 'plain'

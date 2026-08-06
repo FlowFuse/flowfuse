@@ -325,7 +325,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Library',
                                 to: {
-                                    name: 'TeamLibrary',
+                                    name: 'team-library',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'shared-library',
@@ -368,7 +368,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Audit Log',
                                 to: {
-                                    name: 'AuditLog',
+                                    name: 'team-audit-log',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-audit',
@@ -379,7 +379,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Billing',
                                 to: {
-                                    name: 'Billing',
+                                    name: 'team-billing',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-billing',
@@ -398,7 +398,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Team Settings',
                                 to: {
-                                    name: 'TeamSettings',
+                                    name: 'team-settings',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-settings',
