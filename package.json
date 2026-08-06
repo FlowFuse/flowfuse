@@ -28,7 +28,6 @@
         "start-watch": "cross-env NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js",
         "start-watch-repl": "cross-env NODE_ENV=development nodemon -w forge -w ee/forge -i forge/containers/localfs_root forge/app.js --repl",
         "build-watch": "webpack --mode=development -c ./config/webpack.config.js --watch",
-        "web": "cross-env NODE_RUN_HOT=hot webpack serve --mode=development --config ./config/webpack.config.js",
         "lint": "npm-run-all --sequential lint:eslint lint:colors",
         "lint:eslint": "eslint forge frontend test",
         "lint:fix": "eslint forge frontend test --fix",
@@ -60,7 +59,6 @@
         "@aws-sdk/client-sesv2": "^3.916.0",
         "@aws-sdk/credential-provider-node": "^3.352.0",
         "@fastify/cookie": "^11.0.2",
-        "@fastify/cors": "^11.0.0",
         "@fastify/csrf-protection": "^8.0.0",
         "@fastify/formbody": "^8.0.2",
         "@fastify/helmet": "^13.0.2",
@@ -206,8 +204,5 @@
         "no-code",
         "low-code",
         "node-red"
-    ],
-    "volta": {
-        "node": "22.22.2"
-    }
+    ]
 }
