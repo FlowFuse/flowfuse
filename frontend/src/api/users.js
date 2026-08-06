@@ -34,7 +34,7 @@ const getUserTeams = async (userId, cursor, limit, query) => {
     const url = paginateUrl(`/api/v1/users/${userId}/teams`, cursor, limit, query)
     return client.get(url).then(res => {
         res.data.teams = res.data.teams.map(r => {
-            r.link = { name: 'Team', params: { team_slug: r.slug } }
+            r.link = { name: 'team', params: { team_slug: r.slug } }
             return r
         })
         return res.data

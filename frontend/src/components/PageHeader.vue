@@ -53,7 +53,7 @@
                 <nav-item
                     v-for="team in teams" :key="team.name"
                     :label="team.name" :avatar="team.avatar"
-                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"
+                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'team', params: {team_slug: team.slug}})"
                 />
                 <nav-item
                     v-if="canCreateTeam"

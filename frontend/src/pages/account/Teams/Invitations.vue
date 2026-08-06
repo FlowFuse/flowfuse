@@ -56,7 +56,7 @@ export default {
             // navigate to team dashboad once invite accepted
             useAccountStore().setTeam(invite.team.slug)
                 .then(() => this.$router.push({
-                    name: 'Team',
+                    name: 'team',
                     params: {
                         team_slug: invite.team.slug
                     }
