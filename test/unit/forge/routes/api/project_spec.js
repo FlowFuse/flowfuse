@@ -1244,6 +1244,67 @@ describe('Project API', function () {
         })
     })
 
+    describe('Lifecycle publishing', function () {
+        let notifySpy
+
+        beforeEach(function () {
+            notifySpy = sinon.spy(app.comms.team, 'notifyEntityLifecycle')
+        })
+
+        afterEach(function () {
+            notifySpy.restore()
+        })
+
+        it('publishes created on create', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/projects',
+                payload: {
+                    name: generateProjectName(),
+                    applicationId: TestObjects.ApplicationA.hashid,
+                    projectType: TestObjects.projectType1.hashid,
+                    template: TestObjects.template1.hashid,
+                    stack: TestObjects.stack1.hashid
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+
+            notifySpy.calledWith(TestObjects.ATeam.hashid, 'p', result.id, 'created').should.be.true()
+            const data = notifySpy.getCall(0).args[4]
+            data.should.have.property('id', result.id)
+            data.should.not.have.property('settings')
+        })
+
+        it('publishes updated on a synchronous update without leaking settings', async function () {
+            const project = await createInstance()
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${project.id}`,
+                payload: { launcherSettings: { disableAutoSafeMode: true } },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            notifySpy.calledWith(TestObjects.ATeam.hashid, 'p', project.id, 'updated').should.be.true()
+            notifySpy.getCall(0).args[4].should.not.have.property('settings')
+        })
+
+        it('publishes deleted on delete without a data payload', async function () {
+            const project = await createInstance({ start: true })
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/projects/${project.id}`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+
+            notifySpy.calledWith(TestObjects.ATeam.hashid, 'p', project.id, 'deleted').should.be.true()
+            should(notifySpy.getCall(0).args[4]).be.undefined()
+        })
+    })
+
     describe('Update Project', function () {
         describe('Change project type', function () {
             it('Changes the type, stack, and restores the project to original state', async function () {
