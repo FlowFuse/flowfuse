@@ -67,7 +67,8 @@ import { mapState } from 'pinia'
 import FormRow from '../../../../components/FormRow.vue'
 
 import userApi from '@/api/user.js'
-import { useAccountAuthStore, useAccountStore } from '@/stores/index.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
+import { useAccountAuthStore } from '@/stores/index.js'
 
 export default {
     name: 'TokenDialog',
@@ -129,7 +130,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountStore, ['teams']),
+        ...mapState(useDataFarmTeamsStore, { teams: 'teamList' }),
         isAdmin () {
             return useAccountAuthStore().isAdminUser
         },

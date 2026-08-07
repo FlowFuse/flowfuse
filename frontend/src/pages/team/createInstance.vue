@@ -35,8 +35,8 @@
             v-else
             ref="multiStepForm"
             :applications="applications"
-            :has-team-step="$route.name === 'DeployBlueprint'"
-            :deploying-blueprint="$route.name === 'DeployBlueprint'"
+            :has-team-step="$route.name === 'deploy-blueprint'"
+            :deploying-blueprint="$route.name === 'deploy-blueprint'"
             @form-success="onInstanceCreated"
             @previous-step-state-changed="form.previousButtonState = $event"
             @next-step-state-changed="form.nextButtonState = $event"
@@ -62,14 +62,14 @@ export default {
         MultiStepApplicationsInstanceForm
     },
     beforeRouteEnter (to, from, next) {
-        if (from.name === 'CreateTeamApplication') {
+        if (from.name === 'team-application-create') {
             // we've got a user pressing "back" from the Create Application page,
             // but this page will very likely just bounce them back as they have
             // no applications. This breaks the cycle and redirects them back to Team > Applications
             return next('/')
         }
 
-        if (to.name === 'DeployBlueprint') {
+        if (to.name === 'deploy-blueprint') {
             if (!useAccountAuthStore().user && !LocalStorageService.getItem('redirectUrlAfterLogin')) {
                 useAccountAuthStore().setRedirectUrl(to.fullPath)
             }
@@ -93,7 +93,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         isLandingFromExternalLink () {
-            return this.$route.name === 'DeployBlueprint'
+            return this.$route.name === 'deploy-blueprint'
         },
         pageTitle () {
             return this.isLandingFromExternalLink ? 'Deploy Blueprint' : 'Instances'
@@ -112,7 +112,7 @@ export default {
         if (!this.applications.length && !this.isLandingFromExternalLink) {
             // need to also create an Application
             this.$router.push({
-                name: 'CreateTeamApplication',
+                name: 'team-application-create',
                 params: {
                     team_slug: this.team.slug
                 }

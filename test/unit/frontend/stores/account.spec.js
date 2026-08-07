@@ -32,10 +32,6 @@ vi.mock('@/stores/product-tables.js', () => ({
     useProductTablesStore: () => ({ clearState: vi.fn() })
 }))
 
-vi.mock('@/stores/account-auth.js', () => ({
-    useAccountAuthStore: () => ({ user: { id: 'u1', defaultTeam: 'team-1' } })
-}))
-
 // Shared mutable state used by the context store mock
 const mockContext = {
     team: null,
@@ -67,7 +63,6 @@ describe('account store', () => {
     describe('initial state', () => {
         it('initializes with default state', () => {
             const store = useAccountStore()
-            expect(store.teams).toEqual([])
             expect(store.teamBlueprints).toEqual({})
             expect(store.pendingTeamChange).toBe(false)
             expect(store.notifications).toEqual([])
@@ -113,25 +108,6 @@ describe('account store', () => {
                     ]
                 }
                 expect(store.defaultBlueprint).toEqual({ id: 'bp-2', default: true })
-            })
-        })
-
-        describe('defaultUserTeam', () => {
-            it('returns the team matching the user defaultTeam', () => {
-                const store = useAccountStore()
-                const team1 = { id: 'team-1', name: 'Alpha' }
-                const team2 = { id: 'team-2', name: 'Beta' }
-                store.teams = [team1, team2]
-                // mock returns user.defaultTeam = 'team-1'
-                expect(store.defaultUserTeam).toEqual(team1)
-            })
-
-            it('falls back to undefined when no defaultTeam match', () => {
-                const store = useAccountStore()
-                const team1 = { id: 'team-99', name: 'Other' }
-                store.teams = [team1]
-                // user.defaultTeam = 'team-1' but only 'team-99' exists
-                expect(store.defaultUserTeam).toBeUndefined()
             })
         })
 
@@ -196,31 +172,9 @@ describe('account store', () => {
                 expect(store.teamInvitationsCount).toBe(1)
             })
         })
-
-        describe('hasAvailableTeams', () => {
-            it('returns false when teams is empty', () => {
-                const store = useAccountStore()
-                expect(store.hasAvailableTeams).toBe(false)
-            })
-
-            it('returns true when teams exist', () => {
-                const store = useAccountStore()
-                store.teams = [{ id: 'team-1' }]
-                expect(store.hasAvailableTeams).toBe(true)
-            })
-        })
     })
 
     describe('actions', () => {
-        describe('setTeams', () => {
-            it('replaces the teams array', () => {
-                const store = useAccountStore()
-                const teams = [{ id: 'team-1' }, { id: 'team-2' }]
-                store.setTeams(teams)
-                expect(store.teams).toEqual(teams)
-            })
-        })
-
         describe('setTeam', () => {
             it('refreshes context membership but skips full reload when same team is already set (by id)', async () => {
                 const store = useAccountStore()
@@ -341,12 +295,10 @@ describe('account store', () => {
         describe('$reset', () => {
             it('restores default state', async () => {
                 const store = useAccountStore()
-                store.teams = [{ id: 'team-1' }]
                 store.invitations = [{ id: 'inv-1' }]
 
                 store.$reset()
 
-                expect(store.teams).toEqual([])
                 expect(store.invitations).toEqual([])
                 expect(store.pendingTeamChange).toBe(false)
             })

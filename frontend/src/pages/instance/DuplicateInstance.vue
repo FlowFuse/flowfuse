@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header>
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb v-if="team" class="whitespace-nowrap" :to="{name: 'Instances', params: {team_slug: team.slug}}">
+                    <ff-nav-breadcrumb v-if="team" class="whitespace-nowrap" :to="{name: 'team-hosted-instances', params: {team_slug: team.slug}}">
                         Instances
                     </ff-nav-breadcrumb>
                     <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'instance-settings', params: {team_slug: team.slug, id: instance.id}}">

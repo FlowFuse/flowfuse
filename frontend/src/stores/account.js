@@ -5,7 +5,6 @@ import teamApi from '@/api/team.js'
 import userApi from '@/api/user.js'
 import getAppOrchestrator from '@/services/app.orchestrator'
 import product from '@/services/product.js'
-import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 import { useProductTablesStore } from '@/stores/product-tables.js'
@@ -23,7 +22,6 @@ function disconnectTeamSubscribers () {
 
 export const useAccountStore = defineStore('account', {
     state: () => ({
-        teams: [],
         teamBlueprints: {},
         pendingTeamChange: false,
         notifications: [],
@@ -35,10 +33,6 @@ export const useAccountStore = defineStore('account', {
             return state.teamBlueprints[teamId] || []
         },
         defaultBlueprint () { return this.blueprints?.find(blueprint => blueprint.default) },
-        defaultUserTeam: (state) => {
-            const defaultTeamId = useAccountAuthStore().user?.defaultTeam || state.teams[0]?.id
-            return state.teams.find(team => team.id === defaultTeamId)
-        },
         notificationsCount: state => state.notifications?.length || 0,
         unreadNotificationsCount: state => {
             const unread = state.notifications?.filter(n => !n.read) || []
@@ -53,13 +47,9 @@ export const useAccountStore = defineStore('account', {
         },
         hasNotifications () { return this.notificationsCount > 0 },
         teamInvitations: state => state.invitations,
-        teamInvitationsCount: state => state.invitations?.length || 0,
-        hasAvailableTeams: state => state.teams.length > 0
+        teamInvitationsCount: state => state.invitations?.length || 0
     },
     actions: {
-        setTeams (teams) {
-            this.teams = teams
-        },
         async setTeam (team) {
             const context = useContextStore()
             const currentTeam = context.team
@@ -103,10 +93,6 @@ export const useAccountStore = defineStore('account', {
                 disconnectTeamSubscribers()
             }
             this.pendingTeamChange = false
-        },
-        async refreshTeams () {
-            const teams = await teamApi.getTeams()
-            this.teams = teams.teams
         },
         async getTeamBlueprints (teamId) {
             const response = await flowBlueprintsApi.getFlowBlueprintsForTeam(teamId)

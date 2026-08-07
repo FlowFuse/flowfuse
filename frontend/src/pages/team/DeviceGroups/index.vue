@@ -206,7 +206,7 @@ export default {
         if (this.hasPermission('team:device-group:list')) {
             this.loadTeamDeviceGroups()
         } else {
-            this.$router.replace({ name: 'Home' })
+            this.$router.replace({ name: 'home' })
         }
     },
     methods: {

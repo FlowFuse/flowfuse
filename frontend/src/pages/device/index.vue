@@ -6,7 +6,7 @@
         </Teleport>
         <SectionNavigationHeader :tabs="navigation">
             <template #breadcrumbs>
-                <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Remote Instances</ff-nav-breadcrumb>
+                <ff-nav-breadcrumb :to="{name: 'team-remote-instances', params: {team_slug: team.slug}}">Remote Instances</ff-nav-breadcrumb>
                 <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
             </template>
             <template #status>
@@ -419,7 +419,7 @@ export default {
                 if (err.status === 403) {
                     this.pollTimer?.stop()
                     clearTimeout(this.openTunnelTimeout)
-                    return this.$router.push({ name: 'Home' })
+                    return this.$router.push({ name: 'home' })
                 }
             }
             if (!this.pollTimer && !this.statusChannelLive) {
@@ -598,7 +598,7 @@ export default {
                     Alerts.emit('Successfully deleted the device', 'confirmation')
                     // Trigger a refresh of team info to resync following device changes
                     await useContextStore().refreshTeam()
-                    this.$router.push({ name: 'TeamDevices', params: { team_slug: this.team.slug } })
+                    this.$router.push({ name: 'team-remote-instances', params: { team_slug: this.team.slug } })
                 } catch (err) {
                     Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
                 }

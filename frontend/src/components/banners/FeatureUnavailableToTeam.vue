@@ -53,7 +53,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         upgradePath () {
-            return { name: 'TeamChangeType', params: { team_slug: this.team.slug } }
+            return { name: 'team-change-type', params: { team_slug: this.team.slug } }
         }
     }
 }
