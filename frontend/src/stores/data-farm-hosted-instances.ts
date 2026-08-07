@@ -48,6 +48,24 @@ export const useDataFarmHostedInstancesStore = defineStore('data-farm-hosted-ins
         currentPageIds.value = currentPageIds.value.filter(instanceId => instanceId !== id)
     }
 
+    function upsertInstance (instance: StoreInstance): void {
+        if (!instance?.id) return
+        instancesById.value[instance.id] = { ...instancesById.value[instance.id], ...instance }
+    }
+
+    function applyRealtimeEvent (event: { id?: string, action?: string, data?: StoreInstance }): void {
+        if (!event?.id || !event.action) return
+        if (event.action === 'deleted') {
+            removeInstance(event.id)
+            return
+        }
+        if (!event.data) return
+        upsertInstance(event.data)
+        if (event.action === 'created' && !currentPageIds.value.includes(event.id)) {
+            currentPageIds.value.push(event.id)
+        }
+    }
+
     async function fetchTeamInstancesPage (teamId: string, query: PageQuery = {}): Promise<void> {
         if (!teamId) return
         const response = await teamApi.getInstances(teamId, {
@@ -147,6 +165,7 @@ export const useDataFarmHostedInstancesStore = defineStore('data-farm-hosted-ins
         currentPageInstances,
         fetchTeamInstancesPage,
         removeInstance,
+        applyRealtimeEvent,
         applyLiveStatus,
         applyPolledStatus,
         startInstance,
