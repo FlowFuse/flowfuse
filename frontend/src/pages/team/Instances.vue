@@ -176,7 +176,7 @@
             </template>
         </div>
         <template v-if="!statusChannelLive">
-            <InstanceStatusPolling v-for="instance in instances" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
+            <InstanceStatusPolling v-for="instance in currentPageInstanceRefs" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
         </template>
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
     </ff-page>
@@ -184,20 +184,17 @@
 
 <script>
 import { PlusSmallIcon } from '@heroicons/vue/24/outline'
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 import { markRaw } from 'vue'
 
-import teamApi from '../../api/team.js'
 import EmptyState from '../../components/EmptyState.vue'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
 import { useInstanceStates } from '../../composables/InstanceStates.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
-import instanceActionsMixin from '../../mixins/InstanceActions.js'
 import Alerts from '../../services/alerts.js'
-import { InstanceStateMutator } from '../../utils/InstanceStateMutator.js'
-import { applyLiveState } from '../../utils/applyLiveState.js'
+import Dialog from '../../services/dialog.js'
 import { debounce } from '../../utils/eventHandling.js'
 import ApplicationLink from '../application/components/cells/ApplicationLink.vue'
 import DeploymentName from '../application/components/cells/DeploymentName.vue'
@@ -209,6 +206,7 @@ import InstanceStatusBadge from '../instance/components/InstanceStatusBadge.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmHostedInstancesStore } from '@/stores/data-farm-hosted-instances'
 import { useLiveStatusStore } from '@/stores/live-status'
 import PopoverItem from '@/ui-components/components/PopoverItem.vue'
 
@@ -224,22 +222,19 @@ export default {
         FeatureUnavailableToTeam,
         PopoverItem
     },
-    mixins: [instanceActionsMixin],
     setup () {
-        const { isRunningState, statesMap } = useInstanceStates()
+        const { statesMap } = useInstanceStates()
         const { navigateTo } = useNavigationHelper()
         const { hasPermission } = usePermissions()
 
-        return { hasPermission, isRunningState, navigateTo, statesMap }
+        return { hasPermission, navigateTo, statesMap }
     },
     data () {
         return {
             loading: true,
             abortController: null,
-            instancesMap: new Map(),
             page: 1,
             pageSize: 25,
-            totalRows: 0,
             searchTerm: null,
             selectedStatusGroups: [],
             statusFilters: [
@@ -299,8 +294,13 @@ export default {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useLiveStatusStore, { liveInstanceMetadata: 'instanceMetadata', statusChannelLive: 'live' }),
+        ...mapState(useDataFarmHostedInstancesStore, { currentPageInstances: 'currentPageInstances', currentPageInstanceRefs: 'currentPageInstanceRefs', totalRows: 'total' }),
         instances () {
-            return Array.from(this.instancesMap.values())
+            return this.currentPageInstances.map(instance => {
+                const canDelete = this.hasPermission('project:delete', { application: instance.application })
+                const canChangeStatus = this.hasPermission('project:change-status', { application: instance.application })
+                return { ...instance, canDelete, canChangeStatus, hideContextMenu: !(canDelete || canChangeStatus) }
+            })
         },
         instancesAvailable () {
             return this.featuresCheck?.isHostedInstancesEnabledForTeam
@@ -339,6 +339,16 @@ export default {
         this.abortController?.abort()
     },
     methods: {
+        ...mapActions(useDataFarmHostedInstancesStore, [
+            'fetchTeamInstancesPage',
+            'applyLiveStatus',
+            'applyPolledStatus',
+            'startInstance',
+            'restartInstance',
+            'suspendInstance',
+            'removeInstance',
+            'reset'
+        ]),
         fullReload () {
             this.page = 1
             this.fetchData()
@@ -356,36 +366,20 @@ export default {
             this.abortController = controller
             this.loading = true
             try {
-                let response
                 if (this.hasPermission('team:projects:list')) {
-                    response = await teamApi.getInstances(this.team.id, {
-                        pagination: {
-                            page: this.page,
-                            limit: this.pageSize,
-                            query: this.searchTerm || null,
-                            sort: this.sort.key || null,
-                            dir: this.sort.order || null
-                        },
-                        includeMeta: true,
+                    await this.fetchTeamInstancesPage(this.team.id, {
+                        page: this.page,
+                        limit: this.pageSize,
+                        query: this.searchTerm || null,
+                        sort: this.sort.key || null,
+                        dir: this.sort.order || null,
                         states: this.statusFilter,
                         signal: controller.signal
                     })
+                    this.applyLiveStatus()
+                } else {
+                    this.reset()
                 }
-                const projects = response?.projects || []
-                this.totalRows = response?.meta?.total ?? response?.count ?? projects.length
-                const nextMap = new Map()
-                projects.forEach(instance => {
-                    instance.running = this.isRunningState(instance.meta?.state || instance.status)
-                    instance.notSuspended = (instance.meta?.state || instance.status) !== 'suspended'
-                    instance.pendingStateChange = false
-                    instance.optimisticStateChange = false
-                    instance.canDelete = this.hasPermission('project:delete', { application: instance.application })
-                    instance.canChangeStatus = this.hasPermission('project:change-status', { application: instance.application })
-                    instance.hideContextMenu = !(instance.canDelete || instance.canChangeStatus)
-                    nextMap.set(instance.id, instance)
-                })
-                this.instancesMap = nextMap
-                this.applyLiveStatus()
             } catch (error) {
                 if (error.name !== 'AbortError' && error.name !== 'CanceledError') {
                     Alerts.emit('Failed to load instances.', 'warning')
@@ -395,21 +389,6 @@ export default {
                     this.loading = false
                     this.abortController = null
                 }
-            }
-        },
-        applyLiveStatus () {
-            const metadata = this.liveInstanceMetadata
-            for (const id of this.instancesMap.keys()) {
-                const meta = metadata[id]
-                if (!meta?.status) continue
-                const state = meta.status
-                const row = this.instancesMap.get(id)
-                if (row.status === state && row.meta?.state === state) continue
-                this.instancesMap.set(id, {
-                    ...applyLiveState(row, state, { versions: meta.versions, clearFlags: true }),
-                    running: this.isRunningState(state),
-                    notSuspended: state !== 'suspended'
-                })
             }
         },
         toggleStatusGroup (key) {
@@ -456,22 +435,48 @@ export default {
                 }
             }, event)
         },
-        instanceUpdated: function (newData) {
-            const mutator = new InstanceStateMutator(newData)
-            mutator.clearState()
-            newData.running = this.isRunningState(newData.meta.state)
-            newData.notSuspended = newData.meta.state !== 'suspended'
-            this.instancesMap.set(newData.id, {
-                ...this.instancesMap.get(newData.id),
-                ...newData
+        async instanceStart (instance) {
+            try {
+                await this.startInstance(instance.id)
+            } catch (err) {
+                console.warn('Instance start failed.', err)
+                Alerts.emit('Instance start failed.', 'warning')
+            }
+        },
+        async instanceRestart (instance) {
+            try {
+                await this.restartInstance(instance.id)
+            } catch (err) {
+                console.warn('Instance restart failed.', err)
+                Alerts.emit('Instance restart failed.', 'warning')
+            }
+        },
+        instanceShowConfirmSuspend (instance) {
+            Dialog.show({
+                header: 'Suspend Instance',
+                text: `Are you sure you want to suspend ${instance.name}`,
+                confirmLabel: 'Suspend',
+                kind: 'danger'
+            }, async () => {
+                try {
+                    await this.suspendInstance(instance.id)
+                    Alerts.emit('Instance suspend request succeeded.', 'confirmation')
+                } catch (err) {
+                    console.warn(err)
+                    Alerts.emit('Instance failed to suspend.', 'warning')
+                }
             })
         },
+        instanceShowConfirmDelete (instance) {
+            this.$refs.confirmInstanceDeleteDialog.show(instance)
+        },
+        instanceUpdated (newData) {
+            this.applyPolledStatus(newData)
+        },
         onInstanceDeleted (instance) {
-            if (this.instancesMap.has(instance.id)) {
-                this.instancesMap.delete(instance.id)
-                // Refetch to refresh totals and pull in any backfill row from the next page.
-                this.fetchData()
-            }
+            this.removeInstance(instance.id)
+            // Refetch to refresh totals and pull in any backfill row from the next page.
+            this.fetchData()
         }
     }
 }
