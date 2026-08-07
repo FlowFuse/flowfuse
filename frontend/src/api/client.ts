@@ -1,11 +1,11 @@
-import { create as createClient } from 'axios'
+import axios, { type AxiosError, type AxiosInstance } from 'axios'
 
-import Alerts from '../services/alerts.js'
+import Alerts from '../services/alerts'
 
-import { useAccountAuthStore } from '@/stores/account-auth.js'
-import { useUxLoadingStore } from '@/stores/ux-loading.js'
+import { useAccountAuthStore } from '@/stores/account-auth'
+import { useUxLoadingStore } from '@/stores/ux-loading'
 
-const client = createClient({
+const client: AxiosInstance = axios.create({
     headers: {
         'Content-Type': 'application/json'
     },
@@ -15,7 +15,7 @@ const client = createClient({
 // Common error handler
 client.interceptors.response.use(function (response) {
     return response
-}, async function (error) {
+}, async function (error: AxiosError<{ error: string, message: string }>) {
     if (/^http/.test(error.config.url)) {
         // This request is to an external URL. Allow this error to pass back to the caller
         return Promise.reject(error)

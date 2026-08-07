@@ -57,6 +57,7 @@
 </template>
 
 <script>
+import { mapActions } from 'pinia'
 import { defineComponent } from 'vue'
 
 import ApplicationAPI from '../../../api/application.js'
@@ -65,6 +66,8 @@ import FormHeading from '../../../components/FormHeading.vue'
 import FormRow from '../../../components/FormRow.vue'
 import usePermissions from '../../../composables/Permissions.js'
 import Alerts from '../../../services/alerts.js'
+
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 
 export default defineComponent({
     name: 'ApplicationSettingsGeneral',
@@ -114,6 +117,7 @@ export default defineComponent({
         this.loadInstances(this.application.id)
     },
     methods: {
+        ...mapActions(useDataFarmApplicationsStore, ['updateApplication']),
         editName () {
             this.editing = true
             this.$refs.appName.focus()
@@ -125,10 +129,9 @@ export default defineComponent({
             this.input.projectDescription = this.application.description
         },
         saveApplication () {
-            ApplicationAPI.updateApplication(
+            this.updateApplication(
                 this.application.id,
-                this.input.projectName,
-                this.input.projectDescription
+                { name: this.input.projectName, description: this.input.projectDescription }
             )
                 .then(() => {
                     this.$emit('application-updated')

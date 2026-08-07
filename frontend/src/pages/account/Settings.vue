@@ -306,6 +306,7 @@ export default {
                        This action cannot be undone.`,
                 confirmLabel: 'Delete'
             }, async () => {
+                await useAccountAuthStore().disconnectSubscribers()
                 userApi.deleteUser()
                     .then(() => {
                         if (this.settings['user:offboarding-required']) {
@@ -351,7 +352,7 @@ export default {
         selectTeam (team) {
             useAccountStore().setTeam(team.slug)
                 .then(() => this.$router.push({
-                    name: 'Team',
+                    name: 'team',
                     params: {
                         team_slug: team.slug
                     }

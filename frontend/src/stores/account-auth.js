@@ -11,6 +11,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useCookieConsentStore } from '@/stores/cookie-consent'
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
@@ -61,6 +62,12 @@ export const useAccountAuthStore = defineStore('account-auth', {
         setRedirectUrl (url) {
             this.redirectUrlAfterLogin = url
         },
+        async disconnectSubscribers () {
+            const subscribers = getAppOrchestrator().$subscribers
+            await Promise.all(
+                Object.values(subscribers).map(subscriber => subscriber?.disconnect().catch(() => {}))
+            )
+        },
         async checkIfAuthenticated () {
             const user = await userApi.getUser()
             this.user = user
@@ -85,7 +92,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     return
                 } else if (user.email_verified === false || user.password_expired) {
                     useUxLoadingStore().clearAppLoader()
-                    router.push({ name: 'Home' })
+                    router.push({ name: 'home' })
                     return
                 }
 
@@ -101,7 +108,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     useUxLoadingStore().clearAppLoader()
                     useAccountStore().setTeam(null)
                     if (/^\/team\//.test(router.currentRoute.value.path)) {
-                        router.push({ name: 'Home' })
+                        router.push({ name: 'home' })
                     }
                     return
                 }
@@ -178,7 +185,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     //     // Only remember the url if it isn't the default / path
                     //     this.setRedirectUrl(router.currentRoute.value.fullPath)
                     // }
-                    router.push({ name: 'Home' })
+                    router.push({ name: 'home' })
                 }
             }
         },
@@ -205,11 +212,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
             if (useAccountSettingsStore().settings['platform:sso:only']) {
                 logoutURL = useAccountSettingsStore().settings['platform:sso:only:logoutURL'] || '/'
             }
-            const subscribers = getAppOrchestrator().$subscribers
-            const disconnect = Promise.all(
-                Object.values(subscribers).map(subscriber => subscriber?.disconnect().catch(() => {}))
-            )
-            return disconnect
+            return this.disconnectSubscribers()
                 .then(() => userApi.logout())
                 .then(() => this.clearStores())
                 .catch(_ => {})
@@ -232,6 +235,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
             useUxStore().$reset()
             useContextStore().$reset()
             useCookieConsentStore().reset()
+            useDataFarmApplicationsStore().reset()
             useProductTablesStore().$reset()
             useProductBrokersStore().$reset()
             useProductAssistantStore().$reset()

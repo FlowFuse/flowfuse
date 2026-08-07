@@ -6,7 +6,7 @@
                 <InstanceTile :instance="instance" :minimal-view="true" @delete-instance="$emit('delete-instance', $event)" />
             </li>
             <li v-if="hasMore" class="instance-wrapper flex">
-                <team-link :to="{name: 'Instances'}" class="instance-tile has-more hover:text-indigo-700" data-el="has-more">
+                <team-link :to="{name: 'team-hosted-instances'}" class="instance-tile has-more hover:text-indigo-700" data-el="has-more">
                     <span>{{ instancesLeft }} More</span>
                     <span>
                         <ChevronRightIcon class="ff-icon ff-icon-sm" />
@@ -17,7 +17,7 @@
         <div v-else class="no-instances flex flex-col flex-1 justify-center text-gray-500 italic">
             <p class="text-center self-center">
                 It's looking a little empty.
-                <team-link :to="{name: 'CreateInstance'}" class="text-indigo-500">Create a Hosted Instance</team-link>
+                <team-link :to="{name: 'team-instance-create'}" class="text-indigo-500">Create a Hosted Instance</team-link>
                 to get started.
             </p>
         </div>

@@ -91,7 +91,7 @@ Before you begin, ensure you have the following:
 
 For a production-ready environment, we also recommend: 
 * **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
-* **TLS Certification:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#enable-https-(optional)))
+* **TLS Certification:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#enable-https-optional))
 
 ### Requirements
 
@@ -291,7 +291,7 @@ Once ready, [start the application](#start-flowfuse-platform) .
 
 ### How can I provide my own TLS certificate?
 
-If you have your own TLS certificate, you can use it in FlowFuse platform installation as well. See [Enable HTTPS](#enable-https-(optional)) section for more details.
+If you have your own TLS certificate, you can use it in FlowFuse platform installation as well. See [Enable HTTPS](#enable-https-optional) section for more details.
 
 Additionally, if your TLS certificate is issued by a private Certificate Authority, you will need to perform some additional configuration to make hosted Node-RED instances trust the CA. See [What additional configuration is required when the TLS certificate is issued by a private Certificate Authority](#what-additional-configuration-is-required-when-the-tls-certificate-is-issued-by-a-private-certificate-authority%3F) for the step-by-step instructions.
 

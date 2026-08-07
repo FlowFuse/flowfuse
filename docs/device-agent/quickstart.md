@@ -43,12 +43,13 @@ If you already have Node.js v22+ installed, or need to customize the setup, chec
 
 1. Open a powershell terminal with elevated permission:
   ```bash
-powershell -Command "Start-Process 'cmd' -Verb RunAs"
+# From Windows Run dialog or a terminal window, enter:
+powershell -Command "Start-Process 'powershell' -Verb RunAs"
 ```
 
-2. Run the follow command in that terminal to download and run the installer:
+2. Run the following command in the elevated terminal to download and run the installer:
   ```bash
-powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1 | iex; .\flowfuse-device-agent-installer.exe"
+Set-Location $env:USERPROFILE; powershell -c "irm https://flowfuse.github.io/device-agent/get.ps1 | iex"; .\flowfuse-device-agent-installer.exe
 ```
 
 {% note %}
@@ -81,7 +82,7 @@ Enter the code when prompted and the Device Agent will connect.
 
 The Agent will check common locations for existing Node-RED flows. If it finds any, it will ask if you want to import those flows into your Device Agent managed Node-RED. This makes it easy to migrate an existing Node-RED setup into a fully managed FlowFuse instance. If you want to run an entirely separate instance, you can skip this step.
 
-## Step 4: Setup a system service
+## Step 4: Set up a system service
 
 The Installer will then setup a system service so the Device Agent automatically runs when the device restarts.
 
@@ -138,4 +139,3 @@ Here are a few to get you started:
 * [Logs](../user/logs.md)
 
 
-[^1]: Run `powershell -Command "Start-Process 'cmd' -Verb runAs` to launching an elevated command prompt window (e.g. as an admin user)

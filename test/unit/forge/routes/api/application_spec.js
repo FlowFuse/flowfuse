@@ -434,6 +434,62 @@ describe('Application API', function () {
         })
     })
 
+    describe('Lifecycle publishing', async function () {
+        let notifySpy
+
+        beforeEach(function () {
+            notifySpy = sinon.spy(app.comms.team, 'notifyEntityLifecycle')
+        })
+
+        afterEach(function () {
+            notifySpy.restore()
+        })
+
+        it('publishes created on create', async function () {
+            const sid = await login('bob', 'bbPassword')
+            const response = await app.inject({
+                method: 'POST',
+                url: '/api/v1/applications',
+                cookies: { sid },
+                payload: { name: generateName('lifecycle-app'), teamId: TestObjects.BTeam.hashid }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+
+            notifySpy.calledWith(TestObjects.BTeam.hashid, 'a', result.id, 'created').should.be.true()
+            const data = notifySpy.getCall(0).args[4]
+            data.should.have.property('id', result.id)
+        })
+
+        it('publishes updated on update', async function () {
+            const sid = await login('bob', 'bbPassword')
+            const application = await app.factory.createApplication({ name: generateName('lifecycle-app') }, TestObjects.BTeam)
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/applications/${application.hashid}`,
+                cookies: { sid },
+                payload: { name: 'Renamed' }
+            })
+            response.statusCode.should.equal(200)
+
+            notifySpy.calledWith(TestObjects.BTeam.hashid, 'a', application.hashid, 'updated').should.be.true()
+        })
+
+        it('publishes deleted on delete without a data payload', async function () {
+            const sid = await login('bob', 'bbPassword')
+            const application = await app.factory.createApplication({ name: generateName('lifecycle-app') }, TestObjects.BTeam)
+            const response = await app.inject({
+                method: 'DELETE',
+                url: `/api/v1/applications/${application.hashid}`,
+                cookies: { sid }
+            })
+            response.statusCode.should.equal(200)
+
+            notifySpy.calledWith(TestObjects.BTeam.hashid, 'a', application.hashid, 'deleted').should.be.true()
+            should(notifySpy.getCall(0).args[4]).be.undefined()
+        })
+    })
+
     describe('List instances', async function () {
         it('Returns application instances - empty list', async function () {
             const sid = await login('bob', 'bbPassword')

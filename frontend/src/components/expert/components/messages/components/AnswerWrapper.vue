@@ -1,6 +1,6 @@
 <template>
     <message-bubble ref="messageBubble" type="ai" :bare="hasToolApproval">
-        <answer-badge v-if="!isChatAnswer && !isQuestionsAnswer && !isPlanAnswer && !hasToolApproval" :kind="answer.kind" />
+        <setup-guide-badge v-if="!isChatAnswer && !isQuestionsAnswer && !isPlanAnswer && !hasToolApproval" />
 
         <rich-content
             v-if="shouldShowRichContent"
@@ -114,9 +114,9 @@ import { mapActions, mapState } from 'pinia'
 
 import useTimerHelper from '../../../../../composables/TimerHelper.js'
 
-import AnswerBadge from './AnswerBadge.vue'
 import GuideHeader from './GuideHeader.vue'
 import MessageBubble from './MessageBubble.vue'
+import SetupGuideBadge from './SetupGuideBadge.vue'
 import FlowsList from './resources/FlowsList.vue'
 import GuideStepsList from './resources/GuideStepsList.vue'
 import IssuesList from './resources/IssuesList.vue'
@@ -139,7 +139,7 @@ export default {
         PackagesList,
         PlanCard,
         FlowsList,
-        AnswerBadge,
+        SetupGuideBadge,
         ResourcesList,
         QuestionsList,
         GuideStepsList,
