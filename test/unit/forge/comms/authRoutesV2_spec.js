@@ -1510,6 +1510,46 @@ describe('Broker Auth v2 API', async function () {
                     topic: `ff/v1/${TestObjects.ATeam.hashid}/a/an-application/deleted`
                 })
             })
+            it('allows a team member to subscribe to the instance lifecycle wildcards', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/created`
+                })
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/updated`
+                })
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/deleted`
+                })
+            })
+            it('denies subscribe to another team\'s instance lifecycle wildcard', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/p/+/created`
+                })
+            })
+            it('denies fe-team from publishing instance lifecycle topics (read-only client)', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/created`
+                })
+            })
+            it('allows forge_platform to publish instance lifecycle topics', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/an-instance/created`
+                })
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/an-instance/updated`
+                })
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/an-instance/deleted`
+                })
+            })
             it('denies fe-team from publishing to state (read-only client)', async function () {
                 await denyWrite({
                     username: teamFrontendUsername,
