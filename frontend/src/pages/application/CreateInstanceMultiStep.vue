@@ -116,7 +116,7 @@ export default {
             this.$emit('application-updated')
 
             this.$router.push({
-                name: 'ApplicationInstances',
+                name: 'application-instances',
                 params: { id: this.application.id }
             })
         }

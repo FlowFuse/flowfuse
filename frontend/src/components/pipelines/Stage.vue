@@ -79,7 +79,7 @@
                     </router-link>
                 </div>
                 <div v-if="stage.stageType == StageType.DEVICEGROUP" class="ff-pipeline-stage-type">
-                    <router-link class="flex gap-2 items-center" :to="{name: 'ApplicationDeviceGroupDevices', params: { applicationId: application.id, deviceGroupId: stage.deviceGroup.id }}">
+                    <router-link class="flex gap-2 items-center" :to="{name: 'application-device-group-devices', params: { applicationId: application.id, deviceGroupId: stage.deviceGroup.id }}">
                         <IconDeviceGroupSolid class="ff-icon ff-icon-lg text-teal-700" />
                         <div>
                             <label class="flex items-center gap-2">Device Group:</label>
@@ -330,7 +330,7 @@ export default {
         },
         edit () {
             const route = {
-                name: 'EditPipelineStage',
+                name: 'application-pipeline-stage-edit',
                 params: {
                     // url params
                     id: this.application.id,

@@ -14,7 +14,7 @@
                 </router-link>
             </h6>
             <h6 v-if="instance.app">
-                <router-link :to="{name: 'Application', params: {id: instance.app.id}}" class="ff-link truncate">
+                <router-link :to="{name: 'application', params: {id: instance.app.id}}" class="ff-link truncate">
                     {{ instance.app.name }}
                 </router-link>
             </h6>

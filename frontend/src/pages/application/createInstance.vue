@@ -4,7 +4,7 @@
             <ff-page-header title="Instances">
                 <template #custom-breadcrumbs>
                     <ff-nav-breadcrumb v-if="team" :to="{name: 'team-applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
-                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Application', params: {id: application.id}}">
+                    <ff-nav-breadcrumb v-if="team" :to="{name: 'application', params: {id: application.id}}">
                         {{ application.name }}
                     </ff-nav-breadcrumb>
                     <ff-nav-breadcrumb>
@@ -109,7 +109,7 @@ export default {
 
                 this.$emit('application-updated')
 
-                this.$router.push({ name: 'ApplicationInstances', params: { id: this.application.id } })
+                this.$router.push({ name: 'application-instances', params: { id: this.application.id } })
             } catch (err) {
                 this.instanceDetails = instanceFields
                 if (err.response?.status === 409) {

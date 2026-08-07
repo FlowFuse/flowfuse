@@ -71,24 +71,24 @@ export default {
             const routes = [
                 {
                     label: 'Hosted Instances',
-                    to: { name: 'ApplicationInstances' },
+                    to: { name: 'application-instances' },
                     tag: 'application-overview'
                     // icon: ProjectsIcon
                 },
                 {
                     label: 'Remote Instances',
-                    to: { name: 'ApplicationDevices' },
+                    to: { name: 'application-devices' },
                     tag: 'application-devices-overview'
                     // icon: CpuChipIcon
                 },
                 {
                     label: 'Dashboards',
-                    to: { name: 'ApplicationDashboards' },
+                    to: { name: 'application-dashboards' },
                     tag: 'application-dashboards'
                 },
                 {
                     label: 'Device Groups',
-                    to: { name: 'ApplicationDeviceGroups' },
+                    to: { name: 'application-device-groups' },
                     tag: 'application-devices-groups-overview',
                     // icon: CpuChipIcon,
                     hidden: !this.hasPermission('application:device-group:list', { application: this.application }),
@@ -96,13 +96,13 @@ export default {
                 },
                 {
                     label: 'Snapshots',
-                    to: { name: 'ApplicationSnapshots' },
+                    to: { name: 'application-snapshots' },
                     tag: 'application-snapshots'
                     // icon: ClockIcon
                 },
                 {
                     label: 'Pipelines',
-                    to: { name: 'ApplicationPipelines' },
+                    to: { name: 'application-pipelines' },
                     tag: 'application-pipelines',
                     // icon: PipelinesIcon,
                     hidden: !this.hasPermission('application:pipeline:list', { application: this.application }),
