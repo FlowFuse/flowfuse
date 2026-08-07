@@ -236,7 +236,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Applications',
                                 to: {
-                                    name: 'Applications',
+                                    name: 'team-applications',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-applications',

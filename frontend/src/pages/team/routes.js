@@ -42,7 +42,7 @@ export default [
             {
                 path: ':team_slug',
                 redirect: { name: 'team-home' },
-                name: 'Team',
+                name: 'team',
                 component: Team,
                 meta: {
                     title: 'Team - Overview'
@@ -67,7 +67,7 @@ export default [
                         path: 'applications',
                         children: [
                             {
-                                name: 'Applications',
+                                name: 'team-applications',
                                 path: '',
                                 component: TeamApplications,
                                 meta: {
@@ -238,7 +238,7 @@ export default [
                         backTo: ({ team }) => {
                             return {
                                 label: 'Back to Dashboard',
-                                to: { name: 'Team', params: { team_slug: team?.slug } }
+                                to: { name: 'team', params: { team_slug: team?.slug } }
                             }
                         }
                     }
@@ -286,7 +286,7 @@ export default [
                 backTo: ({ team }) => {
                     return {
                         label: 'Back to Dashboard',
-                        to: { name: 'Team', params: { team_slug: team?.slug } }
+                        to: { name: 'team', params: { team_slug: team?.slug } }
                     }
                 }
             }
