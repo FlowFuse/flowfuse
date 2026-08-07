@@ -75,7 +75,7 @@ export default [
                                 }
                             },
                             {
-                                name: 'CreateTeamApplication',
+                                name: 'team-application-create',
                                 path: 'create',
                                 component: CreateApplication,
                                 meta: {
@@ -98,7 +98,7 @@ export default [
                                 }
                             },
                             {
-                                name: 'CreateInstance',
+                                name: 'team-instance-create',
                                 path: 'create',
                                 component: CreateInstance,
                                 meta: {
@@ -175,7 +175,7 @@ export default [
                                 ]
                             },
                             {
-                                name: 'TeamChangeType',
+                                name: 'team-change-type',
                                 path: 'change-type',
                                 component: ChangeTeamType,
                                 meta: {
@@ -227,7 +227,7 @@ export default [
                 ]
             },
             {
-                name: 'CreateTeam',
+                name: 'team-create',
                 path: 'create',
                 beforeEnter: ensurePermission('team:create'),
                 component: CreateTeam,
@@ -278,7 +278,7 @@ export default [
     {
         path: '/deploy/blueprint',
         component: CreateInstance,
-        name: 'DeployBlueprint',
+        name: 'deploy-blueprint',
         meta: {
             title: 'Deploy Blueprint',
             menu: {

@@ -39,7 +39,7 @@
                                     v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                                     data-action="create-project"
                                     kind="secondary"
-                                    :to="{name: 'CreateInstance'}"
+                                    :to="{name: 'team-instance-create'}"
                                     :disabled="!hasPermission('project:create')"
                                 >
                                     <template #icon-left>
