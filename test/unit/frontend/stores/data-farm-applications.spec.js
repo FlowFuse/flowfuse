@@ -3,13 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import applicationApi from '@/api/application.js'
 import teamApi from '@/api/team.js'
-import { useContextStore } from '@/stores/context.js'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 
 describe('data-farm-applications store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
-        useContextStore().team = { id: 'team-1' }
+        useDataFarmTeamsStore().setActiveTeam({ id: 'team-1' })
     })
 
     afterEach(() => {
@@ -68,7 +68,7 @@ describe('data-farm-applications store', () => {
 
             await store.ensureTeamApplicationsLoaded()
             store.reset()
-            useContextStore().team = { id: 'team-2' }
+            useDataFarmTeamsStore().setActiveTeam({ id: 'team-2' })
             await store.ensureTeamApplicationsLoaded()
 
             expect(store.teamApplicationIds).toEqual(['b1'])
@@ -84,7 +84,7 @@ describe('data-farm-applications store', () => {
 
         it('reads the current team from the context store', async () => {
             const spy = vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [] })
-            useContextStore().team = { id: 'team-9' }
+            useDataFarmTeamsStore().setActiveTeam({ id: 'team-9' })
             const store = useDataFarmApplicationsStore()
 
             await store.ensureTeamApplicationsLoaded()
@@ -94,7 +94,7 @@ describe('data-farm-applications store', () => {
 
         it('does nothing when no team is set in context', async () => {
             const spy = vi.spyOn(teamApi, 'getTeamApplications').mockResolvedValue({ applications: [] })
-            useContextStore().team = null
+            useDataFarmTeamsStore().setActiveTeam(null)
             const store = useDataFarmApplicationsStore()
 
             await store.ensureTeamApplicationsLoaded()

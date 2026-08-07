@@ -13,6 +13,7 @@
             <router-view
                 :application="application"
                 :instances="instancesArray"
+                :loading-instance-statuses="loadingInstanceStatuses"
                 :is-visiting-admin="isVisitingAdmin"
                 @application-updated="loadApplicationData"
                 @application-delete="showConfirmDeleteApplicationDialog"
@@ -73,7 +74,8 @@ export default {
     },
     data () {
         return {
-            applicationInstances: new Map()
+            applicationInstances: new Map(),
+            loadingInstanceStatuses: false
         }
     },
     computed: {
@@ -213,6 +215,7 @@ export default {
             const nextInstances = new Map()
             instances.forEach(instance => nextInstances.set(instance.id, instance))
             this.applicationInstances = nextInstances
+            this.loadingInstanceStatuses = true
             applicationApi.getApplicationInstancesStatuses(applicationId)
                 .then(statuses => {
                     statuses.forEach(status => {
@@ -220,6 +223,9 @@ export default {
                     })
                 })
                 .catch(err => console.error(err))
+                .finally(() => {
+                    this.loadingInstanceStatuses = false
+                })
         },
         async deleteApplication () {
             this.setPageLoader(true, 'Deleting Application...')

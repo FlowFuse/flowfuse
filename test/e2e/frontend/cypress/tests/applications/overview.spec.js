@@ -90,42 +90,42 @@ describe('FlowFuse - Applications', () => {
             })
         })
 
-        it('should have interactive counter tiles which carry on the search terms to their respective targets', () => {
+        it('should have interactive counter tiles which apply a status filter on their respective targets', () => {
             cy.visit('team/bteam/applications')
             cy.get('[data-el="application-instances"] [data-state="running"]').click()
             cy.get('[data-hero="Node-RED Instances"]').should('exist')
-            cy.get('[data-form="search"]').should('exist')
-            cy.get('[data-form="search"] input').should('have.value', 'importing | connected | info | success | pushing | pulling | loading | updating | installing | safe | protected | running | warning | starting')
+            cy.url().should('include', 'status=running')
+            cy.get('[data-el="status-filter"]').should('contain', 'Status (1)')
 
             cy.visit('team/bteam/applications')
             cy.get('[data-el="application-instances"] [data-state="error"]').click()
             cy.get('[data-hero="Node-RED Instances"]').should('exist')
-            cy.get('[data-form="search"]').should('exist')
-            cy.get('[data-form="search"] input').should('have.value', 'error | crashed')
+            cy.url().should('include', 'status=error')
+            cy.get('[data-el="status-filter"]').should('contain', 'Status (1)')
 
             cy.visit('team/bteam/applications')
             cy.get('[data-el="application-instances"] [data-state="stopped"]').click()
             cy.get('[data-hero="Node-RED Instances"]').should('exist')
-            cy.get('[data-form="search"]').should('exist')
-            cy.get('[data-form="search"] input').should('have.value', 'stopping | restarting | suspending | rollback | stopped | suspended | offline | unknown')
+            cy.url().should('include', 'status=stopped')
+            cy.get('[data-el="status-filter"]').should('contain', 'Status (1)')
 
             cy.visit('team/bteam/applications')
             cy.get('[data-el="application-devices"] [data-state="running"]').click()
             cy.get('[data-hero="Remote Instances"]').should('exist')
-            cy.get('[data-form="search"]').should('exist')
-            cy.get('[data-form="search"] input').should('have.value', 'importing | connected | info | success | pushing | pulling | loading | updating | installing | safe | protected | running | warning | starting')
+            cy.url().should('include', 'status=running')
+            cy.get('[data-el="device-filters"]').should('contain', 'Filters (1)')
 
             cy.visit('team/bteam/applications')
             cy.get('[data-el="application-devices"] [data-state="error"]').click()
             cy.get('[data-hero="Remote Instances"]').should('exist')
-            cy.get('[data-form="search"]').should('exist')
-            cy.get('[data-form="search"] input').should('have.value', 'error | crashed')
+            cy.url().should('include', 'status=error')
+            cy.get('[data-el="device-filters"]').should('contain', 'Filters (1)')
 
             cy.visit('team/bteam/applications')
             cy.get('[data-el="application-devices"] [data-state="stopped"]').click()
             cy.get('[data-hero="Remote Instances"]').should('exist')
-            cy.get('[data-form="search"]').should('exist')
-            cy.get('[data-form="search"] input').should('have.value', 'stopping | restarting | suspending | rollback | stopped | suspended | offline | unknown')
+            cy.url().should('include', 'status=stopped')
+            cy.get('[data-el="device-filters"]').should('contain', 'Filters (1)')
         })
 
         it('should allow users to navigate using the application summary header shortcuts', () => {
