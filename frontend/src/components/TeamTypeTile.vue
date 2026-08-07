@@ -73,7 +73,7 @@ export default {
         },
         toCreateTeam () {
             return {
-                name: 'CreateTeam',
+                name: 'team-create',
                 query: {
                     teamType: this.teamType.id,
                     interval: this.billingInterval

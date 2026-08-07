@@ -350,7 +350,7 @@ export default {
                 }, {
                     team: this.team.id
                 })
-                this.$router.push({ name: 'Team', params: { team_slug: result.slug } })
+                this.$router.push({ name: 'team', params: { team_slug: result.slug } })
             }).catch(err => {
                 Alerts.emit('Unable to change team type: ' + err.response.data.error, 'warning', 15000)
             }).finally(() => {

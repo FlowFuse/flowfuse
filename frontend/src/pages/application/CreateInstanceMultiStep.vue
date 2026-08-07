@@ -100,7 +100,7 @@ export default {
             )
         ) {
             this.$router.push({
-                name: 'Billing',
+                name: 'team-billing',
                 params: {
                     team_slug: this.team.slug
                 }

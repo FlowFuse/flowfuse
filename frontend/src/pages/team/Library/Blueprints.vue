@@ -93,7 +93,7 @@ export default {
             }
         },
         onBlueprintSelect (blueprint) {
-            this.$router.push({ name: 'CreateInstance', query: { blueprintId: blueprint.id } })
+            this.$router.push({ name: 'team-instance-create', query: { blueprintId: blueprint.id } })
         }
     }
 }

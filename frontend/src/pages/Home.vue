@@ -91,7 +91,7 @@ export default {
             if (this.user.email_verified) {
                 if (this.team || this.defaultUserTeam) {
                     this.$router.push({
-                        name: 'Team',
+                        name: 'team',
                         params: {
                             team_slug: this.team?.slug || this.defaultUserTeam?.slug
                         }

@@ -20,7 +20,7 @@
         </template>
         <template v-else>
             <div class="forge-button-tertiary text-xs border-dashed">
-                <router-link :to="{name: 'CreateTeamApplication'}" class="px-1 py-4 flex w-full">
+                <router-link :to="{name: 'team-application-create'}" class="px-1 py-4 flex w-full">
                     <div class="grow">
                         <div class="text-base flex items-center"><PlusSmallIcon class="w-5 h-5 -ml-1 mr-1" /> Create Application</div>
                     </div>
