@@ -36,6 +36,7 @@ module.exports = async function (app) {
             (username.startsWith('frontend:') && password.startsWith('ffbf_')) ||
             (username.startsWith('fe-team:') && password.startsWith('ffbtf_')) ||
             (username.startsWith('expert-agent:') && password.startsWith('ffbea_')) ||
+            (username.startsWith('mcp-gateway:') && password.startsWith('ffbmg_')) ||
             (username.startsWith('expert-client:') && password.startsWith('ffbec_')) ||
             (username === 'forge_platform')) {
             const isValid = await app.db.controllers.BrokerClient.authenticateCredentials(
@@ -147,6 +148,7 @@ module.exports = async function (app) {
             username.startsWith('frontend:') ||
             username.startsWith('fe-team:') ||
             username.startsWith('expert-agent:') ||
+            username.startsWith('mcp-gateway:') ||
             username.startsWith('expert-client:') ||
             username === 'forge_platform') && !username.includes('@')) {
             const acc = action === 'subscribe' ? 1 : 2

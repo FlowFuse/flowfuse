@@ -1,4 +1,5 @@
 const should = require('should')
+const sinon = require('sinon')
 
 const setup = require('../../setup')
 
@@ -6,6 +7,8 @@ describe('MCP Platform Tools Server', function () {
     describe('Feature flag enabled (default)', function () {
         let app
         const TestObjects = {}
+        // A canned MCP JSON-RPC result the stubbed gateway resolves with on the happy path
+        const cannedMcpResult = { jsonrpc: '2.0', id: 1, result: { tools: [] } }
 
         before(async function () {
             app = await setup({
@@ -14,16 +17,42 @@ describe('MCP Platform Tools Server', function () {
                 expert: { enabled: true }
             })
 
+            // A regular (non read-only) PAT used for the happy-path door tests
             TestObjects.alicePAT = await app.db.controllers.AccessToken.createPersonalAccessToken(
                 app.user,
                 '',
                 null,
                 'alice-pat'
             )
+            // A read-only PAT used to exercise the write/delete gate
+            TestObjects.aliceReadOnlyPAT = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                app.user,
+                '',
+                null,
+                'alice-readonly-pat',
+                { readOnly: true }
+            )
         })
 
         after(async function () {
             await app.close()
+        })
+
+        // There is no MCP gateway in the test environment, so stub the MQTT proxy seam
+        // (app.comms.mcpProxyRequest) that the door forwards to. It is not part of the
+        // decorated comms API in the test app, so assign it directly and remove afterwards.
+        let proxyStub
+        beforeEach(function () {
+            if (!app.comms) {
+                app.comms = {}
+            }
+            proxyStub = sinon.stub().resolves(cannedMcpResult)
+            app.comms.mcpProxyRequest = proxyStub
+        })
+
+        afterEach(function () {
+            delete app.comms.mcpProxyRequest
+            sinon.restore()
         })
 
         describe('Feature flag', function () {
@@ -32,19 +61,7 @@ describe('MCP Platform Tools Server', function () {
             })
         })
 
-        describe('HTTP endpoints are disabled', function () {
-            it('should return 405 for POST', async function () {
-                const response = await app.inject({
-                    method: 'POST',
-                    url: '/api/v1/mcp',
-                    headers: {
-                        authorization: `Bearer ${TestObjects.alicePAT.token}`
-                    },
-                    payload: { jsonrpc: '2.0', method: 'initialize', id: 1 }
-                })
-                response.statusCode.should.equal(405)
-            })
-
+        describe('MCP door', function () {
             it('should return 405 for GET', async function () {
                 const response = await app.inject({
                     method: 'GET',
@@ -56,7 +73,7 @@ describe('MCP Platform Tools Server', function () {
                 response.statusCode.should.equal(405)
             })
 
-            it('should return 405 for DELETE', async function () {
+            it('should return 204 for DELETE', async function () {
                 const response = await app.inject({
                     method: 'DELETE',
                     url: '/api/v1/mcp',
@@ -64,7 +81,121 @@ describe('MCP Platform Tools Server', function () {
                         authorization: `Bearer ${TestObjects.alicePAT.token}`
                     }
                 })
-                response.statusCode.should.equal(405)
+                response.statusCode.should.equal(204)
+            })
+
+            it('should return 202 for a notification (no id) without proxying', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`,
+                        'content-type': 'application/json'
+                    },
+                    payload: { jsonrpc: '2.0', method: 'notifications/initialized' }
+                })
+                response.statusCode.should.equal(202)
+                proxyStub.called.should.be.false()
+            })
+
+            it('should return 400 for a malformed (non-object) body', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`,
+                        'content-type': 'application/json'
+                    },
+                    payload: '"not-an-object"'
+                })
+                response.statusCode.should.equal(400)
+                proxyStub.called.should.be.false()
+            })
+
+            it('should proxy a valid request and return the gateway result with an mcp-session-id header', async function () {
+                const mcpBody = { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`,
+                        'content-type': 'application/json'
+                    },
+                    payload: mcpBody
+                })
+                response.statusCode.should.equal(200)
+                response.json().should.deepEqual(cannedMcpResult)
+                // the response echoes an mcp-session-id back to the caller
+                response.headers.should.have.property('mcp-session-id').which.is.a.String()
+
+                // the door forwarded to the gateway proxy exactly once with the expected shape
+                proxyStub.calledOnce.should.be.true()
+                const [route, payload] = proxyStub.getCall(0).args
+
+                // route carries user + session routing only - no NR entity target
+                route.should.have.property('userId', app.user.hashid)
+                route.should.have.property('mcpSessionId').which.is.a.String()
+                route.mcpSessionId.should.equal(response.headers['mcp-session-id'])
+                route.should.not.have.property('entityType')
+                route.should.not.have.property('entityId')
+
+                // payload carries the MCP body, the caller scope and all three tool groups
+                payload.should.have.property('mcp').which.deepEqual(mcpBody)
+                payload.should.have.property('toolGroups').which.deepEqual(['platform', 'platform_ui', 'flow_building'])
+                payload.should.have.property('scope').which.is.an.Object()
+                payload.scope.should.have.property('readOnly', false)
+                payload.scope.should.have.property('teams').which.is.an.Array()
+            })
+
+            it('should reuse a caller-supplied mcp-session-id', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`,
+                        'content-type': 'application/json',
+                        'mcp-session-id': 'session-abc'
+                    },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                response.statusCode.should.equal(200)
+                response.headers['mcp-session-id'].should.equal('session-abc')
+                proxyStub.getCall(0).args[0].should.have.property('mcpSessionId', 'session-abc')
+            })
+
+            it('should return 403 when a read-only PAT calls invoke_write_tool', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.aliceReadOnlyPAT.token}`,
+                        'content-type': 'application/json'
+                    },
+                    payload: {
+                        jsonrpc: '2.0',
+                        method: 'tools/call',
+                        params: { name: 'invoke_write_tool' },
+                        id: 2
+                    }
+                })
+                response.statusCode.should.equal(403)
+                response.json().should.have.property('code', 'unauthorized')
+                proxyStub.called.should.be.false()
+            })
+
+            it('should return 504 when the gateway proxy rejects', async function () {
+                proxyStub.rejects(new Error('Timed out waiting for MCP gateway response'))
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/mcp',
+                    headers: {
+                        authorization: `Bearer ${TestObjects.alicePAT.token}`,
+                        'content-type': 'application/json'
+                    },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                response.statusCode.should.equal(504)
+                response.json().should.have.property('code', 'gateway_timeout')
             })
         })
 

@@ -124,6 +124,7 @@ const Permissions = {
     'platform:stats': { description: 'View platform stats information', role: Roles.Admin, access: 'read' },
     'platform:stats:token': { description: 'Create/Delete platform stats token', role: Roles.Admin, access: 'write' },
     'platform:expert-agent:creds': { description: 'Create/Delete expert agent credentials', role: Roles.Admin, access: 'write' },
+    'platform:mcp-gateway:creds': { description: 'Create/Delete MCP gateway credentials', role: Roles.Admin, access: 'write' },
     'platform:audit-log': { description: 'View platform audit log', role: Roles.Admin, access: 'read' },
 
     /**

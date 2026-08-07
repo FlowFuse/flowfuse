@@ -130,6 +130,45 @@ describe('BrokerClient', function () {
             app.settings.set.calledWith('platform:expert-agent:creds', false).should.be.true()
         })
     })
+    describe('createClientForMcpGateway', function () {
+        it('should create broker client and return username and password', async function () {
+            const fakeClient = fakeBrokerClient()
+            app.db.models.BrokerClient.findOrCreate.resolves([fakeClient, true])
+            const result = await BrokerClient.createClientForMcpGateway(app)
+            should(result).have.property('username', 'mcp-gateway:api:v1')
+            should(result).have.property('password')
+            result.password.should.match(/^ffbmg_/) // check it has the right prefix
+            fakeClient.save.called.should.be.false() // should not have saved since it was created
+            app.settings.set.calledWith('platform:mcp-gateway:creds', true).should.be.true() // should have set the setting to true
+        })
+        it('should update password if client already exists', async function () {
+            const fakeClient = fakeBrokerClient()
+            app.db.models.BrokerClient.findOrCreate.resolves([fakeClient, false]) // not created, so should update
+            const result = await BrokerClient.createClientForMcpGateway(app)
+            should(result).have.property('username', 'mcp-gateway:api:v1')
+            should(result).have.property('password')
+            result.password.should.match(/^ffbmg_/) // check it has the right prefix
+            fakeClient.save.called.should.be.true() // should have saved the updated password
+            app.settings.set.calledWith('platform:mcp-gateway:creds', true).should.be.true() // should have set the setting to true
+        })
+        it('should return null if app.comms is not available', async function () {
+            app.comms = null
+            const result = await BrokerClient.createClientForMcpGateway(app)
+            should(result).be.null()
+        })
+    })
+    describe('removeClientForMcpGateway', function () {
+        it('should remove broker client', async function () {
+            app.db.models.BrokerClient.destroy.resolves()
+            await BrokerClient.removeClientForMcpGateway(app)
+            app.db.models.BrokerClient.destroy.calledWith({
+                where: {
+                    username: 'mcp-gateway:api:v1'
+                }
+            }).should.be.true()
+            app.settings.set.calledWith('platform:mcp-gateway:creds', false).should.be.true()
+        })
+    })
     describe('createClientForTeamFrontend', function () {
         it('should create broker client for team frontend', async function () {
             const fakeClient = fakeBrokerClient()

@@ -440,6 +440,127 @@ module.exports = function (app) {
                 }
                 return false
             }
+        },
+        checkMcpTopic: async function (topicParts, usernameParts, acl) {
+            // topicParts = [ fullTopic , <platformId>, <userId>, <mcpSessionId> ]
+            // usernameParts = [ 'forge_platform' | 'expert-agent' | 'mcp-gateway', ... ]
+            // acl = { isPlatform: true/false, isAgent: true/false, isPub: true/false, isSub: true/false, allowWildcard: { user: true/false, session: true/false } }
+            // This layer only validates the topic shape, that the client is an authorised internal
+            // service, and that the referenced user exists. Team membership, RBAC and PAT
+            // permission checks are enforced at the HTTP door, not here.
+
+            const ValidationError = function (message) {
+                const error = new Error(message)
+                error.name = 'ACLValidationError'
+                return error
+            }
+
+            try {
+                const [, platformId, userId, sessionId] = topicParts
+                const [clientType] = usernameParts
+
+                // ensure correct selected acl for the client
+                if (acl.isAgent && clientType !== 'expert-agent' && clientType !== 'mcp-gateway') {
+                    throw ValidationError('invalid client type - expected an expert-agent or mcp-gateway client')
+                } else if (!acl.isAgent && clientType !== 'forge_platform') {
+                    throw ValidationError('invalid client type - expected a forge_platform client')
+                }
+
+                // ensure topic part count is valid for the shape
+                if (topicParts.length !== 4) {
+                    throw ValidationError('topic is invalid')
+                }
+
+                if (!platformId) {
+                    throw ValidationError('invalid platformId')
+                }
+
+                if (!userId) {
+                    throw ValidationError('invalid userId')
+                }
+                if (userId === '+') {
+                    if (!acl.allowWildcard?.user) {
+                        throw ValidationError('invalid user wildcard')
+                    }
+                } else {
+                    const user = await app.db.models.User.byId(userId)
+                    if (!user || user.suspended) {
+                        throw ValidationError('invalid user')
+                    }
+                }
+
+                if (!sessionId) {
+                    throw ValidationError('invalid sessionId')
+                }
+                if (sessionId === '+') {
+                    if (!acl.allowWildcard?.session) {
+                        throw ValidationError('invalid session wildcard')
+                    }
+                } else if (sessionId.length < 8) {
+                    throw ValidationError('invalid sessionId')
+                }
+
+                return true
+            } catch (error) {
+                if (error.name === 'ACLValidationError') {
+                    app.log.warn(`ACL validation error for mcp topic: ${error.message}`)
+                } else {
+                    app.log.error('Unexpected error during ACL check', { topicParts, usernameParts, acl, error })
+                }
+                return false
+            }
+        },
+        checkTabHeartbeatTopic: async function (topicParts, usernameParts, acl) {
+            // topicParts = [ fullTopic , <userId>, <sessionId>, <update|clear> ]
+            // usernameParts = [ 'forge_platform' | 'mcp-gateway', ... ]
+            // acl = { isPlatform: true/false, isAgent: true/false, isPub: true/false, isSub: true/false }
+            // Presence metadata only: validate the topic shape, that the client is an
+            // authorised internal service, and that the referenced user exists. No entity
+            // or RBAC checks (same philosophy as checkMcpTopic).
+
+            const ValidationError = function (message) {
+                const error = new Error(message)
+                error.name = 'ACLValidationError'
+                return error
+            }
+
+            try {
+                const [, userId, sessionId] = topicParts
+                const [clientType] = usernameParts
+
+                // ensure correct selected acl for the client
+                if (acl.isAgent && clientType !== 'mcp-gateway') {
+                    throw ValidationError('invalid client type - expected an mcp-gateway client')
+                } else if (!acl.isAgent && clientType !== 'forge_platform') {
+                    throw ValidationError('invalid client type - expected a forge_platform client')
+                }
+
+                // ensure topic part count is valid for the shape
+                if (topicParts.length !== 4) {
+                    throw ValidationError('topic is invalid')
+                }
+
+                if (!userId) {
+                    throw ValidationError('invalid userId')
+                }
+                const user = await app.db.models.User.byId(userId)
+                if (!user || user.suspended) {
+                    throw ValidationError('invalid user')
+                }
+
+                if (!sessionId || sessionId.length < 8) {
+                    throw ValidationError('invalid sessionId')
+                }
+
+                return true
+            } catch (error) {
+                if (error.name === 'ACLValidationError') {
+                    app.log.warn(`ACL validation error for mcp presence topic: ${error.message}`)
+                } else {
+                    app.log.error('Unexpected error during ACL check', { topicParts, usernameParts, acl, error })
+                }
+                return false
+            }
         }
     }
 
@@ -467,7 +588,10 @@ module.exports = function (app) {
                 // ff/v1/platform/leader
                 { topic: /^ff\/v1\/platform\/leader$/ },
                 // platform can listen for Expert Agent requests
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' },
+                // platform can listen for third-party MCP responses from the central gateway
+                // - ff/v1/mcp/<platformId>/+/+/response
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/response$/, verify: 'checkMcpTopic', allowWildcard: { user: true, session: true }, isPlatform: true, isSub: true }
             ],
             pub: [
                 // Send commands to project launchers
@@ -498,7 +622,15 @@ module.exports = function (app) {
                 // ff/v1/platform/leader
                 { topic: /^ff\/v1\/platform\/leader$/ },
                 // platform can respond to Expert Agent requests
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' },
+                // platform can publish third-party MCP requests to the central gateway
+                // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', isPlatform: true, isPub: true },
+                // platform can publish browser-tab presence to the central gateway
+                // - ff/v1/tab-heartbeat/<userId>/<sessionId>/update
+                { topic: /^ff\/v1\/tab-heartbeat\/([^/]+)\/([^/]+)\/(update)$/, verify: 'checkTabHeartbeatTopic', isPlatform: true, isPub: true },
+                // - ff/v1/tab-heartbeat/<userId>/<sessionId>/clear
+                { topic: /^ff\/v1\/tab-heartbeat\/([^/]+)\/([^/]+)\/(clear)$/, verify: 'checkTabHeartbeatTopic', isPlatform: true, isPub: true }
             ]
         },
         project: {
@@ -591,13 +723,45 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { user: true, session: true, entity: true }, isAgent: true, isSub: true, agent: 'support' },
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { user: true, session: true, entity: true, inflightType: true }, isAgent: true, isSub: true, agent: 'support' },
                 // Expert agent can listen for platform responses
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isAgent: true, isSub: true, agent: 'platform' }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isAgent: true, isSub: true, agent: 'platform' },
+                // Central gateway can listen for third-party MCP requests from the platform
+                // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', allowWildcard: { user: true, session: true }, isAgent: true, isSub: true }
             ],
             pub: [
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', isAgent: true, isPub: true, agent: 'support' },
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'support' },
                 // Expert agent can respond to platform requests
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' },
+                // Central gateway can publish third-party MCP responses back to the platform
+                // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/response$/, verify: 'checkMcpTopic', isAgent: true, isPub: true }
+            ]
+        },
+        // central MCP gateway (distinct, revocable broker identity)
+        mcpGateway: {
+            sub: [
+                // Central gateway can listen for platform responses to the tools it runs
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isAgent: true, isSub: true, agent: 'platform' },
+                // Central gateway can listen for third-party MCP requests from the platform
+                // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', allowWildcard: { user: true, session: true }, isAgent: true, isSub: true },
+                // Central gateway can listen for inflight acks when it applies a flow or UI tool to a target tab
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { user: true, session: true, entity: true, inflightType: true }, isAgent: true, isSub: true, agent: 'support' },
+                // Central gateway can listen for browser-tab presence from the platform
+                // - ff/v1/tab-heartbeat/<userId>/<sessionId>/update
+                { topic: /^ff\/v1\/tab-heartbeat\/([^/]+)\/([^/]+)\/(update)$/, verify: 'checkTabHeartbeatTopic', isAgent: true, isSub: true },
+                // - ff/v1/tab-heartbeat/<userId>/<sessionId>/clear
+                { topic: /^ff\/v1\/tab-heartbeat\/([^/]+)\/([^/]+)\/(clear)$/, verify: 'checkTabHeartbeatTopic', isAgent: true, isSub: true }
+            ],
+            pub: [
+                // Central gateway can publish platform requests for the tools it runs
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' },
+                // Central gateway can publish inflight requests to apply a flow or UI tool to a target tab
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'support' },
+                // Central gateway can publish third-party MCP responses back to the platform
+                // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/response$/, verify: 'checkMcpTopic', isAgent: true, isPub: true }
             ]
         }
     }
@@ -612,6 +776,7 @@ module.exports = function (app) {
             // - fe-team:<userid>:<teamid>:<sessionid>
             // - expert-client:<userid>:<sessionid>
             // - expert-agent:<userid>:<apiversion>
+            // - mcp-gateway:<userid>:<apiversion>
 
             let allowed = false
             let aclList = []
@@ -631,6 +796,8 @@ module.exports = function (app) {
                 aclList = ACLS.frontend[aclType]
             } else if (/^expert-agent:/.test(username)) {
                 aclList = ACLS.expertAgent[aclType]
+            } else if (/^mcp-gateway:/.test(username)) {
+                aclList = ACLS.mcpGateway[aclType]
             } else if (/^expert-client:/.test(username)) {
                 aclList = ACLS.expertClient[aclType]
             } else {

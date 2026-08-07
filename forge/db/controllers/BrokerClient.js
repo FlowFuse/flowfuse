@@ -148,6 +148,46 @@ module.exports = {
         return null
     },
 
+    createClientForMcpGateway: async function (app) {
+        if (app.comms) {
+            const username = 'mcp-gateway:api:v1'
+            const password = generateToken(32, 'ffbmg') // ff broker mcp gateway
+            const [client, created] = await app.db.models.BrokerClient.findOrCreate({
+                where: {
+                    username
+                },
+                defaults: {
+                    password,
+                    ownerId: '',
+                    ownerType: 'platform'
+                }
+            })
+            // if it was created, the password is already set. If not, we need to update it with a new one.
+            if (!created) {
+                client.password = password
+                await client.save()
+            }
+            await app.settings.set('platform:mcp-gateway:creds', true)
+            return {
+                username,
+                password
+            }
+        }
+        return null
+    },
+
+    removeClientForMcpGateway: async function (app) {
+        if (app.comms) {
+            await app.db.models.BrokerClient.destroy({
+                where: {
+                    username: 'mcp-gateway:api:v1'
+                }
+            })
+            await app.settings.set('platform:mcp-gateway:creds', false)
+        }
+        return null
+    },
+
     createClientForTeamFrontend: async function (app, user, team, sessionId) {
         if (!app.comms) {
             return null

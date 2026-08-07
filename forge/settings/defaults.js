@@ -67,6 +67,9 @@ module.exports = {
     // Has an Expert agent creds been created?
     'platform:expert-agent:creds': false,
 
+    // Has an Expert gateway creds been created?
+    'platform:mcp-gateway:creds': false,
+
     // Team Broker topic cache
     'team:broker:topics': null,
 

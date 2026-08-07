@@ -122,20 +122,15 @@ class PlatformAutomationHandler {
                 const toolName = data?.name
                 const args = data?.input || {}
 
-                // TODO: Probably sensible to verify that toolDefinition matches the tool to ensure no tampering has occurred
-                const { toolDefinition } = meta || {}
-
-                const { annotations } = toolDefinition
-                const tool = this.findTool(toolName)
-
-                // Verify tool annotations haven't been tampered with
-                if (JSON.stringify({ annotations }) !== JSON.stringify({ annotations: tool.annotations })) {
+                const { toolDefinition, invokeVariant, scope } = meta || {}
+                if (!toolDefinition) {
                     return onError(
-                        'Tool definition mismatch',
-                        'MCP_PLATFORM_TOOL_TAMPERED'
+                        'Missing tool definition',
+                        'MCP_INVALID_DEFINITION'
                     )
                 }
 
+                const tool = this.findTool(toolName)
                 if (!tool) {
                     return onError(
                         `Unknown platform tool: ${toolName}`,
@@ -143,9 +138,36 @@ class PlatformAutomationHandler {
                     )
                 }
 
+                // Verify tool annotations haven't been tampered with
+                const { annotations } = toolDefinition
+                if (JSON.stringify({ annotations }) !== JSON.stringify({ annotations: tool.annotations })) {
+                    return onError(
+                        'Tool definition mismatch',
+                        'MCP_PLATFORM_TOOL_TAMPERED'
+                    )
+                }
+
+                // The invoke variant must match the tool's class, derived from its
+                // annotations: readOnlyHint => read, destructiveHint => delete, else
+                // write. First-party calls omit invokeVariant and skip this check.
+                if (invokeVariant) {
+                    let toolClass = 'write'
+                    if (tool.annotations?.readOnlyHint === true) {
+                        toolClass = 'read'
+                    } else if (tool.annotations?.destructiveHint === true) {
+                        toolClass = 'delete'
+                    }
+                    if (invokeVariant !== toolClass) {
+                        return onError(
+                            `Tool ${toolName} is a ${toolClass}-class tool and cannot be called via the ${invokeVariant} invoke variant`,
+                            'MCP_INVOKE_VARIANT_MISMATCH'
+                        )
+                    }
+                }
+
                 const user = await this.app.db.models.User.byId(userId)
                 if (user) {
-                    const { token } = await this.app.expert.mcp.getOrCreatePlatformToken(user)
+                    const { token } = await this.app.expert.mcp.getOrCreatePlatformToken(user, scope)
                     const inject = (opts) => {
                         const nonce = this.app.nonceStore.createSourceNonce({
                             source: 'mcp:expert',
