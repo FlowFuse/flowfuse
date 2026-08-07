@@ -162,6 +162,65 @@ describe('data-farm-hosted-instances store', () => {
         })
     })
 
+    describe('applyRealtimeEvent', () => {
+        it('created surfaces the instance on the current page (cross-session add)', async () => {
+            vi.spyOn(teamApi, 'getInstances').mockResolvedValue({ projects: [instance('i1', 'running')], meta: { total: 1 } })
+            const store = useDataFarmHostedInstancesStore()
+            await store.fetchTeamInstancesPage('team-1')
+
+            store.applyRealtimeEvent({ id: 'i2', action: 'created', data: instance('i2', 'stopped') })
+
+            expect(store.currentPageIds).toEqual(['i1', 'i2'])
+            expect(store.instancesById.i2.name).toBe('i2')
+        })
+
+        it('updated merges in place and does not pull an off-page instance onto the current page', async () => {
+            vi.spyOn(teamApi, 'getInstances').mockResolvedValue({ projects: [instance('i1', 'running')], meta: { total: 1 } })
+            const store = useDataFarmHostedInstancesStore()
+            await store.fetchTeamInstancesPage('team-1')
+
+            store.applyRealtimeEvent({ id: 'i1', action: 'updated', data: { id: 'i1', name: 'Renamed' } })
+            expect(store.instancesById.i1.name).toBe('Renamed')
+
+            store.applyRealtimeEvent({ id: 'i9', action: 'updated', data: instance('i9', 'running') })
+            expect(store.currentPageIds).toEqual(['i1'])
+            expect(store.instancesById.i9).toBeDefined()
+        })
+
+        it('deleted removes the instance from byId and the current page', async () => {
+            vi.spyOn(teamApi, 'getInstances').mockResolvedValue({ projects: [instance('i1'), instance('i2')], meta: { total: 2 } })
+            const store = useDataFarmHostedInstancesStore()
+            await store.fetchTeamInstancesPage('team-1')
+
+            store.applyRealtimeEvent({ id: 'i1', action: 'deleted' })
+
+            expect(store.currentPageIds).toEqual(['i2'])
+            expect(store.instancesById.i1).toBeUndefined()
+        })
+
+        it('ignores events missing id or action', () => {
+            const store = useDataFarmHostedInstancesStore()
+            store.applyRealtimeEvent({ action: 'created', data: instance('x') })
+            store.applyRealtimeEvent({ id: 'x' })
+            expect(store.currentPageIds).toEqual([])
+            expect(store.instancesById.x).toBeUndefined()
+        })
+
+        it('created is idempotent and a created event with no data is ignored', async () => {
+            vi.spyOn(teamApi, 'getInstances').mockResolvedValue({ projects: [instance('i1')], meta: { total: 1 } })
+            const store = useDataFarmHostedInstancesStore()
+            await store.fetchTeamInstancesPage('team-1')
+
+            store.applyRealtimeEvent({ id: 'i2', action: 'created', data: instance('i2') })
+            store.applyRealtimeEvent({ id: 'i2', action: 'created', data: instance('i2') })
+            expect(store.currentPageIds).toEqual(['i1', 'i2'])
+
+            store.applyRealtimeEvent({ id: 'i3', action: 'created' })
+            expect(store.currentPageIds).toEqual(['i1', 'i2'])
+            expect(store.instancesById.i3).toBeUndefined()
+        })
+    })
+
     describe('lifecycle actions', () => {
         it('startInstance sets optimistic then pending-from-server on success', async () => {
             vi.spyOn(instanceApi, 'startInstance').mockResolvedValue({})
