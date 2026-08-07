@@ -9,17 +9,17 @@ export default {
         ...mapState(useDataFarmTeamsStore, ['defaultUserTeam']),
         homeLink () {
             if (this.team?.slug) {
-                return { name: 'Team', params: { team_slug: this.team.slug } }
+                return { name: 'team', params: { team_slug: this.team.slug } }
             } else if (this.defaultUserTeam?.slug) {
-                return { name: 'Team', params: { team_slug: this.defaultUserTeam?.slug } }
+                return { name: 'team', params: { team_slug: this.defaultUserTeam?.slug } }
             } else {
-                return { name: 'Home' }
+                return { name: 'home' }
             }
         }
     },
     methods: {
         signOut () {
-            this.$router.push({ name: 'Sign out' })
+            this.$router.push({ name: 'sign-out' })
         }
     }
 }

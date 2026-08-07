@@ -93,7 +93,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     return
                 } else if (user.email_verified === false || user.password_expired) {
                     useUxLoadingStore().clearAppLoader()
-                    router.push({ name: 'Home' })
+                    router.push({ name: 'home' })
                     return
                 }
 
@@ -108,7 +108,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     useUxLoadingStore().clearAppLoader()
                     useAccountStore().setTeam(null)
                     if (/^\/team\//.test(router.currentRoute.value.path)) {
-                        router.push({ name: 'Home' })
+                        router.push({ name: 'home' })
                     }
                     return
                 }
@@ -185,7 +185,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     //     // Only remember the url if it isn't the default / path
                     //     this.setRedirectUrl(router.currentRoute.value.fullPath)
                     // }
-                    router.push({ name: 'Home' })
+                    router.push({ name: 'home' })
                 }
             }
         },

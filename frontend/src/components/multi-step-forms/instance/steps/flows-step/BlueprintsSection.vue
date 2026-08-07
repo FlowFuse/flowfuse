@@ -141,7 +141,7 @@ export default {
         },
         preSelectBlueprint () {
             return new Promise(resolve => {
-                if ((this.$route?.query && this.$route?.query?.blueprintId) || this.$route.name === 'DeployBlueprint') {
+                if ((this.$route?.query && this.$route?.query?.blueprintId) || this.$route.name === 'deploy-blueprint') {
                     // we can safely assume we got to this point either by selecting a blueprint from the Team Library or
                     // through a website deployment, so we really want a blueprint
                     let blueprint = this.blueprints.find(bp => bp.id === this.$route.query.blueprintId)

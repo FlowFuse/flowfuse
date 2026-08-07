@@ -109,7 +109,7 @@ export default {
             if (team) {
                 useAccountStore().setTeam(team.slug)
                     .then(() => this.$router.push({
-                        name: 'Team',
+                        name: 'team',
                         params: {
                             team_slug: team.slug
                         }
@@ -119,7 +119,7 @@ export default {
         },
         createTeam () {
             return this.$router.push({
-                name: 'CreateTeam'
+                name: 'team-create'
             })
         },
         inviteMembers () {

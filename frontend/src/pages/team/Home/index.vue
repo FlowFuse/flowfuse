@@ -39,7 +39,7 @@
                                     v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                                     data-action="create-project"
                                     kind="secondary"
-                                    :to="{name: 'CreateInstance'}"
+                                    :to="{name: 'team-instance-create'}"
                                     :disabled="!hasPermission('project:create')"
                                 >
                                     <template #icon-left>
@@ -243,12 +243,12 @@ export default {
         },
         onStatClick (payload) {
             if (payload.type === 'hosted') {
-                this.$router.push({ name: 'Instances', query: { status: payload.state } })
+                this.$router.push({ name: 'team-hosted-instances', query: { status: payload.state } })
             } else {
                 const states = Object.prototype.hasOwnProperty.call(this.instanceStatesMap, payload.state)
                     ? this.instanceStatesMap[payload.state]
                     : []
-                this.$router.push({ name: 'TeamDevices', query: { searchQuery: states.join(' | ') } })
+                this.$router.push({ name: 'team-remote-instances', query: { searchQuery: states.join(' | ') } })
             }
         },
         getInstanceStateCounts () {

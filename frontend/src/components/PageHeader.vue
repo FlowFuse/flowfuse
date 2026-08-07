@@ -53,13 +53,13 @@
                 <nav-item
                     v-for="team in teams" :key="team.name"
                     :label="team.name" :avatar="team.avatar"
-                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"
+                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'team', params: {team_slug: team.slug}})"
                 />
                 <nav-item
                     v-if="canCreateTeam"
                     label="Create New Team" :icon="plusIcon"
                     class="create"
-                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
+                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'team-create'})"
                 />
             </ul>
         </div>
@@ -146,7 +146,7 @@ export default {
                     icon: Cog8ToothIcon,
                     tag: 'user-settings',
                     onclick: this.$router.push,
-                    onclickparams: { name: 'User Settings' },
+                    onclickparams: { name: 'user-settings' },
                     hidden: false
                 },
                 {
@@ -154,7 +154,7 @@ export default {
                     icon: AdjustmentsVerticalIcon,
                     tag: 'admin-settings',
                     onclick: this.$router.push,
-                    onclickparams: { name: 'Admin Settings' },
+                    onclickparams: { name: 'admin' },
                     hidden: !this.user.admin
                 },
                 {

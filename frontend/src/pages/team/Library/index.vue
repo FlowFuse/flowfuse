@@ -34,13 +34,13 @@ export default {
                 {
                     label: 'Team Library',
                     to: {
-                        name: 'LibraryTeamLibrary'
+                        name: 'team-library-files'
                     }
                 },
                 {
                     label: 'Blueprints',
                     to: {
-                        name: 'LibraryBlueprints'
+                        name: 'team-library-blueprints'
                     }
                 }
             ]
@@ -49,7 +49,7 @@ export default {
                     label: 'Custom Nodes',
                     featureUnavailable: !this.featuresCheck?.isPrivateRegistryFeatureEnabledForPlatform || !this.featuresCheck?.isPrivateRegistryFeatureEnabledForTeam,
                     to: {
-                        name: 'LibraryRegistry'
+                        name: 'team-library-registry'
                     }
                 })
             }

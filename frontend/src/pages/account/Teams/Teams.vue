@@ -49,7 +49,7 @@ export default {
     },
     methods: {
         teamSelected (team) {
-            this.$router.push({ name: 'Team', params: { team_slug: team.slug } })
+            this.$router.push({ name: 'team', params: { team_slug: team.slug } })
         },
         removeUserDialog (row) {
             if (row.memberCount === 1) {

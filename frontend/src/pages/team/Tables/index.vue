@@ -97,7 +97,7 @@ export default defineComponent({
         }
 
         if (!this.featuresCheck.isTablesFeatureEnabledForPlatform) {
-            return this.$router.push({ name: 'Home' })
+            return this.$router.push({ name: 'home' })
         }
 
         if (this.featuresCheck.isTablesFeatureEnabledForTeam) {

@@ -263,7 +263,7 @@ export default {
                     this.redirecting = true
                     window.open(result.billingURL, '_self')
                 } else {
-                    this.$router.push({ name: 'Team', params: { team_slug: result.slug } })
+                    this.$router.push({ name: 'team', params: { team_slug: result.slug } })
                 }
             }).catch(err => {
                 if (err.response.data) {
