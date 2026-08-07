@@ -21,7 +21,7 @@
                         v-if="hasPermission('project:create')"
                         data-action="create-application"
                         kind="primary"
-                        :to="{name: 'CreateTeamApplication'}"
+                        :to="{name: 'team-application-create'}"
                         type="anchor"
                     >
                         <template #icon-left>
@@ -77,7 +77,7 @@
                         data-action="create-application"
                         kind="primary"
                         type="anchor"
-                        :to="{name: 'CreateTeamApplication'}"
+                        :to="{name: 'team-application-create'}"
                     >
                         <template #icon-left>
                             <PlusSmallIcon />

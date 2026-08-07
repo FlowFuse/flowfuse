@@ -36,7 +36,7 @@
                         </span>
                     </ff-button>
                     <ff-button v-if="settings['user:signup']" kind="tertiary" to="/account/create" data-action="sign-up">Sign Up</ff-button>
-                    <ff-button v-if="passwordRequired && settings['user:reset-password']" kind="tertiary" :to="{'name': 'ForgotPassword'}" data-action="forgot-password">Forgot your password?</ff-button>
+                    <ff-button v-if="passwordRequired && settings['user:reset-password']" kind="tertiary" :to="{'name': 'forgot-password'}" data-action="forgot-password">Forgot your password?</ff-button>
                     <GoogleLoginButton :disabled="loggingIn" />
                     <template v-if="directSSOEnabled">
                         <hr class="mb-4">

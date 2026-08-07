@@ -1,5 +1,6 @@
 ---
 navGroup: Device Agent
+navGroupOrder: 2
 navTitle: Device Agent
 redirect:
   to: /docs/device-agent/introduction

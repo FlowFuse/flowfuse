@@ -128,7 +128,7 @@ export default {
     },
     mounted () {
         if (!this.hasPermission('team:bom')) {
-            this.$router.push({ name: 'Home' })
+            this.$router.push({ name: 'home' })
         }
         if (this.featuresCheck.isBOMFeatureEnabled) {
             this.getTeamDependencies()

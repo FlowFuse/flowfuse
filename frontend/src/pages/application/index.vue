@@ -3,7 +3,7 @@
         <template #header>
             <ff-page-header :title="application?.name" :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb v-if="team" :to="{name: 'team-applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
                 </template>
             </ff-page-header>
         </template>
@@ -184,7 +184,7 @@ export default {
         application (application, previous) {
             if (previous && !application && !this.pageLoader && this.$route.params.id) {
                 alerts.emit('This application has been deleted.', 'warning')
-                this.$router.push({ name: 'Applications', params: { team_slug: this.team?.slug } })
+                this.$router.push({ name: 'team-applications', params: { team_slug: this.team?.slug } })
             }
         },
         liveInstanceMetadata: { handler: 'applyLiveStatus', deep: true }
@@ -226,7 +226,7 @@ export default {
             try {
                 await this.deleteApplicationEntity(this.application.id, this.team.id)
                 await useContextStore().refreshTeam()
-                this.$router.push({ name: 'Applications' })
+                this.$router.push({ name: 'team-applications' })
                 alerts.emit('Application successfully deleted.', 'confirmation')
             } catch (err) {
                 if (err.response?.data?.error) {

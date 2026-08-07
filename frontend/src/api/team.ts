@@ -29,7 +29,7 @@ const getTeams = async (): Promise<{ teams: TeamListItem[] }> => {
     const res = await client.get<{ teams: UserTeamList }>('/api/v1/user/teams')
     const teams = res.data.teams.map((r): TeamListItem => ({
         ...r,
-        link: { name: 'Team', params: { team_slug: r.slug } },
+        link: { name: 'team', params: { team_slug: r.slug } },
         roleName: RoleNames[r.role]
     }))
     return { ...res.data, teams }
