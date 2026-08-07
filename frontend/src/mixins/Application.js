@@ -4,6 +4,7 @@ import ApplicationApi from '../api/application.js'
 import alerts from '../services/alerts.js'
 
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 
 export default {
     data () {
@@ -36,6 +37,7 @@ export default {
     },
     methods: {
         ...mapActions(useContextStore, { setContextualApplication: 'setApplication' }),
+        ...mapActions(useDataFarmApplicationsStore, { deleteApplicationEntity: 'deleteApplication' }),
         async updateApplication () {
             const applicationId = this.$route.params.id
 
@@ -87,9 +89,9 @@ export default {
             this.loading.deleting = true
 
             try {
-                await ApplicationApi.deleteApplication(this.application.id, this.team.id)
+                await this.deleteApplicationEntity(this.application.id, this.team.id)
                 await useContextStore().refreshTeam()
-                this.$router.push({ name: 'Applications' })
+                this.$router.push({ name: 'team-applications' })
                 alerts.emit('Application successfully deleted.', 'confirmation')
             } catch (err) {
                 if (err.response.data.error) {

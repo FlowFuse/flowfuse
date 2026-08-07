@@ -7,7 +7,7 @@
         <template #header>
             <ff-page-header :title="instance.name" :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb :to="{name: 'Instances', params: {team_slug: team.slug}}">Instances</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb :to="{name: 'team-hosted-instances', params: {team_slug: team.slug}}">Instances</ff-nav-breadcrumb>
                 </template>
                 <template #status>
                     <InstanceStatusBadge

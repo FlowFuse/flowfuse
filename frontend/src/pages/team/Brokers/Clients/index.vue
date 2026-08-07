@@ -3,7 +3,7 @@
         <feature-unavailable-to-team v-if="reachedClientLimit" class="-mt-2">
             <div>
                 You’ve hit your current broker clients limit.
-                <router-link class="ff-link" :to="{ name: 'TeamChangeType', params: { team_slug: team.slug } }">Upgrade</router-link>
+                <router-link class="ff-link" :to="{ name: 'team-change-type', params: { team_slug: team.slug } }">Upgrade</router-link>
                 your team for more capacity or get in touch with sales for assistance.
             </div>
         </feature-unavailable-to-team>

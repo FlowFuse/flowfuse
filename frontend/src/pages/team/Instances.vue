@@ -77,7 +77,7 @@
                             v-ff-tooltip:left="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                             data-action="create-project"
                             kind="primary"
-                            :to="{name: 'CreateInstance'}"
+                            :to="{name: 'team-instance-create'}"
                             :disabled="!hasPermission('project:create')"
                         >
                             <template #icon-left>
@@ -137,7 +137,7 @@
                         <p>
                             Instances are managed in FlowFuse via <ff-team-link
                                 class="ff-link"
-                                :to="{name:'Applications', params: {team_slug: team.slug}}"
+                                :to="{name:'team-applications', params: {team_slug: team.slug}}"
                             >
                                 Applications
                             </ff-team-link>.
@@ -150,7 +150,7 @@
                         <ff-button
                             v-ff-tooltip:bottom="!hasPermission('project:create') && 'Your role does not allow creating new instances. Contact a team admin to change your role.'"
                             kind="primary"
-                            :to="{name: 'CreateInstance'}"
+                            :to="{name: 'team-instance-create'}"
                             :disabled="!hasPermission('project:create')"
                         >
                             <template #icon-left>
