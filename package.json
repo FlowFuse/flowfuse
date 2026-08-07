@@ -80,7 +80,7 @@
         "@redis/client": "^6.0.0",
         "@sentry/node": "^10.54.0",
         "@sentry/vue": "^10.54.0",
-        "@sentry/webpack-plugin": "^3.6.1",
+        "@sentry/webpack-plugin": "^5.4.0",
         "@vuepic/vue-datepicker": "^11.0.2",
         "axios": "^1.4.0",
         "bcrypt": "^6.0.0",
