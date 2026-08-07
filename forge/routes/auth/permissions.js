@@ -78,6 +78,14 @@ const IMPLICIT_TOKEN_SCOPES = {
         'team:read', // get team details
         // tables
         'team:database:list', // list/get databases, list/get tables, query table data
+        'team:user:list', // list team members
+        'team:user:invite', // list team invitations
+        'team:create', // check team slug availability
+        'team:audit-log', // get team audit log
+        // team data
+        'team:packages:read', // list team npm packages
+        'team:git:tokens:list', // list team git tokens
+        'library:entry:list', // list team shared library entries
         // platform
         'stack:list',
         'flow-blueprint:list',
