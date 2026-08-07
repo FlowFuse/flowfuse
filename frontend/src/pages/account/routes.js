@@ -44,7 +44,7 @@ export default [
         profileMenuIndex: 0,
         path: '/account',
         redirect: '/account/settings',
-        name: 'User Settings',
+        name: 'user-settings',
         meta: {
             title: 'Account - Settings',
             menu: 'user'

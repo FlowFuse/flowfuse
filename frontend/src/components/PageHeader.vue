@@ -144,7 +144,7 @@ export default {
                     icon: Cog8ToothIcon,
                     tag: 'user-settings',
                     onclick: this.$router.push,
-                    onclickparams: { name: 'User Settings' },
+                    onclickparams: { name: 'user-settings' },
                     hidden: false
                 },
                 {
@@ -152,7 +152,7 @@ export default {
                     icon: AdjustmentsVerticalIcon,
                     tag: 'admin-settings',
                     onclick: this.$router.push,
-                    onclickparams: { name: 'Admin Settings' },
+                    onclickparams: { name: 'admin' },
                     hidden: !this.user.admin
                 },
                 {
