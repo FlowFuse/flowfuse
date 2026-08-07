@@ -17,6 +17,8 @@ function getPath (file) {
 
 module.exports = function (env, argv) {
     const devMode = argv?.mode === 'development'
+    const hmrEnabled = devMode && process.env.NODE_RUN_HOT === 'hot'
+
     const config = {
         devtool: devMode ? 'source-map' : 'hidden-source-map',
         entry: {
@@ -160,10 +162,10 @@ module.exports = function (env, argv) {
                 __VUE_OPTIONS_API__: true,
                 __VUE_PROD_DEVTOOLS__: devMode,
                 __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: devMode,
-                'process.env.hotReloading': devMode && process.env.NODE_RUN_HOT === 'hot'
+                'process.env.hotReloading': hmrEnabled
             })
         ],
-        cache: { type: 'filesystem' },
+        cache: hmrEnabled ? { type: 'filesystem' } : undefined,
         optimization: {
             moduleIds: 'deterministic',
             runtimeChunk: 'single',
