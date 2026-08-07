@@ -7,6 +7,15 @@ on:
   pull_request:
     paths:
       - 'docs/**'
+      # A change to this workflow should be exercised by this workflow.
+      - '.github/workflows/docs.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
+  # Only the newest push to a pull request is worth previewing. Pushes to main are never
+  # cancelled, so a publish cannot be interrupted by the next docs merge.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -22,56 +31,41 @@ jobs:
         run: npm ci
       - name: Test Documentation Links
         run: npm run test:docs
+  # The build lives in FlowFuse/website so this repository does not carry a second copy of
+  # it. Tracking @main means changes to the website build or deploy are picked up here.
+  # NOTE: pinned to the website branch until FlowFuse/website#5515 merges, then move to @main.
+  website:
+    name: Build the website with these docs
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
+    uses: FlowFuse/website/.github/workflows/site-preview.yml@docs-preview-shared-build
+    with:
+      docs_repository: ${{ github.repository }}
+      docs_ref: ${{ github.sha }}
+      # Pull requests from forks receive no secrets, so they get the build and the link
+      # check without an upload.
+      deploy_preview: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+      preview_alias: docs-pr-${{ github.event.pull_request.number }}
+      pr_number: ${{ github.event.pull_request.number || 0 }}
+    secrets:
+      ci_app_id: ${{ secrets.GH_BOT_APP_ID }}
+      ci_app_key: ${{ secrets.GH_BOT_APP_KEY }}
+      netlify_auth_token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      netlify_site_id: ${{ secrets.NETLIFY_SITE_ID }}
+  # A reusable workflow reports its checks as "caller job / called job". This gate keeps the
+  # original context name and the publish dependency below intact.
   test-with-website:
     runs-on: ubuntu-latest
     name: Test Documentation with website
+    needs: website
+    if: always()
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          path: 'flowfuse'
-      - name: Check out website repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: 'FlowFuse/website'
-          path: 'website'
-      - name: Generate a token
-        id: generate_token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-        with:
-          app-id: ${{ secrets.GH_BOT_APP_ID }}
-          private-key: ${{ secrets.GH_BOT_APP_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: blueprint-library
-      - name: Check out FlowFuse/blueprint-library repository (to access the blueprints)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: 'FlowFuse/blueprint-library'
-          ref: main
-          path: 'blueprint-library'
-          token: ${{ steps.generate_token.outputs.token }}
-      - name: Cache image pipeline output
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          key: img-pipeline-cache
-          path: website/_site/img         
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          cache: 'npm'
-          cache-dependency-path: './website/package-lock.json'
-      - run: npm run docs
-        working-directory: 'website'
-      - run: npm run blueprints
-        working-directory: 'website'
-      - name: Install Dependencies
-        run: npm install
-        working-directory: 'website'
-      - name: Build the forge
-        run: npm run build:nuxt:skip-images
-        working-directory: 'website'
-      - uses: untitaker/hyperlink@9375bc4063712ad490d5eb3d54df0b6aade15e54 # 0.3.2
-        with:
-          args: website/nuxt/dist/ --check-anchors --sources website/src
+      - name: Require the website build to have succeeded
+        run: |
+          echo "website result: ${{ needs.website.result }}"
+          [ "${{ needs.website.result }}" = "success" ]
   publish:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -88,7 +82,7 @@ jobs:
           private-key: ${{ secrets.GH_BOT_APP_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: website
-      
+
       - name: Trigger website rebuild
         uses: benc-uk/workflow-dispatch@31e2b3319479a63f0ab15bf800eff9e913504e26 # v1.3.2
         with:
