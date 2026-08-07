@@ -81,8 +81,12 @@ const IMPLICIT_TOKEN_SCOPES = {
         // platform
         'stack:list',
         'flow-blueprint:list',
+        'flow-blueprint:read',
         'project:status',
-        'template:list'
+        'template:list',
+        'template:read',
+        'team-type:list', // list team types
+        'team-type:read' // get team type
     ]
 }
 
