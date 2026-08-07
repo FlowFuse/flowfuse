@@ -13,7 +13,7 @@ export default {
             } else if (this.defaultUserTeam?.slug) {
                 return { name: 'Team', params: { team_slug: this.defaultUserTeam?.slug } }
             } else {
-                return { name: 'Home' }
+                return { name: 'home' }
             }
         }
     },

@@ -45,7 +45,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                     entries: [
                         {
                             label: 'Back to Dashboard',
-                            to: { name: 'Home' },
+                            to: { name: 'home' },
                             tag: 'back',
                             icon: ChevronLeftIcon
                         }
@@ -147,7 +147,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                     entries: [
                         {
                             label: 'Back to Dashboard',
-                            to: { name: 'Home' },
+                            to: { name: 'home' },
                             tag: 'back',
                             icon: ChevronLeftIcon
                         }
@@ -203,7 +203,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Hosted Instances',
                                 to: {
-                                    name: 'Instances',
+                                    name: 'team-hosted-instances',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-instances',
@@ -214,7 +214,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Remote Instances',
                                 to: {
-                                    name: 'TeamDevices',
+                                    name: 'team-remote-instances',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-devices',
