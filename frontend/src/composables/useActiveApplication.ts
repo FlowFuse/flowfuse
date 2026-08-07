@@ -1,4 +1,3 @@
-import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
@@ -7,7 +6,6 @@ import type { ApplicationSummary } from '@/types'
 export function useActiveApplication () {
     const router = useRouter()
     const applicationsStore = useDataFarmApplicationsStore()
-    const { activeApplication, isLoadingActiveApplication } = storeToRefs(applicationsStore)
 
     async function loadActiveApplication (id: string): Promise<ApplicationSummary | null> {
         if (!id) return null
@@ -25,9 +23,5 @@ export function useActiveApplication () {
         }
     }
 
-    function clearActiveApplication (): void {
-        applicationsStore.setActiveApplication(null)
-    }
-
-    return { application: activeApplication, isLoadingActiveApplication, loadActiveApplication, clearActiveApplication }
+    return { loadActiveApplication }
 }

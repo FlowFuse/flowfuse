@@ -30,7 +30,7 @@
         <ff-loading v-if="isLoading" />
 
         <MultiStepInstanceForm
-            v-else
+            v-else-if="application"
             ref="multiStepForm" :application="application" @instance-created="onInstanceCreated"
             @previous-step-state-changed="form.previousButtonState = $event"
             @next-step-state-changed="form.nextButtonState = $event"
@@ -40,7 +40,7 @@
 </template>
 
 <script>
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
 import MultiStepInstanceForm from '../../components/multi-step-forms/instance/MultiStepInstanceForm.vue'
 
@@ -50,6 +50,7 @@ import { useActiveApplication } from '../../composables/useActiveApplication'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 
 export default {
     name: 'ApplicationCreateInstance',
@@ -59,9 +60,9 @@ export default {
     inheritAttrs: false,
     emits: ['application-updated'],
     setup () {
-        const { application, isLoadingActiveApplication, loadActiveApplication, clearActiveApplication } = useActiveApplication()
+        const { loadActiveApplication } = useActiveApplication()
 
-        return { application, isLoadingActiveApplication, loadActiveApplication, clearActiveApplication }
+        return { loadActiveApplication }
     },
     data () {
         return {
@@ -79,8 +80,9 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useDataFarmApplicationsStore, { application: 'activeApplication', applicationHydrated: 'applicationHydrated' }),
         isLoading () {
-            return this.loading || !this.team || this.isLoadingActiveApplication
+            return this.loading || !this.team || !this.applicationHydrated
         }
     },
     async created () {
@@ -118,6 +120,7 @@ export default {
         this.clearActiveApplication()
     },
     methods: {
+        ...mapActions(useDataFarmApplicationsStore, ['clearActiveApplication']),
         async onInstanceCreated () {
             await useContextStore().refreshTeam()
 

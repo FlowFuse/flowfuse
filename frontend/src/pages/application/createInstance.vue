@@ -36,7 +36,7 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/20/solid/index.js'
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
 import instanceApi from '../../api/instances.js'
 
@@ -46,6 +46,7 @@ import InstanceForm from '../instance/components/InstanceForm.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 
 export default {
     name: 'ApplicationCreateInstance',
@@ -61,9 +62,9 @@ export default {
     },
     emits: ['application-updated'],
     setup () {
-        const { application, isLoadingActiveApplication, loadActiveApplication, clearActiveApplication } = useActiveApplication()
+        const { loadActiveApplication } = useActiveApplication()
 
-        return { application, isLoadingActiveApplication, loadActiveApplication, clearActiveApplication }
+        return { loadActiveApplication }
     },
     data () {
         return {
@@ -82,8 +83,9 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useDataFarmApplicationsStore, { application: 'activeApplication', applicationHydrated: 'applicationHydrated' }),
         isLoading () {
-            return this.loading || !this.team || this.isLoadingActiveApplication
+            return this.loading || !this.team || !this.applicationHydrated
         }
     },
     async created () {
@@ -104,6 +106,7 @@ export default {
         this.clearActiveApplication()
     },
     methods: {
+        ...mapActions(useDataFarmApplicationsStore, ['clearActiveApplication']),
         async handleFormSubmit (formData, copyParts) {
             this.loading = true
 
