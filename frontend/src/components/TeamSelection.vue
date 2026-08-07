@@ -51,6 +51,7 @@ import NavItem from './NavItem.vue'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 
 export default {
     name: 'FFTeamSelection',
@@ -66,7 +67,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useAccountStore, ['teams', 'hasAvailableTeams']),
+        ...mapState(useDataFarmTeamsStore, { teams: 'teamList', hasAvailableTeams: 'hasAvailableTeams' }),
         ...mapState(useAccountSettingsStore, ['canCreateTeam']),
         teamOptions () {
             return [

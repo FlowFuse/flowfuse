@@ -22,6 +22,7 @@ import CreateTeamButton from '../components/CreateTeamButton.vue'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 
 export default {
     name: 'AccountTeams',
@@ -39,7 +40,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountStore, ['teams']),
+        ...mapState(useDataFarmTeamsStore, { teams: 'teamList' }),
         ...mapState(useAccountSettingsStore, ['settings']),
         ...mapState(useAccountAuthStore, ['user']),
         teamCount () {
@@ -70,7 +71,7 @@ export default {
                 try {
                     await teamApi.removeTeamMember(row.id, this.user.id)
                     alerts.emit(`${this.user.username} successfully removed from ${row.name}`, 'confirmation')
-                    await useAccountStore().refreshTeams()
+                    await useDataFarmTeamsStore().fetchTeamList()
                     if (!this.teamCount) {
                         await useAccountStore().setTeam(null)
                     }

@@ -28,6 +28,7 @@ import { mapState } from 'pinia'
 
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 
 export default {
     name: 'TeamStep',
@@ -40,7 +41,7 @@ export default {
     emits: ['next-step', 'step-updated'],
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useAccountStore, ['teams'])
+        ...mapState(useDataFarmTeamsStore, { teams: 'teamList' })
     },
     mounted () {
         this.$emit('step-updated', {

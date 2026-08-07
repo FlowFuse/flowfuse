@@ -99,6 +99,7 @@ import slugify from '../../utils/slugify.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 
 export default {
     name: 'CreateTeam',
@@ -171,7 +172,7 @@ export default {
         }
     },
     computed: {
-        ...mapState(useAccountStore, ['teams']),
+        ...mapState(useDataFarmTeamsStore, { teams: 'teamList' }),
         ...mapState(useAccountSettingsStore, ['features']),
         ...mapState(useAccountAuthStore, ['user']),
         formValid () {
@@ -255,7 +256,7 @@ export default {
             }
 
             teamApi.create(opts).then(async result => {
-                await useAccountStore().refreshTeams()
+                await useDataFarmTeamsStore().fetchTeamList()
                 await useAccountStore().setTeam(result)
                 // are we in EE?
                 if (result.billingURL) {
