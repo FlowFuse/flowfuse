@@ -205,7 +205,7 @@
                             <p>
                                 A full list of your Team's Devices are available <ff-team-link
                                     class="ff-link"
-                                    :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
+                                    :to="{name: 'team-remote-instances', params: {team_slug: team.slug}}"
                                 >
                                     here
                                 </ff-team-link>.
@@ -244,7 +244,7 @@
                             <p>
                                 A full list of your Team's Devices are available <ff-team-link
                                     class="ff-link"
-                                    :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
+                                    :to="{name: 'team-remote-instances', params: {team_slug: team.slug}}"
                                 >
                                     here
                                 </ff-team-link>.

@@ -228,7 +228,7 @@ export default {
         viewTeam (row) {
             useAccountStore().setTeam(row.slug)
                 .then(() => this.$router.push({
-                    name: 'Team',
+                    name: 'team',
                     params: {
                         team_slug: row.slug
                     }

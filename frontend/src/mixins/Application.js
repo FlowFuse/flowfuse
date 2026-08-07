@@ -96,7 +96,7 @@ export default {
             try {
                 await this.deleteApplicationEntity(this.application.id, this.team.id)
                 await useContextStore().refreshTeam()
-                this.$router.push({ name: 'Applications' })
+                this.$router.push({ name: 'team-applications' })
                 alerts.emit('Application successfully deleted.', 'confirmation')
             } catch (err) {
                 if (err.response.data.error) {
