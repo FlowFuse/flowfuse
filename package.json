@@ -121,7 +121,7 @@
         "validate-npm-package-name": "^7.0.2",
         "vue": "^3.4.5",
         "vue-echarts": "^8.0.1",
-        "vue-router": "^4.2.5",
+        "vue-router": "^5.2.0",
         "vue-shepherd": "^3.0.0",
         "vue3-google-login": "^2.0.33",
         "yaml": "^2.3.1",
