@@ -105,7 +105,7 @@
         "mqtt-match": "^3.0.0",
         "nodemailer": "^9.0.0",
         "pg": "^8.11.3",
-        "pinia": "3.0.4",
+        "pinia": "4.0.2",
         "pinia-plugin-persistedstate": "4.7.1",
         "pino": "^10.3.1",
         "pino-pretty": "^13.1.3",
