@@ -6,7 +6,11 @@
  */
 
 // common features across all higher tier (enterpise, hub, edge, fleet)
+<<<<<<< HEAD
 async function commonFeatures (app) {
+=======
+async function commonFeatures(app) {
+>>>>>>> c4b703370 (Move round feature enablement)
     await app.register(require('./expert'), { prefix: '/api/v1/expert', logLevel: app.config.logging.http })
     await app.register(require('./mcp'), { logLevel: app.config.logging.http })
     await app.register(require('./teamBroker'), { prefix: '/api/v1/teams/:teamId/broker', logLevel: app.config.logging.http })
