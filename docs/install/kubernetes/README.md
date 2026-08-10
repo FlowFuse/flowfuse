@@ -92,7 +92,8 @@ Before you begin, ensure you have the following:
      - [Digital Ocean](digital-ocean.md)
      - MicroK8s
 5. **Ingress Controller:** [The Traefik](https://doc.traefik.io/traefik/) installed on the cluster.
-6. **EMQX Operator:** This is required to install the required MQTT broker when the Team Broker features are enabled. Instructions for installing the operator can be found [here](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator)
+6. **CertManager:**: The CRDs from Cert Manager are required for EMQX. Details of install instructions can be found [here](https://cert-manager.io/docs/installation/)
+7. **EMQX Operator:** This is required to install the required MQTT broker when the Team Broker features are enabled. At this point version 2.2.29 of the Operator is required. Instructions for installing the operator can be found [here](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator) Please add `--version 2.2.29` to the end of the install line
 
 For a production-ready environment, we also recommend: 
 * **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
