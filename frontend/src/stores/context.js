@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
 
-import teamApi from '../api/team.js'
 import { hasAMinimumTeamRoleOf } from '../composables/Permissions.js'
 import product from '../services/product.js'
 import { Roles } from '../utils/roles.js'
 
 import { useAccountAuthStore } from './account-auth.js'
 import { useAccountSettingsStore } from './account-settings.js'
+import { useDataFarmTeamsStore } from './data-farm-teams'
 import { useProductAssistantStore } from './product-assistant.js'
 import { useProductExpertStore } from './product-expert.js'
 
@@ -15,22 +15,26 @@ export const useContextStore = defineStore('context', {
         route: null,
         application: null,
         instance: null,
-        device: null,
-        team: null,
-        teamMembership: null
+        device: null
     }),
     getters: {
+        team () {
+            return useDataFarmTeamsStore().activeTeam
+        },
+        teamMembership () {
+            return useDataFarmTeamsStore().activeTeamMembership
+        },
         isImmersive (state) {
             return state.route?.meta?.layout === 'immersive'
         },
-        isFreeTeamType (state) {
-            return !!(state.team?.type?.properties?.billing?.disabled)
+        isFreeTeamType () {
+            return !!(this.team?.type?.properties?.billing?.disabled)
         },
-        isTrialAccount (state) {
-            return !!state.team?.billing?.trial
+        isTrialAccount () {
+            return !!this.team?.billing?.trial
         },
-        isTrialAccountExpired (state) {
-            return this.isTrialAccount && state.team?.billing?.trialEnded
+        isTrialAccountExpired () {
+            return this.isTrialAccount && this.team?.billing?.trialEnded
         },
         editorEntityType (state) {
             const name = state.route?.name
@@ -52,8 +56,8 @@ export const useContextStore = defineStore('context', {
                     palette: null,
                     debugLog: null,
                     userId: authStore.user?.id || null,
-                    teamId: state.team?.id || null,
-                    teamSlug: state.team?.slug || null,
+                    teamId: this.team?.id || null,
+                    teamSlug: this.team?.slug || null,
                     instanceId: null,
                     deviceId: null,
                     applicationId: null,
@@ -89,8 +93,8 @@ export const useContextStore = defineStore('context', {
                 palette,
                 debugLog: assistantStore.debugLog,
                 userId: authStore.user?.id || null,
-                teamId: state.team?.id || null,
-                teamSlug: state.team?.slug || null,
+                teamId: this.team?.id || null,
+                teamSlug: this.team?.slug || null,
                 instanceId: state.instance ? state.instance.id : null,
                 deviceId: state.device ? state.device.id : null,
                 applicationId: state.application ? state.application.id : null,
@@ -115,7 +119,7 @@ export const useContextStore = defineStore('context', {
                 // flow-building tool call against this map; canUseWriteTools drives
                 // role inheritance (fail-closed) for write/delete tools.
                 toolPermissions: assistantStore.resolvedToolPermissions,
-                canUseWriteTools: hasAMinimumTeamRoleOf(Roles.Member, state.teamMembership)
+                canUseWriteTools: hasAMinimumTeamRoleOf(Roles.Member, this.teamMembership)
             }
         }
     },
@@ -143,20 +147,18 @@ export const useContextStore = defineStore('context', {
         },
         clearInstance () { this.setInstance(null) },
         setTeam (team) {
-            this.team = team
+            useDataFarmTeamsStore().setActiveTeam(team)
         },
         setTeamMembership (teamMembership) {
-            this.teamMembership = teamMembership
+            useDataFarmTeamsStore().setActiveTeamMembership(teamMembership)
         },
         async refreshTeam () {
             const currentTeam = this.team
             if (currentTeam) {
                 const currentSlug = currentTeam.slug
-                const team = await teamApi.getTeam(currentTeam.id)
-                const teamMembership = await teamApi.getTeamUserMembership(team.id)
+                const team = await useDataFarmTeamsStore().refreshActiveTeam()
+                if (!team) return
                 product.setTeam(team)
-                this.team = team
-                this.teamMembership = teamMembership
                 if (currentSlug !== team.slug) {
                     const router = require('@/routes.js').default
                     router.replace({ name: router.currentRoute.value.name, params: { team_slug: team.slug } })
@@ -164,8 +166,7 @@ export const useContextStore = defineStore('context', {
             }
         },
         async refreshTeamMembership () {
-            const teamMembership = await teamApi.getTeamUserMembership(this.team.id)
-            this.teamMembership = teamMembership
+            await useDataFarmTeamsStore().refreshActiveMembership()
         },
         async onTeamChannelMembership (payload) {
             if (payload?.reason === 'removed') {
@@ -179,8 +180,5 @@ export const useContextStore = defineStore('context', {
             }
             await this.refreshTeamMembership()
         }
-    },
-    persist: [
-        { pick: ['team', 'teamMembership'], storage: sessionStorage }
-    ]
+    }
 })

@@ -122,6 +122,7 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -135,7 +136,8 @@ export default {
         ...mapState(useUxDrawersStore, ['leftDrawer', 'hiddenLeftDrawer', 'editorImmersiveDrawer']),
         ...mapState(useAccountAuthStore, ['user']),
         ...mapState(useContextStore, ['team']),
-        ...mapState(useAccountStore, ['teams', 'notifications', 'hasAvailableTeams', 'defaultUserTeam']),
+        ...mapState(useAccountStore, ['notifications']),
+        ...mapState(useDataFarmTeamsStore, { teams: 'teamList', hasAvailableTeams: 'hasAvailableTeams', defaultUserTeam: 'defaultUserTeam' }),
         ...mapState(useAccountSettingsStore, ['canCreateTeam', 'featuresCheck']),
         navigationOptions () {
             return [

@@ -12,6 +12,7 @@ import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useCookieConsentStore } from '@/stores/cookie-consent'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
 import { useProductExpertInsightsAgentStore } from '@/stores/product-expert-insights-agent.js'
@@ -101,10 +102,9 @@ export const useAccountAuthStore = defineStore('account-auth', {
                 // check notifications count
                 await useAccountStore().getInvitations()
 
-                const teams = await teamApi.getTeams()
-                useAccountStore().setTeams(teams.teams)
+                const teams = await useDataFarmTeamsStore().fetchTeamList()
 
-                if (teams.count === 0) {
+                if (teams.length === 0) {
                     useUxLoadingStore().clearAppLoader()
                     useAccountStore().setTeam(null)
                     if (/^\/team\//.test(router.currentRoute.value.path)) {
@@ -126,7 +126,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
                     if (!/^\/(application|device|instance)\//.test(redirectUrlAfterLogin || router.currentRoute.value.path)) {
                         // Assume we'll load the users default team, or the first in their team list
                         // if no default has been set
-                        let teamId = user.defaultTeam || teams.teams[0].id
+                        let teamId = user.defaultTeam || teams[0].id
                         let teamSlug = null
 
                         // Check the url to see if it is a /team/XYZ path - which
@@ -236,6 +236,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
             useContextStore().$reset()
             useCookieConsentStore().reset()
             useDataFarmApplicationsStore().reset()
+            useDataFarmTeamsStore().reset()
             useProductTablesStore().$reset()
             useProductBrokersStore().$reset()
             useProductAssistantStore().$reset()

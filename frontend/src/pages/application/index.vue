@@ -16,6 +16,7 @@
             <router-view
                 :application="application"
                 :instances="instancesArray"
+                :loading-instance-statuses="loadingInstanceStatuses"
                 :is-visiting-admin="isVisitingAdmin"
                 @application-updated="updateApplication"
                 @application-delete="showConfirmDeleteApplicationDialog"
