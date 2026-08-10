@@ -53,7 +53,7 @@ meta:
 
 # Kubernetes Install
 
-This guide walks you through detailed set up of FlowFuse Platform on a container envoronment managed by Kubernetes. Typically suited for large on premise deployments or deployment in Cloud infrastructure.
+This guide walks you through detailed set up of FlowFuse Platform on a container environment managed by Kubernetes. Typically suited for large on premise deployments or deployment in Cloud infrastructure.
 By the end, you will have a fully functioning FlowFuse instance running on a Kubernetes cluster.
 
 # Checklist
@@ -96,7 +96,7 @@ Before you begin, ensure you have the following:
 7. **EMQX Operator:** This installs the operator that deploys the MQTT broker the Team Broker features need. You must install exactly version 2.2.29 — later versions are not supported. Follow the [installation instructions](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator) and pin the version by adding `--version 2.2.29` to the install command.
 
 For a production-ready environment, we also recommend: 
-* **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
+* **Database:** Prepare dedicated database on an external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
 * **TLS Certificate:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#i-would-like-to-secure-the-platform-with-https%2C-how-can-i-do-that%3F)) 
 
 ### Hardware requirements
@@ -107,7 +107,7 @@ Control Plane: At least 2 vCPUs, 4 GB RAM
 Worker Nodes: Minimum 2 vCPUs, 4 GB RAM per node, 2 nodes for high availability
 Storage: 20Gb of host storage (for container images), StorageClass of your choice available for Hosted Node-RED instances (optional)
 
-Each Node-RED instance you host will uses 0.1 CPU cores and 256 MB of memory by default. This parameters can be adjusted in admin area of FlowFuse platform. Keep this in mind when sizing your hardware, especially if plan to create multiple hosted instances.
+Each Node-RED instance you host will use 0.1 CPU cores and 256 MB of memory by default. These parameters can be adjusted in admin area of FlowFuse platform. Keep this in mind when sizing your hardware, especially if you plan to create multiple hosted instances.
 
 ### DNS
 
@@ -117,7 +117,7 @@ to the kubernetes Ingress controller.
 
 For example if you want projects to be accessible as `[instance-name].example.com`
 you will need to ensure that `*.example.com` is mapped to the IP address used by 
-your Kubernetes clusters's Ingress controller.
+your Kubernetes cluster's Ingress controller.
 
 By default the FlowFuse application will be mapped to `forge.example.com` assuming
 that you set the domain to `example.com`.
@@ -341,7 +341,7 @@ FlowFuse platform allows you to invite team members to the platform using their 
 To enable this feature, you need to configure the e-mail settings in the `customization.yml` file.
 
 Check this [page](../configuration.md#email-configuration) for more details about the parameters. 
-Check [FlowFuseHelm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowfuse#email) for information where configuration values should be placed in `customization.yml` file.
+Check [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowfuse#email) for information where configuration values should be placed in `customization.yml` file.
 
 If you use AWS EKS (Elastic Kubernetes Service) and want to use AWS SES (Simple Email Service) for sending e-mails, you need to provide the IAM role with the required permissions to use SES.
 
@@ -358,7 +358,7 @@ forge:
 ``` 
 
 Apply changes with [platform startup command](#start-flowfuse-platform).
-### I would like to use embeded MQTT broker, how can I do that?
+### I would like to use embedded MQTT broker, how can I do that?
 
 <details>
   <summary>Click to expand</summary>
@@ -382,7 +382,7 @@ Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/t
 ### I would like to use Kubernetes Persistent storage to store data, how can I do that?
 
 Starting with the `2.6.0` release the Pods running the Node-RED Instances have a Persistent Volume mounted on `/data/storage` in which files can be written. 
-These files will persist for the lifetime of the Instance including across Susspend/Resume and Stack upgrades.
+These files will persist for the lifetime of the Instance including across Suspend/Resume and Stack upgrades.
 
 To enable this feature the following configuration needs to be added to the `customization.yml` file (replace '<storage-class-name>' with the name of the StorageClass you have in the cluster):
 
