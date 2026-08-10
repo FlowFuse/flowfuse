@@ -85,13 +85,13 @@ By the end, you will have a fully functioning FlowFuse instance running on a Kub
 Before you begin, ensure you have the following:
 
 1. **Domain Name & DNS:** A domain name that you own and can configure DNS settings for (explained in [DNS](#dns))
-2. **kubectl:** To manage a Kubernetes cluster you will need a copy of the `kubectl` utility. Instructions on how to install it can be found [here](https://kubernetes.io/docs/tasks/tools/)
-3. **Helm:** FlowFuse provides the Helm chart to manage platform deployment. Installation can be done through the instructions on [their website](https://helm.sh)
+2. **kubectl:** To manage a Kubernetes cluster you will need a copy of the `kubectl` utility. See the [kubectl install docs](https://kubernetes.io/docs/tasks/tools/)
+3. **Helm:** FlowFuse provides the Helm chart to manage platform deployment. Install it by following the instructions on [their website](https://helm.sh)
 4. **Kubernetes Cluster:** The deployment has currently been tested on the following environments:
      - [AWS EKS](aws_terraform.md)
      - [Digital Ocean](digital-ocean.md)
      - MicroK8s
-5. **Ingress Controller:** [The Traefik](https://doc.traefik.io/traefik/) installed on the cluster.
+5. **Ingress Controller:** Install [Traefik](https://doc.traefik.io/traefik/) on the cluster.
 6. **Cert Manager:** EMQX requires the CRDs from Cert Manager. See the [installation instructions](https://cert-manager.io/docs/installation/) for details.
 7. **EMQX Operator:** This installs the operator that deploys the MQTT broker the Team Broker features need. You must install exactly version 2.2.29 — later versions are not supported. Follow the [installation instructions](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator) and pin the version by adding `--version 2.2.29` to the install command.
 
@@ -111,8 +111,8 @@ Each Node-RED instance you host will use 0.1 CPU cores and 256 MB of memory by d
 
 ### DNS
 
-A [wildcard DNS entry](https://en.wikipedia.org/wiki/Wildcard_DNS_record) will be needed 
-to point to the domain that is used for the project instances. This will need to point 
+You will need a [wildcard DNS entry](https://en.wikipedia.org/wiki/Wildcard_DNS_record)
+pointing to the domain that is used for the project instances. This will need to point 
 to the kubernetes Ingress controller.
 
 For example if you want projects to be accessible as `[instance-name].example.com`
@@ -259,7 +259,7 @@ You may need to adjust this policy based on your specific network requirements a
 
 ### How to use external database server?
 
-FlowFuse platform uses PostgreSQL database to store its data. By default, the internal database instance is created and managed by the Helm chart. 
+FlowFuse platform uses PostgreSQL database to store its data. By default, the Helm chart creates and manages the internal database instance. 
 
 If you want to use an external database server, you need to edit `customization.yml` file and provide the database connection details:
 
