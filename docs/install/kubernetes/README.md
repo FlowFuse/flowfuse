@@ -53,7 +53,7 @@ meta:
 
 # Kubernetes Install
 
-This guide walks you through detailed set up of FlowFuse Platform on a container environment managed by Kubernetes. Typically suited for large on premise deployments or deployment in Cloud infrastructure.
+This guide walks you through a detailed set up of FlowFuse Platform on a container environment managed by Kubernetes. Typically suited for large on premise deployments or deployment in Cloud infrastructure.
 By the end, you will have a fully functioning FlowFuse instance running on a Kubernetes cluster.
 
 # Checklist
@@ -97,7 +97,7 @@ Before you begin, ensure you have the following:
 
 For a production-ready environment, we also recommend: 
 * **Database:** Prepare dedicated database on an external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
-* **TLS Certificate:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#i-would-like-to-secure-the-platform-with-https%2C-how-can-i-do-that%3F)) 
+* **TLS Certificate:** Prepare a TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#i-would-like-to-secure-the-platform-with-https%2C-how-can-i-do-that%3F)) 
 
 ### Hardware requirements
 
@@ -208,7 +208,7 @@ about the upgrade process.
 
 In cloud environments, it is recommended to use a Load Balancer to terminate SSL traffic.
 
-However, if you want to use SSL termination on the Kubernetes Ingress Controller, this is possible by utilizing [Cert-Manager](https://cert-manager.io/docs/) tool (not part of the FlowFuse Helm chart).
+However, if you want to use SSL termination on the Kubernetes Ingress Controller, this is possible by using the [Cert-Manager](https://cert-manager.io/docs/) tool (not part of the FlowFuse Helm chart).
 
 Once you have Cert-Manager installed, you can enable TLS support in the `customization.yml` file by specifying the [ClusterIssuer](https://cert-manager.io/docs/configuration/#cluster-resource-namespace) name:
 
