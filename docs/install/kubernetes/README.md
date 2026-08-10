@@ -88,7 +88,7 @@ Before you begin, ensure you have the following:
 2. **kubectl:** To manage a Kubernetes cluster you will need a copy of the `kubectl` utility. See the [kubectl install docs](https://kubernetes.io/docs/tasks/tools/)
 3. **Helm:** FlowFuse provides the Helm chart to manage platform deployment. Install it by following the instructions on [their website](https://helm.sh)
 4. **Kubernetes Cluster:** The deployment has currently been tested on the following environments:
-     - [AWS EKS](aws_terraform.md)
+     - [AWS EKS](aws-terraform.md)
      - [Digital Ocean](digital-ocean.md)
      - MicroK8s
 5. **Ingress Controller:** Install [Traefik](https://doc.traefik.io/traefik/) on the cluster.
@@ -413,4 +413,4 @@ Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/t
 ### I would like to run FlowFuse on AWS EKS. Do you have any guidance?
 
 Yes, we have a dedicated guide on how to deploy FlowFuse on AWS EKS. You can find it [here](aws.md).
-Furthermore, we also provide terraform scripts to automate the deployment process of all required AWS service. You can find the guide [here](aws_terraform.md).
+Furthermore, we also provide terraform scripts to automate the deployment process of all required AWS service. You can find the guide [here](aws-terraform.md).
