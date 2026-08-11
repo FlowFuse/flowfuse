@@ -224,6 +224,12 @@ async function init (app, opts) {
                         reply.code(401).send({ code: 'unauthorized', error: 'unauthorized' })
                         return
                     }
+                    if (accessToken.ownerType === 'user:expert-mcp') {
+                        // The expert MCP token is short-lived (5 min TTL) and first-party only.
+                        // It inherits the user's full permissions rather than being restricted
+                        // to a hardcoded allowlist. HITL and scoped PATs provide the access control.
+                        delete request.session.scope
+                    }
                     resolveSourceContext(request)
                     return
                 }
