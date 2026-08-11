@@ -43,3 +43,6 @@ It assumes you know what a node and a flow are. If you do not, start with the
 - **[Design patterns](/docs/node-red-guide/design-patterns/)**
   The moves that turn a flow into something you can reuse, test and hand off.
 
+- **[Handling data](/docs/node-red-guide/handling-data/)**
+  Sort data by what it is for before you tune anything, and respect the controller's scan budget.
+
