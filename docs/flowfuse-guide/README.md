@@ -41,3 +41,6 @@ For the definition of any term used here, see the
 - **[Software apps](/docs/flowfuse-guide/software-apps/)**
   The three shapes an app takes when it runs on the platform.
 
+- **[Data plane](/docs/flowfuse-guide/data-plane/)**
+  Where data goes: two stores built in, everything else you bring and expose yourself.
+
