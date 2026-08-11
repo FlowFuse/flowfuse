@@ -32,3 +32,6 @@ For the definition of any term used here, see the
 - **[Foundations](/docs/flowfuse-guide/foundations/)**
   What FlowFuse is, its core pieces, and how code is shared across teams.
 
+- **[App delivery methods](/docs/flowfuse-guide/app-delivery/)**
+  Ship the whole app through environments, or publish one reusable piece the team installs.
+
