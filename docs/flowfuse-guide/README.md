@@ -53,3 +53,6 @@ For the definition of any term used here, see the
 - **[IT architectures](/docs/flowfuse-guide/architectures-it/)**
   Hosting and governing: on-prem, your own cloud, and enterprise governance.
 
+- **[IIoT architectures](/docs/flowfuse-guide/architectures-iiot/)**
+  The live data backbone, where the edge publishes once and many subscribe.
+
