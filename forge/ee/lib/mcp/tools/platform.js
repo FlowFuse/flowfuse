@@ -98,5 +98,53 @@ module.exports = [
             const response = await inject({ method: 'GET', url: '/api/v1/flow-blueprints' })
             return response
         }
+    },
+    {
+        name: 'platform_list_browser_sessions',
+        title: 'List Browser Sessions',
+        description: `FlowFuse platform automation tool:
+            Lists the user's active browser sessions that have been exposed for third-party MCP access.
+            Each session represents a browser tab where the user has enabled the MCP toggle.
+            Use this to discover which tabs are available before invoking flow-building or UI tools that require a target browser session.
+            The returned sessions include the tab's current context (what page the user is viewing, which team/instance/device is selected, editor state, and capabilities).
+            Pick a session_id from the results and pass it as the target for subsequent tool invocations.
+            If no sessions are returned, ask the user to open the FlowFuse platform in their browser and enable the MCP toggle (the plug icon next to the Expert button in the header).`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            userId: z.string().describe('The ID or hashid of the user whose browser sessions to list')
+        },
+        handler: async (args, { app }) => {
+            if (!app?.comms?.browserSessions) {
+                return {
+                    sessions: [],
+                    message: 'Browser session tracking is not available. The MQTT broker may not be configured.'
+                }
+            }
+
+            const sessions = await app.comms.browserSessions.getSessionsByUser(args.userId)
+
+            if (sessions.length === 0) {
+                const baseUrl = app.config.base_url || ''
+                return {
+                    sessions: [],
+                    message: 'No active browser sessions found for this user. ' +
+                        'Please let the user know they need to: ' +
+                        '1. Open the FlowFuse platform in their browser (' + baseUrl + '). ' +
+                        '2. Click the MCP toggle (the plug icon next to the Expert button in the top-right header). ' +
+                        'Once enabled, the browser tab will appear in this list. ' +
+                        'Share these instructions with the user and retry once they confirm the toggle is on.'
+                }
+            }
+
+            return {
+                sessions: sessions.map(session => ({
+                    sessionId: session.sessionId,
+                    userId: session.userId,
+                    lastSeen: session.lastSeen,
+                    visibility: session.visibility || 'unknown',
+                    context: session.context || null
+                }))
+            }
+        }
     }
 ]
