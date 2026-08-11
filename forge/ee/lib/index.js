@@ -1,7 +1,7 @@
 const fp = require('fastify-plugin')
 
 // common features across all higher tier (enterpise, hub, edge, fleet)
-async function commonFeatures(app, opts) {
+async function commonFeatures (app, opts) {
     app.decorate('sso', await require('./sso').init(app))
     await require('./teamBroker').init(app)
     // Set the MFA Feature Flag
@@ -78,7 +78,6 @@ module.exports = fp(async function (app, opts) {
 
         // Set the Device Groups Feature Flag
         app.config.features.register('deviceGroups', true, true)
-        
     } else if (app.license.get('tier') === 'hub') {
         await commonFeatures(app, opts)
         // HA
@@ -87,12 +86,10 @@ module.exports = fp(async function (app, opts) {
         require('./protectedInstance').init(app)
         // Git Opps
         app.decorate('gitops', await require('./gitops').init(app))
-        
     } else if (app.license.get('tier') === 'edge') {
         await commonFeatures(app, opts)
         // Set the Device Groups Feature Flag
         app.config.features.register('deviceGroups', true, true)
-
     } else if (app.license.get('tier') === 'fleet') {
         await commonFeatures(app, opts)
         // Set the Device Groups Feature Flag
