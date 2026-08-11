@@ -1,11 +1,7 @@
 const fp = require('fastify-plugin')
 
 // common features across all higher tier (enterpise, hub, edge, fleet)
-<<<<<<< HEAD
 async function commonFeatures (app, opts) {
-=======
-async function commonFeatures(app, opts) {
->>>>>>> c4b703370 (Move round feature enablement)
     app.decorate('sso', await require('./sso').init(app))
     await require('./teamBroker').init(app)
     // Set the MFA Feature Flag
