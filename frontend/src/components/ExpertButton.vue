@@ -159,10 +159,10 @@ export default {
     }
 
     &--active {
-        color: var(--ff-palette-green-600);
+        color: var(--ff-color-success);
 
         &:hover {
-            color: var(--ff-palette-green-700);
+            color: var(--ff-color-success);
         }
     }
 }
