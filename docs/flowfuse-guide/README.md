@@ -44,3 +44,6 @@ For the definition of any term used here, see the
 - **[Data plane](/docs/flowfuse-guide/data-plane/)**
   Where data goes: two stores built in, everything else you bring and expose yourself.
 
+- **[Architectures](/docs/flowfuse-guide/architectures/)**
+  The same building blocks, arranged for where they run, plus the dev and prod split.
+
