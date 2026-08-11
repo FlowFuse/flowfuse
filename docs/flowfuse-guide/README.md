@@ -50,3 +50,6 @@ For the definition of any term used here, see the
 - **[OT architectures](/docs/flowfuse-guide/architectures-ot/)**
   Near the equipment: edge deployments, consolidation, and air-gapped sites.
 
+- **[IT architectures](/docs/flowfuse-guide/architectures-it/)**
+  Hosting and governing: on-prem, your own cloud, and enterprise governance.
+
