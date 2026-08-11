@@ -52,6 +52,22 @@ class CommsClient extends EventEmitter {
                 const ownerId = topicParts[4]
                 const messageType = topicParts[5]
 
+                if (topicParts[2] === 'tab-presence') {
+                    // ff/v1/tab-presence/<userId>/<sessionId>/<messageType>
+                    const userId = topicParts[3]
+                    const sessionId = topicParts[4]
+                    const messageType = topicParts[5]
+                    let payload
+                    try {
+                        payload = JSON.parse(message.toString())
+                    } catch (err) {
+                        this.app.log.warn(`Ignoring malformed tab-presence payload on ${topic}: ${err.message}`)
+                        return
+                    }
+                    this.emit('tab-presence', { userId, sessionId, messageType, payload })
+                    return
+                }
+
                 if (topicParts[2] === 'expert') {
                     const userId = topicParts[3]
                     const sessionId = topicParts[4]
@@ -249,7 +265,9 @@ class CommsClient extends EventEmitter {
                 // of consumers that share the workload, so keeping Expert separate from the
                 // "platform" group prevents unrelated features from sharing a consumer pool and
                 // allows them to scale independently.
-                '$share/expert/ff/v1/expert/+/+/platform/+/request'
+                '$share/expert/ff/v1/expert/+/+/platform/+/request',
+                // Browser tab presence - shared subscription
+                '$share/platform/ff/v1/tab-presence/+/+/+'
             ])
         }
     }
