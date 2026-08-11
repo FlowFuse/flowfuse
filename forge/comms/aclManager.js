@@ -489,7 +489,10 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' },
                 // platform can listen for browser tab presence (shared subscription)
                 // - ff/v1/tab-presence/<userId>/<sessionId>/<heartbeat|context>
-                { topic: /^ff\/v1\/tab-presence\/[^/]+\/[^/]+\/(heartbeat|context)$/, shared: true }
+                // Uses [^/]+ for the message-type segment because the subscription wildcard (+)
+                // is matched as a literal character. The publish-side ACL on teamFrontend
+                // already restricts to heartbeat|context.
+                { topic: /^ff\/v1\/tab-presence\/[^/]+\/[^/]+\/[^/]+$/, shared: true }
             ],
             pub: [
                 // Send commands to project launchers
