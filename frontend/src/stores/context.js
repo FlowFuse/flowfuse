@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import { v4 as uuidv4 } from 'uuid'
 
 import { hasAMinimumTeamRoleOf } from '../composables/Permissions.js'
 import product from '../services/product.js'
