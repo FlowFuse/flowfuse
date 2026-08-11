@@ -56,3 +56,6 @@ For the definition of any term used here, see the
 - **[IIoT architectures](/docs/flowfuse-guide/architectures-iiot/)**
   The live data backbone, where the edge publishes once and many subscribe.
 
+- **[Worked example](/docs/flowfuse-guide/worked-example/)**
+  OEE end to end, from the edge to the broker to the cloud to history.
+
