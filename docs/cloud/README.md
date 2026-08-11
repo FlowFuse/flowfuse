@@ -1,6 +1,6 @@
 ---
 navGroup: FlowFuse Cloud
-navGroupOrder: 3
+navGroupOrder: 4
 navOrder: 3
 navTitle: FlowFuse Cloud
 redirect:

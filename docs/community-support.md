@@ -1,6 +1,6 @@
 ---
 navGroup: Support
-navGroupOrder: 5
+navGroupOrder: 6
 navOrder: 1
 navTitle: Community Support
 redirect: 

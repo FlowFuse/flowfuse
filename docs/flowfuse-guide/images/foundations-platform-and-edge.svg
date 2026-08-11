@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 700" preserveAspectRatio="xMidYMid meet" role="img"
+                   style="width:100%;height:auto;display:block"
+                   font-family="Heebo, Helvetica, Arial, sans-serif"
+                   aria-label="The FlowFuse Platform encapsulates one or more Hosted Instances running Node-RED (shown as a stack of cards), a Dashboard, the Team Broker, and FlowFuse Tables. Below it, a dashed Device Agent container wraps one or more Remote Instances running Node-RED on edge hardware (also shown as a stack), mirroring how the platform wraps its hosted instances. The Remote Instances fan out to PLCs, IO modules, gateways, embedded devices, and a LoRaWAN gateway.">
+                <title>The FlowFuse Platform holds Hosted Instances, a Dashboard, the Team Broker and FlowFuse Tables, and reaches down through the Device Agent to Remote Instances that connect to edge hardware.</title>
+                <defs>
+                  <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse">
+                    <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"></path>
+                  </marker>
+                </defs>
+      
+                <!-- ===== CONNECTORS (behind cards) ===== -->
+                <!-- platform -> device agent container (bridge): docks into container top -->
+                <path d="M530,274 C530,298 530,298 530,322 L530,332" fill="none" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)"></path>
+                <!-- device agent container -> edge hardware fan-out: each docks into its chip top -->
+                <path d="M530,514 C530,562 135,562 135,610 L135,620" fill="none" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)"></path>
+                <path d="M530,514 C530,562 332.5,562 332.5,610 L332.5,620" fill="none" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)"></path>
+                <path d="M530,514 C530,562 530,562 530,610 L530,620" fill="none" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)"></path>
+                <path d="M530,514 C530,562 727.5,562 727.5,610 L727.5,620" fill="none" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)"></path>
+                <path d="M530,514 C530,562 925,562 925,610 L925,620" fill="none" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)"></path>
+      
+                <!-- ===== FLOWFUSE PLATFORM CONTAINER (the umbrella) ===== -->
+                <rect x="30" y="24" width="1000" height="250" rx="18" fill="#f5f6ff" stroke="#5048e5" stroke-width="1.5"></rect>
+                <text x="54" y="52" font-size="11" font-weight="700" letter-spacing="0.07em" fill="#5048e5">FLOWFUSE PLATFORM</text>
+                <text x="54" y="71" font-size="11.5" fill="#9ca3af">runs and connects your Node-RED instances</text>
+      
+                <!-- Hosted Instance card (stacked deck = one or many instances) -->
+                <g>
+                  <!-- back layers (behind front card): thinner/lighter, no text -->
+                  <rect x="66" y="84" width="217" height="150" rx="12" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1"></rect>
+                  <rect x="60" y="90" width="217" height="150" rx="12" fill="#fafafb" stroke="#e5e7eb" stroke-width="1"></rect>
+                  <rect x="54" y="96" width="217" height="150" rx="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"></rect>
+                  <line x1="66" y1="99" x2="259" y2="99" stroke="#5048e5" stroke-width="3" stroke-linecap="round"></line>
+                  <rect x="74" y="116" width="46" height="46" rx="10" fill="#eef2ff"></rect>
+                  <g fill="#5048e5">
+                    <circle cx="87" cy="142" r="8"></circle>
+                    <circle cx="99" cy="136" r="11"></circle>
+                    <circle cx="110" cy="143" r="7"></circle>
+                    <rect x="82" y="142" width="32" height="9" rx="4.5"></rect>
+                  </g>
+                  <!-- Node-RED red mark: Node-RED runs inside the instance -->
+                  <polygon points="249,113 259.4,119 259.4,131 249,137 238.6,131 238.6,119" fill="#8f0000"></polygon>
+                  <circle cx="245" cy="125" r="2.3" fill="none" stroke="#ffffff" stroke-width="1.3"></circle>
+                  <circle cx="253" cy="125" r="2.3" fill="none" stroke="#ffffff" stroke-width="1.3"></circle>
+                  <line x1="247.3" y1="125" x2="250.7" y2="125" stroke="#ffffff" stroke-width="1.3"></line>
+                  <text x="74" y="194" font-size="15" font-weight="700" fill="#111827">Hosted Instance</text>
+                  <text x="74" y="215" font-size="12" fill="#6b7280">one or many, in the cloud</text>
+                </g>
+      
+                <!-- Dashboard card -->
+                <g>
+                  <rect x="299" y="96" width="217" height="150" rx="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"></rect>
+                  <line x1="311" y1="99" x2="504" y2="99" stroke="#2563eb" stroke-width="3" stroke-linecap="round"></line>
+                  <rect x="319" y="116" width="46" height="46" rx="10" fill="#eff4ff"></rect>
+                  <rect x="331" y="129" width="32" height="24" rx="3" fill="none" stroke="#2563eb" stroke-width="2.4"></rect>
+                  <rect x="343" y="155" width="8" height="4" fill="#2563eb"></rect>
+                  <line x1="337" y1="161" x2="357" y2="161" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round"></line>
+                  <g fill="#2563eb">
+                    <rect x="336" y="143" width="4" height="6"></rect>
+                    <rect x="343" y="138" width="4" height="11"></rect>
+                    <rect x="350" y="141" width="4" height="8"></rect>
+                    <rect x="357" y="135" width="4" height="14"></rect>
+                  </g>
+                  <text x="319" y="194" font-size="15" font-weight="700" fill="#111827">Dashboard</text>
+                  <text x="319" y="215" font-size="12" fill="#6b7280">live operator UI</text>
+                </g>
+      
+                <!-- Team Broker card -->
+                <g>
+                  <rect x="544" y="96" width="217" height="150" rx="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"></rect>
+                  <line x1="556" y1="99" x2="749" y2="99" stroke="#50c3c9" stroke-width="3" stroke-linecap="round"></line>
+                  <rect x="564" y="116" width="46" height="46" rx="10" fill="#e4fbfc"></rect>
+                  <g stroke="#50c3c9" stroke-width="2">
+                    <line x1="592" y1="142" x2="576" y2="129"></line>
+                    <line x1="592" y1="142" x2="608" y2="129"></line>
+                    <line x1="592" y1="142" x2="576" y2="155"></line>
+                    <line x1="592" y1="142" x2="608" y2="155"></line>
+                  </g>
+                  <circle cx="592" cy="142" r="8" fill="#50c3c9"></circle>
+                  <g fill="#ffffff" stroke="#50c3c9" stroke-width="2">
+                    <circle cx="576" cy="129" r="4.5"></circle>
+                    <circle cx="608" cy="129" r="4.5"></circle>
+                    <circle cx="576" cy="155" r="4.5"></circle>
+                    <circle cx="608" cy="155" r="4.5"></circle>
+                  </g>
+                  <text x="564" y="194" font-size="15" font-weight="700" fill="#111827">Team Broker</text>
+                  <text x="564" y="215" font-size="12" fill="#6b7280">MQTT message bus</text>
+                </g>
+      
+                <!-- FlowFuse Tables card -->
+                <g>
+                  <rect x="789" y="96" width="217" height="150" rx="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"></rect>
+                  <line x1="801" y1="99" x2="994" y2="99" stroke="#16a34a" stroke-width="3" stroke-linecap="round"></line>
+                  <rect x="809" y="116" width="46" height="46" rx="10" fill="#dcfce7"></rect>
+                  <path d="M822,132 v22 a15,5 0 0 0 30,0 v-22" fill="#16a34a"></path>
+                  <ellipse cx="837" cy="132" rx="15" ry="5" fill="#16a34a"></ellipse>
+                  <ellipse cx="837" cy="132" rx="15" ry="5" fill="none" stroke="#bbf7d0" stroke-width="1.4"></ellipse>
+                  <ellipse cx="837" cy="143" rx="15" ry="5" fill="none" stroke="#bbf7d0" stroke-width="1.4" opacity="0.7"></ellipse>
+                  <text x="809" y="194" font-size="15" font-weight="700" fill="#111827">FlowFuse Tables</text>
+                  <text x="809" y="215" font-size="12" fill="#6b7280">shared SQL database</text>
+                </g>
+      
+                <!-- ===== DEVICE AGENT CONTAINER (dashed): wraps the Remote Instance, mirroring the Platform box ===== -->
+                <rect x="255" y="330" width="550" height="184" rx="18" fill="#fff6f4" stroke="#ff2400" stroke-width="2" stroke-dasharray="7,5"></rect>
+                <text x="279" y="358" font-size="11" font-weight="700" letter-spacing="0.07em" fill="#ff2400">DEVICE AGENT</text>
+                <text x="279" y="377" font-size="11.5" fill="#9ca3af">bridges platform to the edge</text>
+      
+                <!-- Remote Instance card (stacked deck = one per device, across sites) -->
+                <g>
+                  <!-- back layers (behind front card): thinner/lighter, no text -->
+                  <rect x="297" y="388" width="490" height="88" rx="14" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1"></rect>
+                  <rect x="291" y="394" width="490" height="88" rx="14" fill="#fafafb" stroke="#e5e7eb" stroke-width="1"></rect>
+                  <rect x="285" y="400" width="490" height="88" rx="14" fill="#ffffff" stroke="#374151" stroke-width="1.6"></rect>
+                  <rect x="307" y="416" width="50" height="50" rx="10" fill="#eef1f4"></rect>
+                  <g stroke="#374151" stroke-width="2">
+                    <line x1="325" y1="424" x2="325" y2="428"></line>
+                    <line x1="339" y1="424" x2="339" y2="428"></line>
+                    <line x1="325" y1="454" x2="325" y2="458"></line>
+                    <line x1="339" y1="454" x2="339" y2="458"></line>
+                    <line x1="315" y1="434" x2="319" y2="434"></line>
+                    <line x1="315" y1="448" x2="319" y2="448"></line>
+                    <line x1="345" y1="434" x2="349" y2="434"></line>
+                    <line x1="345" y1="448" x2="349" y2="448"></line>
+                  </g>
+                  <rect x="319" y="428" width="26" height="26" rx="4" fill="none" stroke="#374151" stroke-width="2"></rect>
+                  <rect x="326" y="435" width="12" height="12" rx="1.5" fill="none" stroke="#374151" stroke-width="1.5"></rect>
+                  <!-- Node-RED red mark: Node-RED runs on the edge too -->
+                  <polygon points="749,411 758.5,416.5 758.5,427.5 749,433 739.5,427.5 739.5,416.5" fill="#8f0000"></polygon>
+                  <circle cx="745" cy="422" r="2.1" fill="none" stroke="#ffffff" stroke-width="1.2"></circle>
+                  <circle cx="753" cy="422" r="2.1" fill="none" stroke="#ffffff" stroke-width="1.2"></circle>
+                  <line x1="747.1" y1="422" x2="750.9" y2="422" stroke="#ffffff" stroke-width="1.2"></line>
+                  <text x="375" y="444" font-size="16" font-weight="700" fill="#111827">Remote Instance</text>
+                  <text x="375" y="466" font-size="12.5" fill="#6b7280">one per device, across sites</text>
+                </g>
+      
+                <!-- ===== EDGE HARDWARE (fan-out) ===== -->
+                <text x="40" y="552" font-size="11" font-weight="700" letter-spacing="0.07em" fill="#6b7280">EDGE HARDWARE</text>
+                <!-- PLC -->
+                <g>
+                  <rect x="60" y="618" width="150" height="56" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.4"></rect>
+                  <text x="135" y="642" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">PLC</text>
+                  <text x="135" y="660" text-anchor="middle" font-size="10.5" fill="#9ca3af">controller</text>
+                </g>
+                <!-- IO module -->
+                <g>
+                  <rect x="257.5" y="618" width="150" height="56" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.4"></rect>
+                  <text x="332.5" y="642" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">IO module</text>
+                  <text x="332.5" y="660" text-anchor="middle" font-size="10.5" fill="#9ca3af">sensors &amp; actuators</text>
+                </g>
+                <!-- Gateway -->
+                <g>
+                  <rect x="455" y="618" width="150" height="56" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.4"></rect>
+                  <text x="530" y="642" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">Gateway</text>
+                  <text x="530" y="660" text-anchor="middle" font-size="10.5" fill="#9ca3af">protocol bridge</text>
+                </g>
+                <!-- Embedded -->
+                <g>
+                  <rect x="652.5" y="618" width="150" height="56" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.4"></rect>
+                  <text x="727.5" y="642" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">Embedded</text>
+                  <text x="727.5" y="660" text-anchor="middle" font-size="10.5" fill="#9ca3af">microcontroller</text>
+                </g>
+                <!-- LoRaWAN GW -->
+                <g>
+                  <rect x="850" y="618" width="150" height="56" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1.4"></rect>
+                  <text x="925" y="642" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">LoRaWAN GW</text>
+                  <text x="925" y="660" text-anchor="middle" font-size="10.5" fill="#9ca3af">wireless sensors</text>
+                </g>
+              </svg>
