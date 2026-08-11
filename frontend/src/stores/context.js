@@ -16,8 +16,7 @@ export const useContextStore = defineStore('context', {
         route: null,
         application: null,
         instance: null,
-        device: null,
-        tabSessionId: null
+        device: null
     }),
     getters: {
         team () {
@@ -181,15 +180,6 @@ export const useContextStore = defineStore('context', {
                 return
             }
             await this.refreshTeamMembership()
-        }
-    },
-    persist: {
-        pick: ['tabSessionId'],
-        storage: sessionStorage,
-        afterHydrate ({ store }) {
-            if (!store.tabSessionId) {
-                store.tabSessionId = uuidv4()
-            }
         }
     }
 })
