@@ -19,19 +19,28 @@ Take the whole app, every flow, setting and dependency, as a versioned [snapshot
 
 **Use it when** you are shipping a complete application and every site should run the same, controlled version.
 
-A [pipeline](/docs/user/devops-pipelines/) promotes a snapshot from dev to staging to production. Each target is parameterised by its own environment variables, so one controlled build serves every site.
-
-**Major components**:
-
-- **Snapshot**: the whole app, frozen as one versioned build.
-- **Pipeline**: promotes that snapshot through dev, staging and production.
-- **Dev instance**: where you build and test the project.
-- **Remote and Hosted Instances**: the fleet each snapshot rolls out to. See the [Device Agent](/docs/device-agent/) for how a Remote Instance connects.
-
-**Where config and data live**:
-
-- **Config**: each target is parameterised by its own [environment variables](/docs/user/envvar/).
-- **Rollout**: [Device Groups](/docs/user/device-groups/) plus pipeline promotion, so one controlled build reaches many places.
+<div class="ff-doc-cards">
+  <div class="ff-doc-card">
+    <div class="ff-doc-card__title">How it works</div>
+    <p>A <a href="/docs/user/devops-pipelines/">pipeline</a> promotes a snapshot from dev to staging to production. Each target is parameterised by its own environment variables, so one controlled build serves every site.</p>
+  </div>
+  <div class="ff-doc-card">
+    <div class="ff-doc-card__title">Major components</div>
+    <ul>
+      <li><strong>Snapshot</strong>: the whole app, frozen as one versioned build.</li>
+      <li><strong>Pipeline</strong>: promotes that snapshot through dev, staging and production.</li>
+      <li><strong>Dev instance</strong>: where you build and test the project.</li>
+      <li><strong>Remote and Hosted Instances</strong>: the fleet each snapshot rolls out to, connected through the <a href="/docs/device-agent/">Device Agent</a>.</li>
+    </ul>
+  </div>
+  <div class="ff-doc-card">
+    <div class="ff-doc-card__title">Where config and data live</div>
+    <ul>
+      <li><strong>Config</strong>: each target is parameterised by its own <a href="/docs/user/envvar/">environment variables</a>.</li>
+      <li><strong>Rollout</strong>: <a href="/docs/user/device-groups/">Device Groups</a> plus pipeline promotion, so one controlled build reaches many places.</li>
+    </ul>
+  </div>
+</div>
 
 ## Pieces
 
@@ -43,20 +52,29 @@ Package a single piece of a flow, a block of logic or UI, as a reusable subflow.
 
 **Use it when** a part of an app should be reused across many apps and upgraded in one place. This is a shared library, not a whole application.
 
-There are two routes. The subflow can travel as importable JSON, or it can be published to the Team Library as an installable package with an example flow. Apps install it like a library dependency, and the [Bill of Materials](/docs/user/bill-of-materials/) tracks every version in use.
+<div class="ff-doc-cards">
+  <div class="ff-doc-card">
+    <div class="ff-doc-card__title">How it works</div>
+    <p>There are two routes. The subflow can travel as importable JSON, or it can be published to the Team Library as an installable package with an example flow. Apps install it like a library dependency, and the <a href="/docs/user/bill-of-materials/">Bill of Materials</a> tracks every version in use.</p>
+  </div>
+  <div class="ff-doc-card">
+    <div class="ff-doc-card__title">Major components</div>
+    <ul>
+      <li><strong>Subflow</strong>: the one reusable piece you package.</li>
+      <li><strong>Team Library</strong>: the catalogue you publish the package to.</li>
+      <li><strong>Instances</strong>: the apps that install and run the piece.</li>
+      <li><strong>Bill of Materials</strong>: tracks which version each app runs.</li>
+    </ul>
+  </div>
+  <div class="ff-doc-card">
+    <div class="ff-doc-card__title">Where config and data live</div>
+    <ul>
+      <li><strong>Config</strong>: the subflow's instance properties, or the environment where it is installed.</li>
+      <li><strong>Distribution</strong>: publish once to the Team Library, and apps install and upgrade from it, like a library.</li>
+    </ul>
+  </div>
+</div>
 
-**Major components**:
-
-- **Subflow**: the one reusable piece you package.
-- **Team Library**: the catalogue you publish the package to.
-- **Instances**: the apps that install and run the piece.
-- **Bill of Materials**: tracks which version each app runs.
-
-**Where config and data live**:
-
-- **Config**: the subflow's instance properties, or the environment where it is installed.
-- **Distribution**: publish once to the Team Library, and apps install and upgrade from it, like a library.
-
-## A note on separate servers
-
+{% note %}
 Dev and production may sit on separate servers, with dev in IT or the cloud and production in OT or air gapped. A GitHub bridge carries the same versioned code across that boundary. That is an [architecture decision](/docs/flowfuse-guide/architectures/).
+{% endnote %}
