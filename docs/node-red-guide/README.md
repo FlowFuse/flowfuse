@@ -46,3 +46,6 @@ It assumes you know what a node and a flow are. If you do not, start with the
 - **[Handling data](/docs/node-red-guide/handling-data/)**
   Sort data by what it is for before you tune anything, and respect the controller's scan budget.
 
+- **[Operating flows](/docs/node-red-guide/operating-flows/)**
+  The habits that keep a flow running when the real world pushes back.
+
