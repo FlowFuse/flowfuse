@@ -49,3 +49,6 @@ It assumes you know what a node and a flow are. If you do not, start with the
 - **[Operating flows](/docs/node-red-guide/operating-flows/)**
   The habits that keep a flow running when the real world pushes back.
 
+- **[Worked example](/docs/node-red-guide/worked-example/)**
+  The shape rules and the patterns applied end to end.
+
