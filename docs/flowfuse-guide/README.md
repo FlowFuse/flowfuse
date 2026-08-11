@@ -47,3 +47,6 @@ For the definition of any term used here, see the
 - **[Architectures](/docs/flowfuse-guide/architectures/)**
   The same building blocks, arranged for where they run, plus the dev and prod split.
 
+- **[OT architectures](/docs/flowfuse-guide/architectures-ot/)**
+  Near the equipment: edge deployments, consolidation, and air-gapped sites.
+
