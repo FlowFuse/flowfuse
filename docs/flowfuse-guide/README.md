@@ -38,3 +38,6 @@ For the definition of any term used here, see the
 - **[Hardware apps](/docs/flowfuse-guide/hardware-apps/)**
   The three shapes an app takes when it runs on hardware at the edge.
 
+- **[Software apps](/docs/flowfuse-guide/software-apps/)**
+  The three shapes an app takes when it runs on the platform.
+
