@@ -51,7 +51,7 @@ module.exports = async function (app) {
         await app.register(require('./ha'), { prefix: '/api/v1/projects/:projectId/ha', logLevel: app.config.logging.http })
         await app.register(require('./protectedInstance'), { prefix: '/api/v1/projects/:projectId/protectInstance', logLevel: app.config.logging.http })
         await app.register(require('./gitops'), { prefix: '/api/v1/teams/:teamId/git', logLevel: app.config.logging.http })
-        
+
         enableSSO = true
     } else if (app.license.get('tier') === 'hub') {
         await commonFeatures(app)
