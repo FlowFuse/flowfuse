@@ -37,6 +37,6 @@ That is the mental model in plain language. For the full glossary, every FlowFus
 
 ## How code gets shared
 
-Code moves in two ways in FlowFuse. You can promote a whole app through environments, or you can compose an app from shared parts. Either way, the question is the same: how a build reaches every place that should run it.
+Code moves in [two ways](/docs/flowfuse-guide/app-delivery/) in FlowFuse. You can promote a whole app through environments, or you can compose an app from shared parts. Either way, the question is the same: how a build reaches every place that should run it.
 
 When development and production sit on separate servers, a GitHub bridge carries the versioned code between them. That bridge is an architecture decision, not a detail.

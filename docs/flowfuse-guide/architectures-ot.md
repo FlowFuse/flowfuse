@@ -40,3 +40,5 @@ This is the DMZ pattern taken to its extreme. A self-managed FlowFuse runs on a 
 Instead of a Remote Instance on every piece of equipment, deploy one FlowFuse server close to the line and run several [Hosted Instances](/docs/user/concepts/) on it. Each one does the work an instance at the edge would have done, talking to its equipment directly. That means fewer physical boxes to buy and maintain, with the same separation of concerns.
 
 **Use it when** you want the edge workloads consolidated onto nearby server hardware to cut the number of boxes on the floor.
+
+Where does the data live in each of these? That is the [data plane](/docs/flowfuse-guide/data-plane/).

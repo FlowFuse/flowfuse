@@ -40,3 +40,5 @@ One FlowFuse platform supports IT services across the whole organisation, and yo
 One FlowFuse platform serves the whole company. Each site or business unit is its own team, with its own instances and applications, isolated by role-based access and unified under central governance and one standard.
 
 **Use it when** you need central governance and one standard across many sites, with each team's work kept separate.
+
+Where does the data live in each of these? That is the [data plane](/docs/flowfuse-guide/data-plane/).

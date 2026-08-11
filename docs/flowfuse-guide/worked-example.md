@@ -17,7 +17,7 @@ OEE (Overall Equipment Effectiveness) tells you how much good product a line mak
 
 ## Most real apps are more than one piece
 
-OEE joins an Edge Building Block and a Data-Driven App through the Team Broker, with an external time-series database added for history.
+OEE joins an [Edge Building Block](/docs/flowfuse-guide/hardware-apps/) and a [Data-Driven App](/docs/flowfuse-guide/software-apps/) through the Team Broker, with an [external time-series database](/docs/flowfuse-guide/data-plane/) added for history.
 
 **Pieces:**
 
@@ -29,3 +29,5 @@ OEE joins an Edge Building Block and a Data-Driven App through the Team Broker, 
 ## The architecture, in one sentence
 
 > OEE is a Hardware: Edge Building Block (on a Remote Instance) publishing machine state over the Team Broker to a Software: Data-Driven App (on a Hosted Instance), which computes and displays OEE and writes history to an external time-series DB (Timescale / QuestDB).
+
+That sentence is where the [Node-RED guide](/docs/node-red-guide/) picks up, turning it into a flow shape.

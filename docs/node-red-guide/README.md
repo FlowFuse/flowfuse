@@ -14,9 +14,9 @@ pre-built nodes into flows. The connectors and the syntax are handled for you, s
 goes into what the system should do, the logic, rather than the plumbing that connects things
 or the boilerplate of a language.
 
-This guide is about shape. It takes an architecture sentence and turns it into a flow you can
-read at a glance, then covers the patterns, the data handling and the operational habits that
-keep it readable once it is running.
+This guide is about shape. It takes an [architecture sentence](/docs/flowfuse-guide/) and turns
+it into a flow you can read at a glance, then covers the patterns, the data handling and the
+operational habits that keep it readable once it is running.
 
 It assumes you know what a node and a flow are. If you do not, start with the
 [Node-RED concepts documentation](https://nodered.org/docs/user-guide/concepts).

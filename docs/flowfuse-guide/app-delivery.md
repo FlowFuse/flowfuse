@@ -59,4 +59,4 @@ There are two routes. The subflow can travel as importable JSON, or it can be pu
 
 ## A note on separate servers
 
-Dev and production may sit on separate servers, with dev in IT or the cloud and production in OT or air gapped. A GitHub bridge carries the same versioned code across that boundary. That is an architecture decision.
+Dev and production may sit on separate servers, with dev in IT or the cloud and production in OT or air gapped. A GitHub bridge carries the same versioned code across that boundary. That is an [architecture decision](/docs/flowfuse-guide/architectures/).

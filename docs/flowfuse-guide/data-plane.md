@@ -9,7 +9,7 @@ meta:
 
 Before you pick where things run, decide how data is handled. Two stores come built into every FlowFuse server install, the [Team Broker](/docs/user/teambroker/) and relational [Tables](/docs/user/ff-tables/), exposed to every instance with nothing extra to stand up. Everything else you bring your own: you run it (a time-series database, an existing database, a model) and expose it to the community over [Project Link](/docs/user/projectnodes/), with no inbound ports. This is the data plane every architecture sits on.
 
-**Single service?** Calling one external endpoint from a flow, an HTTP request or webhook to one system, is a Node-RED decision, not a platform data target.
+**Single service?** Calling one external endpoint from a flow, an HTTP request or webhook to one system, is a [Node-RED decision](/docs/node-red-guide/handling-data/), not a platform data target.
 
 ## Relational
 
@@ -93,3 +93,5 @@ A Hosted Instance connects to the store or service and fronts it. Other instance
 - Exposed as a secure API or MCP endpoint, with no inbound ports
 
 **Good for**: keeping data and services where they already live and exposing them securely to the fleet. FlowFuse does not care what the target is.
+
+With the data targets decided, the next question is where everything runs: see [architectures](/docs/flowfuse-guide/architectures/).

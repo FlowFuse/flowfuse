@@ -24,3 +24,5 @@ This is the IIoT shape. Many distributed [Remote Instances](/docs/device-agent/)
 Scale the same pattern across sites. Each site, itself a cluster of edge nodes, publishes into one enterprise namespace over [Project Link](/docs/user/projectnodes/), with no inbound ports. A single Team Broker carries every site's live data, and enterprise dashboards, historians and analytics subscribe across all of them.
 
 **Use it when** the distributed-edge pattern spans multiple plants or geographies that must roll up to one enterprise view.
+
+Where does the data live in each of these? That is the [data plane](/docs/flowfuse-guide/data-plane/).
