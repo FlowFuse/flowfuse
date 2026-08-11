@@ -35,3 +35,6 @@ For the definition of any term used here, see the
 - **[App delivery methods](/docs/flowfuse-guide/app-delivery/)**
   Ship the whole app through environments, or publish one reusable piece the team installs.
 
+- **[Hardware apps](/docs/flowfuse-guide/hardware-apps/)**
+  The three shapes an app takes when it runs on hardware at the edge.
+
