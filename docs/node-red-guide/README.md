@@ -40,3 +40,6 @@ It assumes you know what a node and a flow are. If you do not, start with the
 - **[Flow shape](/docs/node-red-guide/flow-shape/)**
   Four shape rules: where paths begin, how they share services, when to reuse, and where they end.
 
+- **[Design patterns](/docs/node-red-guide/design-patterns/)**
+  The moves that turn a flow into something you can reuse, test and hand off.
+
