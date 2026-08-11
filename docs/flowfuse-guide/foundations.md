@@ -17,14 +17,42 @@ The platform runs and connects your Node-RED instances. The Device Agent bridges
 
 ## The core pieces
 
-- **Single platform**: manage, secure, and govern everything from one place.
-- **Instances**: Node-RED runtimes. A Hosted Instance runs on FlowFuse-managed infrastructure, either in the cloud or on your own server. A Remote Instance runs on your own edge hardware, through the [Device Agent](/docs/device-agent/). It is the same Node-RED, managed the same way. They differ only in where the runtime lives.
-- **[Team Broker](/docs/user/teambroker/)**: a shared message bus that ties data together across sites.
-- **Database**: one shared operational data store.
-- **Dashboards**: operator-facing UIs for the people who run it.
-- **Edge and device management**: deploy and manage across many devices, lines, and plants.
+<div class="ff-doc-cards">
+  <div class="ff-doc-card">
+    <span class="ff-doc-card__icon"><img src="/docs/flowfuse-guide/images/icon-single-platform.svg" alt="" width="20" height="20"></span>
+    <div class="ff-doc-card__title">Single platform</div>
+    <p>Manage, secure and govern everything from one place.</p>
+  </div>
+  <div class="ff-doc-card">
+    <span class="ff-doc-card__icon"><img src="/docs/flowfuse-guide/images/icon-instances.svg" alt="" width="20" height="20"></span>
+    <div class="ff-doc-card__title">Instances</div>
+    <p>Node-RED runtimes. A Hosted Instance runs on FlowFuse-managed infrastructure, either in the cloud or on your own server. A Remote Instance runs on your own edge hardware, through the <a href="/docs/device-agent/">Device Agent</a>. It is the same Node-RED, managed the same way. They differ only in where the runtime lives.</p>
+  </div>
+  <div class="ff-doc-card">
+    <span class="ff-doc-card__icon"><img src="/docs/flowfuse-guide/images/icon-team-broker.svg" alt="" width="20" height="20"></span>
+    <div class="ff-doc-card__title">Team Broker</div>
+    <p>A <a href="/docs/user/teambroker/">shared message bus</a> that ties data together across sites.</p>
+  </div>
+  <div class="ff-doc-card">
+    <span class="ff-doc-card__icon"><img src="/docs/flowfuse-guide/images/icon-database.svg" alt="" width="20" height="20"></span>
+    <div class="ff-doc-card__title">Database</div>
+    <p>One shared operational data store.</p>
+  </div>
+  <div class="ff-doc-card">
+    <span class="ff-doc-card__icon"><img src="/docs/flowfuse-guide/images/icon-dashboards.svg" alt="" width="20" height="20"></span>
+    <div class="ff-doc-card__title">Dashboards</div>
+    <p>Operator-facing UIs for the people who run it.</p>
+  </div>
+  <div class="ff-doc-card">
+    <span class="ff-doc-card__icon"><img src="/docs/flowfuse-guide/images/icon-edge-management.svg" alt="" width="20" height="20"></span>
+    <div class="ff-doc-card__title">Edge and device management</div>
+    <p>Deploy and manage across many devices, lines and plants.</p>
+  </div>
+</div>
 
+{% note %}
 A Remote Instance lives in both worlds. It can be edge execution down in OT, or an on-prem worker under an IT or cloud platform.
+{% endnote %}
 
 That is the mental model in plain language. For the full glossary, every FlowFuse piece and term (Applications, Instances, [Snapshots](/docs/user/snapshots/), [Pipelines](/docs/user/devops-pipelines/), Team Broker, [Tables](/docs/user/ff-tables/), Remote Instances and more), see the [FlowFuse Concepts](/docs/user/concepts/) documentation.
 
