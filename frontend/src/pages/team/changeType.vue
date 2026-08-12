@@ -107,8 +107,8 @@ import Product from '../../services/product.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 
 export default {
     name: 'ChangeTeamType',
@@ -341,7 +341,7 @@ export default {
             }
 
             teamApi.updateTeam(this.team.id, opts).then(async result => {
-                await useAccountStore().refreshTeams()
+                await useDataFarmTeamsStore().fetchTeamList()
                 await useContextStore().refreshTeam()
                 // send posthog event
                 Product.capture('$ff-team-type-changed', {
@@ -350,7 +350,7 @@ export default {
                 }, {
                     team: this.team.id
                 })
-                this.$router.push({ name: 'Team', params: { team_slug: result.slug } })
+                this.$router.push({ name: 'team', params: { team_slug: result.slug } })
             }).catch(err => {
                 Alerts.emit('Unable to change team type: ' + err.response.data.error, 'warning', 15000)
             }).finally(() => {

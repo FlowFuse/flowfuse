@@ -11,6 +11,7 @@ export default {
         return {
             application: {},
             applicationInstances: new Map(),
+            loadingInstanceStatuses: false,
             loading: {
                 deleting: false,
                 suspend: false
@@ -62,6 +63,7 @@ export default {
                 })
 
                 // Not waited for, as loading status is slightly slower
+                this.loadingInstanceStatuses = true
                 ApplicationApi
                     .getApplicationInstancesStatuses(applicationId)
                     .then((instanceStatuses) => {
@@ -74,6 +76,9 @@ export default {
                     })
                     .catch((err) => {
                         console.error(err)
+                    })
+                    .finally(() => {
+                        this.loadingInstanceStatuses = false
                     })
             } catch (err) {
                 this.$router.push({
@@ -91,7 +96,7 @@ export default {
             try {
                 await this.deleteApplicationEntity(this.application.id, this.team.id)
                 await useContextStore().refreshTeam()
-                this.$router.push({ name: 'Applications' })
+                this.$router.push({ name: 'team-applications' })
                 alerts.emit('Application successfully deleted.', 'confirmation')
             } catch (err) {
                 if (err.response.data.error) {

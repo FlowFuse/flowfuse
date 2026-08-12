@@ -30,28 +30,48 @@
                 @update:page-size="onPageSizeChange"
             >
                 <template #actions>
-                    <ff-popover button-text="Filters" button-kind="secondary">
-                        <template #panel="{ close }">
-                            <section>
+                    <ff-popover
+                        :button-text="activeFilterCount ? `Filters (${activeFilterCount})` : 'Filters'"
+                        button-kind="secondary"
+                        data-el="device-filters"
+                    >
+                        <template #panel>
+                            <section class="device-filters-panel">
+                                <label class="device-filters-heading">Mode</label>
                                 <popover-item
                                     title="Fleet Mode"
-                                    @click="onFilterClick('fleetMode', close)"
+                                    @click="onFilterClick('fleetMode')"
                                 >
                                     <template #icon>
                                         <ff-checkbox
                                             v-model="deviceModeFilters.fleetMode" style="top: -8px;"
-                                            @click.stop.prevent="onFilterClick('fleetMode', close)"
+                                            @click.stop.prevent="onFilterClick('fleetMode')"
                                         />
                                     </template>
                                 </popover-item>
                                 <popover-item
                                     title="Developer Mode"
-                                    @click="onFilterClick('developerMode', close)"
+                                    @click="onFilterClick('developerMode')"
                                 >
                                     <template #icon>
                                         <ff-checkbox
                                             v-model="deviceModeFilters.developerMode" style="top: -8px;"
-                                            @click.stop.prevent="onFilterClick('developerMode', close)"
+                                            @click.stop.prevent="onFilterClick('developerMode')"
+                                        />
+                                    </template>
+                                </popover-item>
+                                <label class="device-filters-heading">Status</label>
+                                <popover-item
+                                    v-for="statusFilter in statusFilters" :key="statusFilter.key"
+                                    :title="statusFilter.label"
+                                    :data-action="'filter-' + statusFilter.key"
+                                    @click="toggleStatusGroup(statusFilter.key)"
+                                >
+                                    <template #icon>
+                                        <ff-checkbox
+                                            :model-value="selectedStatusGroups.includes(statusFilter.key)"
+                                            style="top: -8px;"
+                                            @click.stop.prevent="toggleStatusGroup(statusFilter.key)"
                                         />
                                     </template>
                                 </popover-item>
@@ -185,7 +205,7 @@
                             <p>
                                 A full list of your Team's Devices are available <ff-team-link
                                     class="ff-link"
-                                    :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
+                                    :to="{name: 'team-remote-instances', params: {team_slug: team.slug}}"
                                 >
                                     here
                                 </ff-team-link>.
@@ -224,7 +244,7 @@
                             <p>
                                 A full list of your Team's Devices are available <ff-team-link
                                     class="ff-link"
-                                    :to="{name: 'TeamDevices', params: {team_slug: team.slug}}"
+                                    :to="{name: 'team-remote-instances', params: {team_slug: team.slug}}"
                                 >
                                     here
                                 </ff-team-link>.
@@ -353,6 +373,7 @@ import { markRaw } from 'vue'
 import deviceApi from '../api/devices.js'
 import teamApi from '../api/team.js'
 import DropdownMenu from '../components/DropdownMenu.vue'
+import { useInstanceStates } from '../composables/InstanceStates.js'
 import usePermissions from '../composables/Permissions.js'
 import { getTeamProperty } from '../composables/TeamProperties.js'
 import deviceActionsMixin from '../mixins/DeviceActions.js'
@@ -431,8 +452,9 @@ export default {
     emits: ['instance-updated'],
     setup () {
         const { hasPermission } = usePermissions()
+        const { statesMap } = useInstanceStates()
 
-        return { hasPermission }
+        return { hasPermission, statesMap }
     },
     data () {
         return {
@@ -452,6 +474,12 @@ export default {
             pageSize: 25,
             totalRows: 0,
             searchTerm: '',
+            selectedStatusGroups: [],
+            statusFilters: [
+                { key: 'running', label: 'Running' },
+                { key: 'error', label: 'Error' },
+                { key: 'stopped', label: 'Not Running' }
+            ],
 
             sort: {
                 key: null,
@@ -546,6 +574,14 @@ export default {
                 total: this.totalRows
             }
         },
+        statusStateFilter () {
+            if (this.selectedStatusGroups.length === 0) return null
+            return this.selectedStatusGroups.flatMap(group => this.statesMap[group] || [])
+        },
+        activeFilterCount () {
+            const modeCount = (this.deviceModeFilters.fleetMode ? 1 : 0) + (this.deviceModeFilters.developerMode ? 1 : 0)
+            return modeCount + this.selectedStatusGroups.length
+        },
         teamRuntimeLimitReached () {
             let teamTypeRuntimeLimit = getTeamProperty(this.team, 'runtimes.limit')
             // Uses this.teamDeviceCount as that tracks live updates made in the page
@@ -616,6 +652,11 @@ export default {
         }
     },
     mounted () {
+        const statusParam = this.$route.query.status
+        if (statusParam) {
+            const groups = Array.isArray(statusParam) ? statusParam : [statusParam]
+            this.selectedStatusGroups = groups.filter(group => this.statusFilters.some(f => f.key === group))
+        }
         this.fullReloadOfData()
         this.pollTimer = createPollTimer(this.pollTimerElapsed, POLL_TIME, !this.statusChannelLive)
     },
@@ -659,17 +700,36 @@ export default {
          *  - property: which filter row is being applied, e.g. status or lastseen
          *  - bucket: which value of this property are we filtering on from the buckets in the status bar
          */
-        applyFilter (filter, shouldClearDeviceModeFilters = true) {
+        applyFilter (filter) {
             this.filter = filter
             this.page = 1
-            this.doFilterServerSide()
-
-            if (shouldClearDeviceModeFilters) {
-                this.deviceModeFilters = {
-                    fleetMode: false,
-                    developerMode: false
-                }
+            this.deviceModeFilters = {
+                fleetMode: false,
+                developerMode: false
             }
+            if (this.selectedStatusGroups.length) {
+                this.selectedStatusGroups = []
+                this.$router.replace({ query: { ...this.$route.query, status: undefined } })
+            }
+            this.doFilterServerSide()
+        },
+
+        toggleStatusGroup (key) {
+            const index = this.selectedStatusGroups.indexOf(key)
+            if (index === -1) {
+                this.selectedStatusGroups.push(key)
+            } else {
+                this.selectedStatusGroups.splice(index, 1)
+            }
+            this.$router.replace({
+                query: {
+                    ...this.$route.query,
+                    status: this.selectedStatusGroups.length ? this.selectedStatusGroups : undefined
+                }
+            })
+            this.filter = null
+            this.page = 1
+            this.doFilterServerSide()
         },
 
         updateSearch (searchTerm) {
@@ -905,8 +965,21 @@ export default {
             }
 
             // Specific filtering
+            const filterParts = []
             if (this.filter?.property && this.filter?.bucket) {
-                extraParams.filters = `${this.filter.property}:${this.filter.bucket}`
+                filterParts.push(`${this.filter.property}:${this.filter.bucket}`)
+            }
+            if (this.statusStateFilter) {
+                filterParts.push(`status:${this.statusStateFilter.join('|')}`)
+            }
+            const modeFilter = this.deviceModeFilters.fleetMode
+                ? 'autonomous'
+                : (this.deviceModeFilters.developerMode ? 'developer' : null)
+            if (modeFilter) {
+                filterParts.push(`mode:${modeFilter}`)
+            }
+            if (filterParts.length) {
+                extraParams.filters = filterParts.join(',')
             }
 
             // Search and sort
@@ -950,28 +1023,16 @@ export default {
             return 'Unassigned'
         },
 
-        onFilterClick (filter, closeCallback) {
-            const compare = filter === 'fleetMode' ? 'autonomous' : 'developer'
-            this.deviceModeFilters[filter] = !this.deviceModeFilters[filter]
-
-            this.applyFilter(
-                {
-                    devices: Array.from(this.devices.values())
-                        .filter((device) => !this.deviceModeFilters[filter] ? true : device.mode === compare)
-                        .map(device => device.id),
-                    property: 'mode',
-                    bucket: compare
-                },
-                false
-            )
-
-            // resetting filters because we can't have multiple filters applied at once
-            const filters = {
-                fleetMode: false,
-                developerMode: false
+        onFilterClick (filter) {
+            const enabled = !this.deviceModeFilters[filter]
+            // Fleet and developer mode remain mutually exclusive
+            this.deviceModeFilters = {
+                fleetMode: filter === 'fleetMode' ? enabled : false,
+                developerMode: filter === 'developerMode' ? enabled : false
             }
-            filters[filter] = this.deviceModeFilters[filter]
-            this.deviceModeFilters = filters
+            this.filter = null
+            this.page = 1
+            this.doFilterServerSide()
         },
 
         removeFromSelection (device) {
@@ -982,6 +1043,18 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.device-filters-panel {
+    white-space: nowrap;
+
+    .device-filters-heading {
+        display: block;
+        padding: 10px 20px 4px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--ff-color-text-subtle);
+    }
+}
 .ff-dialog-content .ff-devices-ul {
     list-style-type: disc;
     list-style-position: inside;

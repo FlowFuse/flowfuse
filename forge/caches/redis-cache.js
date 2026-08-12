@@ -1,5 +1,7 @@
 const { createClient } = require('@redis/client')
 
+const { assertStringKey } = require('./util')
+
 /** @type {Record<string, Cache>} */
 const caches = {}
 
@@ -76,6 +78,7 @@ class Cache {
     }
 
     async get (key) {
+        assertStringKey(key)
         const val = JSON.parse(await this.client.hGet(this.name, key))
         if (val !== null) {
             return val
@@ -85,6 +88,7 @@ class Cache {
     }
 
     async set (key, value) {
+        assertStringKey(key)
         await this.client.hSet(this.name, key, JSON.stringify(value))
         if (this.ttl > 0) {
             await this.client.hpExpire(this.name, key, this.ttl)
@@ -93,6 +97,7 @@ class Cache {
     }
 
     async del (key) {
+        assertStringKey(key)
         await this.client.hDel(this.name, key)
     }
 
