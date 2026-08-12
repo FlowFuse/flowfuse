@@ -31,16 +31,16 @@ jobs:
         run: npm ci
       - name: Test Documentation Links
         run: npm run test:docs
-  # The build lives in FlowFuse/website so this repository does not carry a second copy of
-  # it. Tracking @main means changes to the website build or deploy are picked up here.
-  # NOTE: pinned to the website branch until FlowFuse/website#5515 merges, then move to @main.
+  # The build lives in FlowFuse/github-actions-workflows so this repository does not carry a
+  # second copy of it, and FlowFuse/website's own CI calls the same definition. The release
+  # job there moves build_website/v1 on each release, so build changes are picked up here.
   website:
     name: Build the website with these docs
     permissions:
       contents: read
       deployments: write
       pull-requests: write
-    uses: FlowFuse/website/.github/workflows/site-preview.yml@docs-preview-shared-build
+    uses: FlowFuse/github-actions-workflows/.github/workflows/build_website.yml@build_website/v1
     with:
       docs_repository: ${{ github.repository }}
       docs_ref: ${{ github.sha }}
