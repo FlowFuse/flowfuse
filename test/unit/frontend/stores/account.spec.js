@@ -1,12 +1,11 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/api/team.js', () => ({
-    default: {
-        getTeam: vi.fn(),
-        getTeamUserMembership: vi.fn(),
-        getTeams: vi.fn()
-    }
+// setTeam resolves teams via the data-farm store; membership refresh delegates through context.
+const teamsStore = vi.hoisted(() => ({ fetchTeam: vi.fn() }))
+
+vi.mock('@/stores/data-farm-teams', () => ({
+    useDataFarmTeamsStore: () => teamsStore
 }))
 
 vi.mock('@/api/flowBlueprints.js', () => ({
@@ -32,16 +31,13 @@ vi.mock('@/stores/product-tables.js', () => ({
     useProductTablesStore: () => ({ clearState: vi.fn() })
 }))
 
-vi.mock('@/stores/account-auth.js', () => ({
-    useAccountAuthStore: () => ({ user: { id: 'u1', defaultTeam: 'team-1' } })
-}))
-
 // Shared mutable state used by the context store mock
 const mockContext = {
     team: null,
     teamMembership: null,
     setTeam (team) { this.team = team },
-    setTeamMembership (membership) { this.teamMembership = membership }
+    setTeamMembership (membership) { this.teamMembership = membership },
+    refreshTeamMembership: vi.fn()
 }
 
 vi.mock('@/stores/context.js', () => ({
@@ -50,7 +46,6 @@ vi.mock('@/stores/context.js', () => ({
 
 // Imported after mocks so vi.mock hoisting resolves correctly
 const { useAccountStore } = await import('@/stores/account.js')
-const teamApi = (await import('@/api/team.js')).default
 const flowBlueprintsApi = (await import('@/api/flowBlueprints.js')).default
 const userApi = (await import('@/api/user.js')).default
 const product = (await import('@/services/product.js')).default
@@ -67,7 +62,6 @@ describe('account store', () => {
     describe('initial state', () => {
         it('initializes with default state', () => {
             const store = useAccountStore()
-            expect(store.teams).toEqual([])
             expect(store.teamBlueprints).toEqual({})
             expect(store.pendingTeamChange).toBe(false)
             expect(store.notifications).toEqual([])
@@ -113,25 +107,6 @@ describe('account store', () => {
                     ]
                 }
                 expect(store.defaultBlueprint).toEqual({ id: 'bp-2', default: true })
-            })
-        })
-
-        describe('defaultUserTeam', () => {
-            it('returns the team matching the user defaultTeam', () => {
-                const store = useAccountStore()
-                const team1 = { id: 'team-1', name: 'Alpha' }
-                const team2 = { id: 'team-2', name: 'Beta' }
-                store.teams = [team1, team2]
-                // mock returns user.defaultTeam = 'team-1'
-                expect(store.defaultUserTeam).toEqual(team1)
-            })
-
-            it('falls back to undefined when no defaultTeam match', () => {
-                const store = useAccountStore()
-                const team1 = { id: 'team-99', name: 'Other' }
-                store.teams = [team1]
-                // user.defaultTeam = 'team-1' but only 'team-99' exists
-                expect(store.defaultUserTeam).toBeUndefined()
             })
         })
 
@@ -196,78 +171,52 @@ describe('account store', () => {
                 expect(store.teamInvitationsCount).toBe(1)
             })
         })
-
-        describe('hasAvailableTeams', () => {
-            it('returns false when teams is empty', () => {
-                const store = useAccountStore()
-                expect(store.hasAvailableTeams).toBe(false)
-            })
-
-            it('returns true when teams exist', () => {
-                const store = useAccountStore()
-                store.teams = [{ id: 'team-1' }]
-                expect(store.hasAvailableTeams).toBe(true)
-            })
-        })
     })
 
     describe('actions', () => {
-        describe('setTeams', () => {
-            it('replaces the teams array', () => {
-                const store = useAccountStore()
-                const teams = [{ id: 'team-1' }, { id: 'team-2' }]
-                store.setTeams(teams)
-                expect(store.teams).toEqual(teams)
-            })
-        })
-
         describe('setTeam', () => {
-            it('refreshes context membership but skips full reload when same team is already set (by id)', async () => {
+            it('refreshes membership but skips full reload when the same team is already active (by id)', async () => {
                 const store = useAccountStore()
                 const team = { id: 'team-1', slug: 'alpha' }
-                const membership = { role: 50 }
                 mockContext.team = team
-                teamApi.getTeamUserMembership.mockResolvedValue(membership)
 
                 await store.setTeam(team)
 
-                expect(teamApi.getTeamUserMembership).toHaveBeenCalledWith(team.id)
-                expect(mockContext.teamMembership).toEqual(membership)
-                // team object itself should NOT be re-set (no product.setTeam call)
+                expect(mockContext.refreshTeamMembership).toHaveBeenCalled()
+                expect(mockContext.team).toEqual(team)
+                // no full switch — analytics + store reset are skipped
                 expect(product.setTeam).not.toHaveBeenCalled()
             })
 
             it('does nothing if both current and new team are null', async () => {
                 const store = useAccountStore()
                 await store.setTeam(null)
-                expect(teamApi.getTeamUserMembership).not.toHaveBeenCalled()
+                expect(mockContext.refreshTeamMembership).not.toHaveBeenCalled()
+                expect(product.setTeam).not.toHaveBeenCalled()
             })
 
-            it('sets team + membership on context and calls product.setTeam', async () => {
+            it('switches to a team object: sets it, refreshes membership, calls product.setTeam', async () => {
                 const store = useAccountStore()
                 const team = { id: 'team-2', slug: 'beta' }
-                const membership = { role: 50 }
-                teamApi.getTeamUserMembership.mockResolvedValue(membership)
 
                 await store.setTeam(team)
 
                 expect(mockContext.team).toEqual(team)
-                expect(mockContext.teamMembership).toEqual(membership)
+                expect(mockContext.refreshTeamMembership).toHaveBeenCalled()
                 expect(product.setTeam).toHaveBeenCalledWith(team)
                 expect(store.pendingTeamChange).toBe(false)
             })
 
-            it('fetches team by slug when passed a string', async () => {
+            it('resolves the team by slug via the store when passed a string', async () => {
                 const store = useAccountStore()
                 const fetchedTeam = { id: 'team-3', slug: 'gamma' }
-                const membership = { role: 50 }
-                teamApi.getTeam.mockResolvedValue(fetchedTeam)
-                teamApi.getTeamUserMembership.mockResolvedValue(membership)
+                teamsStore.fetchTeam.mockResolvedValue(fetchedTeam)
 
                 await store.setTeam('gamma')
 
-                expect(teamApi.getTeam).toHaveBeenCalledWith({ slug: 'gamma' })
+                expect(teamsStore.fetchTeam).toHaveBeenCalledWith({ slug: 'gamma' })
                 expect(mockContext.team).toEqual(fetchedTeam)
+                expect(product.setTeam).toHaveBeenCalledWith(fetchedTeam)
             })
         })
 
@@ -341,12 +290,10 @@ describe('account store', () => {
         describe('$reset', () => {
             it('restores default state', async () => {
                 const store = useAccountStore()
-                store.teams = [{ id: 'team-1' }]
                 store.invitations = [{ id: 'inv-1' }]
 
                 store.$reset()
 
-                expect(store.teams).toEqual([])
                 expect(store.invitations).toEqual([])
                 expect(store.pendingTeamChange).toBe(false)
             })

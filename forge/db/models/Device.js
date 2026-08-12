@@ -515,7 +515,11 @@ module.exports = {
                     // Filtering
                     if (pagination.filters?.state) {
                         // Unknown is the blank state
-                        where.state = pagination.filters.state === 'unknown' ? '' : pagination.filters.state
+                        if (Array.isArray(pagination.filters.state)) {
+                            where.state = { [Op.in]: pagination.filters.state.map(state => state === 'unknown' ? '' : state) }
+                        } else {
+                            where.state = pagination.filters.state === 'unknown' ? '' : pagination.filters.state
+                        }
                     }
 
                     // Filtering
