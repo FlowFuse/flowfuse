@@ -54,7 +54,7 @@ const { v4: uuidv4 } = require('uuid')
                 replace: '*'
             })
 
-        const licenseTier = await promptly.choose('License tier (teams*, enterprise): ', ['teams', 'enterprise'], { default: 'teams', trim: true })
+        const licenseTier = await promptly.choose('License tier (teams, enterprise, hub*, edge, fleet): ', ['teams', 'enterprise', 'hub', 'edge', 'fleet'], { default: 'hub', trim: true })
 
         const licenseHolder = await promptly.prompt('License holder name: ')
 
