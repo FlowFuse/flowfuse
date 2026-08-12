@@ -47,8 +47,8 @@ import TeamTypeSelection from '../components/TeamTypeSelection.vue'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
@@ -65,7 +65,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useAccountStore, ['teams', 'defaultUserTeam']),
+        ...mapState(useDataFarmTeamsStore, { teams: 'teamList', defaultUserTeam: 'defaultUserTeam' }),
         ...mapState(useAccountSettingsStore, ['settings']),
         ...mapState(useAccountAuthStore, ['user', 'redirectUrlAfterLogin']),
         ...mapState(useUxLoadingStore, ['appLoader']),

@@ -42,11 +42,10 @@ export default {
         }
     },
     setup () {
-        const { groupBySimplifiedStates, statesMap: instanceStatesMap } = useInstanceStates()
+        const { groupBySimplifiedStates } = useInstanceStates()
 
         return {
-            groupBySimplifiedStates,
-            instanceStatesMap
+            groupBySimplifiedStates
         }
     },
     data () {
@@ -74,14 +73,10 @@ export default {
     },
     methods: {
         onCounterClick (state) {
-            const searchQuery = Object.prototype.hasOwnProperty.call(this.instanceStatesMap, state)
-                ? this.instanceStatesMap[state].join(' | ')
-                : ''
-
             this.$router.push({
                 name: 'application-instances',
                 params: { team_slug: this.team.slug, id: this.application.id },
-                query: { searchQuery }
+                query: { status: state }
             })
         }
     }
