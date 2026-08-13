@@ -8,8 +8,6 @@ When FlowFuse is deployed with an Enterprise license from v2.11.0 onwards comes 
 
 This is a single shared MQTT broker, but each team has their own separate topic space and the ability to provision credentials for clients. It removes the need to install and manage a broker of your own.
 
-If your company already operates its own MQTT broker, that broker can also be connected to FlowFuse as an external broker to browse its topic hierarchy alongside the Team Broker.
-
 ## Foreword
 FlowFuse offers zero config MQTT integration with the Team Broker via the [FlowFuse MQTT Nodes](/docs/user/mqtt-nodes/) that greatly simplifies the whole process by removing the need for manual configuration.
 

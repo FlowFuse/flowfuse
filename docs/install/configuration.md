@@ -227,6 +227,8 @@ installations that manage their own broker: core platform messaging works, but t
 EMQX-dependent features listed above are unavailable. Replacing the platform broker
 with a different customer-supplied broker is not supported.
 
+If a broker has been set up in the platform, the following configuration is required:
+
 Option         | Description
 ---------------|--------------
 `broker.url`   | The full url to the platform broker. This is used by the platform and Node-RED instances to connect to the broker. For example: `mqtt://localhost:1883`.
