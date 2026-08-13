@@ -28,7 +28,15 @@ export const useProductExpertSupportAgentStore = defineStore('product-expert-sup
         }
     },
     persist: {
-        pick: ['context'],
-        storage: localStorage
+        pick: ['context', 'messages', 'sessionId', 'sessionStartTime', 'sessionWarningShown', 'sessionExpiredShown'],
+        storage: sessionStorage,
+        afterHydrate ({ store }) {
+            store.messages.forEach(msg => {
+                msg._streamed = true
+                if (msg.answer) {
+                    msg.answer.forEach(a => { a._streamed = true })
+                }
+            })
+        }
     }
 })

@@ -26,13 +26,17 @@ module.exports = async function (app) {
                 await request.team.ensureTeamTypeExists()
                 if (!request.team.getFeatureProperty('teamBroker', false)) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                    return // eslint-disable-line no-useless-return
+                    return
                 }
             }
 
             if (request.params.brokerId && request.params.brokerId !== 'team-broker') {
                 request.broker = await app.db.models.BrokerCredentials.byId(request.params.brokerId)
                 if (!request.broker) {
+                    reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+                    return
+                }
+                if (request.broker.TeamId !== request.team.id) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
                     return // eslint-disable-line no-useless-return
                 }

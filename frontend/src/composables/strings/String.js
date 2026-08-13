@@ -71,6 +71,22 @@ export const hashString = (str) => {
 }
 
 /**
+ * Stringify a value as prettified JSON, never throwing. If the value can't be
+ * serialised (e.g. a circular reference), returns a plain fallback message so the
+ * caller can display something instead of breaking.
+ * @param {*} value - The value to stringify
+ * @param {String} fallback - Message returned when serialisation fails
+ * @returns {String} - Prettified JSON, or the fallback on failure
+ */
+export const safeStringify = (value, fallback = 'Could not display the payload.') => {
+    try {
+        return JSON.stringify(value, null, 2)
+    } catch (err) {
+        return fallback
+    }
+}
+
+/**
  * Convert a string to slug format
  * @param {String} str - The string to convert to slug format
  * @returns {String} - slug

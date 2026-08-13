@@ -2,23 +2,25 @@
     <button
         title="Toggle drawer"
         class="drawer-trigger"
-        :class="{ 'hidden': isHidden, 'nr5-plus': isNr5Plus }"
+        :class="{ 'hidden': isHidden, 'nr5-plus': isNr5Plus, 'side-right': side === 'right' }"
         :aria-label="isHidden ? 'Open drawer' : 'Close drawer'"
         :aria-expanded="!isHidden"
         type="button"
         @click="$emit('toggle')"
     >
         <img src="../../images/icons/ff-minimal-grey.svg" alt="FlowFuse logo">
-        <ChevronRightIcon class="ff-btn--icon" />
+        <ChevronLeftIcon v-if="side === 'right'" class="ff-btn--icon" />
+        <ChevronRightIcon v-else class="ff-btn--icon" />
     </button>
 </template>
 
 <script>
-import { ChevronRightIcon } from '@heroicons/vue/24/outline'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 
 export default {
     name: 'DrawerTrigger',
     components: {
+        ChevronLeftIcon,
         ChevronRightIcon
     },
     props: {
@@ -29,6 +31,10 @@ export default {
         isNr5Plus: {
             type: Boolean,
             default: false
+        },
+        side: {
+            type: String,
+            default: 'left'
         }
     },
     emits: ['toggle']
@@ -94,6 +100,20 @@ export default {
     &.hidden {
         // Move completely off-screen: own width (100%) + extra margin (20px)
         transform: translateX(calc(-100% - 20px));
+    }
+
+    &.side-right {
+        left: auto;
+        right: 0;
+        flex-direction: row-reverse;
+        padding: 8px 8px 8px 2px;
+        border-left: 1px solid var(--ff-color-border-strong);
+        border-right: none;
+        border-radius: 10px 0 0 10px;
+
+        &.hidden {
+            transform: translateX(calc(100% + 20px));
+        }
     }
 
     &:hover {

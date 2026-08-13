@@ -1,5 +1,6 @@
 ---
 navGroup: FlowFuse Self-Hosted
+navGroupOrder: 4
 navTitle: Quick Start
 navOrder: 1
 meta:

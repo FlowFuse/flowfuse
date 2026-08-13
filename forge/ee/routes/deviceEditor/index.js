@@ -39,7 +39,7 @@ module.exports = async function (app) {
                         // to return a redirect for this auth fail rather than an API error
                         if (!request.routeOptions.config.allowAnonymous && !request.teamMembership && !request.session.User.admin) {
                             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                            return // eslint-disable-line no-useless-return
+                            return
                         }
                         if (request.device.ApplicationId) {
                             request.applicationId = app.db.models.Application.encodeHashid(request.device.ApplicationId)

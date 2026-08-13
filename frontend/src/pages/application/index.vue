@@ -9,13 +9,14 @@
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
         <ff-page-header :title="application.name" :tabs="navigation">
             <template #breadcrumbs>
-                <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
+                <ff-nav-breadcrumb v-if="team" :to="{name: 'team-applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
             </template>
         </ff-page-header>
         <div class="px-3 py-3 md:px-6 md:py-6 flex-1 flex flex-col h-full overflow-auto">
             <router-view
                 :application="application"
                 :instances="instancesArray"
+                :loading-instance-statuses="loadingInstanceStatuses"
                 :is-visiting-admin="isVisitingAdmin"
                 @application-updated="updateApplication"
                 @application-delete="showConfirmDeleteApplicationDialog"
@@ -66,7 +67,7 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
-        ...mapState(useLiveStatusStore, { liveInstanceStatuses: 'instanceStatuses', statusChannelLive: 'live' }),
+        ...mapState(useLiveStatusStore, { liveInstanceMetadata: 'instanceMetadata', statusChannelLive: 'live' }),
         navigation () {
             const routes = [
                 {
@@ -80,6 +81,11 @@ export default {
                     to: { name: 'ApplicationDevices' },
                     tag: 'application-devices-overview'
                     // icon: CpuChipIcon
+                },
+                {
+                    label: 'Dashboards',
+                    to: { name: 'ApplicationDashboards' },
+                    tag: 'application-dashboards'
                 },
                 {
                     label: 'Device Groups',
@@ -139,16 +145,16 @@ export default {
             handler: 'updateApplication',
             immediate: true
         },
-        liveInstanceStatuses: { handler: 'applyLiveStatus', deep: true }
+        liveInstanceMetadata: { handler: 'applyLiveStatus', deep: true }
     },
     methods: {
         applyLiveStatus () {
             for (const id of this.applicationInstances.keys()) {
-                const state = this.liveInstanceStatuses[id]
-                if (!state) continue
+                const meta = this.liveInstanceMetadata[id]
+                if (!meta?.status) continue
                 const row = this.applicationInstances.get(id)
-                if (row?.status === state && row?.meta?.state === state) continue
-                this.applicationInstances.set(id, applyLiveState(row, state, { clearFlags: true }))
+                if (row?.status === meta.status && row?.meta?.state === meta.status) continue
+                this.applicationInstances.set(id, applyLiveState(row, meta.status, { versions: meta.versions, clearFlags: true }))
             }
         }
     }

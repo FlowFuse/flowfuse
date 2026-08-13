@@ -665,7 +665,7 @@ export default {
         },
         gitPlaceholder () {
             if (this.selectedGitTokenType === 'azure') {
-                return 'e.g. https://dev.azure.com/[org]/_git/[repo]'
+                return 'e.g. https://dev.azure.com/[org]/[project]/_git/[repo]'
             } else if (this.selectedGitTokenType === 'generic') {
                 return 'e.g. https://git.example.com/org/repo.git'
             }
@@ -726,7 +726,7 @@ export default {
             if (url === '') {
                 this.errors.url = ''
             } else if (type === 'github' || type === 'azure') {
-                this.errors.url = (/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(url) || /^https:\/\/dev\.azure\.com\/[^/]+\/_git\/[^/]+$/.test(url))
+                this.errors.url = (/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(url) || /^https:\/\/dev\.azure\.com\/[^/]+\/[^/]\/_git\/[^/]+$/.test(url))
                     ? ''
                     : 'Please enter a valid GitHub or Azure DevOps repository URL'
             } else {

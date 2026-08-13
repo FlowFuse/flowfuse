@@ -107,10 +107,9 @@ import Product from '../../services/product.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 
-// eslint-disable-next-line vue/one-component-per-file
 export default {
     name: 'ChangeTeamType',
     components: {
@@ -234,7 +233,7 @@ export default {
                 const targetInstanceLimits = {}
                 let totalInstanceCount = 0
                 for (const instanceType of Object.keys(currentInstanceCountsByType)) {
-                    if (!this.input.teamType.properties?.instances?.[instanceType]?.active ?? false) {
+                    if (!this.input.teamType.properties?.instances?.[instanceType]?.active) {
                         targetInstanceLimits[instanceType] = 0
                     } else {
                         targetInstanceLimits[instanceType] = this.input.teamType.properties?.instances?.[instanceType]?.limit ?? -1
@@ -342,7 +341,7 @@ export default {
             }
 
             teamApi.updateTeam(this.team.id, opts).then(async result => {
-                await useAccountStore().refreshTeams()
+                await useDataFarmTeamsStore().fetchTeamList()
                 await useContextStore().refreshTeam()
                 // send posthog event
                 Product.capture('$ff-team-type-changed', {
@@ -351,7 +350,7 @@ export default {
                 }, {
                     team: this.team.id
                 })
-                this.$router.push({ name: 'Team', params: { team_slug: result.slug } })
+                this.$router.push({ name: 'team', params: { team_slug: result.slug } })
             }).catch(err => {
                 Alerts.emit('Unable to change team type: ' + err.response.data.error, 'warning', 15000)
             }).finally(() => {

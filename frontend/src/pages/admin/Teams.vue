@@ -213,8 +213,6 @@ export default {
                         v.billingSummary = 'unmanaged'
                     } else if (v.billing.canceled) {
                         v.billingSummary = 'canceled'
-                    } else if (v.billing.canceled) {
-                        v.billingSummary = 'canceled'
                     } else if (v.billing.trialEnded) {
                         v.billingSummary = 'trial ended'
                     } else if (v.billing.trial) {
@@ -230,7 +228,7 @@ export default {
         viewTeam (row) {
             useAccountStore().setTeam(row.slug)
                 .then(() => this.$router.push({
-                    name: 'Team',
+                    name: 'team',
                     params: {
                         team_slug: row.slug
                     }

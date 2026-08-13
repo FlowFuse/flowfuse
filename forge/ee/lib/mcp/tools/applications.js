@@ -31,76 +31,6 @@ module.exports = [
         }
     },
     {
-        name: 'platform_get_application_hosted_instances',
-        title: 'Get Application Hosted Instances',
-        description: `FlowFuse platform automation tool:
-            Gets all the hosted instances that live inside an application.
-            A hosted instance is a Node-RED that runs on the same environment as the FlowFuse platform.
-            Use this to see which hosted instances an application has. Each result includes the instance name, URL, and basic settings.
-            To get the full details of one specific hosted instance, call platform_get_hosted_instance with its ID.
-            To check if hosted instances are currently running or stopped, call platform_get_application_instances_status instead.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            applicationId: z.string().describe('The ID or hashid of the application')
-        },
-        handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/applications/${args.applicationId}/instances` })
-            return response
-        }
-    },
-    {
-        name: 'platform_get_application_remote_instances',
-        title: 'Get Application Remote Instances',
-        description: `FlowFuse platform automation tool:
-            Gets all the remote instances (devices) that live inside an application.
-            A remote instance is a Node-RED that runs on the user's own hardware (like a Raspberry Pi or a server) rather than on the same environment as the FlowFuse platform.
-            Use this to see which remote instances are connected to an application, check if they are online or offline, or find one by name.
-            You can search by name using the query parameter and page through results using cursor or limit.
-            To get the full details of one specific remote instance, call platform_get_remote_instance with its ID.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            applicationId: z.string().describe('The ID or hashid of the application'),
-            query: z.string().optional().describe('Search remote instances by name'),
-            cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
-            limit: z.number().min(1).max(10).describe('How many results to return per page')
-        },
-        handler: async (args, { inject }) => {
-            let url = `/api/v1/applications/${args.applicationId}/devices`
-            const params = []
-            if (args.query) {
-                params.push(`query=${args.query}`)
-            }
-            if (args.cursor) {
-                params.push(`cursor=${args.cursor}`)
-            }
-            if (args.limit) {
-                params.push(`limit=${args.limit}`)
-            }
-            if (params.length > 0) {
-                url += '?' + params.join('&')
-            }
-            const response = await inject({ method: 'GET', url })
-            return response
-        }
-    },
-    {
-        name: 'platform_get_application_instances_status',
-        title: 'Get Application Instances Status',
-        description: `FlowFuse platform automation tool:
-            Gets the live running status of every hosted instance inside an application.
-            Use this when you want to know if the hosted instances are running, stopped, or in the middle of deploying.
-            This is different from platform_get_application_hosted_instances: that tool gives you names and settings,
-            this tool tells you what is happening right now (is it running? is it deploying? when were the flows last updated?).`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            applicationId: z.string().describe('The ID or hashid of the application')
-        },
-        handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/applications/${args.applicationId}/instances/status` })
-            return response
-        }
-    },
-    {
         name: 'platform_get_application_audit_log',
         title: 'Get Application Audit Log',
         description: `FlowFuse platform automation tool:
@@ -118,26 +48,24 @@ module.exports = [
             scope: z.string().optional().describe('What level of entries to include: "application", "project", or "device" (default "application")')
         },
         handler: async (args, { inject }) => {
-            let url = `/api/v1/applications/${args.applicationId}/audit-log`
-            const params = []
+            const params = new URLSearchParams()
             if (args.cursor) {
-                params.push(`cursor=${args.cursor}`)
+                params.set('cursor', args.cursor)
             }
             if (args.limit) {
-                params.push(`limit=${args.limit}`)
+                params.set('limit', String(args.limit))
             }
             if (args.event) {
-                params.push(`event=${args.event}`)
+                params.set('event', args.event)
             }
             if (args.username) {
-                params.push(`username=${args.username}`)
+                params.set('username', args.username)
             }
             if (args.scope) {
-                params.push(`scope=${args.scope}`)
+                params.set('scope', args.scope)
             }
-            if (params.length > 0) {
-                url += '?' + params.join('&')
-            }
+            const qs = params.toString()
+            const url = `/api/v1/applications/${args.applicationId}/audit-log${qs ? `?${qs}` : ''}`
             const response = await inject({ method: 'GET', url })
             return response
         }
@@ -148,6 +76,7 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Creates a new application in a team.
             An application is a container that groups together hosted instances and remote instances that work together.
+            Before invoking this tool, call platform_list_applications for this team to check whether an application with this name already exists. If one exists, ask the user whether to use the existing one or create a new one with the same name - DO NOT create a duplicate application without asking first.
             After the application is created, ask the user if they want to be taken to it. If they do, use the ui_navigate tool with the route name "Application" and params { id: <the new application id> }.`,
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {

@@ -15,7 +15,7 @@ import { useLiveStatusStore } from '@/stores/live-status'
 export default {
     computed: {
         ...mapState(useContextStore, ['team']),
-        ...mapState(useLiveStatusStore, { liveInstanceStatuses: 'instanceStatuses', statusChannelLive: 'live' }),
+        ...mapState(useLiveStatusStore, { liveInstanceMetadata: 'instanceMetadata', statusChannelLive: 'live' }),
         instanceRunning () {
             return this.instance?.meta?.state === 'running'
         },
@@ -41,14 +41,14 @@ export default {
             this.instanceChanged()
             this.setContextualInstance(instance)
         },
-        liveInstanceStatuses: { handler: 'applyLiveStatus', deep: true }
+        liveInstanceMetadata: { handler: 'applyLiveStatus', deep: true }
     },
     methods: {
         ...mapActions(useContextStore, { setContextualInstance: 'setInstance' }),
         applyLiveStatus () {
-            const state = this.liveInstanceStatuses[this.instance?.id]
-            if (!state || this.instance?.meta?.state === state) return
-            this.instance = applyLiveState(this.instance, state, { clearFlags: true })
+            const meta = this.liveInstanceMetadata[this.instance?.id]
+            if (!meta?.status || this.instance?.meta?.state === meta.status) return
+            this.instance = applyLiveState(this.instance, meta.status, { versions: meta.versions, clearFlags: true })
         },
         showConfirmDeleteDialog () {
             this.$refs.confirmInstanceDeleteDialog.show(this.instance)

@@ -33,8 +33,36 @@
                 :search="searchTerm"
                 search-placeholder="Search Instances"
                 :rows-selectable="true"
+                :loading="tableLoading"
+                loading-type="skeleton"
                 @row-selected="selectedCloudRow"
             >
+                <template #actions>
+                    <ff-popover
+                        :button-text="selectedStatusGroups.length ? `Status (${selectedStatusGroups.length})` : 'Status'"
+                        button-kind="secondary"
+                        data-el="status-filter"
+                    >
+                        <template #panel>
+                            <section class="status-filter-panel">
+                                <popover-item
+                                    v-for="filter in statusFilters" :key="filter.key"
+                                    :title="filter.label"
+                                    :data-action="'filter-' + filter.key"
+                                    @click="toggleStatusGroup(filter.key)"
+                                >
+                                    <template #icon>
+                                        <ff-checkbox
+                                            :model-value="selectedStatusGroups.includes(filter.key)"
+                                            style="top: -8px;"
+                                            @click.stop.prevent="toggleStatusGroup(filter.key)"
+                                        />
+                                    </template>
+                                </popover-item>
+                            </section>
+                        </template>
+                    </ff-popover>
+                </template>
                 <template
                     v-if="hasPermission('project:change-status', { application })"
                     #context-menu="{row}"
@@ -119,6 +147,7 @@ import { markRaw } from 'vue'
 import EmptyState from '../../components/EmptyState.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 import FeatureUnavailableToTeam from '../../components/banners/FeatureUnavailableToTeam.vue'
+import { useInstanceStates } from '../../composables/InstanceStates.js'
 import { useNavigationHelper } from '../../composables/NavigationHelper.js'
 import usePermissions from '../../composables/Permissions.js'
 
@@ -130,6 +159,7 @@ import DeploymentName from './components/cells/DeploymentName.vue'
 import LastSeen from './components/cells/LastSeen.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import PopoverItem from '@/ui-components/components/PopoverItem.vue'
 
 export default {
     name: 'ProjectOverview',
@@ -137,7 +167,8 @@ export default {
         PlusSmallIcon,
         SectionTopMenu,
         EmptyState,
-        FeatureUnavailableToTeam
+        FeatureUnavailableToTeam,
+        PopoverItem
     },
     inheritAttrs: false,
     props: {
@@ -148,22 +179,34 @@ export default {
         instances: {
             type: Array,
             required: true
+        },
+        loadingInstanceStatuses: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['instance-delete', 'instance-suspend', 'instance-restart', 'instance-start'],
     setup () {
         const { navigateTo } = useNavigationHelper()
         const { hasPermission, isVisitingAdmin } = usePermissions()
+        const { statesMap } = useInstanceStates()
 
         return {
             hasPermission,
             isVisitingAdmin,
-            navigateTo
+            navigateTo,
+            statesMap
         }
     },
     data () {
         return {
-            searchTerm: ''
+            searchTerm: '',
+            selectedStatusGroups: [],
+            statusFilters: [
+                { key: 'running', label: 'Running' },
+                { key: 'error', label: 'Error' },
+                { key: 'stopped', label: 'Not Running' }
+            ]
         }
     },
     computed: {
@@ -182,12 +225,23 @@ export default {
                     }
                 },
                 { label: 'Last Deployed', class: ['w-1/5'], component: { is: markRaw(LastSeen), map: { lastSeenSince: 'flowLastUpdatedSince' } } },
-                { label: '', component: { is: markRaw(DashboardLinkCell), map: { instance: '_self', hidden: 'hideDashboard2Button' } } },
+                { label: '', component: { is: markRaw(DashboardLinkCell), map: { instance: '_self', hidden: 'hideDashboard2Button' }, extraProps: { scope: 'application' } } },
                 { label: '', component: { is: markRaw(InstanceEditorLinkCell), map: { instance: '_self' } } }
             ]
         },
+        statusFilter () {
+            if (this.selectedStatusGroups.length === 0) return null
+            return new Set(this.selectedStatusGroups.flatMap(group => this.statesMap[group] || []))
+        },
+        filteredInstances () {
+            if (!this.statusFilter) return this.instances
+            return this.instances.filter(instance => this.statusFilter.has(instance.meta?.state))
+        },
+        tableLoading () {
+            return this.loadingInstanceStatuses && !!this.statusFilter
+        },
         cloudRows () {
-            return this.instances.map((instance) => {
+            return this.filteredInstances.map((instance) => {
                 instance.running = instance.meta?.state === 'running'
                 instance.notSuspended = instance.meta?.state !== 'suspended'
                 instance.isHA = instance.ha?.replicas !== undefined
@@ -202,11 +256,30 @@ export default {
         }
     },
     mounted () {
+        const statusParam = this.$route.query.status
+        if (statusParam) {
+            const groups = Array.isArray(statusParam) ? statusParam : [statusParam]
+            this.selectedStatusGroups = groups.filter(group => this.statusFilters.some(f => f.key === group))
+        }
         if (this.$route?.query?.searchQuery) {
             this.searchTerm = this.$route.query.searchQuery
         }
     },
     methods: {
+        toggleStatusGroup (key) {
+            const index = this.selectedStatusGroups.indexOf(key)
+            if (index === -1) {
+                this.selectedStatusGroups.push(key)
+            } else {
+                this.selectedStatusGroups.splice(index, 1)
+            }
+            this.$router.replace({
+                query: {
+                    ...this.$route.query,
+                    status: this.selectedStatusGroups.length ? this.selectedStatusGroups : undefined
+                }
+            })
+        },
         selectedCloudRow (cloudInstance, event) {
             this.navigateTo({
                 name: 'Instance',
@@ -218,3 +291,9 @@ export default {
     }
 }
 </script>
+
+<style lang="scss" scoped>
+.status-filter-panel {
+    white-space: nowrap;
+}
+</style>

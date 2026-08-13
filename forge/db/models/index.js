@@ -67,6 +67,7 @@ const modelTypes = [
     'ProjectTemplate',
     'ProjectSnapshot',
     'AccessToken',
+    'AccessTokenTeamScope',
     'AuthClient',
     'Device',
     'DeviceGroup',
@@ -83,7 +84,8 @@ const modelTypes = [
     'TeamBrokerClient',
     'BrokerCredentials',
     'MQTTTopicSchema',
-    'TeamBrokerAgent'
+    'TeamBrokerAgent',
+    'AsyncLoginSession'
 ]
 
 // A local map of the known models.

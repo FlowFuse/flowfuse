@@ -19,27 +19,21 @@
             </ff-button>
 
             <!-- Full view: split dropdown button -->
-            <div v-else class="editor-link-split" :class="{ 'editor-link-split--primary': primary }">
-                <button
-                    v-ff-tooltip:left="buttonDisabled ? disabledReason : undefined"
-                    class="editor-link-split__action"
-                    :class="{ 'editor-link-split--disabled': buttonDisabled }"
-                    data-action="open-editor"
-                    :disabled="buttonDisabled"
-                    @click.stop.prevent="openEditor"
-                    @click.middle.stop.prevent="openEditor"
-                >
+            <SplitButton
+                v-else
+                :label="editorDisabled ? 'Editor Disabled' : 'Open Editor'"
+                data-action="open-editor"
+                :primary="primary"
+                :disabled="buttonDisabled"
+                :dropdown-disabled="instanceLinkDisabled"
+                :disabled-reason="disabledReason"
+                :options="dropdownOptions"
+                @primary-click="openEditor"
+            >
+                <template #icon>
                     <ProjectIcon class="ff-btn--icon mr-2" />
-                    <span class="hidden sm:inline editor-link-text">{{ editorDisabled ? 'Editor Disabled' : 'Open Editor' }}</span>
-                </button>
-                <DropdownMenu
-                    class="editor-link-split__dropdown"
-                    :buttonClass="'editor-link-split__toggle' + (instanceLinkDisabled ? ' editor-link-split--disabled' : '')"
-                    :options="dropdownOptions"
-                    :disabled="instanceLinkDisabled"
-                    @click.stop
-                />
-            </div>
+                </template>
+            </SplitButton>
         </slot>
     </div>
 </template>
@@ -48,7 +42,7 @@
 
 import SemVer from 'semver'
 
-import DropdownMenu from '../../../components/DropdownMenu.vue'
+import SplitButton from '../../../components/SplitButton.vue'
 import ProjectIcon from '../../../components/icons/Projects.js'
 import { useNavigationHelper } from '../../../composables/NavigationHelper.js'
 
@@ -56,7 +50,7 @@ export default {
     name: 'InstanceEditorLink',
     components: {
         ProjectIcon,
-        DropdownMenu
+        SplitButton
     },
     inheritAttrs: false,
     props: {
@@ -153,132 +147,9 @@ export default {
 </script>
 
 <style lang="scss">
-// Split dropdown button: two halves styled as one cohesive element
-.editor-link-split {
-    display: inline-flex;
-    position: relative;
-}
-
-// Shared base styles for both halves (mirrors .ff-btn .ff-btn--secondary)
-.editor-link-split__action,
-.editor-link-split__toggle {
-    display: flex;
-    align-items: center;
-    gap: $ff-unit-xs;
-    font-size: $ff-funit-sm;
-    font-weight: 600;
-    line-height: 20px;
-    background-color: var(--ff-color-bg-app);
-    color: var(--ff-color-accent-text);
-    border: 1px solid var(--ff-color-accent-strong);
-    cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-
-    &:hover:not(:disabled) {
-        background-color: var(--ff-color-accent);
-        border-color: var(--ff-color-accent);
-        color: var(--ff-color-text-on-brand);
-    }
-
-    &:disabled,
-    &.editor-link-split--disabled {
-        cursor: not-allowed;
-        border-color: var(--ff-color-border-strong);
-        color: var(--ff-color-text-subtle);
-        background-color: var(--ff-color-bg-surface);
-    }
-
-    .ff-btn--icon {
-        width: 20px;
-        height: 20px;
-    }
-}
-
-// Left half: main action button
-.editor-link-split__action {
-    padding: $ff-unit-sm 12px $ff-unit-sm $ff-unit-sm;
-    border-radius: $ff-unit-sm 0 0 $ff-unit-sm;
-    border-right: none;
-    white-space: nowrap;
-}
-
-// DropdownMenu wrapper: make all wrapper divs invisible to flex layout
-// so the MenuButton becomes a direct flex child of .editor-link-split
-.editor-link-split__dropdown,
-.editor-link-split__dropdown > div,
-.editor-link-split__dropdown > div > div {
-    display: contents;
-}
-
-// Right half: chevron dropdown trigger (square)
-.editor-link-split__toggle {
-    justify-content: center;
-    padding: $ff-unit-sm;
-    border-radius: 0 $ff-unit-sm $ff-unit-sm 0;
-    border-left: 1px solid var(--ff-color-accent-strong);
-
-    .ff-btn--icon {
-        width: 20px;
-        height: 20px;
-    }
-
-    &:hover:not(:disabled) {
-        border-left-color: var(--ff-color-accent);
-    }
-
-    &:disabled,
-    &.editor-link-split--disabled {
-        border-left-color: var(--ff-color-border-strong);
-    }
-}
-
-// Primary variant: filled indigo background with white text
-.editor-link-split--primary {
-    .editor-link-split__action,
-    .editor-link-split__toggle {
-        background-color: var(--ff-color-accent-strong);
-        border-color: var(--ff-color-accent-strong);
-        color: var(--ff-color-text-on-brand);
-
-        &:hover:not(:disabled) {
-            background-color: var(--ff-color-accent);
-            border-color: var(--ff-color-accent);
-        }
-    }
-
-    .editor-link-split__toggle {
-        border-left-color: var(--ff-color-overlay-on-accent);
-
-        &:hover:not(:disabled) {
-            border-left-color: var(--ff-color-overlay-on-accent);
-        }
-    }
-}
-
 // Icon-only minimal button: remove icon margins added by .ff-btn--icon-left
 .editor-link-minimal .ff-btn--icon-left {
     margin-left: 0;
     margin-right: 0;
-}
-
-// Override icon-right margin from DropdownMenu's ChevronDownIcon
-.editor-link-split__toggle .ff-btn--icon-right {
-    margin-left: 0;
-    margin-right: 0;
-}
-
-// Container query for drawer context - responsive button behavior
-// Breakpoint matches DRAWER_MOBILE_BREAKPOINT constant in Editor/index.vue
-// When inside drawer, respond to drawer width instead of viewport
-@container drawer (min-width: 640px) {
-  .editor-link-text {
-    display: inline;
-  }
-}
-
-@container drawer (max-width: 639px) {
-  .editor-link-text {
-    display: none;
-  }
 }
 </style>

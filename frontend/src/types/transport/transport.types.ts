@@ -12,8 +12,13 @@ export interface TransportSubscribeOptions {
     qos?: 0 | 1 | 2
 }
 
+export interface TransportAttachmentHandle {
+    key: string
+    id: number
+}
+
 export interface Transport<TConnect = TransportConnectOptions> {
-    connect(key: string, options: TConnect): Promise<void>
+    attach(key: string, options: TConnect): Promise<TransportAttachmentHandle>
     subscribe(key: string, topics: string[], options?: TransportSubscribeOptions): Promise<void>
-    disconnect(key: string): Promise<void>
+    detach(handle: TransportAttachmentHandle): Promise<void>
 }

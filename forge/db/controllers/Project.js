@@ -51,7 +51,11 @@ module.exports = {
             const cache = app.caches.getCache(lastPublishedProjectState)
             if (await cache.get(project.id) === effective) return
             await cache.set(project.id, effective)
-            app.comms.team.notifyInstanceState(app.db.models.Team.encodeHashid(project.TeamId), project.id, effective)
+            const versionInfo = project.versions || {}
+            const versions = Object.keys(versionInfo).length
+                ? Object.fromEntries(Object.entries(versionInfo).map(([key, value]) => [key, value?.current]))
+                : undefined
+            app.comms.team.notifyInstanceState(app.db.models.Team.encodeHashid(project.TeamId), project.id, { state: effective, versions })
         } catch (err) {
             app.log.warn(`Failed to broadcast live state for ${project.id}: ${err.toString()}`)
         }
@@ -555,7 +559,7 @@ module.exports = {
             await team.ensureTeamTypeExists()
             if (team.TeamType.getProperty('autoStackUpdate')) {
                 const autoStackUpdate = team.TeamType.getProperty('autoStackUpdate')
-                if (autoStackUpdate.enabled && !autoStackUpdate.allowDisable) {
+                if (autoStackUpdate.enabled) {
                     const days = autoStackUpdate.days
                     const hours = autoStackUpdate.hours
                     // generate random day and hour in ranges
@@ -846,6 +850,22 @@ module.exports = {
             await this.clearLatestProjectState(app, project.id)
         } else {
             await this.setLatestProjectState(app, project.id, state)
+        }
+        if (['running', 'safe', 'crashed'].includes(state) && Object.keys(project.versions || {}).length === 0) {
+            try {
+                const details = await app.containers.details(project)
+                if (details?.versions) {
+                    const versionInfo = { ...project.versions }
+                    for (const [key, value] of Object.entries(details.versions)) {
+                        versionInfo[key] = versionInfo[key] || {}
+                        versionInfo[key].current = value
+                    }
+                    project.versions = versionInfo
+                    await project.save()
+                }
+            } catch (err) {
+                app.log.warn(`Failed to capture versions for ${project.id}: ${err.toString()}`)
+            }
         }
         const inflight = await this.getInflightState(app, project)
         const isTransition = inflight === 'starting' || inflight === 'restarting'

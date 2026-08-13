@@ -15,17 +15,15 @@ module.exports = [
             limit: z.number().min(1).max(20).describe('How many results to return per page')
         },
         handler: async (args, { inject }) => {
-            let url = `/api/v1/projects/${args.hostedInstanceId}/snapshots`
-            const params = []
+            const params = new URLSearchParams()
             if (args.cursor) {
-                params.push(`cursor=${args.cursor}`)
+                params.set('cursor', args.cursor)
             }
             if (args.limit) {
-                params.push(`limit=${args.limit}`)
+                params.set('limit', String(args.limit))
             }
-            if (params.length > 0) {
-                url += '?' + params.join('&')
-            }
+            const qs = params.toString()
+            const url = `/api/v1/projects/${args.hostedInstanceId}/snapshots${qs ? `?${qs}` : ''}`
             const response = await inject({ method: 'GET', url })
             return response
         }
@@ -69,17 +67,15 @@ module.exports = [
             limit: z.number().min(1).max(20).describe('How many results to return per page')
         },
         handler: async (args, { inject }) => {
-            let url = `/api/v1/devices/${args.remoteInstanceId}/snapshots`
-            const params = []
+            const params = new URLSearchParams()
             if (args.cursor) {
-                params.push(`cursor=${args.cursor}`)
+                params.set('cursor', args.cursor)
             }
             if (args.limit) {
-                params.push(`limit=${args.limit}`)
+                params.set('limit', String(args.limit))
             }
-            if (params.length > 0) {
-                url += '?' + params.join('&')
-            }
+            const qs = params.toString()
+            const url = `/api/v1/devices/${args.remoteInstanceId}/snapshots${qs ? `?${qs}` : ''}`
             const response = await inject({ method: 'GET', url })
             return response
         }

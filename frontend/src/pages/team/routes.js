@@ -7,6 +7,8 @@ import TeamAuditLog from './AuditLog.vue'
 import TeamBillOfMaterials from './BOM/index.vue'
 import TeamBilling from './Billing/index.vue'
 import BrokersRoutes from './Brokers/routes.js'
+import TeamDashboards from './Dashboards/index.vue'
+
 import DeviceGroups from './DeviceGroups/index.vue'
 import TeamDevices from './Devices/index.vue'
 import TeamHome from './Home/index.vue'
@@ -28,8 +30,10 @@ import ChangeTeamType from './changeType.vue'
 import CreateTeam from './create.vue'
 import CreateApplication from './createApplication.vue'
 import CreateInstance from './createInstance.vue'
-
 import Team from './index.vue'
+import RegisterDevice from './registerDevice.vue'
+
+import DashboardViewer from '@/components/dashboard/DashboardViewer.vue'
 
 export default [
     {
@@ -38,7 +42,7 @@ export default [
             {
                 path: ':team_slug',
                 redirect: { name: 'team-home' },
-                name: 'Team',
+                name: 'team',
                 component: Team,
                 meta: {
                     title: 'Team - Overview'
@@ -52,10 +56,18 @@ export default [
                         component: TeamHome
                     },
                     {
+                        name: 'team-dashboards',
+                        path: 'dashboards',
+                        component: TeamDashboards,
+                        meta: {
+                            title: 'Team - Dashboards'
+                        }
+                    },
+                    {
                         path: 'applications',
                         children: [
                             {
-                                name: 'Applications',
+                                name: 'team-applications',
                                 path: '',
                                 component: TeamApplications,
                                 meta: {
@@ -63,7 +75,7 @@ export default [
                                 }
                             },
                             {
-                                name: 'CreateTeamApplication',
+                                name: 'team-application-create',
                                 path: 'create',
                                 component: CreateApplication,
                                 meta: {
@@ -78,7 +90,7 @@ export default [
                         path: 'instances',
                         children: [
                             {
-                                name: 'Instances',
+                                name: 'team-hosted-instances',
                                 path: '',
                                 component: TeamInstances,
                                 meta: {
@@ -86,7 +98,7 @@ export default [
                                 }
                             },
                             {
-                                name: 'CreateInstance',
+                                name: 'team-instance-create',
                                 path: 'create',
                                 component: CreateInstance,
                                 meta: {
@@ -96,7 +108,7 @@ export default [
                                         backTo: (params) => {
                                             return {
                                                 label: 'Back to Instances',
-                                                to: { name: 'Instances', params }
+                                                to: { name: 'team-hosted-instances', params }
                                             }
                                         }
                                     }
@@ -105,7 +117,7 @@ export default [
                         ]
                     },
                     {
-                        name: 'TeamDevices',
+                        name: 'team-remote-instances',
                         path: 'devices',
                         component: TeamDevices,
                         meta: {
@@ -113,13 +125,13 @@ export default [
                         }
                     },
                     {
-                        name: 'TeamLibrary',
+                        name: 'team-library',
                         path: 'library',
                         component: Library,
                         meta: {
                             title: 'Team - Library'
                         },
-                        redirect: { name: 'LibraryTeamLibrary' },
+                        redirect: { name: 'team-library-files' },
                         children: [...LibraryRoutes]
                     },
                     {
@@ -136,7 +148,7 @@ export default [
                         ]
                     },
                     {
-                        name: 'AuditLog',
+                        name: 'team-audit-log',
                         path: 'audit-log',
                         component: TeamAuditLog,
                         meta: {
@@ -147,7 +159,7 @@ export default [
                         path: 'settings',
                         children: [
                             {
-                                name: 'TeamSettings',
+                                name: 'team-settings',
                                 path: '',
                                 component: TeamSettings,
                                 meta: {
@@ -156,14 +168,14 @@ export default [
                                 redirect: { name: 'team-settings-general' },
                                 children: [
                                     { name: 'team-settings-general', path: 'general', component: TeamSettingsGeneral },
-                                    { name: 'TeamSettingsDevices', path: 'devices', component: TeamSettingsDevices },
+                                    { name: 'team-settings-devices', path: 'devices', component: TeamSettingsDevices },
                                     { name: 'team-settings-integrations', path: 'integrations', component: TeamSettingsIntegrations },
                                     { name: 'team-settings-danger', path: 'danger', component: TeamSettingsDanger }
 
                                 ]
                             },
                             {
-                                name: 'TeamChangeType',
+                                name: 'team-change-type',
                                 path: 'change-type',
                                 component: ChangeTeamType,
                                 meta: {
@@ -173,7 +185,7 @@ export default [
                         ]
                     },
                     {
-                        name: 'Billing',
+                        name: 'team-billing',
                         path: 'billing',
                         component: TeamBilling,
                         meta: {
@@ -215,7 +227,7 @@ export default [
                 ]
             },
             {
-                name: 'CreateTeam',
+                name: 'team-create',
                 path: 'create',
                 beforeEnter: ensurePermission('team:create'),
                 component: CreateTeam,
@@ -226,7 +238,7 @@ export default [
                         backTo: ({ team }) => {
                             return {
                                 label: 'Back to Dashboard',
-                                to: { name: 'Team', params: { team_slug: team?.slug } }
+                                to: { name: 'team', params: { team_slug: team?.slug } }
                             }
                         }
                     }
@@ -235,9 +247,38 @@ export default [
         ]
     },
     {
+        path: '/register/remote-instance/:sessionToken',
+        component: RegisterDevice,
+        name: 'register-device',
+        meta: {
+            title: 'Register Remote Instance',
+            layout: 'plain'
+        }
+    },
+    {
+        name: 'team-dashboards-view',
+        path: '/team/:team_slug/dashboards/:instanceId',
+        component: DashboardViewer,
+        meta: {
+            title: 'Team - Dashboards',
+            layout: 'immersive',
+            scope: 'team'
+        }
+    },
+    {
+        name: 'application-dashboards-view',
+        path: '/team/:team_slug/applications/:id/dashboards/:instanceId',
+        component: DashboardViewer,
+        meta: {
+            title: 'Application - Dashboards',
+            layout: 'immersive',
+            scope: 'application'
+        }
+    },
+    {
         path: '/deploy/blueprint',
         component: CreateInstance,
-        name: 'DeployBlueprint',
+        name: 'deploy-blueprint',
         meta: {
             title: 'Deploy Blueprint',
             menu: {
@@ -245,7 +286,7 @@ export default [
                 backTo: ({ team }) => {
                     return {
                         label: 'Back to Dashboard',
-                        to: { name: 'Team', params: { team_slug: team?.slug } }
+                        to: { name: 'team', params: { team_slug: team?.slug } }
                     }
                 }
             }

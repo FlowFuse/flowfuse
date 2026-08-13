@@ -1,4 +1,4 @@
-const should = require('should') // eslint-disable-line
+const should = require('should')
 const sinon = require('sinon')
 const { v4: uuidv4 } = require('uuid')
 
@@ -691,7 +691,7 @@ describe('Project model', function () {
             instance.state = 'suspended'
             await instance.save()
             notifySpy.calledOnce.should.be.true()
-            notifySpy.firstCall.args.should.eql([app.db.models.Team.encodeHashid(team.id), instance.id, 'suspended'])
+            notifySpy.firstCall.args.should.eql([app.db.models.Team.encodeHashid(team.id), instance.id, { state: 'suspended', versions: undefined }])
         })
 
         it('does not notify when a save leaves state unchanged', async function () {

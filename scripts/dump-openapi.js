@@ -87,6 +87,9 @@ function normaliseSchemaNames (spec) {
         console.error('Failed to generate OpenAPI spec:', err.message || err)
         process.exit(1)
     } finally {
+        await new Promise((resolve) => {
+            setTimeout(resolve, 3000)
+        })
         if (server) {
             await server.close()
         }

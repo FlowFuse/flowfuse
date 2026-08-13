@@ -57,7 +57,7 @@ vi.mock('@/utils/elapsedTime', () => {
     Tests
 */
 describe('Team API', async () => {
-    const TeamAPI = await import('../../../../frontend/src/api/team.js')
+    const TeamAPI = await import('../../../../frontend/src/api/team.ts')
 
     afterEach(() => {
         mockGet.mockClear()
@@ -98,7 +98,7 @@ describe('Team API', async () => {
         }))
         const response = await TeamAPI.default.getTeams()
         expect(response.teams[0].link).toEqual({
-            name: 'Team',
+            name: 'team',
             params: {
                 team_slug: 'team_slug'
             }

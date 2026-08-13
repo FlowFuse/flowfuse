@@ -22,7 +22,7 @@
                     </template>
                     <template #tools>
                         <div class="flex flex-row gap-x-4">
-                            <ff-button v-if="!isUnmanaged" data-action="change-team-type" :to="{name: 'TeamChangeType'}">
+                            <ff-button v-if="!isUnmanaged" data-action="change-team-type" :to="{name: 'team-change-type'}">
                                 <span v-if="trialMode || trialHasEnded">Click here to setup billing</span>
                                 <span v-else>Upgrade Team</span>
                             </ff-button>
@@ -104,7 +104,7 @@
                     </template>
                 </template>
                 <template #actions>
-                    <ff-button v-if="hasPermission('team:edit')" data-action="change-team-type" :to="{name: 'TeamChangeType'}">Start Billing</ff-button>
+                    <ff-button v-if="hasPermission('team:edit')" data-action="change-team-type" :to="{name: 'team-change-type'}">Start Billing</ff-button>
                 </template>
             </EmptyState>
         </ff-page>

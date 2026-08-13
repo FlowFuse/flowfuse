@@ -2,7 +2,7 @@ const crypto = require('crypto')
 const sleep = require('util').promisify(setTimeout)
 
 const jwt = require('jsonwebtoken')
-const should = require('should') // eslint-disable-line
+const should = require('should')
 const sinon = require('sinon')
 
 const { addFlowsToProject } = require('../../../../lib/Snapshots')
@@ -2269,6 +2269,60 @@ describe('Project API', function () {
             const newCreds = await getProjectInfo(newProject.id, newAccessToken, 'credentials')
             Object.keys(newCreds).should.have.length(0)
         })
+        it('fail to export to another instance in different team', async function () {
+            const sourceProject = await app.factory.createInstance(
+                { name: 'source1' },
+                TestObjects.ApplicationB,
+                TestObjects.stack1,
+                TestObjects.template1,
+                TestObjects.projectType1,
+                { start: false }
+            )
+            TestObjects.tokens.sourceProject = (await sourceProject.refreshAuthTokens()).token
+            await addFlowsToProject(app,
+                sourceProject.id,
+                TestObjects.tokens.sourceProject,
+                TestObjects.tokens.chris,
+                [{ id: 'node1' }],
+                { testCreds: 'abc' },
+                'key1',
+                {
+                    httpAdminRoot: '/test-red',
+                    env: [
+                        { name: 'one', value: 'a' },
+                        { name: 'two', value: 'b' }
+                    ]
+                }
+            )
+            const newProject = await duplicateProject(
+                TestObjects.project1.id,
+                TestObjects.ATeam.hashid,
+                TestObjects.template1.hashid,
+                TestObjects.stack1.hashid,
+                { flows: false, credentials: false, envVars: false },
+                TestObjects.tokens.alice
+            )
+
+            const response = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/projects/${newProject.id}`,
+                payload: {
+                    sourceProject: {
+                        id: sourceProject.id
+                    }
+                },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(403)
+            await sleep(STOP_DELAY + START_DELAY + 50) // "Update a project" returns early so it is necessary to wait (stop/start time as set in stub driver)
+            const newAccessToken = (await newProject.refreshAuthTokens()).token
+            // Flows should be empty
+            const newFlows = await getProjectInfo(newProject.id, newAccessToken, 'flows')
+            newFlows.should.have.length(0)
+            // Creds should be empty
+            const newCreds = await getProjectInfo(newProject.id, newAccessToken, 'credentials')
+            Object.keys(newCreds).should.have.length(0)
+        })
     })
 
     describe('Delete Instance', function () {
@@ -3631,7 +3685,8 @@ describe('Project API', function () {
                         toJSON: () => ({
                             settings: { env: { OLD: 'value' }, modules: { oldmod: '0.1.0' } },
                             flows: { flows: [{ id: 'old' }], credentials: {} }
-                        })
+                        }),
+                        ProjectId: TestObjects.project1.id
                     }
                 }
                 return originalSnapshotById.call(this, sid)
@@ -3685,6 +3740,53 @@ describe('Project API', function () {
                 method: 'POST',
                 url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
                 payload: { target: 'does-not-exist' },
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+
+            try {
+                response.statusCode.should.equal(404)
+                const body = response.json()
+                body.should.have.property('code', 'not_found')
+                invokeStub.called.should.equal(false)
+            } finally {
+                buildSnapshotStub.restore()
+                invokeStub.restore()
+                byIdStub.restore()
+                snapshotByIdStub.restore()
+                app.license = originalLicense
+            }
+        })
+        it('returns 404 when target snapshot belongs to a different instance', async function () {
+            const buildSnapshotStub = sinon.stub(app.db.controllers.ProjectSnapshot, 'buildProjectSnapshot').resolves({
+                ProjectId: 99,
+                settings: {},
+                flows: { flows: [], credentials: {} }
+            })
+            const invokeStub = sinon.stub(app.db.controllers.Assistant, 'invokeLLM').resolves({ transactionId: 'x', data: {} })
+
+            const originalLicense = app.license
+            app.license = { get: (k) => (k === 'tier' ? 'enterprise' : undefined) }
+            const originalProjectById = app.db.models.Project.byId
+            const byIdStub = sinon.stub(app.db.models.Project, 'byId').callsFake(async function (id, opts) {
+                const project = await originalProjectById.call(this, id, opts)
+                if (project && project.Team) {
+                    project.Team.getTeamType = async () => ({
+                        getFeatureProperty: (name, def) => (name === 'generatedSnapshotDescription' ? true : def)
+                    })
+                }
+                return project
+            })
+
+            const snapshotByIdStub = sinon.stub(app.db.models.ProjectSnapshot, 'byId').resolves({
+                ProjectId: 88,
+                settings: {},
+                flows: { flows: [], credentials: {} }
+            })
+
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/projects/${TestObjects.project1.id}/generate/snapshot-description`,
+                payload: { target: '88' },
                 cookies: { sid: TestObjects.tokens.alice }
             })
 

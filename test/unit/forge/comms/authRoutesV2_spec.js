@@ -1315,6 +1315,62 @@ describe('Broker Auth v2 API', async function () {
                         topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/BAD-ENTITY-ID/support/inflight/command/request`
                     })
                 })
+
+                // Bridge heartbeat topics - special-cased literal topics used to keep the
+                // platform <-> Expert Broker bridge alive (see checkExpertPlatformTopic)
+                it('allows subscription to the heartbeat response topic', async function () {
+                    await allowRead({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/response'
+                    })
+                })
+                it('denies publish to the heartbeat response topic', async function () {
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/response'
+                    })
+                })
+                it('allows publish to the heartbeat request topic', async function () {
+                    await allowWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/request'
+                    })
+                })
+                it('denies subscription to the heartbeat request topic', async function () {
+                    await denyRead({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/request'
+                    })
+                })
+            })
+
+            describe('Platform (forge_platform)', async function () {
+                // Bridge heartbeat topics - special-cased literal topics used to keep the
+                // platform <-> Expert Broker bridge alive (see checkExpertPlatformTopic)
+                it('allows publish to the heartbeat response topic', async function () {
+                    await allowWrite({
+                        username: 'forge_platform',
+                        topic: 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/response'
+                    })
+                })
+                it('denies subscription to the heartbeat response topic', async function () {
+                    await denyRead({
+                        username: 'forge_platform',
+                        topic: 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/response'
+                    })
+                })
+                it('allows subscription to the heartbeat request topic', async function () {
+                    await allowRead({
+                        username: 'forge_platform',
+                        topic: 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/request'
+                    })
+                })
+                it('denies publish to the heartbeat request topic', async function () {
+                    await denyWrite({
+                        username: 'forge_platform',
+                        topic: 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/request'
+                    })
+                })
             })
 
             // TODO: tests for Application RBACs (ensure project/device in an application with reduced permissions are suitably restricted in the ACLs)
@@ -1404,6 +1460,54 @@ describe('Broker Auth v2 API', async function () {
                 await denyRead({
                     username: daveUsername,
                     topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/state`
+                })
+            })
+            it('allows a team member to subscribe to the application lifecycle wildcards', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/+/created`
+                })
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/+/updated`
+                })
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/+/deleted`
+                })
+            })
+            it('denies subscribe to another team\'s application lifecycle wildcard', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/a/+/created`
+                })
+            })
+            it('denies application lifecycle subscribe for a user who is not a member of the team', async function () {
+                const erin = await factory.createUser({ username: 'erin', name: 'Erin', email: 'erin@example.com', password: 'eePassword1!' })
+                const erinUsername = `fe-team:${erin.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
+                await denyRead({
+                    username: erinUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/+/created`
+                })
+            })
+            it('denies fe-team from publishing application lifecycle topics (read-only client)', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/+/created`
+                })
+            })
+            it('allows forge_platform to publish application lifecycle topics', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/an-application/created`
+                })
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/an-application/updated`
+                })
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/an-application/deleted`
                 })
             })
             it('denies fe-team from publishing to state (read-only client)', async function () {

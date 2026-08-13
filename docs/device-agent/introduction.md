@@ -12,19 +12,19 @@ meta:
 
 # FlowFuse Device Agent
 
-![FlowFuse Device Agent Workflow](./images/device-agent-workflow.png){data-zoomable}
-_Workflow to onboard new Remote Instances through the FlowFuse Platform and Device Agent_
+![The installer running in a terminal, walking through sign-up and connection to FlowFuse](./images/device-agent-install.gif){data-zoomable}
 
-The FlowFuse platform can be used to manage Node-RED Remote Instances running on remote hardware, e.g. devices on your factory floor.
+### Overview
 
-By installing the FlowFuse Device Agent, you can securely connect your hardware to FlowFuse in order to manage and deploy Node-RED flows remotely.
+FlowFuse Device Agent allows you to remotely manage Node-RED instances running on your hardware, for example, devices on your factory floor.
 
-**Note:** The FlowFuse Device Agent will install Node-RED when the agent receives a snapshot to run from FlowFuse.
+The Agent creates a secure connection between the FlowFuse Platform and your devices, enabling you to manage and deploy your applications.
 
-In order to connect your device to FlowFuse, and to allow FlowFuse to manage it, you'll need to do the following steps:
+### Get Started
 
-- [Quick Start Guide](/docs/device-agent/quickstart.md) - Install on a device and remotely edit through FlowFuse Cloud.
-- [Install the FlowFuse Device Agent](/docs/device-agent/install/overview.md) - Install the agent directly onto your device.
-- [Register your Device](/docs/device-agent/register.md) - Let FlowFuse know your device has been setup with the Device Agent.
-- [Run the Device Agent](/docs/device-agent/running.md) - Run the agent on your device, this will connect to FlowFuse and wait for instruction on which Node-RED flows to run.
-- [Deploy Flows to your Device](/docs/device-agent/deploy.md) - With the above steps completed, you can now run Node-RED flows directly on your device, and have them managed by FlowFuse remotely.
+You can install the Device Agent on any hardware capable of running Node.js / Node-RED.
+
+The [Quick Start Guide](/docs/device-agent/quickstart.md) will get the Device Agent installed and connected to FlowFuse in under 5 minutes.
+
+For more detailed information on installing and running the Device Agent, the full [installation guide](/docs/device-agent/install/overview.md) has you covered.
+

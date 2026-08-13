@@ -13,7 +13,7 @@ module.exports = async function (app) {
             await request.team.ensureTeamTypeExists()
             if (!request.team.getFeatureProperty('gitIntegration', false)) {
                 reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                return // eslint-disable-line no-useless-return
+                return
             }
             if (!request.teamMembership) {
                 request.teamMembership = await request.session.User.getTeamMembership(request.team.id)

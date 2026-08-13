@@ -7,7 +7,7 @@
         <template #header>
             <ff-page-header :title="instance.name" :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb :to="{name: 'Instances', params: {team_slug: team.slug}}">Instances</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb :to="{name: 'team-hosted-instances', params: {team_slug: team.slug}}">Instances</ff-nav-breadcrumb>
                 </template>
                 <template #status>
                     <InstanceStatusBadge
@@ -41,6 +41,7 @@
                             v-if="hasDashboard2"
                             :instance="instance"
                             :disabled="!editorAvailable"
+                            scope="application"
                         />
                         <InstanceEditorLink
                             :editorDisabled="instance.settings.disableEditor || isHA"
@@ -147,6 +148,7 @@ export default {
             return [
                 { label: 'Overview', to: { name: 'instance-overview', params: { id: this.instance.id } }, tag: 'instance-overview' },
                 { label: 'Devices', to: { name: 'instance-devices', params: { id: this.instance.id } }, tag: 'instance-remote' },
+                { label: 'Dashboard', to: { name: 'instance-dashboard', params: { id: this.instance.id } }, tag: 'instance-dashboard', hidden: !this.hasDashboard2 },
                 { label: 'Version History', to: versionHistoryRoute, tag: 'instance-version-history' },
                 { label: 'Assets', to: { name: 'instance-assets', params: { id: this.instance.id } }, tag: 'instance-assets', hidden: !this.hasPermission('project:files:list', { application: this.instance.application }) },
                 { label: 'Audit Log', to: { name: 'instance-audit-log', params: { id: this.instance.id } }, tag: 'instance-activity' },

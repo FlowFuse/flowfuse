@@ -361,9 +361,11 @@ module.exports = async function (app) {
             const options = request.body.sourceProject.options
             if (!sourceProject) {
                 reply.code(404).send('Source Project not found')
+                return
             }
             if (sourceProject.Team.id !== request.project.Team.id) {
                 reply.code(403).send('Source Project and Target not in same team')
+                return
             }
 
             await app.db.controllers.Project.setInflightState(request.project, 'importing')
@@ -1540,6 +1542,13 @@ module.exports = async function (app) {
                     code: 'not_found',
                     error: 'Snapshot not found'
                 })
+            } else {
+                if (targetSnapshot.ProjectId !== request.project.id) {
+                    return reply.code(404).send({
+                        code: 'not_found',
+                        error: 'Snapshot not found'
+                    })
+                }
             }
             break
         }
