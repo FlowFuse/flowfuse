@@ -12,6 +12,7 @@
                 <span>Expert</span>
             </button>
             <button
+                v-if="featuresCheck.isMcpThirdPartyEnabled"
                 v-ff-tooltip:bottom="mcpActive ? 'Disable MCP' : 'Enable MCP'"
                 class="expert-composite__mcp flex items-center justify-center py-[6px] px-[7px] transition-colors"
                 :class="{ 'expert-composite__mcp--active': mcpActive }"
@@ -32,6 +33,7 @@ import McpIcon from './icons/McpIcon.js'
 import { createTabPresencePublisher, destroyTabPresencePublisher } from '@/publishers/tab-presence.publisher'
 import alerts from '@/services/alerts.js'
 import getAppOrchestrator from '@/services/app.orchestrator'
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
@@ -50,6 +52,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(useAccountSettingsStore, ['featuresCheck']),
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useContextStore, ['team']),
         isExpertDrawerOpen () {
