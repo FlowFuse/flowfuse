@@ -37,6 +37,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
+import { createMqttTransport } from '@/transport/mqtt.transport'
 
 const MCP_TOGGLE_KEY = 'ff-mcp-active'
 
@@ -95,7 +96,6 @@ export default {
             if (!this.team) return
             const orchestrator = getAppOrchestrator()
             const { mqtt } = orchestrator.$services
-            const { createMqttTransport } = require('@/transport/mqtt.transport')
             const transport = createMqttTransport(mqtt)
 
             this.publisher = createTabPresencePublisher({
