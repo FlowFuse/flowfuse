@@ -113,6 +113,18 @@ Option        | Description
 `driver.options.customHostname.ingressClass` | The name of the Ingress Class that should be used for the custom hostname. Default: not set
 `driver.options.customHostname.certManagerIssuer` | The name of the CertManager ClusterIssuer to provision HTTPS certificates for custom hostnames. Default: not set
 
+## MQTT Broker configuration
+
+By default, the platform runs without an MQTT broker. This restricts some features
+in the platform, such as the Project Nodes, Device Actions and Remote Device Editing.
+
+If a broker has been setup in the platform, the following configuration is required:
+
+Option        | Description
+--------------|------------
+`broker.url`  | The url for the platform to access the broker. For example: `mqtt://localhost:4800`.
+`broker.public_url` | The url used by devices to connect to the broker, if different to `broker.url`. For example, this may require devices to use WebSockets instead: `ws://localhost:4881`.
+
 ## Email configuration
 
 By default, email is disabled. This restricts some features in the platform around
@@ -226,8 +238,6 @@ broker, but some features will not be available:
 installations that manage their own broker: core platform messaging works, but the
 EMQX-dependent features listed above are unavailable. Replacing the platform broker
 with a different customer-supplied broker is not supported.
-
-If a broker has been set up in the platform, the following configuration is required:
 
 Option         | Description
 ---------------|--------------
