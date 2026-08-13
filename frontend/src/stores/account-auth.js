@@ -39,7 +39,6 @@ export const useAccountAuthStore = defineStore('account-auth', {
         isAdminUser: (state) => !!state.user?.admin
     },
     actions: {
-        // In-memory, per page-load — duplicate tabs each mint their own
         getSessionId () {
             if (!this.sessionId) this.sessionId = uuidv4()
             return this.sessionId
@@ -247,8 +246,14 @@ export const useAccountAuthStore = defineStore('account-auth', {
             useProductExpertStore().$reset()
         }
     },
-    persist: {
-        pick: ['redirectUrlAfterLogin'],
-        storage: localStorage
-    }
+    persist: [
+        {
+            pick: ['redirectUrlAfterLogin'],
+            storage: localStorage
+        },
+        {
+            pick: ['sessionId'],
+            storage: sessionStorage
+        }
+    ]
 })
