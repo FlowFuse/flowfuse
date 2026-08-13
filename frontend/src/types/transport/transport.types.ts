@@ -12,9 +12,11 @@ export interface TransportSubscribeOptions {
     qos?: 0 | 1 | 2
 }
 
+import type { MqttPayload } from '@/types/services/mqtt.types'
+
 export interface TransportPublishOptions {
     topic: string
-    payload: unknown
+    payload: MqttPayload
     qos?: 0 | 1 | 2
     correlationData?: string | null
     userProperties?: Record<string, string | string[]> | null

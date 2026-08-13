@@ -5,6 +5,7 @@ import teamApi from '@/api/team.js'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { Maybe } from '@/types/common/types'
 import type { CreatePublisherOptions } from '@/types/publishers/publisher.types'
+import type { MqttPayload } from '@/types/services/mqtt.types'
 import type { TeamRef } from '@/types/subscribers/subscriber.types'
 import type { Transport, TransportAttachmentHandle, TransportPublishOptions } from '@/types/transport/transport.types'
 
@@ -127,7 +128,7 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
         this._onStarted(teamId, userId)
     }
 
-    protected async _publish (topic: string, payload: unknown, options?: Partial<TransportPublishOptions>): Promise<void> {
+    protected async _publish (topic: string, payload: MqttPayload, options?: Partial<TransportPublishOptions>): Promise<void> {
         const transport = this.$transport
         const teamId = this.$connectedTeamId
         if (!transport || !teamId) return
