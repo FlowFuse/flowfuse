@@ -7,7 +7,7 @@
                     <div class="max-w-sm pr-2">Change to a different team type</div>
                 </div>
                 <div class="min-w-fit shrink-0">
-                    <ff-button data-action="change-team-type" :to="{name: 'TeamChangeType'}">Change Team Type</ff-button>
+                    <ff-button data-action="change-team-type" :to="{name: 'team-change-type'}">Change Team Type</ff-button>
                 </div>
             </div>
         </template>
