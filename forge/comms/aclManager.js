@@ -488,11 +488,11 @@ module.exports = function (app) {
                 // platform can listen for Expert Agent requests
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' },
                 // platform can listen for browser tab presence (shared subscription)
-                // - ff/v1/tab-presence/<userId>/<sessionId>/<heartbeat|context>
+                // - ff/v1/browser/tab-presence/<userId>/<sessionId>/<heartbeat|context>
                 // Uses [^/]+ for the message-type segment because the subscription wildcard (+)
                 // is matched as a literal character. The publish-side ACL on teamFrontend
                 // already restricts to heartbeat|context.
-                { topic: /^ff\/v1\/tab-presence\/[^/]+\/[^/]+\/[^/]+$/, shared: true }
+                { topic: /^ff\/v1\/browser\/tab-presence\/[^/]+\/[^/]+\/[^/]+$/, shared: true }
             ],
             pub: [
                 // Send commands to project launchers
@@ -592,8 +592,8 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/a\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' }
             ],
             pub: [
-                // ff/v1/tab-presence/<userId>/<sessionId>/<heartbeat|context>
-                { topic: /^ff\/v1\/tab-presence\/([^/]+)\/([^/]+)\/(heartbeat|context)$/, verify: 'checkPresenceTopic' }
+                // ff/v1/browser/tab-presence/<userId>/<sessionId>/<heartbeat|context>
+                { topic: /^ff\/v1\/browser\/tab-presence\/([^/]+)\/([^/]+)\/(heartbeat|context)$/, verify: 'checkPresenceTopic' }
             ]
         },
         // frontend client (user)
@@ -675,7 +675,7 @@ module.exports = function (app) {
                         isSharedSub = true
                         // This is a shared sub - validate the share group name
                         const shareGroup = sharedSubParts[1]
-                        if (shareGroup !== 'platform' && shareGroup !== usernameParts[2]) {
+                        if (shareGroup !== 'platform' && shareGroup !== 'browser' && shareGroup !== usernameParts[2]) {
                             return false
                         }
                         topic = sharedSubParts[2]

@@ -52,16 +52,16 @@ class CommsClient extends EventEmitter {
                 const ownerId = topicParts[4]
                 const messageType = topicParts[5]
 
-                if (topicParts[2] === 'tab-presence') {
-                    // ff/v1/tab-presence/<userId>/<sessionId>/<messageType>
-                    const userId = topicParts[3]
-                    const sessionId = topicParts[4]
-                    const messageType = topicParts[5]
+                if (topicParts[2] === 'browser') {
+                    // ff/v1/browser/tab-presence/<userId>/<sessionId>/<messageType>
+                    const userId = topicParts[4]
+                    const sessionId = topicParts[5]
+                    const messageType = topicParts[6]
                     let payload
                     try {
                         payload = JSON.parse(message.toString())
                     } catch (err) {
-                        this.app.log.warn(`Ignoring malformed tab-presence payload on ${topic}: ${err.message}`)
+                        this.app.log.warn(`Ignoring malformed browser payload on ${topic}: ${err.message}`)
                         return
                     }
                     this.emit('tab-presence', { userId, sessionId, messageType, payload })
@@ -267,7 +267,7 @@ class CommsClient extends EventEmitter {
                 // allows them to scale independently.
                 '$share/expert/ff/v1/expert/+/+/platform/+/request',
                 // Browser tab presence - shared subscription
-                '$share/platform/ff/v1/tab-presence/+/+/+'
+                '$share/browser/ff/v1/browser/tab-presence/+/+/+'
             ])
         }
     }

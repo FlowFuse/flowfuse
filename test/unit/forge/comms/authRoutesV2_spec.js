@@ -1580,31 +1580,31 @@ describe('Broker Auth v2 API', async function () {
             it('allows fe-team to publish heartbeat to own presence topic', async function () {
                 await allowWrite({
                     username: teamFrontendUsername,
-                    topic: `ff/v1/tab-presence/${TestObjects.alice.hashid}/session-abc12345/heartbeat`
+                    topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/heartbeat`
                 })
             })
             it('allows fe-team to publish context to own presence topic', async function () {
                 await allowWrite({
                     username: teamFrontendUsername,
-                    topic: `ff/v1/tab-presence/${TestObjects.alice.hashid}/session-abc12345/context`
+                    topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/context`
                 })
             })
             it('denies fe-team from publishing to another user\'s presence topic', async function () {
                 await denyWrite({
                     username: teamFrontendUsername,
-                    topic: `ff/v1/tab-presence/${bob.hashid}/session-abc12345/heartbeat`
+                    topic: `ff/v1/browser/tab-presence/${bob.hashid}/session-abc12345/heartbeat`
                 })
             })
             it('denies fe-team from publishing to an invalid presence message type', async function () {
                 await denyWrite({
                     username: teamFrontendUsername,
-                    topic: `ff/v1/tab-presence/${TestObjects.alice.hashid}/session-abc12345/invalid`
+                    topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/invalid`
                 })
             })
             it('allows forge_platform to subscribe to presence topics via shared subscription', async function () {
                 await allowRead({
                     username: 'forge_platform',
-                    topic: `$share/platform/ff/v1/tab-presence/${TestObjects.alice.hashid}/session-abc12345/heartbeat`
+                    topic: `$share/browser/ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/heartbeat`
                 })
             })
         })
