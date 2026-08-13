@@ -150,7 +150,7 @@ export default {
 /* Right half: MCP toggle */
 .expert-composite__mcp {
     border: none;
-    border-left: 1px solid rgba(128, 128, 128, 0.2);
+    border-left: 1px solid var(--ff-color-border);
     background: transparent;
     cursor: pointer;
     border-radius: 0 5px 5px 0;
