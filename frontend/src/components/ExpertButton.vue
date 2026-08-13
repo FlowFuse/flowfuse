@@ -59,6 +59,14 @@ export default {
             return (this.rightDrawer.state || this.rightDrawer.fixed)
         }
     },
+    watch: {
+        team () {
+            if (this.mcpActive) {
+                this.stopMcp()
+                alerts.emit('MCP session closed due to team switch.', 'info')
+            }
+        }
+    },
     mounted () {
         const stored = sessionStorage.getItem(MCP_TOGGLE_KEY)
         if (stored === 'true' && this.team) {
