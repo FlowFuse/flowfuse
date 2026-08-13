@@ -117,7 +117,7 @@ module.exports = [
             if (!app?.comms?.browserSessions) {
                 return {
                     sessions: [],
-                    message: 'Browser session tracking is not available. The MQTT broker may not be configured.'
+                    message: 'Browser sessions are not available on this platform. 3rd party automations like flow building will not be possible.'
                 }
             }
 
@@ -129,8 +129,8 @@ module.exports = [
                     sessions: [],
                     message: 'No active browser sessions found for this user. ' +
                         'Please let the user know they need to: ' +
-                        '1. Open the FlowFuse platform in their browser (' + baseUrl + '). ' +
-                        '2. Click the MCP toggle (the plug icon next to the Expert button in the top-right header). ' +
+                        `1. Open the [FlowFuse platform](${baseUrl}) in their browser.` +
+                        '2. Click the MCP toggle button (plug icon next to the Expert button in the header). ' +
                         'Once enabled, the browser tab will appear in this list. ' +
                         'Share these instructions with the user and retry once they confirm the toggle is on.'
                 }
