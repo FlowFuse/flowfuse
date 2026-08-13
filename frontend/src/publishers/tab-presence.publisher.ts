@@ -1,9 +1,12 @@
 import { definePublisherSingleton } from './publisher.factory'
 import { TeamPublisher } from './team-publisher.contract'
 
+import getAppOrchestrator from '@/services/app.orchestrator'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
+import { createMqttTransport } from '@/transport/mqtt.transport'
 import type { CreatePublisherOptions } from '@/types/publishers/publisher.types'
+import type { TeamRef } from '@/types/subscribers/subscriber.types'
 import type { Transport } from '@/types/transport/transport.types'
 
 const HEARTBEAT_INTERVAL = 45_000
@@ -95,4 +98,20 @@ class TabPresencePublisher extends TeamPublisher {
     }
 }
 
-export const { create: createTabPresencePublisher, destroy: destroyTabPresencePublisher } = definePublisherSingleton(TabPresencePublisher)
+const { create: createTabPresencePublisher, destroy: destroyTabPresencePublisher } = definePublisherSingleton(TabPresencePublisher)
+
+export function startTabPresence (team: TeamRef): TabPresencePublisher {
+    const orchestrator = getAppOrchestrator()
+    const transport = createMqttTransport(orchestrator.$services.mqtt)
+    const publisher = createTabPresencePublisher({
+        app: orchestrator.$app,
+        router: orchestrator.$router,
+        transport
+    })
+    publisher.connect(team)
+    return publisher
+}
+
+export async function stopTabPresence (): Promise<void> {
+    await destroyTabPresencePublisher()
+}

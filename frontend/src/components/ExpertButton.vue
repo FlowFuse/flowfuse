@@ -30,14 +30,12 @@ import { mapActions, mapState } from 'pinia'
 
 import McpIcon from './icons/McpIcon.js'
 
-import { createTabPresencePublisher, destroyTabPresencePublisher } from '@/publishers/tab-presence.publisher'
+import { startTabPresence, stopTabPresence } from '@/publishers/tab-presence.publisher'
 import alerts from '@/services/alerts.js'
-import getAppOrchestrator from '@/services/app.orchestrator'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
-import { createMqttTransport } from '@/transport/mqtt.transport'
 
 const MCP_TOGGLE_KEY = 'ff-mcp-active'
 
@@ -76,7 +74,7 @@ export default {
     },
     beforeUnmount () {
         if (this.publisher) {
-            destroyTabPresencePublisher()
+            stopTabPresence()
             this.publisher = null
         }
     },
@@ -94,24 +92,14 @@ export default {
         },
         startMcp () {
             if (!this.team) return
-            const orchestrator = getAppOrchestrator()
-            const { mqtt } = orchestrator.$services
-            const transport = createMqttTransport(mqtt)
-
-            this.publisher = createTabPresencePublisher({
-                app: orchestrator.$app,
-                router: orchestrator.$router,
-                transport
-            })
-            this.publisher.connect(this.team)
+            this.publisher = startTabPresence(this.team)
             this.mcpActive = true
             sessionStorage.setItem(MCP_TOGGLE_KEY, 'true')
             alerts.emit('MCP session exposed. Third-party agents can now target this tab.', 'confirmation')
         },
         stopMcp () {
             if (this.publisher) {
-                this.publisher.disconnect()
-                destroyTabPresencePublisher()
+                stopTabPresence()
                 this.publisher = null
             }
             this.mcpActive = false
