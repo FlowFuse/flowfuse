@@ -492,7 +492,7 @@ module.exports = function (app) {
                 // Uses [^/]+ for the message-type segment because the subscription wildcard (+)
                 // is matched as a literal character. The publish-side ACL on teamFrontend
                 // already restricts to heartbeat|context.
-                { topic: /^ff\/v1\/browser\/tab-presence\/[^/]+\/[^/]+\/[^/]+$/ }
+                { topic: /^ff\/v1\/browser\/tab-presence\/[^/]+\/[^/]+\/[^/]+$/, shared: true }
             ],
             pub: [
                 // Send commands to project launchers
