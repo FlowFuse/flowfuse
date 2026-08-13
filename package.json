@@ -61,7 +61,7 @@
         "@aws-sdk/credential-provider-node": "^3.352.0",
         "@fastify/cookie": "^11.0.2",
         "@fastify/csrf-protection": "^8.0.0",
-        "@fastify/formbody": "^8.0.2",
+        "@fastify/formbody": "^9.0.0",
         "@fastify/helmet": "^13.0.2",
         "@fastify/multipart": "^10.0.0",
         "@fastify/passport": "^3.0.2",
