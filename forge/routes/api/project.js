@@ -233,7 +233,11 @@ module.exports = async function (app) {
         const projectViewPromise = app.db.views.Project.project(project)
         const projectStatePromise = project.liveState()
 
-        app.comms?.team?.notifyEntityLifecycle(team.hashid, 'p', project.id, 'created', await app.db.views.Project.project(project, { includeSettings: false }))
+        if (app.comms?.team) {
+            const createdInstanceView = await app.db.views.Project.project(project, { includeSettings: false })
+            createdInstanceView.application = app.db.views.Application.applicationSummary(application)
+            app.comms.team.notifyEntityLifecycle(team.hashid, 'p', project.id, 'created', createdInstanceView)
+        }
 
         reply.send({ ...await projectViewPromise, ...await projectStatePromise })
     })

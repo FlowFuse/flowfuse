@@ -1275,6 +1275,9 @@ describe('Project API', function () {
             const data = notifySpy.getCall(0).args[4]
             data.should.have.property('id', result.id)
             data.should.not.have.property('settings')
+            // owning application must be in the payload so the realtime row isn't "unassigned"
+            data.should.have.property('application')
+            data.application.should.have.property('id', TestObjects.ApplicationA.hashid)
         })
 
         it('publishes updated on a synchronous update without leaking settings', async function () {
