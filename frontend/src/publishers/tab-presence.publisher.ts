@@ -73,7 +73,7 @@ class TabPresencePublisher extends TeamPublisher {
 
     private _publishHeartbeat (): void {
         if (!this.$userId || !this.$sessionId) return
-        const topic = `ff/v1/tab-presence/${this.$userId}/${this.$sessionId}/heartbeat`
+        const topic = `ff/v1/browser/tab-presence/${this.$userId}/${this.$sessionId}/heartbeat`
         this._publish(topic, {
             visibility: document.visibilityState,
             focused: document.hasFocus()
@@ -83,7 +83,7 @@ class TabPresencePublisher extends TeamPublisher {
     private _publishContext (): void {
         if (!this.$userId || !this.$sessionId) return
         const contextStore = useContextStore()
-        const topic = `ff/v1/tab-presence/${this.$userId}/${this.$sessionId}/context`
+        const topic = `ff/v1/browser/tab-presence/${this.$userId}/${this.$sessionId}/context`
         this._publish(topic, contextStore.expert).catch(() => {})
     }
 
