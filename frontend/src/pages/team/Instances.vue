@@ -429,7 +429,7 @@ export default {
         },
         openInstance (instance, event) {
             this.navigateTo({
-                name: 'Instance',
+                name: 'instance',
                 params: {
                     id: instance.id
                 }

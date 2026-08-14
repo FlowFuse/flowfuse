@@ -135,7 +135,7 @@
         <template v-else-if="hasInstance">
             <div>
                 <label class="font-medium mr-2">Instance:</label>
-                <router-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="ff-link">{{ device.instance.name }}</router-link>
+                <router-link :to="{name: 'instance', params: {id: device.instance.id}}" class="ff-link">{{ device.instance.name }}</router-link>
             </div>
             <h3>Features:</h3>
             <ul class="list-disc ml-6 space-y-2 max-w-xl">

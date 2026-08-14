@@ -53,7 +53,7 @@
         <div v-if="stage.instance || stage.device || stage.deviceGroup || stage.gitRepo" class="py-3">
             <div>
                 <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-type">
-                    <router-link class="flex gap-2 items-center" :to="{name: 'Instance', params: { id: stage.instance.id }}">
+                    <router-link class="flex gap-2 items-center" :to="{name: 'instance', params: { id: stage.instance.id }}">
                         <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
                         <div>
                             <label class="flex items-center gap-2">Instance:</label>
@@ -64,7 +64,7 @@
                     </router-link>
                 </div>
                 <div v-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-type">
-                    <router-link class="flex gap-2 items-center" :to="{name: 'Device', params: { id: stage.device.id }}">
+                    <router-link class="flex gap-2 items-center" :to="{name: 'device', params: { id: stage.device.id }}">
                         <span v-if="inDeveloperMode" v-ff-tooltip="'Cannot push to a Device in Developer Mode'">
                             <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
                             <i class="bg-red-600 w-3 h-3 rounded-full absolute block -top-1 -right-1 border-2 border-gray-50" />

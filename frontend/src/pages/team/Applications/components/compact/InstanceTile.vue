@@ -180,7 +180,7 @@ export default {
             this.localInstance = applyLiveState(this.localInstance, meta.status, { versions: meta.versions, clearFlags: true })
         },
         navigateToInstance () {
-            this.$router.push({ name: 'Instance', params: { id: this.localInstance.id } })
+            this.$router.push({ name: 'instance', params: { id: this.localInstance.id } })
         },
         openInstance () {
             if (!this.localInstance.url) return
