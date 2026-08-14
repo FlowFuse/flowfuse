@@ -52,6 +52,22 @@ class CommsClient extends EventEmitter {
                 const ownerId = topicParts[4]
                 const messageType = topicParts[5]
 
+                if (topicParts[2] === 'mcp') {
+                    // ff/v1/mcp/<userId>/<mcpSessionId>/response/<platformId>
+                    if (topicParts[5] === 'response') {
+                        let payload
+                        try {
+                            payload = JSON.parse(message.toString())
+                        } catch (err) {
+                            this.app.log.warn(`Ignoring malformed MCP gateway response on ${topic}: ${err.message}`)
+                            return
+                        }
+                        const correlationData = packet.properties?.correlationData
+                        this.emit('response/mcp-gateway', correlationData, payload)
+                    }
+                    return
+                }
+
                 if (topicParts[2] === 'browser') {
                     // ff/v1/browser/tab-presence/<userId>/<sessionId>/<messageType>
                     const userId = topicParts[4]
@@ -267,7 +283,9 @@ class CommsClient extends EventEmitter {
                 // allows them to scale independently.
                 '$share/expert/ff/v1/expert/+/+/platform/+/request',
                 // Browser tab presence - shared subscription
-                '$share/browser/ff/v1/browser/tab-presence/+/+/+'
+                '$share/browser/ff/v1/browser/tab-presence/+/+/+',
+                // MCP gateway responses - per-replica (not shared), same as device responses
+                'ff/v1/mcp/+/+/response/' + this.platformId
             ])
         }
     }

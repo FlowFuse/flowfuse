@@ -6,6 +6,7 @@ const { CommsClient } = require('./commsClient')
 const { DeviceCommsHandler } = require('./devices')
 const { ExpertCommsHandler } = require('./expert')
 const { InstanceCommsHandler } = require('./instances')
+const { McpGatewayHandler } = require('./mcpGateway')
 const { PlatformAutomationHandler } = require('./platformAutomation.js')
 
 /**
@@ -37,6 +38,7 @@ module.exports = fp(async function (app, _opts) {
         const instanceCommsHandler = InstanceCommsHandler(app, client)
         const platformAutomationHandler = PlatformAutomationHandler(app, client)
         const expertCommsHandler = new ExpertCommsHandler(app, client)
+        const mcpGatewayHandler = McpGatewayHandler(app, client)
         const browserSessionPresenceHandler = BrowserSessionPresenceHandler(app, client)
 
         // Not in the current release, but when we handle Launcher status
@@ -52,6 +54,7 @@ module.exports = fp(async function (app, _opts) {
             aclManager: ACLManager(app),
             platformAutomation: platformAutomationHandler,
             expert: expertCommsHandler,
+            mcpGateway: mcpGatewayHandler,
             browserSessions: browserSessionPresenceHandler,
             platform: {
                 settings: {
