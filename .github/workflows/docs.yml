@@ -54,24 +54,12 @@ jobs:
       ci_app_key: ${{ secrets.GH_BOT_APP_KEY }}
       netlify_auth_token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       netlify_site_id: ${{ secrets.NETLIFY_SITE_ID }}
-  # A reusable workflow reports its checks as "caller job / called job". This gate keeps the
-  # original context name and the publish dependency below intact.
-  test-with-website:
-    runs-on: ubuntu-latest
-    name: Test Documentation with website
-    needs: website
-    if: always()
-    steps:
-      - name: Require the website build to have succeeded
-        run: |
-          echo "website result: ${{ needs.website.result }}"
-          [ "${{ needs.website.result }}" = "success" ]
   publish:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs:
       - test
-      - test-with-website
+      - website
     name: Publish Documentation
     steps:
       - name: Generate token
