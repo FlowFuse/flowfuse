@@ -294,7 +294,7 @@ class CommsClient extends EventEmitter {
                 // Responses to this replica's third-party MCP proxy requests.
                 // Scoped to our own platformId so the reply returns to the replica
                 // that holds the agent's HTTP connection.
-                'ff/v1/mcp/' + this.platformId + '/+/+/response'.
+                'ff/v1/mcp/' + this.platformId + '/+/+/response',
                 // Browser tab presence - shared subscription
                 '$share/browser/ff/v1/browser/tab-presence/+/+/+'
             ])
