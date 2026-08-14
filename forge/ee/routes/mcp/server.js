@@ -91,7 +91,7 @@ module.exports = async function (app) {
         }
 
         try {
-            const mcpResponse = await app.comms.mcpProxyRequest(route, payload)
+            const mcpResponse = await app.comms.mcpGateway.proxyRequest(route, payload)
             reply.header('mcp-session-id', mcpSessionId)
             reply.type('application/json').send(mcpResponse)
         } catch (err) {
