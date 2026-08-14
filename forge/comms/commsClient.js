@@ -53,8 +53,8 @@ class CommsClient extends EventEmitter {
                 const messageType = topicParts[5]
 
                 if (topicParts[2] === 'mcp') {
-                    // ff/v1/mcp/<userId>/<mcpSessionId>/response/<platformId>
-                    if (topicParts[5] === 'response') {
+                    // ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response/
+                    if (topicParts[6] === 'response') {
                         let payload
                         try {
                             payload = JSON.parse(message.toString())
@@ -285,7 +285,7 @@ class CommsClient extends EventEmitter {
                 // Browser tab presence - shared subscription
                 '$share/browser/ff/v1/browser/tab-presence/+/+/+',
                 // MCP gateway responses - per-replica (not shared), same as device responses
-                'ff/v1/mcp/+/+/response/' + this.platformId
+                `ff/v1/mcp/${this.platformId}/+/+/response`
             ])
         }
     }
