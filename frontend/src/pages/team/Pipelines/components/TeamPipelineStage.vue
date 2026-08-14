@@ -95,9 +95,9 @@ export default {
         targetLink () {
             switch (true) {
             case this.isInstanceStage:
-                return { name: 'Instance', params: { id: this.targetId } }
+                return { name: 'instance', params: { id: this.targetId } }
             case this.isDeviceStage:
-                return { name: 'Device', params: { id: this.targetId } }
+                return { name: 'device', params: { id: this.targetId } }
             case this.isDeviceGroupsStage:
                 return { name: 'application-device-group', params: { deviceGroupId: this.targetId, applicationId: this.application.id } }
             default:

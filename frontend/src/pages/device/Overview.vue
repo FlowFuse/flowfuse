@@ -99,7 +99,7 @@
                     </InfoCardRow>
                     <InfoCardRow v-if="device.ownerType!=='application'" property="Instance:">
                         <template #value>
-                            <router-link v-if="device?.instance" :to="{name: 'Instance', params: { id: device.instance.id }}">
+                            <router-link v-if="device?.instance" :to="{name: 'instance', params: { id: device.instance.id }}">
                                 {{ device.instance?.name }}
                             </router-link>
                             <span v-else>None</span>

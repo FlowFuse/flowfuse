@@ -3,9 +3,11 @@ import type { Router } from 'vue-router'
 
 import SERVICE_REGISTRY from './service.registry'
 
+import PUBLISHER_REGISTRY from '@/publishers/publisher.registry'
 import SUBSCRIBER_REGISTRY from '@/subscribers/subscriber.registry'
 import { createMqttTransport } from '@/transport/mqtt.transport'
 import { Maybe } from '@/types/common/types'
+import type { PublisherInstances } from '@/types/publishers/publisher.types'
 import type { ServiceInstances } from '@/types/services/service.types'
 import type { SubscriberInstances } from '@/types/subscribers/subscriber.types'
 
@@ -16,6 +18,8 @@ class AppOrchestrator {
     $services: ServiceInstances = Object.fromEntries(SERVICE_REGISTRY.map(service => [service.key, null])) as ServiceInstances
 
     $subscribers: SubscriberInstances = Object.fromEntries(SUBSCRIBER_REGISTRY.map(subscriber => [subscriber.key, null])) as SubscriberInstances
+
+    $publishers: PublisherInstances = Object.fromEntries(PUBLISHER_REGISTRY.map(publisher => [publisher.key, null])) as PublisherInstances
 
     /**
      * @type {import('vue').App} - Vue app instance
@@ -35,6 +39,7 @@ class AppOrchestrator {
         await this.registerCleanup()
         await this.bootServices()
         await this.bootSubscribers()
+        await this.bootPublishers()
 
         return this
     }
@@ -85,7 +90,38 @@ class AppOrchestrator {
         return this.$subscribers
     }
 
+    /**
+     * Create all publishers, sharing the same transport as subscribers.
+     * @returns {Promise<PublisherInstances>}
+     */
+    async bootPublishers (): Promise<PublisherInstances> {
+        const app = this.$app
+        const router = this.$router
+        const transport = createMqttTransport(this.$services.mqtt)
+
+        for (const publisherDefinition of PUBLISHER_REGISTRY) {
+            ;(this.$publishers as Record<string, unknown>)[publisherDefinition.key] = publisherDefinition.create({
+                app,
+                router,
+                transport
+            })
+        }
+
+        app.provide('$publishers', this.$publishers)
+
+        return this.$publishers
+    }
+
     async dispose () {
+        for (const publisher of Object.keys(this.$publishers) as Array<keyof PublisherInstances>) {
+            try {
+                await (this.$publishers as Record<string, { destroy?: () => Promise<void> }>)[publisher]?.destroy?.()
+            } catch {
+                // teardown should be resilient
+            }
+            ;(this.$publishers as Record<string, unknown>)[publisher] = null
+        }
+
         for (const subscriber of Object.keys(this.$subscribers) as Array<keyof SubscriberInstances>) {
             try {
                 await this.$subscribers[subscriber]?.destroy?.()
