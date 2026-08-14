@@ -76,7 +76,7 @@
             <section data-el="application-section" class="flex flex-col gap-4">
                 <div>
                     <label class="font-medium mr-2">Application:</label>
-                    <router-link :to="{name: 'ApplicationDevices', params: {team_slug: team.slug, id: device.application.id}}" class="ff-link">{{ device.application.name }}</router-link>
+                    <router-link :to="{name: 'application-devices', params: {team_slug: team.slug, id: device.application.id}}" class="ff-link">{{ device.application.name }}</router-link>
                 </div>
                 <div class="flex flex-col gap-2">
                     <h3>Features:</h3>
@@ -93,7 +93,7 @@
                     <label class="font-medium mr-2">Group:</label>
                     <div v-if="device.deviceGroup" class="flex gap-5 items-center justify-between">
                         <router-link
-                            :to="{ name: 'ApplicationDeviceGroupIndex',
+                            :to="{ name: 'application-device-group',
                                    params: {
                                        deviceGroupId: device.deviceGroup.id,
                                        applicationId: device.application.id,

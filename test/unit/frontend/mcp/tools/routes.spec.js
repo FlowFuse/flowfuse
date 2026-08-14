@@ -9,9 +9,9 @@ describe('ui_list_routes tool', () => {
         const router = {
             getRoutes: () => [
                 {
-                    name: 'Application',
+                    name: 'application',
                     path: '/team/:team_slug/applications/:id',
-                    redirect: () => ({ name: 'ApplicationInstances' }),
+                    redirect: () => ({ name: 'application-instances' }),
                     meta: {}
                 },
                 {
@@ -24,7 +24,7 @@ describe('ui_list_routes tool', () => {
 
         const { routes } = listRoutesTool.handler({}, { router })
 
-        expect(routes.map((route) => route.name)).toContain('Application')
+        expect(routes.map((route) => route.name)).toContain('application')
     })
 
     test('excludes unnamed routes', () => {
