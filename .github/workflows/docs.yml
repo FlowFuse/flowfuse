@@ -11,7 +11,7 @@ on:
       - '.github/workflows/docs.yml'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   # Only the newest push to a pull request is worth previewing. Pushes to main are never
   # cancelled, so a publish cannot be interrupted by the next docs merge.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
