@@ -52,7 +52,7 @@ class CommsClient extends EventEmitter {
                 const ownerId = topicParts[4]
                 const messageType = topicParts[5]
 
-                if (topicParts[2] === 'browser') {
+                if (topicParts[2] === 'browser' && topicParts[3] === 'tab-presence') {
                     // ff/v1/browser/tab-presence/<userId>/<sessionId>/<messageType>
                     const userId = topicParts[4]
                     const sessionId = topicParts[5]
