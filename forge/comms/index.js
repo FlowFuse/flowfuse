@@ -6,6 +6,7 @@ const { CommsClient } = require('./commsClient')
 const { DeviceCommsHandler } = require('./devices')
 const { ExpertCommsHandler } = require('./expert')
 const { InstanceCommsHandler } = require('./instances')
+const { McpGatewayHandler } = require('./mcpGateway')
 const { PlatformAutomationHandler } = require('./platformAutomation.js')
 
 /**
@@ -37,6 +38,7 @@ module.exports = fp(async function (app, _opts) {
         const instanceCommsHandler = InstanceCommsHandler(app, client)
         const platformAutomationHandler = PlatformAutomationHandler(app, client)
         const expertCommsHandler = new ExpertCommsHandler(app, client)
+        const mcpGatewayHandler = McpGatewayHandler(app, client)
         // Owns the browser session topic and dispatches its events. Presence is one
         // consumer of that; anything else needing per-session teardown joins it there.
         BrowserSessionLifecycleHandler(app, client)
@@ -54,6 +56,7 @@ module.exports = fp(async function (app, _opts) {
             aclManager: ACLManager(app),
             platformAutomation: platformAutomationHandler,
             expert: expertCommsHandler,
+            mcpGateway: mcpGatewayHandler,
             platform: {
                 settings: {
                     sync: function (key) {
