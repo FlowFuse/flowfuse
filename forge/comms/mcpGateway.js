@@ -34,9 +34,9 @@ class McpGatewayHandler {
      * @param {number} [timeoutMs] Override default timeout
      * @returns {Promise<object>} The MCP response body
      */
-    async mcpProxyRequest (route, payload, timeoutMs) {
+    async proxyRequest (route, payload, timeoutMs) {
         const { userId, mcpSessionId } = route
-        const requestTopic = `ff/v1/mcp/${userId}/${mcpSessionId}/request`
+        const requestTopic = `ff/v1/mcp/${this.client.platformId}/${userId}/${mcpSessionId}/request`
 
         const { correlationData, mqttOptions, promise } = this.awaitReply.create({
             timeout: timeoutMs || DEFAULT_TIMEOUT
