@@ -27,7 +27,7 @@ import PipelineStageForm from './form.vue'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
-    name: 'CreatePipelineStage',
+    name: 'application-pipeline-stage-create',
     components: {
         PipelineStageForm
     },
@@ -75,7 +75,7 @@ export default {
             handler (team) {
                 if (team && !this.hasPermission('pipeline:create')) {
                     this.$router.replace({
-                        name: 'ApplicationPipelines',
+                        name: 'application-pipelines',
                         params: {
                             id: this.application.id
                         }
@@ -129,7 +129,7 @@ export default {
             Alerts.emit('Pipeline stage successfully added.', 'confirmation')
 
             this.$router.push({
-                name: 'ApplicationPipelines',
+                name: 'application-pipelines',
                 params: {
                     id: this.application.id
                 }

@@ -171,6 +171,25 @@ module.exports = function (app) {
                 return false
             }
         },
+        checkPresenceTopic: async function (requestParts, usernameParts) {
+            // requestParts = [ fullTopic, <userId>, <sessionId>, <messageType> ]
+            // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
+            const topicUserId = requestParts[1]
+            const usernameUserHash = usernameParts[1]
+            if (topicUserId !== usernameUserHash) {
+                return false
+            }
+            try {
+                const user = await app.db.models.User.byId(usernameUserHash)
+                if (!user || user.suspended) {
+                    return false
+                }
+                return true
+            } catch (error) {
+                app.log.error('Unexpected error during presence topic ACL check', { requestParts, usernameParts, error })
+                return false
+            }
+        },
         checkExpertPlatformTopic: async function (topicParts, usernameParts, acl) {
             // topicParts = [ fullTopic , <userid>, <sessionid>, <command> ]
             // usernameParts = [ 'forge_platform' | 'expert-agent', <userid> [, <sessionid>] ]
@@ -467,7 +486,13 @@ module.exports = function (app) {
                 // ff/v1/platform/leader
                 { topic: /^ff\/v1\/platform\/leader$/ },
                 // platform can listen for Expert Agent requests
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' },
+                // platform can listen for browser tab presence (shared subscription)
+                // - ff/v1/browser/tab-presence/<userId>/<sessionId>/<heartbeat|context>
+                // Uses [^/]+ for the message-type segment because the subscription wildcard (+)
+                // is matched as a literal character. The publish-side ACL on teamFrontend
+                // already restricts to heartbeat|context.
+                { topic: /^ff\/v1\/browser\/tab-presence\/[^/]+\/[^/]+\/[^/]+$/, shared: true }
             ],
             pub: [
                 // Send commands to project launchers
@@ -491,6 +516,10 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/state$/ },
                 // - ff/v1/<team>/d/<device>/state
                 { topic: /^ff\/v1\/[^/]+\/d\/[^/]+\/state$/ },
+                // - ff/v1/<team>/a/<application>/created|updated|deleted
+                { topic: /^ff\/v1\/[^/]+\/a\/[^/]+\/(created|updated|deleted)$/ },
+                // - ff/v1/<team>/p/<instance>/created|updated|deleted
+                { topic: /^ff\/v1\/[^/]+\/p\/[^/]+\/(created|updated|deleted)$/ },
                 // ff/v1/platform/sync
                 { topic: /^ff\/v1\/platform\/sync$/ },
                 // ff/v1/platform/leader
@@ -560,9 +589,16 @@ module.exports = function (app) {
                 // - ff/v1/<team>/p/+/state
                 { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/state$/, verify: 'checkTeamStateSub' },
                 // - ff/v1/<team>/d/+/state
-                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/state$/, verify: 'checkTeamStateSub' }
+                { topic: /^ff\/v1\/([^/]+)\/d\/([^/]+)\/state$/, verify: 'checkTeamStateSub' },
+                // - ff/v1/<team>/a/+/created|updated|deleted
+                { topic: /^ff\/v1\/([^/]+)\/a\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' },
+                // - ff/v1/<team>/p/+/created|updated|deleted
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' }
             ],
-            pub: []
+            pub: [
+                // ff/v1/browser/tab-presence/<userId>/<sessionId>/<heartbeat|context>
+                { topic: /^ff\/v1\/browser\/tab-presence\/([^/]+)\/([^/]+)\/(heartbeat|context)$/, verify: 'checkPresenceTopic' }
+            ]
         },
         // frontend client (user)
         expertClient: {
@@ -643,7 +679,7 @@ module.exports = function (app) {
                         isSharedSub = true
                         // This is a shared sub - validate the share group name
                         const shareGroup = sharedSubParts[1]
-                        if (shareGroup !== 'platform' && shareGroup !== usernameParts[2]) {
+                        if (shareGroup !== 'platform' && shareGroup !== 'browser' && shareGroup !== usernameParts[2]) {
                             return false
                         }
                         topic = sharedSubParts[2]

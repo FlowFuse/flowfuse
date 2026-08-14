@@ -232,8 +232,8 @@ import ConfirmTeamManualBillingDialog from '../dialogs/ConfirmTeamManualBillingD
 import ExtendTeamTrialDialog from '../dialogs/ExtendTeamTrialDialog.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
-import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 
 export default {
     name: 'TeamAdminTools',
@@ -372,7 +372,7 @@ export default {
         },
         async setupManualBilling (teamTypeId) {
             billingApi.setupManualBilling(this.team.id, teamTypeId).then(async () => {
-                await useAccountStore().refreshTeams()
+                await useDataFarmTeamsStore().fetchTeamList()
                 await useContextStore().refreshTeam()
             }).catch(err => {
                 console.warn(err)
@@ -385,7 +385,7 @@ export default {
                 text: 'Are you sure you want to re-enable billing for this team?'
             }, async () => {
                 billingApi.disableManualBilling(this.team.id).then(async () => {
-                    await useAccountStore().refreshTeams()
+                    await useDataFarmTeamsStore().fetchTeamList()
                     await useContextStore().refreshTeam()
                 }).catch(err => {
                     console.warn(err)
@@ -398,7 +398,7 @@ export default {
         async extendTrial (endDate) {
             const newEndDate = Date.parse(`${endDate}T12:00:00.000Z`)
             billingApi.setTrialExpiry(this.team.id, newEndDate).then(async () => {
-                await useAccountStore().refreshTeams()
+                await useDataFarmTeamsStore().fetchTeamList()
                 await useContextStore().refreshTeam()
             }).catch(err => {
                 console.warn(err)

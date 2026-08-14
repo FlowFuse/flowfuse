@@ -20,7 +20,7 @@ const routes = [
     {
         navigationLink: true,
         path: '/',
-        name: 'Home',
+        name: 'home',
         component: Home,
         icon: 'HomeIcon',
         meta: {

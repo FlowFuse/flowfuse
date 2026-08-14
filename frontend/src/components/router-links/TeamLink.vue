@@ -26,7 +26,7 @@ export default {
             if (!this.team) {
                 // rewrite the url to point home where the user will either get redirected to his default team or to the
                 // team creation page
-                props.to.name = 'Home'
+                props.to.name = 'home'
             }
 
             if (!props.to.params?.team_slug) {

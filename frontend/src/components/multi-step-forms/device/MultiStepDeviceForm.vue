@@ -17,9 +17,8 @@
 </template>
 
 <script>
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
-import applicationApi from '../../../api/application.js'
 import deviceApi from '../../../api/devices.js'
 import Alerts from '../../../services/alerts.js'
 import MultiStepForm from '../MultiStepForm.vue'
@@ -29,8 +28,9 @@ import ApplicationStep from '../instance/steps/ApplicationStep.vue'
 import DeviceStep from './steps/DeviceStep.vue'
 import TeamStep from './steps/TeamStep.vue'
 
-import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 
 const TEAM_STEP_SLUG = 'team'
 const APPLICATION_SLUG = 'application'
@@ -83,7 +83,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team', 'isFreeTeamType']),
-        ...mapState(useAccountStore, ['teams']),
+        ...mapState(useDataFarmTeamsStore, { teams: 'teamList' }),
         formSteps () {
             return [
                 {
@@ -128,6 +128,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions(useDataFarmApplicationsStore, ['createApplication']),
         updateForm (payload, stepKey) {
             this.currentStepKey = stepKey
             this.form = { ...this.form, ...payload }
@@ -139,7 +140,7 @@ export default {
 
             return new Promise((resolve) => {
                 if (this.hasToCreateAnApplication) {
-                    return applicationApi.createApplication({
+                    return this.createApplication({
                         ...this.form[APPLICATION_SLUG].input,
                         teamId: this.team.id
                     })

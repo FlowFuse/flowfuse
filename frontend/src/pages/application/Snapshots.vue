@@ -84,7 +84,7 @@ import SnapshotSource from './Snapshots/components/cells/SnapshotSource.vue'
 import SnapshotExportDialog from './Snapshots/components/dialogs/SnapshotExportDialog.vue'
 
 export default {
-    name: 'ApplicationSnapshots',
+    name: 'application-snapshots',
     components: {
         AssetDetailDialog,
         AssetCompareDialog,

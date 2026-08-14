@@ -1,6 +1,6 @@
 <template>
     <router-link
-        :to="{ name: 'Application', params: { id: application.id } }"
+        :to="{ name: 'application', params: { id: application.id } }"
         data-action="view-application"
         class="ff-application-list--app gap-x-4 flex flex-col gap-2 sm:gap-0 justify-between sm:flex-row sm:items-center"
     >

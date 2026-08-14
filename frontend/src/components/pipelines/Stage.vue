@@ -53,7 +53,7 @@
         <div v-if="stage.instance || stage.device || stage.deviceGroup || stage.gitRepo" class="py-3">
             <div>
                 <div v-if="stage.stageType == StageType.INSTANCE" class="ff-pipeline-stage-type">
-                    <router-link class="flex gap-2 items-center" :to="{name: 'Instance', params: { id: stage.instance.id }}">
+                    <router-link class="flex gap-2 items-center" :to="{name: 'instance', params: { id: stage.instance.id }}">
                         <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800" />
                         <div>
                             <label class="flex items-center gap-2">Instance:</label>
@@ -64,7 +64,7 @@
                     </router-link>
                 </div>
                 <div v-if="stage.stageType == StageType.DEVICE" class="ff-pipeline-stage-type">
-                    <router-link class="flex gap-2 items-center" :to="{name: 'Device', params: { id: stage.device.id }}">
+                    <router-link class="flex gap-2 items-center" :to="{name: 'device', params: { id: stage.device.id }}">
                         <span v-if="inDeveloperMode" v-ff-tooltip="'Cannot push to a Device in Developer Mode'">
                             <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700" />
                             <i class="bg-red-600 w-3 h-3 rounded-full absolute block -top-1 -right-1 border-2 border-gray-50" />
@@ -79,7 +79,7 @@
                     </router-link>
                 </div>
                 <div v-if="stage.stageType == StageType.DEVICEGROUP" class="ff-pipeline-stage-type">
-                    <router-link class="flex gap-2 items-center" :to="{name: 'ApplicationDeviceGroupDevices', params: { applicationId: application.id, deviceGroupId: stage.deviceGroup.id }}">
+                    <router-link class="flex gap-2 items-center" :to="{name: 'application-device-group-devices', params: { applicationId: application.id, deviceGroupId: stage.deviceGroup.id }}">
                         <IconDeviceGroupSolid class="ff-icon ff-icon-lg text-teal-700" />
                         <div>
                             <label class="flex items-center gap-2">Device Group:</label>
@@ -298,9 +298,9 @@ export default {
             if (this.stage?.gitRepo?.url.startsWith('https://github.com')) {
                 return `${this.stage.gitRepo.url}/tree/${this.stage.gitRepo.branch || 'main'}`
             } else if (this.stage?.gitRepo?.url.startsWith('https://dev.azure.com')) {
-                const regex = /^https:\/\/dev.azure.com\/(?<org>.+)\/_git\/(?<repo>.+)$/
+                const regex = /^https:\/\/dev.azure.com\/(?<org>[^/]+)(\/(?<project>[^/]+))?\/_git\/(?<repo>.+)$/
                 const match = regex.exec(this.stage.gitRepo.url)
-                return `https://dev.azure.com/${match.groups.org}/${match.groups.repo}/_git/${match.groups.repo}?path=%2F&version=GB${this.stage.gitRepo.branch || 'main'}`
+                return `https://dev.azure.com/${match.groups.org}/${match.groups.project || match.groups.repo}/_git/${match.groups.repo}?path=%2F&version=GB${this.stage.gitRepo.branch || 'main'}`
             }
             return `${this.stage.gitRepo.url}/tree/${this.stage.gitRepo.branch || 'main'}`
         }
@@ -330,7 +330,7 @@ export default {
         },
         edit () {
             const route = {
-                name: 'EditPipelineStage',
+                name: 'application-pipeline-stage-edit',
                 params: {
                     // url params
                     id: this.application.id,

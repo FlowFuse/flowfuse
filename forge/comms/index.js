@@ -1,6 +1,7 @@
 const fp = require('fastify-plugin')
 
 const ACLManager = require('./aclManager')
+const { BrowserSessionPresenceHandler } = require('./browserSessionPresence')
 const { CommsClient } = require('./commsClient')
 const { DeviceCommsHandler } = require('./devices')
 const { ExpertCommsHandler } = require('./expert')
@@ -36,6 +37,7 @@ module.exports = fp(async function (app, _opts) {
         const instanceCommsHandler = InstanceCommsHandler(app, client)
         const platformAutomationHandler = PlatformAutomationHandler(app, client)
         const expertCommsHandler = new ExpertCommsHandler(app, client)
+        const browserSessionPresenceHandler = BrowserSessionPresenceHandler(app, client)
 
         // Not in the current release, but when we handle Launcher status
         // via MQTT, it will arrive here. Compare to the status/device handler in `devices.js`
@@ -50,6 +52,7 @@ module.exports = fp(async function (app, _opts) {
             aclManager: ACLManager(app),
             platformAutomation: platformAutomationHandler,
             expert: expertCommsHandler,
+            browserSessions: browserSessionPresenceHandler,
             platform: {
                 settings: {
                     sync: function (key) {
@@ -92,6 +95,12 @@ module.exports = fp(async function (app, _opts) {
                     const meta = { state }
                     if (versions) meta.versions = versions
                     client.publish(`ff/v1/${teamHash}/p/${id}/state`, JSON.stringify({ id, meta }))
+                },
+                notifyEntityLifecycle: function (teamHash, type, id, action, data) {
+                    if (!teamHash || !type || !id || !action) return
+                    const msg = { id, action }
+                    if (data !== undefined) msg.data = data
+                    client.publish(`ff/v1/${teamHash}/${type}/${id}/${action}`, JSON.stringify(msg))
                 }
             }
         })
