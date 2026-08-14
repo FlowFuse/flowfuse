@@ -6,6 +6,6 @@
   "data": {
     "title": "Platform Wide Notification",
     "message": "Hello, I'm your friendly neighborhood platform wide notification.",
-    "to": "{\"name\":\"Application\",\"params\":{\"id\":\"application-id\"}}"
+    "to": "{\"name\":\"application\",\"params\":{\"id\":\"application-id\"}}"
   }
 }

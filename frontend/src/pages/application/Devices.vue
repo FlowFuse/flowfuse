@@ -20,7 +20,7 @@ import DevicesBrowser from '../../components/DevicesBrowser.vue'
 import SectionTopMenu from '../../components/SectionTopMenu.vue'
 
 export default {
-    name: 'ApplicationDevices',
+    name: 'application-devices',
     components: {
         DevicesBrowser,
         SectionTopMenu
