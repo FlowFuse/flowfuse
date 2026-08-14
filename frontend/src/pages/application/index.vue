@@ -1,24 +1,21 @@
 <template>
-    <ff-loading v-if="loading.deleting" message="Deleting Application..." />
-    <ff-loading v-else-if="loading.suspend" message="Suspending Application..." />
-    <main v-else-if="!application?.id">
-        <ff-loading message="Loading Application..." />
-    </main>
-    <main v-else class="ff-with-status-header flex flex-col h-full w-full overflow-auto" data-el="application-page">
+    <ff-page no-padding>
+        <template #header>
+            <ff-page-header :title="application?.name" :tabs="navigation">
+                <template #breadcrumbs>
+                    <ff-nav-breadcrumb v-if="team" :to="{name: 'team-applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
+                </template>
+            </ff-page-header>
+        </template>
         <ConfirmApplicationDeleteDialog ref="confirmApplicationDeleteDialog" @confirm="deleteApplication" />
         <ConfirmInstanceDeleteDialog ref="confirmInstanceDeleteDialog" @confirm="onInstanceDeleted" />
-        <ff-page-header :title="application.name" :tabs="navigation">
-            <template #breadcrumbs>
-                <ff-nav-breadcrumb v-if="team" :to="{name: 'team-applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
-            </template>
-        </ff-page-header>
-        <div class="px-3 py-3 md:px-6 md:py-6 flex-1 flex flex-col h-full overflow-auto">
+        <div v-if="application" class="px-3 py-3 md:px-6 md:py-6 flex-1 flex flex-col h-full overflow-auto" data-el="application-page">
             <router-view
                 :application="application"
                 :instances="instancesArray"
                 :loading-instance-statuses="loadingInstanceStatuses"
                 :is-visiting-admin="isVisitingAdmin"
-                @application-updated="updateApplication"
+                @application-updated="loadApplicationData"
                 @application-delete="showConfirmDeleteApplicationDialog"
                 @instance-start="instanceStart"
                 @instance-restart="instanceRestart"
@@ -30,17 +27,19 @@
                 <InstanceStatusPolling v-for="instance in instancesArray" :key="instance.id" :instance="instance" @instance-updated="instanceUpdated" />
             </template>
         </div>
-    </main>
+    </ff-page>
 </template>
 
 <script>
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
+import applicationApi from '../../api/application.js'
 import InstanceStatusPolling from '../../components/InstanceStatusPolling.vue'
 import usePermissions from '../../composables/Permissions.js'
 
-import applicationMixin from '../../mixins/Application.js'
+import { useActiveApplication } from '../../composables/useActiveApplication'
 import instanceActionsMixin from '../../mixins/InstanceActions.js'
+import alerts from '../../services/alerts.js'
 import { applyLiveState } from '../../utils/applyLiveState.js'
 
 import ConfirmInstanceDeleteDialog from '../instance/Settings/dialogs/ConfirmInstanceDeleteDialog.vue'
@@ -49,7 +48,9 @@ import ConfirmApplicationDeleteDialog from './Settings/dialogs/ConfirmApplicatio
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 import { useLiveStatusStore } from '@/stores/live-status'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'ApplicationPage',
@@ -58,38 +59,65 @@ export default {
         ConfirmInstanceDeleteDialog,
         InstanceStatusPolling
     },
-    mixins: [applicationMixin, instanceActionsMixin],
+    mixins: [instanceActionsMixin],
     setup () {
         const { hasPermission, isVisitingAdmin } = usePermissions()
+        const { loadActiveApplication } = useActiveApplication()
+        const applicationsStore = useDataFarmApplicationsStore()
 
-        return { hasPermission, isVisitingAdmin }
+        return {
+            hasPermission,
+            isVisitingAdmin,
+            loadActiveApplication,
+            deleteApplicationEntity: applicationsStore.deleteApplication
+        }
+    },
+    data () {
+        return {
+            applicationInstances: new Map(),
+            loadingInstanceStatuses: false
+        }
     },
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
         ...mapState(useLiveStatusStore, { liveInstanceMetadata: 'instanceMetadata', statusChannelLive: 'live' }),
+        ...mapState(useDataFarmApplicationsStore, { application: 'activeApplication', applicationHydrated: 'applicationHydrated', activeApplicationId: 'activeApplicationId' }),
+        ...mapState(useUxLoadingStore, ['pageLoader']),
+        routeApplicationHydrated () {
+            return this.applicationHydrated && this.activeApplicationId === this.$route.params.id
+        },
+        shouldShowPageLoader () {
+            return !this.routeApplicationHydrated
+        },
+        instancesArray () {
+            if (this.applicationInstances.size === 0) {
+                return []
+            }
+            return Array.from(this.applicationInstances.values()).filter(el => el)
+        },
         navigation () {
             const routes = [
                 {
                     label: 'Hosted Instances',
-                    to: { name: 'ApplicationInstances' },
+                    to: { name: 'application-instances' },
                     tag: 'application-overview'
                     // icon: ProjectsIcon
                 },
                 {
                     label: 'Remote Instances',
-                    to: { name: 'ApplicationDevices' },
+                    to: { name: 'application-devices' },
                     tag: 'application-devices-overview'
                     // icon: CpuChipIcon
                 },
                 {
                     label: 'Dashboards',
-                    to: { name: 'ApplicationDashboards' },
+                    to: { name: 'application-dashboards' },
                     tag: 'application-dashboards'
                 },
                 {
                     label: 'Device Groups',
-                    to: { name: 'ApplicationDeviceGroups' },
+                    to: { name: 'application-device-groups' },
                     tag: 'application-devices-groups-overview',
                     // icon: CpuChipIcon,
                     hidden: !this.hasPermission('application:device-group:list', { application: this.application }),
@@ -97,13 +125,13 @@ export default {
                 },
                 {
                     label: 'Snapshots',
-                    to: { name: 'ApplicationSnapshots' },
+                    to: { name: 'application-snapshots' },
                     tag: 'application-snapshots'
                     // icon: ClockIcon
                 },
                 {
                     label: 'Pipelines',
-                    to: { name: 'ApplicationPipelines' },
+                    to: { name: 'application-pipelines' },
                     tag: 'application-pipelines',
                     // icon: PipelinesIcon,
                     hidden: !this.hasPermission('application:pipeline:list', { application: this.application }),
@@ -141,13 +169,80 @@ export default {
         }
     },
     watch: {
-        '$route.params': {
-            handler: 'updateApplication',
+        routeApplicationHydrated: {
+            handler (isHydrated) {
+                if (!isHydrated && this.$route.params.id) {
+                    this.loadApplicationData()
+                }
+            },
             immediate: true
+        },
+        shouldShowPageLoader: {
+            handler (show) {
+                this.setPageLoader(show, 'Loading Application...')
+            },
+            immediate: true
+        },
+        application (application, previous) {
+            if (previous && !application && !this.pageLoader && this.$route.params.id) {
+                alerts.emit('This application has been deleted.', 'warning')
+                this.$router.push({ name: 'team-applications', params: { team_slug: this.team?.slug } })
+            }
         },
         liveInstanceMetadata: { handler: 'applyLiveStatus', deep: true }
     },
+    beforeUnmount () {
+        this.clearActiveApplication()
+        this.setPageLoader(false)
+    },
     methods: {
+        ...mapActions(useUxLoadingStore, ['setPageLoader']),
+        ...mapActions(useDataFarmApplicationsStore, ['clearActiveApplication']),
+        async loadApplicationData () {
+            const applicationId = this.$route.params.id
+            if (!applicationId) {
+                return
+            }
+            this.applicationInstances = new Map()
+            const application = await this.loadActiveApplication(applicationId)
+            if (!application) {
+                return
+            }
+            if (this.team?.slug !== application.team?.slug) {
+                return
+            }
+            const instances = await applicationApi.getApplicationInstances(applicationId)
+            const nextInstances = new Map()
+            instances.forEach(instance => nextInstances.set(instance.id, instance))
+            this.applicationInstances = nextInstances
+            this.loadingInstanceStatuses = true
+            applicationApi.getApplicationInstancesStatuses(applicationId)
+                .then(statuses => {
+                    statuses.forEach(status => {
+                        this.applicationInstances.set(status.id, { ...this.applicationInstances.get(status.id), ...status })
+                    })
+                })
+                .catch(err => console.error(err))
+                .finally(() => {
+                    this.loadingInstanceStatuses = false
+                })
+        },
+        async deleteApplication () {
+            this.setPageLoader(true, 'Deleting Application...')
+            try {
+                await this.deleteApplicationEntity(this.application.id, this.team.id)
+                await useContextStore().refreshTeam()
+                this.$router.push({ name: 'team-applications' })
+                alerts.emit('Application successfully deleted.', 'confirmation')
+            } catch (err) {
+                if (err.response?.data?.error) {
+                    alerts.emit(`Application failed to delete: ${err.response.data.error}`, 'warning', 10000)
+                } else {
+                    alerts.emit('Application failed to delete', 'warning')
+                }
+            }
+            this.setPageLoader(false)
+        },
         applyLiveStatus () {
             for (const id of this.applicationInstances.keys()) {
                 const meta = this.liveInstanceMetadata[id]

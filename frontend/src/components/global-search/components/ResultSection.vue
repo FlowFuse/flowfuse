@@ -91,7 +91,7 @@ export default {
                 switch (this.resultType) {
                 case 'application':
                     params.team_slug = this.team.slug
-                    routeName = 'Application'
+                    routeName = 'application'
                     break
                 case 'instance':
                     routeName = 'instance-overview'

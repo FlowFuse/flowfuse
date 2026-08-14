@@ -33,9 +33,7 @@
             </ff-page-header>
         </template>
         <div class="space-y-6">
-            <ApplicationsListSkeleton v-if="isLoadingTeamApplications" />
-
-            <template v-else-if="teamApplications.length > 0">
+            <template v-if="teamApplications.length > 0">
                 <ff-text-input
                     v-model="filterTerm"
                     class="ff-data-table--search"
@@ -109,17 +107,15 @@ import EmptyState from '../../../components/EmptyState.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import ApplicationListItem from './components/Application.vue'
-import ApplicationsListSkeleton from './components/ApplicationsListSkeleton.vue'
 
-import { useContextStore } from '@/stores/context.js'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'TeamApplications',
     components: {
         MagnifyingGlassIcon,
         ApplicationListItem,
-        ApplicationsListSkeleton,
         EmptyState,
         PlusSmallIcon
     },
@@ -138,8 +134,10 @@ export default {
         }
     },
     computed: {
-        ...mapState(useContextStore, ['team']),
-        ...mapState(useDataFarmApplicationsStore, ['teamApplications', 'isLoadingTeamApplications']),
+        ...mapState(useDataFarmApplicationsStore, ['teamApplications', 'applicationsListHydrated']),
+        shouldShowPageLoader () {
+            return !this.applicationsListHydrated
+        },
         filteredApplications () {
             if (this.filterTerm.length) {
                 return this.teamApplications
@@ -153,24 +151,32 @@ export default {
         }
     },
     watch: {
-        team: 'loadApplications'
+        applicationsListHydrated: {
+            handler (isHydrated) {
+                if (!isHydrated) {
+                    this.ensureTeamApplicationsLoaded()
+                }
+            },
+            immediate: true
+        },
+        shouldShowPageLoader: {
+            handler (show) {
+                this.setPageLoader(show, 'Loading Applications...')
+            },
+            immediate: true
+        }
     },
-    async mounted () {
-        await this.loadApplications()
-
+    mounted () {
         this.setSearchQuery()
+    },
+    beforeUnmount () {
+        this.setPageLoader(false)
     },
     methods: {
         ...mapActions(useDataFarmApplicationsStore, ['ensureTeamApplicationsLoaded']),
-        loadApplications () {
-            if (this.team?.id) {
-                return this.ensureTeamApplicationsLoaded(this.team.id)
-            }
-        },
+        ...mapActions(useUxLoadingStore, ['setPageLoader']),
         refreshApplications () {
-            if (this.team?.id) {
-                return this.ensureTeamApplicationsLoaded(this.team.id, { force: true })
-            }
+            return this.ensureTeamApplicationsLoaded({ force: true })
         },
         setSearchQuery () {
             if (this.$route?.query && Object.prototype.hasOwnProperty.call(this.$route.query, 'searchQuery')) {

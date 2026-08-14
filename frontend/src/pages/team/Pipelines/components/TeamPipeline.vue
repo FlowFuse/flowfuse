@@ -1,7 +1,7 @@
 <template>
     <div class="ff-pipeline" :data-pipeline="slugify(pipeline.name)">
         <router-link
-            :to="{name: 'ApplicationPipelines', params: {id: pipeline.application.id}}"
+            :to="{name: 'application-pipelines', params: {id: pipeline.application.id}}"
             class="ff-pipeline-header flex gap-5 self-end items-center truncate"
         >
             <div class="flex flex-col gap-0.5">
