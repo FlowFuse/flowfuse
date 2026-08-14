@@ -63,7 +63,7 @@ import Alerts from '../../../services/alerts.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
-    name: 'CreatePipeline',
+    name: 'application-pipeline-create',
     components: {
         SectionTopMenu,
         FormRow
@@ -103,7 +103,7 @@ export default {
             handler (team) {
                 if (team && !this.hasPermission('pipeline:create')) {
                     this.$router.replace({
-                        name: 'ApplicationPipelines',
+                        name: 'application-pipelines',
                         params: {
                             id: this.application.id
                         }
@@ -123,7 +123,7 @@ export default {
                 Alerts.emit('Pipeline successfully created.', 'confirmation')
 
                 this.$router.push({
-                    name: 'ApplicationPipelines',
+                    name: 'application-pipelines',
                     params: {
                         id: this.application.id
                     }

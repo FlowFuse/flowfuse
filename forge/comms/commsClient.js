@@ -55,6 +55,22 @@ class CommsClient extends EventEmitter {
                 const ownerId = topicParts[4]
                 const messageType = topicParts[5]
 
+                if (topicParts[2] === 'browser') {
+                    // ff/v1/browser/tab-presence/<userId>/<sessionId>/<messageType>
+                    const userId = topicParts[4]
+                    const sessionId = topicParts[5]
+                    const messageType = topicParts[6]
+                    let payload
+                    try {
+                        payload = JSON.parse(message.toString())
+                    } catch (err) {
+                        this.app.log.warn(`Ignoring malformed browser payload on ${topic}: ${err.message}`)
+                        return
+                    }
+                    this.emit('tab-presence', { userId, sessionId, messageType, payload })
+                    return
+                }
+
                 if (topicParts[2] === 'expert') {
                     const userId = topicParts[3]
                     const sessionId = topicParts[4]
@@ -278,7 +294,9 @@ class CommsClient extends EventEmitter {
                 // Responses to this replica's third-party MCP proxy requests.
                 // Scoped to our own platformId so the reply returns to the replica
                 // that holds the agent's HTTP connection.
-                'ff/v1/mcp/' + this.platformId + '/+/+/response'
+                'ff/v1/mcp/' + this.platformId + '/+/+/response'.
+                // Browser tab presence - shared subscription
+                '$share/browser/ff/v1/browser/tab-presence/+/+/+'
             ])
         }
     }

@@ -1,6 +1,7 @@
 const fp = require('fastify-plugin')
 
 const ACLManager = require('./aclManager')
+const { BrowserSessionPresenceHandler } = require('./browserSessionPresence')
 const { CommsClient } = require('./commsClient')
 const { DeviceCommsHandler } = require('./devices')
 const { ExpertCommsHandler } = require('./expert')
@@ -36,6 +37,7 @@ module.exports = fp(async function (app, _opts) {
         const instanceCommsHandler = InstanceCommsHandler(app, client)
         const platformAutomationHandler = PlatformAutomationHandler(app, client)
         const expertCommsHandler = new ExpertCommsHandler(app, client)
+        const browserSessionPresenceHandler = BrowserSessionPresenceHandler(app, client)
 
         // Not in the current release, but when we handle Launcher status
         // via MQTT, it will arrive here. Compare to the status/device handler in `devices.js`
@@ -50,12 +52,15 @@ module.exports = fp(async function (app, _opts) {
             aclManager: ACLManager(app),
             platformAutomation: platformAutomationHandler,
             expert: expertCommsHandler,
+
             mcpProxyRequest: function (route, payload, timeoutMs) {
                 return client.mcpProxyRequest(route, payload, timeoutMs)
             },
             publishTabHeartbeat: function (userId, sessionId, action, payload) {
                 return client.publishTabHeartbeat(userId, sessionId, action, payload)
             },
+            browserSessions: browserSessionPresenceHandler,
+
             platform: {
                 settings: {
                     sync: function (key) {

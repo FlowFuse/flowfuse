@@ -118,6 +118,16 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
         dependsOnTeam: 'ai',
         dependsOnTeamOptOut: true
     },
+    {
+        output: 'isMcpThirdPartyFeatureEnabled',
+        platformKey:
+            'mcpThirdParty',
+        teamKey: 'mcpThirdParty',
+        optOut: true,
+        dependsOnPlatform: 'ai',
+        dependsOnTeam: 'ai',
+        dependsOnTeamOptOut: true
+    },
     { output: 'isApplicationsRBACFeatureEnabled', platformKey: 'rbacApplication', teamKey: 'rbacApplication' },
 
     // Team-only

@@ -6,6 +6,7 @@ import { Roles } from '../utils/roles.js'
 
 import { useAccountAuthStore } from './account-auth.js'
 import { useAccountSettingsStore } from './account-settings.js'
+import { useDataFarmApplicationsStore } from './data-farm-applications'
 import { useDataFarmTeamsStore } from './data-farm-teams'
 import { useProductAssistantStore } from './product-assistant.js'
 import { useProductExpertStore } from './product-expert.js'
@@ -13,11 +14,13 @@ import { useProductExpertStore } from './product-expert.js'
 export const useContextStore = defineStore('context', {
     state: () => ({
         route: null,
-        application: null,
         instance: null,
         device: null
     }),
     getters: {
+        application () {
+            return useDataFarmApplicationsStore().activeApplication
+        },
         team () {
             return useDataFarmTeamsStore().activeTeam
         },
@@ -97,7 +100,7 @@ export const useContextStore = defineStore('context', {
                 teamSlug: this.team?.slug || null,
                 instanceId: state.instance ? state.instance.id : null,
                 deviceId: state.device ? state.device.id : null,
-                applicationId: state.application ? state.application.id : null,
+                applicationId: this.application ? this.application.id : null,
                 deviceOwnerType: state.device?.ownerType ?? null,
                 isTrialAccount: this.isTrialAccount,
                 pageName: state.route.name,
@@ -135,15 +138,7 @@ export const useContextStore = defineStore('context', {
             this.setApplication(device?.application ?? null)
         },
         setApplication (application) {
-            if (application) {
-                this.application = {
-                    id: application.id,
-                    name: application.name,
-                    description: application.description,
-                }
-            } else {
-                this.application = null
-            }
+            useDataFarmApplicationsStore().setActiveApplication(application)
         },
         clearInstance () { this.setInstance(null) },
         setTeam (team) {
