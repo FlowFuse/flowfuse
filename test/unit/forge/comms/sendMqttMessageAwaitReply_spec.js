@@ -1,6 +1,6 @@
 const should = require('should') // eslint-disable-line no-unused-vars
 
-const { SendMqttMessageAwaitReply } = require('../../../../forge/comms/sendMqttMessageAwaitReply')
+const { SendMqttMessageAwaitReply } = require('../../../../forge/comms/utils/sendMqttMessageAwaitReply')
 
 describe('SendMqttMessageAwaitReply', function () {
     describe('create', function () {
