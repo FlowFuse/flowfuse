@@ -71,7 +71,7 @@ export default {
                 this.$emit('instance-updated')
                 Alerts.emit('Instance successfully updated.', 'confirmation')
                 this.$router.push({
-                    name: this.isImmersiveEditor ? 'instance-editor-overview' : 'Instance',
+                    name: this.isImmersiveEditor ? 'instance-editor-overview' : 'instance',
                     params: { id: this.instance.id }
                 })
             }).catch(err => {

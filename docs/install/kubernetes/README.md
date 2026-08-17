@@ -93,7 +93,7 @@ Before you begin, ensure you have the following:
      - MicroK8s
 5. **Ingress Controller:** Install [Traefik](https://doc.traefik.io/traefik/) on the cluster.
 6. **Cert-Manager:** EMQX requires the CRDs from cert-manager. See the [installation instructions](https://cert-manager.io/docs/installation/) for details.
-7. **EMQX Operator:** This installs the operator that deploys the MQTT broker the Team Broker features need. You must install exactly version 2.2.29 — later versions are not supported. Follow the [installation instructions](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator) and pin the version by adding `--version 2.2.29` to the install command.
+7. **EMQX Operator:** This installs the operator that deploys the platform's MQTT broker, which is required whenever the broker is enabled. You must install exactly version 2.2.29 — later versions are not supported. Follow the [installation instructions](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator) and pin the version by adding `--version 2.2.29` to the install command.
 
 For a production-ready environment, we also recommend: 
 * **Database:** Prepare dedicated database on an external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)

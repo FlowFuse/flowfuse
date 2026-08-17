@@ -11,9 +11,9 @@ meta:
 
 ---
 
-## Example configuration for common email platforms
+# Example configuration for common email platforms
 
-### GMail
+## GMail
 ```yaml
 email:
   enabled: true
@@ -29,7 +29,7 @@ email:
 
 Note: Gmail may require an app specific password to be created if you are using 2FA on the account you can set that up [here](https://security.google.com/settings/security/apppasswords)
 
-### Office365
+## Office365
 ```yaml
 email:
   enabled: true

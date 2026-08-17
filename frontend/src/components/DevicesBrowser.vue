@@ -239,7 +239,7 @@
                                 Here, you will see a list of Devices belonging to this Application.
                             </p>
                             <p>
-                                You can deploy <router-link class="ff-link" :to="{name: 'ApplicationSnapshots'}">Snapshots</router-link> of this Application to your connected Devices.
+                                You can deploy <router-link class="ff-link" :to="{name: 'application-snapshots'}">Snapshots</router-link> of this Application to your connected Devices.
                             </p>
                             <p>
                                 A full list of your Team's Devices are available <ff-team-link

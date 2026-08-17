@@ -72,7 +72,7 @@ export default {
     },
     methods: {
         onApplicationCreated (payload) {
-            this.$router.push({ name: 'Application', params: { id: payload.application.id } })
+            this.$router.push({ name: 'application', params: { id: payload.application.id } })
         }
     }
 }

@@ -51,7 +51,7 @@ export default {
         if (this.hasPermission('application:pipeline:list')) {
             await this.fetchData()
         } else {
-            return this.$router.push({ name: 'Application', params: this.$route.params })
+            return this.$router.push({ name: 'application', params: this.$route.params })
         }
     },
     methods: {

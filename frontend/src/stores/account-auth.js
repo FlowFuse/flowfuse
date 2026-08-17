@@ -12,6 +12,7 @@ import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useCookieConsentStore } from '@/stores/cookie-consent'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
+import { useDataFarmHostedInstancesStore } from '@/stores/data-farm-hosted-instances'
 import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 import { useProductAssistantStore } from '@/stores/product-assistant.js'
 import { useProductBrokersStore } from '@/stores/product-brokers.js'
@@ -235,6 +236,7 @@ export const useAccountAuthStore = defineStore('account-auth', {
             useContextStore().$reset()
             useCookieConsentStore().reset()
             useDataFarmApplicationsStore().reset()
+            useDataFarmHostedInstancesStore().reset()
             useDataFarmTeamsStore().reset()
             useProductTablesStore().$reset()
             useProductBrokersStore().$reset()
