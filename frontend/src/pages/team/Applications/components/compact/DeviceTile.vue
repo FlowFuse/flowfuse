@@ -6,7 +6,7 @@
         </div>
         <div class="details">
             <div class="detail-wrapper">
-                <router-link :to="{ name: 'Device', params: { id: device.id } }" class="name" :title="device.name">
+                <router-link :to="{ name: 'device', params: { id: device.id } }" class="name" :title="device.name">
                     {{ device.name }}
                 </router-link>
             </div>

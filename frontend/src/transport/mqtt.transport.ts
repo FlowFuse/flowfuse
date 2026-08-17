@@ -1,5 +1,5 @@
 import type { MqttConnectionOptions, MqttServiceI } from '@/types/services/mqtt.types'
-import type { Transport, TransportAttachmentHandle, TransportConnectOptions, TransportSubscribeOptions } from '@/types/transport/transport.types'
+import type { Transport, TransportAttachmentHandle, TransportConnectOptions, TransportPublishOptions, TransportSubscribeOptions } from '@/types/transport/transport.types'
 
 export class MqttTransport implements Transport<TransportConnectOptions> {
     private $mqtt: MqttServiceI
@@ -14,6 +14,10 @@ export class MqttTransport implements Transport<TransportConnectOptions> {
 
     subscribe (key: string, topics: string[], options: TransportSubscribeOptions = {}): Promise<void> {
         return this.$mqtt.subscribe(key, topics, options)
+    }
+
+    publish (key: string, options: TransportPublishOptions): Promise<void> {
+        return this.$mqtt.publishMessage(key, options)
     }
 
     detach (handle: TransportAttachmentHandle): Promise<void> {

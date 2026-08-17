@@ -282,7 +282,7 @@ export default {
         },
         selectedCloudRow (cloudInstance, event) {
             this.navigateTo({
-                name: 'Instance',
+                name: 'instance',
                 params: {
                     id: cloudInstance.id
                 }
