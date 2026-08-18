@@ -1629,6 +1629,18 @@ describe('Broker Auth v2 API', async function () {
                     topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/context`
                 })
             })
+            it('allows fe-team to publish close to own presence topic', async function () {
+                await allowWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/close`
+                })
+            })
+            it('denies fe-team from publishing close to another user\'s presence topic', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/browser/tab-presence/${bob.hashid}/session-abc12345/close`
+                })
+            })
             it('denies fe-team from publishing to another user\'s presence topic', async function () {
                 await denyWrite({
                     username: teamFrontendUsername,
