@@ -8,9 +8,6 @@
             <div class="flex flex-col gap-5">
                 <div class="flex justify-between items-center text-2xl">
                     <label class="font-medium">{{ teamType.name }}</label>
-                    <span v-if="pricing?.value && pricing.value.trim() !== ''">
-                        {{ pricing.value }} <span class="text-xs">/{{ pricing.interval }}</span>
-                    </span>
                 </div>
                 <ff-markdown-viewer :content="teamType.description" />
             </div>
@@ -61,16 +58,6 @@ export default {
     computed: {
         ...mapState(useDataFarmTeamsStore, { teams: 'teamList' }),
         ...mapState(useAccountAuthStore, ['user']),
-        pricing: function () {
-            const billingDescriptionKey = this.billingInterval === 'year' ? 'yrDescription' : 'description'
-            const billing = this.teamType.properties?.billing?.[billingDescriptionKey]?.split('/')
-            const price = {}
-            if (typeof billing !== 'undefined') {
-                price.value = billing[0]
-                price.interval = billing[1]
-            }
-            return price
-        },
         toCreateTeam () {
             return {
                 name: 'team-create',
