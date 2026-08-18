@@ -177,6 +177,71 @@ describe('BrowserSessionPresenceHandler', function () {
         })
     })
 
+    describe('close handling', function () {
+        it('removes the session entry', async function () {
+            client.emit('tab-presence', {
+                userId: 'user9',
+                sessionId: 'session1',
+                messageType: 'heartbeat',
+                payload: { visibility: 'visible' }
+            })
+            await new Promise(resolve => setImmediate(resolve))
+            ;(await handler.getSessionsByUser('user9')).should.have.length(1)
+
+            client.emit('tab-presence', {
+                userId: 'user9',
+                sessionId: 'session1',
+                messageType: 'close',
+                payload: {}
+            })
+            await new Promise(resolve => setImmediate(resolve))
+
+            const sessions = await handler.getSessionsByUser('user9')
+            sessions.should.have.length(0)
+        })
+
+        it('only removes the session named in the topic', async function () {
+            client.emit('tab-presence', {
+                userId: 'user10',
+                sessionId: 'sessionA',
+                messageType: 'heartbeat',
+                payload: { visibility: 'visible' }
+            })
+            client.emit('tab-presence', {
+                userId: 'user10',
+                sessionId: 'sessionB',
+                messageType: 'heartbeat',
+                payload: { visibility: 'visible' }
+            })
+            await new Promise(resolve => setImmediate(resolve))
+
+            client.emit('tab-presence', {
+                userId: 'user10',
+                sessionId: 'sessionA',
+                messageType: 'close',
+                payload: {}
+            })
+            await new Promise(resolve => setImmediate(resolve))
+
+            const sessions = await handler.getSessionsByUser('user10')
+            sessions.should.have.length(1)
+            sessions[0].should.have.property('sessionId', 'sessionB')
+        })
+
+        it('is a no-op for a session that was never registered', async function () {
+            client.emit('tab-presence', {
+                userId: 'user11',
+                sessionId: 'never-seen',
+                messageType: 'close',
+                payload: {}
+            })
+            await new Promise(resolve => setImmediate(resolve))
+
+            const sessions = await handler.getSessionsByUser('user11')
+            sessions.should.have.length(0)
+        })
+    })
+
     describe('cache failures', function () {
         it('logs and swallows a rejected cache write', async function () {
             const originalSet = handler.cache.set
