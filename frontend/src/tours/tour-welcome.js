@@ -1,6 +1,24 @@
 import { highlightElement } from '../composables/Ux.js'
 
 export const id = 'welcome'
+
+const EDITOR_BUTTON_SELECTOR = '[data-el="dashboard-section-hosted"] .instance-tile:first-of-type .actions .ff-btn'
+
+function highlightEditorButton () {
+    const editorButton = document.querySelector(EDITOR_BUTTON_SELECTOR)
+
+    if (editorButton) {
+        highlightElement(editorButton, { count: 3, duration: 2000, animation: 'pulse' })
+    }
+}
+
+// Users who leave the tour early open the editor less often than those who
+// finish it, so point them at it on the way out rather than holding them in
+// the tour they just closed.
+export function onCancel () {
+    highlightEditorButton()
+}
+
 export default [
     {
         title: 'Welcome to FlowFuse!',
@@ -102,8 +120,7 @@ export default [
                     })
                 }
 
-                const editorButton = document.querySelector('[data-el="dashboard-section-hosted"] .instance-tile:first-of-type .actions .ff-btn')
-                highlightElement(editorButton, { count: 3, duration: 2000, animation: 'pulse' })
+                highlightEditorButton()
             }
         },
         modalOverlayOpeningPadding: 6,

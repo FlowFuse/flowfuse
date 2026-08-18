@@ -7,7 +7,7 @@ import 'shepherd.js/dist/css/shepherd.css'
 
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
-function create (id, tourJson, onCloseHook) {
+function create (id, tourJson, onCloseHook, onCancelHook) {
     // Load tour styles at point-of-use
     // NOTE: Due to sass loader settings, a static import does not work since there are no explicit
     //       references to the styles in the codebase.  This dynamic import ensures the styles are
@@ -35,45 +35,35 @@ function create (id, tourJson, onCloseHook) {
         }
     })
 
-    const cancelTour = tour.cancel
-    tour.cancel = function () {
-        const currentStep = tour.getCurrentStep()
+    function closeTour () {
+        useUxToursStore().deactivateTour(id)
+        useUxToursStore().clearActiveTour()
+        useUxToursStore().withdrawTour()
+        if (onCloseHook) {
+            onCloseHook()
+        }
+    }
 
-        const index = tour.steps.indexOf(currentStep)
-        const finalExitStepIndexExists = tour.steps.findIndex(step => step.options.id?.includes('final-step')) !== -1
-        const allSteps = tour.steps
-        const isLastStep = index === allSteps.length || !!currentStep.options.id?.includes('final-step')
-
-        // highlight the newly created instance only if quitting start- / mid-tour
-        // highlight the newly created instance only for the welcome tour
-        if (tour.options.id === 'welcome' && finalExitStepIndexExists && !isLastStep) {
-            return tour.show('final-step-with-hosted-instance')
-        } else {
-            useUxToursStore().deactivateTour(id)
-            useUxToursStore().clearActiveTour()
-            useUxToursStore().withdrawTour()
-
-            Product.capture('ff-tour-cancel', {
-                tour_id: id,
-                tour_step: index
-            })
-            if (onCloseHook) {
-                onCloseHook()
-            }
-            cancelTour()
+    // Shepherd hands us the index of the step that was on screen when the tour
+    // ended, read before it tears the steps down.
+    function onCancel ({ index } = {}) {
+        Product.capture('ff-tour-cancel', {
+            tour_id: id,
+            tour_step: index
+        })
+        closeTour()
+        // Leaving early skips whatever the tour was going to point at last, so
+        // give the tour a chance to flag it once the overlay is out of the way.
+        if (onCancelHook) {
+            onCancelHook()
         }
     }
 
     function onComplete () {
-        useUxToursStore().deactivateTour(id)
-        useUxToursStore().clearActiveTour()
-        useUxToursStore().withdrawTour()
         Product.capture('ff-tour-complete', {
             tour_id: id
         })
-        if (onCloseHook) {
-            onCloseHook()
-        }
+        closeTour()
     }
 
     function onBack () {
@@ -94,6 +84,7 @@ function create (id, tourJson, onCloseHook) {
         })
     }
 
+    tour.on('cancel', onCancel)
     tour.on('complete', onComplete)
 
     // loop over steps and add them to the tour
