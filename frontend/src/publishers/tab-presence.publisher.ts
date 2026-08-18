@@ -15,7 +15,6 @@ class TabPresencePublisher extends TeamPublisher {
     private $heartbeatTimer: ReturnType<typeof setInterval> | null = null
     private $removeRouterGuard: (() => void) | null = null
     private $onVisibilityChange: (() => void) | null = null
-    private $onBeforeUnload: (() => void) | null = null
     private $userId: string | null = null
     private $sessionId: string | null = null
 
@@ -24,26 +23,27 @@ class TabPresencePublisher extends TeamPublisher {
     }
 
     protected _onStarted (teamId: string, userId: string): void {
+        // _onConnect fires again on every broker reconnect, so tear down any timers
+        // and listeners from a previous run before registering new ones.
+        this._onStopped()
+
         const authStore = useAccountAuthStore()
         this.$userId = userId
         this.$sessionId = authStore.getSessionId()
 
-        this._publishHeartbeat()
-        this._publishContext()
+        this._publishPresence()
 
-        this.$heartbeatTimer = setInterval(() => this._publishHeartbeat(), HEARTBEAT_INTERVAL)
+        this.$heartbeatTimer = setInterval(() => this._publishPresence(), HEARTBEAT_INTERVAL)
 
         if (this.$router) {
+            // TODO this should reside in it's dedicated route guard
             this.$removeRouterGuard = this.$router.afterEach(() => {
-                this._publishContext()
+                this._publishPresence()
             })
         }
 
-        this.$onVisibilityChange = () => this._publishHeartbeat()
+        this.$onVisibilityChange = () => this._publishPresence()
         document.addEventListener('visibilitychange', this.$onVisibilityChange)
-
-        this.$onBeforeUnload = () => this._clearOnUnload()
-        window.addEventListener('beforeunload', this.$onBeforeUnload)
     }
 
     protected _onStopped (): void {
@@ -62,39 +62,25 @@ class TabPresencePublisher extends TeamPublisher {
             this.$onVisibilityChange = null
         }
 
-        if (this.$onBeforeUnload) {
-            window.removeEventListener('beforeunload', this.$onBeforeUnload)
-            this.$onBeforeUnload = null
-        }
-
         this.$userId = null
         this.$sessionId = null
     }
 
-    private _publishHeartbeat (): void {
+    /**
+     * Publishes the full tab snapshot. The platform replaces its cache entry with
+     * whatever this sends, so every message has to carry the complete state.
+     */
+    private _publishPresence (): void {
         if (!this.$userId || !this.$sessionId) return
+        const contextStore = useContextStore()
         const topic = `ff/v1/browser/tab-presence/${this.$userId}/${this.$sessionId}/heartbeat`
         this._publish(topic, {
             visibility: document.visibilityState,
-            focused: document.hasFocus()
-        }).catch(() => {})
-    }
-
-    private _publishContext (): void {
-        if (!this.$userId || !this.$sessionId) return
-        const contextStore = useContextStore()
-        const topic = `ff/v1/browser/tab-presence/${this.$userId}/${this.$sessionId}/context`
-        this._publish(topic, contextStore.expert).catch(() => {})
-    }
-
-    private _clearOnUnload (): void {
-        if (!this.$userId || !this.$sessionId) return
-        try {
-            const url = `/api/v1/user/browser-sessions/${this.$sessionId}`
-            fetch(url, { method: 'DELETE', keepalive: true, credentials: 'same-origin' })
-        } catch {
-            // best-effort
-        }
+            focused: document.hasFocus(),
+            context: contextStore.expert
+        }).catch((err) => {
+            console.warn('Failed to publish tab presence:', err)
+        })
     }
 }
 

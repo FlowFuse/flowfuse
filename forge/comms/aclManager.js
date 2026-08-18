@@ -596,8 +596,8 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' }
             ],
             pub: [
-                // ff/v1/browser/tab-presence/<userId>/<sessionId>/<heartbeat|context>
-                { topic: /^ff\/v1\/browser\/tab-presence\/([^/]+)\/([^/]+)\/(heartbeat|context)$/, verify: 'checkPresenceTopic' }
+                // ff/v1/browser/tab-presence/<userId>/<sessionId>/heartbeat
+                { topic: /^ff\/v1\/browser\/tab-presence\/([^/]+)\/([^/]+)\/(heartbeat)$/, verify: 'checkPresenceTopic' }
             ]
         },
         // frontend client (user)
