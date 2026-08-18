@@ -17,7 +17,7 @@ interface EntityTopicPaths {
     entityId: string | undefined
 }
 
-type AgentChannel = 'support' | 'insights'
+type AgentChannel = 'support' | 'insights' | 'mcp'
 type TopicType = 'chat' | 'inflight'
 type TopicAction = 'response' | 'request'
 
@@ -25,6 +25,7 @@ interface ParsedTopic {
     topic: string
     isReply: boolean
     isInflightRequest: boolean
+    sessionId: string
     entityType: string
     entityId: string
     agentChannel: 'support' | 'insights' | string
@@ -40,6 +41,7 @@ interface BuildTopicOptions {
     topicType?: TopicType
     topicAction?: TopicAction,
     inflightType?: string | null
+    sessionId?: string | null
 }
 
 export function useMqttExpertTopicHelper () {
@@ -72,12 +74,12 @@ export function useMqttExpertTopicHelper () {
     }
 
     function buildTopic (options?: BuildTopicOptions): string {
-        const { entityType, entityId, agentChannel, topicType, topicAction, inflightType } = options ?? {}
+        const { entityType, entityId, agentChannel, topicType, topicAction, inflightType, sessionId: sessionIdOverride } = options ?? {}
 
         if (!entityType) throw new Error('Topic "entityType" is mandatory')
         if (!entityId) throw new Error('Topic "entityId" is mandatory')
-        if (!agentChannel || !['support', 'insights'].includes(agentChannel)) {
-            throw new Error(`"agentChannel" must be either "support" or "insights", "${agentChannel}" given`)
+        if (!agentChannel || !['support', 'insights', 'mcp'].includes(agentChannel)) {
+            throw new Error(`"agentChannel" must be one of "support", "insights" or "mcp", "${agentChannel}" given`)
         }
         if (!topicType || !['chat', 'inflight'].includes(topicType)) {
             throw new Error(`"topicType" must be either "chat" or "inflight", "${topicType}" given`)
@@ -89,7 +91,7 @@ export function useMqttExpertTopicHelper () {
         const authStore = useAccountAuthStore()
         const expertStore = useProductExpertStore()
 
-        const sessionId = expertStore.sessionId
+        const sessionId = sessionIdOverride ?? expertStore.sessionId
 
         return [
             'ff',
@@ -121,6 +123,7 @@ export function useMqttExpertTopicHelper () {
             topic,
             isReply: topic.endsWith('/response'),
             isInflightRequest: inflightRequest,
+            sessionId: split[4],
             entityType: split[5],
             entityId: split[6],
             agentChannel: split[7],
