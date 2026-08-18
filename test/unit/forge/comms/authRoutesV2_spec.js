@@ -1623,8 +1623,8 @@ describe('Broker Auth v2 API', async function () {
                     topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/heartbeat`
                 })
             })
-            it('allows fe-team to publish context to own presence topic', async function () {
-                await allowWrite({
+            it('denies fe-team from publishing to the retired context presence topic', async function () {
+                await denyWrite({
                     username: teamFrontendUsername,
                     topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/context`
                 })

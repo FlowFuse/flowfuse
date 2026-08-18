@@ -11,31 +11,30 @@ class BrowserSessionPresenceHandler {
     }
 
     setupEventHandlers () {
-        this.client.on('tab-presence', (msg) => this.handlePresence(msg))
+        this.client.on('tab-presence', (msg) => {
+            this.handlePresence(msg).catch((err) => {
+                this.app.log.warn(`Failed to handle tab-presence message: ${err.toString()}`)
+            })
+        })
     }
 
+    /**
+     * Every presence message carries the full tab snapshot, so the cache entry is
+     * replaced. That keeps concurrent messages for the same session from
+     * overwriting each other's fields.
+     */
     async handlePresence ({ userId, sessionId, messageType, payload }) {
-        const cacheKey = `${userId}:${sessionId}`
-
-        if (messageType === 'heartbeat') {
-            const existing = await this.cache.get(cacheKey) || {}
-            await this.cache.set(cacheKey, {
-                ...existing,
-                userId,
-                sessionId,
-                lastSeen: Date.now(),
-                visibility: payload.visibility || 'visible'
-            })
-        } else if (messageType === 'context') {
-            const existing = await this.cache.get(cacheKey) || {}
-            await this.cache.set(cacheKey, {
-                ...existing,
-                userId,
-                sessionId,
-                lastSeen: Date.now(),
-                context: payload
-            })
+        if (messageType !== 'heartbeat') {
+            return
         }
+        await this.cache.set(`${userId}:${sessionId}`, {
+            userId,
+            sessionId,
+            lastSeen: Date.now(),
+            visibility: payload.visibility || 'visible',
+            focused: payload.focused ?? null,
+            context: payload.context ?? null
+        })
     }
 
     async getSessionsByUser (userId) {

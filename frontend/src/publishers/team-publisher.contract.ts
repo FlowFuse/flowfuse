@@ -135,7 +135,7 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
         await transport.publish(connectionKey(teamId), {
             topic,
             payload,
-            qos: 1,
+            qos: 2,
             ...options
         })
     }
