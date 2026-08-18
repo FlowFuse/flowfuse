@@ -92,6 +92,11 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
         const sessionId = authStore.getSessionId()
         const key = connectionKey(teamId)
 
+        // Set before attaching: when the transport already holds an open client for
+        // this key, it invokes onConnect synchronously during attach. _onStarted then
+        // publishes straight away, and _publish bails out if $connectedTeamId is unset.
+        this.$connectedTeamId = teamId
+
         try {
             this.$attachment = await transport.attach(key, {
                 getCredentials: () => teamApi.getTeamCommsCreds(teamId, sessionId),
@@ -102,8 +107,8 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
                 onDisconnect: () => {},
                 onError: () => {}
             })
-            this.$connectedTeamId = teamId
-        } catch {
+        } catch (err) {
+            console.warn(`[${this.$name}] failed to attach to the team connection:`, err)
             this.$connectedTeamId = null
             this.$attachment = null
         }
@@ -111,6 +116,15 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
 
     protected async _disconnect (): Promise<void> {
         if (!this.$connectedTeamId) return
+
+        // Runs while the connection and the publisher's identity are still intact, so
+        // subclasses can send a final message before everything is torn down.
+        try {
+            await this._onStopping()
+        } catch {
+            // a failed teardown notification must not block the disconnect
+        }
+
         const transport = this.$transport
         const attachment = this.$attachment
         this.$connectedTeamId = null
@@ -139,6 +153,8 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
             ...options
         })
     }
+
+    protected async _onStopping (): Promise<void> {}
 
     protected abstract _onStarted (teamId: string, userId: string): void
 
