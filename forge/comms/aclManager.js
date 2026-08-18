@@ -124,7 +124,7 @@ module.exports = function (app) {
             }
         },
         checkUserIsTeamMember: async function (requestParts, usernameParts) {
-            // requestParts = [ fullTopic , <teamHash> [, <userHash>] ]
+            // requestParts = [ fullTopic , <teamHash> [, <userHash> [, <sessionId>]] ]
             // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
             const topicTeamHash = requestParts[1]
             const usernameUserHash = usernameParts[1]
@@ -134,6 +134,11 @@ module.exports = function (app) {
             }
             // membership topic: user capture must match the credential's user
             if (requestParts[2] !== undefined && requestParts[2] !== usernameUserHash) {
+                return false
+            }
+            // session topic: session capture must match the credential's session, so one
+            // tab cannot publish on behalf of another tab belonging to the same user
+            if (requestParts[3] !== undefined && requestParts[3] !== usernameParts[3]) {
                 return false
             }
             try {
@@ -168,25 +173,6 @@ module.exports = function (app) {
                 return !!membership
             } catch (error) {
                 app.log.error('Unexpected error during team-channel status ACL check', { requestParts, usernameParts, error })
-                return false
-            }
-        },
-        checkPresenceTopic: async function (requestParts, usernameParts) {
-            // requestParts = [ fullTopic, <userId>, <sessionId>, <messageType> ]
-            // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
-            const topicUserId = requestParts[1]
-            const usernameUserHash = usernameParts[1]
-            if (topicUserId !== usernameUserHash) {
-                return false
-            }
-            try {
-                const user = await app.db.models.User.byId(usernameUserHash)
-                if (!user || user.suspended) {
-                    return false
-                }
-                return true
-            } catch (error) {
-                app.log.error('Unexpected error during presence topic ACL check', { requestParts, usernameParts, error })
                 return false
             }
         },
@@ -487,12 +473,10 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/platform\/leader$/ },
                 // platform can listen for Expert Agent requests
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' },
-                // platform can listen for browser tab presence (shared subscription)
-                // - ff/v1/browser/tab-presence/<userId>/<sessionId>/<heartbeat|context>
-                // Uses [^/]+ for the message-type segment because the subscription wildcard (+)
-                // is matched as a literal character. The publish-side ACL on teamFrontend
-                // already restricts to heartbeat|context.
-                { topic: /^ff\/v1\/browser\/tab-presence\/[^/]+\/[^/]+\/[^/]+$/, shared: true }
+                // - ff/v1/<team>/u/<user>/s/<session>/<event> (shared subscription)
+                //   [^/]+ on the event segment: the subscription wildcard (+) is matched
+                //   literally, and teamFrontend's pub rule already restricts the events
+                { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/s\/[^/]+\/[^/]+$/, shared: true }
             ],
             pub: [
                 // Send commands to project launchers
@@ -596,8 +580,9 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' }
             ],
             pub: [
-                // ff/v1/browser/tab-presence/<userId>/<sessionId>/<heartbeat|close>
-                { topic: /^ff\/v1\/browser\/tab-presence\/([^/]+)\/([^/]+)\/(heartbeat|close)$/, verify: 'checkPresenceTopic' }
+                // - ff/v1/<team>/u/<user>/s/<session>/<heartbeat|close|disconnected>
+                //   `disconnected` is the last will, published by the broker, not the tab
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/(heartbeat|close|disconnected)$/, verify: 'checkUserIsTeamMember' }
             ]
         },
         // frontend client (user)

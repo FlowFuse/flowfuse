@@ -153,13 +153,25 @@ module.exports = {
             return null
         }
         const username = `fe-team:${user.hashid}:${team.hashid}:${sessionId}`
-        return createClient(app, {
+        const client = await createClient(app, {
             where: { username },
             username,
             ownerId: '' + user.id,
             ownerType: 'fe-team',
             prefix: 'ffbtf'
         })
+        // Last will: the broker publishes this if the tab disappears without a clean
+        // disconnect. It describes the connection rather than any one feature, so the
+        // platform decides what to tear down - see browserSessionLifecycle.
+        // The payload must be valid JSON - the comms client discards anything it
+        // cannot parse before any consumer sees it.
+        return {
+            ...client,
+            will: {
+                topic: `ff/v1/${team.hashid}/u/${user.hashid}/s/${sessionId}/disconnected`,
+                payload: '{}'
+            }
+        }
     },
 
     createClientForExpertClient: async function (app, user, sessionId) {

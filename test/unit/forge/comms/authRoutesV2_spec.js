@@ -1616,47 +1616,59 @@ describe('Broker Auth v2 API', async function () {
                 }
             })
 
-            // Browser session presence topics
-            it('allows fe-team to publish heartbeat to own presence topic', async function () {
+            // Browser session topics: ff/v1/<team>/u/<user>/s/<session>/<event>
+            it('allows fe-team to publish a heartbeat on its own session topic', async function () {
                 await allowWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/heartbeat`
+                })
+            })
+            it('allows fe-team to publish close on its own session topic', async function () {
+                await allowWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/close`
+                })
+            })
+            it('allows fe-team to publish disconnected on its own session topic (the last will)', async function () {
+                await allowWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/disconnected`
+                })
+            })
+            it('denies fe-team from publishing on another user\'s session topic', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${bob.hashid}/s/session-1234567890/heartbeat`
+                })
+            })
+            it('denies fe-team from publishing on another tab\'s session topic', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-abc12345/heartbeat`
+                })
+            })
+            it('denies fe-team from publishing on another team\'s session topic', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/heartbeat`
+                })
+            })
+            it('denies fe-team from publishing an unknown session event', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/invalid`
+                })
+            })
+            it('denies fe-team from publishing on the retired tab-presence topic', async function () {
+                await denyWrite({
                     username: teamFrontendUsername,
                     topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/heartbeat`
                 })
             })
-            it('denies fe-team from publishing to the retired context presence topic', async function () {
-                await denyWrite({
-                    username: teamFrontendUsername,
-                    topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/context`
-                })
-            })
-            it('allows fe-team to publish close to own presence topic', async function () {
-                await allowWrite({
-                    username: teamFrontendUsername,
-                    topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/close`
-                })
-            })
-            it('denies fe-team from publishing close to another user\'s presence topic', async function () {
-                await denyWrite({
-                    username: teamFrontendUsername,
-                    topic: `ff/v1/browser/tab-presence/${bob.hashid}/session-abc12345/close`
-                })
-            })
-            it('denies fe-team from publishing to another user\'s presence topic', async function () {
-                await denyWrite({
-                    username: teamFrontendUsername,
-                    topic: `ff/v1/browser/tab-presence/${bob.hashid}/session-abc12345/heartbeat`
-                })
-            })
-            it('denies fe-team from publishing to an invalid presence message type', async function () {
-                await denyWrite({
-                    username: teamFrontendUsername,
-                    topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/invalid`
-                })
-            })
-            it('allows forge_platform to subscribe to presence topics via shared subscription', async function () {
+            it('allows forge_platform to subscribe to session topics via shared subscription', async function () {
                 await allowRead({
                     username: 'forge_platform',
-                    topic: `$share/browser/ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/heartbeat`
+                    topic: `$share/browser/ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/heartbeat`
                 })
             })
         })
