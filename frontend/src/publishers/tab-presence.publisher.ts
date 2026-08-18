@@ -17,6 +17,7 @@ class TabPresencePublisher extends TeamPublisher {
     private $onVisibilityChange: (() => void) | null = null
     private $userId: string | null = null
     private $sessionId: string | null = null
+    private $teamId: string | null = null
 
     constructor (options: CreatePublisherOptions<Transport>) {
         super({ name: 'tabPresence', ...options })
@@ -30,6 +31,7 @@ class TabPresencePublisher extends TeamPublisher {
         const authStore = useAccountAuthStore()
         this.$userId = userId
         this.$sessionId = authStore.getSessionId()
+        this.$teamId = teamId
 
         this._publishPresence()
 
@@ -64,6 +66,7 @@ class TabPresencePublisher extends TeamPublisher {
 
         this.$userId = null
         this.$sessionId = null
+        this.$teamId = null
     }
 
     /**
@@ -72,11 +75,20 @@ class TabPresencePublisher extends TeamPublisher {
      * for a couple of minutes after the user opted out.
      */
     protected async _onStopping (): Promise<void> {
-        if (!this.$userId || !this.$sessionId) return
-        const topic = `ff/v1/browser/tab-presence/${this.$userId}/${this.$sessionId}/close`
+        const topic = this._sessionTopic('close')
+        if (!topic) return
         await this._publish(topic, {}).catch((err) => {
             console.warn('Failed to publish tab presence close:', err)
         })
+    }
+
+    /**
+     * ff/v1/<teamId>/u/<userId>/s/<sessionId>/<event> - the same
+     * scope/entity/id/event shape as every other topic this client speaks.
+     */
+    private _sessionTopic (event: string): string | null {
+        if (!this.$teamId || !this.$userId || !this.$sessionId) return null
+        return `ff/v1/${this.$teamId}/u/${this.$userId}/s/${this.$sessionId}/${event}`
     }
 
     /**
@@ -84,9 +96,9 @@ class TabPresencePublisher extends TeamPublisher {
      * whatever this sends, so every message has to carry the complete state.
      */
     private _publishPresence (): void {
-        if (!this.$userId || !this.$sessionId) return
+        const topic = this._sessionTopic('heartbeat')
+        if (!topic) return
         const contextStore = useContextStore()
-        const topic = `ff/v1/browser/tab-presence/${this.$userId}/${this.$sessionId}/heartbeat`
         this._publish(topic, {
             visibility: document.visibilityState,
             focused: document.hasFocus(),

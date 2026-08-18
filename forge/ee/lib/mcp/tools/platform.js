@@ -114,14 +114,15 @@ module.exports = [
             userId: z.string().describe('The ID or hashid of the user whose browser sessions to list')
         },
         handler: async (args, { app }) => {
-            if (!app?.comms?.browserSessions) {
+            // The cache always exists, but without a broker no tab can ever report in
+            if (!app?.comms) {
                 return {
                     sessions: [],
                     message: 'Browser sessions are not available on this platform. 3rd party automations like flow building will not be possible.'
                 }
             }
 
-            const sessions = await app.comms.browserSessions.getSessionsByUser(args.userId)
+            const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(args.userId)
 
             if (sessions.length === 0) {
                 const baseUrl = app.config.base_url || ''

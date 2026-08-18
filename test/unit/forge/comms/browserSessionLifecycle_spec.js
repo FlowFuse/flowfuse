@@ -3,9 +3,9 @@ const should = require('should') // eslint-disable-line
 const setup = require('../routes/setup')
 
 const FF_UTIL = require('flowforge-test-utils')
-const { BrowserSessionPresenceHandler } = FF_UTIL.require('forge/comms/browserSessionPresence')
+const { BrowserSessionLifecycleHandler } = FF_UTIL.require('forge/comms/browserSessionLifecycle')
 
-describe('BrowserSessionPresenceHandler', function () {
+describe('BrowserSessionLifecycleHandler', function () {
     function mockClient () {
         const handlers = {}
         return {
@@ -36,7 +36,8 @@ describe('BrowserSessionPresenceHandler', function () {
 
     beforeEach(function () {
         client = mockClient()
-        handler = BrowserSessionPresenceHandler(app, client)
+        handler = app.db.controllers.BrowserSession
+        BrowserSessionLifecycleHandler(app, client)
     })
 
     describe('event handler registration', function () {
@@ -44,17 +45,17 @@ describe('BrowserSessionPresenceHandler', function () {
             const testClient = mockClient()
             const listeners = []
             testClient.on = (event) => { listeners.push(event) }
-            BrowserSessionPresenceHandler(app, testClient)
-            listeners.should.containEql('tab-presence')
+            BrowserSessionLifecycleHandler(app, testClient)
+            listeners.should.containEql('browser-session')
         })
     })
 
     describe('heartbeat handling', function () {
         it('creates a cache entry with lastSeen and visibility', async function () {
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user1',
                 sessionId: 'session1',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: { visibility: 'visible' }
             })
 
@@ -70,10 +71,10 @@ describe('BrowserSessionPresenceHandler', function () {
         })
 
         it('defaults visibility to visible when not provided', async function () {
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user1',
                 sessionId: 'session2',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: {}
             })
 
@@ -85,10 +86,10 @@ describe('BrowserSessionPresenceHandler', function () {
         })
 
         it('stores the focused flag and context carried by the heartbeat', async function () {
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user2',
                 sessionId: 'session1',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: {
                     visibility: 'hidden',
                     focused: false,
@@ -106,10 +107,10 @@ describe('BrowserSessionPresenceHandler', function () {
         })
 
         it('defaults focused and context to null when not provided', async function () {
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user3',
                 sessionId: 'session1',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: { visibility: 'visible' }
             })
 
@@ -121,10 +122,10 @@ describe('BrowserSessionPresenceHandler', function () {
         })
 
         it('replaces the entry wholesale rather than merging with what is cached', async function () {
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user4',
                 sessionId: 'session1',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: {
                     visibility: 'visible',
                     focused: true,
@@ -135,10 +136,10 @@ describe('BrowserSessionPresenceHandler', function () {
 
             // A later heartbeat without context must clear it, not preserve it. Each
             // message carries the full snapshot, so stale fields never survive.
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user4',
                 sessionId: 'session1',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: { visibility: 'hidden' }
             })
             await new Promise(resolve => setImmediate(resolve))
@@ -151,10 +152,10 @@ describe('BrowserSessionPresenceHandler', function () {
         })
 
         it('updates lastSeen on each heartbeat', async function () {
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user5',
                 sessionId: 'session1',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: { visibility: 'visible' }
             })
             await new Promise(resolve => setImmediate(resolve))
@@ -164,10 +165,10 @@ describe('BrowserSessionPresenceHandler', function () {
             // Small delay to ensure different timestamp
             await new Promise(resolve => setTimeout(resolve, 10))
 
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user5',
                 sessionId: 'session1',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: { visibility: 'hidden' }
             })
             await new Promise(resolve => setImmediate(resolve))
@@ -177,21 +178,21 @@ describe('BrowserSessionPresenceHandler', function () {
         })
     })
 
-    describe('close handling', function () {
+    describe('close handling (user opted the tab out)', function () {
         it('removes the session entry', async function () {
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user9',
                 sessionId: 'session1',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: { visibility: 'visible' }
             })
             await new Promise(resolve => setImmediate(resolve))
             ;(await handler.getSessionsByUser('user9')).should.have.length(1)
 
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user9',
                 sessionId: 'session1',
-                messageType: 'close',
+                event: 'close',
                 payload: {}
             })
             await new Promise(resolve => setImmediate(resolve))
@@ -201,24 +202,24 @@ describe('BrowserSessionPresenceHandler', function () {
         })
 
         it('only removes the session named in the topic', async function () {
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user10',
                 sessionId: 'sessionA',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: { visibility: 'visible' }
             })
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user10',
                 sessionId: 'sessionB',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: { visibility: 'visible' }
             })
             await new Promise(resolve => setImmediate(resolve))
 
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user10',
                 sessionId: 'sessionA',
-                messageType: 'close',
+                event: 'close',
                 payload: {}
             })
             await new Promise(resolve => setImmediate(resolve))
@@ -229,10 +230,10 @@ describe('BrowserSessionPresenceHandler', function () {
         })
 
         it('is a no-op for a session that was never registered', async function () {
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'user11',
                 sessionId: 'never-seen',
-                messageType: 'close',
+                event: 'close',
                 payload: {}
             })
             await new Promise(resolve => setImmediate(resolve))
@@ -242,19 +243,57 @@ describe('BrowserSessionPresenceHandler', function () {
         })
     })
 
+    describe('disconnected handling (connection died)', function () {
+        it('removes the session entry when the last will fires', async function () {
+            client.emit('browser-session', {
+                userId: 'user12',
+                sessionId: 'session1',
+                event: 'heartbeat',
+                payload: { visibility: 'visible' }
+            })
+            await new Promise(resolve => setImmediate(resolve))
+            ;(await handler.getSessionsByUser('user12')).should.have.length(1)
+
+            client.emit('browser-session', {
+                userId: 'user12',
+                sessionId: 'session1',
+                event: 'disconnected',
+                payload: {}
+            })
+            await new Promise(resolve => setImmediate(resolve))
+
+            const sessions = await handler.getSessionsByUser('user12')
+            sessions.should.have.length(0)
+        })
+
+        it('is a no-op for a tab that never registered presence', async function () {
+            client.emit('browser-session', {
+                userId: 'user13',
+                sessionId: 'never-seen',
+                event: 'disconnected',
+                payload: {}
+            })
+            await new Promise(resolve => setImmediate(resolve))
+
+            const sessions = await handler.getSessionsByUser('user13')
+            sessions.should.have.length(0)
+        })
+    })
+
     describe('cache failures', function () {
         it('logs and swallows a rejected cache write', async function () {
-            const originalSet = handler.cache.set
+            const cache = app.caches.getCache('browserSessions')
+            const originalSet = cache.set
             const originalWarn = app.log.warn
             const warnings = []
-            handler.cache.set = async () => { throw new Error('cache unavailable') }
+            cache.set = async () => { throw new Error('cache unavailable') }
             app.log.warn = (msg) => { warnings.push(msg) }
 
             try {
-                client.emit('tab-presence', {
+                client.emit('browser-session', {
                     userId: 'user6',
                     sessionId: 'session1',
-                    messageType: 'heartbeat',
+                    event: 'heartbeat',
                     payload: { visibility: 'visible' }
                 })
 
@@ -263,18 +302,18 @@ describe('BrowserSessionPresenceHandler', function () {
                 warnings.should.have.length(1)
                 warnings[0].should.match(/cache unavailable/)
             } finally {
-                handler.cache.set = originalSet
+                cache.set = originalSet
                 app.log.warn = originalWarn
             }
         })
     })
 
-    describe('unknown messageType', function () {
-        it('ignores unknown message types', async function () {
-            client.emit('tab-presence', {
+    describe('unknown event', function () {
+        it('ignores unknown events', async function () {
+            client.emit('browser-session', {
                 userId: 'user7',
                 sessionId: 'session1',
-                messageType: 'invalid',
+                event: 'invalid',
                 payload: { some: 'data' }
             })
 
@@ -284,11 +323,11 @@ describe('BrowserSessionPresenceHandler', function () {
             sessions.should.have.length(0)
         })
 
-        it('ignores the retired context message type', async function () {
-            client.emit('tab-presence', {
+        it('ignores the retired context event', async function () {
+            client.emit('browser-session', {
                 userId: 'user8',
                 sessionId: 'session1',
-                messageType: 'context',
+                event: 'context',
                 payload: { teamId: 'team1' }
             })
 
@@ -301,22 +340,22 @@ describe('BrowserSessionPresenceHandler', function () {
 
     describe('getSessionsByUser', function () {
         it('returns only sessions for the requested user', async function () {
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'userA',
                 sessionId: 'sessionA1',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: { visibility: 'visible' }
             })
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'userA',
                 sessionId: 'sessionA2',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: { visibility: 'hidden' }
             })
-            client.emit('tab-presence', {
+            client.emit('browser-session', {
                 userId: 'userB',
                 sessionId: 'sessionB1',
-                messageType: 'heartbeat',
+                event: 'heartbeat',
                 payload: { visibility: 'visible' }
             })
 

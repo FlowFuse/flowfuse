@@ -52,19 +52,23 @@ class CommsClient extends EventEmitter {
                 const ownerId = topicParts[4]
                 const messageType = topicParts[5]
 
-                if (topicParts[2] === 'browser' && topicParts[3] === 'tab-presence') {
-                    // ff/v1/browser/tab-presence/<userId>/<sessionId>/<messageType>
+                /**
+                 * Browser session events
+                 */
+                if (topicParts[3] === 'u' && topicParts[5] === 's') {
+                    // ff/v1/<teamHash>/u/<userHash>/s/<sessionId>/<event>
+                    const teamId = topicParts[2]
                     const userId = topicParts[4]
-                    const sessionId = topicParts[5]
-                    const messageType = topicParts[6]
+                    const sessionId = topicParts[6]
+                    const event = topicParts[7]
                     let payload
                     try {
                         payload = JSON.parse(message.toString())
                     } catch (err) {
-                        this.app.log.warn(`Ignoring malformed browser payload on ${topic}: ${err.message}`)
+                        this.app.log.warn(`Ignoring malformed browser session payload on ${topic}: ${err.message}`)
                         return
                     }
-                    this.emit('tab-presence', { userId, sessionId, messageType, payload })
+                    this.emit('browser-session', { teamId, userId, sessionId, event, payload })
                     return
                 }
 
@@ -266,8 +270,8 @@ class CommsClient extends EventEmitter {
                 // "platform" group prevents unrelated features from sharing a consumer pool and
                 // allows them to scale independently.
                 '$share/expert/ff/v1/expert/+/+/platform/+/request',
-                // Browser tab presence - shared subscription
-                '$share/browser/ff/v1/browser/tab-presence/+/+/+'
+                // Browser session events - shared subscription
+                '$share/browser/ff/v1/+/u/+/s/+/+'
             ])
         }
     }
