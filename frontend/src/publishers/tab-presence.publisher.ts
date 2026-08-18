@@ -67,6 +67,19 @@ class TabPresencePublisher extends TeamPublisher {
     }
 
     /**
+     * Tells the platform to drop this tab's session entry. Without it the entry
+     * lingers until the cache TTL expires, leaving the tab listed as targetable
+     * for a couple of minutes after the user opted out.
+     */
+    protected async _onStopping (): Promise<void> {
+        if (!this.$userId || !this.$sessionId) return
+        const topic = `ff/v1/browser/tab-presence/${this.$userId}/${this.$sessionId}/close`
+        await this._publish(topic, {}).catch((err) => {
+            console.warn('Failed to publish tab presence close:', err)
+        })
+    }
+
+    /**
      * Publishes the full tab snapshot. The platform replaces its cache entry with
      * whatever this sends, so every message has to carry the complete state.
      */
