@@ -452,7 +452,7 @@ module.exports = function (app) {
             } catch (error) {
                 if (error.name === 'ACLValidationError') {
                     // ↓ Useful for debugging ↓
-                    // console.warn('ACL DENY:', { topicParts, usernameParts, acl, reason: error.message })
+                    console.warn('ACL DENY:', { topicParts, usernameParts, acl, reason: error.message })
                 } else {
                     // unexpected error during ACL checking - log to app
                     app.log.error('Unexpected error during ACL check', { topicParts, usernameParts, acl, error })
@@ -487,6 +487,9 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/platform\/leader$/ },
                 // platform can listen for Expert Agent requests
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' },
+                // platform can listen for third-party MCP responses from the central gateway
+                // - ff/v1/mcp/<platformId>/+/+/response
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/response$/, verify: 'checkMcpTopic', allowWildcard: { user: true, session: true }, isPlatform: true, isSub: true },
                 // platform can listen for browser tab presence (shared subscription)
                 // - ff/v1/browser/tab-presence/<userId>/<sessionId>/<heartbeat|context>
                 // Uses [^/]+ for the message-type segment because the subscription wildcard (+)
@@ -525,7 +528,10 @@ module.exports = function (app) {
                 // ff/v1/platform/leader
                 { topic: /^ff\/v1\/platform\/leader$/ },
                 // platform can respond to Expert Agent requests
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' },
+                // platform can publish third-party MCP requests to the central gateway
+                // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', isPlatform: true, isPub: true }
             ]
         },
         project: {
@@ -629,7 +635,31 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', isAgent: true, isPub: true, agent: 'support' },
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'support' },
                 // Expert agent can respond to platform requests
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' },
+                // Central gateway can publish third-party MCP responses back to the platform
+                // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/response$/, verify: 'checkMcpTopic', isAgent: true, isPub: true }
+            ]
+        },
+        // central MCP gateway (distinct, revocable broker identity)
+        mcpGateway: {
+            sub: [
+                // Central gateway can listen for platform responses to the tools it runs
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isAgent: true, isSub: true, agent: 'platform' },
+                // Central gateway can listen for third-party MCP requests from the platform
+                // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', allowWildcard: { user: true, session: true }, isAgent: true, isSub: true },
+                // Central gateway can listen for inflight acks when it applies a flow or UI tool to a target tab
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { user: true, session: true, entity: true, inflightType: true }, isAgent: true, isSub: true, agent: 'support' }
+            ],
+            pub: [
+                // Central gateway can publish platform requests for the tools it runs
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' },
+                // Central gateway can publish inflight requests to apply a flow or UI tool to a target tab
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'support' },
+                // Central gateway can publish third-party MCP responses back to the platform
+                // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/response$/, verify: 'checkMcpTopic', isAgent: true, isPub: true }
             ]
         }
     }
@@ -700,9 +730,9 @@ module.exports = function (app) {
                                 app.log.error('Error in ACL verify function', { error: err, topic, username, acl })
                             }
                             // ↓ Useful for debugging ↓
-                            // if (allowed !== true) {
-                            //     console.log('DENIED!', topic, acl)
-                            // }
+                            if (allowed !== true) {
+                                console.log('DENIED!', topic, acl)
+                            }
                         } else {
                             allowed = true
                         }

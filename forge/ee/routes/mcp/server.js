@@ -90,8 +90,26 @@ module.exports = async function (app) {
             toolGroups: ['platform', 'platform_ui', 'flow_building']
         }
 
+        // Let the gateway know which browser tab (if any) this MCP connection has pinned as its
+        // target, so platform_ui/flow_building tool calls don't need an explicit session id.
+        let userProperties
+        if (app.comms?.browserSessions) {
+            const activeBrowserSession = await app.comms.browserSessions.getActiveBrowserSession(caller.userId, mcpSessionId)
+            request.log.info(`MCP ingress: userId=${caller.userId} mcpSessionId=${mcpSessionId} -> activeBrowserSession=${activeBrowserSession ? activeBrowserSession.sessionId : 'null'}`)
+            if (activeBrowserSession) {
+                userProperties = { activeBrowserSessionId: activeBrowserSession.sessionId }
+                const topicParts = activeBrowserSession.context?.topicParts
+                if (topicParts?.entityType) {
+                    userProperties.entityType = topicParts.entityType
+                }
+                if (topicParts?.entityId) {
+                    userProperties.entityId = topicParts.entityId
+                }
+            }
+        }
+
         try {
-            const mcpResponse = await app.comms.mcpGateway.proxyRequest(route, payload)
+            const mcpResponse = await app.comms.mcpGateway.proxyRequest(route, payload, undefined, userProperties)
             reply.header('mcp-session-id', mcpSessionId)
             reply.type('application/json').send(mcpResponse)
         } catch (err) {
