@@ -84,84 +84,130 @@ describe('BrowserSessionPresenceHandler', function () {
             session.should.have.property('visibility', 'visible')
         })
 
-        it('preserves existing context when updating with heartbeat', async function () {
-            // First set context
+        it('stores the focused flag and context carried by the heartbeat', async function () {
             client.emit('tab-presence', {
                 userId: 'user2',
                 sessionId: 'session1',
-                messageType: 'context',
-                payload: { teamId: 'team1', pageName: 'instances' }
+                messageType: 'heartbeat',
+                payload: {
+                    visibility: 'hidden',
+                    focused: false,
+                    context: { teamId: 'team1', pageName: 'instances' }
+                }
+            })
+
+            await new Promise(resolve => setImmediate(resolve))
+
+            const sessions = await handler.getSessionsByUser('user2')
+            sessions.should.have.length(1)
+            sessions[0].should.have.property('visibility', 'hidden')
+            sessions[0].should.have.property('focused', false)
+            sessions[0].should.have.property('context').which.deepEqual({ teamId: 'team1', pageName: 'instances' })
+        })
+
+        it('defaults focused and context to null when not provided', async function () {
+            client.emit('tab-presence', {
+                userId: 'user3',
+                sessionId: 'session1',
+                messageType: 'heartbeat',
+                payload: { visibility: 'visible' }
+            })
+
+            await new Promise(resolve => setImmediate(resolve))
+
+            const sessions = await handler.getSessionsByUser('user3')
+            sessions[0].should.have.property('focused', null)
+            sessions[0].should.have.property('context', null)
+        })
+
+        it('replaces the entry wholesale rather than merging with what is cached', async function () {
+            client.emit('tab-presence', {
+                userId: 'user4',
+                sessionId: 'session1',
+                messageType: 'heartbeat',
+                payload: {
+                    visibility: 'visible',
+                    focused: true,
+                    context: { teamId: 'team1', pageName: 'instances' }
+                }
             })
             await new Promise(resolve => setImmediate(resolve))
 
-            // Then send heartbeat
+            // A later heartbeat without context must clear it, not preserve it. Each
+            // message carries the full snapshot, so stale fields never survive.
             client.emit('tab-presence', {
-                userId: 'user2',
+                userId: 'user4',
                 sessionId: 'session1',
                 messageType: 'heartbeat',
                 payload: { visibility: 'hidden' }
             })
             await new Promise(resolve => setImmediate(resolve))
 
-            const sessions = await handler.getSessionsByUser('user2')
+            const sessions = await handler.getSessionsByUser('user4')
             sessions.should.have.length(1)
             sessions[0].should.have.property('visibility', 'hidden')
-            sessions[0].should.have.property('context').which.deepEqual({ teamId: 'team1', pageName: 'instances' })
-        })
-    })
-
-    describe('context handling', function () {
-        it('creates a cache entry with context payload', async function () {
-            client.emit('tab-presence', {
-                userId: 'user3',
-                sessionId: 'session1',
-                messageType: 'context',
-                payload: { teamId: 'team1', instanceId: 'inst1', pageName: 'editor' }
-            })
-
-            await new Promise(resolve => setImmediate(resolve))
-
-            const sessions = await handler.getSessionsByUser('user3')
-            sessions.should.have.length(1)
-            sessions[0].should.have.property('context').which.deepEqual({
-                teamId: 'team1',
-                instanceId: 'inst1',
-                pageName: 'editor'
-            })
-            sessions[0].should.have.property('lastSeen').which.is.a.Number()
+            sessions[0].should.have.property('focused', null)
+            sessions[0].should.have.property('context', null)
         })
 
-        it('updates lastSeen on context update', async function () {
+        it('updates lastSeen on each heartbeat', async function () {
             client.emit('tab-presence', {
-                userId: 'user4',
+                userId: 'user5',
                 sessionId: 'session1',
                 messageType: 'heartbeat',
                 payload: { visibility: 'visible' }
             })
             await new Promise(resolve => setImmediate(resolve))
 
-            const before = (await handler.getSessionsByUser('user4'))[0].lastSeen
+            const before = (await handler.getSessionsByUser('user5'))[0].lastSeen
 
             // Small delay to ensure different timestamp
             await new Promise(resolve => setTimeout(resolve, 10))
 
             client.emit('tab-presence', {
-                userId: 'user4',
+                userId: 'user5',
                 sessionId: 'session1',
-                messageType: 'context',
-                payload: { teamId: 'team2' }
+                messageType: 'heartbeat',
+                payload: { visibility: 'hidden' }
             })
             await new Promise(resolve => setImmediate(resolve))
 
-            const after = (await handler.getSessionsByUser('user4'))[0].lastSeen
+            const after = (await handler.getSessionsByUser('user5'))[0].lastSeen
             after.should.be.greaterThanOrEqual(before)
+        })
+    })
+
+    describe('cache failures', function () {
+        it('logs and swallows a rejected cache write', async function () {
+            const originalSet = handler.cache.set
+            const originalWarn = app.log.warn
+            const warnings = []
+            handler.cache.set = async () => { throw new Error('cache unavailable') }
+            app.log.warn = (msg) => { warnings.push(msg) }
+
+            try {
+                client.emit('tab-presence', {
+                    userId: 'user6',
+                    sessionId: 'session1',
+                    messageType: 'heartbeat',
+                    payload: { visibility: 'visible' }
+                })
+
+                await new Promise(resolve => setImmediate(resolve))
+
+                warnings.should.have.length(1)
+                warnings[0].should.match(/cache unavailable/)
+            } finally {
+                handler.cache.set = originalSet
+                app.log.warn = originalWarn
+            }
         })
     })
 
     describe('unknown messageType', function () {
         it('ignores unknown message types', async function () {
             client.emit('tab-presence', {
-                userId: 'user5',
+                userId: 'user7',
                 sessionId: 'session1',
                 messageType: 'invalid',
                 payload: { some: 'data' }
@@ -169,7 +215,21 @@ describe('BrowserSessionPresenceHandler', function () {
 
             await new Promise(resolve => setImmediate(resolve))
 
-            const sessions = await handler.getSessionsByUser('user5')
+            const sessions = await handler.getSessionsByUser('user7')
+            sessions.should.have.length(0)
+        })
+
+        it('ignores the retired context message type', async function () {
+            client.emit('tab-presence', {
+                userId: 'user8',
+                sessionId: 'session1',
+                messageType: 'context',
+                payload: { teamId: 'team1' }
+            })
+
+            await new Promise(resolve => setImmediate(resolve))
+
+            const sessions = await handler.getSessionsByUser('user8')
             sessions.should.have.length(0)
         })
     })
