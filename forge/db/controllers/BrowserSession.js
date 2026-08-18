@@ -10,12 +10,17 @@
  * forge/comms/browserSessionLifecycle.js.
  */
 const browserSessionCache = 'browserSessions'
-const CACHE_TTL = 135_000 // ~3x the 45s heartbeat interval
-const CACHE_MAX = 10_000
+const BROWSER_SESSION_CACHE_TTL = 135_000 // ~3x the 45s heartbeat interval
+const BROWSER_SESSION_CACHE_MAX = 10_000
+
+const activeBrowserSessionCache = 'browserSessions-active'
+const ACTIVE_BROWSER_SESSION_CACHE_TTL = 135_000 // ~3x the 45s heartbeat interval
+const ACTIVE_BROWSER_SESSION_CACHE_MAX = 10_000
 
 module.exports = {
     init (app) {
-        app.caches.createCache(browserSessionCache, { max: CACHE_MAX, ttl: CACHE_TTL })
+        app.caches.createCache(browserSessionCache, { max: BROWSER_SESSION_CACHE_MAX, ttl: BROWSER_SESSION_CACHE_TTL })
+        app.caches.createCache(activeBrowserSessionCache, { max: ACTIVE_BROWSER_SESSION_CACHE_MAX, ttl: ACTIVE_BROWSER_SESSION_CACHE_TTL })
     },
 
     /**
@@ -51,5 +56,21 @@ module.exports = {
             }
         }
         return sessions
+    },
+
+    async setActiveBrowserSession (app, userId, mcpSessionId, sessionId) {
+        const cache = app.caches.getCache(activeBrowserSessionCache)
+        await cache.set(`${userId}:${mcpSessionId}`, sessionId)
+    },
+
+    async getActiveBrowserSession (app, userId, mcpSessionId) {
+        const activeCache = app.caches.getCache(activeBrowserSessionCache)
+        const sessionId = await activeCache.get(`${userId}:${mcpSessionId}`)
+        if (!sessionId) {
+            return null
+        }
+        const cache = app.caches.getCache(browserSessionCache)
+        const session = await cache.get(`${userId}:${sessionId}`)
+        return session || null
     }
 }
