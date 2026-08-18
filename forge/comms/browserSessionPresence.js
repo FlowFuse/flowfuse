@@ -24,6 +24,12 @@ class BrowserSessionPresenceHandler {
      * overwriting each other's fields.
      */
     async handlePresence ({ userId, sessionId, messageType, payload }) {
+        if (messageType === 'close') {
+            // The topic carries the identity and the ACL has already checked it against
+            // the publishing credential, so the payload is of no interest here.
+            await this.cache.del(`${userId}:${sessionId}`)
+            return
+        }
         if (messageType !== 'heartbeat') {
             return
         }
