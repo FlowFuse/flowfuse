@@ -112,7 +112,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: { }, // future - consider adding userId so that admin users can ask "what sessions does user X have?"
         handler: async (args, { app, user }) => {
-            if (!app?.comms?.browserSessions) {
+            if (!app.db.controllers.BrowserSession) {
                 return {
                     sessions: [],
                     message: 'Browser sessions are not available on this platform. 3rd party automations like flow building will not be possible.'
@@ -159,7 +159,7 @@ module.exports = [
             session_id: z.string().describe('The sessionId of the browser tab to target, from platform_list_browser_sessions')
         },
         handler: async (args, { app, user, mcpSessionId }) => {
-            if (!app?.comms?.browserSessions) {
+            if (!app.db.controllers.BrowserSession) {
                 return {
                     success: false,
                     message: 'Browser sessions are not available on this platform. 3rd party automations like flow building will not be possible.'
@@ -196,7 +196,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {},
         handler: async (args, { app, user, mcpSessionId }) => {
-            if (!app?.comms?.browserSessions) {
+            if (!app.db.controllers.BrowserSession) {
                 return {
                     message: 'Browser sessions are not available on this platform. 3rd party automations like flow building will not be possible.'
                 }
