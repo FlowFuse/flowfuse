@@ -94,7 +94,7 @@ module.exports = async function (app) {
         // target, so platform_ui/flow_building tool calls don't need an explicit session id.
         let userProperties
         if (app.comms?.browserSessions) {
-            const activeBrowserSession = await app.comms.browserSessions.getActiveBrowserSession(caller.userId, mcpSessionId)
+            const activeBrowserSession = await app.db.controllers.BrowserSession.getActiveBrowserSession(caller.userId, mcpSessionId)
             request.log.info(`MCP ingress: userId=${caller.userId} mcpSessionId=${mcpSessionId} -> activeBrowserSession=${activeBrowserSession ? activeBrowserSession.sessionId : 'null'}`)
             if (activeBrowserSession) {
                 userProperties = { activeBrowserSessionId: activeBrowserSession.sessionId }

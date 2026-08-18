@@ -165,7 +165,7 @@ module.exports = [
                     message: 'Browser sessions are not available on this platform. 3rd party automations like flow building will not be possible.'
                 }
             }
-            const sessions = await app.comms.browserSessions.getSessionsByUser(user.hashid)
+            const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(user.hashid)
             const match = sessions.find(session => session.sessionId === args.session_id)
             if (!match) {
                 return {
@@ -175,7 +175,7 @@ module.exports = [
                 }
             }
 
-            await app.comms.browserSessions.setActiveBrowserSession(user.hashid, mcpSessionId, args.session_id)
+            await app.db.controllers.BrowserSession.setActiveBrowserSession(user.hashid, mcpSessionId, args.session_id)
 
             return {
                 success: true,
@@ -201,7 +201,7 @@ module.exports = [
                     message: 'Browser sessions are not available on this platform. 3rd party automations like flow building will not be possible.'
                 }
             }
-            const activeSession = await app.comms.browserSessions.getActiveBrowserSession(user.hashid, mcpSessionId)
+            const activeSession = await app.db.controllers.BrowserSession.getActiveBrowserSession(user.hashid, mcpSessionId)
             if (!activeSession) {
                 return {
                     message: 'No active browser session is set. Call platform_list_browser_sessions to see available tabs, ' +
