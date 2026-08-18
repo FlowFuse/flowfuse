@@ -188,6 +188,7 @@ class CommsClient extends EventEmitter {
                             'request/platform-automation:forge', // event name
                             {
                                 userId, // ID of user making the request
+                                mcpSessionId: sessionId, // third-party MCP session id, when this request was relayed from the MCP gateway
                                 command, // command,
                                 data, // payload data
                                 meta: payload.meta

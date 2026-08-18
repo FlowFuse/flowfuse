@@ -48,11 +48,6 @@ export function useMqttExpertTopicHelper () {
         const contextStore = useContextStore()
 
         switch (true) {
-        case !!application || !!contextStore.application:
-            return {
-                entityType: 'a',
-                entityId: application?.id ?? contextStore.application?.id
-            }
         case !!instance || !!contextStore.instance:
             return {
                 entityType: 'p',
@@ -62,6 +57,11 @@ export function useMqttExpertTopicHelper () {
             return {
                 entityType: 'd',
                 entityId: device?.id ?? contextStore.device?.id
+            }
+        case !!application || !!contextStore.application:
+            return {
+                entityType: 'a',
+                entityId: application?.id ?? contextStore.application?.id
             }
         default:
             return {

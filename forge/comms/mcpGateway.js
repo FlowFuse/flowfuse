@@ -32,15 +32,21 @@ class McpGatewayHandler {
      * @param {{userId: string, mcpSessionId: string}} route Topic routing parts
      * @param {object} payload Request payload (mcp body, scope, toolGroups)
      * @param {number} [timeoutMs] Override default timeout
+     * @param {object} [userProperties] Extra MQTT v5 user properties to attach to the request
+     *   (e.g. the active browser session id), for the gateway to read on the other side.
      * @returns {Promise<object>} The MCP response body
      */
-    async proxyRequest (route, payload, timeoutMs) {
+    async proxyRequest (route, payload, timeoutMs, userProperties) {
         const { userId, mcpSessionId } = route
         const requestTopic = `ff/v1/mcp/${this.client.platformId}/${userId}/${mcpSessionId}/request`
 
         const { correlationData, mqttOptions, promise } = this.awaitReply.create({
             timeout: timeoutMs || DEFAULT_TIMEOUT
         })
+
+        if (userProperties && Object.keys(userProperties).length > 0) {
+            mqttOptions.properties.userProperties = userProperties
+        }
 
         this.client.publish(
             requestTopic,
