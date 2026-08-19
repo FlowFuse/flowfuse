@@ -22,8 +22,9 @@ module.exports = [
         title: 'Get Team Customer Portal',
         description: `FlowFuse platform automation tool:
             Gets a URL to the team Stripe customer portal, where the user can manage their billing details, payment methods, and subscription.
-            Use this when the user wants to update their payment method, view invoices, or change their subscription plan.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+            Use this when the user wants to update their payment method, view invoices, or change their subscription plan.
+            Each call creates a new Stripe customer portal session.`,
+        annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             teamId
         },
