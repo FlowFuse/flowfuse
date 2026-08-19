@@ -44,6 +44,20 @@ describe('MCP Pipelines Tools', function () {
             const response = await tool.handler({ teamId: 'team1' }, { inject })
             response.should.equal(errorResponse)
         })
+
+        it('returns an error without injecting when neither teamId nor applicationId is given', async function () {
+            const response = await tool.handler({}, { inject })
+
+            inject.called.should.be.false()
+            response.should.match({ code: 400, isError: true })
+        })
+
+        it('returns an error without injecting when both teamId and applicationId are given', async function () {
+            const response = await tool.handler({ teamId: 'team1', applicationId: 'app1' }, { inject })
+
+            inject.called.should.be.false()
+            response.should.match({ code: 400, isError: true })
+        })
     })
 
     describe('platform_get_pipeline_stage', function () {

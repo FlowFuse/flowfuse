@@ -8,8 +8,7 @@ module.exports = [
             Lists the DevOps pipelines for either a team or a single application.
             Provide a teamId to list every pipeline in the team, or an applicationId to list
             only the pipelines belonging to that application. Provide exactly one of the two.
-            Team results are filtered to the applications you can access, so a scoped access token
-            sees only its in-scope subset of pipelines rather than an error.
+            Team results include only the applications you have access to.
             Use this to discover which pipelines exist before inspecting a specific pipeline's stages.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -17,6 +16,9 @@ module.exports = [
             applicationId: z.string().optional().describe('List the pipelines in this application. Provide exactly one of teamId or applicationId.')
         },
         handler: async (args, { inject }) => {
+            if (Boolean(args.teamId) === Boolean(args.applicationId)) {
+                return { content: 'Provide exactly one of teamId or applicationId.', code: 400, isError: true }
+            }
             if (args.applicationId) {
                 const response = await inject({ method: 'GET', url: `/api/v1/applications/${args.applicationId}/pipelines` })
                 return response
