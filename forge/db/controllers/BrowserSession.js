@@ -10,14 +10,11 @@
  * forge/comms/browserSessionLifecycle.js.
  */
 const browserSessionCache = 'browserSessions'
-const BROWSER_SESSION_CACHE_TTL = 135_000 // ~3x the 45s heartbeat interval
+const BROWSER_SESSION_CACHE_TTL = 1_800_000 // 30 minutes
 const BROWSER_SESSION_CACHE_MAX = 10_000
 
 const activeBrowserSessionCache = 'browserSessions-active'
-// Nothing refreshes the pin the way the tab's heartbeat refreshes its presence entry,
-// so this is a straight lifetime from the moment it is set. 5 minutes for now - it wants
-// renewing on use, or tying to the MCP connection, rather than a longer guess.
-const ACTIVE_BROWSER_SESSION_CACHE_TTL = 300_000
+const ACTIVE_BROWSER_SESSION_CACHE_TTL = 1_800_000
 const ACTIVE_BROWSER_SESSION_CACHE_MAX = 10_000
 
 module.exports = {

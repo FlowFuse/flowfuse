@@ -17,6 +17,12 @@ interface EntityTopicPaths {
     entityId: string | undefined
 }
 
+/**
+ * Entity segment of a topic. The concrete forms address one application, instance,
+ * device or team; `'+'` is the MQTT single-level wildcard, valid on a subscription only.
+ */
+type EntitySegment = EntityTopicPaths['entityType'] | '+'
+
 type AgentChannel = 'support' | 'insights' | 'mcp'
 type TopicType = 'chat' | 'inflight'
 type TopicAction = 'response' | 'request'
@@ -35,7 +41,13 @@ interface ParsedTopic {
 }
 
 interface BuildTopicOptions {
-    entityType?: EntityTopicPaths['entityType'] | null
+    /**
+     * Entity type segment. Pass `'+'` when subscribing, so one subscription covers every
+     * entity the tab may be on: it changes as the user navigates, and a sender working
+     * from a cached copy of the tab's context can lag behind a navigation. Publishing
+     * always names a concrete entity.
+     */
+    entityType?: EntitySegment | null
     entityId?: string | null
     agentChannel?: AgentChannel
     topicType?: TopicType
