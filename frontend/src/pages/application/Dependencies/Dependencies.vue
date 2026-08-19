@@ -101,7 +101,7 @@ export default {
     },
     mounted () {
         if (!this.hasTeamPermission) {
-            return this.$router.push({ name: 'Application', params: { id: this.application.id } })
+            return this.$router.push({ name: 'application', params: { id: this.application.id } })
         }
         this.getDependencies()
     },

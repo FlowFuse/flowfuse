@@ -45,7 +45,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                     entries: [
                         {
                             label: 'Back to Dashboard',
-                            to: { name: 'Home' },
+                            to: { name: 'home' },
                             tag: 'back',
                             icon: ChevronLeftIcon
                         }
@@ -147,7 +147,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                     entries: [
                         {
                             label: 'Back to Dashboard',
-                            to: { name: 'Home' },
+                            to: { name: 'home' },
                             tag: 'back',
                             icon: ChevronLeftIcon
                         }
@@ -203,7 +203,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Hosted Instances',
                                 to: {
-                                    name: 'Instances',
+                                    name: 'team-hosted-instances',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-instances',
@@ -214,7 +214,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Remote Instances',
                                 to: {
-                                    name: 'TeamDevices',
+                                    name: 'team-remote-instances',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-devices',
@@ -236,7 +236,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Applications',
                                 to: {
-                                    name: 'Applications',
+                                    name: 'team-applications',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-applications',
@@ -325,7 +325,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Library',
                                 to: {
-                                    name: 'TeamLibrary',
+                                    name: 'team-library',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'shared-library',
@@ -368,7 +368,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Audit Log',
                                 to: {
-                                    name: 'AuditLog',
+                                    name: 'team-audit-log',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-audit',
@@ -379,7 +379,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Billing',
                                 to: {
-                                    name: 'Billing',
+                                    name: 'team-billing',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-billing',
@@ -398,7 +398,7 @@ export const useUxNavigationStore = defineStore('ux-navigation', {
                             {
                                 label: 'Team Settings',
                                 to: {
-                                    name: 'TeamSettings',
+                                    name: 'team-settings',
                                     params: { team_slug: team.slug }
                                 },
                                 tag: 'team-settings',

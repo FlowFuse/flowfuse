@@ -53,7 +53,7 @@ meta:
 
 # Kubernetes Install
 
-This guide walks you through detailed set up of FlowFuse Platform on a container envoronment managed by Kubernetes. Typically suited for large on premise deployments or deployment in Cloud infrastructure.
+This guide walks you through a detailed set up of FlowFuse Platform on a container environment managed by Kubernetes. Typically suited for large on premise deployments or deployment in Cloud infrastructure.
 By the end, you will have a fully functioning FlowFuse instance running on a Kubernetes cluster.
 
 # Checklist
@@ -85,18 +85,19 @@ By the end, you will have a fully functioning FlowFuse instance running on a Kub
 Before you begin, ensure you have the following:
 
 1. **Domain Name & DNS:** A domain name that you own and can configure DNS settings for (explained in [DNS](#dns))
-2. **kubectl:** To manage a Kubernetes cluster you will need a copy of the `kubectl` utility. Instructions on how to install it can be found [here](https://kubernetes.io/docs/tasks/tools/)
-3. **Helm:** FlowFuse provides the Helm chart to manage platform deployment. Installation can be done through the instructions on [their website](https://helm.sh)
+2. **kubectl:** To manage a Kubernetes cluster you will need a copy of the `kubectl` utility. See the [kubectl install docs](https://kubernetes.io/docs/tasks/tools/)
+3. **Helm:** FlowFuse provides the Helm chart to manage platform deployment. Install it by following the instructions on [their website](https://helm.sh)
 4. **Kubernetes Cluster:** The deployment has currently been tested on the following environments:
-     - [AWS EKS](aws_terraform.md)
+     - [AWS EKS](aws-terraform.md)
      - [Digital Ocean](digital-ocean.md)
      - MicroK8s
-5. **Ingress Controller:** [The Traefik](https://doc.traefik.io/traefik/) installed on the cluster.
-6. **EMQX Operator:** This is required to install the required MQTT broker when the Team Broker features are enabled. Instructions for installing the operator can be found [here](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator)
+5. **Ingress Controller:** Install [Traefik](https://doc.traefik.io/traefik/) on the cluster.
+6. **Cert-Manager:** EMQX requires the CRDs from cert-manager. See the [installation instructions](https://cert-manager.io/docs/installation/) for details.
+7. **EMQX Operator:** This installs the operator that deploys the platform's MQTT broker, which is required whenever the broker is enabled. You must install exactly version 2.2.29 — later versions are not supported. Follow the [installation instructions](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator) and pin the version by adding `--version 2.2.29` to the install command.
 
 For a production-ready environment, we also recommend: 
-* **Database:** Prepare dedicated database on a external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
-* **TLS Certificate:** Prepare TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#i-would-like-to-secure-the-platform-with-https%2C-how-can-i-do-that%3F)) 
+* **Database:** Prepare dedicated database on an external database server (see [FAQ](#how-to-use-external-database-server%3F) for more details)
+* **TLS Certificate:** Prepare a TLS certificate for your domain and configure FlowFuse platform to use it (see [Enable HTTPS](#i-would-like-to-secure-the-platform-with-https%2C-how-can-i-do-that%3F)) 
 
 ### Hardware requirements
 
@@ -106,17 +107,17 @@ Control Plane: At least 2 vCPUs, 4 GB RAM
 Worker Nodes: Minimum 2 vCPUs, 4 GB RAM per node, 2 nodes for high availability
 Storage: 20Gb of host storage (for container images), StorageClass of your choice available for Hosted Node-RED instances (optional)
 
-Each Node-RED instance you host will uses 0.1 CPU cores and 256 MB of memory by default. This parameters can be adjusted in admin area of FlowFuse platform. Keep this in mind when sizing your hardware, especially if plan to create multiple hosted instances.
+Each Node-RED instance you host will use 0.1 CPU cores and 256 MB of memory by default. These parameters can be adjusted in admin area of FlowFuse platform. Keep this in mind when sizing your hardware, especially if you plan to create multiple hosted instances.
 
 ### DNS
 
-A [wildcard DNS entry](https://en.wikipedia.org/wiki/Wildcard_DNS_record) will be needed 
-to point to the domain that is used for the project instances. This will need to point 
+You will need a [wildcard DNS entry](https://en.wikipedia.org/wiki/Wildcard_DNS_record)
+pointing to the domain that is used for the project instances. This will need to point 
 to the kubernetes Ingress controller.
 
 For example if you want projects to be accessible as `[instance-name].example.com`
 you will need to ensure that `*.example.com` is mapped to the IP address used by 
-your Kubernetes clusters's Ingress controller.
+your Kubernetes cluster's Ingress controller.
 
 By default the FlowFuse application will be mapped to `forge.example.com` assuming
 that you set the domain to `example.com`.
@@ -207,7 +208,7 @@ about the upgrade process.
 
 In cloud environments, it is recommended to use a Load Balancer to terminate SSL traffic.
 
-However, if you want to use SSL termination on the Kubernetes Ingress Controller, this is possible by utilizing [Cert-Manager](https://cert-manager.io/docs/) tool (not part of the FlowFuse Helm chart).
+However, if you want to use SSL termination on the Kubernetes Ingress Controller, this is possible by using the [Cert-Manager](https://cert-manager.io/docs/) tool (not part of the FlowFuse Helm chart).
 
 Once you have Cert-Manager installed, you can enable TLS support in the `customization.yml` file by specifying the [ClusterIssuer](https://cert-manager.io/docs/configuration/#cluster-resource-namespace) name:
 
@@ -258,7 +259,7 @@ You may need to adjust this policy based on your specific network requirements a
 
 ### How to use external database server?
 
-FlowFuse platform uses PostgreSQL database to store its data. By default, the internal database instance is created and managed by the Helm chart. 
+FlowFuse platform uses PostgreSQL database to store its data. By default, the Helm chart creates and manages the internal database instance. 
 
 If you want to use an external database server, you need to edit `customization.yml` file and provide the database connection details:
 
@@ -340,7 +341,7 @@ FlowFuse platform allows you to invite team members to the platform using their 
 To enable this feature, you need to configure the e-mail settings in the `customization.yml` file.
 
 Check this [page](../configuration.md#email-configuration) for more details about the parameters. 
-Check [FlowFuseHelm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowfuse#email) for information where configuration values should be placed in `customization.yml` file.
+Check [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/main/helm/flowfuse#email) for information where configuration values should be placed in `customization.yml` file.
 
 If you use AWS EKS (Elastic Kubernetes Service) and want to use AWS SES (Simple Email Service) for sending e-mails, you need to provide the IAM role with the required permissions to use SES.
 
@@ -357,7 +358,7 @@ forge:
 ``` 
 
 Apply changes with [platform startup command](#start-flowfuse-platform).
-### I would like to use embeded MQTT broker, how can I do that?
+### I would like to use embedded MQTT broker, how can I do that?
 
 <details>
   <summary>Click to expand</summary>
@@ -381,7 +382,7 @@ Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/t
 ### I would like to use Kubernetes Persistent storage to store data, how can I do that?
 
 Starting with the `2.6.0` release the Pods running the Node-RED Instances have a Persistent Volume mounted on `/data/storage` in which files can be written. 
-These files will persist for the lifetime of the Instance including across Susspend/Resume and Stack upgrades.
+These files will persist for the lifetime of the Instance including across Suspend/Resume and Stack upgrades.
 
 To enable this feature the following configuration needs to be added to the `customization.yml` file (replace '<storage-class-name>' with the name of the StorageClass you have in the cluster):
 
@@ -412,4 +413,4 @@ Check the [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/t
 ### I would like to run FlowFuse on AWS EKS. Do you have any guidance?
 
 Yes, we have a dedicated guide on how to deploy FlowFuse on AWS EKS. You can find it [here](aws.md).
-Furthermore, we also provide terraform scripts to automate the deployment process of all required AWS service. You can find the guide [here](aws_terraform.md).
+Furthermore, we also provide terraform scripts to automate the deployment process of all required AWS service. You can find the guide [here](aws-terraform.md).
