@@ -134,8 +134,9 @@ module.exports = [
         name: 'platform_get_team_audit_log',
         title: 'Get Team Audit Log',
         description: `FlowFuse platform automation tool:
-            Reads the audit log for a team, showing events like membership changes, billing changes,
-            and administrative actions taken across the team's applications, instances, and devices.
+            Reads the audit log for a team. By default it returns only team-level events (membership changes,
+            billing changes, and other team administrative actions). To also include events from the team's
+            applications, instances, and devices, set includeChildren or set scope to that entity level.
             A team-scoped PAT only sees audit log entries for teams it is scoped to.
             Use this when the user asks what happened on a team, or wants to investigate recent changes.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
