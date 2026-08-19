@@ -10,12 +10,11 @@ module.exports = [
             Searches across a team's resources: applications, hosted instances, and remote instances (devices).
             Use this when the user wants to find something by name across the whole team, or when you have a name
             but not the ID of the resource you need.
-            An empty or blank query returns an empty result set.
             To search only instances (hosted and remote), use platform_search_instances instead.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             teamId,
-            query: z.string().describe('The search term')
+            query: z.string().trim().min(1).describe('The search term')
         },
         handler: async (args, { inject }) => {
             const url = appendQuery('/api/v1/search', { team: args.teamId, query: args.query }, ['team', 'query'])
@@ -29,12 +28,11 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Searches the hosted instances and remote instances (devices) of a team.
             Use this when the user wants to find an instance by name and you do not already have its ID.
-            An empty or blank query returns an empty result set.
             To search across all resource types (including applications), use platform_search_team_resources instead.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             teamId,
-            query: z.string().describe('The search term')
+            query: z.string().trim().min(1).describe('The search term')
         },
         handler: async (args, { inject }) => {
             const url = appendQuery('/api/v1/search/instances', { team: args.teamId, query: args.query }, ['team', 'query'])

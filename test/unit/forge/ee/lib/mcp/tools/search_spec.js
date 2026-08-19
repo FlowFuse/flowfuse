@@ -49,6 +49,17 @@ describe('MCP Search Tools', function () {
 
                 response.should.equal(errorResponse)
             })
+
+            it('rejects an empty or whitespace-only query', function () {
+                tool.inputSchema.query.safeParse('').success.should.be.false()
+                tool.inputSchema.query.safeParse('   ').success.should.be.false()
+            })
+
+            it('trims surrounding whitespace from an accepted query', function () {
+                const parsed = tool.inputSchema.query.safeParse('  foo  ')
+                parsed.success.should.be.true()
+                parsed.data.should.equal('foo')
+            })
         })
     })
 })
