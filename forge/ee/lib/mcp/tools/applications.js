@@ -55,7 +55,7 @@ module.exports = [
             Gets the audit log (activity history) for an application. Think of it as a diary that writes down everything that happened: who did what, and when.
             Use this to find out what changed, who made a change, or to figure out what went wrong by looking at recent activity.
             Results come back newest first. Use cursor to page through older entries.
-            You can narrow down results by event type, username, or scope (application, project, or device).
+            You can narrow down results by a free-text query, event type, username, or scope (application, project, or device).
             Set format to "csv" to export the log as a downloadable CSV file instead of reading entries directly.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -103,7 +103,7 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Lists the snapshots belonging to an application.
             A snapshot is a saved copy of an instance's flows, credentials and settings at a point in time.
-            Use this to see what snapshots are available for the hosted instances inside an application.
+            Use this to see what snapshots are available for the hosted and remote instances inside an application.
             Use cursor or limit to page through results.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -117,11 +117,11 @@ module.exports = [
         }
     },
     {
-        name: 'platform_list_team_application_statuses',
-        title: 'List Team Application Statuses',
+        name: 'platform_list_team_instance_statuses',
+        title: 'List Team Instance Statuses by Application',
         description: `FlowFuse platform automation tool:
-            Lists the applications in a team along with the live status of their associated hosted instances and remote instances.
-            Use this to get a status overview across an entire team without querying each application individually.`,
+            Lists each application in a team together with the live status of its hosted and remote instances.
+            Use this to get a status overview of every instance across a team without querying each application individually.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             teamId,

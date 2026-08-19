@@ -202,8 +202,8 @@ describe('MCP Applications Tools', function () {
         })
     })
 
-    describe('platform_list_team_application_statuses', function () {
-        const tool = getTool('platform_list_team_application_statuses')
+    describe('platform_list_team_instance_statuses', function () {
+        const tool = getTool('platform_list_team_instance_statuses')
 
         it('injects the team application statuses route with no query string when associationsLimit is not set', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ applications: [] }) }
