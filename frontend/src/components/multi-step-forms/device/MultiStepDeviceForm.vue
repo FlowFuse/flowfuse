@@ -28,9 +28,9 @@ import ApplicationStep from '../instance/steps/ApplicationStep.vue'
 import DeviceStep from './steps/DeviceStep.vue'
 import TeamStep from './steps/TeamStep.vue'
 
-import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
 import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 
 const TEAM_STEP_SLUG = 'team'
 const APPLICATION_SLUG = 'application'
@@ -83,7 +83,7 @@ export default {
     },
     computed: {
         ...mapState(useContextStore, ['team', 'isFreeTeamType']),
-        ...mapState(useAccountStore, ['teams']),
+        ...mapState(useDataFarmTeamsStore, { teams: 'teamList' }),
         formSteps () {
             return [
                 {

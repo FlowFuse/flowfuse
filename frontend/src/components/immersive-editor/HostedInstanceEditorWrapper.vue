@@ -76,7 +76,7 @@ export default {
         isInstanceLoading () {
             const unsafeStates = [
                 ...Object.values(States).filter(state => ![States.RUNNING, States.SAFE].includes(state)),
-                ...['suspending', 'suspended']
+                ...['suspending', 'suspended', 'restarting']
             ]
 
             return this.isInstanceTransitioningStates || unsafeStates.includes(this.instance.meta?.state)

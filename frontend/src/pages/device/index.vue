@@ -6,7 +6,7 @@
         </Teleport>
         <SectionNavigationHeader :tabs="navigation">
             <template #breadcrumbs>
-                <ff-nav-breadcrumb :to="{name: 'TeamDevices', params: {team_slug: team.slug}}">Remote Instances</ff-nav-breadcrumb>
+                <ff-nav-breadcrumb :to="{name: 'team-remote-instances', params: {team_slug: team.slug}}">Remote Instances</ff-nav-breadcrumb>
                 <ff-nav-breadcrumb>{{ device.name }}</ff-nav-breadcrumb>
             </template>
             <template #status>
@@ -22,11 +22,11 @@
             <template #context>
                 <div v-if="device?.ownerType === 'application' && device.application" data-el="device-assigned-application">
                     Application:
-                    <ff-team-link :to="{name: 'Application', params: {id: device.application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application?.name }}</ff-team-link>
+                    <ff-team-link :to="{name: 'application', params: {id: device.application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.application?.name }}</ff-team-link>
                 </div>
                 <div v-else-if="device?.ownerType === 'instance' && device.instance" data-el="device-assigned-instance">
                     Instance:
-                    <ff-team-link :to="{name: 'Instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</ff-team-link>
+                    <ff-team-link :to="{name: 'instance', params: {id: device.instance.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ device.instance.name }}</ff-team-link>
                 </div>
                 <div v-else data-el="device-assigned-none">
                     <span class="italic">No Application or Instance Assigned</span> - <a class="ff-link" data-action="assign-device" @click="openAssignmentDialog">Assign</a>
@@ -419,7 +419,7 @@ export default {
                 if (err.status === 403) {
                     this.pollTimer?.stop()
                     clearTimeout(this.openTunnelTimeout)
-                    return this.$router.push({ name: 'Home' })
+                    return this.$router.push({ name: 'home' })
                 }
             }
             if (!this.pollTimer && !this.statusChannelLive) {
@@ -598,7 +598,7 @@ export default {
                     Alerts.emit('Successfully deleted the device', 'confirmation')
                     // Trigger a refresh of team info to resync following device changes
                     await useContextStore().refreshTeam()
-                    this.$router.push({ name: 'TeamDevices', params: { team_slug: this.team.slug } })
+                    this.$router.push({ name: 'team-remote-instances', params: { team_slug: this.team.slug } })
                 } catch (err) {
                     Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
                 }

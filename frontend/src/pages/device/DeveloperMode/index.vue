@@ -202,7 +202,7 @@ export default {
     },
     methods: {
         redirect () {
-            this.$router.push({ name: 'Device', params: { id: this.device.id } })
+            this.$router.push({ name: 'device', params: { id: this.device.id } })
         },
         async openTunnel () {
             if (this.device.status === 'running') {

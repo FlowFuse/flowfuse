@@ -30,7 +30,7 @@
         <ff-loading v-if="isLoading" />
 
         <MultiStepInstanceForm
-            v-else
+            v-else-if="application"
             ref="multiStepForm" :application="application" @instance-created="onInstanceCreated"
             @previous-step-state-changed="form.previousButtonState = $event"
             @next-step-state-changed="form.nextButtonState = $event"
@@ -40,24 +40,30 @@
 </template>
 
 <script>
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
 import MultiStepInstanceForm from '../../components/multi-step-forms/instance/MultiStepInstanceForm.vue'
 
 import { getTeamProperty } from '../../composables/TeamProperties.js'
-import applicationMixin from '../../mixins/Application.js'
+
+import { useActiveApplication } from '../../composables/useActiveApplication'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 
 export default {
     name: 'ApplicationCreateInstance',
     components: {
         MultiStepInstanceForm
     },
-    mixins: [applicationMixin],
     inheritAttrs: false,
     emits: ['application-updated'],
+    setup () {
+        const { loadActiveApplication } = useActiveApplication()
+
+        return { loadActiveApplication }
+    },
     data () {
         return {
             loading: false,
@@ -74,8 +80,9 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useDataFarmApplicationsStore, { application: 'activeApplication', applicationHydrated: 'applicationHydrated' }),
         isLoading () {
-            return this.loading || !this.team
+            return this.loading || !this.team || !this.applicationHydrated
         }
     },
     async created () {
@@ -100,23 +107,27 @@ export default {
             )
         ) {
             this.$router.push({
-                name: 'Billing',
+                name: 'team-billing',
                 params: {
                     team_slug: this.team.slug
                 }
             })
         }
 
-        await this.updateApplication()
+        await this.loadActiveApplication(this.$route.params.id)
+    },
+    beforeUnmount () {
+        this.clearActiveApplication()
     },
     methods: {
+        ...mapActions(useDataFarmApplicationsStore, ['clearActiveApplication']),
         async onInstanceCreated () {
             await useContextStore().refreshTeam()
 
             this.$emit('application-updated')
 
             this.$router.push({
-                name: 'ApplicationInstances',
+                name: 'application-instances',
                 params: { id: this.application.id }
             })
         }

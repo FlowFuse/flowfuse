@@ -15,7 +15,7 @@
                     value-key="id"
                     class="w-full"
                 />
-                <router-link v-if="instance?.meta" :to="{ name: 'Instance', params: { id: instance.id }}">
+                <router-link v-if="instance?.meta" :to="{ name: 'instance', params: { id: instance.id }}">
                     <InstanceStatusBadge :status="instance.meta?.state" :pendingStateChange="instance?.pendingStateChange" :optimisticStateChange="instance.optimisticStateChange" class="ml-2" />
                 </router-link>
             </div>
