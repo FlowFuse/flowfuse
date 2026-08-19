@@ -3,7 +3,7 @@ import Registry from './Registry/Index.vue'
 import TeamLibrary from './TeamLibrary.vue'
 
 export default [
-    { name: 'LibraryBlueprints', path: 'blueprints', component: Blueprints },
-    { name: 'LibraryRegistry', path: 'team-library/registry', component: Registry },
-    { name: 'LibraryTeamLibrary', path: 'team-library/:entryPath*', component: TeamLibrary }
+    { name: 'team-library-blueprints', path: 'blueprints', component: Blueprints },
+    { name: 'team-library-registry', path: 'team-library/registry', component: Registry },
+    { name: 'team-library-files', path: 'team-library/:entryPath*', component: TeamLibrary }
 ]
