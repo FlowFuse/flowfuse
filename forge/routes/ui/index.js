@@ -71,6 +71,22 @@ module.exports = async function (app) {
             </script>`
             }
 
+            if (telemetry.frontend.google?.gtm) {
+                const gtm = telemetry.frontend.google.gtm
+                // Deferred until consent is given - the cookie-consent store calls this on accept.
+                injection += `<script>
+                window._ffLoadGoogleTagManager = function () {
+                    if (window._ffGoogleTagManagerLoaded) { return }
+                    window._ffGoogleTagManagerLoaded = true
+                    window.dataLayer = window.dataLayer || []
+                    window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' })
+                    var s = document.createElement('script'); s.async = true
+                    s.src = 'https://www.googletagmanager.com/gtm.js?id=${gtm}'
+                    document.head.appendChild(s)
+                }
+            </script>`
+            }
+
             if (support?.enabled && support.frontend?.hubspot?.trackingcode) {
                 const trackingCode = support.frontend.hubspot.trackingcode
                 // Deferred until consent is given - the cookie-consent store calls this on accept.
