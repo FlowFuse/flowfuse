@@ -104,7 +104,7 @@ module.exports = [
     {
         name: 'platform_get_template',
         title: 'Get Template',
-        description: 'Get a single template by id. Env values are blanked in the response.',
+        description: 'Get a single template by id. Hidden environment variable values are blanked in the response; visible ones are returned as set.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             templateId: z.string().describe('Template hashid')
