@@ -52,46 +52,38 @@ describe('MCP Snapshots Tools', function () {
         })
     })
 
-    describe('platform_create_hosted_instance_snapshot', function () {
-        const tool = getTool('platform_create_hosted_instance_snapshot')
+    describe('platform_create_instance_snapshot', function () {
+        const tool = getTool('platform_create_instance_snapshot')
 
-        it('injects the right route and returns the response', async function () {
+        it('creates a hosted instance snapshot via the projects route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ id: 'snapshot1' }) }
             inject.withArgs({ method: 'POST', url: `/api/v1/projects/${hostedInstanceId}/snapshots`, payload: { name: 'snap', description: 'desc' } }).resolves(routeResponse)
 
-            const response = await tool.handler({ hostedInstanceId, name: 'snap', description: 'desc' }, { inject })
+            const response = await tool.handler({ instanceType: 'hosted', instanceId: hostedInstanceId, name: 'snap', description: 'desc' }, { inject })
 
             inject.calledOnce.should.be.true()
             response.should.equal(routeResponse)
         })
 
-        it('passes through an error response', async function () {
-            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
-            inject.resolves(errorResponse)
-
-            const response = await tool.handler({ hostedInstanceId, name: 'snap' }, { inject })
-            response.should.equal(errorResponse)
-        })
-    })
-
-    describe('platform_create_remote_instance_snapshot', function () {
-        const tool = getTool('platform_create_remote_instance_snapshot')
-
-        it('injects the right route and returns the response', async function () {
+        it('creates a remote instance snapshot via the devices route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ id: 'snapshot1' }) }
             inject.withArgs({ method: 'POST', url: '/api/v1/devices/device1/snapshots', payload: { name: 'snap', description: 'desc' } }).resolves(routeResponse)
 
-            const response = await tool.handler({ remoteInstanceId: 'device1', name: 'snap', description: 'desc' }, { inject })
+            const response = await tool.handler({ instanceType: 'remote', instanceId: 'device1', name: 'snap', description: 'desc' }, { inject })
 
             inject.calledOnce.should.be.true()
             response.should.equal(routeResponse)
+        })
+
+        it('rejects an unknown instanceType', function () {
+            tool.inputSchema.instanceType.safeParse('other').success.should.be.false()
         })
 
         it('passes through an error response', async function () {
             const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
             inject.resolves(errorResponse)
 
-            const response = await tool.handler({ remoteInstanceId: 'device1', name: 'snap' }, { inject })
+            const response = await tool.handler({ instanceType: 'hosted', instanceId: hostedInstanceId, name: 'snap' }, { inject })
             response.should.equal(errorResponse)
         })
     })
@@ -168,8 +160,8 @@ describe('MCP Snapshots Tools', function () {
         })
     })
 
-    describe('platform_get_instance_device_settings', function () {
-        const tool = getTool('platform_get_instance_device_settings')
+    describe('platform_get_hosted_instance_device_target_snapshot', function () {
+        const tool = getTool('platform_get_hosted_instance_device_target_snapshot')
 
         it('injects the right route and returns the response', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ targetSnapshot: null }) }

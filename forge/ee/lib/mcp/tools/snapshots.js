@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { basePaginationKeys, appendQuery, hostedInstanceId, remoteInstanceId, snapshotId } = require('../schemas')
+const { basePaginationKeys, appendQuery, hostedInstanceId, snapshotId } = require('../schemas')
 
 // Snapshots store hidden (secret) env vars as { value, hidden: true } with the
 // real value; the /full route returns settings verbatim. Blank those values
@@ -44,15 +44,18 @@ module.exports = [
         }
     },
     {
-        name: 'platform_create_hosted_instance_snapshot',
-        title: 'Create Hosted Instance Snapshot',
+        name: 'platform_create_instance_snapshot',
+        title: 'Create Instance Snapshot',
         description: `FlowFuse platform automation tool:
-            Creates a new snapshot from a hosted instance, capturing everything it is running right now (flows, settings, and configuration).
-            Think of it as taking a photo of the hosted instance so you can go back to this exact state later or deploy it to other hosted instances.
-            Use this when the user wants to save the current state of a hosted instance before making changes, or to create a version that can be rolled out elsewhere.`,
+            Creates a new snapshot from a hosted instance or a remote instance (device), capturing everything it is running right now (flows, settings, and configuration).
+            Think of it as taking a photo of the instance so you can go back to this exact state later or deploy it elsewhere.
+            Set instanceType to "hosted" or "remote" to say which kind of instance instanceId refers to.
+            When instanceType is "remote", the device must be online and running or this will fail; call platform_get_remote_instance_status first to check.
+            Use this when the user wants to save the current state of an instance before making changes, or to create a version that can be rolled out elsewhere.`,
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
-            hostedInstanceId,
+            instanceType: z.enum(['hosted', 'remote']).describe('Which kind of instance instanceId refers to: "hosted" for a hosted instance, "remote" for a remote instance (device)'),
+            instanceId: z.string().describe('The ID of the instance to snapshot (UUID for a hosted instance, hashid for a remote instance)'),
             name: z.string().optional().describe('Name for the snapshot'),
             description: z.string().optional().describe('Description of the snapshot')
         },
@@ -64,35 +67,10 @@ module.exports = [
             if (args.description) {
                 payload.description = args.description
             }
-            const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.hostedInstanceId}/snapshots`, payload })
-            return response
-        }
-    },
-    {
-        name: 'platform_create_remote_instance_snapshot',
-        title: 'Create Remote Instance Snapshot',
-        description: `FlowFuse platform automation tool:
-            This tool will always fail if the remote instance is not reachable.
-            This tool exclusively creates snapshots, it does not create anything else.
-            Before calling this tool, you must call platform_get_remote_instance_status first to check that the device is online and running.
-            Creates a new snapshot from a remote instance, capturing everything it is running right now (flows, settings, and configuration).
-            Think of it as taking a photo of the remote instance so you can go back to this exact state later or deploy it to other remote instances.
-            Use this when the user wants to save the current state of a remote instance before making changes, or to create a snapshot that can be rolled out elsewhere.`,
-        annotations: { readOnlyHint: false, destructiveHint: false },
-        inputSchema: {
-            remoteInstanceId,
-            name: z.string().optional().describe('Name for the snapshot'),
-            description: z.string().optional().describe('Description of the snapshot')
-        },
-        handler: async (args, { inject }) => {
-            const payload = {}
-            if (args.name) {
-                payload.name = args.name
-            }
-            if (args.description) {
-                payload.description = args.description
-            }
-            const response = await inject({ method: 'POST', url: `/api/v1/devices/${args.remoteInstanceId}/snapshots`, payload })
+            const url = args.instanceType === 'hosted'
+                ? `/api/v1/projects/${args.instanceId}/snapshots`
+                : `/api/v1/devices/${args.instanceId}/snapshots`
+            const response = await inject({ method: 'POST', url, payload })
             return response
         }
     },
@@ -137,11 +115,11 @@ module.exports = [
         }
     },
     {
-        name: 'platform_get_instance_device_settings',
-        title: 'Get Hosted Instance Device Settings',
+        name: 'platform_get_hosted_instance_device_target_snapshot',
+        title: 'Get Hosted Instance Device Target Snapshot',
         description: `FlowFuse platform automation tool:
-            Reads the device settings for a hosted instance, including which snapshot (if any) is currently set as the target for devices assigned to it.
-            Use this to check what devices assigned to the hosted instance will be deployed to next.`,
+            Gets the target snapshot for the remote instances (devices) assigned to a hosted instance: the snapshot those devices are set to deploy. Returns null when no target snapshot is set.
+            Use this to check which snapshot the instance's assigned devices will run next.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             hostedInstanceId

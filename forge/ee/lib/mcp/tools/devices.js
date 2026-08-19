@@ -121,7 +121,7 @@ module.exports = [
             not the last-known state stored on the platform.
             The remote instance must be online and reachable for this to work. If the device is offline, the call will time out.
             Use this when you need to know what the device is actually doing right now.
-            Other tools like platform_create_remote_instance_snapshot require the device to be running.
+            Other tools like platform_create_instance_snapshot (for a remote instance) require the device to be running.
             Always call this tool first to verify the device is live before using those tools.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
