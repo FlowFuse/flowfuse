@@ -54,7 +54,7 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Gets the audit log (activity history) for an application. Think of it as a diary that writes down everything that happened: who did what, and when.
             Use this to find out what changed, who made a change, or to figure out what went wrong by looking at recent activity.
-            Results come back newest first. Use cursor to page through older entries.
+            Results come back newest first.
             You can narrow down results by a free-text query, event type, username, or scope (application, project, or device).
             Set format to "csv" to export the log as a downloadable CSV file instead of reading entries directly.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
@@ -103,8 +103,7 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Lists the snapshots belonging to an application.
             A snapshot is a saved copy of an instance's flows, credentials and settings at a point in time.
-            Use this to see what snapshots are available for the hosted and remote instances inside an application.
-            Use cursor or limit to page through results.`,
+            Use this to see what snapshots are available for the hosted and remote instances inside an application.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             applicationId,
