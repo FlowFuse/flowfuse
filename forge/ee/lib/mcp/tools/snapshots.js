@@ -2,22 +2,43 @@ const { z } = require('zod')
 
 const { basePaginationKeys, appendQuery, hostedInstanceId, remoteInstanceId, snapshotId } = require('../schemas')
 
+// Snapshots store hidden (secret) env vars as { value, hidden: true } with the
+// real value; the /full route returns settings verbatim. Blank those values
+// before handing the payload to the agent, keeping the key and the hidden flag.
+// Visible env vars (plain string values) pass through unchanged.
+function blankHiddenEnvValues (env) {
+    const result = {}
+    for (const [key, value] of Object.entries(env)) {
+        if (value && typeof value === 'object' && value.hidden) {
+            result[key] = { ...value, value: '' }
+        } else {
+            result[key] = value
+        }
+    }
+    return result
+}
+
 module.exports = [
     {
-        name: 'platform_list_hosted_instance_snapshots',
-        title: 'List Hosted Instance Snapshots',
+        name: 'platform_list_instance_snapshots',
+        title: 'List Instance Snapshots',
         description: `FlowFuse platform automation tool:
-            Lists all snapshots that were taken from a hosted instance.
-            A snapshot is like a saved photo of everything running on the hosted instance at a point in time: the flows, the settings, and the configuration.
-            Use this when you need to see what snapshots exist for a hosted instance, for example to pick one to deploy or to check what changed between versions.`,
+            Lists the snapshots taken from a hosted instance or a remote instance (device).
+            A snapshot is like a saved photo of everything running on the instance at a point in time: the flows, the settings, and the configuration.
+            Set instanceType to "hosted" or "remote" to say which kind of instance instanceId refers to.
+            Use this when you need to see what snapshots exist for an instance, for example to pick one to deploy or to check what changed between versions.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            hostedInstanceId,
+            instanceType: z.enum(['hosted', 'remote']).describe('Which kind of instance instanceId refers to: "hosted" for a hosted instance, "remote" for a remote instance (device)'),
+            instanceId: z.string().describe('The ID of the instance whose snapshots to list (UUID for a hosted instance, hashid for a remote instance)'),
             cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
             limit: z.number().min(1).max(20).describe('How many results to return per page')
         },
         handler: async (args, { inject }) => {
-            const url = appendQuery(`/api/v1/projects/${args.hostedInstanceId}/snapshots`, args, basePaginationKeys)
+            const base = args.instanceType === 'hosted'
+                ? `/api/v1/projects/${args.instanceId}/snapshots`
+                : `/api/v1/devices/${args.instanceId}/snapshots`
+            const url = appendQuery(base, args, basePaginationKeys)
             const response = await inject({ method: 'GET', url })
             return response
         }
@@ -44,25 +65,6 @@ module.exports = [
                 payload.description = args.description
             }
             const response = await inject({ method: 'POST', url: `/api/v1/projects/${args.hostedInstanceId}/snapshots`, payload })
-            return response
-        }
-    },
-    {
-        name: 'platform_list_remote_instance_snapshots',
-        title: 'List Remote Instance Snapshots',
-        description: `FlowFuse platform automation tool:
-            Lists all snapshots that were taken from a remote instance (device).
-            A snapshot is like a saved photo of everything running on the remote instance at a point in time: the flows, the settings, and the configuration.
-            Use this when you need to see what snapshots exist for a remote instance, for example to pick one to deploy or to check what changed between versions.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            remoteInstanceId,
-            cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
-            limit: z.number().min(1).max(20).describe('How many results to return per page')
-        },
-        handler: async (args, { inject }) => {
-            const url = appendQuery(`/api/v1/devices/${args.remoteInstanceId}/snapshots`, args, basePaginationKeys)
-            const response = await inject({ method: 'GET', url })
             return response
         }
     },
@@ -95,49 +97,12 @@ module.exports = [
         }
     },
     {
-        name: 'platform_get_hosted_instance_snapshot',
-        title: 'Get Hosted Instance Snapshot',
-        description: `FlowFuse platform automation tool:
-            Gets a single snapshot owned by a hosted instance, including its name, description, and metadata.
-            Use this when you already know which hosted instance and snapshot you want details for.
-            If you need to see all snapshots for a hosted instance first, call platform_list_hosted_instance_snapshots.
-            To get the full flows/settings/env payload of the snapshot instead of just metadata, call platform_get_snapshot_full.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            hostedInstanceId,
-            snapshotId
-        },
-        handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/snapshots/${args.snapshotId}` })
-            return response
-        }
-    },
-    {
-        name: 'platform_get_remote_instance_snapshot',
-        title: 'Get Remote Instance Snapshot',
-        description: `FlowFuse platform automation tool:
-            Gets a single snapshot owned by a remote instance (device), including its name, description, and metadata.
-            Use this when you already know which remote instance and snapshot you want details for.
-            If you need to see all snapshots for a remote instance first, call platform_list_remote_instance_snapshots.
-            To get the full flows/settings/env payload of the snapshot instead of just metadata, call platform_get_snapshot_full.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            remoteInstanceId,
-            snapshotId
-        },
-        handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/devices/${args.remoteInstanceId}/snapshots/${args.snapshotId}` })
-            return response
-        }
-    },
-    {
         name: 'platform_get_snapshot',
         title: 'Get Snapshot',
         description: `FlowFuse platform automation tool:
-            Gets snapshot metadata by snapshot id alone, without needing to know which hosted instance or remote instance owns it.
-            The owning instance or device is resolved automatically from the snapshot.
-            Use this when you only have a snapshot id, for example from an audit log entry or a reference returned by another tool.
-            To get the full flows/settings/env payload of the snapshot instead of just metadata, call platform_get_snapshot_full.`,
+            Gets a single snapshot's metadata (name, description, owner, timestamps) by its id.
+            Works for snapshots owned by a hosted instance or a remote instance (device); the owner is resolved automatically from the snapshot, so you do not need to know which instance owns it.
+            This returns metadata only. To retrieve the full snapshot content (flows, settings, and environment variables), use platform_get_snapshot_full.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             snapshotId
@@ -151,8 +116,9 @@ module.exports = [
         name: 'platform_get_snapshot_full',
         title: 'Get Snapshot Full Payload',
         description: `FlowFuse platform automation tool:
-            Gets the full payload of a snapshot by snapshot id: flows, runtime settings, and environment variables. Credentials are never included.
-            This payload can be large and may include sensitive configuration such as environment variable values, so only call this when the content is actually needed.
+            Gets the full payload of a snapshot by its id: flows, runtime settings, and environment variables. Works for hosted and remote instance snapshots.
+            Credentials are never included, and the values of hidden (secret) environment variables are blanked; their keys are still listed.
+            This payload can be large, so only call this when the content is actually needed.
             Use platform_get_snapshot instead when only the snapshot name, description, or other metadata is required.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -160,7 +126,14 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/snapshots/${args.snapshotId}/full` })
-            return response
+            if (response.statusCode >= 400) {
+                return response
+            }
+            const body = response.json()
+            if (body.settings?.env) {
+                body.settings.env = blankHiddenEnvValues(body.settings.env)
+            }
+            return { statusCode: response.statusCode, json: () => body }
         }
     },
     {
