@@ -20,6 +20,7 @@ import TeamCell from '../../../components/tables/cells/TeamCell.vue'
 import Alerts from '../../../services/alerts.js'
 
 import { useAccountStore } from '@/stores/account.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 
 export default {
     name: 'UserInviteTable',
@@ -51,12 +52,12 @@ export default {
             await userApi.acceptTeamInvitation(invite.id, invite.team.id)
             await useAccountStore().getNotifications()
             await useAccountStore().getInvitations()
-            await useAccountStore().refreshTeams()
+            await useDataFarmTeamsStore().fetchTeamList()
             Alerts.emit(`Invite to "${invite.team.name}" has been accepted.`, 'confirmation')
             // navigate to team dashboad once invite accepted
             useAccountStore().setTeam(invite.team.slug)
                 .then(() => this.$router.push({
-                    name: 'Team',
+                    name: 'team',
                     params: {
                         team_slug: invite.team.slug
                     }

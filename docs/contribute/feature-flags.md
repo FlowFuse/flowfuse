@@ -9,6 +9,8 @@ meta:
       - team types
 ---
 
+# Working with Feature Flags
+
 When adding features to the platform it is sometimes a requirement to be able to
 restrict the feature to licensed platforms, and furthermore to certain types of team
 on the platform.

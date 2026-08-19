@@ -116,12 +116,8 @@ Medium and Large instance types require the Enterprise tier.
 FlowFuse Cloud hosted instances have access to a persistent file-system that will
 retain the files stored on it across restarts of the instance.
 
-A quota limit is applied to how much data can be stored, which varies based on
-the Team type.
-
-| Team Type | File Storage Quota (per instance) |
-|--------|--------|
-| Enterprise | 100GB |
+A quota limit is applied to how much data can be stored, based on the Team type.
+Enterprise teams have a file storage quota of 100GB per instance.
 
 Files can be manually uploaded to an instance using the [Static Asset Service](https://flowfuse.com/blog/2024/08/flowfuse-2-8-release/#static-assets-service).
 
@@ -134,10 +130,7 @@ FlowFuse Cloud provides an optional context store that can be used to persist
 the data.
 
 The amount of data that can be stored in context is determined by the Team type.
-
-| Team Type | Context Store Quota (per instance) |
-|--------|--------|
-| Enterprise | 1GB |
+Enterprise teams have a context store quota of 1GB per instance.
 
 
 ## Network Connections

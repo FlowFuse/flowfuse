@@ -108,6 +108,12 @@ describe('Memory Cache', function () {
         all = await cache.all()
         all.should.deepEqual({ one: 'one', two: 'two', four: 'four' })
     })
+    it('rejects non-string keys on get/set/del', async function () {
+        const cache = app.caches.getCache('cache1')
+        await cache.get(1).should.be.rejectedWith(/Cache key must be a string/)
+        await cache.set(1, 'one').should.be.rejectedWith(/Cache key must be a string/)
+        await cache.del(1).should.be.rejectedWith(/Cache key must be a string/)
+    })
     it('close caches', async function () {
         // capture the live instances + confirm cache1 has data from prior tests
         const cache1Before = app.caches.getCache('cache1')

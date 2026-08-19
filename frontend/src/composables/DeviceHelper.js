@@ -143,7 +143,7 @@ export function useDeviceHelper () {
                 Alerts.emit('Successfully deleted the device', 'confirmation')
                 // Trigger a refresh of team info to resync following device changes
                 await useContextStore().refreshTeam()
-                await $router.push({ name: 'TeamDevices', params: { team_slug: useContextStore().team.slug } })
+                await $router.push({ name: 'team-remote-instances', params: { team_slug: useContextStore().team.slug } })
             } catch (err) {
                 Alerts.emit('Failed to delete device: ' + err.toString(), 'warning', 7500)
             }

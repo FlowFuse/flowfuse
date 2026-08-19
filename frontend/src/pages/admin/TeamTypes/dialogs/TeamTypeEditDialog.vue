@@ -318,6 +318,9 @@ export default {
                     if (this.input.properties.features.expertInsights === undefined) {
                         this.input.properties.features.expertInsights = true
                     }
+                    if (this.input.properties.features.mcpThirdParty === undefined) {
+                        this.input.properties.features.mcpThirdParty = true
+                    }
                     if (!this.input.autoStack) {
                         this.input.autoStack = {}
                     }

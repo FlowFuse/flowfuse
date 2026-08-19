@@ -40,7 +40,7 @@ export default [
         adminOnly: true,
         beforeEnter: ensureAdmin,
         redirect: '/admin/overview',
-        name: 'Admin Settings',
+        name: 'admin',
         icon: AdjustmentsVerticalIcon,
         component: Admin,
         meta: {

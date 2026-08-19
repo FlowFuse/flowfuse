@@ -206,7 +206,7 @@ export default {
         if (this.hasPermission('team:device-group:list')) {
             this.loadTeamDeviceGroups()
         } else {
-            this.$router.replace({ name: 'Home' })
+            this.$router.replace({ name: 'home' })
         }
     },
     methods: {
@@ -251,7 +251,7 @@ export default {
         },
         goToGroup (row) {
             return this.$router.push({
-                name: 'ApplicationDeviceGroupIndex',
+                name: 'application-device-group',
                 params: {
                     deviceGroupId: row.id,
                     applicationId: row.application.id
