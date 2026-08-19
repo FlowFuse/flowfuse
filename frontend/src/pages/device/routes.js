@@ -133,7 +133,7 @@ export default [
                 params: to.params
             }
         },
-        name: 'Device',
+        name: 'device',
         component: Device,
         meta: {
             title: 'Device - Overview'

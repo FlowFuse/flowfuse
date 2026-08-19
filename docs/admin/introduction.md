@@ -24,8 +24,8 @@ meta:
  - [FlowFuse Concepts](/docs/user/concepts.md)
  - [Usage Telemetry](/docs/admin/telemetry.md)
  - [Single-Sign On](/docs/admin/sso/)
- - [Licensing](/docs/admin/licensing.md)
- - [User management](/docs/admin/user_management.md)
+ - [Licensing](https://flowfuse.com/pricing/)
+ - [User management](/docs/admin/user-management.md)
  - [Platform Monitoring](/docs/admin/monitoring.md)
  - [Soft Launch Enablement](/docs/admin/feature-flags.md)
 

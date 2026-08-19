@@ -17,6 +17,8 @@ function getPath (file) {
 
 module.exports = function (env, argv) {
     const devMode = argv?.mode === 'development'
+    const hmrEnabled = devMode && process.env.NODE_RUN_HOT === 'hot'
+
     const config = {
         devtool: devMode ? 'source-map' : 'hidden-source-map',
         entry: {
@@ -158,9 +160,12 @@ module.exports = function (env, argv) {
             new DotenvPlugin(),
             new DefinePlugin({
                 __VUE_OPTIONS_API__: true,
-                __VUE_PROD_DEVTOOLS__: devMode
+                __VUE_PROD_DEVTOOLS__: devMode,
+                __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: devMode,
+                'process.env.hotReloading': hmrEnabled
             })
         ],
+        cache: hmrEnabled ? { type: 'filesystem' } : undefined,
         optimization: {
             moduleIds: 'deterministic',
             runtimeChunk: 'single',
@@ -182,8 +187,18 @@ module.exports = function (env, argv) {
             }
         },
         devServer: {
-            port: 3000,
-            historyApiFallback: true
+            port: 2880,
+            hot: true,
+            liveReload: false,
+            allowedHosts: 'all',
+            devMiddleware: {
+                writeToDisk: true
+            },
+            client: {
+                webSocketURL: 'ws://localhost:2880/ws',
+                overlay: { errors: true, warnings: false },
+                logging: 'error'
+            }
         },
         watchOptions: {
             poll: 1000,
