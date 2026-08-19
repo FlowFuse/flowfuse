@@ -77,8 +77,7 @@ const IMPLICIT_TOKEN_SCOPES = {
         'project:edit', // get instance custom hostname, custom hostname status and HTTP tokens
         'project:files:list', // list instance files
         'project:audit-log', // get hosted instance audit log
-        'project:history', // get hosted instance history
-        'device:history', // get remote instance history (merged instance history tool)
+        'project:history', // get instance history (hosted and remote; the remote route checks project:history too)
         // teams
         'user:team:list', // list teams
         'team:read', // get team details

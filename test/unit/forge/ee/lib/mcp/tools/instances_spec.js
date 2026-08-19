@@ -279,10 +279,20 @@ describe('MCP Instances Tools', function () {
 
             inject.calledThrice.should.be.true()
             response.json().should.eql({
-                ha: { statusCode: 200, replicas: 2 },
-                protection: { statusCode: 200, enabled: true },
-                autoUpdateStack: { statusCode: 404, code: 'not_found' }
+                ha: { statusCode: 200, data: { replicas: 2 } },
+                protection: { statusCode: 200, data: { enabled: true } },
+                autoUpdateStack: { statusCode: 404, data: { code: 'not_found' } }
             })
+        })
+
+        it('preserves an array payload such as the autoUpdateStack schedule', async function () {
+            const schedule = [{ hour: 2, day: 0, restart: true }, { hour: 3, day: 4, restart: false }]
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/autoUpdateStack` }).resolves({ statusCode: 200, json: () => schedule })
+
+            const response = await tool.handler({ hostedInstanceId: instanceId, sections: ['autoUpdateStack'] }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.json().should.eql({ autoUpdateStack: { statusCode: 200, data: schedule } })
         })
 
         it('fetches only the requested sections', async function () {
@@ -291,7 +301,7 @@ describe('MCP Instances Tools', function () {
             const response = await tool.handler({ hostedInstanceId: instanceId, sections: ['ha'] }, { inject })
 
             inject.calledOnce.should.be.true()
-            response.json().should.eql({ ha: { statusCode: 200, replicas: 3 } })
+            response.json().should.eql({ ha: { statusCode: 200, data: { replicas: 3 } } })
         })
     })
 

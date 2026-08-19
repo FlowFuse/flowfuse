@@ -44,9 +44,9 @@ module.exports = [
                 .describe('If true, also fetch each instance\'s real-time running state. Slower than filtering by state, since it queries every matching instance\'s container.'),
             page: z.number().min(1).default(1).optional().describe('Page number to fetch (1-based). Ignored when applicationId is set, since that listing is not paginated.'),
             limit: z.number().min(1).max(10).default(10).describe('How many results to return per page. Ignored when applicationId is set.'),
-            sort: z.enum(['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']).optional().describe('Field to sort the team-wide instance list by (ignored when applicationId is set)'),
+            sort: z.enum(['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']).optional().describe('Field to sort the team-wide instance list by (ignored when applicationId is set). The "flowLastUpdatedAt" option additionally requires includeLiveStatus to be set; without it the list falls back to its default order.'),
             dir: sortParams.dir,
-            orderByMostRecentFlows: z.boolean().optional().describe('Order the team-wide list by most recently updated flows (ignored when applicationId is set)')
+            orderByMostRecentFlows: z.boolean().optional().describe('Order the team-wide list by most recently updated flows (ignored when applicationId is set, and only applied when includeLiveStatus is also set)')
         },
         handler: async (args, { inject }) => {
             if (args.applicationId) {
@@ -182,7 +182,7 @@ module.exports = [
             "ha" - the High Availability configuration, which runs an instance across multiple replicas so it stays up if one replica fails (plan-gated: a team without it enabled gets a 404 for this section).
             "protection" - the protected-instance configuration, which requires extra confirmation before destructive actions such as suspension or deletion (plan-gated: a team without it enabled gets a 404 for this section).
             "autoUpdateStack" - the auto-update stack (weekly restart) schedule, controlling the windows in which the platform may automatically restart the instance to apply a stack update (no plan gate: a 404 means the instance does not exist).
-            Omit sections to return all three. Each section is reported independently, so one section being unavailable does not affect the others.`,
+            Omit sections to return all three. Each section is reported independently as { statusCode, data }, where data holds that section's payload (an object for "ha" and "protection", an array of weekly restart windows for "autoUpdateStack"). One section being unavailable does not affect the others.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             hostedInstanceId,
@@ -201,7 +201,7 @@ module.exports = [
             const result = {}
             requested.forEach((section, index) => {
                 const response = responses[index]
-                result[section] = { statusCode: response.statusCode, ...response.json() }
+                result[section] = { statusCode: response.statusCode, data: response.json() }
             })
             return {
                 statusCode: 200,
@@ -302,9 +302,7 @@ module.exports = [
         title: 'Get Instance History',
         description: `FlowFuse platform automation tool:
             Reads a timeline of changes made to an instance over time, for either a hosted instance or a remote instance (device).
-            This is plan-gated on the projectHistory feature, which defaults to enabled;
-            if the team's plan has this feature disabled, the tool reports that instance history
-            is not enabled for this team rather than a bare not-found error.
+            This is plan-gated on the projectHistory feature, which defaults to enabled; if the team's plan has this feature disabled, the call returns a not-found error.
             Use this when the user wants a chronological view of what changed on an instance.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
@@ -323,11 +321,9 @@ module.exports = [
         name: 'platform_get_hosted_instance_resources',
         title: 'Get Hosted Instance Resources',
         description: `FlowFuse platform automation tool:
-            Reads a point-in-time snapshot of resource usage (CPU, memory) for a hosted instance.
-            This is plan-gated on the instanceResources feature, which defaults to disabled;
-            if the team's plan has this feature disabled, the tool reports that resource usage
-            is not enabled for this team rather than a bare not-found error.
-            This only returns a snapshot, not a live streaming feed.`,
+            Reads recent resource usage (CPU, memory) for a hosted instance as a time-series: a list of samples over time, each with a timestamp, rather than a single current reading.
+            This is plan-gated on the instanceResources feature, which defaults to disabled; if the team's plan has this feature disabled, the call returns a not-found error.
+            This returns the stored usage history, not a live streaming feed.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             hostedInstanceId
