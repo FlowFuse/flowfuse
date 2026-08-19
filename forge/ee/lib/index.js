@@ -61,6 +61,12 @@ module.exports = fp(async function (app, opts) {
             (Object.prototype.hasOwnProperty.call(app.config?.expert ?? {}, 'insights') ? !!app.config?.expert?.insights?.enabled : true)
 
         app.config.features.register('expertInsights', isInsightsEnabled ?? false, true)
+
+        // Set the MCP third-party agent access flag. Defaults to true when AI
+        // and expert are both enabled, so it activates automatically unless
+        // explicitly disabled in the config.
+        const isMcpThirdPartyEnabled = isAiEnabled && (app.config?.expert?.enabled ?? false)
+        app.config.features.register('mcpThirdParty', isMcpThirdPartyEnabled, true)
     }
 
     // Set the Team Library Feature Flag

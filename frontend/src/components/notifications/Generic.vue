@@ -96,7 +96,7 @@ export default {
                 return { url: this.notification.data.url }
 
             case this.notification.type === 'team-trial-suspended':
-                return { name: 'Billing', params: { team_slug: this.notification.data.team.slug } }
+                return { name: 'team-billing', params: { team_slug: this.notification.data.team.slug } }
 
             default:
                 return null // no link

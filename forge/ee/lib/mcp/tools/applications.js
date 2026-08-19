@@ -77,7 +77,7 @@ module.exports = [
             Creates a new application in a team.
             An application is a container that groups together hosted instances and remote instances that work together.
             Before invoking this tool, call platform_list_applications for this team to check whether an application with this name already exists. If one exists, ask the user whether to use the existing one or create a new one with the same name - DO NOT create a duplicate application without asking first.
-            After the application is created, ask the user if they want to be taken to it. If they do, use the ui_navigate tool with the route name "Application" and params { id: <the new application id> }.`,
+            After the application is created, ask the user if they want to be taken to it. If they do, use the ui_navigate tool with the route name "application" and params { id: <the new application id> }.`,
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             name: z.string().describe('Name for the new application'),

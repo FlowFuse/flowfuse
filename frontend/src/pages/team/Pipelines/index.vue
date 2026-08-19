@@ -20,7 +20,7 @@
                     </p>
                     <p>
                         Get started by choosing an
-                        <router-link :to="{name: 'Team'}">Application</router-link>
+                        <router-link :to="{name: 'team'}">Application</router-link>
                         to build your first DevOps Pipeline in.
                     </p>
                 </template>
@@ -77,7 +77,7 @@
                         <template #message>
                             <p>DevOps Pipelines are used to link multiple Node-RED instances together in a deployment pipeline.</p>
                             <p>This is normally used to define "Development" instances, where you can test your new flows without fear or breaking "Production" environments, and then, when you're ready, deploy your changes with a single click</p>
-                            <p>Get started by choosing an <router-link :to="{name: 'Team'}" class="text-blue-600 hover:text-blue-800 hover:underline">Application</router-link> to build your first DevOps Pipeline in.</p>
+                            <p>Get started by choosing an <router-link :to="{name: 'team'}" class="text-blue-600 hover:text-blue-800 hover:underline">Application</router-link> to build your first DevOps Pipeline in.</p>
                         </template>
                     </EmptyState>
                 </template>
@@ -138,7 +138,7 @@ export default {
     mounted () {
         if (!this.hasPermission('application:pipeline:list')) {
             return this.$router.push({
-                name: 'Applications',
+                name: 'team-applications',
                 params: this.$route.params
             })
         }

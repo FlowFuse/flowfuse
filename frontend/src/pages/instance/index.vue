@@ -7,7 +7,7 @@
         <template #header>
             <ff-page-header :title="instance.name" :tabs="navigation">
                 <template #breadcrumbs>
-                    <ff-nav-breadcrumb :to="{name: 'Instances', params: {team_slug: team.slug}}">Instances</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb :to="{name: 'team-hosted-instances', params: {team_slug: team.slug}}">Instances</ff-nav-breadcrumb>
                 </template>
                 <template #status>
                     <InstanceStatusBadge
@@ -31,7 +31,7 @@
                 </template>
                 <template #context>
                     Application:
-                    <ff-team-link :to="{name: 'Application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">
+                    <ff-team-link :to="{name: 'application', params: {id: instance.application.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">
                         {{ instance.application.name }}
                     </ff-team-link>
                 </template>

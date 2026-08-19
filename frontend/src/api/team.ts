@@ -29,7 +29,7 @@ const getTeams = async (): Promise<{ teams: TeamListItem[] }> => {
     const res = await client.get<{ teams: UserTeamList }>('/api/v1/user/teams')
     const teams = res.data.teams.map((r): TeamListItem => ({
         ...r,
-        link: { name: 'Team', params: { team_slug: r.slug } },
+        link: { name: 'team', params: { team_slug: r.slug } },
         roleName: RoleNames[r.role]
     }))
     return { ...res.data, teams }
@@ -160,7 +160,7 @@ const getTeamInstances = async (teamId: string) => {
     res.data.projects = res.data.projects.map(r => {
         r.createdSince = daysSince(r.createdAt)
         r.updatedSince = daysSince(r.updatedAt)
-        r.link = { name: 'Application', params: { id: r.id } }
+        r.link = { name: 'application', params: { id: r.id } }
         promises.push(client.get(`/api/v1/projects/${r.id}`).then(p => {
             r.status = p.data.meta.state
             r.flowLastUpdatedAt = p.data.flowLastUpdatedAt
@@ -183,7 +183,7 @@ const getTeamDashboards = async (teamId: string) => {
         r.updatedSince = daysSince(r.updatedAt)
         r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)
 
-        r.link = { name: 'Application', params: { id: r.id } }
+        r.link = { name: 'application', params: { id: r.id } }
 
         return r
     })

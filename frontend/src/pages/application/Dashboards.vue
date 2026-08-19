@@ -7,5 +7,5 @@
 <script setup>
 import DashboardList from '@/components/dashboard/DashboardList.vue'
 
-defineOptions({ name: 'ApplicationDashboards' })
+defineOptions({ name: 'application-dashboards' })
 </script>

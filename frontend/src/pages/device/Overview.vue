@@ -55,7 +55,7 @@
                     </InfoCardRow>
                     <InfoCardRow property="Application:">
                         <template #value>
-                            <ff-team-link v-if="device?.application" :to="{name: 'Application', params: { id: device.application.id }}">
+                            <ff-team-link v-if="device?.application" :to="{name: 'application', params: { id: device.application.id }}">
                                 {{ device.application?.name }}
                             </ff-team-link>
                             <span v-else>None</span>
@@ -66,7 +66,7 @@
                             <section class="flex items-center gap-3">
                                 <ff-team-link
                                     v-if="device.deviceGroup"
-                                    :to="{ name: 'ApplicationDeviceGroupIndex',
+                                    :to="{ name: 'application-device-group',
                                            params: {
                                                deviceGroupId: device.deviceGroup.id,
                                                applicationId: device.application.id
@@ -99,7 +99,7 @@
                     </InfoCardRow>
                     <InfoCardRow v-if="device.ownerType!=='application'" property="Instance:">
                         <template #value>
-                            <router-link v-if="device?.instance" :to="{name: 'Instance', params: { id: device.instance.id }}">
+                            <router-link v-if="device?.instance" :to="{name: 'instance', params: { id: device.instance.id }}">
                                 {{ device.instance?.name }}
                             </router-link>
                             <span v-else>None</span>

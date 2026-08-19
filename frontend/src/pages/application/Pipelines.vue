@@ -26,7 +26,7 @@
                 v-if="hasPermission('pipeline:create', { application })"
                 data-action="pipeline-add"
                 :to="{
-                    name: 'CreatePipeline',
+                    name: 'application-pipeline-create',
                     params: { applicationId: application.id },
                 }"
                 :disabled="!featureEnabled"
@@ -82,7 +82,7 @@
             <ff-button
                 v-if="hasPermission('pipeline:create', { application })"
                 :to="{
-                    name: 'CreatePipeline',
+                    name: 'application-pipeline-create',
                     params: { applicationId: application.id },
                 }"
                 :disabled="!featureEnabled"
@@ -113,7 +113,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
-    name: 'ApplicationPipelines',
+    name: 'application-pipelines',
     components: {
         SectionTopMenu,
         PlusSmallIcon,
@@ -165,7 +165,7 @@ export default {
         teamMembership: {
             handler: function () {
                 if (!this.hasPermission('application:pipeline:list', { application: this.application })) {
-                    return this.$router.push({ name: 'Application', params: this.$route.params })
+                    return this.$router.push({ name: 'application', params: this.$route.params })
                 }
             },
             immediate: true
