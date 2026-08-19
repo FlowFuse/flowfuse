@@ -20,7 +20,7 @@ describe('isEditorRoute', () => {
     test('returns false for non-editor and null routes', () => {
         expect(isEditorRoute({ name: 'instance-overview' })).toBe(false)
         expect(isEditorRoute({ name: 'device-overview' })).toBe(false)
-        expect(isEditorRoute({ name: 'Home' })).toBe(false)
+        expect(isEditorRoute({ name: 'home' })).toBe(false)
         expect(isEditorRoute(null)).toBe(false)
         expect(isEditorRoute(undefined)).toBe(false)
         expect(isEditorRoute({})).toBe(false)
@@ -35,7 +35,7 @@ describe('computePageTitle', () => {
     })
 
     test('falls through to static title with FlowFuse suffix when no context match', () => {
-        const route = makeRoute({ name: 'Home', title: 'Home' })
+        const route = makeRoute({ name: 'home', title: 'Home' })
         expect(computePageTitle(route, {})).toBe('Home - FlowFuse')
     })
 

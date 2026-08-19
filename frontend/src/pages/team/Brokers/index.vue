@@ -284,7 +284,7 @@ export default {
 
         // redirect if no minimum role
         if (!this.hasAMinimumTeamRoleOf(Roles.Member)) {
-            return this.$router.push({ name: 'Home' })
+            return this.$router.push({ name: 'home' })
         }
 
         this.fetchData()

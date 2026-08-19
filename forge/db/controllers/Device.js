@@ -222,7 +222,7 @@ module.exports = {
         const filters = Object.fromEntries(filterString.split(',').map((filterString) => filterString.split(':')))
 
         return {
-            ...(filters.status ? { state: filters.status } : null),
+            ...(filters.status ? { state: filters.status.includes('|') ? filters.status.split('|') : filters.status } : null),
             ...(filters.lastseen ? { lastseen: filters.lastseen } : null),
             ...(filters.mode ? { mode: filters.mode } : null)
         }
