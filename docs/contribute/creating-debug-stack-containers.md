@@ -9,6 +9,8 @@ meta:
       - debugging
 ---
 
+# Creating Debug Stack Containers
+
 Sometimes we want to be able to run some debug code within a stack running in our
 staging test environment.
 

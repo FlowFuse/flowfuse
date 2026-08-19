@@ -59,8 +59,8 @@ export default {
                 return false
             }
             this.sideNavigation = [
-                { name: 'General', path: { name: 'ApplicationDeviceGroupSettingsGeneral' } },
-                { name: 'Environment', path: { name: 'ApplicationDeviceGroupSettingsEnvironment' } }
+                { name: 'General', path: { name: 'application-device-group-settings-general' } },
+                { name: 'Environment', path: { name: 'application-device-group-settings-environment' } }
             ]
             return true
         },

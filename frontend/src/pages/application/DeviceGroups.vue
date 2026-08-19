@@ -90,7 +90,7 @@ import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 export default {
-    name: 'ApplicationDeviceGroups',
+    name: 'application-device-groups',
     components: {
         EmptyState,
         FormRow,
@@ -173,7 +173,7 @@ export default {
         teamMembership: {
             handler: function () {
                 if (!this.hasPermission('application:device-group:list', { application: this.application })) {
-                    return this.$router.push({ name: 'Application', params: this.$route.params })
+                    return this.$router.push({ name: 'application', params: this.$route.params })
                 }
             },
             immediate: true
@@ -206,7 +206,7 @@ export default {
         async editDeviceGroup (deviceGroup, index) {
             // navigate to the device group details page for the selected device group @ ./DeviceGroups/edit.vue
             const route = {
-                name: 'ApplicationDeviceGroupIndex',
+                name: 'application-device-group',
                 params: {
                     // url params
                     applicationId: this.application.id,

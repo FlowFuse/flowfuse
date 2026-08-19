@@ -48,7 +48,7 @@ import TemplateSettingsEnvironment from '../../../admin/Template/sections/Enviro
  */
 
 export default {
-    name: 'ApplicationDeviceGroupSettingsEnvironment',
+    name: 'application-device-group-settings-environment',
     components: {
         ExclamationCircleIcon,
         TemplateSettingsEnvironment

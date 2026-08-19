@@ -215,7 +215,7 @@ export default {
         duplicateProject (parts) {
             this.loading.duplicating = true
             InstanceApi.create(parts).then(result => {
-                this.$router.push({ name: 'Instance', params: { id: result.id } })
+                this.$router.push({ name: 'instance', params: { id: result.id } })
                 alerts.emit('Instance successfully duplicated.', 'confirmation')
             }).catch(err => {
                 console.error(err)
@@ -227,7 +227,7 @@ export default {
         importInstance (parts) {
             this.loading.importing = true
             InstanceApi.importInstance(this.instance.id, parts).then(result => {
-                this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
+                this.$router.push({ name: 'instance', params: { id: this.instance.id } })
                 alerts.emit('Instance flows imported.', 'confirmation')
             }).catch(err => {
                 console.error(err)
@@ -240,7 +240,7 @@ export default {
             if (this.instance.stack?.id !== selectedStack) {
                 this.loading.changingStack = true
                 InstanceApi.changeStack(this.instance.id, selectedStack).then(() => {
-                    this.$router.push({ name: 'Instance', params: { id: this.instance.id } })
+                    this.$router.push({ name: 'instance', params: { id: this.instance.id } })
                     this.$emit('instance-updated')
                     alerts.emit('Instance Node-RED Version successfully updated.', 'confirmation')
                 }).catch(err => {

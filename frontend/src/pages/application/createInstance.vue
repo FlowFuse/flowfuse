@@ -3,8 +3,8 @@
         <template #header>
             <ff-page-header title="Instances">
                 <template #custom-breadcrumbs>
-                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
-                    <ff-nav-breadcrumb v-if="team" :to="{name: 'Application', params: {id: application.id}}">
+                    <ff-nav-breadcrumb v-if="team" :to="{name: 'team-applications', params: {team_slug: team.slug}}">Applications</ff-nav-breadcrumb>
+                    <ff-nav-breadcrumb v-if="team && application" :to="{name: 'application', params: {id: application.id}}">
                         {{ application.name }}
                     </ff-nav-breadcrumb>
                     <ff-nav-breadcrumb>
@@ -36,23 +36,23 @@
 
 <script>
 import { ChevronLeftIcon } from '@heroicons/vue/20/solid/index.js'
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
 import instanceApi from '../../api/instances.js'
 
-import applicationMixin from '../../mixins/Application.js'
+import { useActiveApplication } from '../../composables/useActiveApplication'
 import Alerts from '../../services/alerts.js'
 import InstanceForm from '../instance/components/InstanceForm.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
 
 export default {
     name: 'ApplicationCreateInstance',
     components: {
         InstanceForm
     },
-    mixins: [applicationMixin],
     inheritAttrs: false,
     props: {
         sourceInstanceId: {
@@ -61,6 +61,11 @@ export default {
         }
     },
     emits: ['application-updated'],
+    setup () {
+        const { loadActiveApplication } = useActiveApplication()
+
+        return { loadActiveApplication }
+    },
     data () {
         return {
             icons: {
@@ -78,12 +83,13 @@ export default {
     computed: {
         ...mapState(useContextStore, ['team']),
         ...mapState(useAccountSettingsStore, ['features']),
+        ...mapState(useDataFarmApplicationsStore, { application: 'activeApplication', applicationHydrated: 'applicationHydrated' }),
         isLoading () {
-            return this.loading || !this.team
+            return this.loading || !this.team || !this.applicationHydrated
         }
     },
     async created () {
-        await this.updateApplication()
+        await this.loadActiveApplication(this.$route.params.id)
 
         if (this.sourceInstanceId) {
             instanceApi.getInstance(this.sourceInstanceId).then(instance => {
@@ -96,7 +102,11 @@ export default {
     async mounted () {
         this.mounted = true
     },
+    beforeUnmount () {
+        this.clearActiveApplication()
+    },
     methods: {
+        ...mapActions(useDataFarmApplicationsStore, ['clearActiveApplication']),
         async handleFormSubmit (formData, copyParts) {
             this.loading = true
 
@@ -109,7 +119,7 @@ export default {
 
                 this.$emit('application-updated')
 
-                this.$router.push({ name: 'ApplicationInstances', params: { id: this.application.id } })
+                this.$router.push({ name: 'application-instances', params: { id: this.application.id } })
             } catch (err) {
                 this.instanceDetails = instanceFields
                 if (err.response?.status === 409) {

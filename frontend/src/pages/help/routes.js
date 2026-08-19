@@ -7,7 +7,7 @@ export default [
         external: true,
         profileLink: true,
         profileMenuIndex: 60,
-        name: 'Documentation',
+        name: 'help-documentation',
         icon: LifebuoyIcon
     }
 ]

@@ -412,6 +412,16 @@ describe('Team Devices API', function () {
                 unknownDevices.map((device) => device.name).should.match(['device 1'])
             })
 
+            it('by a group of states', async function () {
+                const devices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=status:running|offline`)
+                devices.map((device) => device.name).should.match(['device 2', 'device 4', 'device 5'])
+            })
+
+            it('by a group of states including unknown', async function () {
+                const devices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=status:stopped|unknown`)
+                devices.map((device) => device.name).should.match(['device 1', 'device 3'])
+            })
+
             it('by last seen', async function () {
                 // Running
                 const runningDevices = await queryDevices(`/api/v1/teams/${TestObjects.ATeam.hashid}/devices?filters=lastseen:never`)
