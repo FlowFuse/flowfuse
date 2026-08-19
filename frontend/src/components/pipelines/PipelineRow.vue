@@ -187,7 +187,7 @@ export default {
         slugify,
         addStage: function () {
             const route = {
-                name: 'CreatePipelineStage',
+                name: 'application-pipeline-stage-create',
                 params: {
                     id: this.application.id,
                     pipelineId: this.pipeline.id

@@ -60,7 +60,7 @@ import Alerts from '../../../../services/alerts.js'
 import Dialog from '../../../../services/dialog.js'
 
 export default {
-    name: 'ApplicationDeviceGroupSettingsGeneral',
+    name: 'application-device-group-settings-general',
     components: {
         FormRow,
         FormHeading
@@ -152,7 +152,7 @@ export default {
                     if (response.status === 200) {
                         Alerts.emit('Device Group deleted', 'confirmation')
                         this.$router.push({
-                            name: 'ApplicationDeviceGroups',
+                            name: 'application-device-groups',
                             params: {
                                 id: this.application.id
                             }

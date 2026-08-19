@@ -1,5 +1,7 @@
 const { LRUCache } = require('lru-cache')
 
+const { assertStringKey } = require('./util')
+
 /** @type {Record<string, Cache>} */
 const caches = {}
 
@@ -47,15 +49,18 @@ class Cache {
     }
 
     async get (key) {
+        assertStringKey(key)
         return this.lru.get(key)
     }
 
     async set (key, value) {
+        assertStringKey(key)
         this.lru.set(key, value)
         return value
     }
 
     async del (key) {
+        assertStringKey(key)
         this.lru.delete(key)
     }
 

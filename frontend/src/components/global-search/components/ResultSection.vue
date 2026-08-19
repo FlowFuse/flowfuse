@@ -91,7 +91,7 @@ export default {
                 switch (this.resultType) {
                 case 'application':
                     params.team_slug = this.team.slug
-                    routeName = 'Application'
+                    routeName = 'application'
                     break
                 case 'instance':
                     routeName = 'instance-overview'
@@ -113,11 +113,11 @@ export default {
         sectionRoute () {
             switch (this.resultType) {
             case 'application':
-                return { name: 'Applications', query: { searchQuery: this.query }, params: { team_slug: this.team.slug } }
+                return { name: 'team-applications', query: { searchQuery: this.query }, params: { team_slug: this.team.slug } }
             case 'instance':
-                return { name: 'Instances', query: { searchQuery: this.query }, params: { team_slug: this.team.slug } }
+                return { name: 'team-hosted-instances', query: { searchQuery: this.query }, params: { team_slug: this.team.slug } }
             case 'device':
-                return { name: 'TeamDevices', query: { searchQuery: this.query }, params: { team_slug: this.team.slug } }
+                return { name: 'team-remote-instances', query: { searchQuery: this.query }, params: { team_slug: this.team.slug } }
             default:
                 return ''
             }

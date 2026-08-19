@@ -98,13 +98,13 @@ export default {
         },
         teamMembership () {
             if (!this.hasPermission('application:audit-log', { applicationId: this.applicationId })) {
-                return this.$router.push({ name: 'Application', params: this.$route.params })
+                return this.$router.push({ name: 'application', params: this.$route.params })
             }
         }
     },
     created () {
         if (!this.hasPermission('application:audit-log', { applicationId: this.applicationId })) {
-            return this.$router.replace({ name: 'Application', params: this.$route.params })
+            return this.$router.replace({ name: 'application', params: this.$route.params })
         }
         this.triggerLoad({ users: true, events: true })
     },

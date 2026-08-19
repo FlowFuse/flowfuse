@@ -25,14 +25,14 @@
                     v-if="client.owner?.instanceType === 'device'"
                     v-ff-tooltip:left="`Client is linked to Device '${client.owner.name || client.owner.id}'`"
                     class="ff-icon-sm"
-                    @click.prevent.stop="$router.push({ name: 'Device', params: { id: client.owner.id } })"
+                    @click.prevent.stop="$router.push({ name: 'device', params: { id: client.owner.id } })"
                 />
 
                 <ProjectsIcon
                     v-else-if="client.owner?.instanceType === 'instance'"
                     v-ff-tooltip:left="`Client is linked to Instance '${client.owner.name || client.owner.id}'`"
                     class="ml-0! ff-icon-sm"
-                    @click.prevent.stop="$router.push({ name: 'Instance', params: { id:client.owner.id } })"
+                    @click.prevent.stop="$router.push({ name: 'instance', params: { id:client.owner.id } })"
                 />
             </span>
             <span

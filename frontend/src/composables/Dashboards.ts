@@ -102,7 +102,7 @@ export function useDashboardScope (scope: string) {
             homeRoute: computed(() => {
                 const app = contextStore.application
                 if (!app) return null
-                return { name: 'ApplicationDashboards', params: { team_slug: route.params.team_slug, id: app.id } }
+                return { name: 'application-dashboards', params: { team_slug: route.params.team_slug, id: app.id } }
             }),
             ensureContext: () => {
                 const slug = route.params.team_slug as string

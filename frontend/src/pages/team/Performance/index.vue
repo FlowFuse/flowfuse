@@ -179,7 +179,7 @@ export default {
         },
         openInstance (instance) {
             this.$router.push({
-                name: 'Instance',
+                name: 'instance',
                 params: {
                     id: instance.instanceId
                 }
