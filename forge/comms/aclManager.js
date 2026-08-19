@@ -722,15 +722,15 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/([^/]+)\/a\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' },
                 // - ff/v1/<team>/p/+/created|updated|deleted
                 { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' },
-                // - ff/v1/expert/<user>/<session>/+/+/support/inflight/+/request
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkMcpInflightTopic', allowWildcard: { entity: true, inflightType: true }, isSub: true }
+                // - ff/v1/expert/<user>/<session>/+/+/mcp/inflight/+/request
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/mcp\/inflight\/([^/]+)\/request$/, verify: 'checkMcpInflightTopic', allowWildcard: { entity: true, inflightType: true }, isSub: true }
             ],
             pub: [
                 // - ff/v1/<team>/u/<user>/s/<session>/<heartbeat|close|disconnected>
                 //   `disconnected` is the last will, published by the broker, not the tab
                 { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/(heartbeat|close|disconnected)$/, verify: 'checkUserIsTeamMember' },
-                // - ff/v1/expert/<user>/<session>/<a|p|d|t>/<entityId>/support/inflight/<type>/response
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkMcpInflightTopic', isPub: true }
+                // - ff/v1/expert/<user>/<session>/<a|p|d|t>/<entityId>/mcp/inflight/<type>/response
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/mcp\/inflight\/([^/]+)\/response$/, verify: 'checkMcpInflightTopic', isPub: true }
             ]
         },
         // frontend client (user)

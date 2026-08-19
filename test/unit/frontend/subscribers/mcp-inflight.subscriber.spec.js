@@ -28,8 +28,7 @@ function makeTransport () {
     }
 }
 
-// TEMPORARY `support` channel: the gateway hardcodes it when building platform-UI topics
-const REQUEST_TOPIC = 'ff/v1/expert/user-hashid-1/browser-session-1/p/instance-1/support/inflight/automation:get-nodes/request'
+const REQUEST_TOPIC = 'ff/v1/expert/user-hashid-1/browser-session-1/p/instance-1/mcp/inflight/automation:get-nodes/request'
 
 describe('McpInflightSubscriber', async () => {
     const mod = await import('../../../../frontend/src/subscribers/mcp-inflight.subscriber.ts')
@@ -69,7 +68,7 @@ describe('McpInflightSubscriber', async () => {
             const { transport } = await connected()
             const [, topics] = transport.subscribe.mock.calls[0]
             expect(topics).toEqual([
-                'ff/v1/expert/user-hashid-1/browser-session-1/+/+/support/inflight/+/request'
+                'ff/v1/expert/user-hashid-1/browser-session-1/+/+/mcp/inflight/+/request'
             ])
             expect(topics[0]).not.toContain('expert-chat-session')
         })
@@ -128,7 +127,7 @@ describe('McpInflightSubscriber', async () => {
 
         test('ignores traffic on other channels and directions', async () => {
             const { transport } = await connected()
-            deliver(transport, REQUEST_TOPIC.replace('/support/', '/insights/'), {}, undefined)
+            deliver(transport, REQUEST_TOPIC.replace('/mcp/', '/support/'), {}, undefined)
             deliver(transport, REQUEST_TOPIC.replace('/request', '/response'), {}, undefined)
             deliver(transport, 'ff/v1/team-1/t/updated', {}, undefined)
             expect(handleInFlightRequest).not.toHaveBeenCalled()

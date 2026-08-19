@@ -1687,7 +1687,7 @@ describe('Broker Auth v2 API', async function () {
                 TestObjects.bob = await factory.createUser({ admin: false, username: 'bob', name: 'Bob Solo', email: 'bob@example.com', password: 'bbPassword' })
                 await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
                 mcpUsername = `fe-team:${TestObjects.alice.hashid}:${TestObjects.ATeam.hashid}:${SESSION}`
-                subTopic = `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/+/+/support/inflight/+/request`
+                subTopic = `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/+/+/mcp/inflight/+/request`
             })
 
             after(async function () {
@@ -1701,31 +1701,31 @@ describe('Broker Auth v2 API', async function () {
             it('denies fe-team from subscribing on another tab\'s session', async function () {
                 await denyRead({
                     username: mcpUsername,
-                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/session-abc12345/+/+/support/inflight/+/request`
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/session-abc12345/+/+/mcp/inflight/+/request`
                 })
             })
             it('denies fe-team from subscribing on another user\'s topic', async function () {
                 await denyRead({
                     username: mcpUsername,
-                    topic: `ff/v1/expert/${TestObjects.bob.hashid}/${SESSION}/+/+/support/inflight/+/request`
+                    topic: `ff/v1/expert/${TestObjects.bob.hashid}/${SESSION}/+/+/mcp/inflight/+/request`
                 })
             })
             it('denies a half-wildcarded entity pair', async function () {
                 await denyRead({
                     username: mcpUsername,
-                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/+/support/inflight/+/request`
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/+/mcp/inflight/+/request`
                 })
             })
-            it('denies fe-team from subscribing to the expert chat channel', async function () {
+            it('denies fe-team from subscribing to the expert support channel', async function () {
                 await denyRead({
                     username: mcpUsername,
-                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/+/+/support/chat/response`
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/+/+/support/inflight/+/request`
                 })
             })
             it('denies fe-team from publishing an mcp inflight request (the agent does that)', async function () {
                 await denyWrite({
                     username: mcpUsername,
-                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/${TestObjects.ProjectA.id}/support/inflight/automation:get-nodes/request`
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/${TestObjects.ProjectA.id}/mcp/inflight/automation:get-nodes/request`
                 })
             })
 
@@ -1733,19 +1733,19 @@ describe('Broker Auth v2 API', async function () {
             it('allows fe-team to publish an mcp inflight response (instance)', async function () {
                 await allowWrite({
                     username: mcpUsername,
-                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/${TestObjects.ProjectA.id}/support/inflight/automation:get-nodes/response`
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/${TestObjects.ProjectA.id}/mcp/inflight/automation:get-nodes/response`
                 })
             })
             it('denies an mcp inflight response on another tab\'s session', async function () {
                 await denyWrite({
                     username: mcpUsername,
-                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/session-abc12345/p/${TestObjects.ProjectA.id}/support/inflight/automation:get-nodes/response`
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/session-abc12345/p/${TestObjects.ProjectA.id}/mcp/inflight/automation:get-nodes/response`
                 })
             })
             it('denies an mcp inflight response with a wildcard entity', async function () {
                 await denyWrite({
                     username: mcpUsername,
-                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/+/+/support/inflight/automation:get-nodes/response`
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/+/+/mcp/inflight/automation:get-nodes/response`
                 })
             })
             it('denies an mcp inflight response when mcpThirdParty is disabled', async function () {
@@ -1753,7 +1753,7 @@ describe('Broker Auth v2 API', async function () {
                 try {
                     await denyWrite({
                         username: mcpUsername,
-                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/${TestObjects.ProjectA.id}/support/inflight/automation:get-nodes/response`
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/${TestObjects.ProjectA.id}/mcp/inflight/automation:get-nodes/response`
                     })
                 } finally {
                     app.config.features.register('mcpThirdParty', true, true)
