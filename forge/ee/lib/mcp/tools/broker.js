@@ -44,8 +44,9 @@ module.exports = [
         name: 'platform_list_brokers',
         title: 'List Brokers',
         description: `FlowFuse platform automation tool:
-            Lists the brokers configured for a team: the built-in team broker plus any 3rd-party MQTT brokers that have been linked to the team. This does not include MQTT credentials.
-            Use this to find a broker's ID before calling platform_get_broker, platform_list_broker_topics, or platform_get_broker_schema.
+            Lists the 3rd-party (external) MQTT brokers that have been linked to the team. This does not include MQTT credentials.
+            The built-in team broker is not part of this list. It is always addressable directly by the literal id "team-broker" in platform_get_broker, platform_list_broker_topics, and platform_get_broker_schema, so you do not need to list it first.
+            Use this to find a 3rd-party broker's ID before calling platform_get_broker, platform_list_broker_topics, or platform_get_broker_schema.
             Supports pagination.
             This tool requires the enterprise license tier and the team broker feature enabled for the team; if the team does not have it enabled, the request returns a not found response.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
