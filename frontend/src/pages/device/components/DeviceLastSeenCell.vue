@@ -60,7 +60,7 @@ export default {
             // ideally, we'd show the credentials dialog here, but we don't have access to this.devices
             // so for now, let's just redirect to the device page and we'll fix this better later
             this.$router.push({
-                name: 'Device',
+                name: 'device',
                 params: { id: this.id }
             })
             // eventually we can do deviceAction('updateCredentials', id, devices)

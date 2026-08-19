@@ -53,13 +53,13 @@
                 <nav-item
                     v-for="team in teams" :key="team.name"
                     :label="team.name" :avatar="team.avatar"
-                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'Team', params: {team_slug: team.slug}})"
+                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'team', params: {team_slug: team.slug}})"
                 />
                 <nav-item
                     v-if="canCreateTeam"
                     label="Create New Team" :icon="plusIcon"
                     class="create"
-                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'CreateTeam'})"
+                    @click="mobileTeamSelectionOpen = false; $router.push({name: 'team-create'})"
                 />
             </ul>
         </div>
@@ -122,6 +122,7 @@ import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useAccountStore } from '@/stores/account.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 import { useUxToursStore } from '@/stores/ux-tours.js'
 
@@ -135,7 +136,8 @@ export default {
         ...mapState(useUxDrawersStore, ['leftDrawer', 'hiddenLeftDrawer', 'editorImmersiveDrawer']),
         ...mapState(useAccountAuthStore, ['user']),
         ...mapState(useContextStore, ['team']),
-        ...mapState(useAccountStore, ['teams', 'notifications', 'hasAvailableTeams', 'defaultUserTeam']),
+        ...mapState(useAccountStore, ['notifications']),
+        ...mapState(useDataFarmTeamsStore, { teams: 'teamList', hasAvailableTeams: 'hasAvailableTeams', defaultUserTeam: 'defaultUserTeam' }),
         ...mapState(useAccountSettingsStore, ['canCreateTeam', 'featuresCheck']),
         navigationOptions () {
             return [
@@ -144,7 +146,7 @@ export default {
                     icon: Cog8ToothIcon,
                     tag: 'user-settings',
                     onclick: this.$router.push,
-                    onclickparams: { name: 'User Settings' },
+                    onclickparams: { name: 'user-settings' },
                     hidden: false
                 },
                 {
@@ -152,7 +154,7 @@ export default {
                     icon: AdjustmentsVerticalIcon,
                     tag: 'admin-settings',
                     onclick: this.$router.push,
-                    onclickparams: { name: 'Admin Settings' },
+                    onclickparams: { name: 'admin' },
                     hidden: !this.user.admin
                 },
                 {

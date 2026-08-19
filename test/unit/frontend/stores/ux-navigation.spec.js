@@ -85,7 +85,7 @@ describe('ux-navigation store', () => {
 
     it('setMainNavBackButton stores the button object', () => {
         const store = useUxNavigationStore()
-        const button = { label: 'Back', to: { name: 'Home' } }
+        const button = { label: 'Back', to: { name: 'home' } }
         store.setMainNavBackButton(button)
         expect(store.mainNav.backToButton).toEqual(button)
     })
