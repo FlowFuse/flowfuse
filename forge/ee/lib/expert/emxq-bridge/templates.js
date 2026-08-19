@@ -54,6 +54,8 @@ const sourceChat = {
 }
 
 // Expert Broker → FF App Instance Broker. Inflight requests initiated by the AI agent.
+// The channel segment is wildcarded so both first-party (`support`) and third-party MCP
+// (`mcp`) requests cross the bridge; the gateway picks the channel per caller type.
 const sourceInflight = {
     name: 'ff-expert-to-app-inflight-source',
     type: 'mqtt',
@@ -62,7 +64,8 @@ const sourceInflight = {
     enable: true,
     parameters: {
         qos: 1,
-        topic: '$share/expert/ff/v1/expert/+/+/+/+/support/inflight/+/request'
+        // $share/expert/ff/v1/expert/<user>/<session>/+/+/(mcp|support)/inflight/+/request
+        topic: '$share/expert/ff/v1/expert/+/+/+/+/+/inflight/+/request'
     },
     resource_opts: {
         health_check_interval: '15s'
@@ -141,7 +144,7 @@ const ruleIn = {
 
 // FF App Instance Broker → Expert Broker. Forwards 5 patterns:
 //   - ../support/chat/request
-//   - ../support/inflight/+/response
+//   - ../<channel>/inflight/+/response  (channel wildcarded: `support` and `mcp`)
 //   - ../support/platform/+/response
 //   - ff/v1/mcp/+/+/+/request  (third-party MCP requests to the central gateway)
 // The Expert Broker's mountpoint applies the `<licenceId>/` namespace prefix on receipt.
@@ -150,7 +153,7 @@ const ruleOut = {
     name: 'ff-app-to-expert-rule',
     description: 'Forward chat requests, inflight responses, platform responses, third-party MCP requests and browser-tab presence to the Expert Broker',
     enable: true,
-    sql: 'SELECT\n  *\nFROM\n  "ff/v1/expert/+/+/+/+/support/chat/request",\n  "ff/v1/expert/+/+/+/+/support/inflight/+/response",\n  "ff/v1/expert/+/+/platform/+/response",\n  "ff/v1/mcp/+/+/+/request"',
+    sql: 'SELECT\n  *\nFROM\n  "ff/v1/expert/+/+/+/+/support/chat/request",\n  "ff/v1/expert/+/+/+/+/+/inflight/+/response",\n  "ff/v1/expert/+/+/platform/+/response",\n  "ff/v1/mcp/+/+/+/request"',
     actions: [
         'mqtt:ff-app-to-expert-action'
     ]

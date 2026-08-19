@@ -9,11 +9,7 @@ import { createMqttTransport } from '@/transport/mqtt.transport'
 import type { CreateSubscriberOptions, TeamRef, TeamSubscriberI } from '@/types/subscribers/subscriber.types'
 import type { TransportMessagePacket, TransportSubscribeOptions } from '@/types/transport/transport.types'
 
-// TEMPORARY: the gateway still builds every platform-UI topic with a hardcoded `support`
-// channel (sendUIInflightRequest), so third-party requests land there rather than on `mcp`.
-// Listen on `support` until the gateway carries the channel on its UI routing context, then
-// flip this one constant (and the matching pair of ACL rules) back to 'mcp'.
-const INFLIGHT_CHANNEL = 'support'
+const INFLIGHT_CHANNEL = 'mcp'
 
 const MCP_INFLIGHT_TOPIC_REGEX = new RegExp(`^ff/v1/expert/[^/]+/[^/]+/[^/]+/[^/]+/${INFLIGHT_CHANNEL}/inflight/[^/]+/request$`)
 
