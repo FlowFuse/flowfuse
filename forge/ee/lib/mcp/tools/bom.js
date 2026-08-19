@@ -7,10 +7,8 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Reads the bill of materials for a team: the applications, instances, and their
             dependencies across the team. This is plan-gated on the bom feature, which defaults
-            to disabled; if disabled for the team, the tool reports that the bill of materials
-            is not enabled for this team rather than the raw platform error.
-            Results are filtered to the applications the calling token can access,
-            so a scoped token sees only its in-scope subset instead of an error.`,
+            to disabled; when disabled for the team the request returns a "Feature not enabled" error.
+            Results include only the applications you have access to.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             teamId
@@ -25,9 +23,8 @@ module.exports = [
         title: 'Get Application Bill of Materials',
         description: `FlowFuse platform automation tool:
             Reads the bill of materials for a single application: its instances and their dependencies.
-            This is plan-gated on the bom feature, which defaults to disabled; if the team's plan
-            has this feature disabled, the tool reports that the bill of materials is not enabled
-            for this team rather than the raw platform error.`,
+            This is plan-gated on the bom feature, which defaults to disabled; when the team's plan
+            has this feature disabled the request returns a "Feature not enabled" error.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             applicationId
