@@ -81,27 +81,29 @@ describe('MCP Teams Tools', function () {
         })
     })
 
-    describe('platform_check_team_slug_availability', function () {
-        const tool = getTool('platform_check_team_slug_availability')
-
-        it('posts the slug payload and returns the response', async function () {
-            const routeResponse = { statusCode: 200, json: () => ({}) }
-            inject.withArgs({ method: 'POST', url: '/api/v1/teams/check-slug', payload: { slug: 'my-team' } }).resolves(routeResponse)
-
-            const response = await tool.handler({ slug: 'my-team' }, { inject })
-
-            inject.calledOnce.should.be.true()
-            response.should.equal(routeResponse)
-        })
-
-        it('passes through an error response', async function () {
-            const errorResponse = { statusCode: 409, json: () => ({ code: 'invalid_slug' }) }
-            inject.resolves(errorResponse)
-
-            const response = await tool.handler({ slug: 'my-team' }, { inject })
-            response.should.equal(errorResponse)
-        })
-    })
+    // platform_check_team_slug_availability is commented out in teams.js pending a decision on
+    // whether team creation should be an MCP capability; its tests are held here alongside it.
+    // describe('platform_check_team_slug_availability', function () {
+    //     const tool = getTool('platform_check_team_slug_availability')
+    //
+    //     it('posts the slug payload and returns the response', async function () {
+    //         const routeResponse = { statusCode: 200, json: () => ({}) }
+    //         inject.withArgs({ method: 'POST', url: '/api/v1/teams/check-slug', payload: { slug: 'my-team' } }).resolves(routeResponse)
+    //
+    //         const response = await tool.handler({ slug: 'my-team' }, { inject })
+    //
+    //         inject.calledOnce.should.be.true()
+    //         response.should.equal(routeResponse)
+    //     })
+    //
+    //     it('passes through an error response', async function () {
+    //         const errorResponse = { statusCode: 409, json: () => ({ code: 'invalid_slug' }) }
+    //         inject.resolves(errorResponse)
+    //
+    //         const response = await tool.handler({ slug: 'my-team' }, { inject })
+    //         response.should.equal(errorResponse)
+    //     })
+    // })
 
     describe('platform_get_team_audit_log', function () {
         const base = '/api/v1/teams/team1/audit-log'

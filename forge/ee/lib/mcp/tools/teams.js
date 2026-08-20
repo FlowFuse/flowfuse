@@ -69,22 +69,27 @@ module.exports = [
             return response
         }
     },
-    {
-        name: 'platform_check_team_slug_availability',
-        title: 'Check Team Slug Availability',
-        description: `FlowFuse platform automation tool:
-            Checks whether a team slug is available before creating a team. This does not create or change anything.
-            The value "create" is reserved and is always rejected.
-            Use this before calling a team creation tool to make sure the chosen slug is not already taken.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            slug: z.string().regex(/^[a-z0-9-_]+$/i).describe('Team slug to check; lowercase letters, digits, hyphen and underscore')
-        },
-        handler: async (args, { inject }) => {
-            const response = await inject({ method: 'POST', url: '/api/v1/teams/check-slug', payload: { slug: args.slug } })
-            return response
-        }
-    },
+    // platform_check_team_slug_availability is the read-only precursor to creating a team.
+    // Team creation is backed by the team:create permission, which on a default platform is
+    // gated to admins only, so this check 403s under a scoped token. Admin-only actions are not
+    // being exposed as MCP tools, and team creation itself is not implemented here, so this tool
+    // is commented out pending a decision on whether team creation should be an MCP capability at all.
+    // {
+    //     name: 'platform_check_team_slug_availability',
+    //     title: 'Check Team Slug Availability',
+    //     description: `FlowFuse platform automation tool:
+    //         Checks whether a team slug is available before creating a team. This does not create or change anything.
+    //         The value "create" is reserved and is always rejected.
+    //         Use this before calling a team creation tool to make sure the chosen slug is not already taken.`,
+    //     annotations: { readOnlyHint: true, destructiveHint: false },
+    //     inputSchema: {
+    //         slug: z.string().regex(/^[a-z0-9-_]+$/i).describe('Team slug to check; lowercase letters, digits, hyphen and underscore')
+    //     },
+    //     handler: async (args, { inject }) => {
+    //         const response = await inject({ method: 'POST', url: '/api/v1/teams/check-slug', payload: { slug: args.slug } })
+    //         return response
+    //     }
+    // },
     {
         name: 'platform_get_team_membership',
         title: 'Get Team Membership',
