@@ -104,6 +104,7 @@ import { useHubspotHelper } from '../../composables/Hubspot.js'
 
 import Alerts from '../../services/alerts.js'
 import Product from '../../services/product.js'
+import { contactRequiredToChangeTeamType } from '../../utils/teamType.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -185,11 +186,14 @@ export default {
             return this.team.billing?.unmanaged
         },
         isContactRequired () {
-            return this.billingEnabled &&
-                   !this.user.admin &&
-                   this.input.teamType &&
-                   this.input.teamTypeId !== this.team.type.id &&
-                   this.input.teamType.properties?.billing?.requireContact
+            return contactRequiredToChangeTeamType({
+                billingEnabled: this.billingEnabled,
+                isAdmin: this.user.admin,
+                selectedTeamType: this.input.teamType,
+                selectedTeamTypeId: this.input.teamTypeId,
+                currentTeamTypeId: this.team.type.id,
+                trialMode: this.trialMode
+            })
         },
         isSelectionAvailable () {
             if (this.input.teamTypeId) {
