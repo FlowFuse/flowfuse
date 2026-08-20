@@ -1,7 +1,7 @@
 <template>
     <div>
         <template v-if="ownerType==='instance'">
-            <router-link class="flex items-center" :to="{ name: 'Instance', params: { id: project.id }}">
+            <router-link class="flex items-center" :to="{ name: 'instance', params: { id: project.id }}">
                 <IconNodeRedSolid class="ff-icon ff-icon-lg text-red-800 relative" />
                 <div class="flex flex-col ml-2">
                     <div class="text-xs text-gray-400">instance</div>
@@ -10,7 +10,7 @@
             </router-link>
         </template>
         <template v-else-if="ownerType==='device'">
-            <router-link class="flex items-center" :to="{ name: 'Device', params: { id: device.id }}">
+            <router-link class="flex items-center" :to="{ name: 'device', params: { id: device.id }}">
                 <IconDeviceSolid class="ff-icon ff-icon-lg text-teal-700 relative" />
                 <div class="flex flex-col ml-2">
                     <div class="text-base">{{ device.name }}</div>

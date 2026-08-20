@@ -59,7 +59,7 @@
         </form>
         <div v-else-if="ssoCreated">
             <p>You can now login using your SSO Provider.</p>
-            <ff-button :to="{ name: 'Home' }" data-action="login">Login</ff-button>
+            <ff-button :to="{ name: 'home' }" data-action="login">Login</ff-button>
         </div>
     </ff-layout-box>
 </template>
