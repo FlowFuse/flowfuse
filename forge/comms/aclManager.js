@@ -580,6 +580,103 @@ module.exports = function (app) {
                 }
                 return false
             }
+        },
+        /**
+         * Third-party MCP gateway channel - the platform talking to the central MCP gateway.
+         *
+         *   ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request   platform -> gateway
+         *   ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response  gateway -> platform
+         *
+         * The platformId is the id of the replica that owns the exchange (see
+         * commsClient.platformId). The replica that emits a request is the one that must
+         * receive its response, so the platformId is always concrete: there is no wildcard
+         * for it on either side of the channel.
+         *
+         * Direction is not checked here. It is already fixed by which list a rule sits in
+         * (verify() picks sub[] or pub[] from the access level) and by the request/response
+         * suffix in the rule's own regex.
+         */
+        checkMcpTopic: async function (topicParts, usernameParts, acl) {
+            // topicParts = [ fullTopic , <platformId>, <userId>, <mcpSessionId> ]
+            // usernameParts = [ 'forge_platform' ] or [ '<gateway>', <userid> ]
+            // acl = { isPlatform: true/false, isAgent: true/false, isPub: true/false, isSub: true/false, allowWildcard: { user: true/false, session: true/false } }
+
+            // The gateway's broker username, as named by the mcpGateway acl block below.
+            // No gateway identity is minted in v2AuthRoutes yet, and verify() has no branch
+            // that routes one to the mcpGateway acls, so keep this in step with whatever
+            // identity lands there and with the gateway service's own broker config.
+            const MCP_GATEWAY_CLIENT_TYPE = 'ff-mcp-gateway'
+
+            const ValidationError = function (message) {
+                const error = new Error(message)
+                error.name = 'ACLValidationError'
+                return error
+            }
+
+            try {
+                const [, platformId, userId, mcpSessionId] = topicParts
+                const [clientType] = usernameParts
+
+                if (topicParts.length !== 4) {
+                    throw ValidationError('topic is invalid')
+                }
+                if (!platformId || !userId || !mcpSessionId) {
+                    throw ValidationError('invalid topic format')
+                }
+
+                // ensure the acl that matched belongs to the client presenting it
+                if (acl.isPlatform) {
+                    if (clientType !== 'forge_platform') {
+                        throw ValidationError('invalid client type - expected the platform client')
+                    }
+                } else if (acl.isAgent) {
+                    // todo validate that the clientType starts with MCP_GATEWAY_CLIENT_TYPE not equals
+                    if (clientType !== MCP_GATEWAY_CLIENT_TYPE) {
+                        throw ValidationError(`invalid client type - expected an ${MCP_GATEWAY_CLIENT_TYPE} client`)
+                    }
+                } else {
+                    throw ValidationError('acl does not declare which side of the channel it is for')
+                }
+
+                // the replica that emits a request receives its response, so this is never a
+                // wildcard - at minimum ensure it is present and 8 or more chars
+                if (platformId.length < 8) {
+                    throw ValidationError('invalid platform id')
+                }
+
+                // at minimum, ensure the mcp session is present and either a wildcard or 8 or more chars
+                if (mcpSessionId === '+') {
+                    if (!acl.allowWildcard?.session) {
+                        throw ValidationError('invalid session wildcard')
+                    }
+                } else if (mcpSessionId.length < 8) {
+                    throw ValidationError('invalid mcp session id')
+                }
+
+                if (userId === '+') {
+                    if (!acl.allowWildcard?.user) {
+                        throw ValidationError('invalid user wildcard')
+                    }
+                } else {
+                    const user = await app.db.models.User.byId(userId)
+                    if (!user || user.suspended) {
+                        throw ValidationError('invalid user')
+                    }
+                }
+
+                if (acl.isAgent && !app.config.features.enabled('mcpThirdParty')) {
+                    throw ValidationError('third-party MCP access is not enabled on this platform')
+                }
+
+                return true
+            } catch (err) {
+                if (err.name === 'ACLValidationError') {
+                    app.log.warn(`ACL validation error for MCP gateway topic: ${err.message}`)
+                } else {
+                    app.log.error(`Unexpected error during ACL validation for MCP gateway topic: ${err.message}`)
+                }
+            }
+            return false
         }
     }
 
@@ -760,9 +857,6 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'support' },
                 // Expert agent can respond to platform requests
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' },
-                // Central gateway can publish third-party MCP responses back to the platform
-                // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response
-                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/response$/, verify: 'checkMcpTopic', isAgent: true, isPub: true }
             ]
         },
         // central MCP gateway (distinct, revocable broker identity)
