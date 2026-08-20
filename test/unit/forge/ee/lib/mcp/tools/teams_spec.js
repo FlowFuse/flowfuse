@@ -17,8 +17,6 @@ describe('MCP Teams Tools', function () {
     // Single-route readers: each injects one method+url and returns the response verbatim.
     const passthroughTools = [
         { name: 'platform_list_teams', method: 'GET', url: '/api/v1/user/teams', args: {} },
-        { name: 'platform_get_team', method: 'GET', url: '/api/v1/teams/team1', args: { teamId: 'team1' } },
-        { name: 'platform_get_team_by_slug', method: 'GET', url: '/api/v1/teams/slug/my-team', args: { teamSlug: 'my-team' } },
         { name: 'platform_get_team_membership', method: 'GET', url: '/api/v1/teams/team1/user', args: { teamId: 'team1' } },
         { name: 'platform_list_team_members', method: 'GET', url: '/api/v1/teams/team1/members', args: { teamId: 'team1' } },
         { name: 'platform_list_team_invitations', method: 'GET', url: '/api/v1/teams/team1/invitations', args: { teamId: 'team1' } },
@@ -47,6 +45,54 @@ describe('MCP Teams Tools', function () {
                 const response = await tool.handler(args, { inject })
                 response.should.equal(errorResponse)
             })
+        })
+    })
+
+    describe('platform_get_team', function () {
+        const tool = getTool('platform_get_team')
+
+        it('looks up by hashid when teamId is given', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({}) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/teams/team1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('looks up by slug when teamSlug is given', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({}) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/teams/slug/my-team' }).resolves(routeResponse)
+
+            const response = await tool.handler({ teamSlug: 'my-team' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+
+        it('rejects when neither teamId nor teamSlug is given', async function () {
+            const response = await tool.handler({}, { inject })
+
+            inject.called.should.be.false()
+            response.code.should.equal(400)
+            response.isError.should.be.true()
+        })
+
+        it('rejects when both teamId and teamSlug are given', async function () {
+            const response = await tool.handler({ teamId: 'team1', teamSlug: 'my-team' }, { inject })
+
+            inject.called.should.be.false()
+            response.code.should.equal(400)
+            response.isError.should.be.true()
         })
     })
 

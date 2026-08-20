@@ -24,28 +24,28 @@ module.exports = [
     {
         name: 'platform_get_team',
         title: 'Get Team',
-        description: 'FlowFuse platform automation tool: Get details of a specific team by its ID, including team type, member count, hosted instance and remote instance counts.',
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            teamId
-        },
-        handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}` })
-            return response
-        }
-    },
-    {
-        name: 'platform_get_team_by_slug',
-        title: 'Get Team By Slug',
         description: `FlowFuse platform automation tool:
-            Gets details of a specific team using its slug (URL identifier) instead of its hashid.
-            Use this when you only know the team's slug, for example from a URL, and need the same details as platform_get_team.`,
+            Get details of a specific team, identified by either its hashid (teamId) or its URL slug (teamSlug). Provide exactly one of the two.
+            Includes team type, member count, and hosted and remote instance counts.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            teamSlug: z.string().regex(/^[a-z0-9-_]+$/i).describe('Team slug (URL identifier; lowercase letters, digits, hyphen and underscore)')
+            teamId: z.string().optional().describe('Team hashid. Provide either teamId or teamSlug, not both.'),
+            teamSlug: z.string().regex(/^[a-z0-9-_]+$/i).optional().describe('Team slug (URL identifier; lowercase letters, digits, hyphen and underscore). Provide either teamId or teamSlug, not both.')
         },
         handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: `/api/v1/teams/slug/${args.teamSlug}` })
+            const hasId = !!args.teamId
+            const hasSlug = !!args.teamSlug
+            if (hasId === hasSlug) {
+                return {
+                    content: { code: 'invalid_request', error: 'Provide exactly one of teamId or teamSlug' },
+                    code: 400,
+                    isError: true
+                }
+            }
+            const url = hasId
+                ? `/api/v1/teams/${args.teamId}`
+                : `/api/v1/teams/slug/${args.teamSlug}`
+            const response = await inject({ method: 'GET', url })
             return response
         }
     },
