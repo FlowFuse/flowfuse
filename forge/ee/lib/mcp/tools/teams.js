@@ -153,26 +153,6 @@ module.exports = [
         }
     },
     {
-        name: 'platform_export_team_audit_log',
-        title: 'Export Team Audit Log',
-        description: `FlowFuse platform automation tool:
-            Exports the team audit log as a CSV file.
-            Use this when the user wants a downloadable or shareable copy of the team's audit history,
-            rather than reading entries directly with platform_get_team_audit_log.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            teamId,
-            ...auditLogInput,
-            scope: z.enum(['team', 'application', 'project', 'device']).optional().describe('Entity level to include (default team)'),
-            includeChildren
-        },
-        handler: async (args, { inject }) => {
-            const url = appendQuery(`/api/v1/teams/${args.teamId}/audit-log/export`, args, [...auditLogKeys, 'scope', 'includeChildren'])
-            const response = await inject({ method: 'GET', url })
-            return response
-        }
-    },
-    {
         name: 'platform_list_team_npm_packages',
         title: 'List Team NPM Packages',
         description: `FlowFuse platform automation tool:

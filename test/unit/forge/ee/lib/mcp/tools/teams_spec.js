@@ -103,51 +103,45 @@ describe('MCP Teams Tools', function () {
         })
     })
 
-    const auditLogTools = [
-        { name: 'platform_get_team_audit_log', base: '/api/v1/teams/team1/audit-log' },
-        { name: 'platform_export_team_audit_log', base: '/api/v1/teams/team1/audit-log/export' }
-    ]
+    describe('platform_get_team_audit_log', function () {
+        const base = '/api/v1/teams/team1/audit-log'
+        const tool = getTool('platform_get_team_audit_log')
 
-    auditLogTools.forEach(({ name, base }) => {
-        describe(name, function () {
-            const tool = getTool(name)
+        it('injects the bare route when no filters are set', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ log: [] }) }
+            inject.withArgs({ method: 'GET', url: base }).resolves(routeResponse)
 
-            it('injects the bare route when no filters are set', async function () {
-                const routeResponse = { statusCode: 200, json: () => ({ log: [] }) }
-                inject.withArgs({ method: 'GET', url: base }).resolves(routeResponse)
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
 
-                const response = await tool.handler({ teamId: 'team1' }, { inject })
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
 
-                inject.calledOnce.should.be.true()
-                response.should.equal(routeResponse)
-            })
+        it('serialises cursor, limit, query, an event array, username, scope and includeChildren', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ log: [] }) })
 
-            it('serialises cursor, limit, query, an event array, username, scope and includeChildren', async function () {
-                inject.resolves({ statusCode: 200, json: () => ({ log: [] }) })
+            await tool.handler({
+                teamId: 'team1',
+                cursor: 'abc',
+                limit: 20,
+                query: 'deploy',
+                event: ['team.settings.updated', 'user.invited'],
+                username: 'alice',
+                scope: 'application',
+                includeChildren: true
+            }, { inject })
 
-                await tool.handler({
-                    teamId: 'team1',
-                    cursor: 'abc',
-                    limit: 20,
-                    query: 'deploy',
-                    event: ['team.settings.updated', 'user.invited'],
-                    username: 'alice',
-                    scope: 'application',
-                    includeChildren: true
-                }, { inject })
+            inject.firstCall.args[0].url.should.equal(
+                `${base}?cursor=abc&limit=20&query=deploy&event=team.settings.updated&event=user.invited&username=alice&scope=application&includeChildren=true`
+            )
+        })
 
-                inject.firstCall.args[0].url.should.equal(
-                    `${base}?cursor=abc&limit=20&query=deploy&event=team.settings.updated&event=user.invited&username=alice&scope=application&includeChildren=true`
-                )
-            })
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
 
-            it('passes through an error response', async function () {
-                const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
-                inject.resolves(errorResponse)
-
-                const response = await tool.handler({ teamId: 'team1' }, { inject })
-                response.should.equal(errorResponse)
-            })
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
+            response.should.equal(errorResponse)
         })
     })
 
