@@ -44,36 +44,34 @@ module.exports = async function (app) {
 
     let enableSSO = false
 
-    if (app.license.get('tier') === 'enterprise') {
-        await commonFeatures(app)
-        await app.register(require('./applicationDeviceGroups'), { prefix: '/api/v1/applications/:applicationId/device-groups', logLevel: app.config.logging.http })
-        await app.register(require('./teamDeviceGroups'), { prefix: '/api/v1/teams/:teamId/device-groups', logLevel: app.config.logging.http })
-        await app.register(require('./ha'), { prefix: '/api/v1/projects/:projectId/ha', logLevel: app.config.logging.http })
-        await app.register(require('./protectedInstance'), { prefix: '/api/v1/projects/:projectId/protectInstance', logLevel: app.config.logging.http })
-        await app.register(require('./gitops'), { prefix: '/api/v1/teams/:teamId/git', logLevel: app.config.logging.http })
+    if (app.license.get('tier') && app.license.get('ver') === '2024-03-04') {
 
-        enableSSO = true
-    } else if (app.license.get('tier') === 'hub') {
-        await commonFeatures(app)
-        await app.register(require('./gitops'), { prefix: '/api/v1/teams/:teamId/git', logLevel: app.config.logging.http })
-        await app.register(require('./ha'), { prefix: '/api/v1/projects/:projectId/ha', logLevel: app.config.logging.http })
-        await app.register(require('./protectedInstance'), { prefix: '/api/v1/projects/:projectId/protectInstance', logLevel: app.config.logging.http })
+        if (app.license.get('tier') === 'enterprise') {
+            await commonFeatures(app)
+            await app.register(require('./applicationDeviceGroups'), { prefix: '/api/v1/applications/:applicationId/device-groups', logLevel: app.config.logging.http })
+            await app.register(require('./teamDeviceGroups'), { prefix: '/api/v1/teams/:teamId/device-groups', logLevel: app.config.logging.http })
+            await app.register(require('./ha'), { prefix: '/api/v1/projects/:projectId/ha', logLevel: app.config.logging.http })
+            await app.register(require('./protectedInstance'), { prefix: '/api/v1/projects/:projectId/protectInstance', logLevel: app.config.logging.http })
+            await app.register(require('./gitops'), { prefix: '/api/v1/teams/:teamId/git', logLevel: app.config.logging.http })
 
-        enableSSO = true
-    } else if (app.license.get('tier') === 'edge') {
-        await commonFeatures(app)
-        await app.register(require('./applicationDeviceGroups'), { prefix: '/api/v1/applications/:applicationId/device-groups', logLevel: app.config.logging.http })
-        await app.register(require('./teamDeviceGroups'), { prefix: '/api/v1/teams/:teamId/device-groups', logLevel: app.config.logging.http })
+            enableSSO = true
+        } else {
+            // old Pro license
+        }
 
-        enableSSO = true
-    } else if (app.license.get('tier') === 'fleet') {
+    } else if (app.license.get('tiers') && app.license.get('ver') === '2026-08-20') {
+        const tiers = app.license.get('tiers')
         await commonFeatures(app)
-        await app.register(require('./applicationDeviceGroups'), { prefix: '/api/v1/applications/:applicationId/device-groups', logLevel: app.config.logging.http })
-        await app.register(require('./teamDeviceGroups'), { prefix: '/api/v1/teams/:teamId/device-groups', logLevel: app.config.logging.http })
-
         enableSSO = true
-    } else {
-        // old Pro license
+
+        if (tiers.includes('hub')) {
+            await app.register(require('./gitops'), { prefix: '/api/v1/teams/:teamId/git', logLevel: app.config.logging.http })
+            await app.register(require('./ha'), { prefix: '/api/v1/projects/:projectId/ha', logLevel: app.config.logging.http })
+            await app.register(require('./protectedInstance'), { prefix: '/api/v1/projects/:projectId/protectInstance', logLevel: app.config.logging.http })
+        } else if (tiers.includes('edge') || tiers.includes('fleet')) {
+            await app.register(require('./applicationDeviceGroups'), { prefix: '/api/v1/applications/:applicationId/device-groups', logLevel: app.config.logging.http })
+            await app.register(require('./teamDeviceGroups'), { prefix: '/api/v1/teams/:teamId/device-groups', logLevel: app.config.logging.http })
+        }
     }
 
     if (enableSSO) {

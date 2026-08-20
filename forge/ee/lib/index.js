@@ -66,36 +66,38 @@ module.exports = fp(async function (app, opts) {
     require('./deviceEditor').init(app)
     require('./alerts').init(app)
 
-    if (app.license.get('tier') === 'enterprise') {
-        await commonFeatures(app, opts)
-        // HA
-        require('./ha').init(app)
-        // Protected Instances
-        require('./protectedInstance').init(app)
-        // Git Opps
-        app.decorate('gitops', await require('./gitops').init(app))
-        require('./customHostnames').init(app)
+    if (app.license.get('tier') && app.license.get('ver') === '2024-03-04') {
+        if (app.license.get('tier') === 'enterprise') {
+            await commonFeatures(app, opts)
+            // HA
+            require('./ha').init(app)
+            // Protected Instances
+            require('./protectedInstance').init(app)
+            // Git Opps
+            app.decorate('gitops', await require('./gitops').init(app))
+            require('./customHostnames').init(app)
 
-        // Set the Device Groups Feature Flag
-        app.config.features.register('deviceGroups', true, true)
-    } else if (app.license.get('tier') === 'hub') {
+            // Set the Device Groups Feature Flag
+            app.config.features.register('deviceGroups', true, true)
+        } else {
+            // old "Pro" license
+        }
+    } else if (app.license.get('tiers') && app.license.get('ver') === '2026-08-20') {
+        const tiers = app.license.get('tiers')
         await commonFeatures(app, opts)
-        // HA
-        require('./ha').init(app)
-        // Protected Instances
-        require('./protectedInstance').init(app)
-        // Git Opps
-        app.decorate('gitops', await require('./gitops').init(app))
-    } else if (app.license.get('tier') === 'edge') {
-        await commonFeatures(app, opts)
-        // Set the Device Groups Feature Flag
-        app.config.features.register('deviceGroups', true, true)
-    } else if (app.license.get('tier') === 'fleet') {
-        await commonFeatures(app, opts)
-        // Set the Device Groups Feature Flag
-        app.config.features.register('deviceGroups', true, true)
-    } else {
-        // old "Pro" license
+
+        if (tiers.include('hub')) {
+            // HA
+            require('./ha').init(app)
+            // Protected Instances
+            require('./protectedInstance').init(app)
+            // Git Opps
+            app.decorate('gitops', await require('./gitops').init(app))
+        } else if (tiers.includes('edge') || tiers.includes('fleet')) {
+            await commonFeatures(app, opts)
+            // Set the Device Groups Feature Flag
+            app.config.features.register('deviceGroups', true, true)
+        }
     }
 
     // Set the Team Library Feature Flag

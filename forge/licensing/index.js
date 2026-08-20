@@ -204,7 +204,11 @@ module.exports = fp(async function (app, opts) {
         app.log.info(` License ID   : ${activeLicense.id}`)
         app.log.info(` Org          : ${activeLicense.organisation}`)
         app.log.info(` Valid From   : ${activeLicense.validFrom.toISOString()}`)
-        app.log.info(` License Tier : ${activeLicense.tier}`)
+        if (activeLicense.tier) {
+            app.log.info(` License Tier : ${activeLicense.tier}`)
+        } else if (activeLicense.tiers) {
+            app.log.info(` License Entitlements : ${activeLicense.tiers.toString()}`)
+        }
         if (activeLicense.expired) {
             app.log.warn(` Expired      : ${activeLicense.expiresAt.toISOString()}`)
         } else {

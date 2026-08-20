@@ -22,7 +22,14 @@ class LicenseDetails {
         this.validFrom = new Date(claims.nbf * 1000)
         this.expiresAt = new Date(claims.exp * 1000)
         this.dev = claims.dev
-        this.tier = claims.tier || 'enterprise'
+        if (claims.ver === '2024-03-04') {
+            this.tier = claims.tier || 'enterprise'
+        } else if (claims.ver === '2026-08-20') {
+            this.tiers = claims.tiers
+        } else if (claims.ver === undefined) {
+            //legacy long lived test development licenses
+            this.tier = claims.tier || 'enterprise'
+        }
         this.users = claims.users || 0
         if (Object.hasOwn(claims, 'instances')) {
             this.instances = claims.instances || 0
