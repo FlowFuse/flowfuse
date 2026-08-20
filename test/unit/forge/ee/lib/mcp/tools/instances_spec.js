@@ -408,16 +408,6 @@ describe('MCP Instances Tools', function () {
                 '?cursor=abc&limit=20&query=deploy&event=project.created&event=flows.deployed&username=alice&scope=device&includeChildren=true'
             )
         })
-
-        it('exports to the CSV route when format is csv', async function () {
-            inject.resolves({ statusCode: 200, json: () => ({}) })
-
-            await tool.handler({ hostedInstanceId: instanceId, format: 'csv', event: 'flows.deployed', scope: 'project' }, { inject })
-
-            inject.firstCall.args[0].url.should.equal(
-                `/api/v1/projects/${instanceId}/audit-log/export?event=flows.deployed&scope=project`
-            )
-        })
     })
 
     describe('platform_get_instance_history', function () {

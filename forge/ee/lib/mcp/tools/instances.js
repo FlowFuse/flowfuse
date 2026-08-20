@@ -279,20 +279,16 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Reads the audit log for a hosted instance, showing events like deployments, restarts,
             settings changes, and other actions taken against that instance.
-            Use this when the user wants to know what has happened to a specific hosted instance.
-            Set format to "csv" to instead export the log as a downloadable CSV file, for when the user
-            wants a shareable copy rather than reading entries directly.`,
+            Use this when the user wants to know what has happened to a specific hosted instance.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             hostedInstanceId,
             ...auditLogInput,
             scope: z.enum(['project', 'device']).optional().describe('Entity level to include (default project)'),
-            includeChildren,
-            format: z.enum(['json', 'csv']).optional().describe('Output format. "json" (default) reads entries directly; "csv" exports the log as a downloadable CSV file.')
+            includeChildren
         },
         handler: async (args, { inject }) => {
-            const suffix = args.format === 'csv' ? '/audit-log/export' : '/audit-log'
-            const url = appendQuery(`/api/v1/projects/${args.hostedInstanceId}${suffix}`, args, [...auditLogKeys, 'scope', 'includeChildren'])
+            const url = appendQuery(`/api/v1/projects/${args.hostedInstanceId}/audit-log`, args, [...auditLogKeys, 'scope', 'includeChildren'])
             const response = await inject({ method: 'GET', url })
             return response
         }
