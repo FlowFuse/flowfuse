@@ -105,16 +105,8 @@ describe('MCP Applications Tools', function () {
             inject.firstCall.args[0].url.should.equal('/api/v1/applications/app1/audit-log?includeChildren=true')
         })
 
-        it('reads from the audit-log route by default (format json)', async function () {
+        it('reads from the audit-log route', async function () {
             inject.resolves({ statusCode: 200, json: () => ({ log: [] }) })
-
-            await tool.handler({ applicationId: 'app1', format: 'json' }, { inject })
-
-            inject.firstCall.args[0].url.should.equal('/api/v1/applications/app1/audit-log')
-        })
-
-        it('exports to the audit-log export route when format is csv', async function () {
-            inject.resolves({ statusCode: 200, json: () => ({}) })
 
             await tool.handler({
                 applicationId: 'app1',
@@ -124,12 +116,11 @@ describe('MCP Applications Tools', function () {
                 event: 'application.created',
                 username: 'alice',
                 scope: 'application',
-                includeChildren: true,
-                format: 'csv'
+                includeChildren: true
             }, { inject })
 
             inject.firstCall.args[0].url.should.equal(
-                '/api/v1/applications/app1/audit-log/export?cursor=c1&limit=10&query=deploy&event=application.created&username=alice&scope=application&includeChildren=true'
+                '/api/v1/applications/app1/audit-log?cursor=c1&limit=10&query=deploy&event=application.created&username=alice&scope=application&includeChildren=true'
             )
         })
 

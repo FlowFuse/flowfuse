@@ -55,8 +55,7 @@ module.exports = [
             Gets the audit log (activity history) for an application. Think of it as a diary that writes down everything that happened: who did what, and when.
             Use this to find out what changed, who made a change, or to figure out what went wrong by looking at recent activity.
             Results come back newest first.
-            You can narrow down results by a free-text query, event type, username, or scope (application, project, or device).
-            Set format to "csv" to export the log as a downloadable CSV file instead of reading entries directly.`,
+            You can narrow down results by a free-text query, event type, username, or scope (application, project, or device).`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             applicationId,
@@ -64,12 +63,10 @@ module.exports = [
             ...searchQuery,
             ...auditLogFilters,
             scope: z.enum(['application', 'project', 'device']).optional().describe('Which entries to include by scope (default application)'),
-            includeChildren,
-            format: z.enum(['json', 'csv']).optional().describe('Output format. "json" (default) reads entries directly; "csv" exports the log as a downloadable CSV file.')
+            includeChildren
         },
         handler: async (args, { inject }) => {
-            const suffix = args.format === 'csv' ? '/audit-log/export' : '/audit-log'
-            const url = appendQuery(`/api/v1/applications/${args.applicationId}${suffix}`, args, [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys, 'scope', 'includeChildren'])
+            const url = appendQuery(`/api/v1/applications/${args.applicationId}/audit-log`, args, [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys, 'scope', 'includeChildren'])
             const response = await inject({ method: 'GET', url })
             return response
         }
