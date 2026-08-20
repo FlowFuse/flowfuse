@@ -80,7 +80,6 @@ const IMPLICIT_TOKEN_SCOPES = {
         'team:database:list', // list/get databases, list/get tables, query table data
         'team:user:list', // list team members
         'team:user:invite', // list team invitations
-        'team:create', // check team slug availability
         'team:audit-log', // get team audit log
         // team data
         'team:packages:read', // list team npm packages
