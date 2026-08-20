@@ -1,34 +1,50 @@
 const { z } = require('zod')
 
-const { appendQuery, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys } = require('../schemas')
+const { appendQuery, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, teamId } = require('../schemas')
 
 module.exports = [
     {
-        name: 'platform_list_device_groups',
-        title: 'List Device Groups',
+        name: 'platform_list_team_device_groups',
+        title: 'List Team Device Groups',
         description: `FlowFuse platform automation tool:
-            Lists device groups for either a team or a single application.
-            Provide applicationId to list the device groups belonging to that application,
-            or provide teamId to list the device groups across all applications in that team.
+            Lists the device groups across all applications in a team.
             Device groups are used to organize remote instances (devices) for fleet-style deployments,
             so multiple devices can share the same target snapshot and settings.
-            Requires the deviceGroups feature to be enabled for the owning team; if it is not enabled,
-            this returns a descriptive "device groups not enabled for this team" error.
-            Team-level results are filtered to the applications you can access for non-admins, so a scoped
-            token sees only its in-scope subset rather than an error.
+            Each group includes the application it belongs to.
+            Results are filtered to the applications you can access for non-admins, so a scoped token sees only its in-scope subset rather than an error.
+            Requires the deviceGroups feature to be enabled for the team; if it is not, this returns a not-found error.
+            To list the device groups of a single application, use platform_list_application_device_groups.
             Use platform_get_application_device_group to fetch the full detail of a single group.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            teamId: z.string().optional().describe('List the device groups in this team. Provide exactly one of teamId or applicationId.'),
-            applicationId: z.string().optional().describe('List the device groups in this application. Provide exactly one of teamId or applicationId.'),
+            teamId,
             ...basePagination,
             ...searchQuery
         },
         handler: async (args, { inject }) => {
-            const base = args.applicationId
-                ? `/api/v1/applications/${args.applicationId}/device-groups`
-                : `/api/v1/teams/${args.teamId}/device-groups`
-            const url = appendQuery(base, args, [...basePaginationKeys, ...searchQueryKeys])
+            const url = appendQuery(`/api/v1/teams/${args.teamId}/device-groups`, args, [...basePaginationKeys, ...searchQueryKeys])
+            const response = await inject({ method: 'GET', url })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_application_device_groups',
+        title: 'List Application Device Groups',
+        description: `FlowFuse platform automation tool:
+            Lists the device groups belonging to a single application.
+            Device groups are used to organize remote instances (devices) for fleet-style deployments,
+            so multiple devices can share the same target snapshot and settings.
+            Requires the deviceGroups feature to be enabled for the owning team; if it is not, this returns a not-found error.
+            To list the device groups across a whole team, use platform_list_team_device_groups.
+            Use platform_get_application_device_group to fetch the full detail of a single group.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            applicationId,
+            ...basePagination,
+            ...searchQuery
+        },
+        handler: async (args, { inject }) => {
+            const url = appendQuery(`/api/v1/applications/${args.applicationId}/device-groups`, args, [...basePaginationKeys, ...searchQueryKeys])
             const response = await inject({ method: 'GET', url })
             return response
         }
@@ -38,9 +54,8 @@ module.exports = [
         title: 'Get Application Device Group',
         description: `FlowFuse platform automation tool:
             Fetches a single device group in an application, including its members and target snapshot.
-            Requires the deviceGroups feature to be enabled for the owning team; if it is not enabled,
-            this returns a descriptive "device groups not enabled for this team" error.
-            If you need to find the group ID first, call platform_list_device_groups.`,
+            Requires the deviceGroups feature to be enabled for the owning team; if it is not, this returns a not-found error.
+            If you need to find the group ID first, call platform_list_application_device_groups or platform_list_team_device_groups.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             applicationId,

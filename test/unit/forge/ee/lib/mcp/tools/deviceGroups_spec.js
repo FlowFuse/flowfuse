@@ -14,20 +14,10 @@ describe('MCP Device Groups Tools', function () {
         inject = sinon.stub()
     })
 
-    describe('platform_list_device_groups', function () {
-        const tool = getTool('platform_list_device_groups')
+    describe('platform_list_team_device_groups', function () {
+        const tool = getTool('platform_list_team_device_groups')
 
-        it('injects the application device groups route when applicationId is provided', async function () {
-            const routeResponse = { statusCode: 200, json: () => ({ count: 0, groups: [] }) }
-            inject.withArgs({ method: 'GET', url: '/api/v1/applications/app1/device-groups?cursor=c1&limit=25&query=foo' }).resolves(routeResponse)
-
-            const response = await tool.handler({ applicationId: 'app1', cursor: 'c1', limit: 25, query: 'foo' }, { inject })
-
-            inject.calledOnce.should.be.true()
-            response.should.equal(routeResponse)
-        })
-
-        it('injects the team device groups route when teamId is provided', async function () {
+        it('injects the team device groups route', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ count: 0, groups: [] }) }
             inject.withArgs({ method: 'GET', url: '/api/v1/teams/team1/device-groups?cursor=c1&limit=25&query=foo' }).resolves(routeResponse)
 
@@ -37,21 +27,43 @@ describe('MCP Device Groups Tools', function () {
             response.should.equal(routeResponse)
         })
 
-        it('omits undefined query params for the application route', async function () {
+        it('omits undefined query params', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ count: 0, groups: [] }) }
-            inject.withArgs({ method: 'GET', url: '/api/v1/applications/app1/device-groups' }).resolves(routeResponse)
+            inject.withArgs({ method: 'GET', url: '/api/v1/teams/team1/device-groups' }).resolves(routeResponse)
 
-            const response = await tool.handler({ applicationId: 'app1' }, { inject })
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
 
             inject.calledOnce.should.be.true()
             response.should.equal(routeResponse)
         })
 
-        it('omits undefined query params for the team route', async function () {
-            const routeResponse = { statusCode: 200, json: () => ({ count: 0, groups: [] }) }
-            inject.withArgs({ method: 'GET', url: '/api/v1/teams/team1/device-groups' }).resolves(routeResponse)
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
 
             const response = await tool.handler({ teamId: 'team1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_list_application_device_groups', function () {
+        const tool = getTool('platform_list_application_device_groups')
+
+        it('injects the application device groups route', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ count: 0, groups: [] }) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/applications/app1/device-groups?cursor=c1&limit=25&query=foo' }).resolves(routeResponse)
+
+            const response = await tool.handler({ applicationId: 'app1', cursor: 'c1', limit: 25, query: 'foo' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('omits undefined query params', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ count: 0, groups: [] }) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/applications/app1/device-groups' }).resolves(routeResponse)
+
+            const response = await tool.handler({ applicationId: 'app1' }, { inject })
 
             inject.calledOnce.should.be.true()
             response.should.equal(routeResponse)
