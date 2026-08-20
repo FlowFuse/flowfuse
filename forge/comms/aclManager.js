@@ -438,7 +438,7 @@ module.exports = function (app) {
             } catch (error) {
                 if (error.name === 'ACLValidationError') {
                     // ↓ Useful for debugging ↓
-                    console.warn('ACL DENY:', { topicParts, usernameParts, acl, reason: error.message })
+                    // console.warn('ACL DENY:', { topicParts, usernameParts, acl, reason: error.message })
                 } else {
                     // unexpected error during ACL checking - log to app
                     app.log.error('Unexpected error during ACL check', { topicParts, usernameParts, acl, error })
@@ -463,9 +463,6 @@ module.exports = function (app) {
             // topicParts = [ fullTopic , <userid>, <sessionid>, <entityType>, <entityId>, <inflightType> ]
             // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
             // acl = { isPub: true/false, isSub: true/false, allowWildcard: { entity: true/false, inflightType: true/false } }
-
-            // todo remove this, maybe the entire freaking method... we should reuse the existing one, leaving a big ass todo so we won't forget about it
-            return true
 
             const ValidationError = function (message) {
                 const error = new Error(message)
@@ -576,7 +573,7 @@ module.exports = function (app) {
             } catch (error) {
                 if (error.name === 'ACLValidationError') {
                     // ↓ Useful for debugging ↓
-                    console.warn('ACL DENY:', { topicParts, usernameParts, acl, reason: error.message })
+                    // console.warn('ACL DENY:', { topicParts, usernameParts, acl, reason: error.message })
                 } else {
                     // unexpected error during ACL checking - log to app
                     app.log.error('Unexpected error during MCP inflight ACL check', { topicParts, usernameParts, acl, error })
@@ -857,9 +854,9 @@ module.exports = function (app) {
                                 app.log.error('Error in ACL verify function', { error: err, topic, username, acl })
                             }
                             // ↓ Useful for debugging ↓
-                            if (allowed !== true) {
-                                console.log('DENIED!', topic, acl)
-                            }
+                            // if (allowed !== true) {
+                            //     console.log('DENIED!', topic, acl)
+                            // }
                         } else {
                             allowed = true
                         }
