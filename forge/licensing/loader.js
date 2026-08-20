@@ -27,7 +27,7 @@ class LicenseDetails {
         } else if (claims.ver === '2026-08-20') {
             this.tiers = claims.tiers
         } else if (claims.ver === undefined) {
-            //legacy long lived test development licenses
+            // legacy long lived test development licenses
             this.tier = claims.tier || 'enterprise'
         }
         this.users = claims.users || 0
