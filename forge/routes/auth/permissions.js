@@ -82,7 +82,10 @@ const IMPLICIT_TOKEN_SCOPES = {
         'stack:list',
         'flow-blueprint:list',
         'project:status',
-        'template:list'
+        'template:list',
+        // remote instance reads
+        'device:audit-log', // get remote instance audit log
+        'team:device:provisioning-token:list' // list team device provisioning tokens
     ]
 }
 
