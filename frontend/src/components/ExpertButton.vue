@@ -1,8 +1,8 @@
 <template>
-    <div class="expert-button-wrapper flex items-center justify-center h-full px-3" style="height: 60px;">
+    <div v-if="showExpertButton || showMcpToggle" class="expert-button-wrapper flex items-center justify-center h-full px-3" style="height: 60px;">
         <div class="expert-composite" :class="{ 'expert-composite--mcp-active': mcpActive }">
             <button
-                v-if="!isExpertDrawerOpen"
+                v-if="showExpertButton"
                 class="expert-composite__expert flex items-center gap-1.5 justify-center px-[9px] py-[6px] font-bold text-[0.85rem] leading-[20px] text-gray-800 whitespace-nowrap transition-colors"
                 data-el="expert-button"
                 data-click-exclude="right-drawer"
@@ -12,7 +12,7 @@
                 <span>Expert</span>
             </button>
             <button
-                v-if="featuresCheck.isMcpThirdPartyEnabled"
+                v-if="showMcpToggle"
                 v-ff-tooltip:bottom="mcpActive ? 'Disable MCP' : 'Enable MCP'"
                 class="expert-composite__mcp flex items-center justify-center py-[6px] px-[7px] transition-colors"
                 :class="{ 'expert-composite__mcp--active': mcpActive }"
@@ -49,6 +49,15 @@ export default {
         ...mapState(useContextStore, ['team']),
         isExpertDrawerOpen () {
             return (this.rightDrawer.state || this.rightDrawer.fixed)
+        },
+        isAiEnabled () {
+            return this.featuresCheck.isAiFeatureEnabled
+        },
+        showExpertButton () {
+            return this.isAiEnabled && !this.isExpertDrawerOpen
+        },
+        showMcpToggle () {
+            return this.isAiEnabled && this.featuresCheck.isMcpThirdPartyEnabled
         }
     },
     watch: {
