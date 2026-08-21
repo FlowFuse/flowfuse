@@ -35,15 +35,26 @@
 
         <div v-if="data.cta" class="ff-announcement-body--actions" data-el="announcement-cta">
             <!--
-                A plain anchor rather than ff-button type="anchor": that variant
-                renders a router-link, which resolves an absolute url against the
-                current route. The button classes give it the same appearance.
+                An in-app destination routes, so the app is not torn down and
+                rebooted. An external one is a plain anchor: ff-button's anchor
+                variant is a router-link, which would resolve an absolute url
+                against the current route.
             -->
+            <router-link
+                v-if="ctaIsInApp"
+                class="ff-btn ff-btn--primary ff-btn-small transition-fade--color"
+                :to="data.cta.url"
+                data-action="announcement-cta"
+                @click="$emit('engaged')"
+            >
+                {{ data.cta.label }}
+            </router-link>
             <a
+                v-else
                 class="ff-btn ff-btn--primary ff-btn-small transition-fade--color"
                 :href="data.cta.url"
-                :target="ctaTarget"
-                :rel="ctaTarget === '_blank' ? 'noopener noreferrer' : null"
+                target="_blank"
+                rel="noopener noreferrer"
                 data-action="announcement-cta"
                 @click="$emit('engaged')"
             >
@@ -54,7 +65,8 @@
 </template>
 
 <script>
-import { useMarkdownHelper } from '../../../composables/strings/Markdown.js'
+import { Marked } from 'marked'
+
 import { sanitize } from '../../../composables/strings/String.js'
 
 export default {
@@ -76,9 +88,11 @@ export default {
     },
     emits: ['engaged'],
     setup () {
-        const { markedInstance } = useMarkdownHelper()
-
-        return { markedInstance }
+        // A plain renderer rather than the shared markdown helper: that one is
+        // built for the Expert chat and emits code-block and table furniture
+        // whose styling and copy-button handler only exist in that component,
+        // so it would render as broken chrome here.
+        return { markedInstance: new Marked({ breaks: true, gfm: true }) }
     },
     computed: {
         isMarkdown () {
@@ -98,8 +112,10 @@ export default {
             }
             return `https://www.youtube-nocookie.com/embed/${video.id}?rel=0`
         },
-        ctaTarget () {
-            return this.data?.cta?.url?.startsWith('/') ? '_self' : '_blank'
+        ctaIsInApp () {
+            // Validated server side, so a leading slash here really is a path
+            // within the platform
+            return !!this.data?.cta?.url?.startsWith('/')
         },
         fallbackLink () {
             // Only when there is no button of its own to click.

@@ -18,11 +18,10 @@
                 <div class="filter-group">
                     <FormHeading>Billing State:</FormHeading>
                     <div class="filter-options" data-el="picker-filter-billing">
-                        <FormRow v-model="filters.suspended" type="checkbox">Suspended</FormRow>
-                        <FormRow v-model="filters.billing.active" :disabled="filters.suspended" type="checkbox">Active</FormRow>
-                        <FormRow v-model="filters.billing.trial" :disabled="filters.suspended" type="checkbox">Trial</FormRow>
-                        <FormRow v-model="filters.billing.canceled" :disabled="filters.suspended" type="checkbox">Canceled</FormRow>
-                        <FormRow v-model="filters.billing.unmanaged" :disabled="filters.suspended" type="checkbox">Unmanaged</FormRow>
+                        <FormRow v-model="filters.billing.active" type="checkbox">Active</FormRow>
+                        <FormRow v-model="filters.billing.trial" type="checkbox">Trial</FormRow>
+                        <FormRow v-model="filters.billing.canceled" type="checkbox">Canceled</FormRow>
+                        <FormRow v-model="filters.billing.unmanaged" type="checkbox">Unmanaged</FormRow>
                     </div>
                 </div>
             </template>
@@ -144,7 +143,7 @@ export default {
     data () {
         return {
             columns: [
-                { label: 'Name', key: 'name', sortable: true },
+                { label: 'Name', key: 'name' },
                 { label: 'Type', key: 'teamTypeName' },
                 { label: 'Members', class: ['w-32', 'text-center'], key: 'memberCount' },
                 { label: 'Instances', class: ['w-32', 'text-center'], key: 'instanceCount' }
@@ -154,8 +153,7 @@ export default {
             search: '',
             filters: {
                 teamType: {},
-                billing: {},
-                suspended: false
+                billing: {}
             },
             matchingCount: 0,
             truncated: false,
@@ -183,16 +181,17 @@ export default {
             return this.selectedCount > 0 && this.selectedCount <= MAX_CHIPS
         },
         queryFilter () {
-            const filter = {}
+            // Suspended teams are excluded outright: they are filtered out when
+            // the announcement is addressed, so offering them here would let an
+            // admin build a selection that can never receive anything.
+            const filter = { state: 'active' }
             const teamTypes = Object.entries(this.filters.teamType)
                 .filter(([, enabled]) => enabled)
                 .map(([teamType]) => teamType)
             if (teamTypes.length) {
                 filter.teamType = teamTypes
             }
-            if (this.filters.suspended) {
-                filter.state = 'suspended'
-            } else if (this.features.billing) {
+            if (this.features.billing) {
                 const billing = Object.entries(this.filters.billing)
                     .filter(([, enabled]) => enabled)
                     .map(([state]) => state)

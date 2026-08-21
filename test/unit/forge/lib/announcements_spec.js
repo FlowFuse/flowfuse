@@ -1,6 +1,6 @@
-const should = require('should') // eslint-disable-line no-unused-vars
+const should = require('should')
 
-const { parseCallToAction, parseVideoReference } = require('../../../../forge/lib/announcements')
+const { parseCallToAction, parseLinkUrl, parseVideoReference } = require('../../../../forge/lib/announcements')
 
 describe('announcements.js', function () {
     describe('parseVideoReference', function () {
@@ -77,6 +77,41 @@ describe('announcements.js', function () {
         it('rejects a non-http scheme', function () {
             should.not.exist(parseCallToAction({ label: 'Click', url: 'javascript:alert(1)' }))
             should.not.exist(parseCallToAction({ label: 'Click', url: 'data:text/html,<script>alert(1)</script>' }))
+        })
+
+        it('rejects a url that only looks like an in-app path', function () {
+            should.not.exist(parseCallToAction({ label: 'Click', url: '//evil.example.com/phish' }))
+            should.not.exist(parseCallToAction({ label: 'Click', url: '/\\evil.example.com/phish' }))
+        })
+    })
+
+    describe('parseLinkUrl', function () {
+        it('accepts http and https', function () {
+            parseLinkUrl('https://flowfuse.com/blog/').should.equal('https://flowfuse.com/blog/')
+            parseLinkUrl('http://localhost:3000/x').should.equal('http://localhost:3000/x')
+        })
+
+        it('accepts a path within the platform', function () {
+            parseLinkUrl('/team/demo/billing').should.equal('/team/demo/billing')
+        })
+
+        it('rejects a scheme that can execute', function () {
+            should.not.exist(parseLinkUrl('javascript:alert(document.cookie)'))
+            should.not.exist(parseLinkUrl('data:text/html,<script>alert(1)</script>'))
+            should.not.exist(parseLinkUrl('vbscript:msgbox(1)'))
+        })
+
+        it('rejects an off-platform target disguised as a path', function () {
+            // Browsers resolve both of these against another origin
+            should.not.exist(parseLinkUrl('//evil.example.com/phish'))
+            should.not.exist(parseLinkUrl('/\\evil.example.com/phish'))
+        })
+
+        it('rejects anything that is neither', function () {
+            should.not.exist(parseLinkUrl(''))
+            should.not.exist(parseLinkUrl('   '))
+            should.not.exist(parseLinkUrl('not a url'))
+            should.not.exist(parseLinkUrl(undefined))
         })
     })
 })
