@@ -318,9 +318,19 @@ export default {
         serverSideSearch: {
             type: Boolean,
             default: false
+        },
+        /**
+         * Optional map of `{ [rowKey]: true }` making row selection controlled
+         * by the parent. Needed when a selection has to outlive the rows that
+         * are currently loaded, for example selecting across a paginated list.
+         * Left null, the table keeps owning its own selection as before.
+         */
+        checked: {
+            type: Object,
+            default: null
         }
     },
-    emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked', 'update:page', 'update:page-size'],
+    emits: ['update:search', 'load-more', 'row-selected', 'update:sort', 'rows-checked', 'update:checked', 'update:page', 'update:page-size'],
     setup () {
         return { slugify }
     },
@@ -439,6 +449,23 @@ export default {
         }
     },
     watch: {
+        checked: {
+            handler (value) {
+                if (value && value !== this.checks) {
+                    this.checks = { ...value }
+                }
+            },
+            deep: true,
+            immediate: true
+        },
+        checks: {
+            handler (value) {
+                if (this.checked) {
+                    this.$emit('update:checked', { ...value })
+                }
+            },
+            deep: true
+        },
         checkedRows: {
             handler (value) {
                 this.$emit('rows-checked', this.checkedRows)
@@ -457,13 +484,15 @@ export default {
             pointerEvents.stopPropagation()
             pointerEvents.preventDefault()
             const isChecked = !this.allChecked
-            if (!isChecked) {
-                this.checks = {}
-                return
-            }
+            const checks = { ...this.checks }
             this.filteredRows.forEach((row) => {
-                this.checks[row[this.checkKeyProp]] = true
+                if (isChecked) {
+                    checks[row[this.checkKeyProp]] = true
+                } else {
+                    delete checks[row[this.checkKeyProp]]
+                }
             })
+            this.checks = checks
         },
         extendedRows () {
             if (this.collapsibleRow) {

@@ -464,5 +464,71 @@ describe('Admin API', async function () {
             })
             response.should.have.property('statusCode', 400)
         })
+
+        describe('team ids for an audience', function () {
+            async function getTeamIds (query = '') {
+                return app.inject({
+                    method: 'GET',
+                    url: '/api/v1/admin/teams/ids' + query,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+            }
+
+            it('returns every team id, including suspended teams', async function () {
+                const response = await getTeamIds()
+                response.should.have.property('statusCode', 200)
+                const result = response.json()
+                result.should.have.property('truncated', false)
+                result.ids.should.containEql(TestObjects.ATeam.hashid)
+                result.ids.should.containEql(TestObjects.CTeam.hashid)
+                result.ids.should.containEql(TestObjects.DTeam.hashid)
+                result.count.should.equal(result.ids.length)
+            })
+
+            it('filters by team type', async function () {
+                const response = await getTeamIds(`?teamType=${TestObjects.secondTeamType.hashid}`)
+                response.should.have.property('statusCode', 200)
+                const result = response.json()
+                result.ids.should.containEql(TestObjects.CTeam.hashid)
+                result.ids.should.containEql(TestObjects.DTeam.hashid)
+                result.ids.should.not.containEql(TestObjects.ATeam.hashid)
+            })
+
+            it('filters by suspended state', async function () {
+                const response = await getTeamIds('?state=suspended')
+                response.should.have.property('statusCode', 200)
+                const result = response.json()
+                result.ids.should.eql([TestObjects.DTeam.hashid])
+            })
+
+            it('filters by name search', async function () {
+                const response = await getTeamIds('?query=DTeAbCam')
+                response.should.have.property('statusCode', 200)
+                response.json().ids.should.eql([TestObjects.DTeam.hashid])
+            })
+
+            it('returns the same set the teams list is showing', async function () {
+                const listResponse = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/teams?teamType=${TestObjects.secondTeamType.hashid}`,
+                    cookies: { sid: TestObjects.tokens.alice }
+                })
+                listResponse.should.have.property('statusCode', 200)
+                const listed = listResponse.json().teams.map(team => team.id).sort()
+
+                const idsResponse = await getTeamIds(`?teamType=${TestObjects.secondTeamType.hashid}`)
+                idsResponse.json().ids.slice().sort().should.eql(listed)
+            })
+
+            it('is admin-only', async function () {
+                await login('nu1', 'nu1;oaihegk.jeigaegioh')
+                const response = await app.inject({
+                    method: 'GET',
+                    url: '/api/v1/admin/teams/ids',
+                    cookies: { sid: TestObjects.tokens.nu1 }
+                })
+                response.statusCode.should.be.greaterThanOrEqual(400)
+            })
+        })
     })
 })
