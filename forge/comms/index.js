@@ -51,6 +51,7 @@ module.exports = fp(async function (app, _opts) {
 
         // Setup the platform API for the comms component
         app.decorate('comms', {
+            id: client.platformId,
             devices: deviceCommsHandler,
             instances: instanceCommsHandler,
             aclManager: ACLManager(app),
