@@ -1,5 +1,11 @@
 <template>
-    <TransitionGroup class="ff-announcement-toasts" name="announcement-toast-list" tag="div" data-el="announcement-toasts">
+    <TransitionGroup
+        class="ff-announcement-toasts"
+        name="announcement-toast-list"
+        tag="div"
+        data-el="announcement-toasts"
+        :style="{ right: rightOffset + 'px' }"
+    >
         <div v-for="announcement in visibleAnnouncements" :key="announcement.id" class="ff-announcement-toast" data-el="announcement-toast">
             <ff-notification-toast type="info" :countdown="null" @close="dismiss(announcement)">
                 <template #message>
@@ -35,6 +41,11 @@ import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
 const DISMISSED_KEY = 'ff-announcement-toasts-dismissed'
 const MAX_VISIBLE = 2
+// Gap between the toast stack and whatever is to the right of it
+const EDGE_GAP = 18
+const TOAST_WIDTH = 380
+// The drawer animates its width over 300ms, so sample a little past that
+const DRAWER_TRANSITION_MS = 400
 
 /**
  * Surfaces unread announcements bottom-right so they do not depend on the user
@@ -51,7 +62,8 @@ export default {
     components: { AnnouncementBody, MegaphoneIcon },
     data () {
         return {
-            dismissedIds: this.readDismissed()
+            dismissedIds: this.readDismissed(),
+            drawerWidth: 0
         }
     },
     computed: {
@@ -59,6 +71,13 @@ export default {
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         notificationsDrawerOpen () {
             return this.rightDrawer.state && this.rightDrawer.component?.name === 'NotificationsDrawer'
+        },
+        rightOffset () {
+            // Sit to the left of an open right drawer rather than under it. On a
+            // narrow viewport the drawer covers everything, so stop pushing once
+            // the toast would leave the screen.
+            const maxOffset = Math.max(0, window.innerWidth - TOAST_WIDTH - EDGE_GAP * 2)
+            return EDGE_GAP + Math.min(this.drawerWidth, maxOffset)
         },
         visibleAnnouncements () {
             return (this.notifications || [])
@@ -73,10 +92,60 @@ export default {
             if (open) {
                 this.visibleAnnouncements.forEach(announcement => this.dismiss(announcement))
             }
+        },
+        'rightDrawer.state' () {
+            this.trackDrawerTransition()
+        },
+        'rightDrawer.wider' () {
+            this.trackDrawerTransition()
+        },
+        'rightDrawer.fixed' () {
+            this.trackDrawerTransition()
+        }
+    },
+    mounted () {
+        this.measureDrawer()
+        window.addEventListener('resize', this.measureDrawer)
+        const drawer = document.getElementById('right-drawer')
+        if (drawer && window.ResizeObserver) {
+            // Follows a drag-resize of the drawer, and the width animation
+            this.drawerObserver = new ResizeObserver(() => this.measureDrawer())
+            this.drawerObserver.observe(drawer)
+        }
+    },
+    beforeUnmount () {
+        window.removeEventListener('resize', this.measureDrawer)
+        this.drawerObserver?.disconnect()
+        if (this.transitionFrame) {
+            cancelAnimationFrame(this.transitionFrame)
         }
     },
     methods: {
         ...mapActions(useUxDrawersStore, ['openRightDrawer']),
+        measureDrawer () {
+            const drawer = document.getElementById('right-drawer')
+            if (!drawer) {
+                this.drawerWidth = 0
+                return
+            }
+            const rect = drawer.getBoundingClientRect()
+            // A closed drawer is parked off the right edge, which gives 0 here
+            this.drawerWidth = Math.max(0, Math.round(window.innerWidth - rect.left))
+        },
+        trackDrawerTransition () {
+            // The drawer slides rather than jumps, so sample until it settles
+            const until = performance.now() + DRAWER_TRANSITION_MS
+            const sample = () => {
+                this.measureDrawer()
+                if (performance.now() < until) {
+                    this.transitionFrame = requestAnimationFrame(sample)
+                }
+            }
+            if (this.transitionFrame) {
+                cancelAnimationFrame(this.transitionFrame)
+            }
+            this.transitionFrame = requestAnimationFrame(sample)
+        },
         readDismissed () {
             try {
                 return JSON.parse(window.sessionStorage.getItem(DISMISSED_KEY)) || []
@@ -111,11 +180,14 @@ export default {
 <style lang="scss">
 .ff-announcement-toasts {
     position: fixed;
-    right: $ff-unit-lg;
     bottom: $ff-unit-lg;
     z-index: 120;
     width: 380px;
     max-width: calc(100vw - #{$ff-unit-lg * 2});
+    // Two announcements carrying video are taller than a laptop viewport, so the
+    // stack scrolls itself rather than running off the top of the screen.
+    max-height: calc(100vh - 60px - #{$ff-unit-lg * 2});
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: $ff-unit-md;
@@ -134,8 +206,12 @@ export default {
         }
 
         .ff-notification-toast--message {
-            // Match the drawer's close control: a 20px glyph in a 30px hit area.
-            grid-template-columns: 1fr 30px;
+            // The component reserves a grid column for the close button, which
+            // would narrow the body all the way down. The close control only
+            // needs the header line, so let the content have the full width and
+            // lift the control out of the flow.
+            grid-template-columns: 1fr;
+            gap: 0;
 
             > div {
                 flex: 1;
@@ -144,6 +220,11 @@ export default {
         }
 
         .ff-notification-toast--close {
+            // Match the drawer's close control: a 20px glyph in a 30px hit area,
+            // its glyph aligned with the title rather than the card edge.
+            position: absolute;
+            top: calc(#{$ff-unit-lg} - 5px);
+            right: calc(#{$ff-unit-lg} - 5px);
             max-height: 30px;
 
             svg {
@@ -151,6 +232,11 @@ export default {
                 height: 30px;
                 padding: 5px;
             }
+        }
+
+        .ff-announcement-toast--header {
+            // Keep the title clear of the close button that now overlays it
+            padding-right: 30px;
         }
     }
 

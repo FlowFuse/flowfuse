@@ -52,7 +52,7 @@
                     data-action="select-loaded"
                     @click="selectLoaded"
                 >
-                    Select these {{ teams.length }}
+                    Select visible {{ teams.length }}
                 </ff-button>
                 <ff-button
                     kind="tertiary"
@@ -118,7 +118,7 @@ import alerts from '../../../services/alerts.js'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
-const PAGE_SIZE = 30
+const PAGE_SIZE = 50
 // Above this many selections a chip list stops being reviewable, so the count
 // and the table checkboxes become the way to see and prune the selection.
 const MAX_CHIPS = 25
@@ -359,6 +359,12 @@ export default {
         padding: $ff-unit-sm $ff-unit-md;
         border: 1px solid var(--ff-color-status-warning-border);
         background-color: var(--ff-color-status-warning-bg);
+    }
+
+    :deep(.ff-loadmore) {
+        padding: $ff-unit-lg 0;
+        display: flex;
+        justify-content: center;
     }
 
     .selected-teams {
