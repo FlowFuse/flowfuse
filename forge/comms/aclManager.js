@@ -504,9 +504,11 @@ module.exports = function (app) {
                 let teamId
                 let applicationHash
                 let isWildcardEntity = false
-                if (acl.allowWildcard?.entity && (entityType === '+' || entityId === '+')) {
+                if (entityType === '+' || entityId === '+') {
                     if (entityType !== '+' || entityId !== '+') {
                         throw ValidationError('invalid entity wildcards - both entityType and entityId must be wildcarded together')
+                    } else if (!acl.allowWildcard?.entity) {
+                        throw ValidationError('invalid entity wildcard')
                     }
                     isWildcardEntity = true
                 } else if (entityType === 'p') {
@@ -599,7 +601,7 @@ module.exports = function (app) {
         checkMcpTopic: async function (topicParts, usernameParts, acl) {
             // topicParts = [ fullTopic , <platformId>, <userId>, <mcpSessionId> ]
             // usernameParts = [ 'forge_platform' ] or [ '<gateway>', <userid> ]
-            // acl = { isPlatform: true/false, isAgent: true/false, isPub: true/false, isSub: true/false, allowWildcard: { user: true/false, session: true/false } }
+            // acl = { isPlatform: true/false, isAgent: true/false, isPub: true/false, isSub: true/false, allowWildcard: { platformId: true/false, user: true/false, session: true/false } }
 
             // The gateway's broker username, as named by the mcpGateway acl block below.
             // No gateway identity is minted in v2AuthRoutes yet, and verify() has no branch
@@ -614,6 +616,10 @@ module.exports = function (app) {
             }
 
             try {
+                if (!app.config.features.enabled('mcpThirdParty')) {
+                    throw ValidationError('third-party MCP access is not enabled on this platform')
+                }
+
                 const [, platformId, userId, mcpSessionId] = topicParts
                 const [clientType] = usernameParts
 
@@ -626,22 +632,18 @@ module.exports = function (app) {
 
                 // ensure the acl that matched belongs to the client presenting it
                 if (acl.isPlatform) {
+                    // when an MCP request is made via forge/ee/routes/mcp/server.js:POST('/'),
+                    // the platform client is used to publish the request to the gateway
                     if (clientType !== 'forge_platform') {
                         throw ValidationError('invalid client type - expected the platform client')
                     }
-                } else if (acl.isAgent) {
+                } else if (acl.isMcpGateway) {
                     // todo validate that the clientType starts with MCP_GATEWAY_CLIENT_TYPE not equals
                     if (clientType !== MCP_GATEWAY_CLIENT_TYPE) {
                         throw ValidationError(`invalid client type - expected an ${MCP_GATEWAY_CLIENT_TYPE} client`)
                     }
                 } else {
                     throw ValidationError('acl does not declare which side of the channel it is for')
-                }
-
-                // the replica that emits a request receives its response, so this is never a
-                // wildcard - at minimum ensure it is present and 8 or more chars
-                if (platformId.length < 8) {
-                    throw ValidationError('invalid platform id')
                 }
 
                 // at minimum, ensure the mcp session is present and either a wildcard or 8 or more chars
@@ -653,6 +655,14 @@ module.exports = function (app) {
                     throw ValidationError('invalid mcp session id')
                 }
 
+                if (platformId === '+') {
+                    if (!acl.allowWildcard?.platformId) {
+                        throw ValidationError('invalid platform id wildcard')
+                    }
+                } else if (platformId !== app.comms.id) {
+                    throw ValidationError('invalid platform id')
+                }
+
                 if (userId === '+') {
                     if (!acl.allowWildcard?.user) {
                         throw ValidationError('invalid user wildcard')
@@ -662,10 +672,6 @@ module.exports = function (app) {
                     if (!user || user.suspended) {
                         throw ValidationError('invalid user')
                     }
-                }
-
-                if (acl.isAgent && !app.config.features.enabled('mcpThirdParty')) {
-                    throw ValidationError('third-party MCP access is not enabled on this platform')
                 }
 
                 return true
@@ -844,7 +850,7 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', isClient: true, isPub: true }
             ]
         },
-        // backend client (agent)
+        // backend client (agent 1st party (no bridge))
         expertAgent: {
             sub: [
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { user: true, session: true, entity: true }, isAgent: true, isSub: true, agent: 'support' },
@@ -857,27 +863,6 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'support' },
                 // Expert agent can respond to platform requests
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' },
-            ]
-        },
-        // central MCP gateway (distinct, revocable broker identity)
-        mcpGateway: {
-            sub: [
-                // Central gateway can listen for platform responses to the tools it runs
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isAgent: true, isSub: true, agent: 'platform' },
-                // Central gateway can listen for third-party MCP requests from the platform
-                // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request
-                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', allowWildcard: { user: true, session: true }, isAgent: true, isSub: true },
-                // Central gateway can listen for inflight acks when it applies a flow or UI tool to a target tab
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', allowWildcard: { user: true, session: true, entity: true, inflightType: true }, isAgent: true, isSub: true, agent: 'support' }
-            ],
-            pub: [
-                // Central gateway can publish platform requests for the tools it runs
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' },
-                // Central gateway can publish inflight requests to apply a flow or UI tool to a target tab
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'support' },
-                // Central gateway can publish third-party MCP responses back to the platform
-                // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response
-                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/response$/, verify: 'checkMcpTopic', isAgent: true, isPub: true }
             ]
         }
     }
@@ -940,8 +925,11 @@ module.exports = function (app) {
                         if (isSharedSub && !acl.shared) {
                             // This isn't allowed to be a sharedSub
                             break
-                        } else if (acl.verify && verifyFunctions[acl.verify]) {
+                        } else if (acl.verify) {
                             try {
+                                if (!verifyFunctions[acl.verify] || typeof verifyFunctions[acl.verify] !== 'function') {
+                                    throw new Error(`Missing verification function '${acl.verify}'`)
+                                }
                                 allowed = await verifyFunctions[acl.verify](m, usernameParts, acl)
                             } catch (err) {
                                 allowed = false
