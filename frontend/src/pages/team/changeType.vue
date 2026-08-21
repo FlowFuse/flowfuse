@@ -309,12 +309,8 @@ export default {
         }).sort((a, b) => a.order - b.order)
         this.input.teamTypeId = this.team.type.id
 
-        this.teamTypes.forEach(tt => {
-            // Check if *any* team type has annual billing available
-            if (tt.annualBillingPrice) {
-                this.annualBillingAvailable = true
-            }
-        })
+        // If any of the available types has an annualBillingPrice, show the annual billing toggle
+        this.annualBillingAvailable = this.teamTypes.some(type => !!type.annualBillingPrice)
 
         const instanceTypes = (await instanceTypesApi.getInstanceTypes()).types
         instanceTypes.forEach(instanceType => {
