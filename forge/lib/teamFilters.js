@@ -24,11 +24,11 @@ function buildTeamFilterWhere (app, query = {}) {
     if (query.state === 'suspended') {
         filters.push({ suspended: true })
     } else {
-        if (query.state === 'active') {
+        const excludeSuspended = query.state === 'active' || !!(app.billing && query.billing)
+        if (excludeSuspended) {
             filters.push({ suspended: false })
         }
         if (app.billing && query.billing) {
-            filters.push({ suspended: false })
             const billingStates = query.billing.split(',')
             filters.push({ '$Subscription.status$': { [Op.in]: billingStates } })
         }

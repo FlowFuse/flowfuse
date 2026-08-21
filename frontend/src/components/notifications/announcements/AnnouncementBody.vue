@@ -33,7 +33,7 @@
             </a>
         </div>
 
-        <div v-if="data.cta" class="ff-announcement-body--actions" data-el="announcement-cta">
+        <div v-if="callToAction" class="ff-announcement-body--actions" data-el="announcement-cta">
             <!--
                 An in-app destination routes, so the app is not torn down and
                 rebooted. An external one is a plain anchor: ff-button's anchor
@@ -43,22 +43,22 @@
             <router-link
                 v-if="ctaIsInApp"
                 class="ff-btn ff-btn--primary ff-btn-small transition-fade--color"
-                :to="data.cta.url"
+                :to="callToAction.url"
                 data-action="announcement-cta"
                 @click="$emit('engaged')"
             >
-                {{ data.cta.label }}
+                {{ callToAction.label }}
             </router-link>
             <a
                 v-else
                 class="ff-btn ff-btn--primary ff-btn-small transition-fade--color"
-                :href="data.cta.url"
+                :href="callToAction.url"
                 target="_blank"
                 rel="noopener noreferrer"
                 data-action="announcement-cta"
                 @click="$emit('engaged')"
             >
-                {{ data.cta.label }}
+                {{ callToAction.label }}
             </a>
         </div>
     </div>
@@ -68,6 +68,29 @@
 import { Marked } from 'marked'
 
 import { sanitize } from '../../../composables/strings/String.js'
+
+// Mirrors forge/lib/announcements.js parseLinkUrl. Tab, newline and carriage
+// return are refused because the URL parser strips them, which turns
+// '/<tab>/host' into an off-platform '//host'.
+const IN_APP_PATH = /^\/(?![/\\])/
+const STRIPPED_BY_URL_PARSER = /[\t\n\r]/
+
+function isRenderableLink (value) {
+    const target = (value || '').trim()
+    if (!target || STRIPPED_BY_URL_PARSER.test(target)) {
+        return false
+    }
+    let url = null
+    try {
+        url = new URL(target)
+    } catch (_err) {
+        url = null
+    }
+    if (url) {
+        return url.protocol === 'https:' || url.protocol === 'http:'
+    }
+    return IN_APP_PATH.test(target)
+}
 
 export default {
     name: 'AnnouncementBody',
@@ -112,17 +135,26 @@ export default {
             }
             return `https://www.youtube-nocookie.com/embed/${video.id}?rel=0`
         },
+        callToAction () {
+            // Stored announcements are validated server side, but the admin
+            // preview renders whatever has been typed so far, so the same check
+            // runs here rather than trusting the payload.
+            const cta = this.data?.cta
+            if (!cta?.label || typeof cta.url !== 'string') {
+                return null
+            }
+            return isRenderableLink(cta.url) ? cta : null
+        },
         ctaIsInApp () {
-            // Validated server side, so a leading slash here really is a path
-            // within the platform
-            return !!this.data?.cta?.url?.startsWith('/')
+            return !!this.callToAction?.url.startsWith('/')
         },
         fallbackLink () {
             // Only when there is no button of its own to click.
-            if (this.data?.cta || !this.compact) {
+            if (this.callToAction || !this.compact) {
                 return null
             }
-            return typeof this.data?.url === 'string' ? this.data.url : null
+            const url = this.data?.url
+            return typeof url === 'string' && isRenderableLink(url) ? url : null
         }
     }
 }

@@ -6,22 +6,24 @@
         data-el="announcement-toasts"
         :style="{ right: rightOffset + 'px' }"
     >
-        <div v-for="announcement in visibleAnnouncements" :key="announcement.id" class="ff-announcement-toast" data-el="announcement-toast">
-            <ff-notification-toast type="info" :countdown="null" @close="dismiss(announcement)">
-                <template #message>
-                    <div class="ff-announcement-toast--content">
-                        <div class="ff-announcement-toast--header">
-                            <MegaphoneIcon class="ff-icon" />
-                            <h4>{{ announcement.data.title }}</h4>
+        <template v-if="hasRoomBesideDrawer">
+            <div v-for="announcement in visibleAnnouncements" :key="announcement.id" class="ff-announcement-toast" data-el="announcement-toast">
+                <ff-notification-toast type="info" :countdown="null" @close="dismiss(announcement)">
+                    <template #message>
+                        <div class="ff-announcement-toast--content">
+                            <div class="ff-announcement-toast--header">
+                                <MegaphoneIcon class="ff-icon" />
+                                <h4>{{ announcement.data.title }}</h4>
+                            </div>
+                            <AnnouncementBody :data="announcement.data" compact @engaged="markAsRead(announcement)" />
+                            <button class="ff-announcement-toast--secondary" data-action="open-notifications" @click="openNotifications">
+                                View in notifications
+                            </button>
                         </div>
-                        <AnnouncementBody :data="announcement.data" compact @engaged="markAsRead(announcement)" />
-                        <button class="ff-announcement-toast--secondary" data-action="open-notifications" @click="openNotifications">
-                            View in notifications
-                        </button>
-                    </div>
-                </template>
-            </ff-notification-toast>
-        </div>
+                    </template>
+                </ff-notification-toast>
+            </div>
+        </template>
     </TransitionGroup>
 </template>
 
@@ -73,12 +75,20 @@ export default {
         notificationsDrawerOpen () {
             return this.rightDrawer.state && this.rightDrawer.component?.name === 'NotificationsDrawer'
         },
+        maxRightOffset () {
+            return Math.max(0, this.viewportWidth - TOAST_WIDTH - EDGE_GAP * 2)
+        },
         rightOffset () {
-            // Sit to the left of an open right drawer rather than under it. On a
-            // narrow viewport the drawer covers everything, so stop pushing once
-            // the toast would leave the screen.
-            const maxOffset = Math.max(0, this.viewportWidth - TOAST_WIDTH - EDGE_GAP * 2)
-            return EDGE_GAP + Math.min(this.drawerWidth, maxOffset)
+            // Sit to the left of an open right drawer rather than under it
+            return EDGE_GAP + Math.min(this.drawerWidth, this.maxRightOffset)
+        },
+        hasRoomBesideDrawer () {
+            // A wide drawer, or a narrow viewport, leaves nowhere for the stack
+            // to go. It stays below the dialog layer by design, so pushing it
+            // under the drawer instead would hide it with no way to reach it.
+            // Hold the announcements back until the drawer is out of the way;
+            // they are still unread and still in the drawer's own list.
+            return this.drawerWidth <= this.maxRightOffset
         },
         unreadAnnouncements () {
             return (this.notifications || [])

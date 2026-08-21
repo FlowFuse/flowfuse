@@ -514,7 +514,7 @@ module.exports = async function (app) {
                     },
                     mock: { type: 'boolean' },
                     to: { type: 'object' },
-                    url: { type: 'string' },
+                    url: { type: 'string', maxLength: 500 },
                     format: { type: 'string', enum: ['plain', 'markdown'] },
                     video: { type: 'string', maxLength: 300 },
                     cta: {
@@ -584,6 +584,11 @@ module.exports = async function (app) {
         // it gets the same treatment as the button
         if (url && !parseLinkUrl(url)) {
             return reply.code(400).send({ code: 'bad_request', error: 'The URL link must be an http(s) or in-app url.' })
+        }
+        // `to` is the same sink by another name: the front-end prefers it over
+        // `url` and opens `to.url` directly
+        if (to && typeof to.url === 'string' && !parseLinkUrl(to.url)) {
+            return reply.code(400).send({ code: 'bad_request', error: 'The notification link must be an http(s) or in-app url.' })
         }
         if (mock) {
             // If mock is sent, return an indication of how many users would receive this notification

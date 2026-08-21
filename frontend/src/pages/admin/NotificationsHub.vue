@@ -167,9 +167,15 @@ import TeamAudiencePicker from './components/TeamAudiencePicker.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
-// Kept in step with the maxLength on POST /api/v1/admin/announcements
-const MAX_TITLE_LENGTH = 120
-const MAX_MESSAGE_LENGTH = 4000
+// Kept in step with the maxLength values on POST /api/v1/admin/announcements
+const MAX_LENGTHS = {
+    title: 120,
+    message: 4000,
+    video: 300,
+    ctaLabel: 40,
+    ctaUrl: 500,
+    url: 500
+}
 // Kept in step with forge/lib/announcements.js
 const YOUTUBE_HOSTS = ['youtu.be', 'youtube.com', 'm.youtube.com', 'youtube-nocookie.com']
 
@@ -226,12 +232,17 @@ export default {
             return this.form.teamTypes.length > 0 &&
                 (!this.features.billing || this.form.billing.length > 0)
         },
+        withinLengthLimits () {
+            // The API rejects an over-long field with a bare "Bad Request", so
+            // the limits are enforced before the request is made
+            return Object.entries(MAX_LENGTHS)
+                .every(([field, limit]) => (this.form[field] || '').length <= limit)
+        },
         canSubmit () {
             return this.form.title.length > 0 &&
-                this.form.title.length <= MAX_TITLE_LENGTH &&
                 this.form.message.length > 0 &&
-                this.form.message.length <= MAX_MESSAGE_LENGTH &&
                 this.form.roles.length > 0 &&
+                this.withinLengthLimits &&
                 this.hasAudienceScope
         },
         urlPlaceholder () {
@@ -259,12 +270,25 @@ export default {
             } catch (_err) {
                 return null
             }
+            if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+                return null
+            }
             const host = url.hostname.replace(/^www\./, '')
             if (!YOUTUBE_HOSTS.includes(host)) {
                 return null
             }
-            const match = /(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/|\/live\/)([A-Za-z0-9_-]{11})/.exec(value)
-            return match ? { provider: 'youtube', id: match[1] } : null
+            let candidate = null
+            if (host === 'youtu.be') {
+                candidate = url.pathname.slice(1)
+            } else if (url.pathname === '/watch') {
+                candidate = url.searchParams.get('v')
+            } else {
+                const prefix = ['/embed/', '/shorts/', '/live/'].find(p => url.pathname.startsWith(p))
+                candidate = prefix ? url.pathname.slice(prefix.length) : null
+            }
+            return candidate && /^[A-Za-z0-9_-]{11}$/.test(candidate)
+                ? { provider: 'youtube', id: candidate }
+                : null
         }
     },
     watch: {

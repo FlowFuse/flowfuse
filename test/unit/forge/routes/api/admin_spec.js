@@ -476,6 +476,40 @@ describe('Admin API', async function () {
             response.should.have.property('statusCode', 400)
         })
 
+        it('rejects a card link that hides an off-platform host behind a tab', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                url: '/\t/evil.example.com/phish',
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+        })
+
+        it('rejects a `to` link that could execute', async function () {
+            // `to` is preferred over `url` by the front-end, so it is the same sink
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                to: { url: 'javascript:alert(document.cookie)' },
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+        })
+
+        it('still accepts a `to` route object', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                to: { name: 'instance-overview', params: { id: 'abc' } },
+                filter: {
+                    roles: [app.factory.Roles.Roles.Owner],
+                    teams: [TestObjects.BTeam.hashid]
+                }
+            })
+            response.should.have.property('statusCode', 200)
+        })
+
         it('rejects a button that could execute', async function () {
             const response = await sendNotification({
                 message: 'message',
