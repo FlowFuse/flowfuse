@@ -63,6 +63,10 @@ function parseVideoReference (value) {
 // A path rooted at the platform itself. Excludes '//host' and '/\\host', which
 // browsers resolve to another origin despite starting with a slash.
 const IN_APP_PATH = /^\/(?![/\\])/
+// The URL parser strips these before parsing, so '/<tab>/host' reaches the
+// browser as '//host'. Nothing legitimate needs them, so refuse them outright
+// rather than trying to normalise.
+const STRIPPED_BY_URL_PARSER = /[\t\n\r]/
 
 /**
  * Validate a link an admin wants a recipient to follow.
@@ -79,7 +83,7 @@ function parseLinkUrl (value) {
         return null
     }
     const target = value.trim()
-    if (!target) {
+    if (!target || STRIPPED_BY_URL_PARSER.test(target)) {
         return null
     }
     let url = null

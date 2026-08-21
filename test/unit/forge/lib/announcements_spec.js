@@ -107,6 +107,15 @@ describe('announcements.js', function () {
             should.not.exist(parseLinkUrl('/\\evil.example.com/phish'))
         })
 
+        it('rejects the characters the url parser strips', function () {
+            // The parser drops tab, newline and carriage return before parsing,
+            // so each of these reaches the browser as '//evil.example.com'
+            should.not.exist(parseLinkUrl('/\t/evil.example.com/phish'))
+            should.not.exist(parseLinkUrl('/\n/evil.example.com/phish'))
+            should.not.exist(parseLinkUrl('/\r/evil.example.com/phish'))
+            should.not.exist(parseLinkUrl('java\tscript:alert(1)'))
+        })
+
         it('rejects anything that is neither', function () {
             should.not.exist(parseLinkUrl(''))
             should.not.exist(parseLinkUrl('   '))
