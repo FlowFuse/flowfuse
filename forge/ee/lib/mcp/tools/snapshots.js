@@ -1,22 +1,7 @@
 const { z } = require('zod')
 
 const { basePaginationKeys, appendQuery, hostedInstanceId, snapshotId } = require('../schemas')
-
-// Snapshots store hidden (secret) env vars as { value, hidden: true } with the
-// real value; the /full route returns settings verbatim. Blank those values
-// before handing the payload to the agent, keeping the key and the hidden flag.
-// Visible env vars (plain string values) pass through unchanged.
-function blankHiddenEnvValues (env) {
-    const result = {}
-    for (const [key, value] of Object.entries(env)) {
-        if (value && typeof value === 'object' && value.hidden) {
-            result[key] = { ...value, value: '' }
-        } else {
-            result[key] = value
-        }
-    }
-    return result
-}
+const { blankHiddenEnvValues } = require('../utils')
 
 module.exports = [
     {
