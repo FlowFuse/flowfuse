@@ -12,7 +12,7 @@
                 <span>Expert</span>
             </button>
             <button
-                v-if="featuresCheck.isMcpThirdPartyEnabled"
+                v-if="featuresCheck.isMcpThirdPartyFeatureEnabled"
                 v-ff-tooltip:bottom="mcpActive ? 'Disable MCP' : 'Enable MCP'"
                 class="expert-composite__mcp flex items-center justify-center py-[6px] px-[7px] transition-colors"
                 :class="{ 'expert-composite__mcp--active': mcpActive }"
