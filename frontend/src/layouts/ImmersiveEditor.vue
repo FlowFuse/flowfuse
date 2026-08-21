@@ -15,6 +15,7 @@ import { storeToRefs } from 'pinia'
 import PageHeader from '../components/PageHeader.vue'
 import PlatformAlerts from '../components/PlatformAlerts.vue'
 import PlatformDialog from '../components/dialogs/PlatformDialog.vue'
+import { useBrowserSessionPresence } from '../composables/services/BrowserSessionPresence.js'
 
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
 
@@ -22,6 +23,8 @@ defineOptions({ name: 'FfLayoutImmersiveEditor' })
 
 const drawersStore = useUxDrawersStore()
 const { editorImmersiveDrawer } = storeToRefs(drawersStore)
+
+useBrowserSessionPresence('editor')
 </script>
 
 <style lang="scss">

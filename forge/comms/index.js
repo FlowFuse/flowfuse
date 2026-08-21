@@ -52,7 +52,15 @@ module.exports = fp(async function (app, _opts) {
             aclManager: ACLManager(app),
             platformAutomation: platformAutomationHandler,
             expert: expertCommsHandler,
+
+            mcpProxyRequest: function (route, payload, timeoutMs) {
+                return client.mcpProxyRequest(route, payload, timeoutMs)
+            },
+            publishTabHeartbeat: function (userId, sessionId, action, payload) {
+                return client.publishTabHeartbeat(userId, sessionId, action, payload)
+            },
             browserSessions: browserSessionPresenceHandler,
+
             platform: {
                 settings: {
                     sync: function (key) {

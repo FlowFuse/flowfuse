@@ -13,6 +13,9 @@ class CommsClient extends EventEmitter {
         super()
         this.app = app
         this.platformId = uuidv4()
+        // In-flight third-party MCP proxy requests, keyed by transaction id. Each
+        // entry resolves when the matching `res` arrives on this replica's topic.
+        this.mcpInflight = new Map()
     }
 
     async init () {
@@ -185,6 +188,28 @@ class CommsClient extends EventEmitter {
                             mqttOptions.properties // properties
                         )
                     }
+                } else if (topicParts[2] === 'mcp') {
+                    // Response to a third-party MCP proxy request. Topic:
+                    // ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response
+                    // Match it to its in-flight request by transaction id and resolve.
+                    const direction = topicParts[6]
+                    if (direction !== 'response') {
+                        return
+                    }
+                    let payload
+                    try {
+                        payload = JSON.parse(message.toString())
+                    } catch (err) {
+                        this.app.log.warn(`Ignoring malformed mcp payload on ${topic}: ${err.message}`)
+                        return
+                    }
+                    const inflight = payload.txId && this.mcpInflight.get(payload.txId)
+                    if (!inflight) {
+                        return
+                    }
+                    this.mcpInflight.delete(payload.txId)
+                    clearTimeout(inflight.timer)
+                    inflight.resolve(payload.mcp)
                 } else if (ownerType === 'p') {
                     this.emit('status/project', {
                         id: ownerId,
@@ -266,6 +291,10 @@ class CommsClient extends EventEmitter {
                 // "platform" group prevents unrelated features from sharing a consumer pool and
                 // allows them to scale independently.
                 '$share/expert/ff/v1/expert/+/+/platform/+/request',
+                // Responses to this replica's third-party MCP proxy requests.
+                // Scoped to our own platformId so the reply returns to the replica
+                // that holds the agent's HTTP connection.
+                'ff/v1/mcp/' + this.platformId + '/+/+/response',
                 // Browser tab presence - shared subscription
                 '$share/browser/ff/v1/browser/tab-presence/+/+/+'
             ])
@@ -293,6 +322,60 @@ class CommsClient extends EventEmitter {
             this.client.publish(responseTopic, JSON.stringify(result), mqttOptions)
         }
         return { onSuccess, onError }
+    }
+
+    /**
+     * Proxy a third-party MCP request to the central gateway over MQTT and wait
+     * for the response. Publishes on
+     * ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request and
+     * resolves when the matching `response` arrives on this replica's subscription.
+     * @param {{userId:string,mcpSessionId:string}} route Topic routing parts
+     * @param {{mcp:object,scope:object|null,toolGroups:string[]}} payload Request payload
+     * @param {number} [timeoutMs] How long to wait for the response
+     * @returns {Promise<object>} The MCP response body
+     */
+    mcpProxyRequest (route, payload, timeoutMs = 30000) {
+        return new Promise((resolve, reject) => {
+            if (!this.client) {
+                reject(new Error('Comms client not connected'))
+                return
+            }
+            const { userId, mcpSessionId } = route
+            const txId = uuidv4()
+            const reqTopic = `ff/v1/mcp/${this.platformId}/${userId}/${mcpSessionId}/request`
+            const timer = setTimeout(() => {
+                this.mcpInflight.delete(txId)
+                reject(new Error('Timed out waiting for MCP gateway response'))
+            }, timeoutMs)
+            this.mcpInflight.set(txId, { resolve, reject, timer })
+            const body = JSON.stringify({ ...payload, txId })
+            this.client.publish(reqTopic, body, (error) => {
+                if (error) {
+                    this.mcpInflight.delete(txId)
+                    clearTimeout(timer)
+                    reject(error)
+                }
+            })
+        })
+    }
+
+    /**
+     * Publish browser-tab presence to the central MCP gateway over MQTT.
+     * Publishes on ff/v1/tab-heartbeat/<userId>/<sessionId>/<action> with a JSON
+     * payload. The gateway holds an in-memory TTL map keyed on these topics, so
+     * an open tab republishes on a fixed cadence.
+     * @param {string} userId The tab user's hashid
+     * @param {string} sessionId The tab's expert-client session id
+     * @param {'update'|'clear'} action Presence action
+     * @param {object} payload Presence payload
+     * @returns {void}
+     */
+    publishTabHeartbeat (userId, sessionId, action, payload) {
+        if (!this.client) {
+            return
+        }
+        const topic = `ff/v1/tab-heartbeat/${userId}/${sessionId}/${action}`
+        this.client.publish(topic, JSON.stringify(payload))
     }
 
     /**

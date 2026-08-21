@@ -444,6 +444,47 @@ module.exports = async function (app) {
         reply.send({ status: 'okay' })
     })
 
+    app.post('/mcp-gateway-creds', {
+        preHandler: [app.blockPAT, app.needsPermission('platform:mcp-gateway:creds')],
+        schema: {
+            summary: 'Regenerate MCP gateway credentials - admin-only',
+            tags: ['Platform'],
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        username: { type: 'string' },
+                        password: { type: 'string' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const result = await app.db.controllers.BrokerClient.createClientForMcpGateway()
+        reply.send(result)
+    })
+    app.delete('/mcp-gateway-creds', {
+        preHandler: app.needsPermission('platform:mcp-gateway:creds'),
+        schema: {
+            summary: 'Remove MCP gateway credentials - admin-only',
+            tags: ['Platform'],
+            response: {
+                200: {
+                    $ref: 'APIStatus'
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        await app.db.controllers.BrokerClient.removeClientForMcpGateway()
+        reply.send({ status: 'okay' })
+    })
+
     app.post('/announcements', {
         preHandler: app.needsPermission('user:announcements:manage'),
         schema: {
