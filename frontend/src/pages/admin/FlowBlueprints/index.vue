@@ -133,7 +133,7 @@ export default {
         if (this.features?.flowBlueprints) {
             await this.loadItems()
         } else {
-            this.$router.push({ name: 'Admin Settings' })
+            this.$router.push({ name: 'admin' })
         }
     },
     methods: {

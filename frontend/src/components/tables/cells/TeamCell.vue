@@ -18,7 +18,7 @@ export default {
             if (this.slug) {
                 useAccountStore().setTeam(this.slug)
                     .then(() => this.$router.push({
-                        name: 'Team',
+                        name: 'team',
                         params: {
                             team_slug: this.slug
                         }

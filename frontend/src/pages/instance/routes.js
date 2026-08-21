@@ -103,7 +103,7 @@ export default [
     {
         path: '/project/:id/:remaining*',
         redirect: to => {
-            return { name: 'Instance', params: to.params }
+            return { name: 'instance', params: to.params }
         }
     },
     {
@@ -114,7 +114,7 @@ export default [
                 redirect: to => {
                     return { name: 'instance-overview', params: { id: to.params.id } }
                 },
-                name: 'Instance',
+                name: 'instance',
                 component: Instance,
                 meta: {
                     title: 'Instance - Overview'

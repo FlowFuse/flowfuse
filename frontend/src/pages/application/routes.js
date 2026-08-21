@@ -30,12 +30,12 @@ export default [
         redirect: function () {
             const features = useAccountSettingsStore().featuresCheck
             if (features.isHostedInstancesEnabledForTeam) {
-                return { name: 'ApplicationInstances' }
+                return { name: 'application-instances' }
             } else {
-                return { name: 'ApplicationDevices' }
+                return { name: 'application-devices' }
             }
         },
-        name: 'Application',
+        name: 'application',
         component: ApplicationIndex,
         meta: {
             title: 'Application - Overview'
@@ -43,7 +43,7 @@ export default [
         children: [
             {
                 path: 'instances',
-                name: 'ApplicationInstances',
+                name: 'application-instances',
                 component: ApplicationOverview,
                 meta: {
                     title: 'Application - Instances'
@@ -51,7 +51,7 @@ export default [
             },
             {
                 path: 'dashboards',
-                name: 'ApplicationDashboards',
+                name: 'application-dashboards',
                 component: ApplicationDashboards,
                 meta: {
                     title: 'Application - Dashboards'
@@ -59,7 +59,7 @@ export default [
             },
             {
                 path: 'devices',
-                name: 'ApplicationDevices',
+                name: 'application-devices',
                 component: ApplicationDevices,
                 meta: {
                     title: 'Application - Devices'
@@ -67,7 +67,7 @@ export default [
             },
             {
                 path: 'device-groups',
-                name: 'ApplicationDeviceGroups',
+                name: 'application-device-groups',
                 component: ApplicationDeviceGroups,
                 meta: {
                     title: 'Application - Devices Groups'
@@ -75,7 +75,7 @@ export default [
             },
             {
                 path: 'snapshots',
-                name: 'ApplicationSnapshots',
+                name: 'application-snapshots',
                 component: ApplicationSnapshots,
                 meta: {
                     title: 'Application - Snapshots'
@@ -83,7 +83,7 @@ export default [
             },
             {
                 path: 'pipelines',
-                name: 'ApplicationPipelines',
+                name: 'application-pipelines',
                 component: ApplicationPipelines,
                 meta: {
                     title: 'Application - Pipelines'
@@ -134,7 +134,7 @@ export default [
 
             {
                 path: 'pipelines/create',
-                name: 'CreatePipeline',
+                name: 'application-pipeline-create',
                 component: ApplicationPipelineCreate,
                 meta: {
                     title: 'Pipeline - Create'
@@ -143,16 +143,16 @@ export default [
 
             {
                 path: 'pipelines/:pipelineId',
-                name: 'EditPipeline',
+                name: 'application-pipeline-edit',
                 component: ApplicationPipelineIndex,
                 meta: {
                     title: 'Pipeline'
                 },
-                redirect: { name: 'CreatePipelineStage' },
+                redirect: { name: 'application-pipeline-stage-create' },
                 children: [
                     {
                         path: 'stages/create',
-                        name: 'CreatePipelineStage',
+                        name: 'application-pipeline-stage-create',
                         component: ApplicationPipelineStageCreate,
                         meta: {
                             title: 'Pipeline Stage - Create'
@@ -160,7 +160,7 @@ export default [
                     },
                     {
                         path: 'stages/:stageId/edit',
-                        name: 'EditPipelineStage',
+                        name: 'application-pipeline-stage-edit',
                         component: ApplicationPipelineStageEdit,
                         meta: {
                             title: 'Pipeline Stage - Edit'
@@ -189,7 +189,7 @@ export default [
                 backTo: ({ query, params }) => {
                     return {
                         label: 'Back',
-                        to: { name: 'ApplicationInstances', params, query }
+                        to: { name: 'application-instances', params, query }
                     }
                 }
             }
@@ -197,16 +197,16 @@ export default [
     },
     {
         path: ':applicationId/device-group/:deviceGroupId',
-        name: 'ApplicationDeviceGroupIndex',
+        name: 'application-device-group',
         component: ApplicationDeviceGroupIndex,
         meta: {
             title: 'Application - Device Group'
         },
-        redirect: { name: 'ApplicationDeviceGroupDevices' },
+        redirect: { name: 'application-device-group-devices' },
         children: [
             {
                 path: 'devices',
-                name: 'ApplicationDeviceGroupDevices',
+                name: 'application-device-group-devices',
                 component: ApplicationDeviceGroupDevices,
                 meta: {
                     title: 'Application - Device Group - Members'
@@ -214,18 +214,18 @@ export default [
             },
             {
                 path: 'settings',
-                name: 'ApplicationDeviceGroupSettings',
+                name: 'application-device-group-settings',
                 component: ApplicationDeviceGroupSettings,
                 meta: {
                     title: 'Application - Device Group - Settings'
                 },
                 redirect: {
-                    name: 'ApplicationDeviceGroupSettingsGeneral'
+                    name: 'application-device-group-settings-general'
                 },
                 children: [
                     {
                         path: 'general',
-                        name: 'ApplicationDeviceGroupSettingsGeneral',
+                        name: 'application-device-group-settings-general',
                         component: ApplicationDeviceGroupSettingsGeneral,
                         meta: {
                             title: 'Application - Device Group - Settings - General'
@@ -233,7 +233,7 @@ export default [
                     },
                     {
                         path: 'environment',
-                        name: 'ApplicationDeviceGroupSettingsEnvironment',
+                        name: 'application-device-group-settings-environment',
                         component: ApplicationDeviceGroupSettingsEnvironment,
                         meta: {
                             title: 'Application - Device Group - Settings - Environment'
