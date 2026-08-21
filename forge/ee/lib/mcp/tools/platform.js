@@ -110,17 +110,19 @@ module.exports = [
             Pick a session_id from the results and pass it as the target for subsequent tool invocations.
             If no sessions are returned, ask the user to open the FlowFuse platform in their browser and enable the MCP toggle (the plug icon next to the Expert button in the header).`,
         annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: { }, // future - consider adding userId so that admin users can ask "what sessions does user X have?"
-        handler: async (args, { app, user }) => {
-            if (!app.db.controllers.BrowserSession) {
+        inputSchema: {
+            userId: z.string().describe('The ID or hashid of the user whose browser sessions to list')
+        },
+        handler: async (args, { app }) => {
+            // The cache always exists, but without a broker no tab can ever report in
+            if (!app?.comms) {
                 return {
                     sessions: [],
                     message: 'Browser sessions are not available on this platform. 3rd party automations like flow building will not be possible.'
                 }
             }
 
-            const userId = user.hashid
-            const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(userId)
+            const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(args.userId)
 
             if (sessions.length === 0) {
                 const baseUrl = app.config.base_url || ''
@@ -144,72 +146,6 @@ module.exports = [
                     context: session.context || null
                 }))
             }
-        }
-    },
-    {
-        name: 'platform_set_active_browser_session',
-        title: 'Set Active Browser Session',
-        description: `FlowFuse platform automation tool:
-            Pins one browser tab (from platform_list_browser_sessions) as the active target for subsequent
-            platform_ui and flow_building tool calls, so you don't need to pass a session id with every call.
-            Call platform_list_browser_sessions first to get a valid session_id.
-            The pin is remembered for this MCP connection until changed, the tab closes, or it expires.`,
-        annotations: { readOnlyHint: false, destructiveHint: false },
-        inputSchema: {
-            session_id: z.string().describe('The sessionId of the browser tab to target, from platform_list_browser_sessions')
-        },
-        handler: async (args, { app, user, mcpSessionId }) => {
-            if (!app.db.controllers.BrowserSession) {
-                return {
-                    success: false,
-                    message: 'Browser sessions are not available on this platform. 3rd party automations like flow building will not be possible.'
-                }
-            }
-            const sessions = await app.db.controllers.BrowserSession.getSessionsByUser(user.hashid)
-            const match = sessions.find(session => session.sessionId === args.session_id)
-            if (!match) {
-                return {
-                    success: false,
-                    message: `No live browser session with sessionId '${args.session_id}' was found for this user. ` +
-                        'Call platform_list_browser_sessions to see the current live tabs and pick one from there.'
-                }
-            }
-
-            await app.db.controllers.BrowserSession.setActiveBrowserSession(user.hashid, mcpSessionId, args.session_id)
-
-            return {
-                success: true,
-                activeSessionId: args.session_id,
-                context: match.context || null,
-                message: 'Active browser session set. Subsequent platform_ui and flow_building tool calls will target this tab.'
-            }
-        }
-    },
-    {
-        name: 'platform_get_active_browser_session',
-        title: 'Get Active Browser Session',
-        description: `FlowFuse platform automation tool:
-            Returns the browser tab currently pinned as the active target for platform_ui and flow_building tool calls,
-            as set by platform_set_active_browser_session.
-            If none is set, or the pinned tab is no longer live, call platform_list_browser_sessions and
-            platform_set_active_browser_session to pick one.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {},
-        handler: async (args, { app, user, mcpSessionId }) => {
-            if (!app.db.controllers.BrowserSession) {
-                return {
-                    message: 'Browser sessions are not available on this platform. 3rd party automations like flow building will not be possible.'
-                }
-            }
-            const activeSession = await app.db.controllers.BrowserSession.getActiveBrowserSession(user.hashid, mcpSessionId)
-            if (!activeSession) {
-                return {
-                    message: 'No active browser session is set. Call platform_list_browser_sessions to see available tabs, ' +
-                        'then platform_set_active_browser_session to pick one.'
-                }
-            }
-
-            return { activeSessionId: activeSession.sessionId, context: activeSession.context || null }
         }
     }
 ]

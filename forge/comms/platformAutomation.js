@@ -104,10 +104,9 @@ class PlatformAutomationHandler {
         this.client.on('request/platform-automation:forge', this.eventHandler)
     }
 
-    eventHandler = async ({ userId, mcpSessionId, command, data, meta } = {}, onSuccess, onError) => {
+    eventHandler = async ({ userId, command, data, meta } = {}, onSuccess, onError) => {
         try {
             let result = {}
-            this.app.log.info(`platform-automation request: userId=${userId} mcpSessionId=${mcpSessionId} command=${command} tool=${data?.name || 'n/a'}`)
 
             switch (command) {
             case 'mcp-get-features':
@@ -163,7 +162,7 @@ class PlatformAutomationHandler {
                     }
 
                     const { formatResponse } = require('../ee/lib/mcp/toolLoader')
-                    const response = await tool.handler(args, { inject, app: this.app, user, mcpSessionId })
+                    const response = await tool.handler(args, { inject, app: this.app })
                     result = formatResponse(response)
                 }
                 break

@@ -6,7 +6,6 @@ import expertApi from '../api/expert.js'
 import userApi from '../api/user.js'
 import useTimerHelper from '../composables/TimerHelper.js'
 
-import { useAccountAuthStore } from './account-auth.js'
 import { useAccountSettingsStore } from './account-settings.js'
 import { useContextStore } from './context.js'
 import { useProductAssistantStore } from './product-assistant.js'
@@ -24,7 +23,6 @@ import {
     THROTTLED_ERROR_CODES,
     TRANSIENT_ERROR_CODES
 } from '@/services/mqtt.service'
-import { connectionKey as teamConnectionKey } from '@/subscribers/team-subscriber.contract'
 
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
@@ -375,20 +373,15 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // is unavailable; the settings UI simply shows no tools yet.
             }
         },
-        async handleInFlightRequest ({ topic, message, payload: parsedPayload, transactionId, sessionId, chatTransactionId } = {}) {
+        async handleInFlightRequest ({ topic, message, transactionId, sessionId, chatTransactionId } = {}) {
             // Match the originating chat request explicitly (not just the first entry) so a
             // concurrent in-flight request — e.g. an open tool approval — can't shadow it and
             // cause us to drop a valid in-flight request.
             const inFlightRequest = Array.from(this._inFlightRequests.values())
                 .find(r => r.transactionId === chatTransactionId)
 
-            // A third-party MCP request is addressed to this tab's browser session rather
-            // than a chat session, and has no originating chat request to correlate with,
-            // so it bypasses both checks below. Everything else keeps today's behaviour.
-            const isBrowserSession = !!sessionId && sessionId === useAccountAuthStore().getSessionId()
-
             // dismiss inFlight requests that don't match the existing sessionId or the inFlight message transactionId
-            if (!isBrowserSession && (sessionId !== this.sessionId || !inFlightRequest)) return
+            if (sessionId !== this.sessionId || !inFlightRequest) return
 
             const servicesOrchestrator = getAppOrchestrator()
             const assistantStore = useProductAssistantStore()
@@ -396,33 +389,14 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             const mqttService = servicesOrchestrator.$services.mqtt
             const parsedTopic = topicHelper.parseTopic(topic)
-            const payload = parsedPayload ?? JSON.parse(message.toString())
-
-            // MCP traffic rides the team connection - the expert client only exists once
-            // the user has opened a chat. Keyed on the browser session rather than the
-            // channel alone: the gateway still emits third-party requests on `support`
-            // until it carries the channel on its UI routing context.
-            const isMcpChannel = parsedTopic.agentChannel === 'mcp' || isBrowserSession
-            const connectionKey = isMcpChannel
-                ? teamConnectionKey(useContextStore().team?.id)
-                : this.mqttConnectionKey
-
-            // Errors on the MCP path must not post into the chat transcript, there may not
-            // be a chat open at all.
-            const reportError = (e) => {
-                if (isMcpChannel) {
-                    console.warn('MCP in-flight request failed:', e)
-                } else {
-                    this._onMqttError(e)
-                }
-            }
+            const payload = JSON.parse(message.toString())
 
             this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
 
             const responseTopic = topicHelper.buildTopic({
                 entityType: parsedTopic.entityType,
                 entityId: parsedTopic.entityId,
-                agentChannel: parsedTopic.agentChannel,
+                agentChannel: 'support',
                 topicType: 'inflight',
                 topicAction: 'response',
                 inflightType: parsedTopic.inflightType,
@@ -431,7 +405,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             switch (true) {
             case parsedTopic.inflightType === 'expert:status-message':
-                await mqttService.publishMessage(connectionKey, {
+                await mqttService.publishMessage(this.mqttConnectionKey, {
                     qos: 2,
                     topic: responseTopic,
                     payload: JSON.stringify({
@@ -451,7 +425,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     const automationsService = servicesOrchestrator.$services.automations
                     const tools = automationsService.getToolDefinitions()
 
-                    await mqttService.publishMessage(connectionKey, {
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
                         qos: 2,
                         topic: responseTopic,
                         payload: JSON.stringify({ tools }),
@@ -463,7 +437,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         }
                     })
                 } catch (e) {
-                    reportError(e)
+                    this._onMqttError(e)
                 }
                 break
             }
@@ -474,7 +448,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                     const { name, input } = payload?.data || {}
                     const result = await automationsService.dispatch(name, input)
 
-                    await mqttService.publishMessage(connectionKey, {
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
                         qos: 2,
                         topic: responseTopic,
                         payload: JSON.stringify(result),
@@ -486,7 +460,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         }
                     })
                 } catch (e) {
-                    reportError(e)
+                    this._onMqttError(e)
                 }
                 break
             }
@@ -501,7 +475,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         transactionId
                     })
 
-                    await mqttService.publishMessage(connectionKey, {
+                    await mqttService.publishMessage(this.mqttConnectionKey, {
                         qos: 2,
                         topic: responseTopic,
                         payload: JSON.stringify(result),
@@ -513,7 +487,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         }
                     })
                 } catch (e) {
-                    reportError(e)
+                    this._onMqttError(e)
                 }
                 break
             default:

@@ -11,8 +11,6 @@ import { useDataFarmTeamsStore } from './data-farm-teams'
 import { useProductAssistantStore } from './product-assistant.js'
 import { useProductExpertStore } from './product-expert.js'
 
-import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
-
 export const useContextStore = defineStore('context', {
     state: () => ({
         route: null,
@@ -53,13 +51,11 @@ export const useContextStore = defineStore('context', {
         expert (state) {
             const authStore = useAccountAuthStore()
             const assistantStore = useProductAssistantStore()
-            const mqttTopicHelper = useMqttExpertTopicHelper()
-            const topicParts = mqttTopicHelper.getEntityTopicPaths()
+
             if (!state.route) {
                 return {
                     assistantVersion: assistantStore.version,
                     assistantFeatures: assistantStore.assistantFeatures,
-                    topicParts,
                     palette: null,
                     debugLog: null,
                     userId: authStore.user?.id || null,
@@ -97,7 +93,6 @@ export const useContextStore = defineStore('context', {
             return {
                 assistantVersion: assistantStore.version,
                 assistantFeatures: assistantStore.assistantFeatures,
-                topicParts,
                 palette,
                 debugLog: assistantStore.debugLog,
                 userId: authStore.user?.id || null,

@@ -53,25 +53,6 @@ class CommsClient extends EventEmitter {
                 const messageType = topicParts[5]
 
                 /**
-                 * 3rd Party Mcp events
-                 */
-                if (topicParts[2] === 'mcp') {
-                    // ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response/
-                    if (topicParts[6] === 'response') {
-                        let payload
-                        try {
-                            payload = JSON.parse(message.toString())
-                        } catch (err) {
-                            this.app.log.warn(`Ignoring malformed MCP gateway response on ${topic}: ${err.message}`)
-                            return
-                        }
-                        const correlationData = packet.properties?.correlationData
-                        this.emit('response/mcp-gateway', correlationData, payload)
-                    }
-                    return
-                }
-
-                /**
                  * Browser session events
                  */
                 if (topicParts[3] === 'u' && topicParts[5] === 's') {
@@ -188,7 +169,6 @@ class CommsClient extends EventEmitter {
                             'request/platform-automation:forge', // event name
                             {
                                 userId, // ID of user making the request
-                                mcpSessionId: sessionId, // third-party MCP session id, when this request was relayed from the MCP gateway
                                 command, // command,
                                 data, // payload data
                                 meta: payload.meta
@@ -291,9 +271,7 @@ class CommsClient extends EventEmitter {
                 // allows them to scale independently.
                 '$share/expert/ff/v1/expert/+/+/platform/+/request',
                 // Browser session events - shared subscription
-                '$share/browser/ff/v1/+/u/+/s/+/+',
-                // MCP gateway responses - per-replica (not shared), same as device responses
-                `ff/v1/mcp/${this.platformId}/+/+/response`
+                '$share/browser/ff/v1/+/u/+/s/+/+'
             ])
         }
     }

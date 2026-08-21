@@ -54,8 +54,6 @@ const sourceChat = {
 }
 
 // Expert Broker → FF App Instance Broker. Inflight requests initiated by the AI agent.
-// The channel segment is wildcarded so both first-party (`support`) and third-party MCP
-// (`mcp`) requests cross the bridge; the gateway picks the channel per caller type.
 const sourceInflight = {
     name: 'ff-expert-to-app-inflight-source',
     type: 'mqtt',
@@ -64,8 +62,7 @@ const sourceInflight = {
     enable: true,
     parameters: {
         qos: 1,
-        // $share/expert/ff/v1/expert/<user>/<session>/+/+/(mcp|support)/inflight/+/request
-        topic: '$share/expert/ff/v1/expert/+/+/+/+/+/inflight/+/request'
+        topic: '$share/expert/ff/v1/expert/+/+/+/+/support/inflight/+/request'
     },
     resource_opts: {
         health_check_interval: '15s'
@@ -88,25 +85,9 @@ const sourcePlatform = {
     }
 }
 
-// Expert Broker → FF App Instance Broker. Third-party MCP responses from the central gateway.
-const sourceMcpRes = {
-    name: 'ff-expert-to-app-mcp-res-source',
-    type: 'mqtt',
-    connector: 'ff-expert-broker',
-    description: 'Subscribe to third-party MCP responses on the Expert Broker',
-    enable: true,
-    parameters: {
-        qos: 1,
-        topic: 'ff/v1/mcp/+/+/+/response'
-    },
-    resource_opts: {
-        health_check_interval: '15s'
-    }
-}
-
 // Republish inbound bridge messages onto the FF App Instance Broker.
 // `topic` is already mountpoint-stripped by the Expert Broker, so no rewrite needed.
-// This covers chat responses, inflight requests, platform requests, and third-party MCP responses.
+// This covers chat responses, inflight requests, and platform requests.
 //
 // v5 property forwarding via the inline republish action is fiddly on EMQX:
 //   - `user_properties` is a template scalar, so `${pub_props.'User-Property'}` works.
@@ -119,7 +100,7 @@ const ruleIn = {
     name: 'ff-expert-to-app-rule',
     description: 'Republish chat responses, inflight requests and platform requests on the FF App Instance Broker',
     enable: true,
-    sql: 'SELECT\n  *,\n  pub_props.\'Correlation-Data\' as correlation_data,\n  pub_props.\'Response-Topic\' as response_topic,\n  pub_props.\'Content-Type\' as content_type,\n  pub_props.\'Payload-Format-Indicator\' as payload_format_indicator,\n  pub_props.\'Message-Expiry-Interval\' as message_expiry_interval\nFROM\n  "$bridges/mqtt:ff-expert-to-app-chat-source",\n  "$bridges/mqtt:ff-expert-to-app-inflight-source",\n  "$bridges/mqtt:ff-expert-to-app-platform-source",\n  "$bridges/mqtt:ff-expert-to-app-mcp-res-source"',
+    sql: 'SELECT\n  *,\n  pub_props.\'Correlation-Data\' as correlation_data,\n  pub_props.\'Response-Topic\' as response_topic,\n  pub_props.\'Content-Type\' as content_type,\n  pub_props.\'Payload-Format-Indicator\' as payload_format_indicator,\n  pub_props.\'Message-Expiry-Interval\' as message_expiry_interval\nFROM\n  "$bridges/mqtt:ff-expert-to-app-chat-source",\n  "$bridges/mqtt:ff-expert-to-app-inflight-source",\n  "$bridges/mqtt:ff-expert-to-app-platform-source"',
     actions: [
         {
             args: {
@@ -142,21 +123,20 @@ const ruleIn = {
     ]
 }
 
-// FF App Instance Broker → Expert Broker. Forwards 5 patterns:
+// FF App Instance Broker → Expert Broker. Forwards 3 patterns:
 //   - ../support/chat/request
-//   - ../<channel>/inflight/+/response  (channel wildcarded: `support` and `mcp`)
+//   - ../support/inflight/+/response
 //   - ../support/platform/+/response
-//   - ff/v1/mcp/+/+/+/request  (third-party MCP requests to the central gateway)
 // The Expert Broker's mountpoint applies the `<licenceId>/` namespace prefix on receipt.
 const ruleOut = {
     id: 'ff-app-to-expert-rule',
     name: 'ff-app-to-expert-rule',
-    description: 'Forward chat requests, inflight responses, platform responses, third-party MCP requests and browser-tab presence to the Expert Broker',
+    description: 'Forward chat requests, inflight responses and platform responses to the Expert Broker',
     enable: true,
-    sql: 'SELECT\n  *\nFROM\n  "ff/v1/expert/+/+/+/+/support/chat/request",\n  "ff/v1/expert/+/+/+/+/+/inflight/+/response",\n  "ff/v1/expert/+/+/platform/+/response",\n  "ff/v1/mcp/+/+/+/request"',
+    sql: 'SELECT\n  *\nFROM\n  "ff/v1/expert/+/+/+/+/support/chat/request",\n  "ff/v1/expert/+/+/+/+/support/inflight/+/response",\n  "ff/v1/expert/+/+/platform/+/response"',
     actions: [
         'mqtt:ff-app-to-expert-action'
     ]
 }
 
-module.exports = { connector, actionOut, sourceChat, sourceInflight, sourcePlatform, sourceMcpRes, ruleIn, ruleOut }
+module.exports = { connector, actionOut, sourceChat, sourceInflight, sourcePlatform, ruleIn, ruleOut }
