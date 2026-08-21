@@ -70,7 +70,7 @@ module.exports = [
                         statusCode: 400,
                         json: () => ({
                             code: 'invalid_request',
-                            error: `${hostedOnly.join(', ')} apply only to hosted instances. Remove these parameters to read a remote instance audit log.`
+                            error: `${hostedOnly.join(', ')} can only be used with hosted instances. Remove these parameters to read a remote instance audit log.`
                         })
                     }
                 }
