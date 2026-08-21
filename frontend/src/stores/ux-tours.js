@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { markRaw } from 'vue'
 
 import Tours from '../tours/Tours.js'
-import TourWelcome, { id as WelcomeTourId } from '../tours/tour-welcome.js'
+import TourWelcome, { id as WelcomeTourId, onCancel as onWelcomeTourCancel } from '../tours/tour-welcome.js'
 
 export const useUxToursStore = defineStore('ux-tours', {
     state: () => ({
@@ -54,7 +54,7 @@ export const useUxToursStore = defineStore('ux-tours', {
             this.modals[modal] = false
         },
         setWelcomeTour (callback = () => {}) {
-            this.setActiveTour(Tours.create(WelcomeTourId, TourWelcome, callback))
+            this.setActiveTour(Tours.create(WelcomeTourId, TourWelcome, callback, onWelcomeTourCancel))
             this.startTour()
         },
         startTour () {
