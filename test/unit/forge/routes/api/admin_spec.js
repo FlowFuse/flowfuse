@@ -360,5 +360,109 @@ describe('Admin API', async function () {
             ;(notifications[1].UserId === TestObjects.notificationUser1.id).should.be.true()
             ;(notifications[2].UserId === TestObjects.notificationUser5.id).should.be.true()
         })
+
+        it('send to an explicit list of teams', async function () {
+            const payload = {
+                message: 'targeted message',
+                title: 'targeted title',
+                filter: {
+                    roles: [app.factory.Roles.Roles.Owner, app.factory.Roles.Roles.Member, app.factory.Roles.Roles.Viewer, app.factory.Roles.Roles.Dashboard],
+                    teams: [TestObjects.CTeam.hashid]
+                },
+                mock: true
+            }
+            let response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            let result = response.json()
+            result.should.have.property('recipientCount', 2)
+
+            delete payload.mock
+            response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            result = response.json()
+            result.should.have.property('recipientCount', 2)
+
+            const notifications = await app.db.models.Notification.findAll()
+            notifications.should.have.length(2)
+            const recipients = notifications.map(n => n.UserId)
+            recipients.should.containEql(TestObjects.notificationUser3.id)
+            recipients.should.containEql(TestObjects.notificationUser4.id)
+        })
+
+        it('ignores the team type filter when explicit teams are given', async function () {
+            // BTeam is on the default team type, CTeam is on secondTeamType. Asking
+            // for CTeam explicitly must not be narrowed by an unrelated team type.
+            const payload = {
+                message: 'targeted message',
+                title: 'targeted title',
+                filter: {
+                    roles: [app.factory.Roles.Roles.Dashboard],
+                    teams: [TestObjects.CTeam.hashid],
+                    teamTypes: [TestObjects.secondTeamType.hashid]
+                },
+                mock: true
+            }
+            const response = await sendNotification(payload)
+            response.should.have.property('statusCode', 200)
+            response.json().should.have.property('recipientCount', 1)
+        })
+
+        it('rejects an unknown team', async function () {
+            const response = await sendNotification({
+                message: 'targeted message',
+                title: 'targeted title',
+                filter: {
+                    roles: [app.factory.Roles.Roles.Owner],
+                    teams: ['not-a-hashid']
+                }
+            })
+            response.should.have.property('statusCode', 400)
+            response.json().should.have.property('code', 'bad_request')
+        })
+
+        it('stores a markdown announcement with a video and a button', async function () {
+            const response = await sendNotification({
+                message: 'Read the [release notes](https://flowfuse.com/blog/).',
+                title: 'rich announcement',
+                format: 'markdown',
+                video: 'https://www.youtube.com/watch?v=6l1ymjo80Vo',
+                cta: { label: 'Talk to sales', url: 'https://flowfuse.com/contact/' },
+                filter: {
+                    roles: [app.factory.Roles.Roles.Owner],
+                    teams: [TestObjects.BTeam.hashid]
+                }
+            })
+            response.should.have.property('statusCode', 200)
+
+            const notifications = await app.db.models.Notification.findAll()
+            notifications.should.have.length(1)
+            const data = notifications[0].data
+            data.should.have.property('format', 'markdown')
+            data.should.have.property('video')
+            data.video.should.eql({ provider: 'youtube', id: '6l1ymjo80Vo' })
+            data.should.have.property('cta')
+            data.cta.should.eql({ label: 'Talk to sales', url: 'https://flowfuse.com/contact/' })
+        })
+
+        it('rejects an unsupported video link', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                video: 'https://vimeo.com/123456789',
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+            response.json().error.should.match(/YouTube/)
+        })
+
+        it('rejects a button without a url', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                cta: { label: 'Talk to sales' },
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+        })
     })
 })

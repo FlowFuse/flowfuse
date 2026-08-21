@@ -1,5 +1,6 @@
 const { Op } = require('sequelize')
 
+const { parseCallToAction, parseVideoReference } = require('../../lib/announcements.js')
 const { Roles } = require('../../lib/roles.js')
 
 module.exports = async function (app) {
@@ -453,17 +454,29 @@ module.exports = async function (app) {
                 type: 'object',
                 required: ['message', 'title', 'filter'],
                 properties: {
-                    message: { type: 'string' },
-                    title: { type: 'string' },
+                    message: { type: 'string', maxLength: 4000 },
+                    title: { type: 'string', maxLength: 120 },
                     filter: {
                         type: 'object',
                         properties: {
-                            roles: { type: 'array', items: { type: 'number' } }
+                            roles: { type: 'array', items: { type: 'number' } },
+                            teamTypes: { type: 'array', items: { type: 'string' } },
+                            teams: { type: 'array', items: { type: 'string' }, maxItems: 500 },
+                            billing: { type: 'array', items: { type: 'string' } }
                         }
                     },
                     mock: { type: 'boolean' },
                     to: { type: 'object' },
-                    url: { type: 'string' }
+                    url: { type: 'string' },
+                    format: { type: 'string', enum: ['plain', 'markdown'] },
+                    video: { type: 'string', maxLength: 300 },
+                    cta: {
+                        type: 'object',
+                        properties: {
+                            label: { type: 'string', maxLength: 40 },
+                            url: { type: 'string', maxLength: 500 }
+                        }
+                    }
                 }
             },
             response: {
@@ -486,7 +499,10 @@ module.exports = async function (app) {
             filter,
             mock,
             to,
-            url
+            url,
+            format,
+            video,
+            cta
         } = request.body
 
         const recipientRoles = filter?.roles
@@ -497,14 +513,30 @@ module.exports = async function (app) {
         if (filter?.teamTypes && filter.teamTypes.length > 0) {
             teamTypes = filter.teamTypes.map(app.db.models.TeamType.decodeHashid).flat()
         }
+        let teams
+        if (filter?.teams && filter.teams.length > 0) {
+            const decoded = filter.teams.map(hashid => app.db.models.Team.decodeHashid(hashid)).flat()
+            // decodeHashid is lenient - anything that is not a real id is rejected
+            // here rather than quietly narrowing the audience to nothing.
+            if (decoded.length !== filter.teams.length || decoded.some(id => !Number.isInteger(id) || id <= 0)) {
+                return reply.code(400).send({ code: 'bad_request', error: 'Invalid team provided.' })
+            }
+            teams = decoded
+        }
         let billing
         if (filter?.billing && filter.billing.length > 0) {
             billing = filter.billing
         }
+        if (video && !parseVideoReference(video)) {
+            return reply.code(400).send({ code: 'bad_request', error: 'Unsupported video link. Provide a YouTube URL.' })
+        }
+        if (cta && Object.keys(cta).length > 0 && !parseCallToAction(cta)) {
+            return reply.code(400).send({ code: 'bad_request', error: 'A button needs both a label and an http(s) or relative url.' })
+        }
         if (mock) {
             // If mock is sent, return an indication of how many users would receive this notification
             // without actually sending them.
-            const count = await app.db.models.User.byTeamRole(recipientRoles, { teamTypes, billing, summary: true, count: true })
+            const count = await app.db.models.User.byTeamRole(recipientRoles, { teamTypes, teams, billing, summary: true, count: true })
             reply.send({
                 mock: true,
                 recipientCount: count
@@ -512,12 +544,22 @@ module.exports = async function (app) {
             return
         }
 
-        const recipients = await app.db.models.User.byTeamRole(recipientRoles, { teamTypes, billing, summary: true })
+        const recipients = await app.db.models.User.byTeamRole(recipientRoles, { teamTypes, teams, billing, summary: true })
         const notificationType = 'announcement'
         const titleSlug = title.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase()
         const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2)
         const reference = `${uniqueId}:${titleSlug}`
-        const data = { title, message, ...(to && { to }), ...(url && { url }) }
+        const videoReference = parseVideoReference(video)
+        const callToAction = parseCallToAction(cta)
+        const data = {
+            title,
+            message,
+            ...(format === 'markdown' && { format }),
+            ...(videoReference && { video: videoReference }),
+            ...(callToAction && { cta: callToAction }),
+            ...(to && { to }),
+            ...(url && { url })
+        }
         await app.notifications.sendBulk(
             recipients,
             notificationType,
