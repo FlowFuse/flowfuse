@@ -36,7 +36,7 @@ describe('MCP Platform Tools Server', function () {
             it('should return 405 for POST', async function () {
                 const response = await app.inject({
                     method: 'POST',
-                    url: '/api/v1/mcp',
+                    url: '/mcp',
                     headers: {
                         authorization: `Bearer ${TestObjects.alicePAT.token}`
                     },
@@ -48,7 +48,7 @@ describe('MCP Platform Tools Server', function () {
             it('should return 405 for GET', async function () {
                 const response = await app.inject({
                     method: 'GET',
-                    url: '/api/v1/mcp',
+                    url: '/mcp',
                     headers: {
                         authorization: `Bearer ${TestObjects.alicePAT.token}`
                     }
@@ -59,7 +59,7 @@ describe('MCP Platform Tools Server', function () {
             it('should return 405 for DELETE', async function () {
                 const response = await app.inject({
                     method: 'DELETE',
-                    url: '/api/v1/mcp',
+                    url: '/mcp',
                     headers: {
                         authorization: `Bearer ${TestObjects.alicePAT.token}`
                     }

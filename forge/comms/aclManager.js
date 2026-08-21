@@ -445,6 +445,244 @@ module.exports = function (app) {
                 }
                 return false
             }
+        },
+        /**
+         * Third-party MCP inflight topics, spoken by the browser tab's team-channel
+         * credential rather than the expert chat client.
+         *
+         * Deliberately separate from checkExpertTopic: the username shapes differ
+         * (`fe-team:<user>:<team>:<session>` vs `expert-client:<user>:<session>`), so the
+         * session sits at a different index and reusing that function would compare the
+         * team hash against the topic's session.
+         *
+         * The tab already knows its own browser session id when it subscribes, so the
+         * session is matched exactly - there is no session wildcard here. Only the entity
+         * pair is wildcarded, so a tab does not have to resubscribe as the user navigates.
+         */
+        checkMcpInflightTopic: async function (topicParts, usernameParts, acl) {
+            // topicParts = [ fullTopic , <userid>, <sessionid>, <entityType>, <entityId>, <inflightType> ]
+            // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
+            // acl = { isPub: true/false, isSub: true/false, allowWildcard: { entity: true/false, inflightType: true/false } }
+
+            const ValidationError = function (message) {
+                const error = new Error(message)
+                error.name = 'ACLValidationError'
+                return error
+            }
+
+            try {
+                const [, userId, sessionId, entityType, entityId, inflightType] = topicParts
+                const [clientType, usernameUserId, , usernameSessionId] = usernameParts
+
+                if (clientType !== 'fe-team') {
+                    throw ValidationError('invalid client type - expected a fe-team client')
+                }
+
+                if (topicParts.length !== 6) {
+                    throw ValidationError('topic is invalid')
+                }
+
+                if (!userId) {
+                    throw ValidationError('invalid userId')
+                }
+                if (userId !== usernameUserId) {
+                    throw ValidationError('userId does not match')
+                }
+                const user = await app.db.models.User.byId(userId)
+                if (!user) {
+                    throw ValidationError('userId does not exist')
+                }
+
+                // exact match only - a tab must not listen in on another tab's session
+                if (!sessionId || sessionId.length < 8) {
+                    throw ValidationError('invalid sessionId')
+                }
+                if (sessionId !== usernameSessionId) {
+                    throw ValidationError('sessionId does not match')
+                }
+
+                let teamId
+                let applicationHash
+                let isWildcardEntity = false
+                if (entityType === '+' || entityId === '+') {
+                    if (entityType !== '+' || entityId !== '+') {
+                        throw ValidationError('invalid entity wildcards - both entityType and entityId must be wildcarded together')
+                    } else if (!acl.allowWildcard?.entity) {
+                        throw ValidationError('invalid entity wildcard')
+                    }
+                    isWildcardEntity = true
+                } else if (entityType === 'p') {
+                    const project = await app.db.models.Project.byId(entityId)
+                    if (!project) {
+                        throw ValidationError('project does not exist')
+                    } else {
+                        teamId = project.TeamId
+                        applicationHash = project.Application?.hashid || app.db.models.Application.encodeHashid(project.ApplicationId)
+                    }
+                } else if (entityType === 'd') {
+                    const device = await app.db.models.Device.byId(entityId)
+                    if (!device) {
+                        throw ValidationError('device does not exist')
+                    } else {
+                        teamId = device.TeamId
+                        applicationHash = device.Application?.hashid || app.db.models.Application.encodeHashid(device.ApplicationId)
+                    }
+                } else if (entityType === 'a') {
+                    const application = await app.db.models.Application.byId(entityId)
+                    if (!application) {
+                        throw ValidationError('application does not exist')
+                    } else {
+                        teamId = application.TeamId
+                        applicationHash = application.hashid
+                    }
+                } else if (entityType === 't') {
+                    const team = await app.db.models.Team.byId(entityId)
+                    if (!team) {
+                        throw ValidationError('team does not exist')
+                    } else {
+                        teamId = team.id
+                    }
+                } else {
+                    throw ValidationError('invalid entity')
+                }
+
+                // A wildcard entity carries no team to check against, so membership, the
+                // feature gate and the per-tool RBAC check all run on the concrete-entity
+                // topics instead - i.e. on the response the tab publishes.
+                if (!isWildcardEntity) {
+                    const teamMembership = await app.db.models.TeamMember.getTeamMembership(userId, teamId, false)
+                    if (!teamMembership) {
+                        throw ValidationError('user is not a member of the team that owns this entity')
+                    }
+
+                    const team = await app.db.models.Team.byId(teamId)
+                    if (team) {
+                        await team.ensureTeamTypeExists()
+                        const isAiEnabled = !!(app.config.features.enabled('ai') && team.getFeatureProperty('ai', true))
+                        const isMcpThirdPartyEnabled = !!(app.config.features.enabled('mcpThirdParty') && team.getFeatureProperty('mcpThirdParty', true))
+                        if (!isAiEnabled || !isMcpThirdPartyEnabled) {
+                            throw ValidationError('third-party MCP access is not enabled for this team')
+                        }
+                    }
+
+                    const result = await expertRbacToolCheck(teamMembership, inflightType, applicationHash)
+                    if (!result) {
+                        throw ValidationError('user does not have permission to access this inflight topic')
+                    }
+                }
+
+                return true
+            } catch (error) {
+                if (error.name === 'ACLValidationError') {
+                    // ↓ Useful for debugging ↓
+                    // console.warn('ACL DENY:', { topicParts, usernameParts, acl, reason: error.message })
+                } else {
+                    // unexpected error during ACL checking - log to app
+                    app.log.error('Unexpected error during MCP inflight ACL check', { topicParts, usernameParts, acl, error })
+                }
+                return false
+            }
+        },
+        /**
+         * Third-party MCP gateway channel - the platform talking to the central MCP gateway.
+         *
+         *   ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request   platform -> gateway
+         *   ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response  gateway -> platform
+         *
+         * The platformId is the id of the replica that owns the exchange (see
+         * commsClient.platformId). The replica that emits a request is the one that must
+         * receive its response, so the platformId is always concrete: there is no wildcard
+         * for it on either side of the channel.
+         *
+         * Direction is not checked here. It is already fixed by which list a rule sits in
+         * (verify() picks sub[] or pub[] from the access level) and by the request/response
+         * suffix in the rule's own regex.
+         */
+        checkMcpTopic: async function (topicParts, usernameParts, acl) {
+            // topicParts = [ fullTopic , <platformId>, <userId>, <mcpSessionId> ]
+            // usernameParts = [ 'forge_platform' ] or [ '<gateway>', <userid> ]
+            // acl = { isPlatform: true/false, isAgent: true/false, isPub: true/false, isSub: true/false, allowWildcard: { platformId: true/false, user: true/false, session: true/false } }
+
+            // The gateway's broker username, as named by the mcpGateway acl block below.
+            // No gateway identity is minted in v2AuthRoutes yet, and verify() has no branch
+            // that routes one to the mcpGateway acls, so keep this in step with whatever
+            // identity lands there and with the gateway service's own broker config.
+            const MCP_GATEWAY_CLIENT_TYPE = 'ff-mcp-gateway'
+
+            const ValidationError = function (message) {
+                const error = new Error(message)
+                error.name = 'ACLValidationError'
+                return error
+            }
+
+            try {
+                if (!app.config.features.enabled('mcpThirdParty')) {
+                    throw ValidationError('third-party MCP access is not enabled on this platform')
+                }
+
+                const [, platformId, userId, mcpSessionId] = topicParts
+                const [clientType] = usernameParts
+
+                if (topicParts.length !== 4) {
+                    throw ValidationError('topic is invalid')
+                }
+                if (!platformId || !userId || !mcpSessionId) {
+                    throw ValidationError('invalid topic format')
+                }
+
+                // ensure the acl that matched belongs to the client presenting it
+                if (acl.isPlatform) {
+                    // when an MCP request is made via forge/ee/routes/mcp/server.js:POST('/'),
+                    // the platform client is used to publish the request to the gateway
+                    if (clientType !== 'forge_platform') {
+                        throw ValidationError('invalid client type - expected the platform client')
+                    }
+                } else if (acl.isMcpGateway) {
+                    // todo validate that the clientType starts with MCP_GATEWAY_CLIENT_TYPE not equals
+                    if (clientType !== MCP_GATEWAY_CLIENT_TYPE) {
+                        throw ValidationError(`invalid client type - expected an ${MCP_GATEWAY_CLIENT_TYPE} client`)
+                    }
+                } else {
+                    throw ValidationError('acl does not declare which side of the channel it is for')
+                }
+
+                // at minimum, ensure the mcp session is present and either a wildcard or 8 or more chars
+                if (mcpSessionId === '+') {
+                    if (!acl.allowWildcard?.session) {
+                        throw ValidationError('invalid session wildcard')
+                    }
+                } else if (mcpSessionId.length < 8) {
+                    throw ValidationError('invalid mcp session id')
+                }
+
+                if (platformId === '+') {
+                    if (!acl.allowWildcard?.platformId) {
+                        throw ValidationError('invalid platform id wildcard')
+                    }
+                } else if (platformId !== app.comms.id) {
+                    throw ValidationError('invalid platform id')
+                }
+
+                if (userId === '+') {
+                    if (!acl.allowWildcard?.user) {
+                        throw ValidationError('invalid user wildcard')
+                    }
+                } else {
+                    const user = await app.db.models.User.byId(userId)
+                    if (!user || user.suspended) {
+                        throw ValidationError('invalid user')
+                    }
+                }
+
+                return true
+            } catch (err) {
+                if (err.name === 'ACLValidationError') {
+                    app.log.warn(`ACL validation error for MCP gateway topic: ${err.message}`)
+                } else {
+                    app.log.error(`Unexpected error during ACL validation for MCP gateway topic: ${err.message}`)
+                }
+            }
+            return false
         }
     }
 
@@ -473,6 +711,9 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/platform\/leader$/ },
                 // platform can listen for Expert Agent requests
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', allowWildcard: { user: true, session: true, command: true }, isPlatform: true, isSub: true, agent: 'platform' },
+                // platform can listen for third-party MCP responses from the central gateway
+                // - ff/v1/mcp/<platformId>/+/+/response
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/response$/, verify: 'checkMcpTopic', allowWildcard: { user: true, session: true }, isPlatform: true, isSub: true },
                 // - ff/v1/<team>/u/<user>/s/<session>/<event> (shared subscription)
                 //   [^/]+ on the event segment: the subscription wildcard (+) is matched
                 //   literally, and teamFrontend's pub rule already restricts the events
@@ -509,7 +750,10 @@ module.exports = function (app) {
                 // ff/v1/platform/leader
                 { topic: /^ff\/v1\/platform\/leader$/ },
                 // platform can respond to Expert Agent requests
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' },
+                // platform can publish third-party MCP requests to the central gateway
+                // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', isPlatform: true, isPub: true }
             ]
         },
         project: {
@@ -577,12 +821,16 @@ module.exports = function (app) {
                 // - ff/v1/<team>/a/+/created|updated|deleted
                 { topic: /^ff\/v1\/([^/]+)\/a\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' },
                 // - ff/v1/<team>/p/+/created|updated|deleted
-                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' }
+                { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' },
+                // - ff/v1/expert/<user>/<session>/+/+/mcp/inflight/+/request
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/mcp\/inflight\/([^/]+)\/request$/, verify: 'checkMcpInflightTopic', allowWildcard: { entity: true, inflightType: true }, isSub: true }
             ],
             pub: [
                 // - ff/v1/<team>/u/<user>/s/<session>/<heartbeat|close|disconnected>
                 //   `disconnected` is the last will, published by the broker, not the tab
-                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/(heartbeat|close|disconnected)$/, verify: 'checkUserIsTeamMember' }
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/(heartbeat|close|disconnected)$/, verify: 'checkUserIsTeamMember' },
+                // - ff/v1/expert/<user>/<session>/<a|p|d|t>/<entityId>/mcp/inflight/<type>/response
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/mcp\/inflight\/([^/]+)\/response$/, verify: 'checkMcpInflightTopic', isPub: true }
             ]
         },
         // frontend client (user)
@@ -602,7 +850,7 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/support\/inflight\/([^/]+)\/response$/, verify: 'checkExpertTopic', channel: 'inflight', isClient: true, isPub: true }
             ]
         },
-        // backend client (agent)
+        // backend client (agent 1st party (no bridge))
         expertAgent: {
             sub: [
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/request$/, verify: 'checkExpertTopic', channel: 'chat', allowWildcard: { user: true, session: true, entity: true }, isAgent: true, isSub: true, agent: 'support' },
@@ -614,7 +862,7 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/chat\/response$/, verify: 'checkExpertTopic', channel: 'chat', isAgent: true, isPub: true, agent: 'support' },
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/support\/inflight\/([^/]+)\/request$/, verify: 'checkExpertTopic', channel: 'inflight', isAgent: true, isPub: true, agent: 'support' },
                 // Expert agent can respond to platform requests
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/request$/, verify: 'checkExpertPlatformTopic', isAgent: true, isPub: true, agent: 'platform' },
             ]
         }
     }
@@ -677,8 +925,11 @@ module.exports = function (app) {
                         if (isSharedSub && !acl.shared) {
                             // This isn't allowed to be a sharedSub
                             break
-                        } else if (acl.verify && verifyFunctions[acl.verify]) {
+                        } else if (acl.verify) {
                             try {
+                                if (!verifyFunctions[acl.verify] || typeof verifyFunctions[acl.verify] !== 'function') {
+                                    throw new Error(`Missing verification function '${acl.verify}'`)
+                                }
                                 allowed = await verifyFunctions[acl.verify](m, usernameParts, acl)
                             } catch (err) {
                                 allowed = false
