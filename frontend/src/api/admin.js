@@ -77,6 +77,25 @@ const getAnnouncementNotifications = async () => {
         })
 }
 
+/**
+ * The ids of every team matching a search and filter, for building an
+ * announcement audience out of more teams than a page of the list holds.
+ */
+const getTeamIdsForFilter = async (query, filter = {}) => {
+    const params = new URLSearchParams()
+    if (query) {
+        params.set('query', query)
+    }
+    Object.entries(filter).forEach(([key, value]) => {
+        if (Array.isArray(value) ? value.length : value) {
+            params.set(key, Array.isArray(value) ? value.join(',') : value)
+        }
+    })
+    const suffix = params.toString()
+    return client.get('/api/v1/admin/teams/ids' + (suffix ? '?' + suffix : ''))
+        .then(res => res.data)
+}
+
 const sendAnnouncementNotification = async ({ title, message, filter, mock, to, url, format, video, cta }) => {
     return client.post('/api/v1/admin/announcements', { message, title, filter, mock, to, url, format, video, cta })
         .then(res => {
@@ -99,5 +118,6 @@ export default {
     generateExpertAgentCreds,
     deleteExpertAgentCreds,
     getAnnouncementNotifications,
+    getTeamIdsForFilter,
     sendAnnouncementNotification
 }

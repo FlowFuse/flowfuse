@@ -92,30 +92,8 @@
                             </label>
                         </div>
                     </template>
-                    <FormHeading class="mt-4">Specific Teams:</FormHeading>
-                    <div class="ff-description mb-2">
-                        Search for teams by name to target them directly. Selecting teams here overrides the team type filter.
-                    </div>
-                    <ff-combobox
-                        v-model="teamSearchSelection"
-                        :options="[]"
-                        :fetch-remote-options="searchTeams"
-                        :return-model="true"
-                        placeholder="Search teams by name"
-                        data-el="audience-team-search"
-                        @update:model-value="addTeam"
-                    />
-                    <div v-if="form.teams.length" class="selected-teams" data-el="audience-selected-teams">
-                        <span
-                            v-for="team in form.teams"
-                            :key="team.value"
-                            class="selected-team"
-                            :data-el="`audience-team-${team.value}`"
-                        >
-                            {{ team.label }}
-                            <XMarkIcon class="ff-icon" :data-action="`remove-team-${team.value}`" @click="removeTeam(team)" />
-                        </span>
-                        <span class="clear-teams" data-action="clear-teams" @click="form.teams = []">clear all</span>
+                    <div v-if="targetsSpecificTeams" class="ff-description mt-4" data-el="audience-teams-active">
+                        Overridden by the {{ form.teams.length }} {{ form.teams.length === 1 ? 'team' : 'teams' }} selected below.
                     </div>
                 </section>
                 <section class="announcement-preview">
@@ -132,6 +110,14 @@
                     </div>
                 </section>
             </section>
+            <section class="announcement-teams">
+                <FormHeading>Specific Teams</FormHeading>
+                <div class="ff-description mb-2">
+                    Pick the exact teams this announcement goes to. Selecting any team here overrides the team type
+                    and billing state filters. The selection is kept as you search, filter and page through the list.
+                </div>
+                <TeamAudiencePicker v-model="form.teams" />
+            </section>
             <section class="actions">
                 <ff-button :disabled="!canSubmit" data-action="submit" @click.stop.prevent="submitForm">
                     Send Announcement
@@ -142,12 +128,11 @@
 </template>
 
 <script>
-import { MegaphoneIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { MegaphoneIcon } from '@heroicons/vue/24/outline'
 import { mapState } from 'pinia'
 
 import adminApi from '../../api/admin.js'
 import teamTypesApi from '../../api/teamTypes.js'
-import teamsApi from '../../api/teams.js'
 
 import FormHeading from '../../components/FormHeading.vue'
 import FormRow from '../../components/FormRow.vue'
@@ -158,13 +143,13 @@ import Dialog from '../../services/dialog.js'
 import FfButton from '../../ui-components/components/Button.vue'
 import { RoleNames, Roles } from '../../utils/roles.js'
 
-import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import TeamAudiencePicker from './components/TeamAudiencePicker.vue'
 
-const TEAM_SEARCH_LIMIT = 20
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
 export default {
     name: 'NotificationsHub',
-    components: { AnnouncementBody, FfButton, FormRow, FormHeading, MegaphoneIcon, XMarkIcon },
+    components: { AnnouncementBody, FfButton, FormRow, FormHeading, MegaphoneIcon, TeamAudiencePicker },
     data () {
         return {
             form: {
@@ -180,7 +165,6 @@ export default {
                 teams: [],
                 billing: []
             },
-            teamSearchSelection: null,
             teamTypes: [],
             billingStates: [
                 'Active',
@@ -258,30 +242,6 @@ export default {
         })
     },
     methods: {
-        searchTeams (query) {
-            return teamsApi.getTeams(null, TEAM_SEARCH_LIMIT, query || '')
-                .then(res => (res.teams || []).map(team => ({
-                    label: team.name,
-                    value: team.id,
-                    teamType: team.type?.name
-                })))
-                .catch(() => [])
-        },
-        addTeam (team) {
-            if (!team?.value) {
-                return
-            }
-            if (!this.form.teams.some(selected => selected.value === team.value)) {
-                this.form.teams.push({ label: team.label, value: team.value })
-            }
-            // Clear the search box so the next pick starts from empty
-            this.$nextTick(() => {
-                this.teamSearchSelection = null
-            })
-        },
-        removeTeam (team) {
-            this.form.teams = this.form.teams.filter(selected => selected.value !== team.value)
-        },
         submitForm () {
             return this.sendAnnouncementNotification({ mock: true })
                 .then(mockRes => {
@@ -314,7 +274,7 @@ export default {
                 }
             }
             if (this.targetsSpecificTeams) {
-                payload.filter.teams = this.form.teams.map(team => team.value)
+                payload.filter.teams = this.form.teams.map(team => team.id)
             } else {
                 payload.filter.teamTypes = [...this.form.teamTypes]
                 if (this.features.billing) {
@@ -401,38 +361,6 @@ export default {
 .announcement-preview {
     width: 400px;
     max-width: 100%;
-}
-
-.selected-teams {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $ff-unit-sm;
-    margin-top: $ff-unit-md;
-
-    .selected-team {
-        display: flex;
-        align-items: center;
-        gap: $ff-unit-xs;
-        font-size: 0.85rem;
-        padding: 2px $ff-unit-sm;
-        border: 1px solid var(--ff-color-border-strong);
-        background-color: var(--ff-color-bg-surface-raised);
-        border-radius: 5px;
-
-        .ff-icon {
-            height: 14px;
-            width: 14px;
-            cursor: pointer;
-        }
-    }
-
-    .clear-teams {
-        font-size: 0.85rem;
-        color: var(--ff-color-link);
-        text-decoration: underline;
-        cursor: pointer;
-        align-self: center;
-    }
 }
 
 .preview-frame {

@@ -2,6 +2,12 @@ const { Op } = require('sequelize')
 
 const { parseCallToAction, parseVideoReference } = require('../../lib/announcements.js')
 const { Roles } = require('../../lib/roles.js')
+const { buildTeamFilterWhere } = require('../../lib/teamFilters.js')
+
+// The most teams a single announcement can be addressed to explicitly. Also
+// caps the id list returned for a select-all, so a large platform cannot turn
+// one click into an unbounded response.
+const MAX_AUDIENCE_TEAMS = 10000
 
 module.exports = async function (app) {
     async function getStats () {
@@ -445,6 +451,47 @@ module.exports = async function (app) {
         reply.send({ status: 'okay' })
     })
 
+    /**
+     * The ids of every team matching a search and filter.
+     *
+     * The team list is paginated, so an admin building an audience out of
+     * hundreds of teams cannot get the whole matching set from it. This returns
+     * ids only, for the same filters, in one request.
+     */
+    app.get('/teams/ids', {
+        preHandler: app.needsPermission('team:list'),
+        schema: {
+            summary: 'Get the ids of all teams matching a filter - admin-only',
+            tags: ['Platform', 'Teams'],
+            query: {
+                type: 'object',
+                properties: {
+                    query: { type: 'string' },
+                    teamType: { type: 'string' },
+                    state: { type: 'string' },
+                    billing: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        count: { type: 'number' },
+                        truncated: { type: 'boolean' },
+                        ids: { type: 'array', items: { type: 'string' } }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const where = buildTeamFilterWhere(app, request.query)
+        const result = await app.db.models.Team.getAllIds({ query: request.query.query }, where, MAX_AUDIENCE_TEAMS)
+        reply.send(result)
+    })
+
     app.post('/announcements', {
         preHandler: app.needsPermission('user:announcements:manage'),
         schema: {
@@ -461,7 +508,7 @@ module.exports = async function (app) {
                         properties: {
                             roles: { type: 'array', items: { type: 'number' } },
                             teamTypes: { type: 'array', items: { type: 'string' } },
-                            teams: { type: 'array', items: { type: 'string' }, maxItems: 500 },
+                            teams: { type: 'array', items: { type: 'string' }, maxItems: MAX_AUDIENCE_TEAMS },
                             billing: { type: 'array', items: { type: 'string' } }
                         }
                     },
