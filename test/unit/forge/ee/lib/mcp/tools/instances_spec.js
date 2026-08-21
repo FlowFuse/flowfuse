@@ -17,7 +17,32 @@ describe('MCP Instances Tools', function () {
     describe('platform_list_hosted_instances', function () {
         const tool = getTool('platform_list_hosted_instances')
 
+        it('requires either teamId or applicationId', async function () {
+            const response = await tool.handler({}, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('rejects passing both teamId and applicationId', async function () {
+            const response = await tool.handler({ teamId: 'team1', applicationId: 'app1' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
         describe('scoped to an application', function () {
+            it('rejects team-only sort params without calling the endpoint', async function () {
+                const response = await tool.handler({ applicationId: 'app1', sort: 'name', orderByMostRecentFlows: true }, { inject })
+
+                inject.called.should.be.false()
+                response.statusCode.should.equal(400)
+                response.json().code.should.equal('invalid_request')
+                response.json().error.should.match(/sort, orderByMostRecentFlows/)
+            })
+
             it('lists instances without live status by default', async function () {
                 inject.withArgs({ method: 'GET', url: '/api/v1/applications/app1/instances' }).resolves({
                     statusCode: 200,
@@ -30,7 +55,7 @@ describe('MCP Instances Tools', function () {
                     })
                 })
 
-                const response = await tool.handler({ teamId: 'team1', applicationId: 'app1' }, { inject })
+                const response = await tool.handler({ applicationId: 'app1' }, { inject })
 
                 inject.calledOnce.should.be.true()
                 response.statusCode.should.equal(200)
@@ -55,7 +80,7 @@ describe('MCP Instances Tools', function () {
                     })
                 })
 
-                const response = await tool.handler({ teamId: 'team1', applicationId: 'app1', query: 'prod' }, { inject })
+                const response = await tool.handler({ applicationId: 'app1', query: 'prod' }, { inject })
 
                 response.json().instances.should.have.length(1)
                 response.json().instances[0].id.should.equal('instance1')
@@ -77,7 +102,7 @@ describe('MCP Instances Tools', function () {
                     })
                 })
 
-                const response = await tool.handler({ teamId: 'team1', applicationId: 'app1', includeLiveStatus: true }, { inject })
+                const response = await tool.handler({ applicationId: 'app1', includeLiveStatus: true }, { inject })
 
                 inject.calledTwice.should.be.true()
                 response.json().instances[0].state.should.equal('running')
@@ -105,7 +130,7 @@ describe('MCP Instances Tools', function () {
                     })
                 })
 
-                const response = await tool.handler({ teamId: 'team1', applicationId: 'app1', state: ['running'] }, { inject })
+                const response = await tool.handler({ applicationId: 'app1', state: ['running'] }, { inject })
 
                 inject.calledTwice.should.be.true()
                 response.json().instances.should.have.length(1)
@@ -116,7 +141,7 @@ describe('MCP Instances Tools', function () {
                 const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
                 inject.withArgs({ method: 'GET', url: '/api/v1/applications/app1/instances' }).resolves(errorResponse)
 
-                const response = await tool.handler({ teamId: 'team1', applicationId: 'app1' }, { inject })
+                const response = await tool.handler({ applicationId: 'app1' }, { inject })
                 response.should.equal(errorResponse)
             })
 
@@ -128,7 +153,7 @@ describe('MCP Instances Tools', function () {
                 const errorResponse = { statusCode: 500, json: () => ({ code: 'unexpected_error' }) }
                 inject.withArgs({ method: 'GET', url: '/api/v1/applications/app1/instances/status' }).resolves(errorResponse)
 
-                const response = await tool.handler({ teamId: 'team1', applicationId: 'app1', includeLiveStatus: true }, { inject })
+                const response = await tool.handler({ applicationId: 'app1', includeLiveStatus: true }, { inject })
                 response.should.equal(errorResponse)
             })
         })
@@ -212,6 +237,20 @@ describe('MCP Instances Tools', function () {
                 })
             })
 
+            it('passes sort, dir and orderByMostRecentFlows through on the team path', async function () {
+                inject.resolves({
+                    statusCode: 200,
+                    json: () => ({ count: 0, meta: { page: 1, pageSize: 10, total: 0, pageCount: 1 }, projects: [] })
+                })
+
+                await tool.handler({ teamId: 'team1', sort: 'name', dir: 'asc', orderByMostRecentFlows: true }, { inject })
+
+                inject.firstCall.args[0].should.eql({
+                    method: 'GET',
+                    url: '/api/v1/teams/team1/projects?page=1&limit=10&sort=name&dir=asc&orderByMostRecentFlows=true'
+                })
+            })
+
             it('passes through an error response', async function () {
                 const errorResponse = { statusCode: 500, json: () => ({ code: 'unexpected_error' }) }
                 inject.resolves(errorResponse)
@@ -219,6 +258,156 @@ describe('MCP Instances Tools', function () {
                 const response = await tool.handler({ teamId: 'team1' }, { inject })
                 response.should.equal(errorResponse)
             })
+        })
+    })
+
+    const instanceId = '11111111-1111-1111-1111-111111111111'
+
+    // Single-route GET-by-id readers: each injects one URL and returns the response verbatim.
+    const passthroughGetTools = [
+        { name: 'platform_get_hosted_instance_resources', url: `/api/v1/projects/${instanceId}/resources` }
+    ]
+
+    passthroughGetTools.forEach(({ name, url }) => {
+        describe(name, function () {
+            const tool = getTool(name)
+
+            it(`injects GET ${url} and returns the response`, async function () {
+                const routeResponse = { statusCode: 200, json: () => ({ ok: true }) }
+                inject.withArgs({ method: 'GET', url }).resolves(routeResponse)
+
+                const response = await tool.handler({ hostedInstanceId: instanceId }, { inject })
+
+                inject.calledOnce.should.be.true()
+                response.should.equal(routeResponse)
+            })
+
+            it('passes through an error response', async function () {
+                const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+                inject.resolves(errorResponse)
+
+                const response = await tool.handler({ hostedInstanceId: instanceId }, { inject })
+                response.should.equal(errorResponse)
+            })
+        })
+    })
+
+    describe('platform_get_hosted_instance_config', function () {
+        const tool = getTool('platform_get_hosted_instance_config')
+
+        it('fetches all three sections and keys them when sections is omitted', async function () {
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/ha` }).resolves({ statusCode: 200, json: () => ({ replicas: 2 }) })
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/protectInstance` }).resolves({ statusCode: 200, json: () => ({ enabled: true }) })
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/autoUpdateStack` }).resolves({ statusCode: 404, json: () => ({ code: 'not_found' }) })
+
+            const response = await tool.handler({ hostedInstanceId: instanceId }, { inject })
+
+            inject.calledThrice.should.be.true()
+            response.json().should.eql({
+                ha: { statusCode: 200, data: { replicas: 2 } },
+                protection: { statusCode: 200, data: { enabled: true } },
+                autoUpdateStack: { statusCode: 404, data: { code: 'not_found' } }
+            })
+        })
+
+        it('preserves an array payload such as the autoUpdateStack schedule', async function () {
+            const schedule = [{ hour: 2, day: 0, restart: true }, { hour: 3, day: 4, restart: false }]
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/autoUpdateStack` }).resolves({ statusCode: 200, json: () => schedule })
+
+            const response = await tool.handler({ hostedInstanceId: instanceId, sections: ['autoUpdateStack'] }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.json().should.eql({ autoUpdateStack: { statusCode: 200, data: schedule } })
+        })
+
+        it('fetches only the requested sections', async function () {
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/ha` }).resolves({ statusCode: 200, json: () => ({ replicas: 3 }) })
+
+            const response = await tool.handler({ hostedInstanceId: instanceId, sections: ['ha'] }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.json().should.eql({ ha: { statusCode: 200, data: { replicas: 3 } } })
+        })
+
+        it('reports success when at least one requested section was returned', async function () {
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/ha` }).resolves({ statusCode: 404, json: () => ({ code: 'not_found' }) })
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/protectInstance` }).resolves({ statusCode: 200, json: () => ({ enabled: true }) })
+
+            const response = await tool.handler({ hostedInstanceId: instanceId, sections: ['ha', 'protection'] }, { inject })
+
+            response.statusCode.should.equal(200)
+        })
+
+        it('reports the failure status when every requested section failed', async function () {
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/ha` }).resolves({ statusCode: 404, json: () => ({ code: 'not_found' }) })
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/protectInstance` }).resolves({ statusCode: 404, json: () => ({ code: 'not_found' }) })
+
+            const response = await tool.handler({ hostedInstanceId: instanceId, sections: ['ha', 'protection'] }, { inject })
+
+            response.statusCode.should.equal(404)
+        })
+    })
+
+    describe('platform_get_hosted_instance_custom_hostname', function () {
+        const tool = getTool('platform_get_hosted_instance_custom_hostname')
+
+        it('returns the custom hostname response directly without includeStatus', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ hostname: 'my.example.com' }) }
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/customHostname` }).resolves(routeResponse)
+
+            const response = await tool.handler({ hostedInstanceId: instanceId }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('also fetches the verification status when includeStatus is true', async function () {
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/customHostname` }).resolves({ statusCode: 200, json: () => ({ hostname: 'my.example.com' }) })
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/customHostname/status` }).resolves({ statusCode: 410, json: () => ({ code: 'not_verified' }) })
+
+            const response = await tool.handler({ hostedInstanceId: instanceId, includeStatus: true }, { inject })
+
+            inject.calledTwice.should.be.true()
+            response.json().should.eql({
+                hostname: { hostname: 'my.example.com' },
+                status: { code: 'not_verified' }
+            })
+        })
+    })
+
+    describe('platform_list_hosted_instance_files', function () {
+        const tool = getTool('platform_list_hosted_instance_files')
+
+        it('lists the file-store root for an empty path', async function () {
+            const url = `/api/v1/projects/${instanceId}/files/_/`
+            const routeResponse = { statusCode: 200, json: () => ({ files: [] }) }
+            inject.withArgs({ method: 'GET', url }).resolves(routeResponse)
+
+            const response = await tool.handler({ hostedInstanceId: instanceId, path: '' }, { inject })
+
+            response.should.equal(routeResponse)
+        })
+
+        it('URL-encodes the requested path', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ files: [] }) })
+
+            await tool.handler({ hostedInstanceId: instanceId, path: 'sub dir/data' }, { inject })
+
+            inject.firstCall.args[0].url.should.equal(`/api/v1/projects/${instanceId}/files/_/sub%20dir%2Fdata`)
+        })
+    })
+
+    describe('platform_list_team_dashboard_instances', function () {
+        const tool = getTool('platform_list_team_dashboard_instances')
+
+        it('injects the team dashboard-instances route and returns the response', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ projects: [] }) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/teams/team1/dashboard-instances' }).resolves(routeResponse)
+
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
         })
     })
 })
