@@ -60,29 +60,54 @@ function parseVideoReference (value) {
     return null
 }
 
+// A path rooted at the platform itself. Excludes '//host' and '/\\host', which
+// browsers resolve to another origin despite starting with a slash.
+const IN_APP_PATH = /^\/(?![/\\])/
+
+/**
+ * Validate a link an admin wants a recipient to follow.
+ *
+ * Accepts an absolute http(s) URL, or a path within the platform. Anything
+ * else, notably `javascript:` and `data:`, and anything that looks like a path
+ * but resolves to another origin, is rejected.
+ *
+ * @param {string} value
+ * @returns {string|null} the link, or null when it is not safe to render
+ */
+function parseLinkUrl (value) {
+    if (typeof value !== 'string') {
+        return null
+    }
+    const target = value.trim()
+    if (!target) {
+        return null
+    }
+    let url = null
+    try {
+        // No base: an absolute url parses, anything relative throws
+        url = new URL(target)
+    } catch (_err) {
+        url = null
+    }
+    if (url) {
+        return (url.protocol === 'https:' || url.protocol === 'http:') ? target : null
+    }
+    return IN_APP_PATH.test(target) ? target : null
+}
+
 /**
  * Validate an admin-supplied call-to-action.
  *
  * @param {{label: string, url: string}} value
- * @returns {{label: string, url: string}|null} null when incomplete or not an http(s) link
+ * @returns {{label: string, url: string}|null} null when incomplete, or the url is not safe to render
  */
 function parseCallToAction (value) {
     if (!value || typeof value !== 'object') {
         return null
     }
     const label = typeof value.label === 'string' ? value.label.trim() : ''
-    const target = typeof value.url === 'string' ? value.url.trim() : ''
+    const target = parseLinkUrl(typeof value.url === 'string' ? value.url : '')
     if (!label || !target) {
-        return null
-    }
-    let url
-    try {
-        url = new URL(target, 'https://placeholder.invalid')
-    } catch (_err) {
-        return null
-    }
-    const isRelative = target.startsWith('/')
-    if (!isRelative && url.protocol !== 'https:' && url.protocol !== 'http:') {
         return null
     }
     return { label, url: target }
@@ -90,5 +115,6 @@ function parseCallToAction (value) {
 
 module.exports = {
     parseVideoReference,
-    parseCallToAction
+    parseCallToAction,
+    parseLinkUrl
 }

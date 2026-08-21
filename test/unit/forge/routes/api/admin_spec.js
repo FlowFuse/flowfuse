@@ -455,6 +455,37 @@ describe('Admin API', async function () {
             response.json().error.should.match(/YouTube/)
         })
 
+        it('rejects a card link that could execute', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                url: 'javascript:alert(document.cookie)',
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+            response.json().should.have.property('code', 'bad_request')
+        })
+
+        it('rejects a card link that leaves the platform while looking in-app', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                url: '//evil.example.com/phish',
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+        })
+
+        it('rejects a button that could execute', async function () {
+            const response = await sendNotification({
+                message: 'message',
+                title: 'title',
+                cta: { label: 'Click', url: 'javascript:alert(1)' },
+                filter: { roles: [app.factory.Roles.Roles.Owner] }
+            })
+            response.should.have.property('statusCode', 400)
+        })
+
         it('rejects a button without a url', async function () {
             const response = await sendNotification({
                 message: 'message',
@@ -474,7 +505,7 @@ describe('Admin API', async function () {
                 })
             }
 
-            it('returns every team id, including suspended teams', async function () {
+            it('returns every team id by default, including suspended teams', async function () {
                 const response = await getTeamIds()
                 response.should.have.property('statusCode', 200)
                 const result = response.json()
@@ -483,6 +514,16 @@ describe('Admin API', async function () {
                 result.ids.should.containEql(TestObjects.CTeam.hashid)
                 result.ids.should.containEql(TestObjects.DTeam.hashid)
                 result.count.should.equal(result.ids.length)
+            })
+
+            it('excludes suspended teams when asked for active only', async function () {
+                // How the audience picker asks: a suspended team can never
+                // receive an announcement, so it must not be selectable
+                const response = await getTeamIds('?state=active')
+                response.should.have.property('statusCode', 200)
+                const result = response.json()
+                result.ids.should.containEql(TestObjects.CTeam.hashid)
+                result.ids.should.not.containEql(TestObjects.DTeam.hashid)
             })
 
             it('filters by team type', async function () {

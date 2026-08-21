@@ -63,7 +63,8 @@ export default {
     data () {
         return {
             dismissedIds: this.readDismissed(),
-            drawerWidth: 0
+            drawerWidth: 0,
+            viewportWidth: window.innerWidth
         }
     },
     computed: {
@@ -76,21 +77,25 @@ export default {
             // Sit to the left of an open right drawer rather than under it. On a
             // narrow viewport the drawer covers everything, so stop pushing once
             // the toast would leave the screen.
-            const maxOffset = Math.max(0, window.innerWidth - TOAST_WIDTH - EDGE_GAP * 2)
+            const maxOffset = Math.max(0, this.viewportWidth - TOAST_WIDTH - EDGE_GAP * 2)
             return EDGE_GAP + Math.min(this.drawerWidth, maxOffset)
         },
-        visibleAnnouncements () {
+        unreadAnnouncements () {
             return (this.notifications || [])
                 .filter(notification => notification.type === 'announcement')
                 .filter(notification => !notification.read)
                 .filter(notification => !this.dismissedIds.includes(notification.id))
-                .slice(0, MAX_VISIBLE)
+        },
+        visibleAnnouncements () {
+            return this.unreadAnnouncements.slice(0, MAX_VISIBLE)
         }
     },
     watch: {
         notificationsDrawerOpen (open) {
             if (open) {
-                this.visibleAnnouncements.forEach(announcement => this.dismiss(announcement))
+                // Every unread one, not just the two on screen, or the next two
+                // slide in over the drawer that is already listing them
+                this.unreadAnnouncements.forEach(announcement => this.dismiss(announcement))
             }
         },
         'rightDrawer.state' () {
@@ -123,6 +128,9 @@ export default {
     methods: {
         ...mapActions(useUxDrawersStore, ['openRightDrawer']),
         measureDrawer () {
+            // window.innerWidth is not reactive, so it is tracked here alongside
+            // the drawer rather than read straight from a computed
+            this.viewportWidth = window.innerWidth
             const drawer = document.getElementById('right-drawer')
             if (!drawer) {
                 this.drawerWidth = 0
@@ -181,7 +189,10 @@ export default {
 .ff-announcement-toasts {
     position: fixed;
     bottom: $ff-unit-lg;
-    z-index: 120;
+    // Below the dialog layer: a modal and its backdrop must cover the toast,
+    // not compete with it. The stack clears the right drawer by sitting beside
+    // it rather than above it.
+    z-index: 100;
     width: 380px;
     max-width: calc(100vw - #{$ff-unit-lg * 2});
     // Two announcements carrying video are taller than a laptop viewport, so the

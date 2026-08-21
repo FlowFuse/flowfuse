@@ -6,7 +6,7 @@ const { Op } = require('sequelize')
  *
  * Recognised query properties:
  *  - teamType: comma separated team type hashids
- *  - state: 'suspended' to return only suspended teams
+ *  - state: 'suspended' for only suspended teams, 'active' to exclude them
  *  - billing: comma separated subscription statuses (ignored when filtering on
  *    suspended teams, and only when billing is available)
  *
@@ -23,10 +23,15 @@ function buildTeamFilterWhere (app, query = {}) {
     }
     if (query.state === 'suspended') {
         filters.push({ suspended: true })
-    } else if (app.billing && query.billing) {
-        filters.push({ suspended: false })
-        const billingStates = query.billing.split(',')
-        filters.push({ '$Subscription.status$': { [Op.in]: billingStates } })
+    } else {
+        if (query.state === 'active') {
+            filters.push({ suspended: false })
+        }
+        if (app.billing && query.billing) {
+            filters.push({ suspended: false })
+            const billingStates = query.billing.split(',')
+            filters.push({ '$Subscription.status$': { [Op.in]: billingStates } })
+        }
     }
     if (filters.length > 0) {
         where[Op.and] = filters

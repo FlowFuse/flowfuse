@@ -451,7 +451,10 @@ export default {
     watch: {
         checked: {
             handler (value) {
-                if (value && value !== this.checks) {
+                // Compare contents, not identity: the parent hands back a new
+                // object every time, so an identity check would always differ
+                // and the two watchers would bounce updates off each other.
+                if (value && !this.sameChecks(value, this.checks)) {
                     this.checks = { ...value }
                 }
             },
@@ -460,7 +463,7 @@ export default {
         },
         checks: {
             handler (value) {
-                if (this.checked) {
+                if (this.checked && !this.sameChecks(value, this.checked)) {
                     this.$emit('update:checked', { ...value })
                 }
             },
@@ -480,10 +483,26 @@ export default {
         this.sort.order = this.orders.includes(this.initialSortOrder) ? this.initialSortOrder : this.orders[0]
     },
     methods: {
+        /**
+         * Do two check maps select the same rows? Only truthy entries count: an
+         * unchecked box leaves `false` behind rather than removing the key.
+         */
+        sameChecks (a, b) {
+            const keys = (map) => Object.keys(map || {}).filter((key) => map[key]).sort()
+            const aKeys = keys(a)
+            const bKeys = keys(b)
+            return aKeys.length === bKeys.length && aKeys.every((key, i) => key === bKeys[i])
+        },
         toggleAllChecks (pointerEvents) {
             pointerEvents.stopPropagation()
             pointerEvents.preventDefault()
             const isChecked = !this.allChecked
+            if (!isChecked && !this.checked) {
+                // Uncontrolled: the selection cannot outlive the rows on screen,
+                // so clearing the box clears all of it, as it always has
+                this.checks = {}
+                return
+            }
             const checks = { ...this.checks }
             this.filteredRows.forEach((row) => {
                 if (isChecked) {

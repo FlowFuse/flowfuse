@@ -20,7 +20,7 @@
                                 Rich text (markdown)
                             </label>
                         </template>
-                        <template #input><textarea v-model="form.message" class="w-full max-h-96 min-h-40" rows="8" /></template>
+                        <template #input><textarea v-model="form.message" class="w-full max-h-96 min-h-40" rows="8" :maxlength="4000" /></template>
                     </FormRow>
                     <FormRow v-model="form.video" type="input" placeholder="https://www.youtube.com/watch?v=..." class="mb-5" data-el="notification-video">
                         Video
@@ -44,58 +44,6 @@
                         </template>
                     </FormRow>
                 </section>
-                <section class="announcement-audience">
-                    <FormHeading>Audience</FormHeading>
-                    <div class="ff-description mb-2 space-y-1">Select the audience of your announcement.</div>
-                    <FormHeading class="mt-4">User Roles:</FormHeading>
-                    <div class="grid gap-1 grid-cols-2 items-middle">
-                        <label
-                            v-for="(role, $key) in roleIds"
-                            :key="$key"
-                            class="ff-checkbox text-sm"
-                            :data-el="`audience-role-${role}`"
-                            @keydown.space.prevent="toggleRole(role)"
-                        >
-                            <span ref="input" class="checkbox" :checked="form.roles.includes(role)" tabindex="0" @keydown.space.prevent />
-                            <input v-model="form.roles" type="checkbox" :value="role" @keydown.space.prevent>
-                            {{ role }}
-                        </label>
-                    </div>
-                    <FormHeading class="mt-4">Team Types:</FormHeading>
-                    <div class="grid gap-1 grid-cols-2 items-middle">
-                        <label
-                            v-for="teamType in teamTypes"
-                            :key="teamType.id"
-                            class="ff-checkbox text-sm"
-                            :class="[!teamType.active ? 'inactive-team' : '', targetsSpecificTeams ? 'disabled-audience' : '']"
-                            :data-el="`audience-teamType-${teamType.id}`"
-                            @keydown.space.prevent="toggleTeamType(teamType.id)"
-                        >
-                            <span ref="input" class="checkbox" :checked="form.teamTypes.includes(teamType.id)" tabindex="0" @keydown.space.prevent />
-                            <input v-model="form.teamTypes" type="checkbox" :value="teamType.id" :disabled="targetsSpecificTeams" @keydown.space.prevent>
-                            {{ teamType.name }}
-                        </label>
-                    </div>
-                    <template v-if="features.billing">
-                        <FormHeading class="mt-4">Billing State:</FormHeading>
-                        <div class="grid gap-1 grid-cols-2 items-middle">
-                            <label
-                                v-for="(billingState, $key) in billingStates"
-                                :key="$key"
-                                class="ff-checkbox text-sm"
-                                :data-el="`audience-billing-${billingState}`"
-                                @keydown.space.prevent="toggleBillingState(billingState)"
-                            >
-                                <span ref="input" class="checkbox" :checked="form.billing.includes(billingState)" tabindex="0" @keydown.space.prevent />
-                                <input v-model="form.billing" type="checkbox" :value="billingState" @keydown.space.prevent>
-                                {{ billingState }}
-                            </label>
-                        </div>
-                    </template>
-                    <div v-if="targetsSpecificTeams" class="ff-description mt-4" data-el="audience-teams-active">
-                        Overridden by the {{ form.teams.length }} {{ form.teams.length === 1 ? 'team' : 'teams' }} selected below.
-                    </div>
-                </section>
                 <section class="announcement-preview">
                     <FormHeading>Preview</FormHeading>
                     <div class="ff-description mb-2">How this will look in the notifications drawer and toast.</div>
@@ -110,11 +58,83 @@
                     </div>
                 </section>
             </section>
-            <section class="announcement-teams">
+            <section class="announcement-audience">
+                <FormHeading>Audience</FormHeading>
+                <div class="ff-description mb-2">Select the audience of your announcement.</div>
+                <div class="audience-groups">
+                    <div class="audience-group">
+                        <FormHeading>User Roles:</FormHeading>
+                        <div class="audience-options">
+                            <label
+                                v-for="(role, $key) in roleIds"
+                                :key="$key"
+                                class="ff-checkbox text-sm"
+                                :data-el="`audience-role-${role}`"
+                                @keydown.space.prevent="toggleRole(role)"
+                            >
+                                <span ref="input" class="checkbox" :checked="form.roles.includes(role)" tabindex="0" @keydown.space.prevent />
+                                <input v-model="form.roles" type="checkbox" :value="role" @keydown.space.prevent>
+                                {{ role }}
+                            </label>
+                        </div>
+                    </div>
+                    <div class="audience-group">
+                        <FormHeading>Send To:</FormHeading>
+                        <ff-radio-group
+                            v-model="form.audienceMode"
+                            orientation="vertical"
+                            :options="audienceModes"
+                            data-el="audience-mode"
+                        />
+                    </div>
+                    <template v-if="targetsTeamTypes">
+                        <div class="audience-group">
+                            <FormHeading>Team Types:</FormHeading>
+                            <div class="audience-options">
+                                <label
+                                    v-for="teamType in teamTypes"
+                                    :key="teamType.id"
+                                    class="ff-checkbox text-sm"
+                                    :class="!teamType.active ? ['inactive-team'] : []"
+                                    :data-el="`audience-teamType-${teamType.id}`"
+                                    @keydown.space.prevent="toggleTeamType(teamType.id)"
+                                >
+                                    <span ref="input" class="checkbox" :checked="form.teamTypes.includes(teamType.id)" tabindex="0" @keydown.space.prevent />
+                                    <input v-model="form.teamTypes" type="checkbox" :value="teamType.id" @keydown.space.prevent>
+                                    {{ teamType.name }}
+                                </label>
+                            </div>
+                        </div>
+                        <div v-if="features.billing" class="audience-group">
+                            <FormHeading>Billing State:</FormHeading>
+                            <div class="audience-options">
+                                <label
+                                    v-for="(billingState, $key) in billingStates"
+                                    :key="$key"
+                                    class="ff-checkbox text-sm"
+                                    :data-el="`audience-billing-${billingState}`"
+                                    @keydown.space.prevent="toggleBillingState(billingState)"
+                                >
+                                    <span ref="input" class="checkbox" :checked="form.billing.includes(billingState)" tabindex="0" @keydown.space.prevent />
+                                    <input v-model="form.billing" type="checkbox" :value="billingState" @keydown.space.prevent>
+                                    {{ billingState }}
+                                </label>
+                            </div>
+                        </div>
+                    </template>
+                    <div v-else class="audience-group" data-el="audience-teams-hint">
+                        <FormHeading>Selected:</FormHeading>
+                        <div class="ff-description">
+                            {{ form.teams.length }} {{ form.teams.length === 1 ? 'team' : 'teams' }} chosen in the table below.
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section v-if="targetsSpecificTeams" class="announcement-teams">
                 <FormHeading>Specific Teams</FormHeading>
                 <div class="ff-description mb-2">
-                    Pick the exact teams this announcement goes to. Selecting any team here overrides the team type
-                    and billing state filters. The selection is kept as you search, filter and page through the list.
+                    Pick the exact teams this announcement goes to. The selection is kept as you search, filter and
+                    page through the list. Suspended teams are left out, because they cannot receive notifications.
                 </div>
                 <TeamAudiencePicker v-model="form.teams" />
             </section>
@@ -147,6 +167,12 @@ import TeamAudiencePicker from './components/TeamAudiencePicker.vue'
 
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 
+// Kept in step with the maxLength on POST /api/v1/admin/announcements
+const MAX_TITLE_LENGTH = 120
+const MAX_MESSAGE_LENGTH = 4000
+// Kept in step with forge/lib/announcements.js
+const YOUTUBE_HOSTS = ['youtu.be', 'youtube.com', 'm.youtube.com', 'youtube-nocookie.com']
+
 export default {
     name: 'NotificationsHub',
     components: { AnnouncementBody, FfButton, FormRow, FormHeading, MegaphoneIcon, TeamAudiencePicker },
@@ -161,10 +187,15 @@ export default {
                 ctaUrl: '',
                 richText: true,
                 roles: [],
+                audienceMode: 'teamTypes',
                 teamTypes: [],
                 teams: [],
                 billing: []
             },
+            audienceModes: [
+                { label: 'Teams of a type', value: 'teamTypes', description: 'Everyone in every team on the types you pick.' },
+                { label: 'Specific teams', value: 'teams', description: 'Only the teams you choose from the list.' }
+            ],
             teamTypes: [],
             billingStates: [
                 'Active',
@@ -183,17 +214,25 @@ export default {
             return Object.values(RoleNames).filter(r => r !== 'none').reverse().map(r => r[0].toUpperCase() + r.substring(1))
         },
         targetsSpecificTeams () {
-            return this.form.teams.length > 0
+            return this.form.audienceMode === 'teams'
+        },
+        targetsTeamTypes () {
+            return this.form.audienceMode === 'teamTypes'
         },
         hasAudienceScope () {
-            return this.targetsSpecificTeams || this.form.teamTypes.length > 0
+            if (this.targetsSpecificTeams) {
+                return this.form.teams.length > 0
+            }
+            return this.form.teamTypes.length > 0 &&
+                (!this.features.billing || this.form.billing.length > 0)
         },
         canSubmit () {
             return this.form.title.length > 0 &&
+                this.form.title.length <= MAX_TITLE_LENGTH &&
                 this.form.message.length > 0 &&
+                this.form.message.length <= MAX_MESSAGE_LENGTH &&
                 this.form.roles.length > 0 &&
-                this.hasAudienceScope &&
-                (!this.features.billing || this.targetsSpecificTeams || this.form.billing.length > 0)
+                this.hasAudienceScope
         },
         urlPlaceholder () {
             return 'https://flowfuse.com'
@@ -208,17 +247,36 @@ export default {
             }
         },
         previewVideo () {
-            // Mirror of the server side check, so the preview only shows an embed
-            // for a link the API will actually accept.
+            // Mirrors the server side check, host included, so the preview only
+            // shows an embed for a link the API will actually accept.
             const value = (this.form.video || '').trim()
-            const match = /(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/|\/live\/)([A-Za-z0-9_-]{11})/.exec(value)
-            if (match) {
-                return { provider: 'youtube', id: match[1] }
-            }
             if (/^[A-Za-z0-9_-]{11}$/.test(value)) {
                 return { provider: 'youtube', id: value }
             }
-            return null
+            let url
+            try {
+                url = new URL(value)
+            } catch (_err) {
+                return null
+            }
+            const host = url.hostname.replace(/^www\./, '')
+            if (!YOUTUBE_HOSTS.includes(host)) {
+                return null
+            }
+            const match = /(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/|\/live\/)([A-Za-z0-9_-]{11})/.exec(value)
+            return match ? { provider: 'youtube', id: match[1] } : null
+        }
+    },
+    watch: {
+        'form.audienceMode' (mode) {
+            // Only one audience definition is ever live, so leaving the other
+            // half populated would be invisible state
+            if (mode === 'teams') {
+                this.form.teamTypes = []
+                this.form.billing = []
+            } else {
+                this.form.teams = []
+            }
         }
     },
     async created () {
@@ -312,6 +370,7 @@ export default {
             this.form.ctaLabel = ''
             this.form.ctaUrl = ''
             this.form.roles = []
+            this.form.audienceMode = 'teamTypes'
             this.form.teamTypes = []
             this.form.teams = []
             this.form.billing = []
@@ -322,9 +381,6 @@ export default {
             } else this.form.roles.push(role)
         },
         toggleTeamType (teamTypeId) {
-            if (this.targetsSpecificTeams) {
-                return
-            }
             if (this.form.teamTypes.includes(teamTypeId)) {
                 this.form.teamTypes = this.form.teamTypes.filter(r => r !== teamTypeId)
             } else this.form.teamTypes.push(teamTypeId)
@@ -344,18 +400,31 @@ export default {
     color: var(--ff-color-text-subtle);
 }
 
-.disabled-audience {
-    opacity: 0.5;
-}
-
 .announcement-content {
     width: 420px;
     max-width: 100%;
 }
 
 .announcement-audience {
-    width: 320px;
-    max-width: 100%;
+    width: 100%;
+
+    .audience-groups {
+        display: flex;
+        gap: $ff-unit-xl;
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .audience-group {
+        min-width: 160px;
+    }
+
+    .audience-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(90px, max-content));
+        gap: 2px $ff-unit-lg;
+        margin-top: $ff-unit-sm;
+    }
 }
 
 .announcement-preview {

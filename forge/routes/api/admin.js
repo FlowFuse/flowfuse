@@ -1,6 +1,6 @@
 const { Op } = require('sequelize')
 
-const { parseCallToAction, parseVideoReference } = require('../../lib/announcements.js')
+const { parseCallToAction, parseLinkUrl, parseVideoReference } = require('../../lib/announcements.js')
 const { Roles } = require('../../lib/roles.js')
 const { buildTeamFilterWhere } = require('../../lib/teamFilters.js')
 
@@ -578,7 +578,12 @@ module.exports = async function (app) {
             return reply.code(400).send({ code: 'bad_request', error: 'Unsupported video link. Provide a YouTube URL.' })
         }
         if (cta && Object.keys(cta).length > 0 && !parseCallToAction(cta)) {
-            return reply.code(400).send({ code: 'bad_request', error: 'A button needs both a label and an http(s) or relative url.' })
+            return reply.code(400).send({ code: 'bad_request', error: 'A button needs both a label and an http(s) or in-app url.' })
+        }
+        // The whole-card link on a plain announcement ends up in an href too, so
+        // it gets the same treatment as the button
+        if (url && !parseLinkUrl(url)) {
+            return reply.code(400).send({ code: 'bad_request', error: 'The URL link must be an http(s) or in-app url.' })
         }
         if (mock) {
             // If mock is sent, return an indication of how many users would receive this notification
@@ -605,7 +610,7 @@ module.exports = async function (app) {
             ...(videoReference && { video: videoReference }),
             ...(callToAction && { cta: callToAction }),
             ...(to && { to }),
-            ...(url && { url })
+            ...(url && { url: parseLinkUrl(url) })
         }
         await app.notifications.sendBulk(
             recipients,
