@@ -58,4 +58,45 @@ describe('MCP Shared Instance/Device Tools', function () {
             inject.firstCall.args[0].url.should.equal('/api/v1/devices/device1/history?limit=5')
         })
     })
+
+    describe('platform_get_instance_audit_log', function () {
+        const tool = getTool('platform_get_instance_audit_log')
+
+        it('serialises filters, scope and includeChildren onto the hosted instance audit-log route', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ log: [] }) })
+
+            await tool.handler({
+                instanceId,
+                instanceType: 'hosted',
+                cursor: 'abc',
+                limit: 20,
+                query: 'deploy',
+                event: ['project.created', 'flows.deployed'],
+                username: 'alice',
+                scope: 'device',
+                includeChildren: true
+            }, { inject })
+
+            inject.firstCall.args[0].url.should.equal(
+                `/api/v1/projects/${instanceId}/audit-log` +
+                '?cursor=abc&limit=20&query=deploy&event=project.created&event=flows.deployed&username=alice&scope=device&includeChildren=true'
+            )
+        })
+
+        it('reads a remote instance audit log via the devices route', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ log: [] }) })
+
+            await tool.handler({ instanceId: 'device1', instanceType: 'remote', limit: 5 }, { inject })
+
+            inject.firstCall.args[0].url.should.equal('/api/v1/devices/device1/audit-log?limit=5')
+        })
+
+        it('rejects scope and includeChildren for a remote instance', async function () {
+            const response = await tool.handler({ instanceId: 'device1', instanceType: 'remote', scope: 'device' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+    })
 })

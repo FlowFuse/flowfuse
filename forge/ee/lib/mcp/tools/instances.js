@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { teamId, applicationId, hostedInstanceId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, sortParams, auditLogFilters, auditLogFilterKeys, appendQuery } = require('../schemas')
+const { teamId, applicationId, hostedInstanceId, searchQuery, sortParams } = require('../schemas')
 
 // Mirrors the runningStates/errorStates/stoppedStates groups in frontend/src/composables/InstanceStates.js,
 // the same grouping the dashboard's own Running/Error/Not Running status filter uses (frontend/src/pages/team/Instances.vue).
@@ -274,31 +274,6 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/files/_/${encodeURIComponent(args.path)}` })
-            return response
-        }
-    },
-    {
-        name: 'platform_get_hosted_instance_audit_log',
-        title: 'Get Hosted Instance Audit Log',
-        description: `FlowFuse platform automation tool:
-            Reads the audit log for a hosted instance, showing events like deployments, restarts,
-            settings changes, and other actions taken against that instance.
-            Use this when the user wants to know what has happened to a specific hosted instance.
-            By default only the instance's own ("project") entries are returned; set scope to "device" to read the entries for its assigned devices instead, and set includeChildren to also include entries from child entities within the chosen scope.
-            Results are cursor-paginated and can be narrowed with query, event and username.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            hostedInstanceId,
-            ...basePagination,
-            ...searchQuery,
-            ...auditLogFilters,
-            scope: z.enum(['project', 'device']).optional().describe('Entity level to read entries for: "project" (the instance itself, the default) or "device" (its assigned devices)'),
-            includeChildren: z.boolean().optional().describe('Also include audit entries from child entities within the chosen scope')
-        },
-        handler: async (args, { inject }) => {
-            const keys = [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys, 'scope', 'includeChildren']
-            const url = appendQuery(`/api/v1/projects/${args.hostedInstanceId}/audit-log`, args, keys)
-            const response = await inject({ method: 'GET', url })
             return response
         }
     },

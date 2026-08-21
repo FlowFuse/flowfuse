@@ -397,38 +397,6 @@ describe('MCP Instances Tools', function () {
         })
     })
 
-    describe('platform_get_hosted_instance_audit_log', function () {
-        const tool = getTool('platform_get_hosted_instance_audit_log')
-
-        it('injects the audit-log route with no query string when no filters are set', async function () {
-            inject.resolves({ statusCode: 200, json: () => ({ log: [] }) })
-
-            await tool.handler({ hostedInstanceId: instanceId }, { inject })
-
-            inject.firstCall.args[0].url.should.equal(`/api/v1/projects/${instanceId}/audit-log`)
-        })
-
-        it('serialises cursor/limit/query, an event array, username, scope and includeChildren', async function () {
-            inject.resolves({ statusCode: 200, json: () => ({ log: [] }) })
-
-            await tool.handler({
-                hostedInstanceId: instanceId,
-                cursor: 'abc',
-                limit: 20,
-                query: 'deploy',
-                event: ['project.created', 'flows.deployed'],
-                username: 'alice',
-                scope: 'device',
-                includeChildren: true
-            }, { inject })
-
-            inject.firstCall.args[0].url.should.equal(
-                `/api/v1/projects/${instanceId}/audit-log` +
-                '?cursor=abc&limit=20&query=deploy&event=project.created&event=flows.deployed&username=alice&scope=device&includeChildren=true'
-            )
-        })
-    })
-
     describe('platform_list_team_dashboard_instances', function () {
         const tool = getTool('platform_list_team_dashboard_instances')
 
