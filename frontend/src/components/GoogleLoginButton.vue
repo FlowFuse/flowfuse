@@ -24,11 +24,13 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { GoogleLogin } from 'vue3-google-login'
 
 import SSOApi from '@/api/sso.js'
 import SpinnerIcon from '@/components/icons/Spinner.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
+import { handoffFromPopup, isPopupContext } from '@/utils/popupContext.js'
 
 withDefaults(defineProps<{
     label?: string
@@ -38,6 +40,7 @@ withDefaults(defineProps<{
     disabled: false
 })
 
+const route = useRoute()
 const { settings } = storeToRefs(useAccountSettingsStore())
 
 const error = ref('')
@@ -52,7 +55,11 @@ async function ggCallback (response: { access_token: string }) {
     error.value = ''
     const result = await SSOApi.googleSSOCallback(response.access_token)
     if (result.url) {
-        window.location = result.url
+        if (isPopupContext(route.query)) {
+            handoffFromPopup(result.url)
+        } else {
+            window.location = result.url
+        }
     } else if (result.error) {
         error.value = result.error
         busy.value = false
