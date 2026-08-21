@@ -34,19 +34,15 @@ Set-Location $env:USERPROFILE; powershell -c "irm https://flowfuse.github.io/dev
 
 See the [Quick Start guide](../quickstart.md) for the full walkthrough, or the [Installer reference](./device-agent-installer.md) for all options and service management.
 
-- Recommended: Use the Device Agent Installer
-  - Fastest way to get started with a one-line command in the [Quick Start guide](../quickstart.md)
-  - Full options and service management in the [Installer reference](./device-agent-installer.md)
-- Alternative: Manual install (using `npm`)
-  - Install the npm package, set working directory, configure, and run as a service. See [Manual install](./manual.md)
-- Alternative: Docker / Docker Compose
-  - Run the agent in a container; bind-mount the configuration. See [Docker install](./docker.md)
-- Alternative: Kubernetes
-  - Deploy the agent in a Kubernetes cluster. See [Kubernetes install](./kubernetes.md)
+### Alternative install paths
+
+- Manual install using `npm`. Install the npm package, set the working directory, configure, and run as a service. See [Manual install](./manual.md)
+- Docker or Docker Compose. Run the agent in a container and bind-mount the configuration. See [Docker install](./docker.md)
+- Kubernetes. Deploy the agent in a Kubernetes cluster. See [Kubernetes install](./kubernetes.md)
 
 ## Prerequisites
 
-- Node.js 18 or later (for Manual install and for running locally). Supported versions are 18, 20, 22, and 24. Device Agent v4 (and its installer and official Docker image) defaults to Node.js 22 — this is the recommended runtime. Note that Node.js 20 reached end-of-life in April 2026.
+- Node.js is only a prerequisite for the Manual install. The Device Agent Installer and the official Docker image bring their own runtime, defaulting to Node.js 22, which is the recommended version. For a manual install you need Node.js 18 or later; supported versions are 18, 20, 22 and 24. Node.js 20 reached end-of-life in April 2026.
 - Supported OS: Linux, macOS, Windows, or Docker container
 - Networking: allow outbound access on 443 to:
   - `app.flowfuse.com`
@@ -77,9 +73,11 @@ For offline environments, see [Running with no access to npmjs.org](../running.m
 
 After installing by any method:
 
-1. Ensure a working directory exists (default is `/opt/flowfuse-device` or `c:\opt\flowfuse-device`).
-2. Run the agent and it will help you get it registered, or provide a device configuration you have already created (via Quick Connect, provisioning, or manual `device.yml`). See [Register your Remote Instance](../register.md).
-3. Start the agent (service or CLI) and open `http://<device-ip>:1880` when assigned and running.
+1. Ensure a working directory exists (default is `/opt/flowfuse-device` or `c:\opt\flowfuse-device`) and contains a `device.yml`.
+2. Check the service is running. The installer names it after the port, so the default is `flowfuse-device-agent-1880`: `sudo systemctl status flowfuse-device-agent-1880`.
+3. Confirm the Remote Instance shows as running in FlowFuse, then open `http://<device-ip>:1880` once a snapshot is assigned.
+
+The installer registers the device for you. If you are installing by one of the alternative paths above, register it yourself: see [Register your Remote Instance](../register.md).
 
 ## What’s next
 
