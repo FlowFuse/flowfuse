@@ -1,137 +1,182 @@
-// This is a command-line tool used to generate valid FlowFuse license files.
-
-// A license file is encoded as a JSON Web Token signed using ES256
-// It consists of a well-defined set of claims. These claims identify who
-// the license is for, when it was created and when it expires.
-// It also includes claims relating to what the license entitles the user to do
-// with the platform.
-
-// Currently, there is both a development public and private key in this repository.
-// These are completely insecure keys to be used at this very early stage of
-// development - they are used by the tests to generate and verify licenses.
-//
-// To generate a production license, you will need to access the Production private key
-// file in the FlowFuse 1Password vault
-
-// ref: https://www.scottbrady91.com/OpenSSL/Creating-Elliptical-Curve-Keys-using-OpenSSL
-
-// 1. generate an ES256 key pair
-// openssl ecparam -name prime256v1 -genkey -noout -out private-key.pem
-// 2. encrypt it with a passphrase
-// openssl ec -in private-key.pem -out private-key_enc.pem -aes256
-// 3. extract the public key
-// openssl ec -in private-key_enc.pem -pubout -out public-key.pem
-
-// To generate a license, update the 'licenseDetails' object below and run this
-// file directly.
-
 const fs = require('fs')
 
+const inquirer = require('inquirer')
 const jwt = require('jsonwebtoken')
-const promptly = require('promptly')
 const { v4: uuidv4 } = require('uuid')
 
+// import {v4 as uuidv4, validate} from 'uuid'
+// import jwt from 'jsonwebtoken'
+// import inquirer from 'inquirer'
+// import fs from 'fs'
+
+const DEFAULT_DEV_KEY_FILENAME = 'dev-private-key_enc.pem'
+const DEFAULT_PROD_KEY_FILENAME = 'flowforge-ee-private-key_enc.pem'
+
+const today = new Date().toISOString().substring(0, 10)
+const defaultExpire = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().substring(0, 10)
+const licenseId = uuidv4()
+
+console.info('FlowFuse EE License Generator')
+console.info('------------------------------')
+
 ;(async () => {
-    console.info('FlowFuse EE License Generator')
-    console.info('------------------------------')
-    try {
-        const devLicense = await promptly.confirm('Is this a development-only license? (Y/n): ', { default: 'y' })
-
-        const key = devLicense
-            ? fs.readFileSync('dev-private-key_enc.pem')
-            : await promptly.prompt('Production license private key filename: ', {
-                validator: (value) => {
-                    if (!fs.existsSync(value)) {
-                        throw new Error('Private key file not found')
-                    }
-                    return fs.readFileSync(value)
+    inquirer.prompt([
+        {
+            name: 'devLicense',
+            default: true,
+            type: 'confirm',
+            message: 'Development Only License'
+        }, {
+            name: 'tiers',
+            type: 'checkbox',
+            choices: [{ name: 'Hub', value: 'hub' }, { name: 'Edge', value: 'edge' }, { name: 'Fleet', value: 'fleet' }],
+            message: 'What license types should be included?',
+            validate (input) {
+                if (input.length > 0) {
+                    return true
+                } else {
+                    return 'Must select at least one'
                 }
-            })
+            }
+        }, {
+            name: 'licenseHolder',
+            type: 'input',
+            message: 'License holder name',
+            validate (input) {
+                if (input.length > 0) {
+                    return true
+                }
 
-        const passphrase = devLicense
-            ? 'password'
-            : await promptly.password('Passphrase: ', {
-                replace: '*'
-            })
-
-        const licenseTier = await promptly.choose('License tier (teams*, enterprise): ', ['teams', 'enterprise'], { default: 'teams', trim: true })
-
-        const licenseHolder = await promptly.prompt('License holder name: ')
-
-        const maxUsers = parseInt(await promptly.prompt('Max allowed users: ', { default: '5' }))
-        const maxTeams = parseInt(await promptly.prompt('Max allowed teams: ', { default: '5' }))
-        const maxInstances = parseInt(await promptly.prompt('Max allowed instances (hosted + devices): ', { default: '5' }))
-        const maxMQTTClients = parseInt(await promptly.prompt('Max allowed MQTT Clients: ', { default: '20' }))
-
-        const licenseNotes = devLicense
-            ? 'Development-mode Only. Not for production'
-            : await promptly.prompt('License notes: ', { default: '' })
-
-        const today = new Date().toISOString().substring(0, 10)
-        const validFrom = await promptly.prompt(`Valid from [${today}]: `, {
+                return 'License holder name must be entered'
+            }
+        }, {
+            name: 'maxUsers',
+            type: 'number',
+            default: 5,
+            message: 'Max allowed Users'
+        }, {
+            name: 'maxTeams',
+            type: 'number',
+            default: 5,
+            message: 'Max allowed Teams'
+        }, {
+            name: 'maxInstances',
+            type: 'number',
+            default: 5,
+            message: 'Max allowed Instances (shared Hosted & Remote)'
+        }, {
+            name: 'maxMQTTClients',
+            type: 'number',
+            default: 20,
+            message: 'Max allowed MQTT client'
+        }, {
+            name: 'notes',
+            type: 'input',
+            message: 'License notes'
+        }, {
+            name: 'validFrom',
+            type: 'input',
             default: today,
-            validator: (value) => {
-                const date = new Date(value)
+            message: 'Valid from',
+            validate (input) {
+                const date = new Date(input)
                 if (isNaN(date.getTime())) {
-                    throw new Error('Invalid start time')
+                    return 'Invalid start time'
                 }
+                return true
+            },
+            filter (input, hash) {
+                const date = new Date(input)
                 return Math.floor(date.getTime() / 1000)
             }
-        })
-
-        const defaultExpire = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().substring(0, 10)
-        const expiry = await promptly.prompt(`Expire at [${defaultExpire}]: `, {
+        }, {
+            name: 'expiry',
+            type: 'input',
             default: defaultExpire,
-            validator: (value) => {
-                const date = new Date(value)
+            message: 'Expire at',
+            validate (input) {
+                const date = new Date(input)
                 if (isNaN(date.getTime())) {
-                    throw new Error('Invalid expire time')
+                    return 'Invalid expire time'
                 }
+                return true
+            },
+            filter (input, hash) {
+                const date = new Date(input)
                 return Math.floor(date.getTime() / 1000)
             }
+        }
+    ])
+        .then((answers) => {
+            // console.info(answers)
+            const licenseDetails = {
+                id: licenseId,
+                // ver: '2024-03-04', // Used to determined the format of the license.
+                ver: '2026-08-20', // Used to determined the format of the license.
+                iss: 'FlowForge Inc.', // DO NOT CHANGE
+                sub: answers.licenseHolder, // Name of the license holder
+                nbf: answers.validFrom,
+                exp: answers.expiry, // Expiry of the license in epoch seconds
+                note: answers.licenseNotes, // Freeform text to associate with license
+                users: answers.maxUsers,
+                teams: answers.maxTeams,
+                instances: answers.maxInstances,
+                mqttClients: answers.maxMQTTClients,
+                tiers: answers.tiers // licenseTier
+            }
+
+            const keyQuestions = []
+
+            if (answers.devLicense) {
+                licenseDetails.dev = true
+            } else {
+                keyQuestions.push({
+                    name: 'filename',
+                    type: 'input',
+                    default: DEFAULT_PROD_KEY_FILENAME,
+                    message: 'Production license private key filename',
+                    validate (input) {
+                        if (!fs.existsSync(input)) {
+                            return true
+                        }
+                        return false
+                    },
+                    filter (input, answers) {
+                        return fs.readFileSync(input)
+                    }
+                })
+            }
+
+            keyQuestions.push({
+                name: 'passphrase',
+                type: 'password',
+                mask: true,
+                message: 'Password for private key'
+            })
+
+            inquirer.prompt(keyQuestions)
+                .then(keyAnswers => {
+                    // console.info(keyAnswers)
+                    const key = keyAnswers.key ? keyAnswers.key : fs.readFileSync(DEFAULT_DEV_KEY_FILENAME)
+
+                    const licenseText = jwt.sign(
+                        licenseDetails,
+                        { key, passphrase: keyAnswers.passphrase },
+                        { algorithm: 'ES256' }
+                    )
+                    console.info()
+                    console.info('License Details:')
+                    console.info(JSON.stringify(licenseDetails, ' ', 4))
+                    console.info('License:')
+                    console.info('---')
+                    console.info(licenseText)
+                    console.info('---')
+                })
+                .catch(err => {
+                    console.info(err)
+                })
         })
-
-        // generate a random license id (uuid)
-        const licenseId = uuidv4()
-
-        const licenseDetails = {
-            id: licenseId,
-            ver: '2024-03-04', // Used to determined the format of the license.
-            iss: 'FlowForge Inc.', // DO NOT CHANGE
-            sub: licenseHolder, // Name of the license holder
-            nbf: validFrom,
-            exp: expiry, // Expiry of the license in epoch seconds
-            note: licenseNotes, // Freeform text to associate with license
-            users: maxUsers,
-            teams: maxTeams,
-            instances: maxInstances,
-            mqttClients: maxMQTTClients,
-            tier: licenseTier
-        }
-
-        if (devLicense) {
-            licenseDetails.dev = true
-        }
-
-        const licenseText = jwt.sign(
-            licenseDetails,
-            { key, passphrase },
-            { algorithm: 'ES256' }
-        )
-        console.info()
-        console.info('License Details:')
-        console.info(JSON.stringify(licenseDetails, ' ', 4))
-        console.info('License:')
-        console.info('---')
-        console.info(licenseText)
-        console.info('---')
-    } catch (err) {
-        if (err.code === 'ERR_OSSL_EVP_BAD_DECRYPT') {
-            console.warn('Error generating license: bad passphrase')
-        } else if (err.code === 'TIMEDOUT') {
-            // Ctrl-C.. exit quietly
-        } else {
-            console.warn(err)
-        }
-    }
+        .catch(err => {
+            console.info(err)
+        })
 })()
