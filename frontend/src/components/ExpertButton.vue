@@ -57,7 +57,7 @@ export default {
             return this.isAiEnabled && !this.isExpertDrawerOpen
         },
         showMcpToggle () {
-            return this.isAiEnabled && this.featuresCheck.isMcpThirdPartyEnabled
+            return this.isAiEnabled && this.featuresCheck.isMcpThirdPartyFeatureEnabled
         }
     },
     watch: {
