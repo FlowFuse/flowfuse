@@ -16,11 +16,17 @@ export type BinaryPayload = Buffer | Uint8Array | ArrayBuffer
 export type MqttPayload = string | BinaryPayload | Record<string, unknown> | unknown[]
 export type MqttSubscribeOptions = Partial<IClientSubscribeOptions>
 
+export interface MqttWill {
+    topic: string
+    payload: string
+}
+
 export interface MqttCredentials {
     url: string
     username: string
     password: string
     clientId?: string
+    will?: MqttWill
 }
 
 export type MqttCredentialProvider = () => Promise<MqttCredentials>
