@@ -14,13 +14,6 @@ function expandStateGroups (groups) {
     return groups.flatMap((group) => STATE_GROUPS[group])
 }
 
-// Audit-log routes accept cursor+limit pagination, free-text query, event
-// (single name or array) and username. scope narrows which entity levels are
-// returned; includeChildren pulls in descendant entries within the chosen scope.
-const includeChildren = z.boolean().optional().describe('Also include audit entries from child entities within the chosen scope')
-const auditLogInput = { ...basePagination, ...searchQuery, ...auditLogFilters }
-const auditLogKeys = [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys]
-
 module.exports = [
     {
         name: 'platform_list_hosted_instances',
@@ -28,15 +21,14 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Lists hosted instances, either across a whole team or narrowed down to one application.
             A hosted instance is a Node-RED that runs on the same environment as the FlowFuse platform.
-            Pass applicationId to list only the instances inside one application (unpaginated, no live status unless includeLiveStatus is set).
-            Omit applicationId to list every hosted instance in the team (paginated with page/limit, each result includes its instance type, stack, and template).
+            Provide exactly one scope: applicationId to list the instances inside one application (unpaginated, no live status unless includeLiveStatus is set), or teamId to list every hosted instance in the team (paginated with page/limit, each result includes its instance type, stack, and template). Passing both, or neither, is rejected.
             Use state to filter by high-level status group ("running", "error", or "notRunning", the same groups as the dashboard's Running/Error/Not Running filter).
             Set includeLiveStatus to true to also fetch each instance's real-time running state (running, stopped, deploying, etc) - this is slower since it queries the underlying containers, so only set it when the user actually needs to know what's happening right now.
             To read the full settings of one specific instance, call platform_get_hosted_instance with its ID.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            teamId,
-            applicationId: applicationId.optional().describe('Restrict results to hosted instances inside this application. Omit to list every hosted instance in the team.'),
+            teamId: teamId.optional().describe('List every hosted instance in this team. Provide either this or applicationId, not both.'),
+            applicationId: applicationId.optional().describe('List only the hosted instances inside this application. Provide either this or teamId, not both.'),
             query: searchQuery.query.describe('Search hosted instances by name'),
             state: z.array(z.enum(['running', 'error', 'notRunning'])).optional()
                 .describe('Filter by high-level status group, matching the dashboard\'s own status filter: "running" (includes starting/warning/deploying-type states), "error" (error/crashed), "notRunning" (stopped/suspended/offline/unknown, i.e. "Not Running" in the dashboard - note this is broader than just the "stopped" state). Team-wide, this filters on the last-known cached state. Scoped to an application, this requires a live status fetch, so it is applied after fetching (implies includeLiveStatus).'),
@@ -49,7 +41,35 @@ module.exports = [
             orderByMostRecentFlows: z.boolean().optional().describe('Order the team-wide list by most recently updated flows (ignored when applicationId is set, and only applied when includeLiveStatus is also set)')
         },
         handler: async (args, { inject }) => {
+            if (args.teamId && args.applicationId) {
+                return {
+                    statusCode: 400,
+                    json: () => ({
+                        code: 'invalid_request',
+                        error: 'Provide either teamId to list a whole team or applicationId to list a single application, not both.'
+                    })
+                }
+            }
+            if (!args.teamId && !args.applicationId) {
+                return {
+                    statusCode: 400,
+                    json: () => ({
+                        code: 'invalid_request',
+                        error: 'Provide teamId to list a whole team, or applicationId to list a single application.'
+                    })
+                }
+            }
             if (args.applicationId) {
+                const teamOnly = ['sort', 'dir', 'orderByMostRecentFlows'].filter((key) => args[key] !== undefined)
+                if (teamOnly.length > 0) {
+                    return {
+                        statusCode: 400,
+                        json: () => ({
+                            code: 'invalid_request',
+                            error: `${teamOnly.join(', ')} can only be used when listing across a whole team. Drop applicationId to sort the team-wide list, or remove these parameters to list this application.`
+                        })
+                    }
+                }
                 return listApplicationHostedInstances(args, { inject })
             }
             return listTeamHostedInstances(args, { inject })
@@ -174,8 +194,8 @@ module.exports = [
         }
     },
     {
-        name: 'platform_get_instance_config',
-        title: 'Get Instance Configuration',
+        name: 'platform_get_hosted_instance_config',
+        title: 'Get Hosted Instance Configuration',
         description: `FlowFuse platform automation tool:
             Returns configuration sections for a hosted instance, as a keyed object with one entry per requested section.
             The available sections are:
@@ -203,15 +223,16 @@ module.exports = [
                 const response = responses[index]
                 result[section] = { statusCode: response.statusCode, data: response.json() }
             })
+            const anySucceeded = requested.some((section) => result[section].statusCode < 400)
             return {
-                statusCode: 200,
+                statusCode: anySucceeded ? 200 : result[requested[0]].statusCode,
                 json: () => result
             }
         }
     },
     {
-        name: 'platform_get_instance_custom_hostname',
-        title: 'Get Instance Custom Hostname',
+        name: 'platform_get_hosted_instance_custom_hostname',
+        title: 'Get Hosted Instance Custom Hostname',
         description: `FlowFuse platform automation tool:
             Returns the custom hostname configured for a hosted instance.
             Custom hostnames are a plan-gated feature: a team without it enabled gets a 404 error.
@@ -238,38 +259,21 @@ module.exports = [
         }
     },
     {
-        name: 'platform_list_instance_files',
-        title: 'List Instance Files',
+        name: 'platform_list_hosted_instance_files',
+        title: 'List Hosted Instance Files',
         description: `FlowFuse platform automation tool:
-            Lists files and directories within a hosted instance file store at the given path.
-            Use an empty string for the path to list the root of the file store.
+            Lists the files and directories inside a hosted instance's file store at the given path.
+            Pass an empty string for the path to list the root of the file store.
+            The result has a "files" array, where each entry has a "name" (relative to the path just listed, not a full path) and a "type" of either "file" or "directory".
+            To descend into a directory, call again with path set to that directory's name, or joined onto the current path with a "/" separator when you are already in a subdirectory (for example "logs" then "logs/archive").
             Static file storage is a plan-gated feature: a team without it enabled gets a 404 error.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             hostedInstanceId,
-            path: z.string().describe('Directory path within the instance file store to list')
+            path: z.string().describe('Directory path within the instance file store to list, relative to the file-store root (empty string for the root itself). Build deeper paths by joining directory names with "/".')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/files/_/${encodeURIComponent(args.path)}` })
-            return response
-        }
-    },
-    {
-        name: 'platform_list_instance_http_tokens',
-        title: 'List Instance HTTP Tokens',
-        description: `FlowFuse platform automation tool:
-            Lists the HTTP bearer tokens configured for an instance, either a hosted instance or a remote instance (device).
-            These tokens are used by external callers to authenticate HTTP requests handled by the
-            instance's Node-RED flows.
-            HTTP bearer tokens are a plan-gated feature: a team without it enabled gets a 404 error.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
-            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")')
-        },
-        handler: async (args, { inject }) => {
-            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
-            const response = await inject({ method: 'GET', url: `/api/v1/${base}/${args.instanceId}/httpTokens` })
             return response
         }
     },
@@ -279,36 +283,21 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Reads the audit log for a hosted instance, showing events like deployments, restarts,
             settings changes, and other actions taken against that instance.
-            Use this when the user wants to know what has happened to a specific hosted instance.`,
+            Use this when the user wants to know what has happened to a specific hosted instance.
+            By default only the instance's own ("project") entries are returned; set scope to "device" to read the entries for its assigned devices instead, and set includeChildren to also include entries from child entities within the chosen scope.
+            Results are cursor-paginated and can be narrowed with query, event and username.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             hostedInstanceId,
-            ...auditLogInput,
-            scope: z.enum(['project', 'device']).optional().describe('Entity level to include (default project)'),
-            includeChildren
+            ...basePagination,
+            ...searchQuery,
+            ...auditLogFilters,
+            scope: z.enum(['project', 'device']).optional().describe('Entity level to read entries for: "project" (the instance itself, the default) or "device" (its assigned devices)'),
+            includeChildren: z.boolean().optional().describe('Also include audit entries from child entities within the chosen scope')
         },
         handler: async (args, { inject }) => {
-            const url = appendQuery(`/api/v1/projects/${args.hostedInstanceId}/audit-log`, args, [...auditLogKeys, 'scope', 'includeChildren'])
-            const response = await inject({ method: 'GET', url })
-            return response
-        }
-    },
-    {
-        name: 'platform_get_instance_history',
-        title: 'Get Instance History',
-        description: `FlowFuse platform automation tool:
-            Reads a timeline of changes made to an instance over time, for either a hosted instance or a remote instance (device).
-            This is plan-gated on the projectHistory feature, which defaults to enabled; if the team's plan has this feature disabled, the call returns a not-found error.
-            Use this when the user wants a chronological view of what changed on an instance.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
-            instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
-            ...basePagination
-        },
-        handler: async (args, { inject }) => {
-            const base = args.instanceType === 'remote' ? 'devices' : 'projects'
-            const url = appendQuery(`/api/v1/${base}/${args.instanceId}/history`, args, basePaginationKeys)
+            const keys = [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys, 'scope', 'includeChildren']
+            const url = appendQuery(`/api/v1/projects/${args.hostedInstanceId}/audit-log`, args, keys)
             const response = await inject({ method: 'GET', url })
             return response
         }

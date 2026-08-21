@@ -17,7 +17,32 @@ describe('MCP Instances Tools', function () {
     describe('platform_list_hosted_instances', function () {
         const tool = getTool('platform_list_hosted_instances')
 
+        it('requires either teamId or applicationId', async function () {
+            const response = await tool.handler({}, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
+        it('rejects passing both teamId and applicationId', async function () {
+            const response = await tool.handler({ teamId: 'team1', applicationId: 'app1' }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+        })
+
         describe('scoped to an application', function () {
+            it('rejects team-only sort params without calling the endpoint', async function () {
+                const response = await tool.handler({ applicationId: 'app1', sort: 'name', orderByMostRecentFlows: true }, { inject })
+
+                inject.called.should.be.false()
+                response.statusCode.should.equal(400)
+                response.json().code.should.equal('invalid_request')
+                response.json().error.should.match(/sort, orderByMostRecentFlows/)
+            })
+
             it('lists instances without live status by default', async function () {
                 inject.withArgs({ method: 'GET', url: '/api/v1/applications/app1/instances' }).resolves({
                     statusCode: 200,
@@ -30,7 +55,7 @@ describe('MCP Instances Tools', function () {
                     })
                 })
 
-                const response = await tool.handler({ teamId: 'team1', applicationId: 'app1' }, { inject })
+                const response = await tool.handler({ applicationId: 'app1' }, { inject })
 
                 inject.calledOnce.should.be.true()
                 response.statusCode.should.equal(200)
@@ -55,7 +80,7 @@ describe('MCP Instances Tools', function () {
                     })
                 })
 
-                const response = await tool.handler({ teamId: 'team1', applicationId: 'app1', query: 'prod' }, { inject })
+                const response = await tool.handler({ applicationId: 'app1', query: 'prod' }, { inject })
 
                 response.json().instances.should.have.length(1)
                 response.json().instances[0].id.should.equal('instance1')
@@ -77,7 +102,7 @@ describe('MCP Instances Tools', function () {
                     })
                 })
 
-                const response = await tool.handler({ teamId: 'team1', applicationId: 'app1', includeLiveStatus: true }, { inject })
+                const response = await tool.handler({ applicationId: 'app1', includeLiveStatus: true }, { inject })
 
                 inject.calledTwice.should.be.true()
                 response.json().instances[0].state.should.equal('running')
@@ -105,7 +130,7 @@ describe('MCP Instances Tools', function () {
                     })
                 })
 
-                const response = await tool.handler({ teamId: 'team1', applicationId: 'app1', state: ['running'] }, { inject })
+                const response = await tool.handler({ applicationId: 'app1', state: ['running'] }, { inject })
 
                 inject.calledTwice.should.be.true()
                 response.json().instances.should.have.length(1)
@@ -116,7 +141,7 @@ describe('MCP Instances Tools', function () {
                 const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
                 inject.withArgs({ method: 'GET', url: '/api/v1/applications/app1/instances' }).resolves(errorResponse)
 
-                const response = await tool.handler({ teamId: 'team1', applicationId: 'app1' }, { inject })
+                const response = await tool.handler({ applicationId: 'app1' }, { inject })
                 response.should.equal(errorResponse)
             })
 
@@ -128,7 +153,7 @@ describe('MCP Instances Tools', function () {
                 const errorResponse = { statusCode: 500, json: () => ({ code: 'unexpected_error' }) }
                 inject.withArgs({ method: 'GET', url: '/api/v1/applications/app1/instances/status' }).resolves(errorResponse)
 
-                const response = await tool.handler({ teamId: 'team1', applicationId: 'app1', includeLiveStatus: true }, { inject })
+                const response = await tool.handler({ applicationId: 'app1', includeLiveStatus: true }, { inject })
                 response.should.equal(errorResponse)
             })
         })
@@ -267,8 +292,8 @@ describe('MCP Instances Tools', function () {
         })
     })
 
-    describe('platform_get_instance_config', function () {
-        const tool = getTool('platform_get_instance_config')
+    describe('platform_get_hosted_instance_config', function () {
+        const tool = getTool('platform_get_hosted_instance_config')
 
         it('fetches all three sections and keys them when sections is omitted', async function () {
             inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/ha` }).resolves({ statusCode: 200, json: () => ({ replicas: 2 }) })
@@ -303,10 +328,28 @@ describe('MCP Instances Tools', function () {
             inject.calledOnce.should.be.true()
             response.json().should.eql({ ha: { statusCode: 200, data: { replicas: 3 } } })
         })
+
+        it('reports success when at least one requested section was returned', async function () {
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/ha` }).resolves({ statusCode: 404, json: () => ({ code: 'not_found' }) })
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/protectInstance` }).resolves({ statusCode: 200, json: () => ({ enabled: true }) })
+
+            const response = await tool.handler({ hostedInstanceId: instanceId, sections: ['ha', 'protection'] }, { inject })
+
+            response.statusCode.should.equal(200)
+        })
+
+        it('reports the failure status when every requested section failed', async function () {
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/ha` }).resolves({ statusCode: 404, json: () => ({ code: 'not_found' }) })
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/protectInstance` }).resolves({ statusCode: 404, json: () => ({ code: 'not_found' }) })
+
+            const response = await tool.handler({ hostedInstanceId: instanceId, sections: ['ha', 'protection'] }, { inject })
+
+            response.statusCode.should.equal(404)
+        })
     })
 
-    describe('platform_get_instance_custom_hostname', function () {
-        const tool = getTool('platform_get_instance_custom_hostname')
+    describe('platform_get_hosted_instance_custom_hostname', function () {
+        const tool = getTool('platform_get_hosted_instance_custom_hostname')
 
         it('returns the custom hostname response directly without includeStatus', async function () {
             const routeResponse = { statusCode: 200, json: () => ({ hostname: 'my.example.com' }) }
@@ -332,32 +375,8 @@ describe('MCP Instances Tools', function () {
         })
     })
 
-    describe('platform_list_instance_http_tokens', function () {
-        const tool = getTool('platform_list_instance_http_tokens')
-
-        it('lists hosted instance HTTP tokens via the projects route', async function () {
-            const routeResponse = { statusCode: 200, json: () => ({ tokens: [] }) }
-            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/httpTokens` }).resolves(routeResponse)
-
-            const response = await tool.handler({ instanceId, instanceType: 'hosted' }, { inject })
-
-            inject.calledOnce.should.be.true()
-            response.should.equal(routeResponse)
-        })
-
-        it('lists remote instance HTTP tokens via the devices route', async function () {
-            const routeResponse = { statusCode: 200, json: () => ({ tokens: [] }) }
-            inject.withArgs({ method: 'GET', url: '/api/v1/devices/device1/httpTokens' }).resolves(routeResponse)
-
-            const response = await tool.handler({ instanceId: 'device1', instanceType: 'remote' }, { inject })
-
-            inject.calledOnce.should.be.true()
-            response.should.equal(routeResponse)
-        })
-    })
-
-    describe('platform_list_instance_files', function () {
-        const tool = getTool('platform_list_instance_files')
+    describe('platform_list_hosted_instance_files', function () {
+        const tool = getTool('platform_list_hosted_instance_files')
 
         it('lists the file-store root for an empty path', async function () {
             const url = `/api/v1/projects/${instanceId}/files/_/`
@@ -407,26 +426,6 @@ describe('MCP Instances Tools', function () {
                 `/api/v1/projects/${instanceId}/audit-log` +
                 '?cursor=abc&limit=20&query=deploy&event=project.created&event=flows.deployed&username=alice&scope=device&includeChildren=true'
             )
-        })
-    })
-
-    describe('platform_get_instance_history', function () {
-        const tool = getTool('platform_get_instance_history')
-
-        it('serialises cursor and limit onto the hosted instance history route', async function () {
-            inject.resolves({ statusCode: 200, json: () => ({ timeline: [] }) })
-
-            await tool.handler({ instanceId, instanceType: 'hosted', cursor: 'c1', limit: 5 }, { inject })
-
-            inject.firstCall.args[0].url.should.equal(`/api/v1/projects/${instanceId}/history?cursor=c1&limit=5`)
-        })
-
-        it('reads remote instance history via the devices route', async function () {
-            inject.resolves({ statusCode: 200, json: () => ({ timeline: [] }) })
-
-            await tool.handler({ instanceId: 'device1', instanceType: 'remote', limit: 5 }, { inject })
-
-            inject.firstCall.args[0].url.should.equal('/api/v1/devices/device1/history?limit=5')
         })
     })
 
