@@ -249,66 +249,6 @@ describe('MCP Devices Tools', function () {
         })
     })
 
-    describe('platform_get_remote_instance_audit_log', function () {
-        const tool = getTool('platform_get_remote_instance_audit_log')
-
-        it('injects the audit-log route with no query string when no filters are set', async function () {
-            const routeResponse = { statusCode: 200, json: () => ({ log: [] }) }
-            inject.withArgs({ method: 'GET', url: `/api/v1/devices/${remoteInstanceId}/audit-log` }).resolves(routeResponse)
-
-            const response = await tool.handler({ remoteInstanceId }, { inject })
-
-            inject.calledOnce.should.be.true()
-            response.should.equal(routeResponse)
-        })
-
-        it('serialises cursor, limit, query, an event array and username', async function () {
-            inject.resolves({ statusCode: 200, json: () => ({ log: [] }) })
-
-            await tool.handler({
-                remoteInstanceId,
-                cursor: 'abc',
-                limit: 20,
-                query: 'deploy',
-                event: ['device.updated', 'flows.deployed'],
-                username: 'alice'
-            }, { inject })
-
-            inject.firstCall.args[0].url.should.equal(
-                `/api/v1/devices/${remoteInstanceId}/audit-log` +
-                '?cursor=abc&limit=20&query=deploy&event=device.updated&event=flows.deployed&username=alice'
-            )
-        })
-
-        it('exports to the /audit-log/export route when format is csv', async function () {
-            inject.resolves({ statusCode: 200, json: () => ({}) })
-
-            await tool.handler({ remoteInstanceId, format: 'csv', event: 'device.updated', username: 'alice' }, { inject })
-
-            inject.firstCall.args[0].url.should.equal(
-                `/api/v1/devices/${remoteInstanceId}/audit-log/export?event=device.updated&username=alice`
-            )
-        })
-
-        it('reads the /audit-log route when format is json', async function () {
-            inject.resolves({ statusCode: 200, json: () => ({ log: [] }) })
-
-            await tool.handler({ remoteInstanceId, format: 'json', event: 'device.updated' }, { inject })
-
-            inject.firstCall.args[0].url.should.equal(
-                `/api/v1/devices/${remoteInstanceId}/audit-log?event=device.updated`
-            )
-        })
-
-        it('passes through an error response', async function () {
-            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
-            inject.resolves(errorResponse)
-
-            const response = await tool.handler({ remoteInstanceId }, { inject })
-            response.should.equal(errorResponse)
-        })
-    })
-
     describe('platform_list_team_provisioning_tokens', function () {
         const tool = getTool('platform_list_team_provisioning_tokens')
 

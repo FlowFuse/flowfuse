@@ -1,12 +1,6 @@
 const { z } = require('zod')
 
-const { teamId, remoteInstanceId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery } = require('../schemas')
-
-// Audit-log routes accept cursor+limit pagination, free-text query, event
-// (single name or array) and username. The device audit-log route has no scope
-// parameter, so these tools only compose the base audit-log fragments.
-const auditLogInput = { ...basePagination, ...searchQuery, ...auditLogFilters }
-const auditLogKeys = [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys]
+const { teamId } = require('../schemas')
 
 module.exports = [
     {
@@ -195,27 +189,6 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}`, payload: { application: args.applicationId } })
-            return response
-        }
-    },
-    {
-        name: 'platform_get_remote_instance_audit_log',
-        title: 'Get Remote Instance Audit Log',
-        description: `FlowFuse platform automation tool:
-            Reads the audit log for a remote instance/device, showing events like connection changes,
-            deployments, and configuration changes for that device.
-            Use this when the user wants to know what has happened to a specific remote instance.
-            Set format to "csv" to export the log as a downloadable file instead of reading entries directly.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            remoteInstanceId,
-            ...auditLogInput,
-            format: z.enum(['json', 'csv']).optional().describe('Output format. "json" (default) reads entries directly; "csv" exports the log as a downloadable CSV file.')
-        },
-        handler: async (args, { inject }) => {
-            const suffix = args.format === 'csv' ? '/audit-log/export' : '/audit-log'
-            const url = appendQuery(`/api/v1/devices/${args.remoteInstanceId}${suffix}`, args, auditLogKeys)
-            const response = await inject({ method: 'GET', url })
             return response
         }
     },
