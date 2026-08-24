@@ -1,11 +1,12 @@
 const fp = require('fastify-plugin')
 
 const ACLManager = require('./aclManager')
-const { BrowserSessionPresenceHandler } = require('./browserSessionPresence')
+const { BrowserSessionLifecycleHandler } = require('./browserSessionLifecycle')
 const { CommsClient } = require('./commsClient')
 const { DeviceCommsHandler } = require('./devices')
 const { ExpertCommsHandler } = require('./expert')
 const { InstanceCommsHandler } = require('./instances')
+const { McpGatewayHandler } = require('./mcpGateway')
 const { PlatformAutomationHandler } = require('./platformAutomation.js')
 
 /**
@@ -37,7 +38,10 @@ module.exports = fp(async function (app, _opts) {
         const instanceCommsHandler = InstanceCommsHandler(app, client)
         const platformAutomationHandler = PlatformAutomationHandler(app, client)
         const expertCommsHandler = new ExpertCommsHandler(app, client)
-        const browserSessionPresenceHandler = BrowserSessionPresenceHandler(app, client)
+        const mcpGatewayHandler = McpGatewayHandler(app, client)
+        // Owns the browser session topic and dispatches its events. Presence is one
+        // consumer of that; anything else needing per-session teardown joins it there.
+        BrowserSessionLifecycleHandler(app, client)
 
         // Not in the current release, but when we handle Launcher status
         // via MQTT, it will arrive here. Compare to the status/device handler in `devices.js`
@@ -47,12 +51,13 @@ module.exports = fp(async function (app, _opts) {
 
         // Setup the platform API for the comms component
         app.decorate('comms', {
+            id: client.platformId,
             devices: deviceCommsHandler,
             instances: instanceCommsHandler,
             aclManager: ACLManager(app),
             platformAutomation: platformAutomationHandler,
             expert: expertCommsHandler,
-            browserSessions: browserSessionPresenceHandler,
+            mcpGateway: mcpGatewayHandler,
             platform: {
                 settings: {
                     sync: function (key) {

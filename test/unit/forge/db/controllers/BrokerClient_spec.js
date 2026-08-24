@@ -171,6 +171,19 @@ describe('BrokerClient', function () {
             findOneArgs.should.have.property('where')
             findOneArgs.where.should.have.property('username', `fe-team:${user.hashid}:${team.hashid}:tab-A`)
         })
+        it('should include a last will that clears the tab presence entry', async function () {
+            app.db.models.BrokerClient.findOne.resolves(null)
+            app.db.models.BrokerClient.create.resolves(fakeBrokerClient())
+            const user = { id: 7, hashid: 'userHash' }
+            const team = { id: 11, hashid: 'teamHash' }
+            const sessionId = 'tab-1234567890'
+            const result = await BrokerClient.createClientForTeamFrontend(app, user, team, sessionId)
+            should(result).have.property('will')
+            should(result.will).have.property('topic', `ff/v1/${team.hashid}/u/${user.hashid}/s/${sessionId}/disconnected`)
+            // The comms client drops a will payload it cannot JSON.parse
+            should.doesNotThrow(() => JSON.parse(result.will.payload))
+        })
+
         it('should return null if app.comms is not available', async function () {
             app.comms = null
             const result = await BrokerClient.createClientForTeamFrontend(app, { id: 7, hashid: 'userHash' }, { id: 11, hashid: 'teamHash' }, 'tab-1234567890')

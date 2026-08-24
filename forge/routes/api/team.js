@@ -976,7 +976,14 @@ module.exports = async function (app) {
                     properties: {
                         url: { type: 'string' },
                         username: { type: 'string' },
-                        password: { type: 'string' }
+                        password: { type: 'string' },
+                        will: {
+                            type: 'object',
+                            properties: {
+                                topic: { type: 'string' },
+                                payload: { type: 'string' }
+                            }
+                        }
                     }
                 },
                 '4xx': {
