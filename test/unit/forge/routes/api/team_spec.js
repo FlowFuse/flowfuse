@@ -1667,6 +1667,23 @@ describe('Team API', function () {
             result.password.should.match(/^ffbtf_/)
             result.should.have.property('url')
         })
+        it('issues a last will on the session disconnect topic', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                payload: { sessionId: 'tab-1234567890' },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            // Guards the response schema as much as the controller: an undeclared
+            // property would be silently stripped on serialization.
+            result.should.have.property('will')
+            result.will.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.bob.hashid}/s/tab-1234567890/disconnected`)
+            // The comms client discards a will it cannot JSON.parse
+            result.will.should.have.property('payload')
+            should.doesNotThrow(() => JSON.parse(result.will.payload))
+        })
         it('rejects a non-member with 404', async function () {
             const response = await app.inject({
                 method: 'POST',

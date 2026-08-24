@@ -52,41 +52,6 @@ const IMPLICIT_TOKEN_SCOPES = {
         'broker:clients:list',
         'broker:clients:link',
         'assistant:call' // permit access to assistant
-    ],
-    'user:expert-mcp': [
-        // applications
-        'team:projects:list', // list applications, list hosted instances, get instances status
-        'project:read', // get application details
-        'team:device:list', // list application remote instances
-        'application:audit-log', // get application audit log
-        // devices
-        'device:read', // get remote instance details
-        'device:create', // create remote instance
-        'device:edit', // assign remote instance to application
-        // hosted instances
-        'project:create', // create application, create hosted instance, check instance name
-        'project-type:read',
-        'project-type:list',
-        'project:log', // get hosted instance logs
-        // snapshots
-        'project:snapshot:list', // list hosted instance snapshots
-        'project:snapshot:create', // create hosted instance snapshot
-        'device:snapshot:list', // list remote instance snapshots
-        'device:snapshot:create', // create remote instance snapshot
-        // teams
-        'user:team:list', // list teams
-        'team:read', // get team details
-        // tables
-        'team:database:list', // list/get databases, list/get tables, query table data
-        // platform
-        'stack:list',
-        'flow-blueprint:list',
-        'project:status',
-        'template:list',
-        // pipelines
-        'team:pipeline:list', // list team pipelines
-        'application:pipeline:list', // list application pipelines
-        'pipeline:read' // get pipeline stage details
     ]
 }
 
