@@ -529,13 +529,24 @@ class MqttService extends BaseService implements MqttServiceI {
             throw new Error('MQTT client module is unavailable')
         }
 
+        // The will is issued alongside the credentials, so it survives whichever
+        // publisher or subscriber happens to open the connection first. The broker
+        // publishes it if this client goes away without a clean disconnect.
         const client = mqttModule.connect(credentials.url, {
             username: credentials.username,
             password: credentials.password,
             clientId: credentials.clientId,
             reconnectPeriod: 0,
             protocolVersion: 5,
-            keepalive: 45
+            keepalive: 45,
+            ...(credentials.will && {
+                will: {
+                    topic: credentials.will.topic,
+                    payload: credentials.will.payload,
+                    qos: 1,
+                    retain: false
+                }
+            })
         })
 
         managed.client = client
