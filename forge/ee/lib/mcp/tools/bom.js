@@ -2,11 +2,11 @@ const { teamId, applicationId } = require('../schemas')
 
 module.exports = [
     {
-        name: 'platform_get_team_bom',
+        name: 'platform_get_team_bill_of_materials',
         title: 'Get Team Bill of Materials',
         description: `FlowFuse platform automation tool:
-            Reads the bill of materials for a team: the applications, instances, and their
-            dependencies across the team. This is plan-gated on the bom feature, which defaults
+            Reads the bill of materials for a team: the applications, hosted and remote instances,
+            and their dependencies across the team. This is a team level gated feature which defaults
             to disabled; when disabled for the team the request returns a "Feature not enabled" error.
             Results include only the applications you have access to.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
@@ -19,12 +19,12 @@ module.exports = [
         }
     },
     {
-        name: 'platform_get_application_bom',
+        name: 'platform_get_application_bill_of_materials',
         title: 'Get Application Bill of Materials',
         description: `FlowFuse platform automation tool:
-            Reads the bill of materials for a single application: its instances and their dependencies.
-            This is plan-gated on the bom feature, which defaults to disabled; when the team's plan
-            has this feature disabled the request returns a "Feature not enabled" error.`,
+            Reads the bill of materials for a single application: its hosted and remote instances
+            and their dependencies. This is a team level gated feature which defaults to disabled;
+            when disabled for the team the request returns a "Feature not enabled" error.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             applicationId

@@ -14,8 +14,8 @@ describe('MCP Bill of Materials Tools', function () {
         inject = sinon.stub()
     })
 
-    describe('platform_get_team_bom', function () {
-        const tool = getTool('platform_get_team_bom')
+    describe('platform_get_team_bill_of_materials', function () {
+        const tool = getTool('platform_get_team_bill_of_materials')
 
         it('injects the team bom route and returns the response', async function () {
             const routeResponse = { statusCode: 200, json: () => ([]) }
@@ -36,8 +36,8 @@ describe('MCP Bill of Materials Tools', function () {
         })
     })
 
-    describe('platform_get_application_bom', function () {
-        const tool = getTool('platform_get_application_bom')
+    describe('platform_get_application_bill_of_materials', function () {
+        const tool = getTool('platform_get_application_bill_of_materials')
 
         it('injects the application bom route and returns the response', async function () {
             const routeResponse = { statusCode: 200, json: () => ({}) }
