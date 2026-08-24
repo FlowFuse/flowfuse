@@ -8,8 +8,6 @@ async function commonFeatures (app, opts) {
     app.config.features.register('mfa', true, true)
     // Set the Project History timeline Feature Flag
     app.config.features.register('projectHistory', true, true)
-    // Set the Bill of Materials Feature Flag
-    app.config.features.register('bom', true, true)
     if (app.config.npmRegistry?.enabled) {
         // Set npm Feature Flag
         app.config.features.register('npm', true, true)
@@ -79,6 +77,8 @@ module.exports = fp(async function (app, opts) {
 
             // Set the Device Groups Feature Flag
             app.config.features.register('deviceGroups', true, true)
+            // Set the Bill of Materials Feature Flag
+            app.config.features.register('bom', true, true)
         } else {
             // old "Pro" license
         }
@@ -93,6 +93,8 @@ module.exports = fp(async function (app, opts) {
             require('./protectedInstance').init(app)
             // Git Opps
             app.decorate('gitops', await require('./gitops').init(app))
+            // Set the Bill of Materials Feature Flag
+            app.config.features.register('bom', true, true)
         } else if (tiers.includes('edge') || tiers.includes('fleet')) {
             await commonFeatures(app, opts)
             // Set the Device Groups Feature Flag
