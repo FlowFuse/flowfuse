@@ -75,6 +75,15 @@ describe('Settings API', function () {
     })
     describe('Telemetry Setting', function () {
         const TELEMETRY_KEY = 'telemetry:enabled'
+        let originalTelemetryEnabled
+        before(function () {
+            // The harness disables telemetry in yml; re-enable it so these cases exercise the DB toggle.
+            originalTelemetryEnabled = app.config.telemetry.enabled
+            app.config.telemetry.enabled = true
+        })
+        after(function () {
+            app.config.telemetry.enabled = originalTelemetryEnabled
+        })
         it('Non-admin user cannot modify settings', async function () {
             const result = await app.inject({
                 method: 'PUT',
@@ -145,6 +154,19 @@ describe('Settings API', function () {
             response.statusCode.should.equal(200)
             const settings = response.json()
             settings.should.have.property(TELEMETRY_KEY, true)
+        })
+        it('Exposes telemetry as on for a licensed install even when disabled in yml', async function () {
+            // A licence (left applied by the test above) forces the exposed value on, so the yml opt-out cannot turn it off.
+            app.config.telemetry.enabled = false
+            await app.settings.set(TELEMETRY_KEY, false)
+            const response = await app.inject({
+                method: 'GET',
+                url: settingsURL,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            response.json().should.have.property(TELEMETRY_KEY, true)
+            app.config.telemetry.enabled = true
         })
     })
     describe('License Status', function () {

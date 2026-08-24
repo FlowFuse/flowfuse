@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 
 // account-auth.js imports routes.js which loads the full Vue component tree
@@ -369,6 +370,20 @@ describe('context store', () => {
                 const expert = store.expert
                 expect(expert.teamId).toBe('team-42')
                 expect(expert.teamSlug).toBe('my-team')
+            })
+
+            it('sets telemetryEnabled from the platform setting', () => {
+                const store = useContextStore()
+                const settingsStore = useAccountSettingsStore()
+                settingsStore.settings = { 'telemetry:enabled': true }
+                expect(store.expert.telemetryEnabled).toBe(true)
+                settingsStore.settings = { 'telemetry:enabled': false }
+                expect(store.expert.telemetryEnabled).toBe(false)
+            })
+
+            it('defaults telemetryEnabled to false when the setting is unavailable', () => {
+                const store = useContextStore()
+                expect(store.expert.telemetryEnabled).toBe(false)
             })
 
             it('resolves applicationId for a device owned directly by an application', () => {
