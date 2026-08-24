@@ -2,7 +2,7 @@
 
 <template>
     <ff-layout-box class="ff-signup ff--center-box">
-        <template v-if="splash" #splash-content>
+        <template v-if="splash && !isPopup" #splash-content>
             <div data-el="splash" v-html="splash" />
         </template>
         <form v-if="!ssoCreated" id="ff-sign-up" class="max-w-md m-auto" @submit.prevent="registerUser()">
@@ -51,6 +51,7 @@
                         <SpinnerIcon v-if="busy || tooManyRequests" class="ff-icon ml-3 w-3.5!" />
                     </span>
                 </ff-button>
+                <GoogleLoginButton label="Sign up with Google" :disabled="busy" />
                 <p class="flex text-gray-400 font-light mt-6 gap-2 w-full justify-center">
                     Already registered? <a href="/" data-action="login">Log in here</a>
                 </p>
@@ -58,7 +59,7 @@
         </form>
         <div v-else-if="ssoCreated">
             <p>You can now login using your SSO Provider.</p>
-            <ff-button :to="{ name: 'Home' }" data-action="login">Login</ff-button>
+            <ff-button :to="{ name: 'home' }" data-action="login">Login</ff-button>
         </div>
     </ff-layout-box>
 </template>
@@ -70,8 +71,10 @@ import { useRoute } from 'vue-router'
 
 import userApi from '../../api/user.js'
 
+import GoogleLoginButton from '../../components/GoogleLoginButton.vue'
 import SpinnerIcon from '../../components/icons/Spinner.js'
 import FFLayoutBox from '../../layouts/Box.vue'
+import { handoffFromPopup, isPopupContext } from '../../utils/popupContext.js'
 
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
@@ -82,6 +85,7 @@ export default {
     name: 'AccountCreate',
     components: {
         'ff-layout-box': FFLayoutBox,
+        GoogleLoginButton,
         SpinnerIcon
     },
     data () {
@@ -127,6 +131,9 @@ export default {
         ...mapState(useAccountSettingsStore, ['settings']),
         splash () {
             return this.settings['branding:account:signUpLeftBanner']
+        },
+        isPopup () {
+            return isPopupContext(this.$route.query)
         },
         formValid () {
             return (this.input.email && !this.errors.email) &&
@@ -255,6 +262,10 @@ export default {
                 this.busy = false
                 if (window.gtag && this.settings.adwords?.events?.conversion) {
                     window.gtag('event', 'conversion', this.settings.adwords.events.conversion)
+                }
+                if (this.isPopup) {
+                    handoffFromPopup()
+                    return
                 }
                 if (!result.sso_enabled) {
                     useAccountAuthStore().setUser(result)

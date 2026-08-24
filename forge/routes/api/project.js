@@ -233,6 +233,12 @@ module.exports = async function (app) {
         const projectViewPromise = app.db.views.Project.project(project)
         const projectStatePromise = project.liveState()
 
+        if (app.comms?.team) {
+            const createdInstanceView = await app.db.views.Project.project(project, { includeSettings: false })
+            createdInstanceView.application = app.db.views.Application.applicationSummary(application)
+            app.comms.team.notifyEntityLifecycle(team.hashid, 'p', project.id, 'created', createdInstanceView)
+        }
+
         reply.send({ ...await projectViewPromise, ...await projectStatePromise })
     })
     /**
@@ -281,9 +287,16 @@ module.exports = async function (app) {
                 })
             }
 
+            const teamHash = request.project.Team?.hashid
+            const instanceId = request.project.id
+
             await request.project.destroy()
             await app.auditLog.Team.project.deleted(request.session.User, null, request.project.Team, request.project)
             await app.auditLog.Project.project.deleted(request.session.User, null, request.project.Team, request.project)
+
+            if (teamHash) {
+                app.comms?.team?.notifyEntityLifecycle(teamHash, 'p', instanceId, 'deleted')
+            }
             reply.send({ status: 'okay' })
         } catch (err) {
             reply.code(500).send({ code: 'unexpected_error', error: err.toString() })
@@ -361,9 +374,11 @@ module.exports = async function (app) {
             const options = request.body.sourceProject.options
             if (!sourceProject) {
                 reply.code(404).send('Source Project not found')
+                return
             }
             if (sourceProject.Team.id !== request.project.Team.id) {
                 reply.code(403).send('Source Project and Target not in same team')
+                return
             }
 
             await app.db.controllers.Project.setInflightState(request.project, 'importing')
@@ -602,6 +617,8 @@ module.exports = async function (app) {
             if (changesToProjectDefinition) {
                 await unSuspendProject(resumeProject, targetState)
             }
+
+            app.comms?.team?.notifyEntityLifecycle(request.project.Team.hashid, 'p', request.project.id, 'updated', await app.db.views.Project.project(request.project, { includeSettings: false }))
         } catch (error) {
             app.log.error('Error while updating project:')
             app.log.error(error)
@@ -1540,6 +1557,13 @@ module.exports = async function (app) {
                     code: 'not_found',
                     error: 'Snapshot not found'
                 })
+            } else {
+                if (targetSnapshot.ProjectId !== request.project.id) {
+                    return reply.code(404).send({
+                        code: 'not_found',
+                        error: 'Snapshot not found'
+                    })
+                }
             }
             break
         }

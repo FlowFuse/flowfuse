@@ -1,6 +1,6 @@
 const sleep = require('util').promisify(setTimeout)
 
-const should = require('should') // eslint-disable-line
+const should = require('should')
 const sinon = require('sinon')
 
 const { KEY_SETTINGS } = require('../../../../../forge/db/models/ProjectSettings')
@@ -650,6 +650,103 @@ describe('Team API', function () {
             const result = response.json()
             result.should.have.property('projects').and.be.an.Array()
             result.projects.should.have.a.property('length', 4)
+        })
+        it('Counts and returns instances missing their settings row', async function () {
+            const instances = await app.db.models.Project.byTeam(TestObjects.ATeam.hashid)
+            const victim = instances.find((p) => p.name === 'list-instance-1')
+            await app.db.models.ProjectSettings.destroy({ where: { ProjectId: victim.id, key: KEY_SETTINGS } })
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?page=1&limit=25`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.meta.should.have.property('total', 4)
+            result.projects.should.have.length(4)
+            result.projects.map((p) => p.name).should.containEql('list-instance-1')
+        })
+        it('Filters the project list by live state', async function () {
+            const warningInstance = await app.factory.createInstance(
+                { name: 'list-instance-warning' },
+                teamAApplication1,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            // Live state lives in a cache and must win over the `state` column:
+            // teamAInstance3 is crashed live, so it is excluded from a running-group query.
+            await app.db.controllers.Project.setLatestProjectState(warningInstance.id, 'warning')
+            await app.db.controllers.Project.setLatestProjectState(teamAInstance3.id, 'crashed')
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?state=warning&state=running`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            const names = result.projects.map((p) => p.name)
+            names.should.containEql('list-instance-warning')
+            names.should.not.containEql('list-instance-3')
+        })
+        it('Reflects the filtered total in pagination meta', async function () {
+            const makeWarning = async (name) => {
+                const instance = await app.factory.createInstance(
+                    { name }, teamAApplication1, app.stack, app.template, app.projectType, { start: false }
+                )
+                await app.db.controllers.Project.setLatestProjectState(instance.id, 'warning')
+                return instance
+            }
+            await makeWarning('list-instance-warn-1')
+            await makeWarning('list-instance-warn-2')
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?state=warning&page=1&limit=1`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            // total reflects the filtered set (2), not every project in the team
+            result.meta.should.have.property('total', 2)
+            result.projects.should.have.length(1)
+        })
+        it('Returns an empty filtered page when no instance matches the state', async function () {
+            // no instance has a live/column state of `warning` in a fresh test
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?state=warning&page=1&limit=25`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            result.projects.should.have.length(0)
+            result.meta.should.have.property('total', 0)
+        })
+        it('Filters by a single state value (coerced to an array)', async function () {
+            const warningInstance = await app.factory.createInstance(
+                { name: 'list-instance-warning-single' },
+                teamAApplication1,
+                app.stack,
+                app.template,
+                app.projectType,
+                { start: false }
+            )
+            await app.db.controllers.Project.setLatestProjectState(warningInstance.id, 'warning')
+
+            const response = await app.inject({
+                method: 'GET',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/projects?state=warning`,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            const names = result.projects.map((p) => p.name)
+            names.should.containEql('list-instance-warning-single')
+            names.should.not.containEql('list-instance-1')
         })
         it('RBAC filters team project list', async function () {
             // Create a user for RBAC testing
@@ -1569,6 +1666,23 @@ describe('Team API', function () {
             result.should.have.property('password')
             result.password.should.match(/^ffbtf_/)
             result.should.have.property('url')
+        })
+        it('issues a last will on the session disconnect topic', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: `/api/v1/teams/${TestObjects.ATeam.hashid}/comms-credentials`,
+                payload: { sessionId: 'tab-1234567890' },
+                cookies: { sid: TestObjects.tokens.bob }
+            })
+            response.statusCode.should.equal(200)
+            const result = response.json()
+            // Guards the response schema as much as the controller: an undeclared
+            // property would be silently stripped on serialization.
+            result.should.have.property('will')
+            result.will.should.have.property('topic', `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.bob.hashid}/s/tab-1234567890/disconnected`)
+            // The comms client discards a will it cannot JSON.parse
+            result.will.should.have.property('payload')
+            should.doesNotThrow(() => JSON.parse(result.will.payload))
         })
         it('rejects a non-member with 404', async function () {
             const response = await app.inject({

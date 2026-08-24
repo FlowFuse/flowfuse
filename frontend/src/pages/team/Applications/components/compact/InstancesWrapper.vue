@@ -6,7 +6,7 @@
         <div v-if="doesntHaveInstances" class="empty-message">
             <p>
                 This Application currently has no
-                <router-link :to="{name: 'ApplicationInstances', params: {team_slug: team.slug, id: application.id}}" class="ff-link">attached Hosted Instances</router-link>.
+                <router-link :to="{name: 'application-instances', params: {team_slug: team.slug, id: application.id}}" class="ff-link">attached Hosted Instances</router-link>.
             </p>
         </div>
         <div v-else class="items-wrapper">
@@ -38,16 +38,14 @@ export default {
     props: {
         application: {
             type: Object,
-            required: true,
-            default: null
+            required: true
         }
     },
     setup () {
-        const { groupBySimplifiedStates, statesMap: instanceStatesMap } = useInstanceStates()
+        const { groupBySimplifiedStates } = useInstanceStates()
 
         return {
-            groupBySimplifiedStates,
-            instanceStatesMap
+            groupBySimplifiedStates
         }
     },
     data () {
@@ -75,14 +73,10 @@ export default {
     },
     methods: {
         onCounterClick (state) {
-            const searchQuery = Object.prototype.hasOwnProperty.call(this.instanceStatesMap, state)
-                ? this.instanceStatesMap[state].join(' | ')
-                : ''
-
             this.$router.push({
-                name: 'ApplicationInstances',
+                name: 'application-instances',
                 params: { team_slug: this.team.slug, id: this.application.id },
-                query: { searchQuery }
+                query: { status: state }
             })
         }
     }

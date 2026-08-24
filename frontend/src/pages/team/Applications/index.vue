@@ -21,7 +21,7 @@
                         v-if="hasPermission('project:create')"
                         data-action="create-application"
                         kind="primary"
-                        :to="{name: 'CreateTeamApplication'}"
+                        :to="{name: 'team-application-create'}"
                         type="anchor"
                     >
                         <template #icon-left>
@@ -33,9 +33,7 @@
             </ff-page-header>
         </template>
         <div class="space-y-6">
-            <ff-loading v-if="loading" message="Loading Applications..." />
-
-            <template v-else-if="!loading && applications.size > 0">
+            <template v-if="teamApplications.length > 0">
                 <ff-text-input
                     v-model="filterTerm"
                     class="ff-data-table--search"
@@ -51,8 +49,8 @@
                             :key="application.id"
                             data-el="application-item"
                             :application="application"
-                            @instance-deleted="fetchData(false)"
-                            @device-deleted="fetchData(false)"
+                            @instance-deleted="refreshApplications"
+                            @device-deleted="refreshApplications"
                         />
                     </transition-group>
                 </ul>
@@ -79,7 +77,7 @@
                         data-action="create-application"
                         kind="primary"
                         type="anchor"
-                        :to="{name: 'CreateTeamApplication'}"
+                        :to="{name: 'team-application-create'}"
                     >
                         <template #icon-left>
                             <PlusSmallIcon />
@@ -103,15 +101,15 @@
 <script>
 import { MagnifyingGlassIcon, PlusSmallIcon } from '@heroicons/vue/24/outline'
 
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
-import teamApi from '../../../api/team.js'
 import EmptyState from '../../../components/EmptyState.vue'
 import usePermissions from '../../../composables/Permissions.js'
 
 import ApplicationListItem from './components/Application.vue'
 
-import { useContextStore } from '@/stores/context.js'
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
+import { useUxLoadingStore } from '@/stores/ux-loading.js'
 
 export default {
     name: 'TeamApplications',
@@ -128,8 +126,6 @@ export default {
     },
     data () {
         return {
-            loading: false,
-            applications: new Map(),
             columns: [
                 { label: 'Name', class: ['grow'], key: 'name', sortable: true }
             ],
@@ -138,54 +134,49 @@ export default {
         }
     },
     computed: {
-        ...mapState(useContextStore, ['team']),
-        applicationsList () {
-            return Array.from(this.applications.values())
+        ...mapState(useDataFarmApplicationsStore, ['teamApplications', 'applicationsListHydrated']),
+        shouldShowPageLoader () {
+            return !this.applicationsListHydrated
         },
         filteredApplications () {
             if (this.filterTerm.length) {
-                return this.applicationsList
+                return this.teamApplications
                     .filter(app => {
                         return [
                             app?.name?.toLowerCase().includes(this.filterTerm.toLowerCase()),
                             app?.id?.toLowerCase().includes(this.filterTerm.toLowerCase())
                         ].includes(true)
                     })
-            } return this.applicationsList
+            } return this.teamApplications
         }
     },
     watch: {
-        team: 'fetchData'
+        applicationsListHydrated: {
+            handler (isHydrated) {
+                if (!isHydrated) {
+                    this.ensureTeamApplicationsLoaded()
+                }
+            },
+            immediate: true
+        },
+        shouldShowPageLoader: {
+            handler (show) {
+                this.setPageLoader(show, 'Loading Applications...')
+            },
+            immediate: true
+        }
     },
-    async mounted () {
-        await this.fetchData()
-
+    mounted () {
         this.setSearchQuery()
     },
+    beforeUnmount () {
+        this.setPageLoader(false)
+    },
     methods: {
-        async fetchData (withLoading = true) {
-            this.loading = withLoading
-            if (this.team.id) {
-                const applicationsMap = new Map()
-
-                teamApi.getTeamApplications(this.team.id,
-                    {
-                        includeApplicationSummary: true,
-                        includeInstances: false,
-                        includeApplicationDevices: false
-                    }
-                ).then((response) => {
-                    const applications = response.applications
-                    applications.forEach((applicationData) => {
-                        applicationsMap.set(applicationData.id, applicationData)
-                    })
-                    this.applications = applicationsMap
-                })
-                    .catch(e => e)
-                    .finally(() => {
-                        this.loading = false
-                    })
-            }
+        ...mapActions(useDataFarmApplicationsStore, ['ensureTeamApplicationsLoaded']),
+        ...mapActions(useUxLoadingStore, ['setPageLoader']),
+        refreshApplications () {
+            return this.ensureTeamApplicationsLoaded({ force: true })
         },
         setSearchQuery () {
             if (this.$route?.query && Object.prototype.hasOwnProperty.call(this.$route.query, 'searchQuery')) {

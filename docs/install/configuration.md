@@ -141,7 +141,7 @@ Option        | Description
 `email.smtp.auth.pass` | Password to authenticate the connection with. Default: `unset`
 `email.debug`   | If set to true, it will log the full content of emails it tries to send. Default: `false`
 
-See [here](./email_providers.md) for example configuration with common email providers.
+See [here](./email-providers.md) for example configuration with common email providers.
 
 ### AWS SES Email
 
@@ -218,11 +218,26 @@ Option        | Description
 
 ## MQTT Broker configuration
 
-The platform depends on the [Mosquitto MQTT Broker](https://mosquitto.org/) to
-provide real-time messaging between devices and the platform.
+The platform uses an MQTT broker to provide real-time messaging between devices,
+Node-RED instances and the platform. The broker shipped with the platform's
+Docker Compose and Kubernetes installations is [EMQX](https://www.emqx.io/): the
+Docker Compose installation includes it by default, and the Helm chart deploys it
+when the broker is enabled (`forge.broker.enabled`), which requires the
+[EMQX Operator](https://docs.emqx.com/en/emqx-operator/latest/getting-started/getting-started.html#install-emqx-operator)
+to be installed on the cluster.
 
 This is currently an *optional* component - the platform will work without the
-broker, but some features will not be available.
+broker, but some features will not be available:
+
+- Without a broker: Project Nodes, Device Actions and Remote Device Editing are unavailable.
+- The following features additionally require the platform broker to be EMQX:
+  the [Team Broker](/docs/user/teambroker.md), [FlowFuse Expert](/docs/user/expert/)
+  and live device log and performance views in the platform UI.
+
+[Mosquitto](https://mosquitto.org/) is supported at a legacy level for existing
+installations that manage their own broker: core platform messaging works, but the
+EMQX-dependent features listed above are unavailable. Replacing the platform broker
+with a different customer-supplied broker is not supported.
 
 Option         | Description
 ---------------|--------------

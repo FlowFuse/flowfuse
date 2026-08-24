@@ -79,6 +79,9 @@ module.exports = {
     },
     options: {
         validate: {
+            // NOTE: these validations run when saving the PipelineStage model and will prevent saving if they fail.
+            // HOWEVER: this will not block adding invalid associations (instances/devices/etc) to the stage as those have already
+            // been saved to the database. This is a limitation of Sequelize and we will need to handle this in the API layer.
             async instancesHaveSameApplication () {
                 const instancesPromise = this.getInstances()
                 const pipelinePromise = this.getPipeline()
@@ -146,16 +149,19 @@ module.exports = {
         return {
             instance: {
                 async addInstanceId (instanceId, options = {}) {
+                    const pipeline = await this.getPipeline()
                     const instance = await M.Project.byId(instanceId)
                     if (!instance) {
                         throw new ValidationError(`instanceId (${instanceId}) not found`)
                     }
-
+                    if (pipeline.ApplicationId !== instance.ApplicationId) {
+                        throw new ValidationError(`instanceId (${instanceId}) is not part of the same application as the pipeline`)
+                    }
                     if (await this.hasInstance(instance, options)) {
                         throw new ValidationError(`instanceId (${instanceId}) is already in use in this stage`)
                     }
 
-                    if (await (await this.getPipeline()).hasInstance(instance, options)) {
+                    if (await pipeline.hasInstance(instance, options)) {
                         throw new ValidationError(`instanceId (${instanceId}) is already in use in this pipeline`)
                     }
 
@@ -166,16 +172,19 @@ module.exports = {
                     await this.addInstance(instance, options)
                 },
                 async addDeviceId (deviceId, options = {}) {
+                    const pipeline = await this.getPipeline()
                     const device = await M.Device.byId(deviceId)
                     if (!device) {
                         throw new ValidationError(`deviceId (${deviceId}) not found`)
                     }
-
+                    if (pipeline.ApplicationId !== device.ApplicationId) {
+                        throw new ValidationError(`deviceId (${deviceId}) is not part of the same application as the pipeline`)
+                    }
                     if (await this.hasDevice(device, options)) {
                         throw new ValidationError(`deviceId (${deviceId}) is already in use in this stage`)
                     }
 
-                    if (await (await this.getPipeline()).hasDevice(device, options)) {
+                    if (await pipeline.hasDevice(device, options)) {
                         throw new ValidationError(`deviceId (${deviceId}) is already in use in this pipeline`)
                     }
 
@@ -186,9 +195,13 @@ module.exports = {
                     await this.addDevice(device, options)
                 },
                 async addDeviceGroupId (deviceGroupId, options = {}) {
+                    const pipeline = await this.getPipeline()
                     const deviceGroup = await M.DeviceGroup.byId(deviceGroupId)
                     if (!deviceGroup) {
                         throw new ValidationError(`deviceGroupId (${deviceGroupId}) not found`)
+                    }
+                    if (pipeline.ApplicationId !== deviceGroup.ApplicationId) {
+                        throw new ValidationError(`deviceGroupId (${deviceGroupId}) is not part of the same application as the pipeline`)
                     }
 
                     await this.addDeviceGroup(deviceGroup, options)

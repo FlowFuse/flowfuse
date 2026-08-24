@@ -16,11 +16,17 @@ export type BinaryPayload = Buffer | Uint8Array | ArrayBuffer
 export type MqttPayload = string | BinaryPayload | Record<string, unknown> | unknown[]
 export type MqttSubscribeOptions = Partial<IClientSubscribeOptions>
 
+export interface MqttWill {
+    topic: string
+    payload: string
+}
+
 export interface MqttCredentials {
     url: string
     username: string
     password: string
     clientId?: string
+    will?: MqttWill
 }
 
 export type MqttCredentialProvider = () => Promise<MqttCredentials>
@@ -87,6 +93,16 @@ export interface MqttConnectionWaiter {
     timer: ReturnType<typeof setTimeout> | null
 }
 
+export interface ManagedMqttObserver {
+    id: number
+    handlers: MqttConnectionHandlers
+}
+
+export interface MqttObserverHandle {
+    key: string
+    id: number
+}
+
 export interface ManagedMqttClient {
     key: string
     client: MqttClient | null
@@ -100,7 +116,7 @@ export interface ManagedMqttClient {
     reconnectGeneration: number
     reconnectTimer: ReturnType<typeof setTimeout> | null
     subscriptions: Map<string, ManagedMqttSubscription>
-    handlers: MqttConnectionHandlers
+    observers: Set<ManagedMqttObserver>
     connectionWaiters: Set<MqttConnectionWaiter>
     terminalFailure: boolean
     lastError: Error | null
@@ -108,14 +124,16 @@ export interface ManagedMqttClient {
 }
 
 export interface MqttServiceI extends AppService {
-    createClient(key: string, options?: Partial<MqttConnectionOptions>): Promise<MqttClient>
-    destroyClient(key: string): Promise<void>
-    getManagedClient(key: string): ManagedMqttClient | null
-    hasClient(key: string): boolean
-    publishMessage(key: string, options: MqttPublishRequest): Promise<void>
-    subscribe(key: string, topic: string | string[], options?: MqttSubscribeOptions): Promise<void>
-    unsubscribe(key: string, topic: string | string[]): Promise<void>
-    endConnection(key: string): Promise<void>
-    waitForConnection(key: string, options?: MqttWaitForConnectionOptions): Promise<void>
+    createClient(clientKey: string, options?: Partial<MqttConnectionOptions>): Promise<MqttClient>
+    destroyClient(clientKey: string): Promise<void>
+    attachClientObserver(clientKey: string, options?: Partial<MqttConnectionOptions>): Promise<MqttObserverHandle>
+    detachClientObserver(handle: MqttObserverHandle): Promise<void>
+    getManagedClient(clientKey: string): ManagedMqttClient | null
+    hasClient(clientKey: string): boolean
+    publishMessage(clientKey: string, options: MqttPublishRequest): Promise<void>
+    subscribe(clientKey: string, topic: string | string[], options?: MqttSubscribeOptions): Promise<void>
+    unsubscribe(clientKey: string, topic: string | string[]): Promise<void>
+    endConnection(clientKey: string): Promise<void>
+    waitForConnection(clientKey: string, options?: MqttWaitForConnectionOptions): Promise<void>
     reset(): Promise<void>
 }

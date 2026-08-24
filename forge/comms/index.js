@@ -1,9 +1,12 @@
 const fp = require('fastify-plugin')
 
 const ACLManager = require('./aclManager')
+const { BrowserSessionLifecycleHandler } = require('./browserSessionLifecycle')
 const { CommsClient } = require('./commsClient')
 const { DeviceCommsHandler } = require('./devices')
+const { ExpertCommsHandler } = require('./expert')
 const { InstanceCommsHandler } = require('./instances')
+const { McpGatewayHandler } = require('./mcpGateway')
 const { PlatformAutomationHandler } = require('./platformAutomation.js')
 
 /**
@@ -34,6 +37,11 @@ module.exports = fp(async function (app, _opts) {
         const deviceCommsHandler = DeviceCommsHandler(app, client)
         const instanceCommsHandler = InstanceCommsHandler(app, client)
         const platformAutomationHandler = PlatformAutomationHandler(app, client)
+        const expertCommsHandler = new ExpertCommsHandler(app, client)
+        const mcpGatewayHandler = McpGatewayHandler(app, client)
+        // Owns the browser session topic and dispatches its events. Presence is one
+        // consumer of that; anything else needing per-session teardown joins it there.
+        BrowserSessionLifecycleHandler(app, client)
 
         // Not in the current release, but when we handle Launcher status
         // via MQTT, it will arrive here. Compare to the status/device handler in `devices.js`
@@ -43,10 +51,13 @@ module.exports = fp(async function (app, _opts) {
 
         // Setup the platform API for the comms component
         app.decorate('comms', {
+            id: client.platformId,
             devices: deviceCommsHandler,
             instances: instanceCommsHandler,
             aclManager: ACLManager(app),
             platformAutomation: platformAutomationHandler,
+            expert: expertCommsHandler,
+            mcpGateway: mcpGatewayHandler,
             platform: {
                 settings: {
                     sync: function (key) {
@@ -78,13 +89,23 @@ module.exports = fp(async function (app, _opts) {
                     const msg = { reason: reason || null, srcId: srcId || null }
                     client.publish(`ff/v1/${teamHash}/u/${userHash}/membership`, JSON.stringify(msg))
                 },
-                notifyDeviceState: function (teamHash, id, state) {
+                notifyDeviceState: function (teamHash, id, { state, onlineStatus } = {}) {
                     if (!teamHash || !id) return
-                    client.publish(`ff/v1/${teamHash}/d/${id}/state`, JSON.stringify({ id, meta: { state } }))
+                    const meta = { state }
+                    if (onlineStatus) meta.onlineStatus = onlineStatus
+                    client.publish(`ff/v1/${teamHash}/d/${id}/state`, JSON.stringify({ id, meta }))
                 },
-                notifyInstanceState: function (teamHash, id, state) {
+                notifyInstanceState: function (teamHash, id, { state, versions } = {}) {
                     if (!teamHash || !id) return
-                    client.publish(`ff/v1/${teamHash}/p/${id}/state`, JSON.stringify({ id, meta: { state } }))
+                    const meta = { state }
+                    if (versions) meta.versions = versions
+                    client.publish(`ff/v1/${teamHash}/p/${id}/state`, JSON.stringify({ id, meta }))
+                },
+                notifyEntityLifecycle: function (teamHash, type, id, action, data) {
+                    if (!teamHash || !type || !id || !action) return
+                    const msg = { id, action }
+                    if (data !== undefined) msg.data = data
+                    client.publish(`ff/v1/${teamHash}/${type}/${id}/${action}`, JSON.stringify(msg))
                 }
             }
         })

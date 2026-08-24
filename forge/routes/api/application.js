@@ -78,7 +78,10 @@ module.exports = async function (app) {
         await app.auditLog.Team.application.created(request.session.User, null, team, application)
         await app.auditLog.Application.application.created(request.session.User, null, application)
 
-        reply.send(app.db.views.Application.application(application))
+        const applicationView = app.db.views.Application.application(application)
+        app.comms?.team?.notifyEntityLifecycle(team.hashid, 'a', application.hashid, 'created', applicationView)
+
+        reply.send(applicationView)
     })
 
     /**
@@ -178,7 +181,12 @@ module.exports = async function (app) {
         }
         await app.auditLog.Application.application.updated(request.session.User, null, request.application, updates)
 
-        reply.send(app.db.views.Application.application(request.application))
+        const applicationView = app.db.views.Application.application(request.application)
+        if (team) {
+            app.comms?.team?.notifyEntityLifecycle(team.hashid, 'a', request.application.hashid, 'updated', applicationView)
+        }
+
+        reply.send(applicationView)
     })
 
     /**
@@ -217,8 +225,15 @@ module.exports = async function (app) {
                 return reply.code(422).send({ code: 'invalid_application', error: 'Please delete the instances within the application first' })
             }
 
+            const teamHash = request.application.Team?.hashid
+            const applicationHash = request.application.hashid
+
             await request.application.destroy()
             await app.auditLog.Team.application.deleted(request.session.User, null, request.application.Team, request.application)
+
+            if (teamHash) {
+                app.comms?.team?.notifyEntityLifecycle(teamHash, 'a', applicationHash, 'deleted')
+            }
 
             reply.send({ status: 'okay' })
         } catch (err) {
@@ -275,6 +290,82 @@ module.exports = async function (app) {
             })
         } else {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
+        }
+    })
+
+    /**
+     * Get application instances that have dashboards installed
+     * @name /api/v1/applications/:id/dashboard-instances
+     * @memberof forge.routes.api.application
+     */
+    app.get('/:applicationId/dashboard-instances', {
+        preHandler: app.needsPermission('team:projects:list-dashboards'),
+        schema: {
+            summary: 'Get a list of application instances that have dashboards',
+            tags: ['Applications'],
+            params: {
+                type: 'object',
+                properties: {
+                    applicationId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        count: { type: 'number' },
+                        projects: { $ref: 'DashboardInstancesSummaryList' }
+                    }
+                },
+                '4xx': {
+                    $ref: 'APIError'
+                }
+            }
+        }
+    }, async (request, reply) => {
+        const projects = await app.db.models.Project.byApplicationForDashboard(request.application.hashid)
+        if (projects && projects.length > 0) {
+            const filtered = projects.filter(project => {
+                return project.ProjectSettings.filter(settingEntry => {
+                    const isSettingsEntry = settingEntry.key === 'settings'
+                    let hasDashboardInstalled = false
+                    if (
+                        isSettingsEntry &&
+                        Object.prototype.hasOwnProperty.call(settingEntry.value, 'palette') &&
+                        Object.prototype.hasOwnProperty.call(settingEntry.value.palette, 'modules')
+                    ) {
+                        hasDashboardInstalled = !!settingEntry.value.palette.modules.find(module => module.name === '@flowfuse/node-red-dashboard')
+                    }
+                    return isSettingsEntry && hasDashboardInstalled
+                }).length > 0
+            })
+
+            if (filtered.length === 0) {
+                return reply.send({
+                    count: 0,
+                    projects: []
+                })
+            }
+
+            await Promise.all(filtered.map(async project => {
+                const projectState = await project.liveState()
+                project.state = projectState.meta.state
+                project.flowLastUpdatedAt = projectState.flowLastUpdatedAt
+                project.settings = {
+                    dashboard2UI: '/dashboard'
+                }
+            }))
+
+            const result = await app.db.views.Project.dashboardInstancesSummaryList(filtered)
+            return reply.send({
+                count: result.length,
+                projects: result
+            })
+        } else {
+            return reply.send({
+                count: 0,
+                projects: []
+            })
         }
     })
 

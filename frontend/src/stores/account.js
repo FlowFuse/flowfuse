@@ -1,23 +1,28 @@
 import { defineStore } from 'pinia'
 
 import flowBlueprintsApi from '@/api/flowBlueprints.js'
-import teamApi from '@/api/team.js'
 import userApi from '@/api/user.js'
 import getAppOrchestrator from '@/services/app.orchestrator'
 import product from '@/services/product.js'
-import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
+import { useDataFarmApplicationsStore } from '@/stores/data-farm-applications'
+import { useDataFarmHostedInstancesStore } from '@/stores/data-farm-hosted-instances'
+import { useDataFarmTeamsStore } from '@/stores/data-farm-teams'
 import { useProductTablesStore } from '@/stores/product-tables.js'
 
 function ensureTeamChannelConnected (team) {
     if (!team?.id) return
-    const teamChannel = getAppOrchestrator().$subscriberInstances.teamChannel
-    teamChannel?.connect(team).catch(() => {})
+    const subscribers = getAppOrchestrator().$subscribers
+    Object.values(subscribers).forEach(subscriber => subscriber?.connect(team).catch(() => {}))
+}
+
+function disconnectTeamSubscribers () {
+    const subscribers = getAppOrchestrator().$subscribers
+    Object.values(subscribers).forEach(subscriber => subscriber?.disconnect().catch(() => {}))
 }
 
 export const useAccountStore = defineStore('account', {
     state: () => ({
-        teams: [],
         teamBlueprints: {},
         pendingTeamChange: false,
         notifications: [],
@@ -29,10 +34,6 @@ export const useAccountStore = defineStore('account', {
             return state.teamBlueprints[teamId] || []
         },
         defaultBlueprint () { return this.blueprints?.find(blueprint => blueprint.default) },
-        defaultUserTeam: (state) => {
-            const defaultTeamId = useAccountAuthStore().user?.defaultTeam || state.teams[0]?.id
-            return state.teams.find(team => team.id === defaultTeamId)
-        },
         notificationsCount: state => state.notifications?.length || 0,
         unreadNotificationsCount: state => {
             const unread = state.notifications?.filter(n => !n.read) || []
@@ -47,21 +48,17 @@ export const useAccountStore = defineStore('account', {
         },
         hasNotifications () { return this.notificationsCount > 0 },
         teamInvitations: state => state.invitations,
-        teamInvitationsCount: state => state.invitations?.length || 0,
-        hasAvailableTeams: state => state.teams.length > 0
+        teamInvitationsCount: state => state.invitations?.length || 0
     },
     actions: {
-        setTeams (teams) {
-            this.teams = teams
-        },
         async setTeam (team) {
             const context = useContextStore()
+            const teams = useDataFarmTeamsStore()
             const currentTeam = context.team
             this.pendingTeamChange = true
-            let teamMembership
             if (typeof team === 'string') {
                 if (!currentTeam || currentTeam.slug !== team) {
-                    team = await teamApi.getTeam({ slug: team })
+                    team = await teams.fetchTeam({ slug: team })
                 } else {
                     ensureTeamChannelConnected(currentTeam)
                     this.pendingTeamChange = false
@@ -77,30 +74,24 @@ export const useAccountStore = defineStore('account', {
                     // without clearing other stores
                     if (team?.id) {
                         context.setTeam(team)
-                        context.setTeamMembership(await teamApi.getTeamUserMembership(team.id))
+                        await context.refreshTeamMembership()
                     }
                     ensureTeamChannelConnected(team || currentTeam)
                     this.pendingTeamChange = false
                     return
                 }
             }
-            if (team?.id) {
-                teamMembership = await teamApi.getTeamUserMembership(team.id)
-            }
             product.setTeam(team)
             context.setTeam(team)
             this.clearOtherStores()
-            context.setTeamMembership(teamMembership)
             if (team?.id) {
+                await context.refreshTeamMembership()
                 ensureTeamChannelConnected(team)
             } else {
-                getAppOrchestrator().$subscriberInstances.teamChannel?.disconnect().catch(() => {})
+                context.setTeamMembership(null)
+                disconnectTeamSubscribers()
             }
             this.pendingTeamChange = false
-        },
-        async refreshTeams () {
-            const teams = await teamApi.getTeams()
-            this.teams = teams.teams
         },
         async getTeamBlueprints (teamId) {
             const response = await flowBlueprintsApi.getFlowBlueprintsForTeam(teamId)
@@ -127,6 +118,8 @@ export const useAccountStore = defineStore('account', {
         },
         clearOtherStores () {
             useProductTablesStore().clearState()
+            useDataFarmApplicationsStore().reset()
+            useDataFarmHostedInstancesStore().reset()
         }
     }
 })

@@ -52,6 +52,45 @@ class CommsClient extends EventEmitter {
                 const ownerId = topicParts[4]
                 const messageType = topicParts[5]
 
+                /**
+                 * 3rd Party Mcp events
+                 */
+                if (topicParts[2] === 'mcp') {
+                    // ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response/
+                    if (topicParts[6] === 'response') {
+                        let payload
+                        try {
+                            payload = JSON.parse(message.toString())
+                        } catch (err) {
+                            this.app.log.warn(`Ignoring malformed MCP gateway response on ${topic}: ${err.message}`)
+                            return
+                        }
+                        const correlationData = packet.properties?.correlationData
+                        this.emit('response/mcp-gateway', correlationData, payload)
+                    }
+                    return
+                }
+
+                /**
+                 * Browser session events
+                 */
+                if (topicParts[3] === 'u' && topicParts[5] === 's') {
+                    // ff/v1/<teamHash>/u/<userHash>/s/<sessionId>/<event>
+                    const teamId = topicParts[2]
+                    const userId = topicParts[4]
+                    const sessionId = topicParts[6]
+                    const event = topicParts[7]
+                    let payload
+                    try {
+                        payload = JSON.parse(message.toString())
+                    } catch (err) {
+                        this.app.log.warn(`Ignoring malformed browser session payload on ${topic}: ${err.message}`)
+                        return
+                    }
+                    this.emit('browser-session', { teamId, userId, sessionId, event, payload })
+                    return
+                }
+
                 if (topicParts[2] === 'expert') {
                     const userId = topicParts[3]
                     const sessionId = topicParts[4]
@@ -149,12 +188,25 @@ class CommsClient extends EventEmitter {
                             'request/platform-automation:forge', // event name
                             {
                                 userId, // ID of user making the request
+                                mcpSessionId: sessionId, // third-party MCP session id, when this request was relayed from the MCP gateway
                                 command, // command,
                                 data, // payload data
                                 meta: payload.meta
                             },
                             onSuccess, // success callback
                             onError // failure callback
+                        )
+                    } else if (userId === 'expert-agent' && sessionId === 'bridge' && channelCommand === 'heartbeat' && direction === 'request') {
+                        // We re-use the platform request-response channel for the heartbeat, so we can verify end-to-end connectivity between
+                        // the platform and the expert agent. However, this is a special case - it is done in reverse direction.
+                        // By design, platform requests come from the agent and the platform responds on the response topic.
+                        // In this special case, we re-use this channel (for e2e bridge check), the forge platform initiates a heartbeat
+                        // by publishing on the /response topic, and the expert agent will echo it back on the /request topic.
+                        // This is a bit confusing, but it works.
+                        this.emit(
+                            'response/platform/expert/bridge/heartbeat', // this is the response to the heartbeat request!
+                            payload.data || {}, // data
+                            mqttOptions.properties // properties
                         )
                     }
                 } else if (ownerType === 'p') {
@@ -232,8 +284,16 @@ class CommsClient extends EventEmitter {
                 'ff/v1/+/d/+/resources/heartbeat',
                 // Platform sync messages
                 'ff/v1/platform/sync',
-                // Listen for Expert platform requests
-                'ff/v1/expert/+/+/platform/+/request'
+                // Listen for Expert platform requests.
+                // Uses a dedicated shared subscription group. The group name defines the set
+                // of consumers that share the workload, so keeping Expert separate from the
+                // "platform" group prevents unrelated features from sharing a consumer pool and
+                // allows them to scale independently.
+                '$share/expert/ff/v1/expert/+/+/platform/+/request',
+                // Browser session events - shared subscription
+                '$share/browser/ff/v1/+/u/+/s/+/+',
+                // MCP gateway responses - per-replica (not shared), same as device responses
+                `ff/v1/mcp/${this.platformId}/+/+/response`
             ])
         }
     }

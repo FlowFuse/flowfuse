@@ -1315,6 +1315,62 @@ describe('Broker Auth v2 API', async function () {
                         topic: `ff/v1/expert/${TestObjects.alice.hashid}/session123/p/BAD-ENTITY-ID/support/inflight/command/request`
                     })
                 })
+
+                // Bridge heartbeat topics - special-cased literal topics used to keep the
+                // platform <-> Expert Broker bridge alive (see checkExpertPlatformTopic)
+                it('allows subscription to the heartbeat response topic', async function () {
+                    await allowRead({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/response'
+                    })
+                })
+                it('denies publish to the heartbeat response topic', async function () {
+                    await denyWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/response'
+                    })
+                })
+                it('allows publish to the heartbeat request topic', async function () {
+                    await allowWrite({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/request'
+                    })
+                })
+                it('denies subscription to the heartbeat request topic', async function () {
+                    await denyRead({
+                        username: 'expert-agent:api:v1',
+                        topic: 'ff/v1/expert/expert-agent/bridge/platform/heartbeat/request'
+                    })
+                })
+            })
+
+            describe('Platform (forge_platform)', async function () {
+                // Bridge heartbeat topics - special-cased literal topics used to keep the
+                // platform <-> Expert Broker bridge alive (see checkExpertPlatformTopic)
+                it('allows publish to the heartbeat response topic', async function () {
+                    await allowWrite({
+                        username: 'forge_platform',
+                        topic: 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/response'
+                    })
+                })
+                it('denies subscription to the heartbeat response topic', async function () {
+                    await denyRead({
+                        username: 'forge_platform',
+                        topic: 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/response'
+                    })
+                })
+                it('allows subscription to the heartbeat request topic', async function () {
+                    await allowRead({
+                        username: 'forge_platform',
+                        topic: 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/request'
+                    })
+                })
+                it('denies publish to the heartbeat request topic', async function () {
+                    await denyWrite({
+                        username: 'forge_platform',
+                        topic: 'ff/v1/expert/forge_platform/bridge/platform/heartbeat/request'
+                    })
+                })
             })
 
             // TODO: tests for Application RBACs (ensure project/device in an application with reduced permissions are suitably restricted in the ACLs)
@@ -1406,6 +1462,94 @@ describe('Broker Auth v2 API', async function () {
                     topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/state`
                 })
             })
+            it('allows a team member to subscribe to the application lifecycle wildcards', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/+/created`
+                })
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/+/updated`
+                })
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/+/deleted`
+                })
+            })
+            it('denies subscribe to another team\'s application lifecycle wildcard', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/a/+/created`
+                })
+            })
+            it('denies application lifecycle subscribe for a user who is not a member of the team', async function () {
+                const erin = await factory.createUser({ username: 'erin', name: 'Erin', email: 'erin@example.com', password: 'eePassword1!' })
+                const erinUsername = `fe-team:${erin.hashid}:${TestObjects.ATeam.hashid}:session-1234567890`
+                await denyRead({
+                    username: erinUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/+/created`
+                })
+            })
+            it('denies fe-team from publishing application lifecycle topics (read-only client)', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/+/created`
+                })
+            })
+            it('allows forge_platform to publish application lifecycle topics', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/an-application/created`
+                })
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/an-application/updated`
+                })
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/a/an-application/deleted`
+                })
+            })
+            it('allows a team member to subscribe to the instance lifecycle wildcards', async function () {
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/created`
+                })
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/updated`
+                })
+                await allowRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/deleted`
+                })
+            })
+            it('denies subscribe to another team\'s instance lifecycle wildcard', async function () {
+                await denyRead({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/p/+/created`
+                })
+            })
+            it('denies fe-team from publishing instance lifecycle topics (read-only client)', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/+/created`
+                })
+            })
+            it('allows forge_platform to publish instance lifecycle topics', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/an-instance/created`
+                })
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/an-instance/updated`
+                })
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/p/an-instance/deleted`
+                })
+            })
             it('denies fe-team from publishing to state (read-only client)', async function () {
                 await denyWrite({
                     username: teamFrontendUsername,
@@ -1469,6 +1613,229 @@ describe('Broker Auth v2 API', async function () {
                     })
                 } finally {
                     teamLookupStub.restore()
+                }
+            })
+
+            // Browser session topics: ff/v1/<team>/u/<user>/s/<session>/<event>
+            it('allows fe-team to publish a heartbeat on its own session topic', async function () {
+                await allowWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/heartbeat`
+                })
+            })
+            it('allows fe-team to publish close on its own session topic', async function () {
+                await allowWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/close`
+                })
+            })
+            it('allows fe-team to publish disconnected on its own session topic (the last will)', async function () {
+                await allowWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/disconnected`
+                })
+            })
+            it('denies fe-team from publishing on another user\'s session topic', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${bob.hashid}/s/session-1234567890/heartbeat`
+                })
+            })
+            it('denies fe-team from publishing on another tab\'s session topic', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-abc12345/heartbeat`
+                })
+            })
+            it('denies fe-team from publishing on another team\'s session topic', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/heartbeat`
+                })
+            })
+            it('denies fe-team from publishing an unknown session event', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/invalid`
+                })
+            })
+            it('denies fe-team from publishing on the retired tab-presence topic', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/heartbeat`
+                })
+            })
+            it('allows forge_platform to subscribe to session topics via shared subscription', async function () {
+                await allowRead({
+                    username: 'forge_platform',
+                    topic: `$share/browser/ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/heartbeat`
+                })
+            })
+        })
+
+        describe('MCP In-flight (fe-team)', async function () {
+            // checkMcpInflightTopic verifier coverage - third-party MCP requests are
+            // delivered to the tab over its team-channel credential, not the expert client
+            const SESSION = 'session-1234567890'
+            let mcpUsername
+            let subTopic
+
+            before(async function () {
+                await setupEE()
+                app.config.features.register('ai', true, true)
+                app.config.features.register('mcpThirdParty', true, true)
+                TestObjects.bob = await factory.createUser({ admin: false, username: 'bob', name: 'Bob Solo', email: 'bob@example.com', password: 'bbPassword' })
+                await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+                mcpUsername = `fe-team:${TestObjects.alice.hashid}:${TestObjects.ATeam.hashid}:${SESSION}`
+                subTopic = `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/+/+/mcp/inflight/+/request`
+            })
+
+            after(async function () {
+                await app.close()
+            })
+
+            // subscribe: own session, wildcard entity
+            it('allows fe-team to subscribe to mcp inflight requests for its own session', async function () {
+                await allowRead({ username: mcpUsername, topic: subTopic })
+            })
+            it('denies fe-team from subscribing on another tab\'s session', async function () {
+                await denyRead({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/session-abc12345/+/+/mcp/inflight/+/request`
+                })
+            })
+            it('denies fe-team from subscribing on another user\'s topic', async function () {
+                await denyRead({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.bob.hashid}/${SESSION}/+/+/mcp/inflight/+/request`
+                })
+            })
+            it('denies a half-wildcarded entity pair', async function () {
+                await denyRead({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/+/mcp/inflight/+/request`
+                })
+            })
+            it('denies fe-team from subscribing to the expert support channel', async function () {
+                await denyRead({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/+/+/support/inflight/+/request`
+                })
+            })
+            it('denies fe-team from publishing an mcp inflight request (the agent does that)', async function () {
+                await denyWrite({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/${TestObjects.ProjectA.id}/mcp/inflight/automation:get-nodes/request`
+                })
+            })
+
+            // publish: own session, concrete entity
+            it('allows fe-team to publish an mcp inflight response (instance)', async function () {
+                await allowWrite({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/${TestObjects.ProjectA.id}/mcp/inflight/automation:get-nodes/response`
+                })
+            })
+            it('denies an mcp inflight response on another tab\'s session', async function () {
+                await denyWrite({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/session-abc12345/p/${TestObjects.ProjectA.id}/mcp/inflight/automation:get-nodes/response`
+                })
+            })
+            it('denies an mcp inflight response with a wildcard entity', async function () {
+                await denyWrite({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/+/+/mcp/inflight/automation:get-nodes/response`
+                })
+            })
+            it('denies an mcp inflight response when mcpThirdParty is disabled', async function () {
+                app.config.features.register('mcpThirdParty', false, true)
+                try {
+                    await denyWrite({
+                        username: mcpUsername,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/${TestObjects.ProjectA.id}/mcp/inflight/automation:get-nodes/response`
+                    })
+                } finally {
+                    app.config.features.register('mcpThirdParty', true, true)
+                }
+            })
+        })
+
+        describe('MCP gateway channel (forge_platform)', async function () {
+            // checkMcpTopic verifier coverage - the platform proxying third-party MCP
+            // requests to the central gateway over ff/v1/mcp/... topics
+            const MCP_SESSION = '7d292be0-d561-41c7-afc9-280a3c914284'
+            // A valid replica id that is not this instance's own app.comms.id - in a
+            // multi-replica deployment the ACL check can be served by any replica
+            const OTHER_PLATFORM_ID = '3d7e858c-259f-4d17-b9c0-0d046509cc42'
+
+            before(async function () {
+                await setupEE()
+                app.config.features.register('ai', true, true)
+                app.config.features.register('mcpThirdParty', true, true)
+            })
+
+            after(async function () {
+                await app.close()
+            })
+
+            it('allows forge_platform to publish an mcp request for another replica\'s platformId', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                })
+            })
+            it('allows forge_platform to publish an mcp request for its own platformId', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${app.comms.id}/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                })
+            })
+            it('allows forge_platform to subscribe to mcp responses for a platformId', async function () {
+                await allowRead({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/+/+/response`
+                })
+            })
+            it('denies an mcp request with a non-uuid platformId', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/not-a-uuid/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                })
+            })
+            it('denies an mcp request with a wildcard platformId', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/+/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                })
+            })
+            it('denies an mcp response subscription with a wildcard platformId', async function () {
+                await denyRead({
+                    username: 'forge_platform',
+                    topic: 'ff/v1/mcp/+/+/+/response'
+                })
+            })
+            it('denies an mcp request with a short mcp session id', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/short/request`
+                })
+            })
+            it('denies an mcp request for an unknown user', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/nonExistentUser/${MCP_SESSION}/request`
+                })
+            })
+            it('denies an mcp request when mcpThirdParty is disabled', async function () {
+                app.config.features.register('mcpThirdParty', false, true)
+                try {
+                    await denyWrite({
+                        username: 'forge_platform',
+                        topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                    })
+                } finally {
+                    app.config.features.register('mcpThirdParty', true, true)
                 }
             })
         })

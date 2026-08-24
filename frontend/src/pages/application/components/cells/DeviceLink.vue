@@ -1,6 +1,6 @@
 <template>
     <router-link
-        :to="{ name: 'Device', params: { id: id } }"
+        :to="{ name: 'device', params: { id: id } }"
         class="flex"
     >
         <DeviceModeBadge :mode="mode" type="icon" class="flex flex-col justify-center mr-2" />

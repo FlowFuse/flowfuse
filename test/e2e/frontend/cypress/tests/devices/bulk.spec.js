@@ -116,7 +116,6 @@ describe('FlowFuse - Devices', () => {
                             // select 'application-2'
                             cy.get('[data-form="application"] .ff-listbox').should('be.visible')
                             cy.get('[data-form="application"]').within(() => {
-                                // eslint-disable-next-line cypress/require-data-selectors
                                 cy.get('.ff-listbox').should('not.be.disabled')
                                 cy.get('.ff-listbox').click()
                             })
@@ -155,9 +154,9 @@ describe('FlowFuse - Devices', () => {
                     })
 
                     // check the table columns for the moved devices
-                    cy.get('[data-el="devices-browser"] tbody tr').contains(deviceName1).parent().parent().find('td').eq(7).contains(options.moveTo)
-                    cy.get('[data-el="devices-browser"] tbody tr').contains(deviceName2).parent().parent().find('td').eq(7).contains(options.moveTo)
-                    cy.get('[data-el="devices-browser"] tbody tr').contains(deviceName3).parent().parent().find('td').eq(7).contains(options.moveTo)
+                    cy.get('[data-el="devices-browser"] tbody tr').contains(deviceName1).parent().parent().find('td').eq(6).contains(options.moveTo)
+                    cy.get('[data-el="devices-browser"] tbody tr').contains(deviceName2).parent().parent().find('td').eq(6).contains(options.moveTo)
+                    cy.get('[data-el="devices-browser"] tbody tr').contains(deviceName3).parent().parent().find('td').eq(6).contains(options.moveTo)
                 })
             }
         })

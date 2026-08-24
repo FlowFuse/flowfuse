@@ -70,6 +70,8 @@ export default {
         color: var(--ff-color-text-on-brand);
         border-bottom-right-radius: 0.125rem;
         width: fit-content;
+        max-width: 100%;
+        min-width: 0;
         align-self: end;
     }
 

@@ -82,7 +82,7 @@ export default {
         deleteDevice () {
             this.loading.deleting = true
             deviceApi.deleteDevice(this.device.id, this.team.id).then(() => {
-                this.$router.push({ name: 'TeamDevices', params: { team_slug: this.team.slug } })
+                this.$router.push({ name: 'team-remote-instances', params: { team_slug: this.team.slug } })
             }).catch(err => {
                 console.warn(err)
             }).finally(() => {

@@ -1,4 +1,3 @@
-/* eslint-env browser */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -17,11 +16,18 @@ vi.mock('@/stores/product-expert.js', () => ({
     useProductExpertStore: vi.fn(() => ({ isSupportAgent: true }))
 }))
 
-vi.mock('@/api/team.js', () => ({
-    default: {
-        getTeam: vi.fn(),
-        getTeamUserMembership: vi.fn()
-    }
+// Active-team state now lives in data-farm-teams; context delegates to it.
+const teamsStore = vi.hoisted(() => {
+    const s = { activeTeam: null, activeTeamMembership: null }
+    s.setActiveTeam = vi.fn((t) => { s.activeTeam = t ?? null })
+    s.setActiveTeamMembership = vi.fn((m) => { s.activeTeamMembership = m ?? null })
+    s.refreshActiveTeam = vi.fn()
+    s.refreshActiveMembership = vi.fn()
+    return s
+})
+
+vi.mock('@/stores/data-farm-teams', () => ({
+    useDataFarmTeamsStore: () => teamsStore
 }))
 
 vi.mock('@/routes.js', () => ({
@@ -37,13 +43,15 @@ vi.mock('@/services/product.js', () => ({
     }
 }))
 
-const teamApi = (await import('@/api/team.js')).default
 const product = (await import('@/services/product.js')).default
+const router = (await import('@/routes.js')).default
 
 describe('context store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
         vi.clearAllMocks()
+        teamsStore.activeTeam = null
+        teamsStore.activeTeamMembership = null
     })
 
     describe('initial state', () => {
@@ -72,6 +80,21 @@ describe('context store', () => {
             expect(store.instance).toEqual(instance)
         })
 
+        it('setInstance registers the instance owning application', () => {
+            const store = useContextStore()
+            const application = { id: 'app-1', name: 'App' }
+            store.setInstance({ id: 1, name: 'Instance', application })
+            expect(store.application).toEqual({ id: 'app-1', name: 'App', description: undefined })
+        })
+
+        it('setInstance(null) also clears the application', () => {
+            const store = useContextStore()
+            store.setInstance({ id: 1, name: 'Instance', application: { id: 'app-1' } })
+            store.setInstance(null)
+            expect(store.instance).toBeNull()
+            expect(store.application).toBeNull()
+        })
+
         it('setDevice sets the device', () => {
             const store = useContextStore()
             const device = { id: 2, name: 'Device' }
@@ -79,11 +102,58 @@ describe('context store', () => {
             expect(store.device).toEqual(device)
         })
 
+        it('setDevice registers the device owning application when directly owned', () => {
+            const store = useContextStore()
+            const application = { id: 'app-1', name: 'App' }
+            store.setDevice({ id: 2, application })
+            expect(store.application).toEqual({ id: 'app-1', name: 'App', description: undefined })
+            expect(store.instance).toBeNull()
+        })
+
+        it('setDevice registers the owning instance and its application when owned by an instance', () => {
+            const store = useContextStore()
+            // The device's `instance` is an InstanceSummary and never carries its own `application` -
+            // the backend resolves the owning application onto the device itself as a sibling field.
+            const application = { id: 'app-1', name: 'App' }
+            const instance = { id: 'inst-1', name: 'Instance' }
+            store.setDevice({ id: 2, instance, application })
+            expect(store.instance).toEqual(instance)
+            expect(store.application).toEqual({ id: 'app-1', name: 'App', description: undefined })
+        })
+
+        it('setDevice keeps the device but clears any stale owner when the device has no owner', () => {
+            const store = useContextStore()
+            store.setInstance({ id: 'inst-1', application: { id: 'app-1' } })
+            const device = { id: 2, name: 'Unassigned device' }
+            store.setDevice(device)
+            expect(store.device).toEqual(device)
+            expect(store.instance).toBeNull()
+            expect(store.application).toBeNull()
+        })
+
+        it('setDevice(null) clears the device, instance and application', () => {
+            const store = useContextStore()
+            const application = { id: 'app-1' }
+            const instance = { id: 'inst-1' }
+            store.setDevice({ id: 2, instance, application })
+            store.setDevice(null)
+            expect(store.device).toBeNull()
+            expect(store.instance).toBeNull()
+            expect(store.application).toBeNull()
+        })
+
         it('clearInstance sets instance to null', () => {
             const store = useContextStore()
             store.setInstance({ id: 1 })
             store.clearInstance()
             expect(store.instance).toBeNull()
+        })
+
+        it('clearInstance also clears the application it cascaded to', () => {
+            const store = useContextStore()
+            store.setInstance({ id: 1, application: { id: 'app-1' } })
+            store.clearInstance()
+            expect(store.application).toBeNull()
         })
     })
 
@@ -98,53 +168,44 @@ describe('context store', () => {
         })
 
         describe('refreshTeam', () => {
-            it('does nothing when team is null', async () => {
+            it('does nothing when there is no active team', async () => {
                 const store = useContextStore()
                 await store.refreshTeam()
-                expect(teamApi.getTeam).not.toHaveBeenCalled()
+                expect(teamsStore.refreshActiveTeam).not.toHaveBeenCalled()
             })
 
-            it('fetches fresh team + membership and updates state', async () => {
+            it('delegates the fetch to the store and applies analytics', async () => {
                 const store = useContextStore()
-                const currentTeam = { id: 'team-1', slug: 'alpha' }
-                const freshTeam = { id: 'team-1', slug: 'alpha' }
-                const membership = { role: 50 }
-                store.team = currentTeam
-                teamApi.getTeam.mockResolvedValue(freshTeam)
-                teamApi.getTeamUserMembership.mockResolvedValue(membership)
+                store.setTeam({ id: 'team-1', slug: 'alpha' })
+                teamsStore.refreshActiveTeam.mockResolvedValue({ id: 'team-1', slug: 'alpha' })
 
                 await store.refreshTeam()
 
-                expect(teamApi.getTeam).toHaveBeenCalledWith('team-1')
-                expect(store.team).toEqual(freshTeam)
-                expect(store.teamMembership).toEqual(membership)
-                expect(product.setTeam).toHaveBeenCalledWith(freshTeam)
+                expect(teamsStore.refreshActiveTeam).toHaveBeenCalled()
+                expect(product.setTeam).toHaveBeenCalledWith({ id: 'team-1', slug: 'alpha' })
+                expect(router.replace).not.toHaveBeenCalled()
             })
         })
 
         describe('refreshTeamMembership', () => {
-            it('fetches and updates teamMembership', async () => {
+            it('delegates to the store', async () => {
                 const store = useContextStore()
-                store.team = { id: 'team-1' }
-                const membership = { role: 30 }
-                teamApi.getTeamUserMembership.mockResolvedValue(membership)
+                store.setTeam({ id: 'team-1' })
 
                 await store.refreshTeamMembership()
 
-                expect(teamApi.getTeamUserMembership).toHaveBeenCalledWith('team-1')
-                expect(store.teamMembership).toEqual(membership)
+                expect(teamsStore.refreshActiveMembership).toHaveBeenCalled()
             })
         })
 
         describe('onTeamChannelMembership', () => {
             it('refreshes membership for a non-removal reason', async () => {
                 const store = useContextStore()
-                store.team = { id: 'team-1' }
-                teamApi.getTeamUserMembership.mockResolvedValue({ role: 30 })
+                store.setTeam({ id: 'team-1' })
 
                 await store.onTeamChannelMembership({ reason: 'role-changed' })
 
-                expect(teamApi.getTeamUserMembership).toHaveBeenCalledWith('team-1')
+                expect(teamsStore.refreshActiveMembership).toHaveBeenCalled()
             })
 
             it('hard-reloads to / on removal when on a team route', async () => {
@@ -158,7 +219,7 @@ describe('context store', () => {
                 await store.onTeamChannelMembership({ reason: 'removed' })
 
                 expect(assign).toHaveBeenCalledWith('/')
-                expect(teamApi.getTeamUserMembership).not.toHaveBeenCalled()
+                expect(teamsStore.refreshActiveMembership).not.toHaveBeenCalled()
             })
 
             it('does not reload on removal when on a non-team route', async () => {
@@ -177,6 +238,25 @@ describe('context store', () => {
     })
 
     describe('getters', () => {
+        describe('isImmersive', () => {
+            it('returns false when there is no route', () => {
+                const store = useContextStore()
+                expect(store.isImmersive).toBe(false)
+            })
+
+            it('returns false when the route layout is not immersive', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-overview', meta: { layout: 'platform' } })
+                expect(store.isImmersive).toBe(false)
+            })
+
+            it('returns true when the route layout is immersive', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-editor', meta: { layout: 'immersive' } })
+                expect(store.isImmersive).toBe(true)
+            })
+        })
+
         describe('isFreeTeamType', () => {
             it('returns false when team is null', () => {
                 const store = useContextStore()
@@ -185,13 +265,13 @@ describe('context store', () => {
 
             it('returns false when billing is not disabled', () => {
                 const store = useContextStore()
-                store.team = { type: { properties: { billing: { disabled: false } } } }
+                store.setTeam({ type: { properties: { billing: { disabled: false } } } })
                 expect(store.isFreeTeamType).toBe(false)
             })
 
             it('returns true when billing.disabled is true', () => {
                 const store = useContextStore()
-                store.team = { type: { properties: { billing: { disabled: true } } } }
+                store.setTeam({ type: { properties: { billing: { disabled: true } } } })
                 expect(store.isFreeTeamType).toBe(true)
             })
         })
@@ -199,13 +279,13 @@ describe('context store', () => {
         describe('isTrialAccount', () => {
             it('returns false when team has no billing', () => {
                 const store = useContextStore()
-                store.team = {}
+                store.setTeam({})
                 expect(store.isTrialAccount).toBe(false)
             })
 
             it('returns true when billing.trial is true', () => {
                 const store = useContextStore()
-                store.team = { billing: { trial: true } }
+                store.setTeam({ billing: { trial: true } })
                 expect(store.isTrialAccount).toBe(true)
             })
         })
@@ -213,19 +293,19 @@ describe('context store', () => {
         describe('isTrialAccountExpired', () => {
             it('returns false when not a trial account', () => {
                 const store = useContextStore()
-                store.team = { billing: { trial: false } }
+                store.setTeam({ billing: { trial: false } })
                 expect(store.isTrialAccountExpired).toBe(false)
             })
 
             it('returns false when trial has not ended', () => {
                 const store = useContextStore()
-                store.team = { billing: { trial: true, trialEnded: false } }
+                store.setTeam({ billing: { trial: true, trialEnded: false } })
                 expect(store.isTrialAccountExpired).toBe(false)
             })
 
             it('returns true when trial has ended', () => {
                 const store = useContextStore()
-                store.team = { billing: { trial: true, trialEnded: true } }
+                store.setTeam({ billing: { trial: true, trialEnded: true } })
                 expect(store.isTrialAccountExpired).toBe(true)
             })
         })
@@ -285,10 +365,60 @@ describe('context store', () => {
 
             it('includes teamId and teamSlug from context team', () => {
                 const store = useContextStore()
-                store.team = { id: 'team-42', slug: 'my-team' }
+                store.setTeam({ id: 'team-42', slug: 'my-team' })
                 const expert = store.expert
                 expect(expert.teamId).toBe('team-42')
                 expect(expert.teamSlug).toBe('my-team')
+            })
+
+            it('resolves applicationId for a device owned directly by an application', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-overview' })
+                store.setTeamMembership({ role: 30 })
+                store.setDevice({ id: 'device-1', ownerType: 'application', application: { id: 'app-1' } })
+                const expert = store.expert
+                expect(expert.deviceId).toBe('device-1')
+                expect(expert.applicationId).toBe('app-1')
+                expect(expert.instanceId).toBeNull()
+                expect(expert.deviceOwnerType).toBe('application')
+            })
+
+            it('resolves instanceId and applicationId for a device owned by an instance', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-overview' })
+                store.setTeamMembership({ role: 30 })
+                store.setDevice({
+                    id: 'device-1',
+                    ownerType: 'instance',
+                    instance: { id: 'instance-1' },
+                    application: { id: 'app-1' }
+                })
+                const expert = store.expert
+                expect(expert.deviceId).toBe('device-1')
+                expect(expert.instanceId).toBe('instance-1')
+                expect(expert.applicationId).toBe('app-1')
+                expect(expert.deviceOwnerType).toBe('instance')
+            })
+
+            it('resolves deviceId with a null applicationId/instanceId for an unassigned device', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-overview' })
+                store.setTeamMembership({ role: 30 })
+                store.setDevice({ id: 'device-1', ownerType: null })
+                const expert = store.expert
+                expect(expert.deviceId).toBe('device-1')
+                expect(expert.applicationId).toBeNull()
+                expect(expert.instanceId).toBeNull()
+                expect(expert.deviceOwnerType).toBeNull()
+            })
+
+            it('reflects the route layout in scope', () => {
+                const store = useContextStore()
+                store.updateRoute({ name: 'device-overview', meta: {} })
+                store.setTeamMembership({ role: 30 })
+                expect(store.expert.scope).toBe('ff-app')
+                store.updateRoute({ name: 'device-editor', meta: { layout: 'immersive' } })
+                expect(store.expert.scope).toBe('immersive')
             })
         })
     })

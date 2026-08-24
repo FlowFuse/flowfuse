@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import SemVer from 'semver'
 
+import { useUrlHelper } from '@/composables/UrlHelper'
 import getAppOrchestrator from '@/services/app.orchestrator'
 import { useContextStore } from '@/stores/context.js'
 
@@ -296,16 +297,26 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             return state.debugLogEntries || []
         },
         allowedInboundOrigins () {
-            const allowedOrigins = [window.origin]
+            const allowedOrigins = new Set([window.origin])
             const instance = useContextStore().instance
             const device = useContextStore().device
-            if (instance?.url) allowedOrigins.push(instance.url)
-            if (device?.editor?.url) {
-                // todo this might not be needed because it's just the path to the editor tunnel, not an actual origin
-                //   and the only origin we might receive messages is the current window origin
-                allowedOrigins.push(device.editor.url)
+            // instance.url / device.editor.url can carry an editor path (httpAdminRoot) or a
+            // trailing slash, but a MessageEvent's origin is always a bare scheme://host:port.
+            // Reduce each entry to its origin so the comparison in handleMessage matches.
+            const { safeOrigin } = useUrlHelper()
+            const addOrigin = (url) => {
+                const origin = safeOrigin(url)
+                if (origin) {
+                    allowedOrigins.add(origin)
+                }
             }
-            return allowedOrigins
+            if (instance?.url) {
+                addOrigin(instance.url)
+            }
+            if (device?.editor?.url) {
+                addOrigin(device.editor.url)
+            }
+            return [...allowedOrigins]
         },
         isEditorRunning: (state) => {
             // NOTE: this is achieved via dynamic event registration for 'flows:loaded' and 'runtime-state' events,
@@ -768,7 +779,7 @@ export const useProductAssistantStore = defineStore('product-assistant', {
             const orchestrator = getAppOrchestrator()
             const contextStore = useContextStore()
 
-            orchestrator.$serviceInstances.postMessage.sendMessage({
+            orchestrator.$services.postMessage.sendMessage({
                 message: {
                     ...payload,
                     ...this.scope

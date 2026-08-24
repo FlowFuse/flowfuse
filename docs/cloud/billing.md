@@ -30,20 +30,20 @@ instances and Devices owned by the team.
 
 ## Billing Cycle
 
-Starter plan teams are billed monthly on the anniversary of the team creation. You will receive one bill for each team.
+If you've signed up to FlowFuse Cloud without a yearly contract agreed upon with our sales team, your FlowFuse teams are billed monthly on the anniversary of the team creation. You will receive one bill for each team.
 
-For Team plan teams, Node-RED Instances and Devices are added as pro-rated charges on the current billing cycle and invoiced
+Hosted and Remote Instances which are added beyond the included amount are pro-rated charges on the current billing cycle and invoiced
 at the end of the cycle.
 
 ## Removing Instances
 
-For Team plan teams, when a Node-RED instance is deleted your account will receive pro-rated credit for the time remaining in the billing cycle.
+When an instance is deleted your account will receive pro-rated credit for the time remaining in the billing cycle.
 
 ## Suspended Instances
 
 Suspended Node-RED instances have no running editor, nor a runtime. You are not charged for suspended instances.
 
-For Team plan teams, when an instance is suspended your account will receive pro-rated credit for the time remaining in the billing cycle. When an
+When an instance is suspended your account will receive pro-rated credit for the time remaining in the billing cycle. When an
 instance is restarted it will be charged for the remaining time in the billing cycle.
 
 ## Managing Billing Details

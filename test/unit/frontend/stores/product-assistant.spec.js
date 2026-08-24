@@ -15,7 +15,7 @@ vi.mock('@/services/post-message.service.js', () => ({
 
 vi.mock('@/services/app.orchestrator.js', () => ({
     default: () => ({
-        $serviceInstances: {
+        $services: {
             postMessage: {
                 sendMessage: vi.fn().mockResolvedValue(undefined)
             }
@@ -103,7 +103,7 @@ describe('product-assistant store', () => {
                 const contextStore = useContextStore()
                 const store = useProductAssistantStore()
                 contextStore.setInstance({ id: 'inst-1', url: 'http://localhost:1880' })
-                contextStore.setIsImmersive(true)
+                contextStore.updateRoute({ meta: { layout: 'immersive' } })
                 expect(store.isImmersiveInstance).toBe(true)
             })
         })
@@ -125,7 +125,7 @@ describe('product-assistant store', () => {
                 const contextStore = useContextStore()
                 const store = useProductAssistantStore()
                 contextStore.setDevice({ id: 'dev-1', editor: { url: 'http://device.local' } })
-                contextStore.setIsImmersive(true)
+                contextStore.updateRoute({ meta: { layout: 'immersive' } })
                 expect(store.isImmersiveDevice).toBe(true)
             })
         })
@@ -232,6 +232,22 @@ describe('product-assistant store', () => {
                 const store = useProductAssistantStore()
                 contextStore.setDevice({ id: 'dev-1', editor: { url: 'http://device.local' } })
                 expect(store.allowedInboundOrigins).toContain('http://device.local')
+            })
+
+            it('reduces an instance url carrying an editor path to its bare origin', () => {
+                const contextStore = useContextStore()
+                const store = useProductAssistantStore()
+                contextStore.setInstance({ id: 'inst-1', url: 'https://node-red.local/admin' })
+                expect(store.allowedInboundOrigins).toContain('https://node-red.local')
+                expect(store.allowedInboundOrigins).not.toContain('https://node-red.local/admin')
+            })
+
+            it('reduces an instance url with a trailing slash to its bare origin', () => {
+                const contextStore = useContextStore()
+                const store = useProductAssistantStore()
+                contextStore.setInstance({ id: 'inst-1', url: 'https://node-red.local/' })
+                expect(store.allowedInboundOrigins).toContain('https://node-red.local')
+                expect(store.allowedInboundOrigins).not.toContain('https://node-red.local/')
             })
         })
 

@@ -223,7 +223,7 @@ export default {
                         // TODO: should the create allow a device to be created
                         //       in the project directly? Currently done as a two
                         //       step process
-                        // eslint-disable-next-line promise/no-nesting
+
                         return devicesApi.updateDevice(response.id, { instance: this.instance.id }).then((response) => {
                             // Reattach the credentials from the create request
                             // so they can be displayed to the user
@@ -236,7 +236,7 @@ export default {
                         const creds = response.credentials
                         // TODO: should the create allow a device to linked to an application at the same time?
                         //       currently, as above, this is a 2 step process
-                        // eslint-disable-next-line promise/no-nesting
+
                         return devicesApi.updateDevice(response.id, { application }).then((response) => {
                             // Reattach the credentials from the create request
                             // so they can be displayed to the user

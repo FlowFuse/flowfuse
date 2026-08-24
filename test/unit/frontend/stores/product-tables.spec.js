@@ -77,15 +77,23 @@ describe('product-tables store', () => {
         it('selectedTable returns the matching table', () => {
             const store = useProductTablesStore()
             store.databaseSelection = 'db-1'
-            store.tableSelection = 'users'
+            store.tableSelection = { name: 'users', dbSchema: undefined }
             store.tables = { 'db-1': [{ name: 'users' }, { name: 'orders' }] }
             expect(store.selectedTable).toEqual({ name: 'users' })
+        })
+
+        it('selectedTable matches on both name and dbSchema', () => {
+            const store = useProductTablesStore()
+            store.databaseSelection = 'db-1'
+            store.tableSelection = { name: 'users', dbSchema: 'reports' }
+            store.tables = { 'db-1': [{ name: 'users', dbSchema: 'public' }, { name: 'users', dbSchema: 'reports' }] }
+            expect(store.selectedTable).toEqual({ name: 'users', dbSchema: 'reports' })
         })
 
         it('selectedTable returns undefined when no selection matches', () => {
             const store = useProductTablesStore()
             store.databaseSelection = 'db-1'
-            store.tableSelection = 'unknown'
+            store.tableSelection = { name: 'unknown', dbSchema: undefined }
             store.tables = { 'db-1': [{ name: 'users' }] }
             expect(store.selectedTable).toBeUndefined()
         })
@@ -117,7 +125,7 @@ describe('product-tables store', () => {
             await store.getTables('db-1')
             expect(store.tables['db-1'][0].name).toBe('accounts')
             expect(store.tables['db-1'][1].name).toBe('orders')
-            expect(store.tableSelection).toBe('accounts')
+            expect(store.tableSelection).toEqual({ name: 'accounts', dbSchema: undefined })
         })
 
         it('does not set tableSelection when no tables returned', async () => {
@@ -125,6 +133,14 @@ describe('product-tables store', () => {
             tablesApi.getTables.mockResolvedValue([])
             await store.getTables('db-1')
             expect(store.tableSelection).toBeNull()
+        })
+
+        it('maps the API schema field to dbSchema, leaving schema free for column definitions', async () => {
+            const store = useProductTablesStore()
+            tablesApi.getTables.mockResolvedValue([{ name: 'orders', schema: 'reports' }])
+            await store.getTables('db-1')
+            expect(store.tables['db-1'][0].dbSchema).toBe('reports')
+            expect(store.tables['db-1'][0].schema).toBeUndefined()
         })
     })
 
@@ -144,8 +160,8 @@ describe('product-tables store', () => {
     describe('updateTableSelection / updateDatabaseSelection', () => {
         it('sets tableSelection', () => {
             const store = useProductTablesStore()
-            store.updateTableSelection('orders')
-            expect(store.tableSelection).toBe('orders')
+            store.updateTableSelection({ name: 'orders', dbSchema: 'public' })
+            expect(store.tableSelection).toEqual({ name: 'orders', dbSchema: 'public' })
         })
 
         it('sets databaseSelection', () => {
@@ -163,6 +179,16 @@ describe('product-tables store', () => {
             await store.getTableSchema({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1' })
             expect(store.tables['db-1'][0].schema[0].safeName).toBe('safe_id')
         })
+
+        it('only updates the table matching both name and schemaName when schemaName is given', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users', dbSchema: 'public' }, { name: 'users', dbSchema: 'reports' }] }
+            tablesApi.getTableSchema.mockResolvedValue([{ name: 'id', type: 'int' }])
+            await store.getTableSchema({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1', schemaName: 'reports' })
+            expect(tablesApi.getTableSchema).toHaveBeenCalledWith('team-1', 'db-1', 'users', 'reports')
+            expect(store.tables['db-1'][0].schema).toBeUndefined()
+            expect(store.tables['db-1'][1].schema[0].safeName).toBe('safe_id')
+        })
     })
 
     describe('getTableData', () => {
@@ -174,6 +200,25 @@ describe('product-tables store', () => {
             const table = store.tables['db-1'][0]
             expect(table.payload.data).toEqual([{ id: 1, name: 'Alice' }])
             expect(table.payload.safe[0].safe_id).toBe(1)
+        })
+
+        it('only updates the table matching both name and schemaName when schemaName is given', async () => {
+            const store = useProductTablesStore()
+            store.tables = { 'db-1': [{ name: 'users', dbSchema: 'public' }, { name: 'users', dbSchema: 'reports' }] }
+            tablesApi.getTableData.mockResolvedValue([{ id: 1, name: 'Alice' }])
+            await store.getTableData({ databaseId: 'db-1', tableName: 'users', teamId: 'team-1', schemaName: 'reports' })
+            expect(tablesApi.getTableData).toHaveBeenCalledWith('team-1', 'db-1', 'users', 'reports')
+            expect(store.tables['db-1'][0].payload).toBeUndefined()
+            expect(store.tables['db-1'][1].payload.data).toEqual([{ id: 1, name: 'Alice' }])
+        })
+    })
+
+    describe('deleteTable', () => {
+        it('passes schemaName through to the API', async () => {
+            const store = useProductTablesStore()
+            tablesApi.deleteTable.mockResolvedValue({})
+            await store.deleteTable({ teamId: 'team-1', databaseId: 'db-1', tableName: 'users', schemaName: 'reports' })
+            expect(tablesApi.deleteTable).toHaveBeenCalledWith('team-1', 'db-1', 'users', 'reports')
         })
     })
 

@@ -19,12 +19,40 @@ module.exports = fp(async function (app, _opts) {
     const expertUrl = app.config.expert?.service?.url
     const serviceToken = app.config.expert?.service?.token
     const requestTimeout = app.config.expert?.service?.requestTimeout || 60000
+    const expertBridgeEnabled = typeof app.config.expert?.centralBroker?.server === 'string' && app.config.expert?.centralBroker?.server.length > 0
 
     const TOKEN_TTL = app.config.expert?.tokenCache?.ttl || 5 * 60 * 1000 // Default 5 minutes
     const TOKEN_REMAINING_LIMIT = 15000 // token life edge window (avoid using tokens about to expire)
 
+    // Log the Expert chat transport at startup. With the team broker enabled chat uses
+    // the MQTT bridge (needs expert.centralBroker.server); otherwise it uses the HTTP url.
+    if (serviceEnabled) {
+        const teamBrokerEnabled = app.config.broker?.teamBroker?.enabled === true
+        if (expertBridgeEnabled) {
+            const ssl = app.config.expert?.centralBroker?.ssl ?? true
+            app.log.info(`Expert enabled: chat via MQTT bridge to ${app.config.expert.centralBroker.server} (ssl=${ssl})`)
+        } else if (teamBrokerEnabled) {
+            app.log.warn('Expert enabled with the team broker on, but expert.centralBroker.server is not set: MQTT chat has no bridge and will not receive responses. Set expert.centralBroker.server (host:port).')
+        } else {
+            app.log.info(`Expert enabled: chat via HTTP service url ${expertUrl}`)
+        }
+    }
+
     app.housekeeper.registerTask(require('./tasks/startup'))
     app.housekeeper.registerTask(require('./tasks/weekly'))
+
+    // Register the Expert Agent bridge heartbeat task if the Expert Bridge is enabled.
+    if (expertBridgeEnabled) {
+        const startDelay = app.config.expert.centralBroker.heartbeat?.startDelay || 2 * 60 * 1000 // 2 minutes
+        const schedule = app.config.expert.centralBroker.heartbeat?.schedule || '*/1 * * * *' // every minute
+        const maxResponseTime = 10000
+        try {
+            const task = require('./tasks/heartbeat')({ schedule, startDelay, maxResponseTime })
+            app.housekeeper.registerTask(task)
+        } catch (error) {
+            app.log.error(`Expert Agent heartbeat task not registered: ${error.message}`)
+        }
+    }
 
     app.caches.createCache(TOKEN_CACHE_NAME, {
         max: app.config.expert?.tokenCache?.max || 1000,

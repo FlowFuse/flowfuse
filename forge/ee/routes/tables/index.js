@@ -11,7 +11,7 @@ module.exports = async function (app) {
             }
             await request.team.ensureTeamTypeExists()
             if (!request.team.getFeatureProperty('tables', false)) {
-                reply.code(404).send({ code: 'not_found', error: 'Not Found - not available on team' })
+                reply.code(404).send({ code: 'not_found', error: 'Not Found - FlowFuse Tables is not enabled for this team' })
                 return // eslint-disable-line no-useless-return
             }
         }
@@ -309,12 +309,12 @@ module.exports = async function (app) {
     })
 
     /**
-     * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName
+     * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName/:schemaName?
      * @description Get a specific table schema in a team database
      * @static
      * @memberof forge.routes.api.team.tables
      */
-    app.get('/:databaseId/tables/:tableName', {
+    app.get('/:databaseId/tables/:tableName/:schemaName?', {
         preHandler: app.needsPermission('team:database:list'),
         schema: {
             summary: '',
@@ -323,7 +323,8 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     databaseId: { type: 'string' },
-                    tableName: { type: 'string' }
+                    tableName: { type: 'string' },
+                    schemaName: { type: 'string' }
                 }
             },
             response: {
@@ -340,7 +341,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         // get the table schema
-        const table = await app.tables.getTable(request.team, request.params.databaseId, request.params.tableName)
+        const table = await app.tables.getTable(request.team, request.params.databaseId, request.params.tableName, request.params.schemaName)
         if (!table) {
             return reply.status(404).send({ code: 'table_not_found', error: 'Table not found' })
         }
@@ -348,12 +349,12 @@ module.exports = async function (app) {
     })
 
     /**
-     * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName
+     * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName/:schemaName?
      * @description Delete a specific table schema in a team database
      * @static
      * @memberof forge.routes.api.team.tables
      */
-    app.delete('/:databaseId/tables/:tableName', {
+    app.delete('/:databaseId/tables/:tableName/:schemaName?', {
         preHandler: app.needsPermission('team:database:create'),
         schema: {
             summary: '',
@@ -362,7 +363,8 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     databaseId: { type: 'string' },
-                    tableName: { type: 'string' }
+                    tableName: { type: 'string' },
+                    schemaName: { type: 'string' }
                 }
             },
             response: {
@@ -378,9 +380,11 @@ module.exports = async function (app) {
             }
         }
     }, async (request, reply) => {
+        const requestedSchema = request.params.schemaName
         const tables = await app.tables.getTables(request.team, request.params.databaseId)
-        if (tables.tables.filter((t) => t.name === request.params.tableName).length === 1) {
-            await app.tables.dropTable(request.team, request.params.databaseId, request.params.tableName)
+        const matches = tables.tables.filter((t) => t.name === request.params.tableName && (!requestedSchema || t.schema === requestedSchema))
+        if (matches.length === 1) {
+            await app.tables.dropTable(request.team, request.params.databaseId, request.params.tableName, requestedSchema)
             reply.status(204).send()
             await app.auditLog.Team.tables.table.deleted(request.session?.User || 'system', null, request.team, request.database, request.params.tableName)
         } else {
@@ -389,12 +393,12 @@ module.exports = async function (app) {
     })
 
     /**
-     * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName/data
+     * @name /api/v1/teams/:teamId/databases/:databaseId/tables/:tableName/data/:schemaName?
      * @description Get sample data from a specific table in a team database
      * @static
      * @memberof forge.routes.api.team.tables
      */
-    app.get('/:databaseId/tables/:tableName/data', {
+    app.get('/:databaseId/tables/:tableName/data/:schemaName?', {
         preHandler: app.needsPermission('team:database:list'),
         schema: {
             summary: '',
@@ -403,7 +407,8 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                     databaseId: { type: 'string' },
-                    tableName: { type: 'string' }
+                    tableName: { type: 'string' },
+                    schemaName: { type: 'string' }
                 }
             },
             query: { $ref: 'PaginationParams' },
@@ -435,7 +440,7 @@ module.exports = async function (app) {
         }
     }, async (request, reply) => {
         const paginationOptions = app.getPaginationOptions(request)
-        const data = await app.tables.getTableData(request.team, request.params.databaseId, request.params.tableName, paginationOptions)
+        const data = await app.tables.getTableData(request.team, request.params.databaseId, request.params.tableName, paginationOptions, request.params.schemaName)
         reply.send(data)
     })
 }

@@ -46,6 +46,10 @@
  * @property {string} [dependsOnTeam] - A team feature key that must be enabled for this
  *   feature to be enabled. Checked directly against the team type properties.
  *
+ * @property {string} [posthogKey] - PostHog feature-flag key. When PostHog is available
+ *   (`window.posthog`), its flag value overrides the platform/team result; otherwise the
+ *   platform/team result stands.
+ *
  * @property {boolean} [dependsOnTeamOptOut] - Controls the default behavior of the
  *   `dependsOnTeam` check, same semantics as `optOut`.
  *   Only meaningful when `dependsOnTeam` is set. Ignored otherwise.
@@ -56,6 +60,8 @@
  *   - If only `teamKey` is set: `team` only (team-only feature)
  *   - After the base combination, all `dependsOn*` gates are applied. If any
  *     dependency check fails, the combined result is forced to `false`.
+ *   - If `posthogKey` is set and PostHog is available, its flag value overrides everything
+ *     above; if PostHog is unavailable, the platform/team result (or `false`) is used.
  *
  * At least one of `platformKey` or `teamKey` must be provided.
  * `dependsOn`, `dependsOnPlatform`, and `dependsOnTeam` can be used together.
@@ -72,6 +78,7 @@ interface FeatureConfig {
     dependsOnPlatformSource?: 'settings'
     dependsOnTeam?: string
     dependsOnTeamOptOut?: boolean
+    posthogKey?: string
 }
 
 interface PlatformState {
@@ -79,6 +86,7 @@ interface PlatformState {
     settings?: {
         features?: Record<string, boolean>
     }
+    posthogFlags?: Record<string, boolean>
 }
 
 interface TeamTypeProperties {
@@ -118,6 +126,17 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
         dependsOnTeam: 'ai',
         dependsOnTeamOptOut: true
     },
+    {
+        output: 'isMcpThirdPartyFeatureEnabled',
+        platformKey:
+            'mcpThirdParty',
+        teamKey: 'mcpThirdParty',
+        optOut: true,
+        dependsOnPlatform: 'ai',
+        dependsOnTeam: 'ai',
+        dependsOnTeamOptOut: true,
+        posthogKey: 'MCP_THIRD_PARTY'
+    },
     { output: 'isApplicationsRBACFeatureEnabled', platformKey: 'rbacApplication', teamKey: 'rbacApplication' },
 
     // Team-only
@@ -131,6 +150,10 @@ export const FEATURE_CONFIGS: FeatureConfig[] = [
     { output: 'isExternalMqttBrokerFeatureEnabled', platformKey: 'externalBroker' },
     { output: 'isExpertPlatformAutomationFeatureEnabled', platformKey: 'expertPlatformAutomation' }
 ]
+
+function isPostHogAvailable (): boolean {
+    return !!window.posthog
+}
 
 function isPlatformFeatureEnabled (state: PlatformState, platformKey: string, platformSource?: 'settings'): boolean {
     const source = platformSource === 'settings' ? state.settings?.features : state.features
@@ -165,9 +188,10 @@ function applyDependencyGates (
 
 export function buildFeatureChecks (state: PlatformState, team: Team | null | undefined): FeatureChecks {
     const checks: FeatureChecks = {}
+    const posthogFlags = state.posthogFlags ?? {}
 
     for (const config of FEATURE_CONFIGS) {
-        const { output, platformKey, teamKey, optOut, platformSource } = config
+        const { output, platformKey, teamKey, optOut, platformSource, posthogKey } = config
         const platformCheckKey = `${output}ForPlatform`
         const teamCheckKey = `${output}ForTeam`
 
@@ -188,6 +212,10 @@ export function buildFeatureChecks (state: PlatformState, team: Team | null | un
         }
 
         applyDependencyGates(checks, output, config, state, team)
+
+        if (posthogKey && isPostHogAvailable()) {
+            checks[output] = !!posthogFlags[posthogKey]
+        }
     }
 
     return checks

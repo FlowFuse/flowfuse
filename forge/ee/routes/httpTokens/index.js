@@ -18,18 +18,18 @@ module.exports = async function (app) {
                     await request.project.Team.ensureTeamTypeExists()
                     if (!request.project.Team.getFeatureProperty('teamHttpSecurity', false)) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                        return // eslint-disable-line no-useless-return
+                        return
                     }
                     if (request.session.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.project.Team.id)
                         if (!request.teamMembership && !request.session.User.admin) {
                             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                            return // eslint-disable-line no-useless-return
+                            return
                         }
                     } else if (request.session.ownerId !== request.params.projectId) {
                         // AccessToken being used - but not owned by this project
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                        return // eslint-disable-line no-useless-return
+                        return
                     }
                 } catch (err) {
                     reply.code(404).send({ code: 'not_found', error: 'Not Found' })
@@ -49,7 +49,7 @@ module.exports = async function (app) {
                     await request.device.Team.ensureTeamTypeExists()
                     if (!request.device.Team.getFeatureProperty('teamHttpSecurity', false)) {
                         reply.code(404).send({ code: 'not_found', error: 'Not Found' })
-                        return // eslint-disable-line no-useless-return
+                        return
                     }
                     if (request.session.User) {
                         request.teamMembership = await request.session.User.getTeamMembership(request.device.Team.id)

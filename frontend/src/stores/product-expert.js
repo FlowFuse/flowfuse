@@ -6,6 +6,7 @@ import expertApi from '../api/expert.js'
 import userApi from '../api/user.js'
 import useTimerHelper from '../composables/TimerHelper.js'
 
+import { useAccountAuthStore } from './account-auth.js'
 import { useAccountSettingsStore } from './account-settings.js'
 import { useContextStore } from './context.js'
 import { useProductAssistantStore } from './product-assistant.js'
@@ -23,6 +24,7 @@ import {
     THROTTLED_ERROR_CODES,
     TRANSIENT_ERROR_CODES
 } from '@/services/mqtt.service'
+import { connectionKey as teamConnectionKey } from '@/subscribers/team-subscriber.contract'
 
 export const useProductExpertStore = defineStore('product-expert', {
     state: () => ({
@@ -144,6 +146,9 @@ export const useProductExpertStore = defineStore('product-expert', {
                 this.setAgentMode(INSIGHTS_AGENT)
             }
 
+            // Resume the session check interval if a persisted session exists (e.g. after page refresh)
+            this.resumeSessionTimer()
+
             // In immersive editor context, navigate to the Expert tab instead of opening RightDrawer
             const contextStore = useContextStore()
             if (contextStore.isImmersiveEditor) {
@@ -157,6 +162,18 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // Lazy require: top-level import would form a cycle via Platform → RightDrawer → product-expert.js
                 const router = require('@/routes.js').default
                 return router.push({ name: expertRouteName, params: contextStore.route.params })
+            }
+
+            if (['team-dashboards-view', 'application-dashboards-view'].includes(contextStore.route?.name)) {
+                const drawersStore = useUxDrawersStore()
+                if (!drawersStore.editorImmersiveDrawer.state) {
+                    drawersStore.openEditorImmersiveDrawer()
+                }
+                return import('../components/expert/Expert.vue')
+                    .then(({ default: ExpertPanel }) => drawersStore.openRightDrawer({
+                        component: markRaw(ExpertPanel),
+                        header: { title: 'Expert' }
+                    }))
             }
 
             if (this.agentMode === INSIGHTS_AGENT) {
@@ -278,7 +295,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         async sendMqttQuery ({ query, toolApprovals } = {}) {
             const servicesOrchestrator = getAppOrchestrator()
-            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const mqttService = servicesOrchestrator.$services.mqtt
             const mqttTopicHelper = useMqttExpertTopicHelper()
 
             const transactionId = uuidv4()
@@ -329,7 +346,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         },
         async establishMqttComms () {
             const servicesOrchestrator = getAppOrchestrator()
-            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const mqttService = servicesOrchestrator.$services.mqtt
 
             await mqttService.createClient(this.mqttConnectionKey, {
                 getCredentials: () => userApi.initiateExpertChat({ sessionId: this.sessionId }),
@@ -358,30 +375,54 @@ export const useProductExpertStore = defineStore('product-expert', {
                 // is unavailable; the settings UI simply shows no tools yet.
             }
         },
-        async handleInFlightRequest ({ topic, message, transactionId, sessionId, chatTransactionId } = {}) {
+        async handleInFlightRequest ({ topic, message, payload: parsedPayload, transactionId, sessionId, chatTransactionId } = {}) {
             // Match the originating chat request explicitly (not just the first entry) so a
             // concurrent in-flight request — e.g. an open tool approval — can't shadow it and
             // cause us to drop a valid in-flight request.
             const inFlightRequest = Array.from(this._inFlightRequests.values())
                 .find(r => r.transactionId === chatTransactionId)
 
+            // A third-party MCP request is addressed to this tab's browser session rather
+            // than a chat session, and has no originating chat request to correlate with,
+            // so it bypasses both checks below. Everything else keeps today's behaviour.
+            const isBrowserSession = !!sessionId && sessionId === useAccountAuthStore().getSessionId()
+
             // dismiss inFlight requests that don't match the existing sessionId or the inFlight message transactionId
-            if (sessionId !== this.sessionId || !inFlightRequest) return
+            if (!isBrowserSession && (sessionId !== this.sessionId || !inFlightRequest)) return
 
             const servicesOrchestrator = getAppOrchestrator()
             const assistantStore = useProductAssistantStore()
             const topicHelper = useMqttExpertTopicHelper()
 
-            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const mqttService = servicesOrchestrator.$services.mqtt
             const parsedTopic = topicHelper.parseTopic(topic)
-            const payload = JSON.parse(message.toString())
+            const payload = parsedPayload ?? JSON.parse(message.toString())
+
+            // MCP traffic rides the team connection - the expert client only exists once
+            // the user has opened a chat. Keyed on the browser session rather than the
+            // channel alone: the gateway still emits third-party requests on `support`
+            // until it carries the channel on its UI routing context.
+            const isMcpChannel = parsedTopic.agentChannel === 'mcp' || isBrowserSession
+            const connectionKey = isMcpChannel
+                ? teamConnectionKey(useContextStore().team?.id)
+                : this.mqttConnectionKey
+
+            // Errors on the MCP path must not post into the chat transcript, there may not
+            // be a chat open at all.
+            const reportError = (e) => {
+                if (isMcpChannel) {
+                    console.warn('MCP in-flight request failed:', e)
+                } else {
+                    this._onMqttError(e)
+                }
+            }
 
             this._addInFlightUpdate(payload.status || payload.toolname || 'Processing request...')
 
             const responseTopic = topicHelper.buildTopic({
                 entityType: parsedTopic.entityType,
                 entityId: parsedTopic.entityId,
-                agentChannel: 'support',
+                agentChannel: parsedTopic.agentChannel,
                 topicType: 'inflight',
                 topicAction: 'response',
                 inflightType: parsedTopic.inflightType,
@@ -390,7 +431,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             switch (true) {
             case parsedTopic.inflightType === 'expert:status-message':
-                await mqttService.publishMessage(this.mqttConnectionKey, {
+                await mqttService.publishMessage(connectionKey, {
                     qos: 2,
                     topic: responseTopic,
                     payload: JSON.stringify({
@@ -407,10 +448,10 @@ export const useProductExpertStore = defineStore('product-expert', {
             case parsedTopic.inflightType === 'automation-ui:mcp-get-features': {
                 // handle UI MCP features request
                 try {
-                    const automationsService = servicesOrchestrator.$serviceInstances.automations
+                    const automationsService = servicesOrchestrator.$services.automations
                     const tools = automationsService.getToolDefinitions()
 
-                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                    await mqttService.publishMessage(connectionKey, {
                         qos: 2,
                         topic: responseTopic,
                         payload: JSON.stringify({ tools }),
@@ -422,18 +463,18 @@ export const useProductExpertStore = defineStore('product-expert', {
                         }
                     })
                 } catch (e) {
-                    this._onMqttError(e)
+                    reportError(e)
                 }
                 break
             }
             case parsedTopic.inflightType === 'automation-ui:mcp-call-tool': {
                 // handle UI MCP tool invocation request
                 try {
-                    const automationsService = servicesOrchestrator.$serviceInstances.automations
+                    const automationsService = servicesOrchestrator.$services.automations
                     const { name, input } = payload?.data || {}
                     const result = await automationsService.dispatch(name, input)
 
-                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                    await mqttService.publishMessage(connectionKey, {
                         qos: 2,
                         topic: responseTopic,
                         payload: JSON.stringify(result),
@@ -445,7 +486,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         }
                     })
                 } catch (e) {
-                    this._onMqttError(e)
+                    reportError(e)
                 }
                 break
             }
@@ -460,7 +501,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         transactionId
                     })
 
-                    await mqttService.publishMessage(this.mqttConnectionKey, {
+                    await mqttService.publishMessage(connectionKey, {
                         qos: 2,
                         topic: responseTopic,
                         payload: JSON.stringify(result),
@@ -472,7 +513,7 @@ export const useProductExpertStore = defineStore('product-expert', {
                         }
                     })
                 } catch (e) {
-                    this._onMqttError(e)
+                    reportError(e)
                 }
                 break
             default:
@@ -597,7 +638,7 @@ export const useProductExpertStore = defineStore('product-expert', {
 
             if (this.shouldUseMqtt) {
                 const servicesOrchestrator = getAppOrchestrator()
-                const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+                const mqttService = servicesOrchestrator.$services.mqtt
 
                 await mqttService.destroyClient(this.mqttConnectionKey)
             }
@@ -652,26 +693,13 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
         },
         // Session timing actions
-        startSessionTimer () {
+        _startSessionCheckInterval () {
             const agentStore = this._agentStore
-
-            // Clear any existing timer
-            if (agentStore.sessionCheckTimer) {
-                clearInterval(agentStore.sessionCheckTimer)
-            }
-
-            // Set session start time
-            agentStore.sessionStartTime = Date.now()
-            agentStore.sessionWarningShown = false
-            agentStore.sessionExpiredShown = false
-
-            // Check every 30 seconds if we've reached the warning/expiration threshold
             const timer = setInterval(() => {
                 const elapsed = Date.now() - agentStore.sessionStartTime
                 const warningThreshold = 25 * 60 * 1000 // 25 minutes
                 const expirationThreshold = 28 * 60 * 1000 // 28 minutes
 
-                // Show 25-minute warning
                 if (elapsed >= warningThreshold && !agentStore.sessionWarningShown) {
                     agentStore.sessionWarningShown = true
                     this.addSystemMessage({
@@ -680,7 +708,6 @@ export const useProductExpertStore = defineStore('product-expert', {
                     })
                 }
 
-                // Show 30-minute expiration
                 if (elapsed >= expirationThreshold && !agentStore.sessionExpiredShown) {
                     agentStore.sessionExpiredShown = true
                     this.addSystemMessage({
@@ -688,9 +715,22 @@ export const useProductExpertStore = defineStore('product-expert', {
                         type: 'expired'
                     })
                 }
-            }, 30000) // Check every 30 seconds
+            }, 30000)
 
             agentStore.setSessionCheckTimer(timer)
+        },
+        startSessionTimer () {
+            const agentStore = this._agentStore
+
+            if (agentStore.sessionCheckTimer) {
+                clearInterval(agentStore.sessionCheckTimer)
+            }
+
+            agentStore.sessionStartTime = Date.now()
+            agentStore.sessionWarningShown = false
+            agentStore.sessionExpiredShown = false
+
+            this._startSessionCheckInterval()
         },
         resetSessionTimer () {
             const agentStore = this._agentStore
@@ -701,6 +741,13 @@ export const useProductExpertStore = defineStore('product-expert', {
             agentStore.sessionStartTime = null
             agentStore.sessionWarningShown = false
             agentStore.sessionExpiredShown = false
+        },
+        // Restart the session check interval without resetting sessionStartTime.
+        // Used after page refresh to let the persisted timer continue its course.
+        resumeSessionTimer () {
+            const agentStore = this._agentStore
+            if (!agentStore.sessionStartTime || agentStore.sessionCheckTimer || agentStore.sessionExpiredShown) return
+            this._startSessionCheckInterval()
         },
         /**
          *
@@ -884,7 +931,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             }
 
             const servicesOrchestrator = getAppOrchestrator()
-            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const mqttService = servicesOrchestrator.$services.mqtt
 
             // if the last message was an error, it means we just reconnected after a failure
             // letting users know that everything is all right
@@ -958,7 +1005,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             this._clearInFlightUpdates()
 
             const servicesOrchestrator = getAppOrchestrator()
-            const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+            const mqttService = servicesOrchestrator.$services.mqtt
 
             const rand = Math.floor(Math.random() * 3)
             let payload = {
@@ -1247,7 +1294,7 @@ export const useProductExpertStore = defineStore('product-expert', {
             if (this.shouldUseMqtt) {
                 const inFlightRequest = this._inFlightRequests.values().next().value
                 const servicesOrchestrator = getAppOrchestrator()
-                const mqttService = servicesOrchestrator.$serviceInstances.mqtt
+                const mqttService = servicesOrchestrator.$services.mqtt
 
                 const hasMqttClient = mqttService.hasClient(this.mqttConnectionKey) &&
                     (mqttService.getManagedClient(this.mqttConnectionKey)).status === 'connected'
@@ -1288,7 +1335,7 @@ export const useProductExpertStore = defineStore('product-expert', {
         }
     },
     persist: {
-        pick: ['shouldWakeUpAssistant', 'questionCadence'],
-        storage: localStorage
+        pick: ['shouldWakeUpAssistant', 'questionCadence', 'agentMode'],
+        storage: sessionStorage
     }
 })

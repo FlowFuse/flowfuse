@@ -1,6 +1,6 @@
 const redisClient = require('@redis/client')
 
-const should = require('should') // eslint-disable-line
+const should = require('should')
 const sinon = require('sinon')
 
 const REDIS_CACHE_PATH = '../../../../forge/caches/redis-cache.js'
@@ -158,6 +158,11 @@ describe('Redis Cache', function () {
                 should(val).be.undefined()
             })
 
+            it('rejects a non-string key', async function () {
+                await cache.get(1).should.be.rejectedWith(/Cache key must be a string/)
+                fakeClient.hGet.called.should.be.false()
+            })
+
             it('round-trips strings, numbers, arrays', async function () {
                 fakeClient.hGet.resolves(JSON.stringify('hello'))
                 ;(await cache.get('k')).should.equal('hello')
@@ -191,6 +196,11 @@ describe('Redis Cache', function () {
                 fakeClient.hSet.secondCall.args[2].should.equal(JSON.stringify(42))
             })
 
+            it('rejects a non-string key', async function () {
+                await cache.set(1, 'v').should.be.rejectedWith(/Cache key must be a string/)
+                fakeClient.hSet.called.should.be.false()
+            })
+
             it('does not call hpExpire when no ttl is set on the cache', async function () {
                 await cache.set('k', 'v')
                 fakeClient.hpExpire.called.should.be.false()
@@ -212,6 +222,11 @@ describe('Redis Cache', function () {
             it('calls hDel on the named hash', async function () {
                 await cache.del('k')
                 fakeClient.hDel.calledOnceWith('mycache', 'k').should.be.true()
+            })
+
+            it('rejects a non-string key', async function () {
+                await cache.del(1).should.be.rejectedWith(/Cache key must be a string/)
+                fakeClient.hDel.called.should.be.false()
             })
         })
 

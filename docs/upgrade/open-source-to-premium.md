@@ -11,7 +11,7 @@ meta:
      - upgrade
 ---
 
-## Upgrading to FlowFuse Enterprise
+# Upgrading to FlowFuse Enterprise
 
 For self-managed FlowFuse installations without a license you can unlock more
 features with a enterprise license. As an admin a license can be uploaded to
@@ -22,7 +22,7 @@ After the forge application has restarted, the Node-RED runtimes need to be
 updated to leverage these features. As restarting Node-RED might need to be
 coordinated, FlowFuse will not automatically restart all instances.
 
-### Reusing FlowFuse licenses
+## Reusing FlowFuse licenses
 
 A single license may only be applied to one FlowFuse platform at any time. Running multiple FlowFuse platforms with the same license key is against the terms of the subscription.
 

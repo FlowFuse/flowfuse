@@ -57,27 +57,11 @@ and click the button to resend it.
 
 ## Team Types
 
-FlowFuse Cloud has three different Team Type aimed at different sorts of users
-
-### Starter
-
-Good for getting to know the platform, allows 2 small Instances, 2 Devices and 2 Team members
-
-### Team
-
-Has access to more features e.g.
-
-- Shared Team Library
-- Project Nodes
-- Team-based Dashboard/API security
-- Email alerts for Instance crashes
-- Has access to larger Instance Types
-
-Also includes 5 Instances in the base price
+FlowFuse Cloud offers a Trial and an Enterprise Team Type, aimed at different sorts of users
 
 ### Enterprise
 
-All features from the Team Level plus
+Enterprise includes:
 
  - HA for Instances
  - SSO
@@ -125,21 +109,15 @@ table shows what is currently allocated by instance size.
 | Medium | 768MB |
 | Large | 3840MB |
 
-Medium and Large instance types require the Teams or Enterprise tier.
+Medium and Large instance types require the Enterprise tier.
 
 ## Use of the File System
 
 FlowFuse Cloud hosted instances have access to a persistent file-system that will
 retain the files stored on it across restarts of the instance.
 
-A quota limit is applied to how much data can be stored, which varies based on
-the Team type.
-
-| Team Type | File Storage Quota (per instance) |
-|--------|--------|
-| Starter | 1GB |
-| Team | 10GB |
-| Enterprise | 100GB |
+A quota limit is applied to how much data can be stored, based on the Team type.
+Enterprise teams have a file storage quota of 100GB per instance.
 
 Files can be manually uploaded to an instance using the [Static Asset Service](https://flowfuse.com/blog/2024/08/flowfuse-2-8-release/#static-assets-service).
 
@@ -152,12 +130,7 @@ FlowFuse Cloud provides an optional context store that can be used to persist
 the data.
 
 The amount of data that can be stored in context is determined by the Team type.
-
-| Team Type | Context Store Quota (per instance) |
-|--------|--------|
-| Starter | 10MB |
-| Team | 100MB |
-| Enterprise | 1GB |
+Enterprise teams have a context store quota of 1GB per instance.
 
 
 ## Network Connections
@@ -181,16 +154,16 @@ Node-RED inside the FlowFuse Cloud platform.
 
 MQTT Connections to an external broker using the standard MQTT nodes will work fine as the connection is initiated by Node-RED.
 
-FlowFuse provides an MQTT broker for general use by Enterprise Team's Node-RED instances. See the following section.
+FlowFuse provides an MQTT broker for Enterprise Node-RED instances. See the following section.
 
 Also the Project Nodes can be used to easily pass messages between Node-RED instances running in the
 platform.
 
 #### Enterprise Team Broker
 
-Both Team and Enterprise level teams come with their own MQTT broker. You can provision clients from the broker tab in the left hand menu.
+Enterprise teams come with their own MQTT broker. You can provision clients from the broker tab in the left hand menu.
 
-Enterprise level Teams can register up to 20 and Teams level Teams can register up to 5 clients as part of their plan. The ability to purchase additional packs of clients will come in a near future release.
+Enterprise level Teams can register up to 20 clients as part of their plan. The ability to purchase additional packs of clients will come in a near future release.
 
 The broker is available on `broker.flowfuse.cloud` and supports the following connection types:
 

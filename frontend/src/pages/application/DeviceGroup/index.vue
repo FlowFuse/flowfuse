@@ -12,13 +12,13 @@
         </Teleport>
         <ff-page-header :title="deviceGroup?.name" :tabs="navigation">
             <template #breadcrumbs>
-                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'Applications', params: {team_slug: team.slug}}">
+                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'team-applications', params: {team_slug: team.slug}}">
                     Applications
                 </ff-nav-breadcrumb>
-                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'Application', params: {team_slug: team.slug, id: application.id}}">
+                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'application', params: {team_slug: team.slug, id: application.id}}">
                     {{ application.name }}
                 </ff-nav-breadcrumb>
-                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'ApplicationDeviceGroups', params: {id: application?.id}}">
+                <ff-nav-breadcrumb class="whitespace-nowrap" :to="{name: 'application-device-groups', params: {id: application?.id}}">
                     Device Groups
                 </ff-nav-breadcrumb>
             </template>
@@ -41,7 +41,7 @@
             <template #context>
                 <div>
                     Application:
-                    <router-link :to="{name: 'Application', params: {id: application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ application?.name }}</router-link>
+                    <router-link :to="{name: 'application', params: {id: application?.id}}" class="text-blue-600 cursor-pointer hover:text-blue-700 hover:underline">{{ application?.name }}</router-link>
                 </div>
             </template>
         </ff-page-header>
@@ -61,7 +61,7 @@
 <script>
 import { CheckCircleIcon, Cog8ToothIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 
-import { mapState } from 'pinia'
+import { mapActions, mapState } from 'pinia'
 
 import ApplicationApi from '../../../api/application.js'
 
@@ -101,7 +101,7 @@ export default {
                 {
                     label: 'Devices',
                     to: {
-                        name: 'ApplicationDeviceGroupDevices',
+                        name: 'application-device-group-devices',
                         params: {
                             applicationId: this.application?.id,
                             deviceGroupId: this.deviceGroup?.id
@@ -113,7 +113,7 @@ export default {
                 {
                     label: 'Settings',
                     to: {
-                        name: 'ApplicationDeviceGroupSettings',
+                        name: 'application-device-group-settings',
                         params: {
                             applicationId: this.application?.id,
                             deviceGroupId: this.deviceGroup?.id
@@ -148,7 +148,11 @@ export default {
     mounted () {
         this.mounted = true
     },
+    beforeUnmount () {
+        this.setContextualApplication(null)
+    },
     methods: {
+        ...mapActions(useContextStore, { setContextualApplication: 'setApplication' }),
         async load () {
             const applicationId = this.$route.params.applicationId
             // See https://github.com/FlowFuse/flowfuse/issues/2929
@@ -160,6 +164,7 @@ export default {
                 this.applicationInstances = []
                 this.deviceGroup = await ApplicationApi.getDeviceGroup(applicationId, this.$route.params.deviceGroupId)
                 this.application = await ApplicationApi.getApplication(applicationId)
+                this.setContextualApplication(this.application)
 
                 // Need to load all devices in the application - which could be more than a single page
                 const devices = []

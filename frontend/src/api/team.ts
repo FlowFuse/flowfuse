@@ -1,59 +1,71 @@
-import product from '../services/product.js'
+import product from '../services/product'
 
-import daysSince from '../utils/daysSince.js'
-import elapsedTime from '../utils/elapsedTime.js'
-import paginateUrl from '../utils/paginateUrl.js'
-import { RoleNames, Roles } from '../utils/roles.js'
+import daysSince from '../utils/daysSince'
+import elapsedTime from '../utils/elapsedTime'
+import paginateUrl from '../utils/paginateUrl'
+import { RoleNames, Roles } from '../utils/roles'
 
-import client from './client.js'
+import client from './client'
 
-const getTeams = () => {
-    return client.get('/api/v1/user/teams').then(res => {
-        res.data.teams = res.data.teams.map(r => {
-            r.link = { name: 'Team', params: { team_slug: r.slug } }
-            r.roleName = RoleNames[r.role]
-            return r
-        })
-        return res.data
-    })
+import type {
+    AuditLogEntry,
+    DeviceSummary,
+    Invitation,
+    InvitationList,
+    Team,
+    TeamSummary,
+    UserTeamList
+} from '@/types'
+
+type RouterLink = { name: string, params: Record<string, string> }
+
+type TeamListItem = UserTeamList[number] & { link: RouterLink, roleName: string }
+
+type InvitationView = Invitation & { roleName: string, createdSince: string, expires: string }
+
+type DeviceView = DeviceSummary & { lastSeenSince: string, instance?: DeviceSummary['application'] }
+
+const getTeams = async (): Promise<{ teams: TeamListItem[] }> => {
+    const res = await client.get<{ teams: UserTeamList }>('/api/v1/user/teams')
+    const teams = res.data.teams.map((r): TeamListItem => ({
+        ...r,
+        link: { name: 'team', params: { team_slug: r.slug } },
+        roleName: RoleNames[r.role]
+    }))
+    return { ...res.data, teams }
 }
 
-const getTeam = (team) => {
-    let url
-    if (typeof team === 'object') {
-        url = `/api/v1/teams/slug/${team.slug}`
-    } else {
-        url = `/api/v1/teams/${team}`
+const getTeam = async (team: string | { slug: string }): Promise<Team | TeamSummary> => {
+    const url = typeof team === 'object'
+        ? `/api/v1/teams/slug/${team.slug}`
+        : `/api/v1/teams/${team}`
+    const res = await client.get<Team | TeamSummary>(url)
+    // ensure posthog Team is up-to-date
+    const data = res.data as Team
+    const props: Record<string, unknown> = {
+        'team-name': data.name,
+        'created-at': data.createdAt,
+        'count-applications': data.instanceCount,
+        'count-instances': data.instanceCount,
+        'count-members': data.memberCount
     }
-    return client.get(url).then((res) => {
-        // ensure posthog Team is upt-o-date
-        // this may be excessive to call _every_ get of the team,
-        // but its a start, and will ensure up to date data
-        const props = {
-            'team-name': res.data.name,
-            'created-at': res.data.createdAt,
-            'count-applications': res.data.instanceCount,
-            'count-instances': res.data.instanceCount,
-            'count-members': res.data.memberCount
-        }
-        if ('billing' in res.data) {
-            props['billing-active'] = res.data.billing.active
-            props['billing-canceled'] = res.data.billing.canceled
-            props['billing-unmanaged'] = res.data.billing.unmanaged
+    if ('billing' in res.data && data.billing) {
+        props['billing-active'] = data.billing.active
+        props['billing-canceled'] = data.billing.canceled
+        props['billing-unmanaged'] = data.billing.unmanaged
 
-            if ('trial' in res.data.billing) {
-                props['billing-trial'] = res.data.billing.trial
-                props['billing-trial-ended'] = res.data.billing.trialEnded
-                props['billing-trial-ends-at'] = res.data.billing.trialEndsAt
-            }
+        if ('trial' in data.billing) {
+            props['billing-trial'] = data.billing.trial
+            props['billing-trial-ended'] = data.billing.trialEnded
+            props['billing-trial-ends-at'] = data.billing.trialEndsAt
         }
-        product.groupUpdate('team', res.data.id, props)
+    }
+    product.groupUpdate('team', data.id, props)
 
-        return res.data
-    })
+    return res.data
 }
 
-const deleteTeam = async (teamId) => {
+const deleteTeam = async (teamId: string) => {
     return await client.delete(`/api/v1/teams/${teamId}`).then(() => {
         const timestamp = (new Date()).toISOString()
         // capture deletion event
@@ -81,14 +93,20 @@ const deleteTeam = async (teamId) => {
  * @param excludeOwnerFiltering
  * @returns An array of application objects containing an array of instances
  */
-const getTeamApplications = async (teamId, {
+const getTeamApplications = async (teamId: string, {
     associationsLimit,
     includeApplicationSummary = false,
     includeInstances = undefined,
     includeApplicationDevices = undefined,
     excludeOwnerFiltering = undefined
+}: {
+    associationsLimit?: number,
+    includeApplicationSummary?: boolean,
+    includeInstances?: boolean,
+    includeApplicationDevices?: boolean,
+    excludeOwnerFiltering?: boolean
 } = {}) => {
-    const options = { params: {} }
+    const options: { params: Record<string, unknown> } = { params: {} }
     if (associationsLimit) {
         options.params.associationsLimit = associationsLimit
     }
@@ -114,8 +132,8 @@ const getTeamApplications = async (teamId, {
  * @param {string} teamId The Team ID (hash) to get statuses for
  * @returns An array of application ids containing an array of instance and device statuses
  */
-const getTeamApplicationsAssociationsStatuses = async (teamId, { associationsLimit } = {}) => {
-    const options = {}
+const getTeamApplicationsAssociationsStatuses = async (teamId: string, { associationsLimit }: { associationsLimit?: number } = {}) => {
+    const options: { params?: Record<string, unknown> } = {}
     if (associationsLimit) {
         options.params = { associationsLimit }
     }
@@ -136,13 +154,13 @@ const getTeamApplicationsAssociationsStatuses = async (teamId, { associationsLim
  * @param {string} teamId The Team ID (hash) to get instances for
  * @deprecated This is a leftover from before the application model was introduced
  */
-const getTeamInstances = async (teamId) => {
+const getTeamInstances = async (teamId: string) => {
     const res = await client.get(`/api/v1/teams/${teamId}/projects`)
     const promises = []
     res.data.projects = res.data.projects.map(r => {
         r.createdSince = daysSince(r.createdAt)
         r.updatedSince = daysSince(r.updatedAt)
-        r.link = { name: 'Application', params: { id: r.id } }
+        r.link = { name: 'application', params: { id: r.id } }
         promises.push(client.get(`/api/v1/projects/${r.id}`).then(p => {
             r.status = p.data.meta.state
             r.flowLastUpdatedAt = p.data.flowLastUpdatedAt
@@ -158,14 +176,14 @@ const getTeamInstances = async (teamId) => {
     return res.data
 }
 
-const getTeamDashboards = async (teamId) => {
+const getTeamDashboards = async (teamId: string) => {
     const res = await client.get(`/api/v1/teams/${teamId}/dashboard-instances`)
     res.data.projects = res.data.projects.map(r => {
         r.createdSince = daysSince(r.createdAt)
         r.updatedSince = daysSince(r.updatedAt)
         r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)
 
-        r.link = { name: 'Application', params: { id: r.id } }
+        r.link = { name: 'application', params: { id: r.id } }
 
         return r
     })
@@ -180,7 +198,7 @@ const getTeamDashboards = async (teamId) => {
  * @returns {[{id: string, name: string, application: {id: string, name: string}}]} An array of objects containing instance summary
  * @deprecated This is a leftover from before the application model was introduced
  */
-const getTeamInstancesList = async (teamId) => {
+const getTeamInstancesList = async (teamId: string) => {
     const res = await client.get(`/api/v1/teams/${teamId}/projects`)
     const list = res.data.projects.map(r => {
         return {
@@ -195,10 +213,12 @@ const getTeamInstancesList = async (teamId) => {
     return list
 }
 
-const getInstances = async (teamId, {
+const getInstances = async (teamId: string, {
     pagination = null,
     includeMeta = false,
-    orderByMostRecentFlows = false
+    orderByMostRecentFlows = false,
+    states = null,
+    signal = null
 } = {}) => {
     const {
         page = null,
@@ -217,8 +237,9 @@ const getInstances = async (teamId, {
     if (dir) params.append('dir', dir)
     if (includeMeta) params.append('includeMeta', includeMeta.toString())
     if (orderByMostRecentFlows) params.append('orderByMostRecentFlows', orderByMostRecentFlows.toString())
+    if (states?.length) states.forEach(state => params.append('state', state))
 
-    const res = await client.get(`/api/v1/teams/${teamId}/projects?${params.toString()}`)
+    const res = await client.get(`/api/v1/teams/${teamId}/projects?${params.toString()}`, { signal })
     res.data.projects = res.data.projects.map(r => {
         if (r.flowLastUpdatedAt) {
             r.flowLastUpdatedSince = daysSince(r.flowLastUpdatedAt)
@@ -231,24 +252,24 @@ const getInstances = async (teamId, {
     return res.data
 }
 
-const getTeamMembers = (teamId) => {
+const getTeamMembers = (teamId: string) => {
     return client.get(`/api/v1/teams/${teamId}/members`).then(res => {
         return res.data
     })
 }
 
-const getTeamInvitations = (teamId) => {
-    return client.get(`/api/v1/teams/${teamId}/invitations`).then(res => {
-        res.data.invitations = res.data.invitations.map(r => {
-            r.roleName = RoleNames[r.role || Roles.Member]
-            r.createdSince = daysSince(r.createdAt)
-            r.expires = elapsedTime(r.expiresAt, Date.now())
-            return r
-        })
-        return res.data
+const getTeamInvitations = (teamId: string): Promise<{ invitations: InvitationView[] }> => {
+    return client.get<{ invitations: InvitationList }>(`/api/v1/teams/${teamId}/invitations`).then(res => {
+        const invitations = res.data.invitations.map((r): InvitationView => ({
+            ...r,
+            roleName: RoleNames[r.role || Roles.Member],
+            createdSince: daysSince(r.createdAt),
+            expires: elapsedTime(r.expiresAt, Date.now())
+        }))
+        return { ...res.data, invitations }
     })
 }
-const createTeamInvitation = (teamId, userDetails, role) => {
+const createTeamInvitation = (teamId: string, userDetails: string, role?: number) => {
     const opts = {
         user: userDetails,
         role
@@ -263,7 +284,7 @@ const createTeamInvitation = (teamId, userDetails, role) => {
         return res.data
     })
 }
-const removeTeamInvitation = (teamId, inviteId) => {
+const removeTeamInvitation = (teamId: string, inviteId: string) => {
     return client.delete(`/api/v1/teams/${teamId}/invitations/${inviteId}`).then(() => {
         product.capture('$ff-invite-removed', {
             'invite-id': inviteId
@@ -272,8 +293,8 @@ const removeTeamInvitation = (teamId, inviteId) => {
         })
     })
 }
-const resendTeamInvitation = (teamId, inviteId) => {
-    return client.post(`/api/v1/teams/${teamId}/invitations/${inviteId}`)
+const resendTeamInvitation = (teamId: string, inviteId: string): Promise<InvitationView> => {
+    return client.post<Invitation>(`/api/v1/teams/${teamId}/invitations/${inviteId}`)
         .then((response) => response.data)
         .then((invitation) => {
             product.capture('$ff-invite-resent', {
@@ -282,15 +303,16 @@ const resendTeamInvitation = (teamId, inviteId) => {
                 team: teamId
             })
 
-            invitation.roleName = RoleNames[invitation.role || Roles.Member]
-            invitation.createdSince = daysSince(invitation.createdAt)
-            invitation.expires = elapsedTime(invitation.expiresAt, Date.now())
-
-            return invitation
+            return {
+                ...invitation,
+                roleName: RoleNames[invitation.role || Roles.Member],
+                createdSince: daysSince(invitation.createdAt),
+                expires: elapsedTime(invitation.expiresAt, Date.now())
+            }
         })
 }
 
-const create = async (options) => {
+const create = async (options: { name: string, type: string }) => {
     return client.post('/api/v1/teams/', options).then(res => {
         // PostHog Event & Group Capture
         product.capture('$ff-team-created', {
@@ -314,8 +336,8 @@ const create = async (options) => {
     })
 }
 
-const changeTeamMemberRole = (teamId, userId, role = null, permissions = null) => {
-    const opts = {}
+const changeTeamMemberRole = (teamId: string, userId: string, role: number | null = null, permissions: string[] | null = null) => {
+    const opts: { role?: number, permissions?: string[] } = {}
     if (role) {
         opts.role = role
     }
@@ -325,7 +347,7 @@ const changeTeamMemberRole = (teamId, userId, role = null, permissions = null) =
     return client.put(`/api/v1/teams/${teamId}/members/${userId}`, opts)
 }
 
-const removeTeamMember = (teamId, userId) => {
+const removeTeamMember = (teamId: string, userId: string) => {
     return client.delete(`/api/v1/teams/${teamId}/members/${userId}`).then(() => {
         product.capture('$ff-team-member-removed', {
             'member-removed': userId,
@@ -336,25 +358,25 @@ const removeTeamMember = (teamId, userId) => {
     })
 }
 
-const getTeamAuditLog = async (teamId, params, cursor, limit) => {
+const getTeamAuditLog = async (teamId: string, params: Record<string, unknown>, cursor?: string, limit?: number): Promise<{ log: AuditLogEntry[] }> => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/audit-log`, cursor, limit)
     return client.get(url, { params }).then(res => res.data)
 }
-const getTeamCommsCreds = (teamId, sessionId) => {
+const getTeamCommsCreds = (teamId: string, sessionId: string) => {
     return client.post(`/api/v1/teams/${teamId}/comms-credentials`, { sessionId })
         .then(res => res.data)
 }
 
-const getTeamUserMembership = (teamId) => {
+const getTeamUserMembership = (teamId: string) => {
     return client.get(`/api/v1/teams/${teamId}/user`).then(res => res.data)
 }
-const updateTeam = async (teamId, options) => {
+const updateTeam = async (teamId: string, options: Record<string, unknown>) => {
     return client.put(`/api/v1/teams/${teamId}`, options).then(res => {
         return res.data
     })
 }
 
-const getTeamDevices = async (teamId, cursor, limit, query, extraParams = {}) => {
+const getTeamDevices = async (teamId: string, cursor?: string, limit?: number, query?: string, extraParams = {}): Promise<{ devices: DeviceView[] }> => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/devices`, cursor, limit, query, extraParams)
     const res = await client.get(url)
     res.data.devices.forEach(device => {
@@ -368,14 +390,14 @@ const getTeamDevices = async (teamId, cursor, limit, query, extraParams = {}) =>
     return res.data
 }
 
-const getTeamRegistry = async (teamId, cursor, limit) => {
+const getTeamRegistry = async (teamId: string, cursor?: string, limit?: number) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/npm/packages`, cursor, limit)
     const res = await client.get(url)
     return {
         data: res.data
     }
 }
-const generateRegistryUserToken = async (teamId) => {
+const generateRegistryUserToken = async (teamId: string) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/npm/userToken`)
     const res = await client.post(url)
     return {
@@ -383,10 +405,10 @@ const generateRegistryUserToken = async (teamId) => {
     }
 }
 
-const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
+const getTeamLibrary = async (teamId: string, parentDir?: string, cursor?: string, limit?: number) => {
     const url = paginateUrl(`/storage/library/${teamId}/${parentDir || ''}`, cursor, limit)
     const res = await client.get(url)
-    const meta = {}
+    const meta: { type?: string } = {}
     // get meta.type from `x-meta-type` header
     meta.type = res.headers['x-meta-type']
     return {
@@ -401,7 +423,7 @@ const getTeamLibrary = async (teamId, parentDir, cursor, limit) => {
  * @param {*} name Name of file to delete
  * @param {*} type File type e.g. flows/functions filter
  */
-const deleteFromTeamLibrary = async (teamId, name, type = null) => {
+const deleteFromTeamLibrary = async (teamId: string, name: string, type: string | null = null) => {
     let query = ''
     if (type) {
         query = `?type=${type}`
@@ -417,7 +439,7 @@ const deleteFromTeamLibrary = async (teamId, name, type = null) => {
  * @param {number} limit The number of results to return (not implemented)
  * @returns { meta: { next_cursor }, tokens: [ { } ] }
  */
-const getTeamDeviceProvisioningTokens = async (teamId, cursor, limit) => {
+const getTeamDeviceProvisioningTokens = async (teamId: string, cursor?: string, limit?: number) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/devices/provisioning`, cursor, limit)
     const res = await client.get(url)
     return res.data
@@ -432,7 +454,7 @@ const getTeamDeviceProvisioningTokens = async (teamId, cursor, limit) => {
  * @param {string} [options.expiresAt] The expiry date of the token
  * @returns
  */
-const generateTeamDeviceProvisioningToken = async (teamId, options) => {
+const generateTeamDeviceProvisioningToken = async (teamId: string, options: { name?: string, application?: string, instance?: string, expiresAt?: string } = {}) => {
     options = options || {}
     const { name, application, instance, expiresAt } = options
     return client.post(`/api/v1/teams/${teamId}/devices/provisioning`,
@@ -456,7 +478,7 @@ const generateTeamDeviceProvisioningToken = async (teamId, options) => {
  * @param {string} [options.expiresAt] The expiry date of the token
  * @returns
  */
-const updateTeamDeviceProvisioningToken = async (teamId, tokenId, options) => {
+const updateTeamDeviceProvisioningToken = async (teamId: string, tokenId: string, options: { application?: string, instance?: string, expiresAt?: string } = {}) => {
     options = options || {}
     const { application, instance, expiresAt } = options
     return client.put(`/api/v1/teams/${teamId}/devices/provisioning/${tokenId}`,
@@ -476,7 +498,7 @@ const updateTeamDeviceProvisioningToken = async (teamId, tokenId, options) => {
  * @param {string} tokenId The token ID (hash)
  * @returns
  */
-const deleteTeamDeviceProvisioningToken = async (teamId, tokenId) => {
+const deleteTeamDeviceProvisioningToken = async (teamId: string, tokenId: string) => {
     return await client.delete(`/api/v1/teams/${teamId}/devices/provisioning/${tokenId}`)
 }
 
@@ -486,7 +508,7 @@ const deleteTeamDeviceProvisioningToken = async (teamId, tokenId) => {
  * @param {Array<string>} devices - Array of device IDs (hash)
  * @returns
  */
-const bulkDeviceDelete = async (teamId, devices) => {
+const bulkDeviceDelete = async (teamId: string, devices: string[]) => {
     return await client.delete(`/api/v1/teams/${teamId}/devices/bulk`, { data: { devices } })
 }
 
@@ -499,9 +521,9 @@ const bulkDeviceDelete = async (teamId, devices) => {
  * @param {string} [options.id] - ID (hash) of the destination
  * @returns
  */
-const bulkDeviceMove = async (teamId, devices, moveTo, id = undefined) => {
+const bulkDeviceMove = async (teamId: string, devices: string[], moveTo: 'instance' | 'application' | 'unassigned' | 'group', id: string | null | undefined = undefined): Promise<{ devices: DeviceView[] }> => {
     const url = `/api/v1/teams/${teamId}/devices/bulk`
-    const data = { devices }
+    const data: { devices: string[], instance?: string | null, application?: string | null, deviceGroup?: string | null } = { devices }
     if (moveTo === 'instance') {
         data.instance = id
     } else if (moveTo === 'application') {
@@ -529,29 +551,29 @@ const bulkDeviceMove = async (teamId, devices, moveTo, id = undefined) => {
  * @param teamId
  * @returns {Promise<axios.AxiosResponse<any>>}
  */
-const getDependencies = (teamId) => {
+const getDependencies = (teamId: string) => {
     return client.get(`/api/v1/teams/${teamId}/bom`)
         .then(res => res.data)
 }
 
-const getTeamDeviceGroups = (teamId) => {
+const getTeamDeviceGroups = (teamId: string) => {
     return client.get(`/api/v1/teams/${teamId}/device-groups`)
         .then(res => res.data)
 }
 
-const getGitTokens = async (teamId, cursor) => {
+const getGitTokens = async (teamId: string, cursor?: string) => {
     const url = paginateUrl(`/api/v1/teams/${teamId}/git/tokens`, cursor)
     return client.get(url).then(res => res.data)
 }
 
-const createGitToken = async (teamId, token) => {
+const createGitToken = async (teamId: string, token: Record<string, unknown>) => {
     return client.post(`/api/v1/teams/${teamId}/git/tokens`, token).then(res => res.data)
 }
-const deleteGitToken = async (teamId, tokenId) => {
+const deleteGitToken = async (teamId: string, tokenId: string) => {
     return client.delete(`/api/v1/teams/${teamId}/git/tokens/${tokenId}`)
 }
 
-const getTeamInstanceCounts = async (teamId, states, type, applicationId = null) => {
+const getTeamInstanceCounts = async (teamId: string, states: string[], type: string, applicationId: string | null = null) => {
     const params = new URLSearchParams()
     states.forEach(state => params.append('state', state))
     params.append('instanceType', type)

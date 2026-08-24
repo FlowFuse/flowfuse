@@ -75,7 +75,7 @@ export default {
     },
     methods: {
         getMqttService () {
-            return getAppOrchestrator().$serviceInstances.mqtt
+            return getAppOrchestrator().$services.mqtt
         },
         async connectMQTT () {
             const mqttService = this.getMqttService()

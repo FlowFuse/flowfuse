@@ -4,6 +4,7 @@
  */
 import InstanceAssets from './Assets.vue'
 import InstanceAuditLog from './AuditLog.vue'
+import InstanceDashboard from './Dashboard/index.vue'
 import InstanceRemoteInstances from './Devices.vue'
 import DuplicateInstance from './DuplicateInstance.vue'
 import InstanceLogs from './Logs.vue'
@@ -20,6 +21,14 @@ const children = [
         path: 'overview',
         name: 'instance-overview',
         component: InstanceOverview
+    },
+    {
+        path: 'dashboard',
+        name: 'instance-dashboard',
+        component: InstanceDashboard,
+        meta: {
+            noPagePadding: true
+        }
     },
     {
         path: 'audit-log',
@@ -94,7 +103,7 @@ export default [
     {
         path: '/project/:id/:remaining*',
         redirect: to => {
-            return { name: 'Instance', params: to.params }
+            return { name: 'instance', params: to.params }
         }
     },
     {
@@ -105,7 +114,7 @@ export default [
                 redirect: to => {
                     return { name: 'instance-overview', params: { id: to.params.id } }
                 },
-                name: 'Instance',
+                name: 'instance',
                 component: Instance,
                 meta: {
                     title: 'Instance - Overview'

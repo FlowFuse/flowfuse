@@ -8,6 +8,8 @@ FlowFuse Expert is the AI built into FlowFuse and the Node-RED editor. It is not
 
 **FlowFuse Expert is automatically installed and available in all hosted and remote instances running within or connected to FlowFuse**, no manual installation or configuration required. For self-hosted Enterprise customers, FlowFuse Expert can be enabled on request. [Contact us](https://flowfuse.com/contact-us/) to get it set up on your infrastructure.
 
+> **Note:** On self-hosted installations, FlowFuse Expert requires an Enterprise license and the platform's EMQX-based MQTT broker with the Team Broker capability enabled in the platform configuration (see [MQTT Broker configuration](/docs/install/configuration.md#mqtt-broker-configuration)); installations running without EMQX cannot enable Expert.
+
 ## Managing AI Features
 
 **Team owners** can enable or disable all AI features for their team from the team settings page. When disabled, the Expert chat panel with all AI feature will get removed for that team. Running instances need to be restarted for the change to take full effect.
@@ -25,8 +27,8 @@ FlowFuse Expert works in two distinct ways inside your environment.
 The Chat Interface is a conversational AI panel built into the FlowFuse Platform and accessible directly within the Node-RED editor. With agentic flow building enabled, you can describe what you want to build and Expert will build it on your canvas for you. It can also answer questions, debug flows, and query live operational data via MCP.
 
 The Chat Interface supports two modes:
-- **Support**: flow-building assistance, including asking questions, debugging, and building flows on the canvas
-- **Insights**: query live operational data via MCP tools and resources exposed by your own MCP servers
+- **Support**: flow-building assistance, including asking questions, debugging, and building flows on the canvas. Expert can ask clarifying questions, propose a plan before it acts, and ask for your approval before running actions, and it can also take actions across the FlowFuse platform such as looking up your instances and creating new ones
+- **Insights**: query live operational data via MCP tools and resources exposed by your own MCP servers, on both hosted and remote instances
 
 [Learn more about the Chat Interface](/docs/user/expert/chat/)
 
