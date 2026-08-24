@@ -46,8 +46,10 @@ AI features within the Node-RED editor include inline code completions, flow aut
 
 FlowFuse Expert is not the only AI that can work your platform. FlowFuse also acts as an MCP
 server, so the AI agent your team already uses, such as Microsoft Copilot, ChatGPT or Claude,
-can query your teams and instances and build Node-RED applications for you. This is useful
-where company policy only permits an approved AI assistant.
+can operate FlowFuse for you and build and edit the flows inside your Node-RED instances.
+
+Because the agent is yours, so is the model behind it: which model or model provider it uses
+is controlled by your agent rather than by FlowFuse.
 
 [Learn more about connecting your own agent](/docs/user/expert/third-party-agents/)
 

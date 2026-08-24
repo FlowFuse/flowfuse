@@ -4,51 +4,24 @@ navTitle: Connect Your Own Agent
 
 # Connect Your Own Agent
 
-FlowFuse Expert is not the only AI that can work your platform. FlowFuse also acts as an
-MCP server, so the AI agent your team already uses can query your teams and instances,
-and build Node-RED applications for you.
+FlowFuse Expert is not the only AI that can work your platform. FlowFuse also acts as an MCP
+server, so the AI agent your team already uses can operate FlowFuse for you: working your
+teams, applications and instances, and building and editing the flows inside your Node-RED
+instances.
 
-This page covers connecting that agent, deciding what to let it do, and getting flow
-building working. If your company only permits an approved AI assistant, this is how that
-assistant reaches FlowFuse.
+Because the agent is yours, so is the model behind it. Which model or model provider you use
+is controlled by your agent, not by FlowFuse.
 
-> **Note:** This is the opposite direction to
-> [MCP server nodes](/node-red/flowfuse/mcp/), which let you build an MCP server *inside*
-> a flow for an agent to call. Here, FlowFuse *is* the server and your agent is the client.
+> **Note:** This is separate from [MCP server nodes](/node-red/flowfuse/mcp/). Those let you
+> build MCP servers inside your flows, connected to anything you like, to give any AI a set
+> of tools of your own design. This page is about operating FlowFuse itself through MCP,
+> where FlowFuse is the server and your agent is the client.
 
-## Before you start
+## Connect your agent
 
-Connecting takes a minute. Getting the agent to build flows depends on the instance you
-point it at, so it is worth checking these first.
-
-| What is needed | On FlowFuse Cloud | Self-hosted |
-| --- | --- | --- |
-| The platform MQTT broker and Team Broker | Already configured | You configure both |
-| A current launcher on the instance, or Device Agent 4.x on a remote instance | Your instance | Your instance |
-| A current version of the in-editor assistant on that instance | Your instance | Your instance |
-
-The first row is all you need to query the platform. **Building or editing flows needs all
-three.**
-
-On self-hosted, see
-[MQTT Broker configuration](/docs/install/configuration/#mqtt-broker-configuration). AI
-features also require an Enterprise licence and `ai.enabled`.
-
-### Check the instance before you ask for a flow
-
-The in-editor assistant only updates when an instance restarts. A long-running instance can
-be on an older version, which means your agent will connect and answer questions about the
-platform but fail to build anything. This is the most common thing to get caught by.
-
-To check: open the Application, select the **Dependencies** tab, and search for
-`nr-assistant`. If the version looks old, or you are unsure, restart the instance before
-you start. A restart is enough; you do not need to recreate anything.
-
-## Connect the agent
-
-The steps are the same whichever agent you use. Only the location of the settings changes.
-
-1. **Copy the FlowFuse MCP address.**
+1. **Add the FlowFuse MCP address in your agent's connector settings.** See
+   [where to add it, per agent](#where-to-add-it-per-agent) if you are not sure where yours
+   lives.
 
    On FlowFuse Cloud:
 
@@ -62,101 +35,68 @@ The steps are the same whichever agent you use. Only the location of the setting
    https://flowfuse.example.com/api/v1/mcp
    ```
 
-2. **Add it in your agent's connector settings.** See
-   [where to add it, per agent](#where-to-add-it-per-agent) below if you are not sure where
-   yours lives.
+2. **Sign in.** FlowFuse uses OAuth, so your agent sends you to a FlowFuse login page to
+   authenticate, in the same way as any other application you sign in to.
 
-3. **Sign in to FlowFuse.** Your agent opens a normal FlowFuse sign-in. There is no key to
-   generate and nothing to paste.
+3. **Choose what the agent may do.** As part of signing in you decide which teams the agent
+   may act on, and whether it has editing rights or read access only.
 
-4. **Choose what the agent may reach.** Signing in asks which teams the agent can act on,
-   and whether it may make changes or only read. See
-   [deciding what to grant](#deciding-what-to-grant).
+Your agent can now work your platform.
 
-Your agent can now work the platform. To let it build flows as well, continue to
-[open an editor session for it](#open-an-editor-session-for-it).
+## What your agent can do, and what you grant
 
-## Deciding what to grant
+This is the one place these are described. Ask your agent what it can do in a given team or
+instance if you want the current picture, since its tools reflect the instance it is
+connected to.
 
-Two questions, asked when you sign in.
+**With read access**, an agent can see your teams and applications with their activity
+history, your hosted and remote instances with their live status and runtime logs, your
+snapshots, and your FlowFuse Tables databases including table schemas and row data. It can
+also see which instance types, templates and blueprints your team has available.
 
-**Which teams.** Grant the teams the agent has a reason to touch, not all of them. If you
-have a production team and a development team, granting only development means a mistaken
-instruction cannot reach production, whatever you ask for.
+**With editing rights**, it can additionally create applications and hosted instances,
+register remote instances and assign them to applications, take snapshots, and build and edit
+flows.
 
-**Read only, or changes as well.** Read-only is worth starting with if you mainly want to
-ask questions about running instances, check logs, or query your FlowFuse Tables data.
-FlowFuse refuses any change from a read-only grant before it reaches an instance, so this
-holds even if the agent tries.
+An agent with read access has no ability to change anything. FlowFuse Tables is read-only for
+agents either way, so an agent can query your data to answer a question but not write to it.
 
-Grant changes when you want the agent to create applications and instances, register remote
-instances, take snapshots, or build flows.
+### Deleting, and deploying
 
-### Changing your mind later
+Nothing an agent can do through FlowFuse deletes anything, for now. There is no tool for
+deleting an instance, an application, a snapshot or a team. Deploying is also done by you,
+for the same reason.
 
-Re-connect the agent and sign in again with the scopes you want. There is no separate
-screen for editing what an existing connection may do.
+We are focused on delivering AI in a meaningful way that can act as required both in
+production setups and in setups where experimentation is permitted, so expect this to develop.
 
-### What a change can and cannot be
+## Editing flows
 
-Nothing an agent can do through FlowFuse deletes anything. There is no tool for deleting an
-instance, an application, a snapshot or a team, so a granted agent cannot remove your work
-no matter how it is instructed.
+Asking about your platform needs nothing open. Editing flows happens in a live Node-RED
+editor, so that you can see the work as it happens on the canvas rather than receiving a
+result you have to go and check.
 
-Deploying is also yours. An agent can build and edit flows, and you deploy them.
-
-## Open an editor session for it
-
-Asking about the platform needs nothing open. Building or editing flows runs against a
-Node-RED editor you have deliberately exposed, so you can watch the work happen on the
-canvas.
-
-1. Open the instance you want the agent to work in.
-2. In the page header, next to the FlowFuse Expert button, select the **MCP** toggle.
-3. Ask your agent to build something. It targets that session.
-
-Select the toggle again to end the exposure. Closing the tab also ends it, and switching
-team closes the session too.
-
-If you have several tabs exposed at once, your agent can list them and pin the one it should
-work in, so you can tell it which instance you mean.
-
-## What your agent can do
-
-**On the platform**, an agent can read your teams and applications with their activity
-history, your hosted and remote instances with live status and runtime logs, your snapshots,
-and your FlowFuse Tables databases including table schemas and row data. It can also see
-which instance types, templates and blueprints your team has available.
-
-With changes granted, it can create an application, create a hosted instance, register a
-remote instance and assign it to an application, and take a snapshot of a hosted or remote
-instance. FlowFuse Tables stays read-only: an agent can query your data and cannot write to
-it.
-
-**In the Node-RED editor**, an agent creates and edits flows and nodes on the canvas, reads
-debug output back, and corrects its own node configuration when Node-RED rejects it. The
-tools carry Node-RED's type schemas and return its validation errors, so the agent can see
-what it got wrong and fix it rather than guessing.
-
-Editor capability is read from the connected instance when your agent connects, so exactly
-what is available depends on that instance rather than on your FlowFuse version. Ask your
-agent what it can do in a given instance rather than working from a fixed list.
+When you ask for flow work, your agent will guide you to connect an editor session. In the
+platform header there is a control for indicating which of your current browser sessions the
+agent should work in, so if you have several open you can point it at the right one. Ending
+the session, or closing the tab, ends the agent's access to your editor. Switching team also
+ends it.
 
 ## Where to add it, per agent
 
 ### Microsoft Copilot
 
 In **Copilot Studio**, open your agent's **Tools** page, select **Add a tool**, then **New
-tool**, then **Model Context Protocol**. Give the server a name and a description that says
-what it is for, since the orchestrator uses that description to decide when to call it, and
-enter the FlowFuse MCP address as the server URL.
+tool**, then **Model Context Protocol**. Give the server a name and a description saying what
+it is for, since the orchestrator uses that description to decide when to call it, and enter
+the FlowFuse MCP address as the server URL.
 
 To make FlowFuse available across a Microsoft 365 tenant rather than in a single agent, a
-tenant administrator registers it in the Microsoft 365 admin center. Once approved it
-appears in Copilot Studio for everyone.
+tenant administrator registers it in the Microsoft 365 admin center. Once approved it appears
+in Copilot Studio for everyone.
 
-Access through Copilot Studio runs over Power Platform connectors, so any Power Platform
-data policy your organisation has also governs it.
+Access through Copilot Studio runs over Power Platform connectors, so any Power Platform data
+policy your organisation has also governs it.
 
 ### ChatGPT
 
@@ -166,16 +106,16 @@ FlowFuse as a connector with the MCP address and sign in.
 
 ### Claude
 
-Open **Settings**, then **Customize**, then **Connectors**, add a custom connector, and
-enter the FlowFuse MCP address.
+Open **Settings**, then **Customize**, then **Connectors**, add a custom connector, and enter
+the FlowFuse MCP address.
 
-On Team and Enterprise plans an owner adds the connector for the organisation first, and
-then each person connects and signs in individually.
+On Team and Enterprise plans an owner adds the connector for the organisation first, and then
+each person connects and signs in individually.
 
 ### Command-line and editor agents
 
-Claude Code, Cursor, Visual Studio Code and Gemini CLI all connect to the same address.
-Where a client offers a sign-in flow, use it. Where a client only accepts a header, use
+Claude Code, Cursor, Visual Studio Code and Gemini CLI all connect to the same address. Where
+a client offers a sign-in flow, use it. Where a client only accepts a header, use
 [an access token](#authenticating-with-an-access-token) instead.
 
 For Claude Code:
@@ -193,15 +133,12 @@ it.
 
 ## Authenticating with an access token
 
-Some clients authenticate with a token in a header rather than signing in. This is a
-property of the client, not of the kind of agent: both routes reach the same FlowFuse.
+Some clients authenticate with a token in a header rather than signing in. This is a property
+of the client, not of the kind of agent: both routes reach the same FlowFuse.
 
 Create a [Personal Access Token](/docs/user/user-settings/#personal-access-tokens) and
-[scope it](/docs/user/user-settings/#scoping-a-token) to the teams the agent should reach.
-Set it read-only unless the agent needs to make changes, since tokens are read-write by
-default. Then send it as a bearer token.
-
-In a `.mcp.json` or equivalent client configuration:
+[scope it](/docs/user/user-settings/#scoping-a-token) the same way you would when signing in.
+Then send it as a bearer token:
 
 ```json
 {
@@ -237,78 +174,41 @@ For Visual Studio Code, prompt for the token rather than committing it to the re
 }
 ```
 
-### From a model provider API
+## Approvals and audit
 
-If you are calling a model API directly rather than using an agent application, pass
-FlowFuse as a remote MCP server. The provider connects to FlowFuse itself, so the address
-has to be reachable from the internet: a local development platform will not work.
+FlowFuse tools carry their recommended usage and permissions, so a connected agent knows what
+each one is for before it calls it. Whether your agent then asks you to confirm is up to that
+agent, and it differs between them. FlowFuse Expert's own approval cards are a first-party
+feature and do not apply here.
 
-Anthropic Messages API:
-
-```python
-client.beta.messages.create(
-    model="claude-opus-5",
-    max_tokens=4096,
-    betas=["mcp-client-2025-11-20"],
-    mcp_servers=[{
-        "type": "url",
-        "name": "flowfuse",
-        "url": "https://app.flowfuse.com/api/v1/mcp",
-        "authorization_token": "<your-token>",
-    }],
-    tools=[{"type": "mcp_toolset", "mcp_server_name": "flowfuse"}],
-    messages=[{"role": "user", "content": "List my FlowFuse instances"}],
-)
-```
-
-Both `mcp_servers` and the matching `mcp_toolset` entry are required.
-
-OpenAI Responses API:
-
-```python
-client.responses.create(
-    model="gpt-5",
-    tools=[{
-        "type": "mcp",
-        "server_label": "flowfuse",
-        "server_url": "https://app.flowfuse.com/api/v1/mcp",
-        "authorization": "<your-token>",
-    }],
-    input="List my FlowFuse instances",
-)
-```
-
-## Approvals, and who is asking
-
-FlowFuse marks every tool it offers as either read-only or as making a change, so a
-connected agent knows before it acts. What the agent does with that is the agent's own
-behaviour: some ask you to confirm a change, some do not, and it varies between them.
-
-This differs from FlowFuse Expert, which holds every write behind an approval card of its
-own. A connected third-party agent does not use those approval cards.
-
-What does not vary is the scope you granted. FlowFuse enforces it on every call, so a
-read-only grant is refused whatever the agent decides to try.
+What is always enforced by FlowFuse is what you granted, whether that came from signing in or
+from the scope on an access token.
 
 Actions an agent takes appear in the
 [audit log](/docs/user/logs/#ai-agents-and-api-activity), attributed to your account.
 
-## Troubleshooting
+## If something is not working
 
-**The agent connected but cannot build a flow.** The instance is almost certainly on an
-older in-editor assistant. Check the Application's **Dependencies** tab for `nr-assistant`
-and restart the instance. See
-[check the instance before you ask for a flow](#check-the-instance-before-you-ask-for-a-flow).
+**A change was refused.** The agent has read access only. Re-connect it and grant editing
+rights.
 
-**The agent cannot see the instance I mean.** Flow and editor work needs an exposed editor
-session. Open the instance and select the **MCP** toggle in the page header. If several are
-exposed, ask your agent to list the sessions and pin the right one.
+**The agent cannot reach a team.** That team was not included when you signed in. Re-connect
+and include it.
 
-**A change was refused.** The grant is read-only. Re-connect the agent and sign in again,
-granting changes.
+**The agent cannot see the instance you mean.** Flow and editor work runs in a connected
+editor session. Ask your agent to list your sessions and connect to the right one.
 
-**The agent cannot reach a team.** That team was not included when you signed in.
-Re-connect and include it.
+## Getting the best out of it
 
-**Nothing works on self-hosted.** Check the platform MQTT broker and Team Broker are both
-configured, and that the platform has an Enterprise licence with AI enabled.
+None of this is something to set up before you start. Your agent will tell you when
+something is in the way, and can help resolve it.
+
+For the smoothest experience, an instance the agent works in should be on a current launcher
+or Device Agent, with a current in-editor assistant. These update when an instance restarts,
+so a long-running instance may be behind. If an agent cannot do something you expected in a
+particular instance, this is usually why, and asking the agent about it is the quickest route.
+
+On self-hosted, platform messaging runs over the MQTT broker, so the Team Broker needs to be
+available. Whether anything is needed from you depends on how your platform was installed;
+see [MQTT Broker configuration](/docs/install/configuration/#mqtt-broker-configuration). AI
+features also require an Enterprise licence with AI enabled.
