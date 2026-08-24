@@ -125,7 +125,7 @@ flowfuse-device-agent --node-options='--max-old-space-size=256' --node-options='
 
 Add a `nodeOptions` array to the `device.yml` configuration file:
 
-```yaml
+```yaml [device.yml]
 nodeOptions:
   - "--max-old-space-size=256"
   - "--use-openssl-ca"

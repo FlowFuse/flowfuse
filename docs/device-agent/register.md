@@ -304,7 +304,7 @@ The values should be set to the contents of the certificate/key.
 Alternatively, the properties `caPath`, `keyPath` and `certPath` can be used instead
 to provide absolute paths to files containing the certificates/keys.
 
-```yml
+```yml [device.yml]
 https:
    keyPath: /opt/flowfuse-device/certs/key.pem
    certPath: /opt/flowfuse-device/certs/cert.pem
@@ -319,14 +319,14 @@ This option can be used to serve content from a local directory.
 
 If set to a path, the files in that directory will be served relative to `/`.
 
-```yml
+```yml [device.yml]
 httpStatic: /opt/flowfuse-device/static-content
 ```
 
 It is also possible to configure it with a list of directories and the corresponding
 path they should be served from.
 
-```yml
+```yml [device.yml]
 httpStatic:
   - path: /opt/flowfuse-device/static-content/images
     root: /images
@@ -347,7 +347,7 @@ _Local Auth settings for Remote Instance_
 
 Or by adding the following to the `device.yml` file
 
-```yml
+```yml [device.yml]
 localAuth:
     enabled: true
     user: user-name
