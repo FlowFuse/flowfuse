@@ -12,10 +12,11 @@ instances.
 Because the agent is yours, so is the model behind it. Which model or model provider you use
 is controlled by your agent, not by FlowFuse.
 
-> **Note:** This is separate from [MCP server nodes](/node-red/flowfuse/mcp/). Those let you
-> build MCP servers inside your flows, connected to anything you like, to give any AI a set
-> of tools of your own design. This page is about operating FlowFuse itself through MCP,
-> where FlowFuse is the server and your agent is the client.
+> **Note:** This is separate from
+> [MCP server nodes](https://flowfuse.com/node-red/flowfuse/mcp/). Those let you build MCP
+> servers inside your flows, connected to anything you like, to give any AI a set of tools of
+> your own design. This page is about operating FlowFuse itself through MCP, where FlowFuse
+> is the server and your agent is the client.
 
 ## Connect your agent
 
