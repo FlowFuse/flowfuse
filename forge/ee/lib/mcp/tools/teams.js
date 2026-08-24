@@ -165,24 +165,5 @@ module.exports = [
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/git/tokens` })
             return response
         }
-    },
-    {
-        name: 'platform_list_library_entries',
-        title: 'List Library Entries',
-        description: `FlowFuse platform automation tool:
-            Lists entries in the team shared library (reusable flows, functions, and other snippets shared across a team's hosted and remote instances).
-            Pass an empty path to list the library root, or a folder path to list its contents.
-            The shared library is enabled by default, but a team may still not exist or the caller may not be a member; either case returns the underlying API's error response as-is.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {
-            libraryId: z.string().describe('shared-library hashid (the team hashid)'),
-            path: z.string().default('').describe('Library entry path; empty string lists the library root'),
-            type: z.string().optional().describe('entry type filter query param (e.g. flows, functions)')
-        },
-        handler: async (args, { inject }) => {
-            const url = appendQuery(`/storage/library/${args.libraryId}/${args.path || ''}`, args, ['type'])
-            const response = await inject({ method: 'GET', url })
-            return response
-        }
     }
 ]

@@ -168,34 +168,4 @@ describe('MCP Teams Tools', function () {
             response.should.equal(errorResponse)
         })
     })
-
-    describe('platform_list_library_entries', function () {
-        const tool = getTool('platform_list_library_entries')
-
-        it('lists the library root for an empty path', async function () {
-            const routeResponse = { statusCode: 200, json: () => ([]) }
-            inject.withArgs({ method: 'GET', url: '/storage/library/team1/' }).resolves(routeResponse)
-
-            const response = await tool.handler({ libraryId: 'team1', path: '' }, { inject })
-
-            inject.calledOnce.should.be.true()
-            response.should.equal(routeResponse)
-        })
-
-        it('appends the folder path and type filter', async function () {
-            inject.resolves({ statusCode: 200, json: () => ([]) })
-
-            await tool.handler({ libraryId: 'team1', path: 'folder1', type: 'flows' }, { inject })
-
-            inject.firstCall.args[0].url.should.equal('/storage/library/team1/folder1?type=flows')
-        })
-
-        it('passes through an error response', async function () {
-            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
-            inject.resolves(errorResponse)
-
-            const response = await tool.handler({ libraryId: 'team1', path: '' }, { inject })
-            response.should.equal(errorResponse)
-        })
-    })
 })
