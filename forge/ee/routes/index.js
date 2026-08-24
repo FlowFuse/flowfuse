@@ -42,7 +42,7 @@ module.exports = async function (app) {
 
     let enableSSO = false
 
-    if (app.license.get('tier') && app.license.get('ver') === '2024-03-04') {
+    if (app.license.get('tier') && (app.license.get('ver') === undefined || app.license.get('ver') === '2024-03-04')) {
         if (app.license.get('tier') === 'enterprise') {
             await commonFeatures(app)
             await app.register(require('./applicationDeviceGroups'), { prefix: '/api/v1/applications/:applicationId/device-groups', logLevel: app.config.logging.http })
