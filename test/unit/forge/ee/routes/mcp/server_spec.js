@@ -101,11 +101,11 @@ describe('MCP Platform Tools Server', function () {
                 proxyRequest.firstCall.args[0].mcpSessionId.should.equal('session-abc')
             })
 
-            it('should pass the pinned browser session as a user property', async function () {
+            it('should pass the pinned browser session and its team as user properties', async function () {
                 await app.db.controllers.BrowserSession.recordPresence(app.user.hashid, 'tab-1', {
                     visibility: 'visible',
                     focused: true,
-                    context: { topicParts: { entityType: 'instance', entityId: 'instance-1' } }
+                    context: { teamId: app.team.hashid, topicParts: { entityType: 'instance', entityId: 'instance-1' } }
                 })
                 await app.db.controllers.BrowserSession.setActiveBrowserSession(app.user.hashid, 'session-abc', 'tab-1')
 
@@ -120,13 +120,34 @@ describe('MCP Platform Tools Server', function () {
                 })
                 response.statusCode.should.equal(200)
                 const userProperties = proxyRequest.firstCall.args[3]
-                userProperties.should.deepEqual({
-                    activeBrowserSessionId: 'tab-1',
-                    entityType: 'instance',
-                    entityId: 'instance-1'
-                })
+                userProperties.should.have.property('activeBrowserSessionId', 'tab-1')
+                userProperties.should.have.property('entityType', 'instance')
+                userProperties.should.have.property('entityId', 'instance-1')
+                userProperties.should.have.property('teamId', app.team.hashid)
+                userProperties.should.have.property('patId').and.be.a.String().and.not.be.empty()
+                const expectedTelemetry = (app.license.active() || (app.config.telemetry?.enabled !== false && app.settings.get('telemetry:enabled') !== false)) ? 'true' : 'false'
+                userProperties.should.have.property('telemetryEnabled', expectedTelemetry)
 
                 await app.db.controllers.BrowserSession.removeSession(app.user.hashid, 'tab-1')
+            })
+
+            it('should fall back to a single-team PAT scope for the team when no tab is pinned', async function () {
+                const singleTeamPAT = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                    app.user, '', null, 'alice-single-team', { teamIds: [app.team.hashid] }
+                )
+
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    headers: {
+                        authorization: `Bearer ${singleTeamPAT.token}`
+                    },
+                    payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+                })
+                response.statusCode.should.equal(200)
+                const userProperties = proxyRequest.firstCall.args[3]
+                userProperties.should.have.property('teamId', app.team.hashid)
+                userProperties.should.not.have.property('activeBrowserSessionId')
             })
 
             it('should acknowledge a notification without calling the gateway', async function () {
