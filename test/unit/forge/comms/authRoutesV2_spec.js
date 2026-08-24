@@ -1616,36 +1616,148 @@ describe('Broker Auth v2 API', async function () {
                 }
             })
 
-            // Browser session presence topics
-            it('allows fe-team to publish heartbeat to own presence topic', async function () {
+            // Browser session topics: ff/v1/<team>/u/<user>/s/<session>/<event>
+            it('allows fe-team to publish a heartbeat on its own session topic', async function () {
                 await allowWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/heartbeat`
+                })
+            })
+            it('allows fe-team to publish close on its own session topic', async function () {
+                await allowWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/close`
+                })
+            })
+            it('allows fe-team to publish disconnected on its own session topic (the last will)', async function () {
+                await allowWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/disconnected`
+                })
+            })
+            it('denies fe-team from publishing on another user\'s session topic', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${bob.hashid}/s/session-1234567890/heartbeat`
+                })
+            })
+            it('denies fe-team from publishing on another tab\'s session topic', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-abc12345/heartbeat`
+                })
+            })
+            it('denies fe-team from publishing on another team\'s session topic', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${otherTeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/heartbeat`
+                })
+            })
+            it('denies fe-team from publishing an unknown session event', async function () {
+                await denyWrite({
+                    username: teamFrontendUsername,
+                    topic: `ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/invalid`
+                })
+            })
+            it('denies fe-team from publishing on the retired tab-presence topic', async function () {
+                await denyWrite({
                     username: teamFrontendUsername,
                     topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/heartbeat`
                 })
             })
-            it('allows fe-team to publish context to own presence topic', async function () {
-                await allowWrite({
-                    username: teamFrontendUsername,
-                    topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/context`
-                })
-            })
-            it('denies fe-team from publishing to another user\'s presence topic', async function () {
-                await denyWrite({
-                    username: teamFrontendUsername,
-                    topic: `ff/v1/browser/tab-presence/${bob.hashid}/session-abc12345/heartbeat`
-                })
-            })
-            it('denies fe-team from publishing to an invalid presence message type', async function () {
-                await denyWrite({
-                    username: teamFrontendUsername,
-                    topic: `ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/invalid`
-                })
-            })
-            it('allows forge_platform to subscribe to presence topics via shared subscription', async function () {
+            it('allows forge_platform to subscribe to session topics via shared subscription', async function () {
                 await allowRead({
                     username: 'forge_platform',
-                    topic: `$share/browser/ff/v1/browser/tab-presence/${TestObjects.alice.hashid}/session-abc12345/heartbeat`
+                    topic: `$share/browser/ff/v1/${TestObjects.ATeam.hashid}/u/${TestObjects.alice.hashid}/s/session-1234567890/heartbeat`
                 })
+            })
+        })
+
+        describe('MCP In-flight (fe-team)', async function () {
+            // checkMcpInflightTopic verifier coverage - third-party MCP requests are
+            // delivered to the tab over its team-channel credential, not the expert client
+            const SESSION = 'session-1234567890'
+            let mcpUsername
+            let subTopic
+
+            before(async function () {
+                await setupEE()
+                app.config.features.register('ai', true, true)
+                app.config.features.register('mcpThirdParty', true, true)
+                TestObjects.bob = await factory.createUser({ admin: false, username: 'bob', name: 'Bob Solo', email: 'bob@example.com', password: 'bbPassword' })
+                await TestObjects.ATeam.addUser(TestObjects.bob, { through: { role: Roles.Owner } })
+                mcpUsername = `fe-team:${TestObjects.alice.hashid}:${TestObjects.ATeam.hashid}:${SESSION}`
+                subTopic = `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/+/+/mcp/inflight/+/request`
+            })
+
+            after(async function () {
+                await app.close()
+            })
+
+            // subscribe: own session, wildcard entity
+            it('allows fe-team to subscribe to mcp inflight requests for its own session', async function () {
+                await allowRead({ username: mcpUsername, topic: subTopic })
+            })
+            it('denies fe-team from subscribing on another tab\'s session', async function () {
+                await denyRead({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/session-abc12345/+/+/mcp/inflight/+/request`
+                })
+            })
+            it('denies fe-team from subscribing on another user\'s topic', async function () {
+                await denyRead({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.bob.hashid}/${SESSION}/+/+/mcp/inflight/+/request`
+                })
+            })
+            it('denies a half-wildcarded entity pair', async function () {
+                await denyRead({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/+/mcp/inflight/+/request`
+                })
+            })
+            it('denies fe-team from subscribing to the expert support channel', async function () {
+                await denyRead({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/+/+/support/inflight/+/request`
+                })
+            })
+            it('denies fe-team from publishing an mcp inflight request (the agent does that)', async function () {
+                await denyWrite({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/${TestObjects.ProjectA.id}/mcp/inflight/automation:get-nodes/request`
+                })
+            })
+
+            // publish: own session, concrete entity
+            it('allows fe-team to publish an mcp inflight response (instance)', async function () {
+                await allowWrite({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/${TestObjects.ProjectA.id}/mcp/inflight/automation:get-nodes/response`
+                })
+            })
+            it('denies an mcp inflight response on another tab\'s session', async function () {
+                await denyWrite({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/session-abc12345/p/${TestObjects.ProjectA.id}/mcp/inflight/automation:get-nodes/response`
+                })
+            })
+            it('denies an mcp inflight response with a wildcard entity', async function () {
+                await denyWrite({
+                    username: mcpUsername,
+                    topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/+/+/mcp/inflight/automation:get-nodes/response`
+                })
+            })
+            it('denies an mcp inflight response when mcpThirdParty is disabled', async function () {
+                app.config.features.register('mcpThirdParty', false, true)
+                try {
+                    await denyWrite({
+                        username: mcpUsername,
+                        topic: `ff/v1/expert/${TestObjects.alice.hashid}/${SESSION}/p/${TestObjects.ProjectA.id}/mcp/inflight/automation:get-nodes/response`
+                    })
+                } finally {
+                    app.config.features.register('mcpThirdParty', true, true)
+                }
             })
         })
     })
