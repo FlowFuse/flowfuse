@@ -27,13 +27,13 @@ is controlled by your agent, not by FlowFuse.
    On FlowFuse Cloud:
 
    ```
-   https://app.flowfuse.com/api/v1/mcp
+   https://app.flowfuse.com/mcp
    ```
 
    Self-hosted, substitute your own platform address:
 
    ```
-   https://flowfuse.example.com/api/v1/mcp
+   https://flowfuse.example.com/mcp
    ```
 
 2. **Sign in.** FlowFuse uses OAuth, so your agent sends you to a FlowFuse login page to
@@ -122,7 +122,7 @@ a client offers a sign-in flow, use it. Where a client only accepts a header, us
 For Claude Code:
 
 ```bash
-claude mcp add --transport http flowfuse https://app.flowfuse.com/api/v1/mcp
+claude mcp add --transport http flowfuse https://app.flowfuse.com/mcp
 ```
 
 ### Local and self-hosted models
@@ -146,7 +146,7 @@ Then send it as a bearer token:
   "mcpServers": {
     "flowfuse": {
       "type": "http",
-      "url": "https://app.flowfuse.com/api/v1/mcp",
+      "url": "https://app.flowfuse.com/mcp",
       "headers": { "Authorization": "Bearer <your-token>" }
     }
   }
@@ -160,7 +160,7 @@ For Visual Studio Code, prompt for the token rather than committing it to the re
   "servers": {
     "flowfuse": {
       "type": "http",
-      "url": "https://app.flowfuse.com/api/v1/mcp",
+      "url": "https://app.flowfuse.com/mcp",
       "headers": { "Authorization": "Bearer ${input:ff_token}" }
     }
   },
