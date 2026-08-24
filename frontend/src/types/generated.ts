@@ -2067,6 +2067,10 @@ export interface paths {
                             url?: string;
                             username?: string;
                             password?: string;
+                            will?: {
+                                topic?: string;
+                                payload?: string;
+                            };
                         };
                     };
                 };

@@ -344,4 +344,32 @@ describe('FlowFuse - Sign Up Page', () => {
         cy.get('[data-form="signup-join-reason"] span.checkbox').first().click()
         cy.get('[data-action="sign-up"]').should('not.be.disabled')
     })
+
+    it('shows the left marketing column when a left banner is configured', () => {
+        cy.intercept('GET', '/api/*/settings', (req) => {
+            req.continue((res) => {
+                res.body['branding:account:signUpLeftBanner'] = '<p>Marketing copy</p>'
+            })
+        }).as('getUserSettings')
+        cy.visit('/account/create')
+        cy.wait('@getUserSettings')
+
+        cy.get('[data-el="splash"]').should('be.visible')
+        cy.get('[data-form="signup-username"]').should('be.visible')
+    })
+
+    it('hides the left marketing column in popup context but keeps the form and top banner', () => {
+        cy.intercept('GET', '/api/*/settings', (req) => {
+            req.continue((res) => {
+                res.body['branding:account:signUpLeftBanner'] = '<p>Marketing copy</p>'
+                res.body['branding:account:signUpTopBanner'] = '<span>Start building today</span>'
+            })
+        }).as('getUserSettings')
+        cy.visit('/account/create?context=popup')
+        cy.wait('@getUserSettings')
+
+        cy.get('[data-el="splash"]').should('not.exist')
+        cy.get('[data-form="signup-username"]').should('be.visible')
+        cy.get('[data-el="banner-text"]').should('be.visible')
+    })
 })

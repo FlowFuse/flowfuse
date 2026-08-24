@@ -1,6 +1,17 @@
+/**
+ * The bits of the broker packet a consumer may need beyond topic and payload:
+ * the correlation id a reply has to echo, and any user properties the sender set.
+ */
+export interface TransportMessagePacket {
+    properties?: {
+        correlationData?: Uint8Array | Buffer | null
+        userProperties?: Record<string, string | string[]>
+    }
+}
+
 export interface TransportConnectOptions {
     getCredentials: () => Promise<unknown>
-    onMessage?: (topic: string, message: Buffer | Uint8Array | string) => void
+    onMessage?: (topic: string, message: Buffer | Uint8Array | string, packet?: TransportMessagePacket) => void
     onConnect?: () => void
     onClose?: () => void
     onOffline?: () => void

@@ -31,7 +31,8 @@ const modelTypes = [
     'StorageSettings',
     'StorageSession',
     'TeamBrokerClient',
-    'Assistant'
+    'Assistant',
+    'BrowserSession'
 ]
 
 async function init (app) {
