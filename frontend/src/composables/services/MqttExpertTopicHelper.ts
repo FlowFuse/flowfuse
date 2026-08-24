@@ -17,7 +17,13 @@ interface EntityTopicPaths {
     entityId: string | undefined
 }
 
-type AgentChannel = 'support' | 'insights'
+/**
+ * Entity segment of a topic. The concrete forms address one application, instance,
+ * device or team; `'+'` is the MQTT single-level wildcard, valid on a subscription only.
+ */
+type EntitySegment = EntityTopicPaths['entityType'] | '+'
+
+type AgentChannel = 'support' | 'insights' | 'mcp'
 type TopicType = 'chat' | 'inflight'
 type TopicAction = 'response' | 'request'
 
@@ -25,6 +31,7 @@ interface ParsedTopic {
     topic: string
     isReply: boolean
     isInflightRequest: boolean
+    sessionId: string
     entityType: string
     entityId: string
     agentChannel: 'support' | 'insights' | string
@@ -34,12 +41,19 @@ interface ParsedTopic {
 }
 
 interface BuildTopicOptions {
-    entityType?: EntityTopicPaths['entityType'] | null
+    /**
+     * Entity type segment. Pass `'+'` when subscribing, so one subscription covers every
+     * entity the tab may be on: it changes as the user navigates, and a sender working
+     * from a cached copy of the tab's context can lag behind a navigation. Publishing
+     * always names a concrete entity.
+     */
+    entityType?: EntitySegment | null
     entityId?: string | null
     agentChannel?: AgentChannel
     topicType?: TopicType
     topicAction?: TopicAction,
     inflightType?: string | null
+    sessionId?: string | null
 }
 
 export function useMqttExpertTopicHelper () {
@@ -48,11 +62,6 @@ export function useMqttExpertTopicHelper () {
         const contextStore = useContextStore()
 
         switch (true) {
-        case !!application || !!contextStore.application:
-            return {
-                entityType: 'a',
-                entityId: application?.id ?? contextStore.application?.id
-            }
         case !!instance || !!contextStore.instance:
             return {
                 entityType: 'p',
@@ -63,6 +72,11 @@ export function useMqttExpertTopicHelper () {
                 entityType: 'd',
                 entityId: device?.id ?? contextStore.device?.id
             }
+        case !!application || !!contextStore.application:
+            return {
+                entityType: 'a',
+                entityId: application?.id ?? contextStore.application?.id
+            }
         default:
             return {
                 entityType: 't',
@@ -72,12 +86,12 @@ export function useMqttExpertTopicHelper () {
     }
 
     function buildTopic (options?: BuildTopicOptions): string {
-        const { entityType, entityId, agentChannel, topicType, topicAction, inflightType } = options ?? {}
+        const { entityType, entityId, agentChannel, topicType, topicAction, inflightType, sessionId: sessionIdOverride } = options ?? {}
 
         if (!entityType) throw new Error('Topic "entityType" is mandatory')
         if (!entityId) throw new Error('Topic "entityId" is mandatory')
-        if (!agentChannel || !['support', 'insights'].includes(agentChannel)) {
-            throw new Error(`"agentChannel" must be either "support" or "insights", "${agentChannel}" given`)
+        if (!agentChannel || !['support', 'insights', 'mcp'].includes(agentChannel)) {
+            throw new Error(`"agentChannel" must be one of "support", "insights" or "mcp", "${agentChannel}" given`)
         }
         if (!topicType || !['chat', 'inflight'].includes(topicType)) {
             throw new Error(`"topicType" must be either "chat" or "inflight", "${topicType}" given`)
@@ -89,7 +103,7 @@ export function useMqttExpertTopicHelper () {
         const authStore = useAccountAuthStore()
         const expertStore = useProductExpertStore()
 
-        const sessionId = expertStore.sessionId
+        const sessionId = sessionIdOverride ?? expertStore.sessionId
 
         return [
             'ff',
@@ -121,6 +135,7 @@ export function useMqttExpertTopicHelper () {
             topic,
             isReply: topic.endsWith('/response'),
             isInflightRequest: inflightRequest,
+            sessionId: split[4],
             entityType: split[5],
             entityId: split[6],
             agentChannel: split[7],

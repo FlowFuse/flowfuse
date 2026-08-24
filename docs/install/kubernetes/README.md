@@ -173,7 +173,7 @@ kubectl label node <projects-node-name> role=projects
 
 To override this behavior, you can remove the node selectors with the following entry in the `customization.yml` file which will mean that all pods can run on any nodes.
 
-```yaml
+```yaml [customization.yml]
 forge:
   projectSelector:
   managementSelector:
@@ -212,7 +212,7 @@ However, if you want to use SSL termination on the Kubernetes Ingress Controller
 
 Once you have Cert-Manager installed, you can enable TLS support in the `customization.yml` file by specifying the [ClusterIssuer](https://cert-manager.io/docs/configuration/#cluster-resource-namespace) name:
 
-```yaml
+```yaml [customization.yml]{2}
 ingress:
   clusterIssuer: <your-cluster-issuer>
 ```
@@ -223,7 +223,7 @@ Apply changes with [platform startup command](#start-flowfuse-platform).
 
 If you are issuing your own HTTPS certificates (rather than using a Public Certificate Authority) you will need to tell the Hosted Node-RED Instances to trust this CA. To do this you need to pass base64 encoded CA certificate chain to the helm chart in the `customization.yml`. Details are in the Helm chart [README.md](https://github.com/FlowFuse/helm/blob/main/helm/flowfuse/README.md#private-certificate-authority).
 
-```yaml
+```yaml [customization.yml]{3}
 forge:
   privateCA:
     certs: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk...
@@ -263,7 +263,7 @@ FlowFuse platform uses PostgreSQL database to store its data. By default, the He
 
 If you want to use an external database server, you need to edit `customization.yml` file and provide the database connection details:
 
-```yaml
+```yaml [customization.yml]{2}
 forge:
   localPostgresql: false # Disable internal database
 postgresql:
@@ -345,7 +345,7 @@ Check [FlowFuse Helm chart documentation](https://github.com/FlowFuse/helm/tree/
 
 If you use AWS EKS (Elastic Kubernetes Service) and want to use AWS SES (Simple Email Service) for sending e-mails, you need to provide the IAM role with the required permissions to use SES.
 
-```yaml
+```yaml [customization.yml]{6}
 forge:
   entryPoint: forge.example.com
   domain: example.com
@@ -367,7 +367,7 @@ The FlowFuse Helm chart provides the MQTT broker service.
 
 To enable the MQTT broker you need to add the following to the `customization.yml` file:
 
-```yaml
+```yaml [customization.yml]
 forge:
   broker:
     enabled: true
@@ -386,7 +386,7 @@ These files will persist for the lifetime of the Instance including across Suspe
 
 To enable this feature the following configuration needs to be added to the `customization.yml` file (replace '<storage-class-name>' with the name of the StorageClass you have in the cluster):
 
-```yaml
+```yaml [customization.yml]{5}
 forge:
   persistentStorage:
     enabled: true
@@ -400,7 +400,7 @@ Apply changes with [platform startup command](#start-flowfuse-platform).
 
 To enable the FlowFuse File Storage component add the following to the `customization.yml` file:
 
-```yaml
+```yaml [customization.yml]
 forge:
   fileStore:
     enabled: true
