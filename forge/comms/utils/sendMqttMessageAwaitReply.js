@@ -68,6 +68,10 @@ class SendMqttMessageAwaitReply {
 
             this.pending[correlationData] = { resolve, timer }
         })
+        // A no-op safety net: guarantees this promise always has at least one rejection
+        // handler, so a timeout can never surface as an unhandled rejection (fatal to the
+        // process) regardless of what happens to the real caller's own await/catch.
+        promise.catch(() => {})
 
         return { correlationData, mqttOptions, promise }
     }
