@@ -24,7 +24,7 @@ describe('PlatformAutomationHandler', function () {
         }
     }
 
-    function invokeToolCall ({ userId, toolName, args, meta }) {
+    function invokeToolCall ({ userId, toolName, args, meta, scope }) {
         return new Promise((resolve) => {
             const onSuccess = (result) => resolve({ ok: true, result })
             const onError = (message, code, err) => resolve({ ok: false, message, code, err })
@@ -33,7 +33,8 @@ describe('PlatformAutomationHandler', function () {
                     userId,
                     command: 'mcp-call-tool',
                     data: { name: toolName, input: args || {} },
-                    meta
+                    meta,
+                    scope
                 },
                 onSuccess,
                 onError
@@ -189,6 +190,40 @@ describe('PlatformAutomationHandler', function () {
 
             res.ok.should.be.true()
             res.result.should.have.property('error', 'Device communications not available')
+        })
+    })
+
+    describe('caller scope', function () {
+        function callActiveUser (message) {
+            const tool = handler.findTool('platform_get_active_user')
+            return invokeToolCall({
+                ...message,
+                userId: app.adminUser.hashid,
+                toolName: 'platform_get_active_user',
+                meta: { toolDefinition: { annotations: tool.annotations }, ...message.meta }
+            })
+        }
+
+        it('passes the caller scope through to the tool handler', async function () {
+            const res = await callActiveUser({ scope: { readOnly: true, teams: [app.team.hashid] } })
+
+            res.ok.should.be.true()
+            res.result.should.have.property('username', app.adminUser.username)
+            res.result.token.should.eql({ readOnly: true, allTeams: false, teams: [app.team.hashid] })
+        })
+
+        it('accepts the caller scope on meta', async function () {
+            const res = await callActiveUser({ meta: { scope: { readOnly: true, teams: [] } } })
+
+            res.ok.should.be.true()
+            res.result.token.should.eql({ readOnly: true, allTeams: true, teams: [] })
+        })
+
+        it('treats a call with no scope as full user access', async function () {
+            const res = await callActiveUser({})
+
+            res.ok.should.be.true()
+            res.result.token.should.eql({ readOnly: false, allTeams: true, teams: [] })
         })
     })
 

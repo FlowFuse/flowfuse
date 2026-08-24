@@ -319,4 +319,161 @@ describe('OAuth', async function () {
             scope.should.equal('read')
         })
     })
+
+    describe('MCP agent auth (DCR + PKCE)', async function () {
+        let mcpApp
+        let sid
+        const redirectURI = 'http://localhost:9876/oauth/callback'
+
+        function pkce () {
+            const verifier = base64URLEncode(crypto.randomBytes(32))
+            const challenge = base64URLEncode(crypto.createHash('sha256').update(verifier).digest())
+            return { verifier, challenge }
+        }
+
+        async function register (redirectURIs = [redirectURI]) {
+            return mcpApp.inject({
+                method: 'POST',
+                url: '/account/client',
+                payload: { redirect_uris: redirectURIs, client_name: 'Test MCP Client' }
+            })
+        }
+
+        function authorizeURL (clientID, redirect, challenge, state = '') {
+            const params = new URLSearchParams({
+                client_id: clientID,
+                response_type: 'code',
+                redirect_uri: redirect,
+                state,
+                code_challenge: challenge,
+                code_challenge_method: 'S256'
+            })
+            return `/account/authorize?${params}`
+        }
+
+        before(async function () {
+            mcpApp = await setup({
+                license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGb3JnZSBJbmMuIERldmVsb3BtZW50IiwibmJmIjoxNjYyNDIyNDAwLCJleHAiOjc5ODY5MDIzOTksIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxNTAsInRlYW1zIjo1MCwicHJvamVjdHMiOjUwLCJkZXZpY2VzIjo1MCwiZGV2Ijp0cnVlLCJpYXQiOjE2NjI0ODI5ODd9.e8Jeppq4aURwWYz-rEpnXs9RY2Y7HF7LJ6rMtMZWdw2Xls6-iyaiKV1TyzQw5sUBAhdUSZxgtiFH5e_cNJgrUg'
+            })
+            const user = await mcpApp.factory.createUser({
+                username: 'mcpuser',
+                name: 'MCP User',
+                email: 'mcp@example.com',
+                password: 'mmPassword'
+            })
+            await mcpApp.team.addUser(user, { through: { role: mcpApp.factory.Roles.Roles.Owner } })
+            const loginResponse = await mcpApp.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'mcpuser', password: 'mmPassword', remember: false }
+            })
+            sid = loginResponse.cookies[0].value
+        })
+        after(async function () {
+            await mcpApp.close()
+        })
+
+        it('registers a public MCP client via DCR (RFC 7591)', async function () {
+            const response = await register()
+            response.should.have.property('statusCode', 201)
+            const body = response.json()
+            body.client_id.should.be.a.String().and.startWith('ffmcp')
+            body.should.have.property('token_endpoint_auth_method', 'none')
+            body.should.not.have.property('client_secret')
+            body.redirect_uris.should.eql([redirectURI])
+
+            const client = await mcpApp.db.controllers.AuthClient.getAuthClient(body.client_id)
+            client.should.have.property('type', 'mcp')
+            client.redirectURIs.should.eql([redirectURI])
+        })
+
+        it('rejects a redirect_uri that is neither loopback-http nor https', async function () {
+            const response = await register(['http://example.com/callback'])
+            response.should.have.property('statusCode', 400)
+            response.json().should.have.property('error', 'invalid_redirect_uri')
+        })
+
+        it('accepts an https redirect_uri for hosted clients', async function () {
+            const response = await register(['https://claude.ai/api/mcp/callback'])
+            response.should.have.property('statusCode', 201)
+        })
+
+        it('completes the full flow: register -> authorize -> consent -> complete -> token -> refresh', async function () {
+            const reg = (await register()).json()
+            const clientID = reg.client_id
+            const { verifier, challenge } = pkce()
+
+            // authorize -> redirected to the MCP consent page
+            const authResponse = await mcpApp.inject({ method: 'GET', url: authorizeURL(clientID, redirectURI, challenge, 'xyz'), cookies: { sid } })
+            authResponse.should.have.property('statusCode', 302)
+            const m = /\/account\/request\/([^/]+)\/mcp$/.exec(authResponse.headers.location)
+            should.exist(m, 'expected redirect to MCP consent page: ' + authResponse.headers.location)
+            const requestId = m[1]
+
+            // consent - user chooses read-only, scoped to their team
+            const consentResponse = await mcpApp.inject({
+                method: 'PUT',
+                url: `/account/authorize/${requestId}/consent`,
+                payload: { readOnly: true, teamIds: [mcpApp.team.hashid] },
+                cookies: { sid }
+            })
+            consentResponse.should.have.property('statusCode', 200)
+
+            // complete - issues the authorization code and redirects back to the client
+            const completeResponse = await mcpApp.inject({ method: 'GET', url: `/account/complete/${requestId}`, cookies: { sid } })
+            completeResponse.should.have.property('statusCode', 302)
+            const callback = new URL(completeResponse.headers.location)
+            callback.host.should.equal('localhost:9876')
+            const authCode = callback.searchParams.get('code')
+            should.exist(authCode)
+            callback.searchParams.get('state').should.equal('xyz')
+
+            // token - exchange the code for a scoped PAT
+            const tokenResponse = await mcpApp.inject({
+                method: 'POST',
+                url: '/account/token',
+                payload: {
+                    grant_type: 'authorization_code',
+                    code: authCode,
+                    redirect_uri: redirectURI,
+                    client_id: clientID,
+                    code_verifier: verifier
+                }
+            })
+            tokenResponse.should.have.property('statusCode', 200)
+            const token = tokenResponse.json()
+            token.access_token.should.be.a.String().and.startWith('ffpat')
+            token.should.have.property('token_type', 'bearer')
+            token.should.have.property('refresh_token')
+
+            // the issued token reflects the consent choices
+            const issued = await mcpApp.db.models.AccessToken.byRefreshToken(token.refresh_token)
+            issued.should.have.property('readOnly', true)
+
+            // refresh - a public MCP client refreshes without a client secret
+            const refreshResponse = await mcpApp.inject({
+                method: 'POST',
+                url: '/account/token',
+                payload: { grant_type: 'refresh_token', client_id: clientID, refresh_token: token.refresh_token }
+            })
+            refreshResponse.should.have.property('statusCode', 200)
+            refreshResponse.json().access_token.should.be.a.String().and.startWith('ffpat')
+        })
+
+        it('rejects an authorize redirect_uri that was not registered', async function () {
+            const reg = (await register(['http://localhost:9876/oauth/callback'])).json()
+            const { challenge } = pkce()
+            const response = await mcpApp.inject({ method: 'GET', url: authorizeURL(reg.client_id, 'http://localhost:9876/evil', challenge), cookies: { sid } })
+            response.should.have.property('statusCode', 400)
+            response.json().should.have.property('error', 'invalid_request')
+        })
+
+        it('accepts a loopback redirect on a different port than registered (RFC 8252)', async function () {
+            const reg = (await register(['http://localhost:1111/cb'])).json()
+            const { challenge } = pkce()
+            const response = await mcpApp.inject({ method: 'GET', url: authorizeURL(reg.client_id, 'http://127.0.0.1:2222/cb', challenge), cookies: { sid } })
+            response.should.have.property('statusCode', 302)
+            response.headers.location.should.match(/\/account\/request\/[^/]+\/mcp$/)
+        })
+    })
 })

@@ -104,7 +104,7 @@ class PlatformAutomationHandler {
         this.client.on('request/platform-automation:forge', this.eventHandler)
     }
 
-    eventHandler = async ({ userId, mcpSessionId, command, data, meta } = {}, onSuccess, onError) => {
+    eventHandler = async ({ userId, mcpSessionId, command, data, meta, scope } = {}, onSuccess, onError) => {
         try {
             let result = {}
             this.app.log.info(`platform-automation request: userId=${userId} mcpSessionId=${mcpSessionId} command=${command} tool=${data?.name || 'n/a'}`)
@@ -122,6 +122,12 @@ class PlatformAutomationHandler {
             case 'mcp-call-tool': {
                 const toolName = data?.name
                 const args = data?.input || {}
+
+                // The caller scope (readOnly plus any team restriction from the
+                // session token) rides with the request so tools can report and
+                // enforce what the session is allowed to do. Prefer the top-level
+                // value, falling back to meta for callers that attach it there.
+                const callerScope = scope ?? meta?.scope
 
                 // TODO: Probably sensible to verify that toolDefinition matches the tool to ensure no tampering has occurred
                 const { toolDefinition } = meta || {}
@@ -163,7 +169,7 @@ class PlatformAutomationHandler {
                     }
 
                     const { formatResponse } = require('../ee/lib/mcp/toolLoader')
-                    const response = await tool.handler(args, { inject, app: this.app, user, mcpSessionId })
+                    const response = await tool.handler(args, { inject, app: this.app, user, mcpSessionId, scope: callerScope })
                     result = formatResponse(response)
                 }
                 break
