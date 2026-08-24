@@ -5,11 +5,6 @@ import { buildFeatureChecks } from '@/composables/FeatureChecks'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
 
-export const POSTHOG_FLAGS = {
-    FF_FEATURE_FLAGS: 'FF_FEATURE_FLAGS',
-    MCP_THIRD_PARTY: 'MCP_THIRD_PARTY'
-}
-
 export const useAccountSettingsStore = defineStore('account-settings', {
     state: () => ({
         settings: null,
@@ -47,13 +42,6 @@ export const useAccountSettingsStore = defineStore('account-settings', {
             // External broker: platform check is its own, team check reuses MqttBroker's
             checks.isExternalMqttBrokerFeatureEnabled =
                 checks.isExternalMqttBrokerFeatureEnabledForPlatform && checks.isMqttBrokerFeatureEnabledForTeam
-
-            // adding in PostHog Feature Flags
-            checks.isPostHogFeatureFlagsEnabled = !!state.posthogFlags[POSTHOG_FLAGS.FF_FEATURE_FLAGS]
-
-            // MCP third-party: platform + team flag + PostHog gate
-            checks.isMcpThirdPartyEnabled =
-                checks.isMcpThirdPartyFeatureEnabled && !!state.posthogFlags[POSTHOG_FLAGS.MCP_THIRD_PARTY]
 
             return checks
         }

@@ -148,6 +148,10 @@ describe('FlowFuse - Instances', () => {
                 expect(projectName).to.equal('instance-1-1')
             })
 
+            // the stack list is fetched async - the listbox stays disabled until it lands,
+            // and a click on a disabled button silently does nothing
+            cy.get('[data-el="stack-selector"] button').should('not.be.disabled')
+
             // can't use .select('value') because we're not dealing with a select input
             cy.get('[data-el="stack-selector"]').click()
         })
