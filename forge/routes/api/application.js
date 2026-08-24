@@ -351,6 +351,7 @@ module.exports = async function (app) {
                 const projectState = await project.liveState()
                 project.state = projectState.meta.state
                 project.flowLastUpdatedAt = projectState.flowLastUpdatedAt
+                project.meta = { state: projectState.meta.state, versions: projectState.meta.versions }
                 project.settings = {
                     dashboard2UI: '/dashboard'
                 }

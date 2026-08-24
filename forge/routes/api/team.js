@@ -496,6 +496,7 @@ module.exports = async function (app) {
                 const projectState = await projectStatePromise
                 project.state = projectState.meta.state
                 project.flowLastUpdatedAt = projectState.flowLastUpdatedAt
+                project.meta = { state: projectState.meta.state, versions: projectState.meta.versions }
                 project.settings = {
                     dashboard2UI: '/dashboard' // hardcoding the dashboard endpoint for the time being
                 }
