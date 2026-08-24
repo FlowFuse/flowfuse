@@ -64,7 +64,7 @@ module.exports = fp(async function (app, opts) {
     require('./deviceEditor').init(app)
     require('./alerts').init(app)
 
-    if (app.license.get('tier') && app.license.get('ver') === '2024-03-04') {
+    if (app.license.get('tier') && (app.license.get('ver') === undefined || app.license.get('ver') === '2024-03-04')) {
         if (app.license.get('tier') === 'enterprise') {
             await commonFeatures(app, opts)
             // HA

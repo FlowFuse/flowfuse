@@ -52,7 +52,6 @@ module.exports = async function (app) {
             await app.register(require('./gitops'), { prefix: '/api/v1/teams/:teamId/git', logLevel: app.config.logging.http })
             await app.register(require('./bom/application.js'), { prefix: '/api/v1/applications', logLevel: app.config.logging.http })
             await app.register(require('./bom/team.js'), { prefix: '/api/v1/teams', logLevel: app.config.logging.http })
-
             enableSSO = true
         } else {
             // old Pro license
