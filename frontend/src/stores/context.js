@@ -13,6 +13,12 @@ import { useProductExpertStore } from './product-expert.js'
 
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
 
+// The FlowFuse Cloud host is app.flowfuse.com, where users are identified by email;
+// anything else is self-hosted and masked downstream.
+function flowfuseDeployment () {
+    return window.location?.hostname?.endsWith('app.flowfuse.com') ? 'cloud' : 'self-hosted'
+}
+
 export const useContextStore = defineStore('context', {
     state: () => ({
         route: null,
@@ -63,6 +69,8 @@ export const useContextStore = defineStore('context', {
                     palette: null,
                     debugLog: null,
                     userId: authStore.user?.id || null,
+                    username: authStore.user?.username || null,
+                    deployment: flowfuseDeployment(),
                     teamId: this.team?.id || null,
                     teamSlug: this.team?.slug || null,
                     telemetryEnabled: useAccountSettingsStore().settings?.['telemetry:enabled'] === true,
@@ -102,6 +110,8 @@ export const useContextStore = defineStore('context', {
                 palette,
                 debugLog: assistantStore.debugLog,
                 userId: authStore.user?.id || null,
+                username: authStore.user?.username || null,
+                deployment: flowfuseDeployment(),
                 teamId: this.team?.id || null,
                 teamSlug: this.team?.slug || null,
                 telemetryEnabled: useAccountSettingsStore().settings?.['telemetry:enabled'] === true,

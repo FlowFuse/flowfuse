@@ -386,6 +386,21 @@ describe('context store', () => {
                 expect(store.expert.telemetryEnabled).toBe(false)
             })
 
+            it('marks deployment cloud only on the app.flowfuse.com host', () => {
+                const store = useContextStore()
+                Object.defineProperty(window, 'location', {
+                    writable: true,
+                    value: { hostname: 'app.flowfuse.com' }
+                })
+                expect(store.expert.deployment).toBe('cloud')
+
+                Object.defineProperty(window, 'location', {
+                    writable: true,
+                    value: { hostname: 'example.com' }
+                })
+                expect(store.expert.deployment).toBe('self-hosted')
+            })
+
             it('resolves applicationId for a device owned directly by an application', () => {
                 const store = useContextStore()
                 store.updateRoute({ name: 'device-overview' })

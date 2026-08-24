@@ -319,6 +319,53 @@ describe('MCP Platform Tools Server', function () {
         })
     })
 
+    describe('Cloud deployment', function () {
+        let app
+        let alicePAT
+        let proxyRequest
+
+        before(async function () {
+            app = await setup({
+                license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNDFmNmRjLTBmM2QtNGFmNy1hNzk0LWIyNWFhNGJmYTliZCIsInZlciI6IjIwMjQtMDMtMDQiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGdXNlIERldmVsb3BtZW50IiwibmJmIjoxNzMwNjc4NDAwLCJleHAiOjIwNzc3NDcyMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxMCwidGVhbXMiOjEwLCJpbnN0YW5jZXMiOjEwLCJtcXR0Q2xpZW50cyI6NiwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTczMDcyMTEyNH0.02KMRf5kogkpH3HXHVSGprUm0QQFLn21-3QIORhxFgRE9N5DIE8YnTH_f8W_21T6TlYbDUmf4PtWyj120HTM2w',
+                ai: { enabled: true },
+                expert: { enabled: true },
+                base_url: 'https://app.flowfuse.com'
+            })
+            alicePAT = await app.db.controllers.AccessToken.createPersonalAccessToken(
+                app.user,
+                '',
+                null,
+                'alice-pat-cloud'
+            )
+        })
+
+        after(async function () {
+            await app.close()
+        })
+
+        beforeEach(function () {
+            proxyRequest = sinon.stub(app.comms.mcpGateway, 'proxyRequest')
+                .resolves({ jsonrpc: '2.0', id: 1, result: { tools: [] } })
+        })
+
+        afterEach(function () {
+            proxyRequest.restore()
+        })
+
+        it('should mark deployment cloud on the app.flowfuse.com host', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/mcp',
+                headers: {
+                    authorization: `Bearer ${alicePAT.token}`
+                },
+                payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+            })
+            response.statusCode.should.equal(200)
+            proxyRequest.firstCall.args[3].should.have.property('deployment', 'cloud')
+        })
+    })
+
     describe('Feature flag disabled', function () {
         let app
 

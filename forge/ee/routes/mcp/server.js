@@ -96,6 +96,21 @@ module.exports = async function (app) {
         const userProperties = {
             telemetryEnabled: telemetryEnabled ? 'true' : 'false'
         }
+        // The PAT's owning user, used as the telemetry identity so 3rd-party usage attributes to
+        // the same person the platform already identifies on the frontend.
+        if (request.session.User?.username) {
+            userProperties.username = request.session.User.username
+        }
+        // The FlowFuse Cloud host is app.flowfuse.com; any other host is a self-hosted
+        // deployment, whose telemetry identity is masked downstream.
+        userProperties.deployment = 'self-hosted'
+        try {
+            if (new URL(app.config.base_url).hostname.endsWith('app.flowfuse.com')) {
+                userProperties.deployment = 'cloud'
+            }
+        } catch (err) {
+            // Unparseable base_url: leave as self-hosted so identity is masked by default.
+        }
         const patId = request.session.pat?.id
         if (patId !== undefined && patId !== null) {
             userProperties.patId = app.db.models.AccessToken.encodeHashid(patId)
