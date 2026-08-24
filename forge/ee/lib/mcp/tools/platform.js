@@ -117,14 +117,22 @@ module.exports = [
     {
         name: 'platform_get_blueprint',
         title: 'Get Blueprint',
-        description: 'Get a single flow blueprint by id.',
+        description: 'Get a single flow blueprint by id. By default the flow content is omitted from the response.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            flowBlueprintId: z.string().describe('Flow blueprint hashid')
+            flowBlueprintId: z.string().describe('Flow blueprint hashid'),
+            includeFlow: z.boolean().default(false).optional().describe('Whether to include the full flow JSON in the response. Omitted by default to keep the response small; set true to fetch it, e.g. to deploy it.')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/flow-blueprints/${args.flowBlueprintId}` })
-            return response
+            if (response.statusCode >= 400) {
+                return response
+            }
+            const blueprint = response.json()
+            if (!args.includeFlow) {
+                blueprint.flows = 'Flow content omitted to keep the response small. Call this tool again with includeFlow: true to fetch the full flow JSON.'
+            }
+            return blueprint
         }
     },
     {

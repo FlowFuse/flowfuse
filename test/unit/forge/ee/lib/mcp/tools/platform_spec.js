@@ -173,7 +173,6 @@ describe('MCP Platform Catalog Tools', function () {
         { name: 'platform_list_templates', args: {}, url: '/api/v1/templates' },
         { name: 'platform_list_blueprints', args: {}, url: '/api/v1/flow-blueprints' },
         { name: 'platform_get_template', args: { templateId: 'tmpl1' }, url: '/api/v1/templates/tmpl1' },
-        { name: 'platform_get_blueprint', args: { flowBlueprintId: 'bp1' }, url: '/api/v1/flow-blueprints/bp1' },
         { name: 'platform_get_team_type', args: { teamTypeId: 'tt1' }, url: '/api/v1/team-types/tt1' }
     ]
 
@@ -199,6 +198,39 @@ describe('MCP Platform Catalog Tools', function () {
 
                 response.should.equal(errorResponse)
             })
+        })
+    })
+
+    describe('platform_get_blueprint', function () {
+        const tool = getTool('platform_get_blueprint')
+
+        it('omits the flow content by default', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ id: 'bp1', name: 'Blueprint', flows: { flows: [{ id: 'n1' }] } }) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/flow-blueprints/bp1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ flowBlueprintId: 'bp1' }, { inject })
+
+            response.id.should.equal('bp1')
+            response.flows.should.be.a.String()
+        })
+
+        it('includes the full flow content when includeFlow is true', async function () {
+            const flows = { flows: [{ id: 'n1' }] }
+            const routeResponse = { statusCode: 200, json: () => ({ id: 'bp1', name: 'Blueprint', flows }) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/flow-blueprints/bp1' }).resolves(routeResponse)
+
+            const response = await tool.handler({ flowBlueprintId: 'bp1', includeFlow: true }, { inject })
+
+            response.flows.should.deepEqual(flows)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ flowBlueprintId: 'bp1' }, { inject })
+
+            response.should.equal(errorResponse)
         })
     })
 })
