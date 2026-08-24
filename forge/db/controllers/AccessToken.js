@@ -265,6 +265,37 @@ module.exports = {
         await app.settings.set('platform:stats:token', false)
     },
 
+    createMCPOAuthToken: async function (app, userId, { readOnly = false, teamIds = [] } = {}) {
+        const token = generateToken(32, 'ffpat')
+        const refreshToken = generateToken(32, 'ffpat')
+        const expiresAt = Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY
+
+        await app.db.sequelize.transaction(async (t) => {
+            const tok = await app.db.models.AccessToken.create({
+                name: 'MCP Agent',
+                token,
+                refreshToken,
+                scope: '',
+                expiresAt,
+                readOnly,
+                adminOptIn: false,
+                ownerId: '' + userId,
+                ownerType: 'user'
+            }, { transaction: t })
+
+            if (teamIds.length > 0) {
+                const scopes = teamIds.map(teamId => ({
+                    AccessTokenId: tok.id,
+                    TeamId: app.db.models.Team.decodeHashid(teamId),
+                    UserId: userId
+                }))
+                await app.db.models.AccessTokenTeamScope.bulkCreate(scopes, { transaction: t })
+            }
+        })
+
+        return { token, expiresAt, refreshToken }
+    },
+
     createPersonalAccessToken: async function (app, user, scope, expiresAt, name, { readOnly = false, adminOptIn = false, teamIds = [] } = {}) {
         const userId = typeof user === 'number' ? user : user.id
         const token = generateToken(32, 'ffpat')

@@ -59,7 +59,7 @@ module.exports = async function (app) {
                     code_challenge_method: { type: 'string' }
                 },
                 // client_id and redirect_uri are handled manually
-                required: ['response_type', 'scope', 'code_challenge', 'code_challenge_method']
+                required: ['response_type', 'code_challenge', 'code_challenge_method']
             }
         },
         attachValidation: true
@@ -88,8 +88,26 @@ module.exports = async function (app) {
         } catch (err) {
             return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
         }
-        if (client_id !== 'ff-plugin') {
-            // Check client_id is valid. Note - no client_secret provided at this point
+        if (client_id === 'ff-plugin') {
+            // Ensure redirect_uri path component is correct for the tools plugin
+            if (!/\/(flow(fuse|forge)-nr-tools|nr-assistant)\/auth\/callback$/.test(redirectURI.pathname)) {
+                return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
+            }
+            if (scope !== 'ff-plugin' && scope !== 'ff-assistant') {
+                return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'", state)
+            }
+        } else if (client_id === 'mcp-agent') {
+            // MCP agent: validate redirect_uri is a loopback address (RFC 8252 Section 7.3)
+            if (redirectURI.hostname !== 'localhost' && redirectURI.hostname !== '127.0.0.1') {
+                return badRequest(reply, 'invalid_request', 'Invalid redirect_uri: must be a loopback address')
+            }
+            if (redirectURI.protocol !== 'http:') {
+                return badRequest(reply, 'invalid_request', 'Invalid redirect_uri: loopback redirects must use http')
+            }
+            // Scope is not validated for MCP agents; access level is determined
+            // by the user on the consent page (readOnly + teamIds)
+        } else {
+            // Dynamic client (project/device editor auth)
             const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id)
             if (!authClient) {
                 return badRequest(reply, 'invalid_request', 'Invalid client_id')
@@ -105,14 +123,6 @@ module.exports = async function (app) {
             }
             if (!/^(editor($|-))|httpAuth-/.test(scope)) {
                 return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'. Only 'editor[-version]' is supported", state)
-            }
-        } else {
-            // Ensure redirect_uri path component is correct for the tools plugin
-            if (!/\/(flow(fuse|forge)-nr-tools|nr-assistant)\/auth\/callback$/.test(redirectURI.pathname)) {
-                return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
-            }
-            if (scope !== 'ff-plugin' && scope !== 'ff-assistant') {
-                return redirectInvalidRequest(reply, redirect_uri, 'invalid_request', "Invalid scope '" + scope + "'", state)
             }
         }
         // If anything else missing, redirect with details
@@ -159,6 +169,11 @@ module.exports = async function (app) {
             reply.redirect(`${app.config.base_url}/account/request/${requestId}/editor`)
             return
         }
+        if (client_id === 'mcp-agent') {
+            // Redirect to MCP-specific consent page
+            reply.redirect(`${app.config.base_url}/account/request/${requestId}/mcp`)
+            return
+        }
         // Redirect to login page with requestId in url - to bounce to an approve page
         reply.redirect(`${app.config.base_url}/account/request/${requestId}`)
     })
@@ -176,8 +191,8 @@ module.exports = async function (app) {
         if (request.sid) {
             request.session = await app.db.controllers.Session.getOrExpire(request.sid)
             if (request.session) {
-                if (requestObject.client_id === 'ff-plugin') {
-                    // This is the FlowFuse Node-RED plugin.
+                if (requestObject.client_id === 'ff-plugin' || requestObject.client_id === 'mcp-agent') {
+                    // FlowFuse Node-RED plugin or MCP agent: user-scoped, no resource ownership checks
                 } else {
                     const authClient = await app.db.controllers.AuthClient.getAuthClient(requestObject.client_id)
                     if (!authClient) {
@@ -267,6 +282,95 @@ module.exports = async function (app) {
         return redirectInvalidRequest(reply, requestObject.redirect_uri, 'access_denied', 'Access Denied', requestObject.state)
     })
 
+    // RFC 7591: Dynamic Client Registration for MCP agents
+    app.post('/account/client', {
+        config: { allowAnonymous: true },
+        schema: {
+            tags: ['Authentication', 'X-HIDDEN'],
+            body: {
+                type: 'object',
+                properties: {
+                    redirect_uris: { type: 'array', items: { type: 'string' } },
+                    client_name: { type: 'string' },
+                    grant_types: { type: 'array', items: { type: 'string' } },
+                    response_types: { type: 'array', items: { type: 'string' } },
+                    token_endpoint_auth_method: { type: 'string' }
+                },
+                required: ['redirect_uris']
+            }
+        }
+    }, async function (request, reply) {
+        const { redirect_uris, client_name, grant_types, response_types, token_endpoint_auth_method } = request.body
+
+        // Validate all redirect URIs are loopback addresses (RFC 8252 Section 7.3)
+        for (const uri of redirect_uris) {
+            let parsed
+            try {
+                parsed = new URL(uri)
+            } catch (err) {
+                return badRequest(reply, 'invalid_redirect_uri', `Invalid redirect_uri: ${uri}`)
+            }
+            if (parsed.hostname !== 'localhost' && parsed.hostname !== '127.0.0.1') {
+                return badRequest(reply, 'invalid_redirect_uri', 'redirect_uri must be a loopback address')
+            }
+            if (parsed.protocol !== 'http:') {
+                return badRequest(reply, 'invalid_redirect_uri', 'Loopback redirect_uri must use http')
+            }
+        }
+
+        reply.code(201).send({
+            client_id: 'mcp-agent',
+            client_name: client_name || 'MCP Agent',
+            redirect_uris,
+            grant_types: grant_types || ['authorization_code'],
+            response_types: response_types || ['code'],
+            token_endpoint_auth_method: token_endpoint_auth_method || 'none'
+        })
+    })
+
+    // MCP consent: save the user's access choices before they approve
+    app.put('/account/authorize/:id/consent', {
+        preHandler: (request, reply) => app.verifySession(request, reply),
+        schema: {
+            tags: ['Authentication', 'X-HIDDEN'],
+            params: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string' }
+                },
+                required: ['id']
+            },
+            body: {
+                type: 'object',
+                properties: {
+                    readOnly: { type: 'boolean' },
+                    teamIds: { type: 'array', items: { type: 'string' } }
+                }
+            }
+        }
+    }, async function (request, reply) {
+        const requestId = request.params.id
+        const { readOnly = false, teamIds = [] } = request.body
+
+        const session = await app.db.models.OAuthSession.findOne({ where: { id: requestId } })
+        if (!session) {
+            return badRequest(reply, 'invalid_request', 'Invalid or expired request')
+        }
+        if (Date.now() - session.createdAt.getTime() >= 1000 * 60 * 5) {
+            await session.destroy()
+            return badRequest(reply, 'invalid_request', 'Request has expired')
+        }
+        const requestObject = session.value
+        if (requestObject.client_id !== 'mcp-agent') {
+            return badRequest(reply, 'invalid_request', 'Invalid request')
+        }
+
+        session.value = { ...requestObject, readOnly, teamIds }
+        await session.save()
+
+        reply.send({ status: 'ok' })
+    })
+
     app.post('/account/token', {
         config: {
             rateLimit: false // never rate limit this route
@@ -342,7 +446,56 @@ module.exports = async function (app) {
                 return
             }
 
-            if (client_id !== 'ff-plugin') {
+            if (client_id === 'ff-plugin') {
+                const scope = {
+                    'ff-plugin': [
+                        'user:read',
+                        'user:team:list',
+                        'team:read',
+                        'team:projects:list',
+                        'project:read',
+                        'project:snapshot:list',
+                        'project:snapshot:create',
+                        'device:snapshot:list',
+                        'device:snapshot:create'
+                    ],
+                    'ff-assistant': [
+                        'user:read',
+                        'assistant:call'
+                    ]
+                }[requestObject.scope]
+                if (!scope) {
+                    return badRequest(reply, 'access_denied', 'Access Denied')
+                }
+                const accessToken = await app.db.controllers.AccessToken.createTokenForUser(requestObject.userId,
+                    null,
+                    scope,
+                    true
+                )
+                const response = {
+                    access_token: accessToken.token,
+                    expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
+                    refresh_token: accessToken.refreshToken,
+                    state: requestObject.state
+                }
+                reply.send(response)
+            } else if (client_id === 'mcp-agent') {
+                const accessToken = await app.db.controllers.AccessToken.createMCPOAuthToken(
+                    requestObject.userId,
+                    {
+                        readOnly: requestObject.readOnly || false,
+                        teamIds: requestObject.teamIds || []
+                    }
+                )
+                const response = {
+                    access_token: accessToken.token,
+                    token_type: 'bearer',
+                    expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
+                    refresh_token: accessToken.refreshToken,
+                    state: requestObject.state
+                }
+                reply.send(response)
+            } else {
                 const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
                 if (!authClient) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
@@ -404,39 +557,6 @@ module.exports = async function (app) {
                     scope
                 }
                 reply.send(response)
-            } else {
-                const scope = {
-                    'ff-plugin': [
-                        'user:read',
-                        'user:team:list',
-                        'team:read',
-                        'team:projects:list',
-                        'project:read',
-                        'project:snapshot:list',
-                        'project:snapshot:create',
-                        'device:snapshot:list',
-                        'device:snapshot:create'
-                    ],
-                    'ff-assistant': [
-                        'user:read',
-                        'assistant:call'
-                    ]
-                }[requestObject.scope]
-                if (!scope) {
-                    return badRequest(reply, 'access_denied', 'Access Denied')
-                }
-                const accessToken = await app.db.controllers.AccessToken.createTokenForUser(requestObject.userId,
-                    null,
-                    scope,
-                    true
-                )
-                const response = {
-                    access_token: accessToken.token,
-                    expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
-                    refresh_token: accessToken.refreshToken,
-                    state: requestObject.state
-                }
-                reply.send(response)
             }
         } else if (grant_type === 'refresh_token') {
             const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
@@ -444,7 +564,7 @@ module.exports = async function (app) {
                 badRequest(reply, 'invalid_request', 'Invalid refresh_token')
                 return
             }
-            if (client_id !== 'ff-plugin') {
+            if (client_id !== 'ff-plugin' && client_id !== 'mcp-agent') {
                 const authClient = await app.db.controllers.AuthClient.getAuthClient(client_id, client_secret)
                 if (!authClient) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
