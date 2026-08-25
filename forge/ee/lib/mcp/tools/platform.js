@@ -33,7 +33,7 @@ module.exports = [
             Each type includes a defaultStack, which is the recommended (latest) stack for that type.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            teamId: z.string().describe('The ID or hashid of the team to check instance type availability for'),
+            teamId: z.string().describe('The hashid of the team to check instance type availability for'),
             projectType: z.string().optional().describe('Optional ID of one hosted instance type to look up, to only return that type and its stacks'),
             creatableOnly: z.boolean().default(true).optional().describe('Whether to only include instance types the team can currently create. Defaults to true.')
         },
