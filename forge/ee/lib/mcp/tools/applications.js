@@ -10,7 +10,7 @@ module.exports = [
             Call platform_get_remote_instance to get details of a specific remote instance or platform_get_hosted_instance to get details of a specific hosted instance.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            teamId: z.string().describe('The ID or hashid of the team')
+            teamId: z.string().describe('The hashid of the team')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/applications?includeInstances=false&includeApplicationDevices=false` })
@@ -23,7 +23,7 @@ module.exports = [
         description: 'FlowFuse platform automation tool: Use this tool to retrieve application metadata (name, description, link, team createdAt and updatedAt)',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            applicationId: z.string().describe('The ID or hashid of the application')
+            applicationId: z.string().describe('The hashid of the application')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/applications/${args.applicationId}` })
@@ -40,7 +40,7 @@ module.exports = [
             You can narrow down results by event type, username, or scope (application, project, or device).`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            applicationId: z.string().describe('The ID or hashid of the application'),
+            applicationId: z.string().describe('The hashid of the application'),
             cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last entry from the previous page)'),
             limit: z.number().min(1).max(100).describe('How many entries to return'),
             event: z.string().optional().describe('Filter by event type (e.g. "application.created", "project.snapshot.device-target-set")'),
@@ -81,7 +81,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             name: z.string().describe('Name for the new application'),
-            teamId: z.string().describe('The ID or hashid of the team to create the application in'),
+            teamId: z.string().describe('The hashid of the team to create the application in'),
             description: z.string().optional().describe('Optional description for the application')
         },
         handler: async (args, { inject }) => {
