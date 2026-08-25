@@ -21,7 +21,6 @@ async function commonFeatures (app) {
     await app.register(require('./resource'), { prefix: '/api/v1/projects/:instanceId/resources', logLevel: app.config.logging.http })
     await app.register(require('./autoUpdateStacks'), { prefix: '/api/v1/projects/:projectId/autoUpdateStack', logLevel: app.config.logging.http })
     await app.register(require('./httpTokens'), { prefix: '/api/v1', logLevel: app.config.logging.http })
-    await app.register(require('./customHostnames'), { prefix: '/api/v1/projects/:projectId/customHostname', logLevel: app.config.logging.http })
     await app.register(require('./staticAssets'), { prefix: '/api/v1/projects/:projectId/files', logLevel: app.config.logging.http })
     await app.register(require('./projectHistory'), { prefix: '/api/v1/projects/:instanceId/history', logLevel: app.config.logging.http })
     await app.register(require('./deviceHistory'), { prefix: '/api/v1/devices/:deviceId/history', logLevel: app.config.logging.http })
@@ -52,6 +51,7 @@ module.exports = async function (app) {
             await app.register(require('./gitops'), { prefix: '/api/v1/teams/:teamId/git', logLevel: app.config.logging.http })
             await app.register(require('./bom/application.js'), { prefix: '/api/v1/applications', logLevel: app.config.logging.http })
             await app.register(require('./bom/team.js'), { prefix: '/api/v1/teams', logLevel: app.config.logging.http })
+            await app.register(require('./customHostnames'), { prefix: '/api/v1/projects/:projectId/customHostname', logLevel: app.config.logging.http })
             enableSSO = true
         } else {
             // old Pro license
@@ -67,6 +67,7 @@ module.exports = async function (app) {
             await app.register(require('./protectedInstance'), { prefix: '/api/v1/projects/:projectId/protectInstance', logLevel: app.config.logging.http })
             await app.register(require('./bom/application.js'), { prefix: '/api/v1/applications', logLevel: app.config.logging.http })
             await app.register(require('./bom/team.js'), { prefix: '/api/v1/teams', logLevel: app.config.logging.http })
+            await app.register(require('./customHostnames'), { prefix: '/api/v1/projects/:projectId/customHostname', logLevel: app.config.logging.http })
         } else if (tiers.includes('edge') || tiers.includes('fleet')) {
             await app.register(require('./applicationDeviceGroups'), { prefix: '/api/v1/applications/:applicationId/device-groups', logLevel: app.config.logging.http })
             await app.register(require('./teamDeviceGroups'), { prefix: '/api/v1/teams/:teamId/device-groups', logLevel: app.config.logging.http })
