@@ -42,15 +42,12 @@ module.exports = {
         return client
     },
 
-    /**
-     * Register a public MCP client (RFC 7591 Dynamic Client Registration).
-     * MCP clients have no owner and no secret - they authenticate with PKCE.
-     * The generated clientID is the only credential returned to the client.
-     */
+    // Register a public MCP client (RFC 7591). No owner, no secret: PKCE only,
+    // and the generated clientID is the sole credential.
     createMCPClient: async function (app, { name, redirectURIs } = {}) {
         return app.db.models.AuthClient.create({
             clientID: generateToken(32, 'ffmcp'),
-            type: 'mcp',
+            ownerType: 'mcp',
             name: name || 'MCP Agent',
             redirectURIs: redirectURIs || []
         })
