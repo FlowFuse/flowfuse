@@ -1,5 +1,11 @@
 const { randomUUID } = require('node:crypto')
 
+// Maps an in-flight mcpSessionId to the registered client name of the third-party
+// caller that opened it, so the comms layer can attribute audit entries to that
+// client instead of the first-party Expert default. Read by forge/comms/platformAutomation.js.
+const MCP_SESSION_SOURCE_CACHE = 'mcp-session-source'
+const MCP_SESSION_SOURCE_CACHE_TTL = 1000 * 60 * 60 // 1 hour
+
 /**
  * MCP Platform Tools Server
  *
@@ -50,7 +56,8 @@ module.exports = async function (app) {
         }
         return {
             userId: request.session.User.hashid,
-            scope: { readOnly, teams }
+            scope: { readOnly, teams },
+            clientName: request.session.pat?.clientName || null
         }
     }
 
@@ -82,6 +89,10 @@ module.exports = async function (app) {
         }
 
         const mcpSessionId = request.headers['mcp-session-id'] || randomUUID()
+        if (caller.clientName) {
+            const cache = app.caches?.getCache?.(MCP_SESSION_SOURCE_CACHE, { ttl: MCP_SESSION_SOURCE_CACHE_TTL, max: 10000 })
+            await cache?.set(mcpSessionId, { clientName: caller.clientName })
+        }
         const route = {
             userId: caller.userId,
             mcpSessionId

@@ -93,7 +93,9 @@ export default {
                 return toolName ? `via Expert (Tool name: ${toolName})` : 'via Expert'
             }
             if (this.entry.source === 'mcp') {
-                return toolName ? `via MCP (Tool name: ${toolName})` : 'via MCP'
+                const clientName = this.entry.body?.sourceContext?.clientName
+                const via = clientName || 'MCP'
+                return toolName ? `via ${via} (Tool name: ${toolName})` : `via ${via}`
             }
             if (this.entry.source === 'api') {
                 return 'via API'
