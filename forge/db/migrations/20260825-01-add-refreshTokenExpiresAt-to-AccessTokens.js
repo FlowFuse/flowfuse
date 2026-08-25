@@ -23,7 +23,5 @@ module.exports = {
             defaultValue: null
         })
     },
-    down: async (context) => {
-        await context.removeColumn('AccessTokens', 'refreshTokenExpiresAt')
-    }
+    down: async (context) => {}
 }

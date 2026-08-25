@@ -31,9 +31,5 @@ module.exports = {
             defaultValue: null
         })
     },
-    down: async (context) => {
-        await context.removeColumn('AuthClients', 'type')
-        await context.removeColumn('AuthClients', 'name')
-        await context.removeColumn('AuthClients', 'redirectURIs')
-    }
+    down: async (context) => {}
 }
