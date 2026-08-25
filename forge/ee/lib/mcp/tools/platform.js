@@ -154,7 +154,7 @@ module.exports = [
             platform_ui and flow_building tool calls, so you don't need to pass a session id with every call.
             Call platform_list_browser_sessions first to get a valid session_id.
             The pin is remembered for this MCP connection until changed, the tab closes, or it expires.`,
-        annotations: { readOnlyHint: false, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             session_id: z.string().describe('The sessionId of the browser tab to target, from platform_list_browser_sessions')
         },
@@ -193,7 +193,7 @@ module.exports = [
             as set by platform_set_active_browser_session.
             If none is set, or the pinned tab is no longer live, call platform_list_browser_sessions and
             platform_set_active_browser_session to pick one.`,
-        annotations: { readOnlyHint: false, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {},
         handler: async (args, { app, user, mcpSessionId }) => {
             if (!app.db.controllers.BrowserSession) {
