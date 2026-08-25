@@ -605,11 +605,6 @@ module.exports = async function (app) {
                 reply.send(response)
             }
         } else if (grant_type === 'refresh_token') {
-            const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
-            if (!existingToken) {
-                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
-                return
-            }
             // ff-plugin and MCP clients are user-scoped; only project/device
             // clients need their resource ownership re-checked on refresh.
             let refreshAuthClient = null
@@ -618,6 +613,16 @@ module.exports = async function (app) {
                 if (!refreshAuthClient) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
                 }
+            }
+            const isMcpClient = refreshAuthClient?.type === 'mcp'
+            const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
+            // A rotated-out MCP refresh token is no longer the row's current token, so
+            // byRefreshToken cannot find it. refreshToken() resolves the current-or-previous
+            // token, including the grace window and replay detection, so defer to it for
+            // MCP clients rather than rejecting an already-rotated token here.
+            if (!existingToken && !isMcpClient) {
+                badRequest(reply, 'invalid_request', 'Invalid refresh_token')
+                return
             }
             if (refreshAuthClient && refreshAuthClient.type !== 'mcp') {
                 // Check the owner of the existing session still has access to the project

@@ -460,6 +460,57 @@ describe('OAuth', async function () {
             refreshResponse.json().access_token.should.be.a.String().and.startWith('ffpat')
         })
 
+        it('rotates the refresh token, honours the grace window, and revokes on replay', async function () {
+            const clientID = (await register()).json().client_id
+            const { verifier, challenge } = pkce()
+            const authResponse = await mcpApp.inject({ method: 'GET', url: authorizeURL(clientID, redirectURI, challenge), cookies: { sid } })
+            const requestId = /\/account\/request\/([^/]+)\/mcp$/.exec(authResponse.headers.location)[1]
+            await mcpApp.inject({ method: 'PUT', url: `/account/authorize/${requestId}/consent`, payload: { readOnly: false, teamIds: [] }, cookies: { sid } })
+            const completeResponse = await mcpApp.inject({ method: 'GET', url: `/account/complete/${requestId}`, cookies: { sid } })
+            const authCode = new URL(completeResponse.headers.location).searchParams.get('code')
+            const first = (await mcpApp.inject({
+                method: 'POST',
+                url: '/account/token',
+                payload: { grant_type: 'authorization_code', code: authCode, redirect_uri: redirectURI, client_id: clientID, code_verifier: verifier }
+            })).json()
+
+            // refresh rotates: a new refresh token is issued in place of the presented one
+            const rotateResponse = await mcpApp.inject({
+                method: 'POST',
+                url: '/account/token',
+                payload: { grant_type: 'refresh_token', client_id: clientID, refresh_token: first.refresh_token }
+            })
+            rotateResponse.should.have.property('statusCode', 200)
+            const rotated = rotateResponse.json()
+            rotated.access_token.should.be.a.String().and.startWith('ffpat')
+            rotated.refresh_token.should.be.a.String().and.not.equal(first.refresh_token)
+
+            // presenting the rotated-out token again within the grace window returns the
+            // current tokens rather than an error, so a retried or racing refresh still succeeds
+            const graceResponse = await mcpApp.inject({
+                method: 'POST',
+                url: '/account/token',
+                payload: { grant_type: 'refresh_token', client_id: clientID, refresh_token: first.refresh_token }
+            })
+            graceResponse.should.have.property('statusCode', 200)
+            graceResponse.json().refresh_token.should.equal(rotated.refresh_token)
+
+            // push the rotation past the grace window so the rotated-out token reads as a replay
+            const row = await mcpApp.db.models.AccessToken.byRefreshToken(rotated.refresh_token)
+            await row.update({ previousRefreshTokenRotatedAt: new Date(Date.now() - 1000 * 60 * 60) })
+
+            const replayResponse = await mcpApp.inject({
+                method: 'POST',
+                url: '/account/token',
+                payload: { grant_type: 'refresh_token', client_id: clientID, refresh_token: first.refresh_token }
+            })
+            replayResponse.should.have.property('statusCode', 400)
+
+            // the grant is revoked, so the current refresh token no longer resolves a row
+            const revoked = await mcpApp.db.models.AccessToken.byRefreshToken(rotated.refresh_token)
+            should.not.exist(revoked)
+        })
+
         it('rejects an authorize redirect_uri that was not registered', async function () {
             const reg = (await register(['http://localhost:9876/oauth/callback'])).json()
             const { challenge } = pkce()
