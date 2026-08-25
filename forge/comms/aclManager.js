@@ -18,7 +18,14 @@ module.exports = function (app) {
         const toolAccessPermission = {
             'automation:select-nodes': 'project:flows:view',
             'automation:get-nodes': 'project:flows:view',
-            'automation:get-flows': 'project:flows:view'
+            'automation:get-flows': 'project:flows:view',
+            // Platform-UI automation rides the same inflight channel but never touches flows.
+            // Discovery returns static tool definitions, and the tools themselves (ui_get_context,
+            // ui_list_routes, ui_navigate) are all readOnlyHint - so they only need view access.
+            // Without these entries both fall through to the project:flows:edit default below,
+            // which locks read-only navigation out for anyone who cannot edit flows.
+            'automation-ui:mcp-get-features': 'project:flows:view',
+            'automation-ui:mcp-call-tool': 'project:flows:view'
         }
         const requiredPermission = toolAccessPermission[toolName] || 'project:flows:edit' // default to highest level of access if tool isn't in the list, to be safe
 
