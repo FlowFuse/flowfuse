@@ -154,7 +154,7 @@ module.exports = [
             platform_ui and flow_building tool calls, so you don't need to pass a session id with every call.
             Call platform_list_browser_sessions first to get a valid session_id.
             The pin is remembered for this MCP connection until changed, the tab closes, or it expires.`,
-        annotations: { readOnlyHint: false, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             session_id: z.string().describe('The sessionId of the browser tab to target, from platform_list_browser_sessions')
         },
