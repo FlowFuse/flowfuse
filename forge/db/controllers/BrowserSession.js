@@ -36,6 +36,9 @@ module.exports = {
             lastSeen: Date.now(),
             visibility: payload.visibility || 'visible',
             focused: payload.focused ?? null,
+            // Tool groups this tab can answer for, so a consumer can pick a tab by the group it
+            // needs to dispatch without reinterpreting the context's supports* flags.
+            capabilities: Array.isArray(payload.capabilities) ? payload.capabilities : [],
             context: payload.context ?? null
         })
     },
