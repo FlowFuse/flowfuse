@@ -46,7 +46,6 @@ module.exports = {
             }
         },
         refreshTokenExpiresAt: { type: DataTypes.DATE },
-        AuthClientId: { type: DataTypes.STRING },
         // Holds the sha256 of the last rotated-out refresh token (set directly,
         // already hashed) so rotation can distinguish a retry from a replay.
         previousRefreshToken: { type: DataTypes.STRING },
@@ -60,7 +59,6 @@ module.exports = {
         this.belongsTo(M.Project, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.User, { foreignKey: 'ownerId', constraints: false })
-        this.belongsTo(M.AuthClient, { foreignKey: 'AuthClientId', targetKey: 'clientID', constraints: false })
         this.hasMany(M.AccessTokenTeamScope)
     },
     finders: function (M) {

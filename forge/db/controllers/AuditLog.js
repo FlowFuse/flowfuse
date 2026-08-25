@@ -18,7 +18,6 @@ function getSourceContext () {
     if (ctx.tokenId != null) { sc.tokenId = ctx.tokenId }
     if (ctx.toolName) { sc.toolName = ctx.toolName }
     if (ctx.correlationId) { sc.correlationId = ctx.correlationId }
-    if (ctx.clientName) { sc.clientName = ctx.clientName }
     return {
         source: ctx.source ?? null,
         sourceContext: Object.keys(sc).length > 0 ? sc : undefined

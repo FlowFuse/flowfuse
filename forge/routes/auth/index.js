@@ -156,24 +156,11 @@ async function init (app, opts) {
                                 }))
                             }
 
-                            // Only tokens issued to a registered MCP client carry an
-                            // AuthClientId, so the client name lookup is skipped for
-                            // every other token rather than joined on each request.
-                            let clientName = null
-                            if (accessToken.AuthClientId) {
-                                const authClient = await app.db.models.AuthClient.findOne({
-                                    where: { clientID: accessToken.AuthClientId },
-                                    attributes: ['name']
-                                })
-                                clientName = authClient?.name || null
-                            }
-
                             const patMetadata = {
                                 id: accessToken.id,
                                 readOnly: accessToken.readOnly,
                                 adminOptIn: accessToken.adminOptIn,
-                                teamScopes,
-                                clientName
+                                teamScopes
                             }
 
                             request.session.isPAT = true
