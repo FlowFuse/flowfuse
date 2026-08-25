@@ -3,7 +3,6 @@ const fp = require('fastify-plugin')
 // common features across all higher tier (enterpise, hub, edge, fleet)
 async function commonFeatures (app, opts) {
     app.decorate('sso', await require('./sso').init(app))
-    await require('./teamBroker').init(app)
     // Set the MFA Feature Flag
     app.config.features.register('mfa', true, true)
     // Set the Project History timeline Feature Flag
@@ -74,6 +73,7 @@ module.exports = fp(async function (app, opts) {
             // Git Opps
             app.decorate('gitops', await require('./gitops').init(app))
             require('./customHostnames').init(app)
+            await require('./teamBroker').init(app)
 
             // Set the Device Groups Feature Flag
             app.config.features.register('deviceGroups', true, true)
@@ -99,6 +99,7 @@ module.exports = fp(async function (app, opts) {
             await commonFeatures(app, opts)
             // Set the Device Groups Feature Flag
             app.config.features.register('deviceGroups', true, true)
+            await require('./teamBroker').init(app)
         }
     }
 
