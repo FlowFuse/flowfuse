@@ -18,9 +18,33 @@ class TabPresencePublisher extends TeamPublisher {
     private $userId: string | null = null
     private $sessionId: string | null = null
     private $teamId: string | null = null
+    private $announceClose = true
 
     constructor (options: CreatePublisherOptions<Transport>) {
         super({ name: 'tabPresence', ...options })
+    }
+
+    /**
+     * Go quiet for this shutdown: skip the `close` notice on the way out.
+     *
+     * The platform reads `close` as the user opting this tab out and drops its session
+     * entry, so it must only be sent when that is what actually happened. A tab that is
+     * merely unmounting the toggle (a layout change, say) has to stay listed, and the
+     * entry it leaves behind is refreshed the moment the tab announces itself again.
+     */
+    silenceCloseNotice (): void {
+        this.$announceClose = false
+    }
+
+    /**
+     * Publishes presence immediately, whether or not this call also (re)connected.
+     *
+     * The transport is shared per team and _connect short-circuits when it is already
+     * attached, so a caller that re-enables presence over a live connection would
+     * otherwise get no heartbeat and stay unlisted until the interval came round.
+     */
+    announcePresence (): void {
+        this._publishPresence()
     }
 
     protected _onStarted (teamId: string, userId: string): void {
@@ -32,6 +56,7 @@ class TabPresencePublisher extends TeamPublisher {
         this.$userId = userId
         this.$sessionId = authStore.getSessionId()
         this.$teamId = teamId
+        this.$announceClose = true
 
         this._publishPresence()
 
@@ -75,6 +100,7 @@ class TabPresencePublisher extends TeamPublisher {
      * for a couple of minutes after the user opted out.
      */
     protected async _onStopping (): Promise<void> {
+        if (!this.$announceClose) return
         const topic = this._sessionTopic('close')
         if (!topic) return
         await this._publish(topic, {}).catch((err) => {
@@ -128,6 +154,10 @@ class TabPresencePublisher extends TeamPublisher {
 
 const { create: createTabPresencePublisher, destroy: destroyTabPresencePublisher } = definePublisherSingleton(TabPresencePublisher)
 
+// Tracked alongside the singleton so a caller can reach the live publisher to adjust how it
+// shuts down, which the factory's argument-less destroy() cannot express on its own.
+let activePublisher: TabPresencePublisher | null = null
+
 export function startTabPresence (team: TeamRef): TabPresencePublisher {
     const orchestrator = getAppOrchestrator()
     const transport = createMqttTransport(orchestrator.$services.mqtt)
@@ -136,10 +166,27 @@ export function startTabPresence (team: TeamRef): TabPresencePublisher {
         router: orchestrator.$router,
         transport
     })
+    activePublisher = publisher
+    // connect() resolves to an already-attached transport without starting the publisher
+    // again, so announce presence either way rather than assuming this call produced a
+    // heartbeat. Re-enabling over a live connection has to leave the tab listed.
     publisher.connect(team)
+        .then(() => publisher.announcePresence())
+        .catch((err) => {
+            console.warn('Failed to start tab presence:', err)
+        })
     return publisher
 }
 
-export async function stopTabPresence (): Promise<void> {
+/**
+ * @param announceClose - whether to tell the platform this tab is opting out. Pass false when
+ *   presence is only being dismantled (an unmounting toggle, say) and the tab should stay
+ *   listed; the platform treats the notice as a deliberate opt-out and drops the tab's entry.
+ */
+export async function stopTabPresence ({ announceClose = true } = {}): Promise<void> {
+    if (!announceClose) {
+        activePublisher?.silenceCloseNotice()
+    }
+    activePublisher = null
     await destroyTabPresencePublisher()
 }
