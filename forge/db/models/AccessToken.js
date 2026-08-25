@@ -46,6 +46,7 @@ module.exports = {
             }
         },
         refreshTokenExpiresAt: { type: DataTypes.DATE },
+        AuthClientId: { type: DataTypes.STRING },
         name: { type: DataTypes.STRING },
         readOnly: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false },
         adminOptIn: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false }
@@ -55,6 +56,7 @@ module.exports = {
         this.belongsTo(M.Project, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.Device, { foreignKey: 'ownerId', constraints: false })
         this.belongsTo(M.User, { foreignKey: 'ownerId', constraints: false })
+        this.belongsTo(M.AuthClient, { foreignKey: 'AuthClientId', targetKey: 'clientID', constraints: false })
         this.hasMany(M.AccessTokenTeamScope)
     },
     finders: function (M) {

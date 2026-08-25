@@ -366,6 +366,32 @@ describe('AccessToken controller', function () {
             row.refreshTokenExpiresAt.getTime().should.be.greaterThan(row.expiresAt.getTime())
         })
 
+        it('names the token after the registered client and links it', async function () {
+            const client = await app.db.models.AuthClient.create({
+                clientID: 'ffmcp_test',
+                type: 'mcp',
+                name: 'Claude Test',
+                redirectURIs: ['http://127.0.0.1:9999/callback'],
+                ownerType: 'platform',
+                ownerId: '0'
+            })
+            try {
+                const result = await createToken({ client })
+                const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+                row.should.have.property('name', client.name)
+                row.should.have.property('AuthClientId', client.clientID)
+            } finally {
+                await client.destroy()
+            }
+        })
+
+        it('falls back to a default name and no client link when no client is given', async function () {
+            const result = await createToken()
+            const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+            row.should.have.property('name', 'MCP Agent')
+            should.not.exist(row.AuthClientId)
+        })
+
         it('rejects an expired access token but keeps the row so it can still be refreshed', async function () {
             const original = await createToken()
             await setRowExpiry(original.refreshToken, { accessMs: -5000 })
