@@ -6,12 +6,11 @@ const DEFAULT_TOKEN_SESSION_EXPIRY = 1000 * 60 * 30 // 30 mins session - with re
 
 const DEFAULT_REFRESH_TOKEN_EXPIRY = 1000 * 60 * 60 * 24 * 30 // 30 days - sliding refresh token lifetime
 
-// Concurrent refreshes of the same stable refresh token reuse the most recently
-// minted access token from this shared cache (Valkey in production) rather than
-// each minting a new one and overwriting the row. Re-mint once the cached token
-// is within this window of expiry so a client is never handed a token about to die.
+// Concurrent refreshes of the same refresh token reuse the cached access token
+// rather than each minting a new one and overwriting the row. Re-mint once the
+// cached token is within this window of expiry.
 const MCP_ACCESS_TOKEN_CACHE = 'mcp-oauth-access-token'
-const MCP_ACCESS_TOKEN_REMAINING_LIMIT = 1000 * 60 // 60 seconds
+const MCP_ACCESS_TOKEN_REMAINING_LIMIT = 1000 * 60 * 5 // 5 minutes
 
 const DEFAULT_DEVICE_OTC_EXPIRY = 1000 * 60 * 60 * 24 // 24 hours
 
@@ -449,8 +448,7 @@ module.exports = {
         }
         const [prefix] = refreshToken.split('_')
 
-        // Tokens without their own refresh lifetime (e.g. editor sessions) rotate
-        // the refresh token on each use.
+        // Editor sessions have no refresh lifetime: rotate the refresh token each use.
         if (!existingToken.refreshTokenExpiresAt) {
             const tokenUpdates = {
                 token: generateToken(32, prefix),
@@ -461,18 +459,14 @@ module.exports = {
             return tokenUpdates
         }
 
-        // A refresh token with its own lifetime is no longer valid once that
-        // lifetime has passed - remove it rather than issuing a new access token.
+        // Past its lifetime the refresh token is dead: remove the row.
         if (existingToken.refreshTokenExpiresAt.getTime() < Date.now()) {
             await existingToken.destroy()
             return null
         }
 
-        // These tokens keep a stable refresh token, so concurrent refreshes can
-        // reuse the access token most recently minted for it: the first mint
-        // populates the shared cache and the rest return the same token instead of
-        // overwriting the row. If a truly simultaneous mint slips past the cache,
-        // the stale side simply refreshes again with its unchanged refresh token.
+        // Stable refresh token: concurrent refreshes reuse the cached access token
+        // instead of each minting one and overwriting the row.
         const cache = app.caches?.getCache?.(MCP_ACCESS_TOKEN_CACHE, { ttl: DEFAULT_TOKEN_SESSION_EXPIRY, max: 10000 })
         const cacheKey = sha256(refreshToken)
         const cached = await cache?.get(cacheKey)
@@ -487,7 +481,6 @@ module.exports = {
             { where: { refreshToken: existingToken.refreshToken } }
         )
         await cache?.set(cacheKey, { token, expiresAt })
-        // The refresh token is unchanged, so hand back the one the client presented.
         return { token, expiresAt, refreshToken }
     },
 
@@ -512,9 +505,8 @@ module.exports = {
             if (accessToken.expiresAt && accessToken.expiresAt.getTime() < Date.now()) {
                 const refreshTokenValid = accessToken.refreshTokenExpiresAt && accessToken.refreshTokenExpiresAt.getTime() > Date.now()
                 if (refreshTokenValid) {
-                    // The access token has expired but the refresh token is still
-                    // valid. Reject the access token without destroying the row so
-                    // the client can obtain a new one via refresh (RFC 6749 §1.5).
+                    // Refresh token still valid: reject the access token but keep the
+                    // row so the client can refresh (RFC 6749 §1.5).
                     accessToken = null
                 } else {
                     await accessToken.destroy()
