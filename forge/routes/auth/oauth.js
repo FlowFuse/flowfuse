@@ -655,6 +655,7 @@ module.exports = async function (app) {
 
             const response = {
                 access_token: accessToken.token,
+                token_type: 'bearer',
                 expires_in: Math.floor((accessToken.expiresAt - Date.now()) / 1000),
                 refresh_token: accessToken.refreshToken
             }
