@@ -124,7 +124,7 @@ describe('License Loader', function () {
         //     ],
         //     "dev": true
         // }
-        const TEST_LICENSE= 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgyOWYzODcwLThhNzYtNDg5OS1iZDhlLWQwM2JjMzY0YTQ2NSIsInZlciI6IjIwMjYtMDgtMjAiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkFjbWUgQ3VzdG9tZXIiLCJuYmYiOjE3NTYwODAwMDAsImV4cCI6MzI1MjQwNzA0MDAsInVzZXJzIjo1LCJ0ZWFtcyI6NSwiaW5zdGFuY2VzIjo1LCJtcXR0Q2xpZW50cyI6MjAsInRpZXJzIjpbImh1YiJdLCJkZXYiOnRydWUsImlhdCI6MTc4NzY1NTk5OH0.SC7Z-ipTkV-Cy3akWlLgfEIlnrkFFQECdjXWtUA0WpZ7wA6gCSPJ0Ndw_rZrt8ajA5jycBoTU2CQ9pzpIx1QCw'
+        const TEST_LICENSE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgyOWYzODcwLThhNzYtNDg5OS1iZDhlLWQwM2JjMzY0YTQ2NSIsInZlciI6IjIwMjYtMDgtMjAiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkFjbWUgQ3VzdG9tZXIiLCJuYmYiOjE3NTYwODAwMDAsImV4cCI6MzI1MjQwNzA0MDAsInVzZXJzIjo1LCJ0ZWFtcyI6NSwiaW5zdGFuY2VzIjo1LCJtcXR0Q2xpZW50cyI6MjAsInRpZXJzIjpbImh1YiJdLCJkZXYiOnRydWUsImlhdCI6MTc4NzY1NTk5OH0.SC7Z-ipTkV-Cy3akWlLgfEIlnrkFFQECdjXWtUA0WpZ7wA6gCSPJ0Ndw_rZrt8ajA5jycBoTU2CQ9pzpIx1QCw'
         const licenseDetails = await licensing.verifyLicense(TEST_LICENSE)
         licenseDetails.should.have.property('organisation', 'Acme Customer')
         licenseDetails.should.have.property('id', '829f3870-8a76-4899-bd8e-d03bc364a465')
@@ -149,7 +149,7 @@ describe('License Loader', function () {
         //     "dev": true
         // }
 
-        const TEST_LICENSE= 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJjYTNlOWJmLTk2N2QtNGFjYi04MTIwLWI0OWRiMzdhMDU0ZiIsInZlciI6IjIwMjYtMDgtMjAiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkFjbWUgQ3VzdG9tZXIiLCJuYmYiOjE3NTYwODAwMDAsImV4cCI6MzI1MjQwNzA0MDAsInVzZXJzIjo1LCJ0ZWFtcyI6NSwiaW5zdGFuY2VzIjo1LCJtcXR0Q2xpZW50cyI6MjAsInRpZXJzIjpbImVkZ2UiXSwiZGV2Ijp0cnVlLCJpYXQiOjE3ODc2NTY0MDR9.sdwywyQqMvVL13zQTC_AZ2wXJ9DoH4Mp9E1dCOZNi0vJXnz1ezKzboMW0u-EXPXZYKFWcydKe9T2xvKcXD_52A'
+        const TEST_LICENSE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJjYTNlOWJmLTk2N2QtNGFjYi04MTIwLWI0OWRiMzdhMDU0ZiIsInZlciI6IjIwMjYtMDgtMjAiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkFjbWUgQ3VzdG9tZXIiLCJuYmYiOjE3NTYwODAwMDAsImV4cCI6MzI1MjQwNzA0MDAsInVzZXJzIjo1LCJ0ZWFtcyI6NSwiaW5zdGFuY2VzIjo1LCJtcXR0Q2xpZW50cyI6MjAsInRpZXJzIjpbImVkZ2UiXSwiZGV2Ijp0cnVlLCJpYXQiOjE3ODc2NTY0MDR9.sdwywyQqMvVL13zQTC_AZ2wXJ9DoH4Mp9E1dCOZNi0vJXnz1ezKzboMW0u-EXPXZYKFWcydKe9T2xvKcXD_52A'
         const licenseDetails = await licensing.verifyLicense(TEST_LICENSE)
         licenseDetails.should.have.property('organisation', 'Acme Customer')
         licenseDetails.should.have.property('id', 'bca3e9bf-967d-4acb-8120-b49db37a054f')
@@ -174,14 +174,14 @@ describe('License Loader', function () {
         //     "dev": true
         // }
 
-        const TEST_LICENSE= 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkN2NlM2Y1LWJlNTItNGUyYi1hYzJiLWU4ZTM3ZWFmZTc3YyIsInZlciI6IjIwMjYtMDgtMjAiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkFjbWUgQ3VzdG9tZXIiLCJuYmYiOjE3NTYwODAwMDAsImV4cCI6MzI1MjQwNzA0MDAsInVzZXJzIjo1LCJ0ZWFtcyI6NSwiaW5zdGFuY2VzIjo1LCJtcXR0Q2xpZW50cyI6MjAsInRpZXJzIjpbImZsZWV0Il0sImRldiI6dHJ1ZSwiaWF0IjoxNzg3NjU2NTIyfQ.TekXdhfFHRxiAqyQmAPSGBwiADXsfl7poYHa-zQDjdq4Uagjcx_Vo-OhSB6lOUjhP-iBj9qCXa9G_8j46ucbZA'
+        const TEST_LICENSE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkN2NlM2Y1LWJlNTItNGUyYi1hYzJiLWU4ZTM3ZWFmZTc3YyIsInZlciI6IjIwMjYtMDgtMjAiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkFjbWUgQ3VzdG9tZXIiLCJuYmYiOjE3NTYwODAwMDAsImV4cCI6MzI1MjQwNzA0MDAsInVzZXJzIjo1LCJ0ZWFtcyI6NSwiaW5zdGFuY2VzIjo1LCJtcXR0Q2xpZW50cyI6MjAsInRpZXJzIjpbImZsZWV0Il0sImRldiI6dHJ1ZSwiaWF0IjoxNzg3NjU2NTIyfQ.TekXdhfFHRxiAqyQmAPSGBwiADXsfl7poYHa-zQDjdq4Uagjcx_Vo-OhSB6lOUjhP-iBj9qCXa9G_8j46ucbZA'
         const licenseDetails = await licensing.verifyLicense(TEST_LICENSE)
         licenseDetails.should.have.property('organisation', 'Acme Customer')
         licenseDetails.should.have.property('id', 'ad7ce3f5-be52-4e2b-ac2b-e8e37eafe77c')
         licenseDetails.should.have.property('tiers', ['fleet'])
         licenseDetails.expired.should.false()
     })
-        it('should load a hub & fleet license', async function () {
+    it('should load a hub & fleet license', async function () {
         // {
         //     "id": "6cb321c3-b74c-490b-a41e-9479d45379a8",
         //     "ver": "2026-08-20",
@@ -200,7 +200,7 @@ describe('License Loader', function () {
         //     "dev": true
         // }
 
-        const TEST_LICENSE= 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZjYjMyMWMzLWI3NGMtNDkwYi1hNDFlLTk0NzlkNDUzNzlhOCIsInZlciI6IjIwMjYtMDgtMjAiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkFjbWUgQ3VzdG9tZXIiLCJuYmYiOjE3NTYwODAwMDAsImV4cCI6MzI1MjQwNzA0MDAsInVzZXJzIjo1LCJ0ZWFtcyI6NSwiaW5zdGFuY2VzIjo1LCJtcXR0Q2xpZW50cyI6MjAsInRpZXJzIjpbImh1YiIsImZsZWV0Il0sImRldiI6dHJ1ZSwiaWF0IjoxNzg3NjU2NjEyfQ.YNhwvV3kkeavaiP8iGTTqshCHNa3WvVfJZnnx0WgfLkh2zVB1bw3aFMy4uH5BGBS3i6Jxb4sSb2JxlbyMNDJoQ'
+        const TEST_LICENSE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZjYjMyMWMzLWI3NGMtNDkwYi1hNDFlLTk0NzlkNDUzNzlhOCIsInZlciI6IjIwMjYtMDgtMjAiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkFjbWUgQ3VzdG9tZXIiLCJuYmYiOjE3NTYwODAwMDAsImV4cCI6MzI1MjQwNzA0MDAsInVzZXJzIjo1LCJ0ZWFtcyI6NSwiaW5zdGFuY2VzIjo1LCJtcXR0Q2xpZW50cyI6MjAsInRpZXJzIjpbImh1YiIsImZsZWV0Il0sImRldiI6dHJ1ZSwiaWF0IjoxNzg3NjU2NjEyfQ.YNhwvV3kkeavaiP8iGTTqshCHNa3WvVfJZnnx0WgfLkh2zVB1bw3aFMy4uH5BGBS3i6Jxb4sSb2JxlbyMNDJoQ'
         const licenseDetails = await licensing.verifyLicense(TEST_LICENSE)
         licenseDetails.should.have.property('organisation', 'Acme Customer')
         licenseDetails.should.have.property('id', '6cb321c3-b74c-490b-a41e-9479d45379a8')
