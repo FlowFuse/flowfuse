@@ -99,13 +99,30 @@ class TabPresencePublisher extends TeamPublisher {
         const topic = this._sessionTopic('heartbeat')
         if (!topic) return
         const contextStore = useContextStore()
+        const context = contextStore.expert
         this._publish(topic, {
             visibility: document.visibilityState,
             focused: document.hasFocus(),
-            context: contextStore.expert
+            capabilities: this._capabilities(context),
+            context
         }).catch((err) => {
             console.warn('Failed to publish tab presence:', err)
         })
+    }
+
+    /**
+     * The tool groups this tab can answer for, named the same way the served tool catalog
+     * groups them. Consumers pick a tab by the group they need to dispatch, so this is a flat
+     * list of group names rather than the several `supports*` booleans it is derived from.
+     */
+    private _capabilities (context: { supportsPlatformAutomation?: boolean, supportsPlatformUIAutomation?: boolean, scope?: string, assistantVersion?: string | null }): string[] {
+        const capabilities: string[] = []
+        if (context?.supportsPlatformAutomation) capabilities.push('platform')
+        if (context?.supportsPlatformUIAutomation) capabilities.push('platform_ui')
+        // flow_building dispatches into the Node-RED editor, so it needs the assistant present
+        // in an immersive tab - a plain platform page cannot answer for it.
+        if (context?.scope === 'immersive' && context?.assistantVersion) capabilities.push('flow_building')
+        return capabilities
     }
 }
 
