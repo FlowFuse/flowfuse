@@ -1,6 +1,6 @@
 const fs = require('fs')
 
-const inquirer = require('inquirer')
+const inquirer = require('inquirer').default
 const jwt = require('jsonwebtoken')
 const { v4: uuidv4 } = require('uuid')
 
