@@ -4,6 +4,15 @@ const { generateToken, generateNumericToken, sha256, randomPhrase } = require('.
 
 const DEFAULT_TOKEN_SESSION_EXPIRY = 1000 * 60 * 30 // 30 mins session - with refresh token support
 
+const DEFAULT_REFRESH_TOKEN_EXPIRY = 1000 * 60 * 60 * 24 * 30 // 30 days - sliding refresh token lifetime
+
+// Concurrent refreshes of the same stable refresh token reuse the most recently
+// minted access token from this shared cache (Valkey in production) rather than
+// each minting a new one and overwriting the row. Re-mint once the cached token
+// is within this window of expiry so a client is never handed a token about to die.
+const MCP_ACCESS_TOKEN_CACHE = 'mcp-oauth-access-token'
+const MCP_ACCESS_TOKEN_REMAINING_LIMIT = 1000 * 60 // 60 seconds
+
 const DEFAULT_DEVICE_OTC_EXPIRY = 1000 * 60 * 60 * 24 // 24 hours
 
 /*
@@ -269,6 +278,7 @@ module.exports = {
         const token = generateToken(32, 'ffpat')
         const refreshToken = generateToken(32, 'ffpat')
         const expiresAt = Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY
+        const refreshTokenExpiresAt = Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY
 
         await app.db.sequelize.transaction(async (t) => {
             const tok = await app.db.models.AccessToken.create({
@@ -277,6 +287,7 @@ module.exports = {
                 refreshToken,
                 scope: '',
                 expiresAt,
+                refreshTokenExpiresAt,
                 readOnly,
                 adminOptIn: false,
                 ownerId: '' + userId,
@@ -433,8 +444,14 @@ module.exports = {
 
     refreshToken: async function (app, refreshToken) {
         const existingToken = await app.db.models.AccessToken.byRefreshToken(refreshToken)
-        if (existingToken) {
-            const [prefix] = refreshToken.split('_')
+        if (!existingToken) {
+            return null
+        }
+        const [prefix] = refreshToken.split('_')
+
+        // Tokens without their own refresh lifetime (e.g. editor sessions) rotate
+        // the refresh token on each use.
+        if (!existingToken.refreshTokenExpiresAt) {
             const tokenUpdates = {
                 token: generateToken(32, prefix),
                 refreshToken: generateToken(32, prefix),
@@ -443,7 +460,35 @@ module.exports = {
             await app.db.models.AccessToken.update(tokenUpdates, { where: { refreshToken: existingToken.refreshToken } })
             return tokenUpdates
         }
-        return null
+
+        // A refresh token with its own lifetime is no longer valid once that
+        // lifetime has passed - remove it rather than issuing a new access token.
+        if (existingToken.refreshTokenExpiresAt.getTime() < Date.now()) {
+            await existingToken.destroy()
+            return null
+        }
+
+        // These tokens keep a stable refresh token, so concurrent refreshes can
+        // reuse the access token most recently minted for it: the first mint
+        // populates the shared cache and the rest return the same token instead of
+        // overwriting the row. If a truly simultaneous mint slips past the cache,
+        // the stale side simply refreshes again with its unchanged refresh token.
+        const cache = app.caches?.getCache?.(MCP_ACCESS_TOKEN_CACHE, { ttl: DEFAULT_TOKEN_SESSION_EXPIRY, max: 10000 })
+        const cacheKey = sha256(refreshToken)
+        const cached = await cache?.get(cacheKey)
+        if (cached && cached.expiresAt - Date.now() > MCP_ACCESS_TOKEN_REMAINING_LIMIT) {
+            return { token: cached.token, expiresAt: cached.expiresAt, refreshToken }
+        }
+
+        const token = generateToken(32, prefix)
+        const expiresAt = Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY
+        await app.db.models.AccessToken.update(
+            { token, expiresAt, refreshTokenExpiresAt: Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY },
+            { where: { refreshToken: existingToken.refreshToken } }
+        )
+        await cache?.set(cacheKey, { token, expiresAt })
+        // The refresh token is unchanged, so hand back the one the client presented.
+        return { token, expiresAt, refreshToken }
     },
 
     /**
@@ -465,8 +510,16 @@ module.exports = {
         })
         if (accessToken) {
             if (accessToken.expiresAt && accessToken.expiresAt.getTime() < Date.now()) {
-                await accessToken.destroy()
-                accessToken = null
+                const refreshTokenValid = accessToken.refreshTokenExpiresAt && accessToken.refreshTokenExpiresAt.getTime() > Date.now()
+                if (refreshTokenValid) {
+                    // The access token has expired but the refresh token is still
+                    // valid. Reject the access token without destroying the row so
+                    // the client can obtain a new one via refresh (RFC 6749 §1.5).
+                    accessToken = null
+                } else {
+                    await accessToken.destroy()
+                    accessToken = null
+                }
             }
         }
         return accessToken
