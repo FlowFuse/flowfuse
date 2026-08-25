@@ -390,9 +390,10 @@ describe('AccessToken controller', function () {
 
         it('keeps the refresh token stable and slides its expiry on refresh', async function () {
             const original = await createToken()
-            const before = await app.db.models.AccessToken.byRefreshToken(original.refreshToken)
-            // Bring the refresh expiry close so the slide forward is observable.
+            // Bring the refresh expiry close so the slide back out to the full
+            // lifetime is observable rather than a same-millisecond tie.
             await setRowExpiry(original.refreshToken, { accessMs: -5000, refreshMs: 60000 })
+            const before = await app.db.models.AccessToken.byRefreshToken(original.refreshToken)
 
             const refreshed = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
             refreshed.token.should.not.equal(original.token)
