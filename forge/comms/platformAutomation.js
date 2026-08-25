@@ -4,11 +4,9 @@
 
 const { default: z } = require('zod')
 
-// Written by the third-party MCP door (forge/ee/routes/mcp/server.js) for a caller
-// with a registered client. A hit here means the request came from a third-party
-// agent rather than the first-party Expert, so the audit source and displayed
-// client name below differ from the 'mcp:expert' default.
-const MCP_SESSION_SOURCE_CACHE = 'mcp-session-source'
+// Written by the third-party MCP door; a hit means a third-party caller, and the
+// value is that caller's PAT. A miss is the first-party Expert path.
+const MCP_SESSION_TOKEN_CACHE = 'mcp-session-token'
 
 /**
  * Cheap, non-cryptographic fingerprint of the platform tool catalog, over each tool's
@@ -115,12 +113,9 @@ class PlatformAutomationHandler {
             let result = {}
             this.app.log.info(`platform-automation request: userId=${userId} mcpSessionId=${mcpSessionId} command=${command} tool=${data?.name || 'n/a'}`)
 
-            // A cache hit means a third-party agent opened this session at the MCP
-            // door; a miss keeps the 'mcp:expert' default for the first-party Expert
-            // path, which never goes through that door.
-            const sessionSourceCache = this.app.caches?.getCache?.(MCP_SESSION_SOURCE_CACHE)
-            const sessionSource = mcpSessionId ? await sessionSourceCache?.get(mcpSessionId) : null
-            const source = sessionSource ? 'mcp' : 'mcp:expert'
+            const sessionTokenCache = this.app.caches?.getCache?.(MCP_SESSION_TOKEN_CACHE)
+            const sessionToken = mcpSessionId ? await sessionTokenCache?.get(mcpSessionId) : null
+            const source = sessionToken ? 'mcp' : 'mcp:expert'
 
             switch (command) {
             case 'mcp-get-features':
@@ -165,13 +160,10 @@ class PlatformAutomationHandler {
 
                 const user = await this.app.db.models.User.byId(userId)
                 if (user) {
-                    const { token } = await this.app.expert.mcp.getOrCreatePlatformToken(user)
+                    // Third-party runs under the caller's PAT; Expert mints a token.
+                    const token = sessionToken || (await this.app.expert.mcp.getOrCreatePlatformToken(user)).token
                     const inject = (opts) => {
-                        const nonceMetadata = { source, toolName }
-                        if (sessionSource?.clientName) {
-                            nonceMetadata.clientName = sessionSource.clientName
-                        }
-                        const nonce = this.app.nonceStore.createSourceNonce(nonceMetadata)
+                        const nonce = this.app.nonceStore.createSourceNonce({ source, toolName })
                         return this.app.inject({
                             ...opts,
                             headers: {

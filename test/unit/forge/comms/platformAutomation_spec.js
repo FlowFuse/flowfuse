@@ -151,49 +151,52 @@ describe('PlatformAutomationHandler', function () {
         })
     })
 
-    describe('third-party client attribution', function () {
-        const MCP_SESSION_SOURCE_CACHE = 'mcp-session-source'
+    describe('third-party session token', function () {
+        const MCP_SESSION_TOKEN_CACHE = 'mcp-session-token'
 
         afterEach(async function () {
-            const cache = app.caches.getCache(MCP_SESSION_SOURCE_CACHE)
-            await cache.del('session-with-client')
+            const cache = app.caches.getCache(MCP_SESSION_TOKEN_CACHE)
+            await cache.del('session-with-token')
         })
 
-        it('mints a source mcp nonce with the client name when the door recorded one for the session', async function () {
-            const cache = app.caches.getCache(MCP_SESSION_SOURCE_CACHE)
-            await cache.set('session-with-client', { clientName: 'Some Third Party Agent' })
+        it('injects the caller PAT and marks source mcp when the door recorded a token', async function () {
+            const { token: callerToken } = await app.expert.mcp.getOrCreatePlatformToken(app.adminUser)
+            const cache = app.caches.getCache(MCP_SESSION_TOKEN_CACHE)
+            await cache.set('session-with-token', callerToken)
 
-            const createSpy = sinon.spy(app.nonceStore, 'createSourceNonce')
+            const platformTokenSpy = sinon.spy(app.expert.mcp, 'getOrCreatePlatformToken')
+            const injectSpy = sinon.spy(app, 'inject')
+            const nonceSpy = sinon.spy(app.nonceStore, 'createSourceNonce')
             const tool = handler.findTool('platform_list_teams')
 
             const res = await invokeToolCall({
                 userId: app.adminUser.hashid,
                 toolName: 'platform_list_teams',
-                mcpSessionId: 'session-with-client',
+                mcpSessionId: 'session-with-token',
                 meta: { toolDefinition: { annotations: tool.annotations } }
             })
 
             res.ok.should.be.true()
-            const nonceArgs = createSpy.firstCall.args[0]
-            nonceArgs.should.have.property('source', 'mcp')
-            nonceArgs.should.have.property('clientName', 'Some Third Party Agent')
+            platformTokenSpy.called.should.be.false()
+            injectSpy.firstCall.args[0].headers.authorization.should.equal(`Bearer ${callerToken}`)
+            nonceSpy.firstCall.args[0].should.have.property('source', 'mcp')
         })
 
-        it('falls back to source mcp:expert when the session has no recorded client', async function () {
-            const createSpy = sinon.spy(app.nonceStore, 'createSourceNonce')
+        it('mints a platform token and marks source mcp:expert when the session has no recorded token', async function () {
+            const platformTokenSpy = sinon.spy(app.expert.mcp, 'getOrCreatePlatformToken')
+            const nonceSpy = sinon.spy(app.nonceStore, 'createSourceNonce')
             const tool = handler.findTool('platform_list_teams')
 
             const res = await invokeToolCall({
                 userId: app.adminUser.hashid,
                 toolName: 'platform_list_teams',
-                mcpSessionId: 'session-without-client',
+                mcpSessionId: 'session-without-token',
                 meta: { toolDefinition: { annotations: tool.annotations } }
             })
 
             res.ok.should.be.true()
-            const nonceArgs = createSpy.firstCall.args[0]
-            nonceArgs.should.have.property('source', 'mcp:expert')
-            nonceArgs.should.not.have.property('clientName')
+            platformTokenSpy.calledOnce.should.be.true()
+            nonceSpy.firstCall.args[0].should.have.property('source', 'mcp:expert')
         })
     })
 
@@ -346,9 +349,10 @@ describe('PlatformAutomationHandler', function () {
             body.sourceContext.should.have.property('toolName', 'platform_create_application')
         })
 
-        it('tool call from a session with a recorded client produces an audit entry with source mcp and the client name', async function () {
-            const cache = app.caches.getCache('mcp-session-source')
-            await cache.set('audit-trail-third-party-session', { clientName: 'Some Third Party Agent' })
+        it('tool call from a session with a recorded token produces an audit entry with source mcp', async function () {
+            const { token: callerToken } = await app.expert.mcp.getOrCreatePlatformToken(app.adminUser)
+            const cache = app.caches.getCache('mcp-session-token')
+            await cache.set('audit-trail-third-party-session', callerToken)
 
             try {
                 const tool = handler.findTool('platform_create_application')
@@ -371,7 +375,6 @@ describe('PlatformAutomationHandler', function () {
                 entry.source.should.equal('mcp')
                 const body = JSON.parse(entry.body)
                 body.sourceContext.should.have.property('toolName', 'platform_create_application')
-                body.sourceContext.should.have.property('clientName', 'Some Third Party Agent')
             } finally {
                 await cache.del('audit-trail-third-party-session')
             }

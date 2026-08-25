@@ -524,13 +524,11 @@ module.exports = async function (app) {
                 }
                 reply.send(response)
             } else if (requestObject.mcp) {
-                const mcpClient = await app.db.controllers.AuthClient.getAuthClient(requestObject.client_id)
                 const accessToken = await app.db.controllers.AccessToken.createMCPOAuthToken(
                     requestObject.userId,
                     {
                         readOnly: requestObject.readOnly || false,
-                        teamIds: requestObject.teamIds || [],
-                        client: mcpClient
+                        teamIds: requestObject.teamIds || []
                     }
                 )
                 const response = {
