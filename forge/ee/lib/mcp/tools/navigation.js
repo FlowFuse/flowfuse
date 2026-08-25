@@ -28,7 +28,7 @@ module.exports = [
         description: 'FlowFuse platform automation tool: Get the URL to open the hosted instance overview page in the FlowFuse platform. Returns a URL the user can open in their browser. Only use this tool when the user requests the URL.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The hashid of the hosted instance')
+            hostedInstanceId: z.string().describe('The id (UUID) of the hosted instance')
         },
         handler: async (args, { inject, app }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}` })
