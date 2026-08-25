@@ -41,25 +41,8 @@ describe('.well-known OAuth discovery', function () {
         })
     })
 
-    describe('GET /.well-known/oauth-protected-resource (RFC 9728)', function () {
-        let body
-
-        before(async function () {
-            const response = await app.inject({ method: 'GET', url: '/.well-known/oauth-protected-resource' })
-            response.statusCode.should.equal(200)
-            body = response.json()
-        })
-
-        it('advertises the MCP resource and its authorization server', function () {
-            body.should.have.property('resource', `${baseUrl}/mcp`)
-            body.authorization_servers.should.eql([baseUrl])
-        })
-    })
-
-    it('serves both documents anonymously, without a session', async function () {
+    it('serves the authorization server document anonymously, without a session', async function () {
         const authServer = await app.inject({ method: 'GET', url: '/.well-known/oauth-authorization-server' })
-        const resource = await app.inject({ method: 'GET', url: '/.well-known/oauth-protected-resource' })
         authServer.statusCode.should.equal(200)
-        resource.statusCode.should.equal(200)
     })
 })

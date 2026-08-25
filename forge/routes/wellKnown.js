@@ -33,27 +33,4 @@ module.exports = async function (app) {
             registration_endpoint: `${baseUrl}/account/client`
         })
     })
-
-    // RFC 9728: OAuth 2.0 Protected Resource Metadata
-    app.get('/oauth-protected-resource', {
-        config: { allowAnonymous: true },
-        schema: {
-            tags: ['Authentication', 'X-HIDDEN'],
-            response: {
-                200: {
-                    type: 'object',
-                    properties: {
-                        resource: { type: 'string' },
-                        authorization_servers: { type: 'array', items: { type: 'string' } }
-                    }
-                }
-            }
-        }
-    }, async (request, reply) => {
-        const baseUrl = app.config.base_url
-        reply.send({
-            resource: `${baseUrl}/mcp`,
-            authorization_servers: [baseUrl]
-        })
-    })
 }
