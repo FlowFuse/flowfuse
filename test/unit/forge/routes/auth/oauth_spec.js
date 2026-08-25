@@ -457,7 +457,10 @@ describe('OAuth', async function () {
                 payload: { grant_type: 'refresh_token', client_id: clientID, refresh_token: token.refresh_token }
             })
             refreshResponse.should.have.property('statusCode', 200)
-            refreshResponse.json().access_token.should.be.a.String().and.startWith('ffpat')
+            const refreshed = refreshResponse.json()
+            refreshed.access_token.should.be.a.String().and.startWith('ffpat')
+            refreshed.should.have.property('token_type', 'bearer')
+            refreshed.should.have.property('refresh_token')
         })
 
         it('rejects an authorize redirect_uri that was not registered', async function () {
