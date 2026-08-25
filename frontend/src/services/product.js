@@ -85,7 +85,6 @@ function setTeam (team) {
         }
         try {
             window.posthog?.group('team', team.id, props)
-            window.posthog?.reloadFeatureFlags()
         } catch (err) {
             console.error('posthost error adding to group')
         }
