@@ -24,13 +24,14 @@ describe('PlatformAutomationHandler', function () {
         }
     }
 
-    function invokeToolCall ({ userId, toolName, args, meta, scope }) {
+    function invokeToolCall ({ userId, toolName, args, meta, scope, mcpSessionId }) {
         return new Promise((resolve) => {
             const onSuccess = (result) => resolve({ ok: true, result })
             const onError = (message, code, err) => resolve({ ok: false, message, code, err })
             handler.eventHandler(
                 {
                     userId,
+                    mcpSessionId,
                     command: 'mcp-call-tool',
                     data: { name: toolName, input: args || {} },
                     meta,
@@ -147,6 +148,52 @@ describe('PlatformAutomationHandler', function () {
             const injectOpts = injectSpy.firstCall.args[0]
             injectOpts.headers.should.have.property('authorization')
             injectOpts.headers.authorization.should.startWith('Bearer ')
+        })
+    })
+
+    describe('third-party client attribution', function () {
+        const MCP_SESSION_SOURCE_CACHE = 'mcp-session-source'
+
+        afterEach(async function () {
+            const cache = app.caches.getCache(MCP_SESSION_SOURCE_CACHE)
+            await cache.del('session-with-client')
+        })
+
+        it('mints a source mcp nonce with the client name when the door recorded one for the session', async function () {
+            const cache = app.caches.getCache(MCP_SESSION_SOURCE_CACHE)
+            await cache.set('session-with-client', { clientName: 'Some Third Party Agent' })
+
+            const createSpy = sinon.spy(app.nonceStore, 'createSourceNonce')
+            const tool = handler.findTool('platform_list_teams')
+
+            const res = await invokeToolCall({
+                userId: app.adminUser.hashid,
+                toolName: 'platform_list_teams',
+                mcpSessionId: 'session-with-client',
+                meta: { toolDefinition: { annotations: tool.annotations } }
+            })
+
+            res.ok.should.be.true()
+            const nonceArgs = createSpy.firstCall.args[0]
+            nonceArgs.should.have.property('source', 'mcp')
+            nonceArgs.should.have.property('clientName', 'Some Third Party Agent')
+        })
+
+        it('falls back to source mcp:expert when the session has no recorded client', async function () {
+            const createSpy = sinon.spy(app.nonceStore, 'createSourceNonce')
+            const tool = handler.findTool('platform_list_teams')
+
+            const res = await invokeToolCall({
+                userId: app.adminUser.hashid,
+                toolName: 'platform_list_teams',
+                mcpSessionId: 'session-without-client',
+                meta: { toolDefinition: { annotations: tool.annotations } }
+            })
+
+            res.ok.should.be.true()
+            const nonceArgs = createSpy.firstCall.args[0]
+            nonceArgs.should.have.property('source', 'mcp:expert')
+            nonceArgs.should.not.have.property('clientName')
         })
     })
 
@@ -297,6 +344,37 @@ describe('PlatformAutomationHandler', function () {
             entry.source.should.equal('mcp:expert')
             const body = JSON.parse(entry.body)
             body.sourceContext.should.have.property('toolName', 'platform_create_application')
+        })
+
+        it('tool call from a session with a recorded client produces an audit entry with source mcp and the client name', async function () {
+            const cache = app.caches.getCache('mcp-session-source')
+            await cache.set('audit-trail-third-party-session', { clientName: 'Some Third Party Agent' })
+
+            try {
+                const tool = handler.findTool('platform_create_application')
+
+                const res = await invokeToolCall({
+                    userId: app.adminUser.hashid,
+                    toolName: 'platform_create_application',
+                    mcpSessionId: 'audit-trail-third-party-session',
+                    args: { name: 'audit-trail-third-party-app', teamId: app.team.hashid },
+                    meta: { toolDefinition: { annotations: tool.annotations } }
+                })
+
+                res.ok.should.be.true()
+
+                const entry = await app.db.models.AuditLog.findOne({
+                    where: { event: 'application.created' },
+                    order: [['createdAt', 'DESC']]
+                })
+                should.exist(entry)
+                entry.source.should.equal('mcp')
+                const body = JSON.parse(entry.body)
+                body.sourceContext.should.have.property('toolName', 'platform_create_application')
+                body.sourceContext.should.have.property('clientName', 'Some Third Party Agent')
+            } finally {
+                await cache.del('audit-trail-third-party-session')
+            }
         })
     })
 })

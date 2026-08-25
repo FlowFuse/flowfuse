@@ -4,6 +4,12 @@
 
 const { default: z } = require('zod')
 
+// Written by the third-party MCP door (forge/ee/routes/mcp/server.js) for a caller
+// with a registered client. A hit here means the request came from a third-party
+// agent rather than the first-party Expert, so the audit source and displayed
+// client name below differ from the 'mcp:expert' default.
+const MCP_SESSION_SOURCE_CACHE = 'mcp-session-source'
+
 /**
  * Cheap, non-cryptographic fingerprint of the platform tool catalog, over each tool's
  * name/title/description/inputSchema/outputSchema/annotations/_meta. Sorted for stability
@@ -109,6 +115,13 @@ class PlatformAutomationHandler {
             let result = {}
             this.app.log.info(`platform-automation request: userId=${userId} mcpSessionId=${mcpSessionId} command=${command} tool=${data?.name || 'n/a'}`)
 
+            // A cache hit means a third-party agent opened this session at the MCP
+            // door; a miss keeps the 'mcp:expert' default for the first-party Expert
+            // path, which never goes through that door.
+            const sessionSourceCache = this.app.caches?.getCache?.(MCP_SESSION_SOURCE_CACHE)
+            const sessionSource = mcpSessionId ? await sessionSourceCache?.get(mcpSessionId) : null
+            const source = sessionSource ? 'mcp' : 'mcp:expert'
+
             switch (command) {
             case 'mcp-get-features':
                 if (data?.hashOnly) {
@@ -154,10 +167,11 @@ class PlatformAutomationHandler {
                 if (user) {
                     const { token } = await this.app.expert.mcp.getOrCreatePlatformToken(user)
                     const inject = (opts) => {
-                        const nonce = this.app.nonceStore.createSourceNonce({
-                            source: 'mcp:expert',
-                            toolName
-                        })
+                        const nonceMetadata = { source, toolName }
+                        if (sessionSource?.clientName) {
+                            nonceMetadata.clientName = sessionSource.clientName
+                        }
+                        const nonce = this.app.nonceStore.createSourceNonce(nonceMetadata)
                         return this.app.inject({
                             ...opts,
                             headers: {

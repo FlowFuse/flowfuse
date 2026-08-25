@@ -160,7 +160,8 @@ async function init (app, opts) {
                                 id: accessToken.id,
                                 readOnly: accessToken.readOnly,
                                 adminOptIn: accessToken.adminOptIn,
-                                teamScopes
+                                teamScopes,
+                                clientName: accessToken.AuthClient?.name || null
                             }
 
                             request.session.isPAT = true

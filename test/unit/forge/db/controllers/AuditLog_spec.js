@@ -77,6 +77,56 @@ describe('AuditLog controller', function () {
             }
         })
 
+        it('writes mcp source with clientName from request context', async function () {
+            const store = requestContext
+            const origGet = store.get
+            store.get = (key) => {
+                if (key === 'sourceContext') {
+                    return {
+                        source: 'mcp',
+                        toolName: 'get-instance',
+                        clientName: 'Some Third Party Agent'
+                    }
+                }
+                return origGet.call(store, key)
+            }
+
+            try {
+                await app.db.controllers.AuditLog.projectLog('1', null, 'test.event', {})
+                const entries = await app.db.models.AuditLog.findAll()
+                entries.should.have.length(1)
+                entries[0].source.should.equal('mcp')
+
+                const body = JSON.parse(entries[0].body)
+                should(body.sourceContext).be.an.Object()
+                body.sourceContext.clientName.should.equal('Some Third Party Agent')
+            } finally {
+                store.get = origGet
+            }
+        })
+
+        it('omits clientName from sourceContext when not provided', async function () {
+            const store = requestContext
+            const origGet = store.get
+            store.get = (key) => {
+                if (key === 'sourceContext') {
+                    return { source: 'mcp:expert', toolName: 'get-instance' }
+                }
+                return origGet.call(store, key)
+            }
+
+            try {
+                await app.db.controllers.AuditLog.projectLog('1', null, 'test.event', {})
+                const entries = await app.db.models.AuditLog.findAll()
+                entries.should.have.length(1)
+
+                const body = JSON.parse(entries[0].body)
+                should(body.sourceContext.clientName).be.undefined()
+            } finally {
+                store.get = origGet
+            }
+        })
+
         it('includes tokenId in sourceContext for PAT API calls', async function () {
             const store = requestContext
             const origGet = store.get
