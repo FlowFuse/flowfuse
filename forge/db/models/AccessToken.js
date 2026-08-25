@@ -45,6 +45,7 @@ module.exports = {
                 }
             }
         },
+        refreshTokenExpiresAt: { type: DataTypes.DATE },
         name: { type: DataTypes.STRING },
         readOnly: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false },
         adminOptIn: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false }
