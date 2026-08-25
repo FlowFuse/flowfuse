@@ -193,7 +193,7 @@ module.exports = [
             as set by platform_set_active_browser_session.
             If none is set, or the pinned tab is no longer live, call platform_list_browser_sessions and
             platform_set_active_browser_session to pick one.`,
-        annotations: { readOnlyHint: false, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {},
         handler: async (args, { app, user, mcpSessionId }) => {
             if (!app.db.controllers.BrowserSession) {
