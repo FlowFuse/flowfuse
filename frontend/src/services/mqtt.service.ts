@@ -169,10 +169,13 @@ class MqttService extends BaseService implements MqttServiceI {
     }
 
     private _buildObserver (options: Partial<MqttConnectionOptions>): ManagedMqttObserver {
-        const { onConnect, onClose, onOffline, onError, onMessage } = options
+        // Only the handlers listed here reach an observer. MqttConnectionHandlers declares
+        // more, and _dispatch fires some of them ('end', 'reconnect'), so any missing here
+        // are silently dropped rather than rejected. Add to both sides when one is needed.
+        const { onConnect, onClose, onDisconnect, onOffline, onError, onMessage } = options
         return {
             id: this.$observerSeq++,
-            handlers: { onConnect, onClose, onOffline, onError, onMessage }
+            handlers: { onConnect, onClose, onDisconnect, onOffline, onError, onMessage }
         }
     }
 

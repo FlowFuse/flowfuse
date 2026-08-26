@@ -9,11 +9,9 @@
  * This owns the cache only. Deciding which broker events feed it lives in
  * forge/comms/browserSessionLifecycle.js.
  *
- * Pins are not exclusive: several MCP clients can target the same tab at once. The
- * tab is told how many currently hold it (see notifyPinnedClients) so the user can
- * see, at a glance, what is driving the page in front of them. That count rides the
- * heartbeat rather than being event-driven, because a pin can also end by simply
- * expiring, and an expiry produces no event for anyone to publish.
+ * Pins are not exclusive: several MCP clients can target one tab, and the tab is told
+ * how many hold it (notifyPinnedClients). That rides the heartbeat rather than events,
+ * because a pin can end by simply expiring, and an expiry produces no event.
  *
  * Scale note: heartbeats only arrive from tabs where the user enabled MCP
  * access, so the scan in refreshActivePins runs rarely and over a small hash.
@@ -21,6 +19,8 @@
  * full hash every 60s (or whatever the freq is). Add a per-tab "has pins" marker
  * entry first, so tabs without pins skip the scan.
  */
+const crypto = require('crypto')
+
 const { escapeGlob } = require('../../caches/util')
 
 const browserSessionCache = 'browserSessions'
@@ -51,30 +51,42 @@ async function touchActiveBrowserSessions (app, userId, browserSessionId) {
 }
 
 /**
- * Tell a tab how many MCP clients currently hold it.
+ * Opaque stand-in for an MCP session id. The tab needs to tell clients apart to report
+ * arrivals and departures, but the id itself keys the PAT cache (forge/ee/routes/mcp/server.js)
+ * and has no business in page memory.
+ */
+function clientRef (mcpSessionId) {
+    return crypto.createHash('sha256').update(String(mcpSessionId)).digest('hex').slice(0, 12)
+}
+
+/**
+ * Tell a tab which MCP clients hold it. `teamId` is its topic tree - passed in by the
+ * heartbeat, read off the snapshot by callers that lack it (a pin made over MCP).
  *
- * `teamId` is the tab's topic tree. Callers that already have it (the heartbeat)
- * pass it in; callers that do not (a pin made over MCP) leave it out and it is read
- * back off the snapshot. A tab whose snapshot predates teamId being recorded gets
- * no notification, and re-learns the count on its next heartbeat.
+ * Best effort: the pin is already written, so a failure here must not fail its caller.
+ * A tab that misses this re-learns the count on its next heartbeat.
  */
 async function notifyPinnedClients (app, userId, browserSessionId, mcpSessionIds, teamId = null) {
-    if (!app.comms?.browserSession) {
-        return
+    try {
+        if (!app.comms?.browserSession) {
+            return
+        }
+        let team = teamId
+        if (!team) {
+            const cache = app.caches.getCache(browserSessionCache)
+            const session = await cache.get(`${userId}:${browserSessionId}`)
+            team = session?.teamId
+        }
+        if (!team) {
+            return
+        }
+        app.comms.browserSession.notifyMcp(team, userId, browserSessionId, 'clients', {
+            count: mcpSessionIds.length,
+            clients: mcpSessionIds.map(clientRef)
+        })
+    } catch (err) {
+        app.log?.warn(`Failed to notify browser session ${browserSessionId} of its MCP clients: ${err.toString()}`)
     }
-    let team = teamId
-    if (!team) {
-        const cache = app.caches.getCache(browserSessionCache)
-        const session = await cache.get(`${userId}:${browserSessionId}`)
-        team = session?.teamId
-    }
-    if (!team) {
-        return
-    }
-    app.comms.browserSession.notifyMcp(team, userId, browserSessionId, 'clients', {
-        count: mcpSessionIds.length,
-        sessionIds: mcpSessionIds
-    })
 }
 
 module.exports = {
@@ -99,8 +111,7 @@ module.exports = {
         await cache.set(`${userId}:${browserSessionId}`, {
             userId,
             sessionId: browserSessionId,
-            // Which topic tree this tab lives under, so the platform can publish back to
-            // it from a context that only knows the session id.
+            // The tab's topic tree, so the platform can publish back to it later
             teamId,
             lastSeen: Date.now(),
             visibility: payload.visibility || 'visible',
@@ -110,9 +121,8 @@ module.exports = {
             capabilities: Array.isArray(payload.capabilities) ? payload.capabilities : [],
             context: payload.context ?? null
         })
-        // the heartbeat is the liveness signal for this tab's pins too, and the pin set it
-        // resolves is the same one the tab wants to know about, so it is answered here
-        // rather than recomputed. This is also what makes an expired pin self-correcting.
+        // The heartbeat keeps this tab's pins alive, and the set it resolves is the one the
+        // tab wants told back to it - which is what makes an expired pin self-correcting.
         const mcpSessionIds = await touchActiveBrowserSessions(app, userId, browserSessionId)
         await notifyPinnedClients(app, userId, browserSessionId, mcpSessionIds, teamId)
     },
@@ -159,12 +169,16 @@ module.exports = {
         await cache.set(`mcp-to-browser::${userId}:${mcpSessionId}`, browserSessionId) // userId:mcpSessionId → browserSessionId
         await cache.set(`browser-to-mcp::${userId}:${browserSessionId}:${mcpSessionId}`, mcpSessionId) // userId:browserSessionId:mcpSessionId → mcpSessionId
 
-        // Tell the tab straight away rather than leaving it to notice on its next
-        // heartbeat. A tab the pin moved away from is told too, so its count drops
-        // at the same moment the new tab's rises.
-        await notifyPinnedClients(app, userId, browserSessionId, await touchActiveBrowserSessions(app, userId, browserSessionId))
-        if (previous && previous !== browserSessionId) {
-            await notifyPinnedClients(app, userId, previous, await touchActiveBrowserSessions(app, userId, previous))
+        // Tell both tabs now rather than at their next heartbeat, so the old tab's count
+        // drops as the new one's rises. Both pins are already written, so nothing here may
+        // fail the call - an agent told its pin failed would retry one that succeeded.
+        try {
+            await notifyPinnedClients(app, userId, browserSessionId, await touchActiveBrowserSessions(app, userId, browserSessionId))
+            if (previous && previous !== browserSessionId) {
+                await notifyPinnedClients(app, userId, previous, await touchActiveBrowserSessions(app, userId, previous))
+            }
+        } catch (err) {
+            app.log?.warn(`Pin for ${browserSessionId} was written but its notification failed: ${err.toString()}`)
         }
     },
 

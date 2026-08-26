@@ -8,10 +8,9 @@
  * tab goes away without a clean disconnect. New consumers of that signal belong in
  * handleDisconnected - they should not need a topic of their own.
  *
- * Traffic also goes the other way: notifyMcp publishes back to a single tab on
- * ff/v1/<teamHash>/u/<userHash>/s/<sessionId>/mcp/<event>. The broker ACL pins the
- * session segment to the subscribing connection's own credential, so a tab can only
- * ever hear about itself.
+ * Traffic also goes the other way: notifyMcp publishes to one tab on
+ * ff/v1/<teamHash>/u/<userHash>/s/<sessionId>/mcp/<event>. The ACL pins the session
+ * segment to the subscriber's own credential, so a tab only hears about itself.
  */
 class BrowserSessionLifecycleHandler {
     constructor (app, client) {
@@ -31,9 +30,8 @@ class BrowserSessionLifecycleHandler {
     async handleSessionEvent ({ teamId, userId, sessionId, event, payload }) {
         switch (event) {
         case 'heartbeat':
-            // teamId is carried so the tab's snapshot knows which topic tree it lives
-            // under, which is what lets the platform publish back to it later from a
-            // context that only has the session id (a pin made over MCP, for instance).
+            // teamId is stored on the snapshot so the platform can publish back to this
+            // tab from a context that only has the session id (a pin made over MCP)
             await this.app.db.controllers.BrowserSession.recordPresence(userId, sessionId, payload, teamId)
             break
         case 'close':
@@ -55,12 +53,8 @@ class BrowserSessionLifecycleHandler {
     }
 
     /**
-     * Tell one browser tab something about its MCP state.
-     *
-     * Best effort by design: a tab whose snapshot predates teamId being recorded, or
-     * a platform with no broker configured, simply does not get told. Nothing upstream
-     * should fail because a notification could not be delivered - the tab re-learns
-     * the truth on its next heartbeat either way.
+     * Tell one browser tab about its MCP state. Best effort: a tab with no recorded
+     * teamId simply is not told, and re-learns on its next heartbeat.
      */
     notifyMcp (teamId, userId, sessionId, event, payload = {}) {
         if (!teamId || !userId || !sessionId || !event) {

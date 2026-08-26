@@ -62,20 +62,19 @@
     --ff-color-status-success-text:    var(--ff-palette-green-700);
     --ff-color-status-success-dot:     var(--ff-palette-green-400);
 
-    /* The button's own brand hues, faint enough to read as a tint rather than a fill.
-       Same sequence as the swirling border so the two are obviously one motif; the
-       alpha is the whole difference between an accent and a background. */
+    /* The button's brand hues, faint enough to read as a tint rather than a fill. Same
+       sequence as the swirling border, so the two are one motif. */
     --ff-color-expert-wave-1:          rgba(188, 56, 56, 0.14);
     --ff-color-expert-wave-2:          rgba(147, 51, 234, 0.14);
     --ff-color-expert-wave-3:          rgba(79, 70, 229, 0.14);
 
-    /* Hover veil for the split Expert button. Translucent on purpose: the halves sit over
-       an animated background, and an opaque fill would black it out on the hovered side
-       and put back the hard divide the wave exists to avoid. (darkens, the direction bg-surface already moved in) */
+    /* Hover veil for the split Expert button. Translucent because the halves sit over an
+       animated background: an opaque fill blacks it out on the hovered side and puts back
+       the hard divide the wave exists to avoid. Darkens, matching bg-surface's direction. */
     --ff-color-expert-hover-veil:      rgba(17, 24, 39, 0.04);
 
-    /* The interrupted state. Flat, not a gradient: the swirl and the wave both say the link
-       is alive, so a fault has to be the one thing on this button that does not move. */
+    /* Interrupted. Flat, not a gradient: the swirl and wave both say the link is alive, so
+       a fault has to be the one thing on this button that does not move. */
     --ff-color-expert-fault-border:    var(--ff-palette-red-400);
     --ff-color-expert-fault-glyph:     var(--ff-palette-red-500);
 
@@ -95,10 +94,9 @@
     --ff-color-status-neutral-border:  var(--ff-palette-grey-300);
     --ff-color-status-neutral-text:    var(--ff-palette-grey-600);
     --ff-color-status-neutral-dot:     var(--ff-palette-grey-300);
-    /* An indicator that is switched off rather than reporting a neutral result. Sits
-       between -neutral-dot (too faint to read as a control) and -text-subtle (dark
-       enough on white to look active). Defined per theme: the dark value is already
-       right at -text-subtle, only light needed softening. */
+    /* Switched off, rather than reporting a neutral result. Between -neutral-dot (too faint
+       to read as a control) and -text-subtle (dark enough on white to look active). Per
+       theme: dark was already right, only light needed softening. */
     --ff-color-status-idle-dot:        var(--ff-color-text-disabled);
 
     --ff-color-status-info-bg:         var(--ff-palette-grey-100);

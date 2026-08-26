@@ -1,36 +1,29 @@
 import { defineSubscriberSingleton } from './subscriber.factory'
 import { SubscriberPayload, SubscriberRoute, TeamSubscriber } from './team-subscriber.contract'
 
+import { announceTabPresence } from '@/publishers/tab-presence.publisher'
 import getAppOrchestrator from '@/services/app.orchestrator'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useProductMcpStore } from '@/stores/product-mcp.js'
 import { createMqttTransport } from '@/transport/mqtt.transport'
 import type { CreateSubscriberOptions, TeamRef, TeamSubscriberI } from '@/types/subscribers/subscriber.types'
 
-/**
- * Pinned to this tab's own session rather than wildcarding it, so an event meant
- * for another of the user's tabs is ignored even if one ever reaches this client.
- */
+/** Pinned to this tab's session, so an event meant for another tab is ignored. */
 function sessionEventPattern (sessionId: string, event: string): RegExp {
     const session = sessionId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     return new RegExp(`^ff/v1/[^/]+/u/[^/]+/s/${session}/mcp/${event}$`)
 }
 
 /**
- * Listens for what the platform says is targeting this tab over MCP.
+ * Listens for what the platform says is targeting this tab over MCP. The toggle only
+ * exposes a tab; `clients` is who actually took it, and a full set rather than a flag
+ * because targeting is not exclusive.
  *
- * Exposing a tab and an MCP client actually targeting it are two different things:
- * the toggle only does the first. `clients` is the second, and it carries the whole
- * set rather than a flag, because targeting is not exclusive - several MCP clients
- * can drive one tab at once.
+ * The platform restates it on every heartbeat and on every pin change, so a pin that
+ * ends by quietly expiring corrects itself without the tab inferring anything.
  *
- * The platform republishes the full set on every presence heartbeat, and again the
- * moment a pin is made or moved. That means a pin that ends by quietly expiring
- * still corrects itself, without the tab having to infer anything locally.
- *
- * The topic is the tab's own session, and the broker ACL pins that segment to
- * this connection's credential, so a tab only ever hears about itself. It rides
- * the team connection because that is the one the toggle already brings up.
+ * The topic is the tab's own session and the ACL pins that segment to this connection's
+ * credential, so a tab only hears about itself. It rides the team connection.
  */
 class McpSessionSubscriber extends TeamSubscriber implements TeamSubscriberI {
     constructor ({ app, router, transport, subscribers }: CreateSubscriberOptions) {
@@ -51,6 +44,15 @@ class McpSessionSubscriber extends TeamSubscriber implements TeamSubscriberI {
         ]
     }
 
+    /**
+     * The platform's answer is not retained, so a heartbeat sent before this subscription
+     * was live goes nowhere and the tab waits out the next interval. Asking for a fresh one
+     * on subscribe closes that window, on first enable and on every reconnect.
+     */
+    protected _onSubscribed (): void {
+        announceTabPresence()
+    }
+
     protected _routes (): SubscriberRoute[] {
         const sessionId = useAccountAuthStore().getSessionId()
 
@@ -63,16 +65,17 @@ class McpSessionSubscriber extends TeamSubscriber implements TeamSubscriberI {
     }
 
     /**
-     * `sessionIds` is authoritative and complete - an empty array means nothing is
-     * targeting this tab, not that the platform had nothing to say.
+     * `clients` is complete - an empty array means nothing is targeting this tab, not that
+     * the platform had nothing to say. They are opaque refs, not MCP session ids (see
+     * clientRef in forge/db/controllers/BrowserSession.js).
      *
-     * Checked rather than asserted: this arrives off the broker, and a malformed message
-     * should leave the tab reporting nothing rather than throwing inside a message handler.
+     * Checked rather than asserted: this is broker data, and a malformed message should
+     * leave the tab reporting nothing rather than throw inside a message handler.
      */
     private _onClients (payload: SubscriberPayload = {}): void {
-        const ids = payload?.sessionIds
+        const refs = payload?.clients
         useProductMcpStore().setClients(
-            Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string') : []
+            Array.isArray(refs) ? refs.filter((ref): ref is string => typeof ref === 'string') : []
         )
     }
 }

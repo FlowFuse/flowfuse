@@ -12,13 +12,10 @@ export function connectionKey (teamId: string): string {
 }
 
 /**
- * Whatever JSON.parse produced from the message body. The named fields are the ones
- * current routes happen to read, not a closed set - the index signature is what makes
- * that honest, and it is load-bearing: without it TypeScript treats this as a weak type
- * and rejects any handler whose payload shares none of those three names.
- *
- * Values are `unknown` deliberately. This is data off a broker, so a route that wants a
- * shape has to check for it rather than assert it.
+ * Whatever JSON.parse produced from the message body. The named fields are what current
+ * routes happen to read, not a closed set - the index signature says so, and is
+ * load-bearing: without it this is a weak type and TS rejects any handler sharing none of
+ * those names. Values are `unknown` so a route has to check for a shape, not assert it.
  */
 export type SubscriberPayload = {
     reason?: string

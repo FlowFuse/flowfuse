@@ -143,12 +143,9 @@ export abstract class TeamPublisher<TTransport extends Transport = Transport> {
     }
 
     /**
-     * The link to the broker went away. Fires for a clean close, going offline, a server
-     * disconnect and a client error alike, because from a publisher's point of view they
-     * amount to the same thing: nothing it sends from here is reaching the platform.
-     *
-     * A no-op by default. The transport reconnects on its own and _onConnect is what says
-     * the link is back, so a publisher only needs this if it reports its own health.
+     * The link to the broker went away - close, offline, disconnect or error alike, since
+     * from here they all mean the same thing. A no-op by default: the transport reconnects
+     * on its own and _onConnect says the link is back.
      */
     protected _onLinkDown (): void {}
 
