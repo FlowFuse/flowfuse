@@ -4,6 +4,7 @@ import { TeamPublisher } from './team-publisher.contract'
 import getAppOrchestrator from '@/services/app.orchestrator'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
+import { useProductMcpStore } from '@/stores/product-mcp.js'
 import { createMqttTransport } from '@/transport/mqtt.transport'
 import type { CreatePublisherOptions } from '@/types/publishers/publisher.types'
 import type { TeamRef } from '@/types/subscribers/subscriber.types'
@@ -47,10 +48,21 @@ class TabPresencePublisher extends TeamPublisher {
         this._publishPresence()
     }
 
+    /**
+     * This publisher is the tab's link to the platform: it only runs while MCP is exposed,
+     * and it is the thing that is supposed to be beating continuously. So its health is the
+     * tab's health, and it is the honest place to report a broken link from.
+     */
+    protected _onLinkDown (): void {
+        useProductMcpStore().markInterrupted()
+    }
+
     protected _onStarted (teamId: string, userId: string): void {
         // _onConnect fires again on every broker reconnect, so tear down any timers
         // and listeners from a previous run before registering new ones.
         this._onStopped()
+        // Reached on first connect and on every reconnect, so it is also the all-clear.
+        useProductMcpStore().markLinkHealthy()
 
         const authStore = useAccountAuthStore()
         this.$userId = userId
@@ -133,6 +145,9 @@ class TabPresencePublisher extends TeamPublisher {
             context
         }).catch((err) => {
             console.warn('Failed to publish tab presence:', err)
+            // A heartbeat that does not land means the platform's entry for this tab is
+            // going stale even if the socket still looks up, so it counts as interrupted.
+            useProductMcpStore().markInterrupted()
         })
     }
 

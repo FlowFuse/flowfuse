@@ -767,7 +767,10 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' },
                 // platform can publish third-party MCP requests to the central gateway
                 // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request
-                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', isPlatform: true, isPub: true }
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', isPlatform: true, isPub: true },
+                // platform can tell one browser tab about its MCP state
+                // - ff/v1/<team>/u/<user>/s/<session>/mcp/<event>
+                { topic: /^ff\/v1\/[^/]+\/u\/[^/]+\/s\/[^/]+\/mcp\/[^/]+$/ }
             ]
         },
         project: {
@@ -837,7 +840,9 @@ module.exports = function (app) {
                 // - ff/v1/<team>/p/+/created|updated|deleted
                 { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/(created|updated|deleted)$/, verify: 'checkTeamStateSub' },
                 // - ff/v1/expert/<user>/<session>/+/+/mcp/inflight/+/request
-                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/mcp\/inflight\/([^/]+)\/request$/, verify: 'checkMcpInflightTopic', allowWildcard: { entity: true, inflightType: true }, isSub: true }
+                { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/mcp\/inflight\/([^/]+)\/request$/, verify: 'checkMcpInflightTopic', allowWildcard: { entity: true, inflightType: true }, isSub: true },
+                // - ff/v1/<team>/u/<user>/s/<session>/mcp/<event>
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/mcp\/([^/]+)$/, verify: 'checkUserIsTeamMember' }
             ],
             pub: [
                 // - ff/v1/<team>/u/<user>/s/<session>/<heartbeat|close|disconnected>
