@@ -41,6 +41,26 @@ describe('MCP Platform Tools Server', function () {
             })
         })
 
+        describe('GET /.well-known/oauth-protected-resource (RFC 9728)', function () {
+            it('serves the path-inserted resource metadata anonymously', async function () {
+                const response = await app.inject({ method: 'GET', url: '/.well-known/oauth-protected-resource/mcp' })
+                response.statusCode.should.equal(200)
+                response.json().should.deepEqual({
+                    resource: `${app.config.base_url}/mcp`,
+                    authorization_servers: [app.config.base_url]
+                })
+            })
+
+            it('serves the bare alias anonymously', async function () {
+                const response = await app.inject({ method: 'GET', url: '/.well-known/oauth-protected-resource' })
+                response.statusCode.should.equal(200)
+                response.json().should.deepEqual({
+                    resource: `${app.config.base_url}/mcp`,
+                    authorization_servers: [app.config.base_url]
+                })
+            })
+        })
+
         describe('POST proxies to the MCP gateway', function () {
             let proxyRequest
 
@@ -61,6 +81,19 @@ describe('MCP Platform Tools Server', function () {
                 })
                 response.statusCode.should.equal(401)
                 proxyRequest.called.should.be.false()
+            })
+
+            it('should challenge with the protected resource metadata URL', async function () {
+                const response = await app.inject({
+                    method: 'POST',
+                    url: '/mcp',
+                    payload: { jsonrpc: '2.0', method: 'initialize', id: 1 }
+                })
+                response.statusCode.should.equal(401)
+                response.headers.should.have.property(
+                    'www-authenticate',
+                    `Bearer resource_metadata="${app.config.base_url}/.well-known/oauth-protected-resource/mcp"`
+                )
             })
 
             it('should forward the request and return the gateway response', async function () {
