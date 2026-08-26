@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery } = require('../schemas')
+const { basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
 
 // Tools that work against both hosted instances and remote instances (devices),
 // selected with an instanceType discriminator.
@@ -66,13 +66,7 @@ module.exports = [
             if (args.instanceType === 'remote') {
                 const hostedOnly = ['scope', 'includeChildren'].filter((key) => args[key] !== undefined)
                 if (hostedOnly.length > 0) {
-                    return {
-                        statusCode: 400,
-                        json: () => ({
-                            code: 'invalid_request',
-                            error: `${hostedOnly.join(', ')} can only be used with hosted instances. Remove these parameters to read a remote instance audit log.`
-                        })
-                    }
+                    return toolError(400, 'invalid_request', `${hostedOnly.join(', ')} can only be used with hosted instances. Remove these parameters to read a remote instance audit log.`)
                 }
             }
             const base = args.instanceType === 'remote' ? 'devices' : 'projects'

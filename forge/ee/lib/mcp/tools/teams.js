@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { teamId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery } = require('../schemas')
+const { teamId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
 
 // Audit-log routes accept cursor+limit pagination, free-text query, event
 // (single name or array) and username. scope narrows which entity levels are
@@ -26,7 +26,10 @@ module.exports = [
         title: 'Get Team',
         description: `FlowFuse platform automation tool:
             Get details of a specific team, identified by either its hashid (teamId) or its URL slug (teamSlug). Provide exactly one of the two.
-            Includes team type, member count, and hosted and remote instance counts.`,
+            Includes team type, member count, and hosted and remote instance counts.
+            The embedded team type carries a long description field holding the raw HTML used to render the plan's
+            feature list in the UI. It is presentation markup, not data: ignore it, and read plan limits from
+            type.properties instead.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             teamId: z.string().optional().describe('Team hashid. Provide either teamId or teamSlug, not both.'),
@@ -36,11 +39,7 @@ module.exports = [
             const hasId = !!args.teamId
             const hasSlug = !!args.teamSlug
             if (hasId === hasSlug) {
-                return {
-                    content: { code: 'invalid_request', error: 'Provide exactly one of teamId or teamSlug' },
-                    code: 400,
-                    isError: true
-                }
+                return toolError(400, 'invalid_request', 'Provide exactly one of teamId or teamSlug')
             }
             const url = hasId
                 ? `/api/v1/teams/${args.teamId}`

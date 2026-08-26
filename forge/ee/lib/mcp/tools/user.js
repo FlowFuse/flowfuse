@@ -2,20 +2,6 @@ const { basePagination, basePaginationKeys, appendQuery } = require('../schemas'
 
 module.exports = [
     {
-        name: 'platform_get_current_user',
-        title: 'Get Current User',
-        description: `FlowFuse platform automation tool:
-            Gets the profile of the authenticated user: name, username, email, and default team.
-            Use this to find out who the current user is or what their default team is.
-            No parameters or body required.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
-        inputSchema: {},
-        handler: async (args, { inject }) => {
-            const response = await inject({ method: 'GET', url: '/api/v1/user' })
-            return response
-        }
-    },
-    {
         name: 'platform_list_notifications',
         title: 'List Notifications',
         description: `FlowFuse platform automation tool:

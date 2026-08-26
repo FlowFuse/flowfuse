@@ -83,16 +83,16 @@ describe('MCP Teams Tools', function () {
             const response = await tool.handler({}, { inject })
 
             inject.called.should.be.false()
-            response.code.should.equal(400)
-            response.isError.should.be.true()
+            response.statusCode.should.equal(400)
+            response.json().should.match({ code: 'invalid_request' })
         })
 
         it('rejects when both teamId and teamSlug are given', async function () {
             const response = await tool.handler({ teamId: 'team1', teamSlug: 'my-team' }, { inject })
 
             inject.called.should.be.false()
-            response.code.should.equal(400)
-            response.isError.should.be.true()
+            response.statusCode.should.equal(400)
+            response.json().should.match({ code: 'invalid_request' })
         })
     })
 

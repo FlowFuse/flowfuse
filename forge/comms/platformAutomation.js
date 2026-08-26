@@ -37,6 +37,28 @@ function computeCatalogHash (tools) {
 }
 
 /**
+ * Fills in the defaults a tool's input schema declares.
+ *
+ * Handlers are invoked with the caller's arguments as-is, so a zod `.default()` on an
+ * optional parameter would otherwise never apply and an omitted `limit` would fetch the
+ * whole collection instead of one page. Parsing is deliberately lenient: on success the
+ * declared defaults are filled in, and on failure the original input is passed through
+ * untouched, so this can only ever add defaults and never newly reject a call the gateway
+ * already accepted.
+ *
+ * @param {{inputSchema?: object}} tool
+ * @param {object} input
+ * @returns {object}
+ */
+function applyInputDefaults (tool, input) {
+    if (!tool.inputSchema || Object.keys(tool.inputSchema).length === 0) {
+        return input
+    }
+    const result = z.object(tool.inputSchema).safeParse(input)
+    return result.success ? result.data : input
+}
+
+/**
  * PlatformAutomationHandler
  * @class PlatformAutomationHandler
  * @memberof forge.comms
@@ -129,7 +151,6 @@ class PlatformAutomationHandler {
                 break
             case 'mcp-call-tool': {
                 const toolName = data?.name
-                const args = data?.input || {}
 
                 // The caller scope (readOnly plus any team restriction from the
                 // session token) rides with the request so tools can report and
@@ -140,21 +161,23 @@ class PlatformAutomationHandler {
                 // TODO: Probably sensible to verify that toolDefinition matches the tool to ensure no tampering has occurred
                 const { toolDefinition } = meta || {}
 
-                const { annotations } = toolDefinition
+                // Resolve the tool before touching the caller-supplied definition: reading
+                // annotations off an unknown tool throws a TypeError, which would surface as a
+                // generic request error instead of the specific not-found code below.
                 const tool = this.findTool(toolName)
-
-                // Verify tool annotations haven't been tampered with
-                if (JSON.stringify({ annotations }) !== JSON.stringify({ annotations: tool.annotations })) {
-                    return onError(
-                        'Tool definition mismatch',
-                        'MCP_PLATFORM_TOOL_TAMPERED'
-                    )
-                }
-
                 if (!tool) {
                     return onError(
                         `Unknown platform tool: ${toolName}`,
                         'MCP_PLATFORM_TOOL_NOT_FOUND'
+                    )
+                }
+
+                // Verify tool annotations haven't been tampered with
+                const { annotations } = toolDefinition || {}
+                if (JSON.stringify({ annotations }) !== JSON.stringify({ annotations: tool.annotations })) {
+                    return onError(
+                        'Tool definition mismatch',
+                        'MCP_PLATFORM_TOOL_TAMPERED'
                     )
                 }
 
@@ -175,6 +198,7 @@ class PlatformAutomationHandler {
                     }
 
                     const { formatResponse } = require('../ee/lib/mcp/toolLoader')
+                    const args = applyInputDefaults(tool, data?.input || {})
                     const response = await tool.handler(args, { inject, app: this.app, user, mcpSessionId, scope: callerScope })
                     result = formatResponse(response)
                 }

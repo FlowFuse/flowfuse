@@ -127,6 +127,40 @@ describe('MCP Devices Tools', function () {
             const response = await tool.handler({ teamId: 'team1', limit: 10 }, { inject })
             response.should.equal(errorResponse)
         })
+
+        it('looks the cached live state up per device, not by the hostedInstanceId filter', async function () {
+            inject.resolves({
+                statusCode: 200,
+                json: () => ({
+                    count: 2,
+                    meta: { page: 1, pageSize: 10, total: 2, pageCount: 1 },
+                    devices: [
+                        { id: 'device1', name: 'one', status: 'running', onlineStatus: 'offline' },
+                        { id: 'device2', name: 'two', status: 'running', onlineStatus: 'offline' }
+                    ]
+                })
+            })
+            const getLiveCachedState = sinon.stub()
+            getLiveCachedState.withArgs('device1').resolves('running')
+            getLiveCachedState.withArgs('device2').resolves(null)
+            const app = { db: { controllers: { Device: { getLiveCachedState } } } }
+
+            const response = await tool.handler(
+                { teamId: 'team1', hostedInstanceId: 'a-project-uuid' },
+                { inject, app }
+            )
+
+            // Each row is looked up by its own device id. Passing the hostedInstanceId filter
+            // here instead gave every row one shared, wrong lookup, so liveStatus always fell
+            // back to the stored onlineStatus.
+            getLiveCachedState.calledWith('device1').should.be.true()
+            getLiveCachedState.calledWith('device2').should.be.true()
+            getLiveCachedState.calledWith('a-project-uuid').should.be.false()
+
+            const { devices } = response.json()
+            devices[0].liveStatus.should.equal('running')
+            devices[1].liveStatus.should.equal('offline')
+        })
     })
 
     describe('platform_list_team_provisioning_tokens', function () {

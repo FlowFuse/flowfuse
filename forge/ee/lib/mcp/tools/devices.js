@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { teamId } = require('../schemas')
+const { teamId, limitParam, pageParam } = require('../schemas')
 
 module.exports = [
     {
@@ -22,8 +22,8 @@ module.exports = [
             query: z.string().optional().describe('Search remote instances by name or type'),
             mode: z.enum(['autonomous', 'developer']).optional()
                 .describe('Filter by mode: "autonomous" (Fleet Mode, running its assigned snapshot independently) or "developer" (Developer Mode, connected to the editor for live development). Matches the dashboard\'s own mode filter.'),
-            page: z.number().min(1).default(1).optional().describe('Page number to fetch (1-based). Defaults to 1.'),
-            limit: z.number().min(1).max(10).default(10).describe('How many results to return per page')
+            ...pageParam,
+            ...limitParam
         },
         handler: async (args, { inject, app }) => {
             const params = new URLSearchParams({
@@ -50,7 +50,7 @@ module.exports = [
 
             const body = response.json()
             const devices = await Promise.all((body.devices || []).map(async (device) => {
-                const cachedLiveState = app ? await app.db.controllers.Device.getLiveCachedState(args.hostedInstanceId) : null
+                const cachedLiveState = app ? await app.db.controllers.Device.getLiveCachedState(device.id) : null
 
                 return {
                     id: device.id,
@@ -118,9 +118,11 @@ module.exports = [
         name: 'platform_get_remote_instance_status',
         title: 'Get Remote Instance Status',
         description: `FlowFuse platform automation tool:
-            Gets the live running status of a remote instance by querying the device directly over MQTT.
-            This returns the real-time state of the Node-RED runtime on the device (running, stopped, installing, etc.),
-            not the last-known state stored on the platform.
+            Gets the running status of a remote instance: the state of the Node-RED runtime on the device
+            (running, stopped, installing, etc.).
+            The platform keeps a short-lived cache of each device's reported state. This tool returns that cached
+            value when one is present, and only queries the device directly over MQTT on a cache miss, so a result
+            can be a few seconds old rather than sampled at the instant you asked.
             The remote instance must be online and reachable for this to work. If the device is offline, the call will time out.
             Use this when you need to know what the device is actually doing right now.
             Other tools like platform_create_instance_snapshot (for a remote instance) require the device to be running.

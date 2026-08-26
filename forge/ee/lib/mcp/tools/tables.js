@@ -141,7 +141,7 @@ module.exports = [
             databaseId: databaseIdSchema,
             tableName: tableNameSchema,
             schemaName: schemaNameSchema,
-            limit: z.number().int().min(1).max(10).default(10).describe('Maximum number of rows to return (1-10, default 10)')
+            limit: z.number().int().min(1).max(10).default(10).optional().describe('Maximum number of rows to return (1-10, default 10)')
         },
         outputSchema: {
             count: countSchema,

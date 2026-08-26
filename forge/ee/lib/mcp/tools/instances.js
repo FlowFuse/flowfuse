@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { teamId, applicationId, hostedInstanceId, searchQuery, sortParams } = require('../schemas')
+const { teamId, applicationId, hostedInstanceId, searchQuery, sortParams, limitParam, pageParam, toolError } = require('../schemas')
 
 // Mirrors the runningStates/errorStates/stoppedStates groups in frontend/src/composables/InstanceStates.js,
 // the same grouping the dashboard's own Running/Error/Not Running status filter uses (frontend/src/pages/team/Instances.vue).
@@ -34,41 +34,23 @@ module.exports = [
                 .describe('Filter by high-level status group, matching the dashboard\'s own status filter: "running" (includes starting/warning/deploying-type states), "error" (error/crashed), "notRunning" (stopped/suspended/offline/unknown, i.e. "Not Running" in the dashboard - note this is broader than just the "stopped" state). Team-wide, this filters on the last-known cached state. Scoped to an application, this requires a live status fetch, so it is applied after fetching (implies includeLiveStatus).'),
             includeLiveStatus: z.boolean().optional()
                 .describe('If true, also fetch each instance\'s real-time running state. Slower than filtering by state, since it queries every matching instance\'s container.'),
-            page: z.number().min(1).default(1).optional().describe('Page number to fetch (1-based). Ignored when applicationId is set, since that listing is not paginated.'),
-            limit: z.number().min(1).max(10).default(10).describe('How many results to return per page. Ignored when applicationId is set.'),
+            page: pageParam.page.describe('Page number to fetch (1-based). Ignored when applicationId is set, since that listing is not paginated.'),
+            limit: limitParam.limit.describe('How many results to return per page (1-50, default 10). Ignored when applicationId is set.'),
             sort: z.enum(['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']).optional().describe('Field to sort the team-wide instance list by (ignored when applicationId is set). The "flowLastUpdatedAt" option additionally requires includeLiveStatus to be set; without it the list falls back to its default order.'),
             dir: sortParams.dir,
             orderByMostRecentFlows: z.boolean().optional().describe('Order the team-wide list by most recently updated flows (ignored when applicationId is set, and only applied when includeLiveStatus is also set)')
         },
         handler: async (args, { inject }) => {
             if (args.teamId && args.applicationId) {
-                return {
-                    statusCode: 400,
-                    json: () => ({
-                        code: 'invalid_request',
-                        error: 'Provide either teamId to list a whole team or applicationId to list a single application, not both.'
-                    })
-                }
+                return toolError(400, 'invalid_request', 'Provide either teamId to list a whole team or applicationId to list a single application, not both.')
             }
             if (!args.teamId && !args.applicationId) {
-                return {
-                    statusCode: 400,
-                    json: () => ({
-                        code: 'invalid_request',
-                        error: 'Provide teamId to list a whole team, or applicationId to list a single application.'
-                    })
-                }
+                return toolError(400, 'invalid_request', 'Provide teamId to list a whole team, or applicationId to list a single application.')
             }
             if (args.applicationId) {
                 const teamOnly = ['sort', 'dir', 'orderByMostRecentFlows'].filter((key) => args[key] !== undefined)
                 if (teamOnly.length > 0) {
-                    return {
-                        statusCode: 400,
-                        json: () => ({
-                            code: 'invalid_request',
-                            error: `${teamOnly.join(', ')} can only be used when listing across a whole team. Drop applicationId to sort the team-wide list, or remove these parameters to list this application.`
-                        })
-                    }
+                    return toolError(400, 'invalid_request', `${teamOnly.join(', ')} can only be used when listing across a whole team. Drop applicationId to sort the team-wide list, or remove these parameters to list this application.`)
                 }
                 return listApplicationHostedInstances(args, { inject })
             }
@@ -123,7 +105,7 @@ module.exports = [
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             hostedInstanceId: z.string().describe('The id (UUID) of the hosted instance'),
-            limit: z.number().min(1).max(100).describe('Number of log entries to return'),
+            limit: z.number().int().min(1).max(100).default(10).optional().describe('Number of log entries to return (1-100, default 10). Higher than other list tools because log lines are small.'),
             cursor: z.string().optional().describe('Cursor for pagination (the ID of the last entry from the previous page)')
         },
         handler: async (args, { inject }) => {
@@ -283,7 +265,9 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Reads recent resource usage (CPU, memory) for a hosted instance as a time-series: a list of samples over time, each with a timestamp, rather than a single current reading.
             This is plan-gated on the instanceResources feature, which defaults to disabled; if the team's plan has this feature disabled, the call returns a not-found error.
-            This returns the stored usage history, not a live streaming feed.`,
+            This returns the stored usage history, not a live streaming feed.
+            The whole retained history comes back in one response and cannot be paged or narrowed, so it can be long for a
+            busy instance. Read the samples you need from the result rather than calling this repeatedly.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             hostedInstanceId

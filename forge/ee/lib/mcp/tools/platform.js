@@ -43,13 +43,13 @@ module.exports = [
         handler: async (args, { inject }) => {
             const teamResponse = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}` })
             if (teamResponse.statusCode >= 400) {
-                return { content: teamResponse.json(), code: teamResponse.statusCode, isError: true }
+                return teamResponse
             }
             const team = teamResponse.json()
 
             const typesResponse = await inject({ method: 'GET', url: '/api/v1/project-types' })
             if (typesResponse.statusCode >= 400) {
-                return { content: typesResponse.json(), code: typesResponse.statusCode, isError: true }
+                return typesResponse
             }
 
             let types = typesResponse.json().types
@@ -141,7 +141,9 @@ module.exports = [
         title: 'List Team Types',
         description: `FlowFuse platform automation tool:
             Lists the team types (tiers/plans) available on the platform, with name search, active-state filtering and pagination.
-            Use this to see what team types exist before creating a team or to look up a team's current type.`,
+            Use this to see what team types exist before creating a team or to look up a team's current type.
+            Each type carries a long description field holding the raw HTML used to render the plan's feature list in
+            the UI. It is presentation markup, not data: ignore it, and read plan limits from properties instead.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             ...basePagination,
