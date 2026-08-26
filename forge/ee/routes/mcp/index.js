@@ -7,6 +7,7 @@
  * @param {import('../../../forge').ForgeApplication} app
  */
 module.exports = async function (app) {
+    await app.register(require('./wellKnown'), { prefix: '/.well-known', logLevel: app.config.logging.http })
     await app.register(require('./registrations'), { prefix: '/api/v1/teams/:teamId/mcp', logLevel: app.config.logging.http })
-    await app.register(require('./server'), { prefix: '/api/v1/mcp', logLevel: app.config.logging.http })
+    await app.register(require('./server'), { prefix: '/mcp', logLevel: app.config.logging.http })
 }

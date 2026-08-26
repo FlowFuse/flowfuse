@@ -4,6 +4,10 @@
 
 const { default: z } = require('zod')
 
+// Written by the third-party MCP door; a hit means a third-party caller, and the
+// value is that caller's PAT. A miss is the first-party Expert path.
+const MCP_SESSION_TOKEN_CACHE = 'mcp-session-token'
+
 /**
  * Cheap, non-cryptographic fingerprint of the platform tool catalog, over each tool's
  * name/title/description/inputSchema/outputSchema/annotations/_meta. Sorted for stability
@@ -104,9 +108,14 @@ class PlatformAutomationHandler {
         this.client.on('request/platform-automation:forge', this.eventHandler)
     }
 
-    eventHandler = async ({ userId, command, data, meta } = {}, onSuccess, onError) => {
+    eventHandler = async ({ userId, mcpSessionId, command, data, meta, scope } = {}, onSuccess, onError) => {
         try {
             let result = {}
+            this.app.log.info(`platform-automation request: userId=${userId} mcpSessionId=${mcpSessionId} command=${command} tool=${data?.name || 'n/a'}`)
+
+            const sessionTokenCache = this.app.caches?.getCache?.(MCP_SESSION_TOKEN_CACHE)
+            const sessionToken = mcpSessionId ? await sessionTokenCache?.get(mcpSessionId) : null
+            const source = sessionToken ? 'mcp' : 'mcp:expert'
 
             switch (command) {
             case 'mcp-get-features':
@@ -121,6 +130,12 @@ class PlatformAutomationHandler {
             case 'mcp-call-tool': {
                 const toolName = data?.name
                 const args = data?.input || {}
+
+                // The caller scope (readOnly plus any team restriction from the
+                // session token) rides with the request so tools can report and
+                // enforce what the session is allowed to do. Prefer the top-level
+                // value, falling back to meta for callers that attach it there.
+                const callerScope = scope ?? meta?.scope
 
                 // TODO: Probably sensible to verify that toolDefinition matches the tool to ensure no tampering has occurred
                 const { toolDefinition } = meta || {}
@@ -145,12 +160,10 @@ class PlatformAutomationHandler {
 
                 const user = await this.app.db.models.User.byId(userId)
                 if (user) {
-                    const { token } = await this.app.expert.mcp.getOrCreatePlatformToken(user)
+                    // Third-party runs under the caller's PAT; Expert mints a token.
+                    const token = sessionToken || (await this.app.expert.mcp.getOrCreatePlatformToken(user)).token
                     const inject = (opts) => {
-                        const nonce = this.app.nonceStore.createSourceNonce({
-                            source: 'mcp:expert',
-                            toolName
-                        })
+                        const nonce = this.app.nonceStore.createSourceNonce({ source, toolName })
                         return this.app.inject({
                             ...opts,
                             headers: {
@@ -162,7 +175,7 @@ class PlatformAutomationHandler {
                     }
 
                     const { formatResponse } = require('../ee/lib/mcp/toolLoader')
-                    const response = await tool.handler(args, { inject, app: this.app })
+                    const response = await tool.handler(args, { inject, app: this.app, user, mcpSessionId, scope: callerScope })
                     result = formatResponse(response)
                 }
                 break

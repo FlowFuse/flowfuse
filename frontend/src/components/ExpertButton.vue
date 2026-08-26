@@ -1,8 +1,8 @@
 <template>
-    <div class="expert-button-wrapper flex items-center justify-center h-full px-3" style="height: 60px;">
+    <div v-if="showExpertButton || showMcpToggle" class="expert-button-wrapper flex items-center justify-center h-full px-3" style="height: 60px;">
         <div class="expert-composite" :class="{ 'expert-composite--mcp-active': mcpActive }">
             <button
-                v-if="!isExpertDrawerOpen"
+                v-if="showExpertButton"
                 class="expert-composite__expert flex items-center gap-1.5 justify-center px-[9px] py-[6px] font-bold text-[0.85rem] leading-[20px] text-gray-800 whitespace-nowrap transition-colors"
                 data-el="expert-button"
                 data-click-exclude="right-drawer"
@@ -12,7 +12,7 @@
                 <span>Expert</span>
             </button>
             <button
-                v-if="featuresCheck.isMcpThirdPartyEnabled"
+                v-if="showMcpToggle"
                 v-ff-tooltip:bottom="mcpActive ? 'Disable MCP' : 'Enable MCP'"
                 class="expert-composite__mcp flex items-center justify-center py-[6px] px-[7px] transition-colors"
                 :class="{ 'expert-composite__mcp--active': mcpActive }"
@@ -30,56 +30,65 @@ import { mapActions, mapState } from 'pinia'
 
 import McpIcon from './icons/McpIcon.js'
 
-import { startTabPresence, stopTabPresence } from '@/publishers/tab-presence.publisher'
 import alerts from '@/services/alerts.js'
 import { useAccountSettingsStore } from '@/stores/account-settings.js'
 import { useContextStore } from '@/stores/context.js'
 import { useProductExpertStore } from '@/stores/product-expert.js'
+import { useProductMcpStore } from '@/stores/product-mcp.js'
 import { useUxDrawersStore } from '@/stores/ux-drawers.js'
-
-const MCP_TOGGLE_KEY = 'ff-mcp-active'
 
 export default {
     name: 'ExpertButton',
     components: {
         McpIcon
     },
-    data () {
-        return {
-            mcpActive: false,
-            publisher: null
-        }
-    },
     computed: {
         ...mapState(useAccountSettingsStore, ['featuresCheck']),
+        ...mapState(useProductMcpStore, { mcpActive: 'active' }),
         ...mapState(useUxDrawersStore, ['rightDrawer']),
         ...mapState(useContextStore, ['team']),
         isExpertDrawerOpen () {
             return (this.rightDrawer.state || this.rightDrawer.fixed)
+        },
+        isAiEnabled () {
+            return this.featuresCheck.isAiFeatureEnabled
+        },
+        showExpertButton () {
+            return this.isAiEnabled && !this.isExpertDrawerOpen
+        },
+        showMcpToggle () {
+            return this.isAiEnabled && this.featuresCheck.isMcpThirdPartyFeatureEnabled
         }
     },
     watch: {
-        team () {
-            if (this.mcpActive) {
-                this.stopMcp()
+        async team () {
+            if (!this.mcpActive) {
+                return
+            }
+            // Straight to the store action rather than stopMcp(), which announces the close
+            // itself - that generic notice plus the specific one below is the same event
+            // reported twice. A team switch is the more useful of the two, so it wins.
+            // Only the call that actually closed the session speaks, so the header's second
+            // toggle cannot report the same switch again.
+            if (await this.disableMcp()) {
                 alerts.emit('MCP session closed due to team switch.', 'info')
             }
         }
     },
     mounted () {
-        const stored = sessionStorage.getItem(MCP_TOGGLE_KEY)
-        if (stored === 'true' && this.team) {
-            this.startMcp()
+        // the flag survives a reload, the comms do not - bring them back up
+        if (this.mcpActive && this.team) {
+            this.enableMcp(this.team)
         }
     },
     beforeUnmount () {
-        if (this.publisher) {
-            stopTabPresence()
-            this.publisher = null
+        if (this.mcpActive) {
+            this.teardownMcp()
         }
     },
     methods: {
         ...mapActions(useProductExpertStore, ['openAssistantDrawer']),
+        ...mapActions(useProductMcpStore, { enableMcp: 'enable', disableMcp: 'disable', teardownMcp: 'teardown' }),
         onExpertClick () {
             this.openAssistantDrawer({ openPinned: this.rightDrawer.expertState.pinned })
         },
@@ -92,19 +101,13 @@ export default {
         },
         startMcp () {
             if (!this.team) return
-            this.publisher = startTabPresence(this.team)
-            this.mcpActive = true
-            sessionStorage.setItem(MCP_TOGGLE_KEY, 'true')
+            this.enableMcp(this.team)
             alerts.emit('MCP session exposed. Third-party agents can now target this tab.', 'confirmation')
         },
-        stopMcp () {
-            if (this.publisher) {
-                stopTabPresence()
-                this.publisher = null
+        async stopMcp () {
+            if (await this.disableMcp()) {
+                alerts.emit('MCP session closed.', 'info')
             }
-            this.mcpActive = false
-            sessionStorage.setItem(MCP_TOGGLE_KEY, 'false')
-            alerts.emit('MCP session closed.', 'info')
         }
     }
 }

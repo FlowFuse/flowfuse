@@ -10,7 +10,7 @@ module.exports = [
             Use this when you need to see what snapshots exist for a hosted instance, for example to pick one to deploy or to check what changed between versions.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The ID or hashid of the hosted instance'),
+            hostedInstanceId: z.string().describe('The id (UUID) of the hosted instance'),
             cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
             limit: z.number().min(1).max(20).describe('How many results to return per page')
         },
@@ -37,7 +37,7 @@ module.exports = [
             Use this when the user wants to save the current state of a hosted instance before making changes, or to create a version that can be rolled out elsewhere.`,
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The ID or hashid of the hosted instance'),
+            hostedInstanceId: z.string().describe('The id (UUID) of the hosted instance'),
             name: z.string().optional().describe('Name for the snapshot'),
             description: z.string().optional().describe('Description of the snapshot')
         },
@@ -62,7 +62,7 @@ module.exports = [
             Use this when you need to see what snapshots exist for a remote instance, for example to pick one to deploy or to check what changed between versions.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            remoteInstanceId: z.string().describe('The ID or hashid of the remote instance'),
+            remoteInstanceId: z.string().describe('The hashid of the remote instance'),
             cursor: z.string().optional().describe('Cursor for pagination (the hashid of the last item from the previous page)'),
             limit: z.number().min(1).max(20).describe('How many results to return per page')
         },
@@ -92,7 +92,7 @@ module.exports = [
             Use this when the user wants to save the current state of a remote instance before making changes, or to create a snapshot that can be rolled out elsewhere.`,
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
-            remoteInstanceId: z.string().describe('The ID or hashid of the remote instance'),
+            remoteInstanceId: z.string().describe('The hashid of the remote instance'),
             name: z.string().optional().describe('Name for the snapshot'),
             description: z.string().optional().describe('Description of the snapshot')
         },

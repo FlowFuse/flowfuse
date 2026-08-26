@@ -335,6 +335,94 @@ describe('AccessToken controller', function () {
         })
     })
 
+    describe('MCP OAuth Tokens', function () {
+        function createToken (opts = {}) {
+            return app.db.controllers.AccessToken.createMCPOAuthToken(TestObjects.alice.id, opts)
+        }
+
+        // Move the row's access and/or refresh token expiry, so the refresh
+        // behaviour can be exercised without waiting for real time to pass.
+        async function setRowExpiry (refreshToken, { accessMs, refreshMs } = {}) {
+            const row = await app.db.models.AccessToken.byRefreshToken(refreshToken)
+            const updates = {}
+            if (accessMs !== undefined) {
+                updates.expiresAt = new Date(Date.now() + accessMs)
+            }
+            if (refreshMs !== undefined) {
+                updates.refreshTokenExpiresAt = new Date(Date.now() + refreshMs)
+            }
+            await app.db.models.AccessToken.update(updates, { where: { id: row.id } })
+        }
+
+        it('creates a user token with a refresh token that outlives the access token', async function () {
+            const result = await createToken({ readOnly: true })
+            result.token.should.be.a.String().and.startWith('ffpat')
+            result.refreshToken.should.be.a.String().and.startWith('ffpat')
+            should.exist(result.expiresAt)
+
+            const row = await app.db.models.AccessToken.byRefreshToken(result.refreshToken)
+            row.should.have.property('readOnly', true)
+            should.exist(row.refreshTokenExpiresAt)
+            row.refreshTokenExpiresAt.getTime().should.be.greaterThan(row.expiresAt.getTime())
+        })
+
+        it('rejects an expired access token but keeps the row so it can still be refreshed', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+
+            // The access token is rejected...
+            should.not.exist(await app.db.controllers.AccessToken.getOrExpire(original.token))
+            // ...but the row survives (RFC 6749 §1.5) so refresh still works.
+            ;(await app.db.models.AccessToken.count()).should.equal(1)
+
+            const refreshed = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            should.exist(refreshed)
+            should.exist(await app.db.controllers.AccessToken.getOrExpire(refreshed.token))
+        })
+
+        it('destroys the row once the refresh token has also expired', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000, refreshMs: -1000 })
+
+            should.not.exist(await app.db.controllers.AccessToken.getOrExpire(original.token))
+            ;(await app.db.models.AccessToken.count()).should.equal(0)
+        })
+
+        it('keeps the refresh token stable and slides its expiry on refresh', async function () {
+            const original = await createToken()
+            // Bring the refresh expiry close so the slide back out to the full
+            // lifetime is observable rather than a same-millisecond tie.
+            await setRowExpiry(original.refreshToken, { accessMs: -5000, refreshMs: 60000 })
+            const before = await app.db.models.AccessToken.byRefreshToken(original.refreshToken)
+
+            const refreshed = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            refreshed.token.should.not.equal(original.token)
+            // The refresh token is not rotated.
+            refreshed.refreshToken.should.equal(original.refreshToken)
+
+            const after = await app.db.models.AccessToken.byRefreshToken(original.refreshToken)
+            after.refreshTokenExpiresAt.getTime().should.be.greaterThan(before.refreshTokenExpiresAt.getTime())
+        })
+
+        it('reuses the same access token for a repeat refresh within its lifetime', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { accessMs: -5000 })
+
+            const first = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            const second = await app.db.controllers.AccessToken.refreshToken(original.refreshToken)
+            second.token.should.equal(first.token)
+            should.exist(await app.db.controllers.AccessToken.getOrExpire(first.token))
+        })
+
+        it('fails to refresh once the refresh token lifetime has passed', async function () {
+            const original = await createToken()
+            await setRowExpiry(original.refreshToken, { refreshMs: -1000 })
+
+            should.not.exist(await app.db.controllers.AccessToken.refreshToken(original.refreshToken))
+            ;(await app.db.models.AccessToken.count()).should.equal(0)
+        })
+    })
+
     describe('getOrExpire', function () {
         it('does not return expired tokens', async function () {
             ;(await app.db.models.AccessToken.count()).should.equal(0)

@@ -1,10 +1,10 @@
 const { z } = require('zod')
 
 // Hosted instances are Projects (UUID primary key); the other entities use hashids.
-const teamId = z.string().describe('The ID or hashid of the team')
-const applicationId = z.string().describe('The ID or hashid of the application')
-const hostedInstanceId = z.string().uuid().describe('The UUID of the hosted instance')
-const remoteInstanceId = z.string().describe('The ID or hashid of the remote instance')
+const teamId = z.string().describe('The hashid of the team')
+const applicationId = z.string().describe('The hashid of the application')
+const hostedInstanceId = z.string().uuid().describe('The id (UUID) of the hosted instance')
+const remoteInstanceId = z.string().describe('The hashid of the remote instance')
 const snapshotId = z.string().describe('The hashid of the snapshot')
 
 // Query fragments composed per tool by spreading only the ones the backing

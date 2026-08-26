@@ -11,6 +11,8 @@ import { useDataFarmTeamsStore } from './data-farm-teams'
 import { useProductAssistantStore } from './product-assistant.js'
 import { useProductExpertStore } from './product-expert.js'
 
+import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
+
 export const useContextStore = defineStore('context', {
     state: () => ({
         route: null,
@@ -51,16 +53,21 @@ export const useContextStore = defineStore('context', {
         expert (state) {
             const authStore = useAccountAuthStore()
             const assistantStore = useProductAssistantStore()
-
+            const mqttTopicHelper = useMqttExpertTopicHelper()
+            const topicParts = mqttTopicHelper.getEntityTopicPaths()
             if (!state.route) {
                 return {
                     assistantVersion: assistantStore.version,
                     assistantFeatures: assistantStore.assistantFeatures,
+                    topicParts,
                     palette: null,
                     debugLog: null,
                     userId: authStore.user?.id || null,
+                    username: authStore.user?.username || null,
+                    deployment: useAccountSettingsStore().featuresCheck?.deployment ?? 'self-hosted',
                     teamId: this.team?.id || null,
                     teamSlug: this.team?.slug || null,
+                    telemetryEnabled: useAccountSettingsStore().featuresCheck?.isTelemetryEnabled ?? false,
                     instanceId: null,
                     deviceId: null,
                     applicationId: null,
@@ -93,11 +100,15 @@ export const useContextStore = defineStore('context', {
             return {
                 assistantVersion: assistantStore.version,
                 assistantFeatures: assistantStore.assistantFeatures,
+                topicParts,
                 palette,
                 debugLog: assistantStore.debugLog,
                 userId: authStore.user?.id || null,
+                username: authStore.user?.username || null,
+                deployment: useAccountSettingsStore().featuresCheck?.deployment ?? 'self-hosted',
                 teamId: this.team?.id || null,
                 teamSlug: this.team?.slug || null,
+                telemetryEnabled: useAccountSettingsStore().featuresCheck?.isTelemetryEnabled ?? false,
                 instanceId: state.instance ? state.instance.id : null,
                 deviceId: state.device ? state.device.id : null,
                 applicationId: this.application ? this.application.id : null,
