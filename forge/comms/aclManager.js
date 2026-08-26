@@ -130,8 +130,9 @@ module.exports = function (app) {
                 return false
             }
         },
-        checkUserIsTeamMember: async function (requestParts, usernameParts) {
-            // requestParts = [ fullTopic , <teamHash> [, <userHash> [, <sessionId>]] ]
+        checkTeamUserSession: async function (requestParts, usernameParts) {
+            // requestParts = [ fullTopic , <teamHash> [, <userHash>] ] - v1
+            // requestParts = [ fullTopic , <teamHash>, <userHash>, <sessionId> ] - v2 (MCP)
             // usernameParts = [ 'fe-team', <userHash>, <teamHash>, <sessionId> ]
             const topicTeamHash = requestParts[1]
             const usernameUserHash = usernameParts[1]
@@ -828,9 +829,9 @@ module.exports = function (app) {
         teamFrontend: {
             sub: [
                 // - ff/v1/<team>/t/updated
-                { topic: /^ff\/v1\/([^/]+)\/t\/updated$/, verify: 'checkUserIsTeamMember' },
+                { topic: /^ff\/v1\/([^/]+)\/t\/updated$/, verify: 'checkTeamUserSession' },
                 // - ff/v1/<team>/u/<user>/membership
-                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkUserIsTeamMember' },
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/membership$/, verify: 'checkTeamUserSession' },
                 // - ff/v1/<team>/p/+/state
                 { topic: /^ff\/v1\/([^/]+)\/p\/([^/]+)\/state$/, verify: 'checkTeamStateSub' },
                 // - ff/v1/<team>/d/+/state
@@ -842,12 +843,12 @@ module.exports = function (app) {
                 // - ff/v1/expert/<user>/<session>/+/+/mcp/inflight/+/request
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([^/]+)\/([^/]+)\/mcp\/inflight\/([^/]+)\/request$/, verify: 'checkMcpInflightTopic', allowWildcard: { entity: true, inflightType: true }, isSub: true },
                 // - ff/v1/<team>/u/<user>/s/<session>/mcp/clients
-                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/mcp\/clients$/, verify: 'checkUserIsTeamMember' }
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/mcp\/clients$/, verify: 'checkTeamUserSession' }
             ],
             pub: [
                 // - ff/v1/<team>/u/<user>/s/<session>/<heartbeat|close|disconnected>
                 //   `disconnected` is the last will, published by the broker, not the tab
-                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/(heartbeat|close|disconnected)$/, verify: 'checkUserIsTeamMember' },
+                { topic: /^ff\/v1\/([^/]+)\/u\/([^/]+)\/s\/([^/]+)\/(heartbeat|close|disconnected)$/, verify: 'checkTeamUserSession' },
                 // - ff/v1/expert/<user>/<session>/<a|p|d|t>/<entityId>/mcp/inflight/<type>/response
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/([tapd])\/([^/]+)\/mcp\/inflight\/([^/]+)\/response$/, verify: 'checkMcpInflightTopic', isPub: true }
             ]
