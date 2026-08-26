@@ -40,6 +40,7 @@ module.exports = async function (app) {
     // Narrows a token's team reach (teamScopes, empty means all-teams) to the teams
     // with AI enabled, substituting the deny sentinel when none survive.
     async function resolveAiTeams (user, teamScopes) {
+        // Team-scoped token: keep only the named teams that have AI enabled.
         if (teamScopes.length > 0) {
             const enabled = []
             for (const teamHashId of teamScopes) {
@@ -49,6 +50,7 @@ module.exports = async function (app) {
             }
             return enabled.length > 0 ? enabled : [AI_DISABLED_SENTINEL]
         }
+        // All-teams token: filter the AI gate over the user's actual memberships.
         const memberTeams = await app.db.controllers.Team.getUserTeamHashIds(user)
         if (memberTeams.length === 0) {
             return [AI_DISABLED_SENTINEL]
