@@ -11,7 +11,8 @@
                         <tr><td class="font-medium p-2 pr-4 align-top">Type</td><td class="p-2"><span v-if="!license.dev">FlowFuse Enterprise Edition</span><span v-else class="font-bold">FlowFuse Development Only</span></td></tr>
                         <tr><td class="font-medium p-2 pr-4 align-top">License ID</td><td class="p-2">{{ license.id }}</td></tr>
                         <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{ license.organisation }}</td></tr>
-                        <tr><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ license.tier }}</td></tr>
+                        <tr v-if="!!license.tier"><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ license.tier }}</td></tr>
+                        <tr v-if="!!license.tiers"><td class="font-medium p-2 pr-4 align-top">Tier Entitlements</td><td class="p-2">{{ license.tiers }}</td></tr>
                         <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{ license.expires }}<br><span class="text-xs">{{ license.expiresAt }}</span></td></tr>
                     </tbody>
                 </table>
@@ -44,7 +45,8 @@
                         <tr v-if="inspectedLicense.dev"><td class="font-medium p-2 pr-4 align-top" colspan="2">Development-mode Only</td></tr>
                         <tr><td class="font-medium p-2 pr-4 align-top">License ID</td><td class="p-2">{{ inspectedLicense.id }}</td></tr>
                         <tr><td class="font-medium p-2 pr-4 align-top">Organisation</td><td class="p-2">{{ inspectedLicense.organisation }}</td></tr>
-                        <tr><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ inspectedLicense.tier }}</td></tr>
+                        <tr v-if="!!inspectedLicense.tier"><td class="font-medium p-2 pr-4 align-top">Tier</td><td class="p-2">{{ inspectedLicense.tier }}</td></tr>
+                        <tr v-if="!!inspectedLicense.tiers"><td class="font-medium p-2 pr-4 align-top">Tier Entitlements</td><td class="p-2">{{ inspectedLicense.tiers }}</td></tr>
                         <tr><td class="font-medium p-2 pr-4 align-top">Expires</td><td class="p-2">{{ inspectedLicense.expires }}<br><span class="text-xs">{{ inspectedLicense.expiresAt }}</span></td></tr>
                     </tbody>
                 </table>

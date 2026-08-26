@@ -65,7 +65,7 @@
                             <td class="w-40">Teams</td>
                             <td>{{ stats.teamCount }} / {{ stats.maxTeams }}</td>
                         </tr>
-                        <template v-if="stats.maxDevices">
+                        <template v-if="!isNaN(stats.maxDevices)">
                             <tr>
                                 <td class="w-40">Instances</td>
                                 <td>{{ stats.instanceCount }} / {{ stats.maxInstances }}</td>
