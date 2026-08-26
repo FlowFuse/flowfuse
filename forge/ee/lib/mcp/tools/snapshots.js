@@ -113,5 +113,32 @@ module.exports = [
             const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/devices/settings` })
             return response
         }
-    }
+    },
+    {
+        name: 'platform_create_remote_instance_snapshot',
+        title: 'Create Remote Instance Snapshot',
+        description: `FlowFuse platform automation tool:
+            This tool will always fail if the remote instance is not reachable.
+            This tool exclusively creates snapshots, it does not create anything else.
+            Before calling this tool, you must call platform_get_remote_instance_status first to check that the device is online and running.
+            Creates a new snapshot from a remote instance, capturing everything it is running right now (flows, settings, and configuration).
+            Think of it as taking a photo of the remote instance so you can go back to this exact state later or deploy it to other remote instances.
+            Use this when the user wants to save the current state of a remote instance before making changes, or to create a snapshot that can be rolled out elsewhere.`,
+        annotations: { readOnlyHint: false, destructiveHint: false },
+        inputSchema: {
+            remoteInstanceId: z.string().describe('The hashid of the remote instance'),
+            name: z.string().optional().describe('Name for the snapshot'),
+            description: z.string().optional().describe('Description of the snapshot')
+        },
+        handler: async (args, { inject }) => {
+            const payload = {}
+            if (args.name) {
+                payload.name = args.name
+            }
+            if (args.description) {
+                payload.description = args.description
+            }
+            const response = await inject({ method: 'POST', url: `/api/v1/devices/${args.remoteInstanceId}/snapshots`, payload })
+            return response
+        }
 ]

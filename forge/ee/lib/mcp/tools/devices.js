@@ -15,7 +15,7 @@ module.exports = [
             To get the full details of one specific remote instance, call platform_get_remote_instance with its ID.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            teamId: z.string().describe('The ID or hashid of the team'),
+            teamId: z.string().describe('The hashid of the team'),
             applicationId: z.string().optional().describe('Restrict results to remote instances assigned to this application. Omit to list every remote instance in the team.'),
             hostedInstanceId: z.string().optional()
                 .describe('Restrict results to remote instances assigned to this hosted instance\'s device group (i.e. remote instances whose ownerType is "instance"). Takes priority over applicationId if both are set.'),
@@ -88,7 +88,7 @@ module.exports = [
             If you need to list all remote instances first, call platform_list_remote_instances.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            remoteInstanceId: z.string().describe('The ID or hashid of the remote instance')
+            remoteInstanceId: z.string().describe('The hashid of the remote instance')
         },
         handler: async (args, { inject, app }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/devices/${args.remoteInstanceId}` })
@@ -166,7 +166,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             name: z.string().describe('Name for the new remote instance'),
-            teamId: z.string().describe('The ID or hashid of the team to register the device in'),
+            teamId: z.string().describe('The hashid of the team to register the device in'),
             type: z.string().optional().describe('Optional label describing the device type (e.g. "Raspberry Pi 4", "Edge Gateway")')
         },
         handler: async (args, { inject }) => {
@@ -184,8 +184,8 @@ module.exports = [
             The remote instance and the application must belong to the same team.`,
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
-            remoteInstanceId: z.string().describe('The ID or hashid of the remote instance'),
-            applicationId: z.string().describe('The ID or hashid of the application to assign it to')
+            remoteInstanceId: z.string().describe('The hashid of the remote instance'),
+            applicationId: z.string().describe('The hashid of the application to assign it to')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}`, payload: { application: args.applicationId } })

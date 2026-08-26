@@ -28,7 +28,7 @@ module.exports = [
             Call platform_get_remote_instance to get details of a specific remote instance or platform_get_hosted_instance to get details of a specific hosted instance.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            teamId
+            teamId: z.string().describe('The hashid of the team')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/applications?includeInstances=false&includeApplicationDevices=false` })
@@ -41,7 +41,7 @@ module.exports = [
         description: 'FlowFuse platform automation tool: Use this tool to retrieve application metadata (name, description, link, team createdAt and updatedAt)',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            applicationId
+            applicationId: z.string().describe('The hashid of the application')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/applications/${args.applicationId}` })
@@ -82,7 +82,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             name: z.string().describe('Name for the new application'),
-            teamId,
+            teamId: z.string().describe('The hashid of the team to create the application in'),
             description: z.string().optional().describe('Optional description for the application')
         },
         handler: async (args, { inject }) => {

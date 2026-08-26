@@ -3,8 +3,9 @@
  *
  * Existing clients (project/device editor auth) are owned by a resource via
  * ownerType/ownerId and authenticate with a clientSecret. MCP clients have no
- * owner and are public (PKCE, no secret), so they need somewhere to record the
- * client type, a display name, and the redirect URIs approved at registration.
+ * owning resource and are public (PKCE, no secret): they reuse ownerType with
+ * ownerType='mcp' and add a display name and the redirect URIs approved at
+ * registration.
  *
  *   type          - 'mcp' for dynamically registered MCP clients, null otherwise
  *   name          - the client_name supplied at registration
