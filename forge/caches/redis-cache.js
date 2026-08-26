@@ -1,12 +1,22 @@
+/**
+ * Redis/Valkey cache driver. Caches with a ttl use per-field hash TTLs
+ * (HPEXPIRE), which requires Redis >= 7.4 or Valkey >= 9.0 — set() throws
+ * "unknown command" on older servers. HGETEX (Redis >= 8.0, Valkey >= 9.1)
+ * is used opportunistically for updateAgeOnGet, with a fallback for servers
+ * without it.
+ */
 const { createClient } = require('@redis/client')
 
-const { assertStringKey } = require('./util')
+const { assertStringKey, assertStringPattern } = require('./util')
 
 /** @type {Record<string, Cache>} */
 const caches = {}
 
 /** @type {import('@redis/client').RedisClientType} */
 let client
+
+/** Whether the server supports HGETEX (Redis 8+). null = unknown, determined on first use */
+let hGetExSupported = null
 
 async function initCache (options, app) {
     const newOptions = {
@@ -42,11 +52,11 @@ async function initCache (options, app) {
 }
 
 function createCache (name, options = {}) {
-    const { ttl } = options
+    const { ttl, updateAgeOnGet } = options
     if (caches[name]) {
         return caches[name]
     }
-    caches[name] = new Cache(name, { client, ttl })
+    caches[name] = new Cache(name, { client, ttl, updateAgeOnGet })
     return caches[name]
 }
 
@@ -70,21 +80,46 @@ async function closeCache () {
 }
 
 class Cache {
-    constructor (name, { client, ttl }) {
+    constructor (name, { client, ttl, updateAgeOnGet }) {
         this.name = name
         /** @type {import('@redis/client').RedisClientType} */
         this.client = client
         this.ttl = ttl // milliseconds
+        this.updateAgeOnGet = !!updateAgeOnGet
     }
 
     async get (key) {
         assertStringKey(key)
-        const val = JSON.parse(await this.client.hGet(this.name, key))
-        if (val !== null) {
-            return val
-        } else {
-            return undefined
+        const refreshTTL = this.updateAgeOnGet && this.ttl > 0
+        const raw = refreshTTL ? await this._getAndRefreshTTL(key) : await this.client.hGet(this.name, key)
+        return JSON.parse(raw) ?? undefined
+    }
+
+    /**
+     * Get a hash field and refresh its TTL. Uses HGETEX (single round trip, Redis 8+)
+     * when available, otherwise falls back to HGET + HPEXPIRE.
+     * @param {string} key The field to get
+     * @returns {Promise<string|null>} The raw field value, or null if not present
+     */
+    async _getAndRefreshTTL (key) {
+        if (hGetExSupported !== false && typeof this.client.hGetEx === 'function') {
+            try {
+                const [raw] = await this.client.hGetEx(this.name, key, { expiration: { type: 'PX', value: this.ttl } })
+                hGetExSupported = true
+                return raw ?? null
+            } catch (err) {
+                if (hGetExSupported === null && /unknown command/i.test(err?.message || '')) {
+                    hGetExSupported = false // server does not support HGETEX — use the fallback
+                } else {
+                    throw err
+                }
+            }
         }
+        const raw = await this.client.hGet(this.name, key)
+        if (raw !== null) {
+            await this.client.hpExpire(this.name, key, this.ttl)
+        }
+        return raw
     }
 
     async set (key, value) {
@@ -104,6 +139,26 @@ class Cache {
     async keys () {
         const keys = await this.client.hKeys(this.name)
         return keys
+    }
+
+    /**
+     * Find keys matching a redis-style glob pattern ('*', '?', '[abc]', '\' escape),
+     * e.g. 'response:*'. Does not refresh TTLs.
+     * @param {string} pattern glob pattern to match keys against
+     * @returns {Promise<string[]>} the matching keys
+     */
+    async scan (pattern) {
+        assertStringPattern(pattern)
+        const keys = new Set() // HSCAN may return the same field more than once across iterations
+        let cursor = '0'
+        do {
+            const res = await this.client.hScan(this.name, cursor, { MATCH: pattern, COUNT: 100 })
+            cursor = res.cursor
+            for (const entry of res.entries) {
+                keys.add(entry.field)
+            }
+        } while (cursor !== '0')
+        return [...keys]
     }
 
     async all () {
