@@ -383,7 +383,7 @@ describe('OAuth', async function () {
             body.redirect_uris.should.eql([redirectURI])
 
             const client = await mcpApp.db.controllers.AuthClient.getAuthClient(body.client_id)
-            client.should.have.property('type', 'mcp')
+            client.should.have.property('ownerType', 'mcp')
             client.redirectURIs.should.eql([redirectURI])
         })
 

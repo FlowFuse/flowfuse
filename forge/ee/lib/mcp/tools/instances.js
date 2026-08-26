@@ -26,7 +26,7 @@ module.exports = [
             To read the full settings of one specific instance, call platform_get_hosted_instance with its ID.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            teamId: z.string().describe('The ID or hashid of the team'),
+            teamId: z.string().describe('The hashid of the team'),
             applicationId: z.string().optional().describe('Restrict results to hosted instances inside this application. Omit to list every hosted instance in the team.'),
             query: z.string().optional().describe('Search hosted instances by name'),
             state: z.array(z.enum(['running', 'error', 'notRunning'])).optional()
@@ -56,7 +56,7 @@ module.exports = [
             To check the live running status, call platform_get_hosted_instance_status instead.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The ID or hashid of the hosted instance')
+            hostedInstanceId: z.string().describe('The id (UUID) of the hosted instance')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}` })
@@ -73,7 +73,7 @@ module.exports = [
             Use this when the user asks if an instance is running, or when you need to check before performing an action that requires it to be online.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The ID or hashid of the hosted instance')
+            hostedInstanceId: z.string().describe('The id (UUID) of the hosted instance')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/status` })
@@ -90,7 +90,7 @@ module.exports = [
             Results come back newest first. Use cursor to page through older entries.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The ID or hashid of the hosted instance'),
+            hostedInstanceId: z.string().describe('The id (UUID) of the hosted instance'),
             limit: z.number().min(1).max(100).describe('Number of log entries to return'),
             cursor: z.string().optional().describe('Cursor for pagination (the ID of the last entry from the previous page)')
         },
@@ -140,7 +140,7 @@ module.exports = [
         annotations: { readOnlyHint: false, destructiveHint: false },
         inputSchema: {
             name: z.string().regex(/^[a-zA-Z][a-zA-Z0-9-]*$/).describe('Name for the new hosted instance. When generating a name, always use hyphens to separate multiple words (e.g. "my-new-instance" not "my new instance").'),
-            applicationId: z.string().describe('The ID or hashid of the application'),
+            applicationId: z.string().describe('The hashid of the application'),
             projectType: z.string().describe('The ID of the hosted instance type (use platform_list_hosted_instance_types to find valid values)'),
             stack: z.string().describe('The ID of the stack (use platform_list_hosted_instance_types to find valid values)'),
             template: z.string().describe('The ID of the template (use platform_list_templates to find valid values)'),

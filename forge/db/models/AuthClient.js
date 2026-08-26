@@ -18,9 +18,8 @@ module.exports = {
             }
         },
         ownerId: { type: DataTypes.STRING },
+        // 'project'/'device' for editor auth clients; 'mcp' for dynamically registered MCP clients (public, no secret)
         ownerType: { type: DataTypes.STRING },
-        // 'mcp' for dynamically registered MCP clients (public, no secret), null otherwise
-        type: { type: DataTypes.STRING, allowNull: true },
         name: { type: DataTypes.STRING, allowNull: true },
         redirectURIs: {
             type: DataTypes.TEXT,

@@ -15,8 +15,7 @@ function badRequest (reply, error, description) {
 }
 
 // A loopback redirect_uri may vary its port between registration and use
-// (RFC 8252 Section 7.3), and localhost/127.0.0.1 are interchangeable. Every
-// other redirect must match a registered value exactly.
+// (RFC 8252 Section 7.3); localhost and 127.0.0.1 are interchangeable.
 function isLoopbackHost (hostname) {
     return hostname === 'localhost' || hostname === '127.0.0.1'
 }
@@ -133,17 +132,15 @@ module.exports = async function (app) {
             if (!authClient) {
                 return badRequest(reply, 'invalid_request', 'Invalid client_id')
             }
-            if (authClient.type === 'mcp') {
-                // MCP agent (dynamically registered): redirect_uri must match one
-                // approved at registration. Scope is not validated here - the access
-                // level is chosen by the user on the consent page (readOnly + teamIds).
+            if (authClient.ownerType === 'mcp') {
+                // redirect_uri must match one approved at registration; scope is
+                // not validated here (chosen by the user on the consent page).
                 if (!redirectUriMatches(authClient.redirectURIs, redirect_uri)) {
                     return badRequest(reply, 'invalid_request', 'Invalid redirect_uri')
                 }
                 isMCP = true
             } else {
-                // Dynamic client (project/device editor auth)
-                // Ensure redirect_uri path component is correct
+                // Dynamic client (project/device editor auth): validate callback path
                 if (
                     // HTTP Auth callback
                     !/\/_ffAuth\/callback$/.test(redirectURI.pathname) &&
@@ -203,7 +200,6 @@ module.exports = async function (app) {
             return
         }
         if (isMCP) {
-            // Redirect to MCP-specific consent page
             reply.redirect(`${app.config.base_url}/account/request/${requestId}/mcp`)
             return
         }
@@ -338,9 +334,8 @@ module.exports = async function (app) {
         if (!Array.isArray(redirect_uris) || redirect_uris.length === 0) {
             return badRequest(reply, 'invalid_redirect_uri', 'At least one redirect_uri is required')
         }
-        // A redirect_uri must either be a loopback http address (local dev tools,
-        // RFC 8252 Section 7.3) or a secure https address (a hosted client, e.g. a
-        // provider connector). Anything else is rejected.
+        // A redirect_uri must be a loopback http address (local dev tools, RFC 8252
+        // Section 7.3) or an https address; anything else is rejected.
         for (const uri of redirect_uris) {
             let parsed
             try {
@@ -612,7 +607,7 @@ module.exports = async function (app) {
                     return badRequest(reply, 'invalid_request', 'Invalid client_id')
                 }
             }
-            const isMcpClient = refreshAuthClient?.type === 'mcp'
+            const isMcpClient = refreshAuthClient?.ownerType === 'mcp'
             const existingToken = await app.db.models.AccessToken.byRefreshToken(refresh_token)
             // A rotated-out MCP refresh token is no longer the row's current token, so
             // byRefreshToken cannot find it. refreshToken() resolves the current-or-previous
@@ -622,7 +617,7 @@ module.exports = async function (app) {
                 badRequest(reply, 'invalid_request', 'Invalid refresh_token')
                 return
             }
-            if (refreshAuthClient && refreshAuthClient.type !== 'mcp') {
+            if (refreshAuthClient && refreshAuthClient.ownerType !== 'mcp') {
                 // Check the owner of the existing session still has access to the project
                 // this client is owned by
                 let owner = null

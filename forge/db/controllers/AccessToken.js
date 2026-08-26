@@ -12,7 +12,7 @@ const DEFAULT_REFRESH_TOKEN_EXPIRY = 1000 * 60 * 60 * 24 * 30 // 30 days - slidi
 // is handed the same one; a stale cached access token is re-minted once within
 // this window of expiry so a client is never handed a token about to die.
 const MCP_ACCESS_TOKEN_CACHE = 'mcp-oauth-access-token'
-const MCP_ACCESS_TOKEN_REMAINING_LIMIT = 1000 * 60 // 60 seconds
+const MCP_ACCESS_TOKEN_REMAINING_LIMIT = 1000 * 60 * 5 // 5 minutes
 
 // A rotated-out refresh token stays valid for this long so a concurrent or retried
 // refresh still succeeds; presenting it after the window is treated as a replay.
@@ -553,9 +553,8 @@ module.exports = {
             if (accessToken.expiresAt && accessToken.expiresAt.getTime() < Date.now()) {
                 const refreshTokenValid = accessToken.refreshTokenExpiresAt && accessToken.refreshTokenExpiresAt.getTime() > Date.now()
                 if (refreshTokenValid) {
-                    // The access token has expired but the refresh token is still
-                    // valid. Reject the access token without destroying the row so
-                    // the client can obtain a new one via refresh (RFC 6749 §1.5).
+                    // Refresh token still valid: reject the access token but keep the
+                    // row so the client can refresh (RFC 6749 §1.5).
                     accessToken = null
                 } else {
                     await accessToken.destroy()
