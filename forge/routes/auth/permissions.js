@@ -30,6 +30,20 @@ function patAllowsWrite (pat, scope) {
     const permission = Permissions[scope]
     return !permission || permission.access === 'read'
 }
+
+// PATs are team-scoped, but entity-addressed routes set the entity, not
+// request.team, so resolve the team from whatever the route loaded.
+function resolveRequestTeamHashid (app, request) {
+    const loadedTeam = request.team || request.application?.Team || request.project?.Team || request.device?.Team
+    if (loadedTeam?.hashid) {
+        return loadedTeam.hashid
+    }
+    const teamId = request.teamMembership?.TeamId
+    if (teamId !== undefined && teamId !== null) {
+        return app.db.models.Team.encodeHashid(teamId)
+    }
+    return null
+}
 // For device/project tokens, list the scopes they implicitly have.
 // This will allow us to add scopes to existing tokens without having to update
 // them (as that requires reprovisioning of devices and restaging of projects)
@@ -120,7 +134,8 @@ module.exports = fp(async function (app, opts) {
                             reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                             throw new Error()
                         }
-                        if (request.team && !patAllowsTeam(request.session.pat, request.team.hashid)) {
+                        const teamHashid = resolveRequestTeamHashid(app, request)
+                        if (teamHashid && !patAllowsTeam(request.session.pat, teamHashid)) {
                             reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                             throw new Error()
                         }
@@ -187,7 +202,8 @@ module.exports = fp(async function (app, opts) {
             // This runs after the standard permission checks pass, as an
             // additional restriction layer for PAT-authenticated requests.
             if (request.session.pat) {
-                if (request.team && !patAllowsTeam(request.session.pat, request.team.hashid)) {
+                const teamHashid = resolveRequestTeamHashid(app, request)
+                if (teamHashid && !patAllowsTeam(request.session.pat, teamHashid)) {
                     reply.code(403).send({ code: 'unauthorized', error: 'unauthorized' })
                     throw new Error()
                 }

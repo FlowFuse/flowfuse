@@ -1374,6 +1374,79 @@ describe('User API', async function () {
                 response.statusCode.should.be.oneOf([403, 404])
             })
 
+            it('team-scoped PAT is denied an out-of-scope resource addressed by entity id', async function () {
+                // Entity-addressed routes resolve the team via the entity, not
+                // request.team, so the team-scope check must follow the entity.
+                await login('bob', 'bbPassword')
+                const bTeamApp = await app.factory.createApplication({ name: 'BTeam Scope App' }, TestObjects.BTeam)
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: { name: 'ATeam Only (entity)', scope: '', teamIds: [TestObjects.ATeam.hashid] }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/applications/${bTeamApp.hashid}`,
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                response.statusCode.should.equal(403)
+            })
+
+            it('team-scoped PAT can read an in-scope resource addressed by entity id', async function () {
+                // Guards against over-blocking: the in-scope team must resolve and pass.
+                await login('bob', 'bbPassword')
+                const aTeamApp = await app.factory.createApplication({ name: 'ATeam Scope App' }, TestObjects.ATeam)
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: { name: 'ATeam Only (entity allow)', scope: '', teamIds: [TestObjects.ATeam.hashid] }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/applications/${aTeamApp.hashid}`,
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                response.statusCode.should.equal(200)
+            })
+
+            it('team-scoped PAT is denied an out-of-scope snapshot addressed by id', async function () {
+                // The snapshot route sets neither request.team nor a loaded .Team,
+                // so it relies on the teamMembership fallback (and hashid encoding).
+                await login('bob', 'bbPassword')
+                const bTeamApp = await app.factory.createApplication({ name: 'BTeam Snapshot App' }, TestObjects.BTeam)
+                const bTeamInstance = await app.factory.createInstance(
+                    { name: 'bteam-snapshot-instance' },
+                    bTeamApp,
+                    TestObjects.stack,
+                    TestObjects.template,
+                    TestObjects.projectType
+                )
+                const snapshot = await app.factory.createSnapshot({ name: 'BTeam Snapshot' }, bTeamInstance, TestObjects.bob)
+                const createResponse = await app.inject({
+                    method: 'POST',
+                    url: '/api/v1/user/tokens',
+                    cookies: { sid: TestObjects.tokens.bob },
+                    payload: { name: 'ATeam Only (snapshot)', scope: '', teamIds: [TestObjects.ATeam.hashid] }
+                })
+                createResponse.statusCode.should.equal(200)
+                const patToken = createResponse.json().token
+
+                const response = await app.inject({
+                    method: 'GET',
+                    url: `/api/v1/snapshots/${snapshot.hashid}`,
+                    headers: { authorization: `Bearer ${patToken}` }
+                })
+                response.statusCode.should.equal(403)
+            })
+
             it('team-agnostic PAT (no teamScopes) can access any team the user belongs to', async function () {
                 await login('bob', 'bbPassword')
                 const createResponse = await app.inject({
