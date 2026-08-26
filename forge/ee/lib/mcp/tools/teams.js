@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { teamId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
+const { teamId, applicationId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys, auditLogFilters, auditLogFilterKeys, appendQuery, toolError } = require('../schemas')
 
 // Audit-log routes accept cursor+limit pagination, free-text query, event
 // (single name or array) and username. scope narrows which entity levels are
@@ -22,7 +22,7 @@ module.exports = [
         name: 'platform_list_teams',
         title: 'List Teams',
         description: 'FlowFuse platform automation tool: List all teams the authenticated user belongs to. Returns team names, slugs, IDs, and membership roles.',
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {},
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: '/api/v1/user/teams' })
@@ -38,9 +38,9 @@ module.exports = [
             The embedded team type carries a long description field holding the raw HTML used to render the plan's
             feature list in the UI. It is presentation markup, not data: ignore it, and read plan limits from
             type.properties instead.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            teamId: z.string().optional().describe('Team hashid. Provide either teamId or teamSlug, not both.'),
+            teamId: teamId.optional().describe('Team hashid. Provide either teamId or teamSlug, not both.'),
             teamSlug: z.string().regex(/^[a-z0-9-_]+$/i).optional().describe('Team slug (URL identifier; lowercase letters, digits, hyphen and underscore). Provide either teamId or teamSlug, not both.')
         },
         handler: async (args, { inject }) => {
@@ -66,12 +66,12 @@ module.exports = [
             Note that state here takes raw runtime states, NOT the high-level groups platform_list_hosted_instances
             uses. "running", "error" and "notRunning" are group names understood only by that tool; passing them here
             is rejected. Use the individual states from this tool's own enum instead.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
             instanceType: z.enum(['remote', 'hosted']).describe('Instance type to count'),
             state: z.array(z.enum(INSTANCE_STATES)).optional().describe('Optional list of raw instance states to filter the counts by (defaults to all). These are individual runtime states, not the "running"/"error"/"notRunning" groups used by platform_list_hosted_instances.'),
-            applicationId: z.string().optional().describe('Application hashid to scope the counts to a single application')
+            applicationId: applicationId.optional().describe('Application hashid to scope the counts to a single application')
         },
         handler: async (args, { inject }) => {
             const url = appendQuery(`/api/v1/teams/${args.teamId}/instance-counts`, args, ['instanceType', 'state', 'applicationId'])
@@ -85,7 +85,7 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Gets the authenticated user's own membership (role) in a team.
             Use this to check what role the current user holds in a team before attempting an action that needs a specific role.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId
         },
@@ -100,7 +100,7 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Lists the members of a team, including their role and, when SSO is enabled, whether their membership is SSO-managed.
             Use this to see who belongs to a team before inviting, removing, or changing the role of a member.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId
         },
@@ -115,7 +115,7 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Lists the pending invitations for a team.
             This requires the Owner role, so a non-Owner credential will get an access error even though this tool itself is read-only.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId
         },
@@ -133,7 +133,7 @@ module.exports = [
             applications, instances, and devices, set includeChildren or set scope to that entity level.
             A team-scoped PAT only sees audit log entries for teams it is scoped to.
             Use this when the user asks what happened on a team, or wants to investigate recent changes.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
             ...auditLogInput,
@@ -152,7 +152,7 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Lists the private npm packages owned by a team.
             The npm registry is a plan-gated feature; if it is not enabled for the team's plan, or the team does not exist, the underlying API's error response is returned as-is.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId
         },
@@ -167,7 +167,7 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Lists the git tokens configured for a team. The response never includes the raw stored personal access token, only its ID, name, and type.
             Git integration is a plan-gated feature; if it is not enabled for the team's plan, or the team does not exist, the underlying API's error response is returned as-is.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId
         },

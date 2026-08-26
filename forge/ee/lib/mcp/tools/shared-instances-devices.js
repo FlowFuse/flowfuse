@@ -13,7 +13,7 @@ module.exports = [
             These tokens are used by external callers to authenticate HTTP requests handled by the
             instance's Node-RED flows.
             HTTP bearer tokens are a plan-gated feature: a team without it enabled gets a 404 error.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")')
@@ -31,7 +31,7 @@ module.exports = [
             Reads a timeline of changes made to an instance over time, for either a hosted instance or a remote instance (device).
             This is plan-gated on the projectHistory feature, which defaults to enabled; if the team's plan has this feature disabled, the call returns a not-found error.
             Use this when the user wants a chronological view of what changed on an instance.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),
@@ -52,7 +52,7 @@ module.exports = [
             Use this when the user wants to know what has happened to a specific instance.
             Results are cursor-paginated and can be narrowed with query, event and username.
             scope and includeChildren apply only to hosted instances: by default only the instance's own ("project") entries are returned; set scope to "device" to read the entries for its assigned devices instead, and set includeChildren to also include entries from child entities within the chosen scope. A remote instance has no child entities, so these two parameters are rejected when instanceType is "remote".`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             instanceId: z.string().describe('The ID of the instance (hosted instance UUID, or remote instance/device hashid)'),
             instanceType: z.enum(['hosted', 'remote']).describe('Whether instanceId refers to a hosted instance ("hosted") or a remote instance/device ("remote")'),

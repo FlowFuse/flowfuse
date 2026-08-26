@@ -25,6 +25,36 @@ describe('MCP Instances Tools', function () {
             response.json().code.should.equal('invalid_request')
         })
 
+        it('rejects combining sort with orderByMostRecentFlows', async function () {
+            // The route applies orderByMostRecentFlows only when sort produced no ordering, so
+            // accepting both silently dropped the health-first ordering the caller asked for.
+            const response = await tool.handler(
+                { teamId: 'team1', sort: 'name', orderByMostRecentFlows: true, includeLiveStatus: true },
+                { inject }
+            )
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+            response.json().error.should.match(/cannot be combined/)
+        })
+
+        it('rejects orderByMostRecentFlows without includeLiveStatus', async function () {
+            const response = await tool.handler({ teamId: 'team1', orderByMostRecentFlows: true }, { inject })
+
+            inject.called.should.be.false()
+            response.statusCode.should.equal(400)
+            response.json().error.should.match(/requires includeLiveStatus/)
+        })
+
+        it('allows orderByMostRecentFlows alongside includeLiveStatus', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ count: 0, projects: [] }) })
+
+            await tool.handler({ teamId: 'team1', orderByMostRecentFlows: true, includeLiveStatus: true }, { inject })
+
+            inject.firstCall.args[0].url.should.match(/orderByMostRecentFlows=true/)
+        })
+
         it('rejects passing both teamId and applicationId', async function () {
             const response = await tool.handler({ teamId: 'team1', applicationId: 'app1' }, { inject })
 
@@ -237,17 +267,33 @@ describe('MCP Instances Tools', function () {
                 })
             })
 
-            it('passes sort, dir and orderByMostRecentFlows through on the team path', async function () {
+            it('passes sort and dir through on the team path', async function () {
                 inject.resolves({
                     statusCode: 200,
                     json: () => ({ count: 0, meta: { page: 1, pageSize: 10, total: 0, pageCount: 1 }, projects: [] })
                 })
 
-                await tool.handler({ teamId: 'team1', sort: 'name', dir: 'asc', orderByMostRecentFlows: true }, { inject })
+                await tool.handler({ teamId: 'team1', sort: 'name', dir: 'asc' }, { inject })
 
                 inject.firstCall.args[0].should.eql({
                     method: 'GET',
-                    url: '/api/v1/teams/team1/projects?page=1&limit=10&sort=name&dir=asc&orderByMostRecentFlows=true'
+                    url: '/api/v1/teams/team1/projects?page=1&limit=10&sort=name&dir=asc'
+                })
+            })
+
+            it('passes orderByMostRecentFlows through on the team path', async function () {
+                inject.resolves({
+                    statusCode: 200,
+                    json: () => ({ count: 0, meta: { page: 1, pageSize: 10, total: 0, pageCount: 1 }, projects: [] })
+                })
+
+                // sort is deliberately absent: the route only honours orderByMostRecentFlows when
+                // sort produced no ordering, so the two are mutually exclusive by design.
+                await tool.handler({ teamId: 'team1', dir: 'asc', orderByMostRecentFlows: true, includeLiveStatus: true }, { inject })
+
+                inject.firstCall.args[0].should.eql({
+                    method: 'GET',
+                    url: '/api/v1/teams/team1/projects?page=1&limit=10&includeMeta=true&dir=asc&orderByMostRecentFlows=true'
                 })
             })
 

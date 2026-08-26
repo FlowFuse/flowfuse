@@ -15,7 +15,7 @@ module.exports = [
             Requires the deviceGroups feature to be enabled for the team; if it is not, this returns a not-found error.
             To list the device groups of a single application, use platform_list_application_device_groups.
             Use platform_get_application_device_group to fetch the full detail of a single group.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
             ...basePagination,
@@ -37,7 +37,7 @@ module.exports = [
             Requires the deviceGroups feature to be enabled for the owning team; if it is not, this returns a not-found error.
             To list the device groups across a whole team, use platform_list_team_device_groups.
             Use platform_get_application_device_group to fetch the full detail of a single group.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId,
             ...basePagination,
@@ -56,7 +56,7 @@ module.exports = [
             Fetches a single device group in an application, including its members and target snapshot.
             Requires the deviceGroups feature to be enabled for the owning team; if it is not, this returns a not-found error.
             If you need to find the group ID first, call platform_list_application_device_groups or platform_list_team_device_groups.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId,
             groupId: z.string().describe('Device group hashid to fetch')

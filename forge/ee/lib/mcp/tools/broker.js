@@ -11,7 +11,7 @@ module.exports = [
             Each entry identifies the client username and, where known, the hosted instance or remote instance it belongs to. This does not include MQTT credentials.
             Supports username search and pagination.
             This tool requires the enterprise license tier and the team broker feature enabled for the team; if the team does not have it enabled, the request returns a not found response.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
             ...basePagination,
@@ -30,7 +30,7 @@ module.exports = [
             Gets a single MQTT client registered on the team broker, identified by its username. This does not include MQTT credentials.
             Use this after platform_list_broker_clients to inspect one client in detail.
             This tool requires the enterprise license tier and the team broker feature enabled for the team; if the team does not have it enabled, the request returns a not found response.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
             username: z.string().describe('Username of the broker client to fetch')
@@ -49,7 +49,7 @@ module.exports = [
             Use this to find a 3rd-party broker's ID before calling platform_get_broker, platform_list_broker_topics, or platform_get_broker_schema.
             Supports pagination.
             This tool requires the enterprise license tier and the team broker feature enabled for the team; if the team does not have it enabled, the request returns a not found response.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
             ...basePagination
@@ -71,7 +71,7 @@ module.exports = [
             which means the team broker exists as a feature but has no agent running - it is not an error, and there are
             no further details to read. A 3rd-party broker hashid always returns the full record.
             This tool requires the enterprise license tier and the team broker feature enabled for the team; if the team does not have it enabled, the request returns a not found response.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
             brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid")
@@ -90,7 +90,7 @@ module.exports = [
             Every observed topic comes back in one response and the listing cannot be paged or filtered, so a busy broker
             returns a long result. Prefer platform_get_broker_schema when you only need the topic structure.
             This tool requires the enterprise license tier and the team broker feature enabled for the team; if the team does not have it enabled, the request returns a not found response.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
             brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid")
@@ -110,7 +110,7 @@ module.exports = [
             with many topics, or with deeply nested payloads, produces a very large result, so only call this when the
             full schema is actually needed.
             This tool requires the enterprise license tier and the team broker feature enabled for the team; if the team does not have it enabled, the request returns a not found response.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
             brokerId: z.string().describe("broker id: either the literal 'team-broker' or a 3rd-party broker hashid")

@@ -24,8 +24,15 @@ module.exports = [
             Provide exactly one scope: applicationId to list the instances inside one application (unpaginated, no live status unless includeLiveStatus is set), or teamId to list every hosted instance in the team (paginated with page/limit, each result includes its instance type, stack, and template). Passing both, or neither, is rejected.
             Use state to filter by high-level status group ("running", "error", or "notRunning", the same groups as the dashboard's Running/Error/Not Running filter).
             Set includeLiveStatus to true to also fetch each instance's real-time running state (running, stopped, deploying, etc) - this is slower since it queries the underlying containers, so only set it when the user actually needs to know what's happening right now.
+            count means different things per scope: team-wide it is the total across all pages, so compare it against the
+            length of the instances array and page with page/limit; scoped to an application the listing is unpaginated,
+            so count is simply how many instances came back.
+            sort and orderByMostRecentFlows are not interchangeable and cannot be combined. sort orders purely by the
+            field you name. orderByMostRecentFlows sorts by health first (errored, then running, then stopped, then the
+            rest) and only uses recent flow activity to break ties within each bucket, so reach for it when the user
+            wants "what needs attention" rather than a plain ordering.
             To read the full settings of one specific instance, call platform_get_hosted_instance with its ID.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId: teamId.optional().describe('List every hosted instance in this team. Provide either this or applicationId, not both.'),
             applicationId: applicationId.optional().describe('List only the hosted instances inside this application. Provide either this or teamId, not both.'),
@@ -36,9 +43,9 @@ module.exports = [
                 .describe('If true, also fetch each instance\'s real-time running state. Slower than filtering by state, since it queries every matching instance\'s container.'),
             page: pageParam.page.describe('Page number to fetch (1-based). Ignored when applicationId is set, since that listing is not paginated.'),
             limit: limitParam.limit.describe('How many results to return per page (1-50, default 10). Ignored when applicationId is set.'),
-            sort: z.enum(['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']).optional().describe('Field to sort the team-wide instance list by (ignored when applicationId is set). The "flowLastUpdatedAt" option additionally requires includeLiveStatus to be set; without it the list falls back to its default order.'),
+            sort: z.enum(['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']).optional().describe('Field to sort the team-wide instance list by (ignored when applicationId is set). The "flowLastUpdatedAt" option additionally requires includeLiveStatus to be set; without it the list falls back to its default order. Cannot be combined with orderByMostRecentFlows.'),
             dir: sortParams.dir,
-            orderByMostRecentFlows: z.boolean().optional().describe('Order the team-wide list by most recently updated flows (ignored when applicationId is set, and only applied when includeLiveStatus is also set)')
+            orderByMostRecentFlows: z.boolean().optional().describe('Order the team-wide list by health first (errored, then running, then stopped, then the rest), using most recent flow activity to break ties within each group. Use this for a "what needs attention first" ordering. Requires includeLiveStatus, is ignored when applicationId is set, and cannot be combined with sort.')
         },
         handler: async (args, { inject }) => {
             if (args.teamId && args.applicationId) {
@@ -54,6 +61,15 @@ module.exports = [
                 }
                 return listApplicationHostedInstances(args, { inject })
             }
+            // Team path only: both of these are team-wide ordering controls.
+            if (args.sort !== undefined && args.orderByMostRecentFlows !== undefined) {
+                // The route applies orderByMostRecentFlows only when sort produced no ordering, so
+                // passing both silently drops the health-first ordering the caller asked for.
+                return toolError(400, 'invalid_request', 'sort and orderByMostRecentFlows are different orderings and cannot be combined - sort would win and orderByMostRecentFlows would be ignored. Pick one: sort for a plain field ordering, orderByMostRecentFlows for health-first.')
+            }
+            if (args.orderByMostRecentFlows && !args.includeLiveStatus) {
+                return toolError(400, 'invalid_request', 'orderByMostRecentFlows requires includeLiveStatus, since the ordering is computed from live state. Set includeLiveStatus: true or drop orderByMostRecentFlows.')
+            }
             return listTeamHostedInstances(args, { inject })
         }
     },
@@ -68,9 +84,9 @@ module.exports = [
             Read the specification from this tool whenever you need to know or compare what an existing instance is running, for example to duplicate it.
             If you need to list all hosted instances first, call platform_list_hosted_instances.
             To check the live running status, call platform_get_hosted_instance_status instead.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The id (UUID) of the hosted instance')
+            hostedInstanceId
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}` })
@@ -85,9 +101,9 @@ module.exports = [
             This is different from platform_get_hosted_instance: that tool gives you metadata and settings,
             this tool tells you what the instance is doing right now.
             Use this when the user asks if an instance is running, or when you need to check before performing an action that requires it to be online.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The id (UUID) of the hosted instance')
+            hostedInstanceId
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/status` })
@@ -101,12 +117,20 @@ module.exports = [
             Gets the runtime logs for a hosted instance.
             These are the Node-RED console logs showing what happened while the instance was running.
             Use this when the user wants to debug a problem, check what happened after a restart, or look for errors.
-            Results come back newest first. Use cursor to page through older entries.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+            With no cursor you get the most recent entries, but WITHIN the returned page entries are ordered
+            oldest first, so log[0] is the earliest line of the page and the last element is the newest.
+            Paging goes in two directions and meta carries a cursor for each: meta.next_cursor moves towards NEWER
+            entries, and meta.previous_cursor moves towards OLDER ones. To read further back through history - the
+            usual case when debugging - follow previous_cursor, not next_cursor. Older cursors are prefixed with "-";
+            pass whichever cursor value meta gave you through unchanged rather than building one yourself.
+            meta.first_entry and meta.last_entry are the bounds of the whole retained log, so a page whose earliest
+            entry equals first_entry means there is nothing older to fetch.
+            A suspended instance has no logs to serve and returns a project_suspended error.`,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The id (UUID) of the hosted instance'),
+            hostedInstanceId,
             limit: z.number().int().min(1).max(100).default(10).optional().describe('Number of log entries to return (1-100, default 10). Higher than other list tools because log lines are small.'),
-            cursor: z.string().optional().describe('Cursor for pagination (the ID of the last entry from the previous page)')
+            cursor: z.string().optional().describe('Pagination cursor, taken verbatim from a previous response\'s meta.next_cursor (newer entries) or meta.previous_cursor (older entries). Omit to get the most recent page.')
         },
         handler: async (args, { inject }) => {
             const params = new URLSearchParams()
@@ -131,7 +155,7 @@ module.exports = [
             Use this before calling platform_create_hosted_instance to make sure the name the user picked is not already taken.
             A name already in use is a normal answer, not a failure: it comes back as { available: false } with a reason,
             so treat only a genuine error envelope as something going wrong.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             name: z.string().regex(/^[a-zA-Z][a-zA-Z0-9-]*$/).describe('The hosted instance name to check')
         },
@@ -167,10 +191,10 @@ module.exports = [
             5. Call platform_check_hosted_instance_name_availability to make sure the chosen name is not already taken. This step is required, not optional - skipping it is the most common cause of a failed creation. If the name is taken, do not silently pick a new one yourself - propose a few alternative options (e.g. with a suffix) and let the user choose, then check that chosen name's availability too.
             When generating a name, always use hyphens to separate multiple words (e.g. "my-new-instance" not "my new instance").
             After the instance is created, wait a few seconds to give it time to boot up, then ask the user if they want to be taken to it. If they do, use the ui_navigate tool with the route name "instance-overview" and params { id: <the new instance id> }.`,
-        annotations: { readOnlyHint: false, destructiveHint: false },
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
         inputSchema: {
             name: z.string().regex(/^[a-zA-Z][a-zA-Z0-9-]*$/).describe('Name for the new hosted instance. When generating a name, always use hyphens to separate multiple words (e.g. "my-new-instance" not "my new instance").'),
-            applicationId: z.string().describe('The hashid of the application'),
+            applicationId,
             projectType: z.string().describe('The ID of the hosted instance type (use platform_list_hosted_instance_types to find valid values)'),
             stack: z.string().describe('The ID of the stack (use platform_list_hosted_instance_types to find valid values)'),
             template: z.string().describe('The ID of the template (use platform_list_templates to find valid values)'),
@@ -213,7 +237,7 @@ module.exports = [
             "protection" - the protected-instance configuration, which requires extra confirmation before destructive actions such as suspension or deletion (plan-gated: a team without it enabled gets a 404 for this section).
             "autoUpdateStack" - the auto-update stack (weekly restart) schedule, controlling the windows in which the platform may automatically restart the instance to apply a stack update (no plan gate: a 404 means the instance does not exist).
             Omit sections to return all three. Each section is reported independently as { statusCode, data }, where data holds that section's payload (an object for "ha" and "protection", an array of weekly restart windows for "autoUpdateStack"). One section being unavailable does not affect the others, and the call itself succeeds even when every section is unavailable - read each section's own statusCode rather than treating the whole call as failed.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             hostedInstanceId,
             sections: z.array(z.enum(['ha', 'protection', 'autoUpdateStack'])).optional().describe('Which configuration sections to return. Omit to return all sections.')
@@ -252,7 +276,7 @@ module.exports = [
             For that status, a 200 means the hostname is verified, a 410 means a hostname is set but its CNAME
             record does not resolve to the platform yet, and a 404 can mean no custom hostname is configured,
             the platform does not support hostname verification, or the feature is not enabled for the team.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             hostedInstanceId,
             includeStatus: z.boolean().optional().describe('If true, also fetch the live verification status of the custom hostname')
@@ -287,7 +311,7 @@ module.exports = [
             The result has a "files" array, where each entry has a "name" (relative to the path just listed, not a full path) and a "type" of either "file" or "directory".
             To descend into a directory, call again with path set to that directory's name, or joined onto the current path with a "/" separator when you are already in a subdirectory (for example "logs" then "logs/archive").
             Static file storage is a plan-gated feature: a team without it enabled gets a 404 error.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             hostedInstanceId,
             path: z.string().describe('Directory path within the instance file store to list, relative to the file-store root (empty string for the root itself). Build deeper paths by joining directory names with "/".')
@@ -310,7 +334,7 @@ module.exports = [
             This returns the stored usage history, not a live streaming feed.
             The whole retained history comes back in one response and cannot be paged or narrowed, so it can be long for a
             busy instance. Read the samples you need from the result rather than calling this repeatedly.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             hostedInstanceId
         },
@@ -325,7 +349,7 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Lists the hosted instances in a team that have the Node-RED dashboard module installed.
             Use this to find instances that expose a dashboard rather than checking every instance individually.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId
         },

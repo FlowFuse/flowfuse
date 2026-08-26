@@ -15,7 +15,7 @@ module.exports = [
             may attempt.
             Use this to resolve the current user's ID before calling tools that need a userId, such as listing browser sessions,
             and to check up front whether an action the user asked for is within the session's access.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {},
         handler: async (args, { inject, scope }) => {
             const response = await inject({ method: 'GET', url: '/api/v1/user' })

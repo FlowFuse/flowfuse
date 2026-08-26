@@ -14,7 +14,7 @@ module.exports = [
             limited, so a short or common query against a large team produces a very long result. Prefer a specific
             query, or platform_search_instances when you only need instances.
             To search only instances (hosted and remote), use platform_search_instances instead.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
             query: z.string().trim().min(1).describe('The search term')
@@ -32,7 +32,7 @@ module.exports = [
             Searches the hosted instances and remote instances (devices) of a team.
             Use this when the user wants to find an instance by name and you do not already have its ID.
             To search across all resource types (including applications), use platform_search_team_resources instead.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
             query: z.string().trim().min(1).describe('The search term')

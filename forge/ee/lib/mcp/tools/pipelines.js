@@ -1,6 +1,6 @@
 const { z } = require('zod')
 
-const { toolError } = require('../schemas')
+const { teamId, applicationId, toolError } = require('../schemas')
 
 module.exports = [
     {
@@ -14,10 +14,10 @@ module.exports = [
             Use this to discover which pipelines exist before inspecting a specific pipeline's stages.
             Every pipeline comes back with all of its stages inlined, and the listing cannot be paged or narrowed, so a
             team with many pipelines returns a long response. Scope to an applicationId when you can.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            teamId: z.string().optional().describe('List the pipelines in this team. Provide exactly one of teamId or applicationId.'),
-            applicationId: z.string().optional().describe('List the pipelines in this application. Provide exactly one of teamId or applicationId.')
+            teamId: teamId.optional().describe('List the pipelines in this team. Provide exactly one of teamId or applicationId.'),
+            applicationId: applicationId.optional().describe('List the pipelines in this application. Provide exactly one of teamId or applicationId.')
         },
         handler: async (args, { inject }) => {
             if (Boolean(args.teamId) === Boolean(args.applicationId)) {
@@ -39,7 +39,7 @@ module.exports = [
             targets (hosted instance, remote instance/device, device group, or git repository)
             and its snapshot action.
             Use this once you have a pipeline ID and a stage ID and need to inspect that stage.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             pipelineId: z.string().describe('Pipeline hashid the stage belongs to'),
             stageId: z.string().describe('Pipeline stage hashid to fetch')
