@@ -13,10 +13,6 @@ import { useProductExpertStore } from './product-expert.js'
 
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
 
-function flowfuseDeployment () {
-    return useAccountSettingsStore().settings?.['telemetry:anonymize'] === false ? 'cloud' : 'self-hosted'
-}
-
 export const useContextStore = defineStore('context', {
     state: () => ({
         route: null,
@@ -68,10 +64,10 @@ export const useContextStore = defineStore('context', {
                     debugLog: null,
                     userId: authStore.user?.id || null,
                     username: authStore.user?.username || null,
-                    deployment: flowfuseDeployment(),
+                    deployment: useAccountSettingsStore().featuresCheck?.deployment ?? 'self-hosted',
                     teamId: this.team?.id || null,
                     teamSlug: this.team?.slug || null,
-                    telemetryEnabled: useAccountSettingsStore().settings?.['telemetry:enabled'] === true,
+                    telemetryEnabled: useAccountSettingsStore().featuresCheck?.isTelemetryEnabled ?? false,
                     instanceId: null,
                     deviceId: null,
                     applicationId: null,
@@ -109,10 +105,10 @@ export const useContextStore = defineStore('context', {
                 debugLog: assistantStore.debugLog,
                 userId: authStore.user?.id || null,
                 username: authStore.user?.username || null,
-                deployment: flowfuseDeployment(),
+                deployment: useAccountSettingsStore().featuresCheck?.deployment ?? 'self-hosted',
                 teamId: this.team?.id || null,
                 teamSlug: this.team?.slug || null,
-                telemetryEnabled: useAccountSettingsStore().settings?.['telemetry:enabled'] === true,
+                telemetryEnabled: useAccountSettingsStore().featuresCheck?.isTelemetryEnabled ?? false,
                 instanceId: state.instance ? state.instance.id : null,
                 deviceId: state.device ? state.device.id : null,
                 applicationId: this.application ? this.application.id : null,
