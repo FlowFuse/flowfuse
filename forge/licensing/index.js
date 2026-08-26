@@ -83,6 +83,7 @@ module.exports = fp(async function (app, opts) {
         status: () => {
             return status()
         },
+        allowOverage,
         defaults: defaultLimits
     }
 
@@ -175,6 +176,22 @@ module.exports = fp(async function (app, opts) {
         return usage
     }
 
+    function allowOverage (resource) {
+        if (!activeLicense) {
+            // No overage if no license is applied
+            return false
+        } else if (activeLicense.tiers) {
+            // In general overage is permitted.
+            // However, if the license is hub only, then we should not allow overage for remote instances (devices) if the limit is 0.
+            // This prevents a hub-only license from being used to run a fleet of remote devices.
+            if (resource === 'devices' && (!activeLicense.tiers.includes('edge') || activeLicense.tiers.includes('fleet')) && licenseApi.get('devices') === 0) {
+                return false
+            }
+        }
+        // Otherwise, overage is permitted
+        return true
+    }
+
     async function reportUsage () {
         const { users, teams, devices, instances, mqttClients } = await usage()
         const logUse = (name, count, limit) => {
@@ -215,7 +232,7 @@ module.exports = fp(async function (app, opts) {
             app.log.info(` Expires      : ${activeLicense.expiresAt.toISOString()}`)
         }
         if (licenseApi.get('instances') === undefined) {
-            // pre 2.2 license that does not combine instance and device counts
+            // < 2.2 || >= 3.0  license that does not combine instance and device counts
             licenseModeCombinedInstances = false
         } else {
             licenseModeCombinedInstances = true
