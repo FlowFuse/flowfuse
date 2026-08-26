@@ -62,8 +62,8 @@ module.exports = fp(async function (app, opts) {
     require('./projectComms').init(app)
     require('./deviceEditor').init(app)
     require('./alerts').init(app)
-
-    if (app.license.get('tier') && (app.license.get('ver') === undefined || app.license.get('ver') === '2024-03-04')) {
+    if (app.license.get('tier') && (app.license.get('version') === '' || app.license.get('version') === '2024-03-04')) {
+        app.config.features.register('remoteInstances', true, true)
         if (app.license.get('tier') === 'enterprise') {
             await commonFeatures(app, opts)
             // HA
@@ -82,11 +82,14 @@ module.exports = fp(async function (app, opts) {
         } else {
             // old "Pro" license
         }
-    } else if (app.license.get('tiers') && app.license.get('ver') === '2026-08-20') {
+    } else if (app.license.get('tiers') && app.license.get('version') === '2026-08-20') {
         const tiers = app.license.get('tiers')
         await commonFeatures(app, opts)
 
-        if (tiers.include('hub')) {
+        if (tiers.includes('hub')) {
+            // `hub` does not include remote instances so we disable the feature flag for it
+            //  - it will get re-enabled below if the license also includes `edge` or `fleet`
+            app.config.features.register('remoteInstances', false, true)
             // HA
             require('./ha').init(app)
             // Protected Instances
@@ -95,7 +98,9 @@ module.exports = fp(async function (app, opts) {
             app.decorate('gitops', await require('./gitops').init(app))
             // Set the Bill of Materials Feature Flag
             app.config.features.register('bom', true, true)
-        } else if (tiers.includes('edge') || tiers.includes('fleet')) {
+        }
+        if (tiers.includes('edge') || tiers.includes('fleet')) {
+            app.config.features.register('remoteInstances', true, true)
             // Set the Device Groups Feature Flag
             app.config.features.register('deviceGroups', true, true)
             await require('./teamBroker').init(app)

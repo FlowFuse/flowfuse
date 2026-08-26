@@ -38,8 +38,7 @@ module.exports = async function (app) {
     await app.register(require('./flowBlueprints'), { prefix: '/api/v1/flow-blueprints', logLevel: app.config.logging.http })
 
     let enableSSO = false
-
-    if (app.license.get('tier') && (app.license.get('ver') === undefined || app.license.get('ver') === '2024-03-04')) {
+    if (app.license.get('tier') && (app.license.get('version') === '' || app.license.get('version') === '2024-03-04')) {
         if (app.license.get('tier') === 'enterprise') {
             await commonFeatures(app)
             await app.register(require('./teamBroker'), { prefix: '/api/v1/teams/:teamId/broker', logLevel: app.config.logging.http })
@@ -56,7 +55,7 @@ module.exports = async function (app) {
         } else {
             // old Pro license
         }
-    } else if (app.license.get('tiers') && app.license.get('ver') === '2026-08-20') {
+    } else if (app.license.get('tiers') && app.license.get('version') === '2026-08-20') {
         const tiers = app.license.get('tiers')
         await commonFeatures(app)
         enableSSO = true
@@ -68,7 +67,8 @@ module.exports = async function (app) {
             await app.register(require('./bom/application.js'), { prefix: '/api/v1/applications', logLevel: app.config.logging.http })
             await app.register(require('./bom/team.js'), { prefix: '/api/v1/teams', logLevel: app.config.logging.http })
             await app.register(require('./customHostnames'), { prefix: '/api/v1/projects/:projectId/customHostname', logLevel: app.config.logging.http })
-        } else if (tiers.includes('edge') || tiers.includes('fleet')) {
+        }
+        if (tiers.includes('edge') || tiers.includes('fleet')) {
             await app.register(require('./teamBroker'), { prefix: '/api/v1/teams/:teamId/broker', logLevel: app.config.logging.http })
             await app.register(require('./teamBroker/3rdPartyBroker'), { prefix: '/api/v1/teams/:teamId/brokers', logLevel: app.config.logging.http })
             await app.register(require('./applicationDeviceGroups'), { prefix: '/api/v1/applications/:applicationId/device-groups', logLevel: app.config.logging.http })
