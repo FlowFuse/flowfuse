@@ -66,7 +66,7 @@ describe('MCP Devices Tools', function () {
         it('calls the application devices endpoint when applicationId is given', async function () {
             inject.resolves({ statusCode: 200, json: () => ({ count: 0, devices: [] }) })
 
-            await tool.handler({ teamId: 'team1', applicationId: 'app1', query: 'edge', page: 2, limit: 5 }, { inject })
+            await tool.handler({ applicationId: 'app1', query: 'edge', page: 2, limit: 5 }, { inject })
 
             inject.firstCall.args[0].should.eql({
                 method: 'GET',
@@ -74,15 +74,32 @@ describe('MCP Devices Tools', function () {
             })
         })
 
-        it('calls the project devices endpoint when hostedInstanceId is given, taking priority over applicationId', async function () {
+        it('calls the project devices endpoint when hostedInstanceId is given', async function () {
             inject.resolves({ statusCode: 200, json: () => ({ count: 0, devices: [] }) })
 
-            await tool.handler({ teamId: 'team1', applicationId: 'app1', hostedInstanceId: 'instance1', limit: 10 }, { inject })
+            await tool.handler({ hostedInstanceId: 'instance1', limit: 10 }, { inject })
 
             inject.firstCall.args[0].should.eql({
                 method: 'GET',
                 url: '/api/v1/projects/instance1/devices?page=1&limit=10'
             })
+        })
+
+        it('rejects more than one scope rather than silently ignoring the unused ones', async function () {
+            const response = await tool.handler({ teamId: 'team1', applicationId: 'app1' }, { inject })
+
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+            response.json().error.should.match(/exactly one of teamId, applicationId or hostedInstanceId/)
+            inject.called.should.equal(false)
+        })
+
+        it('rejects a call with no scope at all', async function () {
+            const response = await tool.handler({ limit: 10 }, { inject })
+
+            response.statusCode.should.equal(400)
+            response.json().code.should.equal('invalid_request')
+            inject.called.should.equal(false)
         })
 
         it('filters by mode using the filters=mode:x query param, matching the dashboard', async function () {
@@ -146,7 +163,7 @@ describe('MCP Devices Tools', function () {
             const app = { db: { controllers: { Device: { getLiveCachedState } } } }
 
             const response = await tool.handler(
-                { teamId: 'team1', hostedInstanceId: 'a-project-uuid' },
+                { hostedInstanceId: 'a-project-uuid' },
                 { inject, app }
             )
 
@@ -182,6 +199,54 @@ describe('MCP Devices Tools', function () {
 
             const response = await tool.handler({ teamId: 'team1' }, { inject })
             response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_get_remote_instance_status', function () {
+        const tool = getTool('platform_get_remote_instance_status')
+
+        function buildApp (cachedState, sendCommandAwaitReply) {
+            return {
+                comms: { devices: { sendCommandAwaitReply } },
+                db: { controllers: { Device: { getLiveCachedState: sinon.stub().resolves(cachedState) } } }
+            }
+        }
+
+        it('wraps a cache hit in the same shape as the live reply', async function () {
+            // The cache holds the bare state string, so returning it as-is gave this tool two
+            // different success contracts depending on whether the cache happened to be warm.
+            const app = buildApp('running', sinon.stub())
+
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app })
+
+            response.should.eql({ state: 'running', health: null, snapshot: null, cached: true })
+        })
+
+        it('reports the live reply when the cache is cold', async function () {
+            const sendCommandAwaitReply = sinon.stub().resolves({ state: 'stopped', health: { ok: true }, snapshot: 'snap1' })
+            const app = buildApp(null, sendCommandAwaitReply)
+
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app })
+
+            response.should.eql({ state: 'stopped', health: { ok: true }, snapshot: 'snap1', cached: false })
+        })
+
+        it('reports an unreachable device as an error, not as a successful result', async function () {
+            const sendCommandAwaitReply = sinon.stub().rejects(new Error('timeout'))
+            const app = buildApp(null, sendCommandAwaitReply)
+
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app })
+
+            response.statusCode.should.equal(504)
+            response.json().code.should.equal('unexpected_error')
+            response.json().error.should.match(/not reachable/)
+        })
+
+        it('reports missing device comms as an error', async function () {
+            const response = await tool.handler({ teamId: 'team1', remoteInstanceId: 'device1' }, { app: { comms: {} } })
+
+            response.statusCode.should.equal(503)
+            response.json().code.should.equal('unexpected_error')
         })
     })
 })

@@ -17,7 +17,7 @@ module.exports = [
         title: 'List Team Databases',
         description: `FlowFuse platform automation tool:
             Lists the FlowFuse Tables databases for a team.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId: teamIdSchema
         },
@@ -41,7 +41,7 @@ module.exports = [
         title: 'Get Team Database',
         description: `FlowFuse platform automation tool:
             Gets a single FlowFuse Tables database for a team.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId: teamIdSchema,
             databaseId: databaseIdSchema
@@ -68,7 +68,7 @@ module.exports = [
             Lists the tables defined in a FlowFuse Tables database. The full list is returned; this endpoint does not paginate.
             Each entry includes the schema it lives in; if the same table name appears under more than one schema, pass that schema to platform_get_database_table or platform_query_database_table_data to pick the right one.
             Use platform_get_database_table to get the full schema of a single table, or platform_query_database_table_data to read row data.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId: teamIdSchema,
             databaseId: databaseIdSchema
@@ -93,7 +93,7 @@ module.exports = [
             Gets the schema definition of a single table in a FlowFuse Tables database (column names, types, and constraints).
             schemaName is required, since the same table name can exist in more than one schema; get it from platform_list_database_tables.
             Use platform_query_database_table_data to read row data instead.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId: teamIdSchema,
             databaseId: databaseIdSchema,
@@ -135,7 +135,7 @@ module.exports = [
             At most 10 rows are returned per call (the limit is capped at 10 by the platform).
             schemaName is required, since the same table name can exist in more than one schema; get it from platform_list_database_tables.
             Use platform_get_database_table first if you need to know the column names and types.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId: teamIdSchema,
             databaseId: databaseIdSchema,

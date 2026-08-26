@@ -15,7 +15,7 @@ module.exports = [
             The whole team is returned in one response with every dependency of every instance inlined, and it cannot be
             paged. For a large team this is a very long result - prefer platform_get_application_bill_of_materials when
             you only care about one application.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId
         },
@@ -34,7 +34,7 @@ module.exports = [
             The "state" on a remote instance (device) entry is its desired state, not whether it is currently online. A
             device set to run reports "running" here even while it is offline; call platform_get_remote_instance and read
             liveStatus to find out whether it is actually reachable.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             applicationId
         },

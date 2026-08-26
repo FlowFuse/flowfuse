@@ -182,26 +182,32 @@ class PlatformAutomationHandler {
                 }
 
                 const user = await this.app.db.models.User.byId(userId)
-                if (user) {
-                    // Third-party runs under the caller's PAT; Expert mints a token.
-                    const token = sessionToken || (await this.app.expert.mcp.getOrCreatePlatformToken(user)).token
-                    const inject = (opts) => {
-                        const nonce = this.app.nonceStore.createSourceNonce({ source, toolName })
-                        return this.app.inject({
-                            ...opts,
-                            headers: {
-                                ...opts.headers,
-                                authorization: `Bearer ${token}`,
-                                'x-ff-source-nonce': nonce
-                            }
-                        })
-                    }
-
-                    const { formatResponse } = require('../ee/lib/mcp/toolLoader')
-                    const args = applyInputDefaults(tool, data?.input || {})
-                    const response = await tool.handler(args, { inject, app: this.app, user, mcpSessionId, scope: callerScope })
-                    result = formatResponse(response)
+                if (!user) {
+                    // Without this, result stays {} and onSuccess fires - the caller sees a
+                    // successful call that silently did nothing.
+                    return onError(
+                        `No user found for userId: ${userId}`,
+                        'MCP_PLATFORM_USER_NOT_FOUND'
+                    )
                 }
+                // Third-party runs under the caller's PAT; Expert mints a token.
+                const token = sessionToken || (await this.app.expert.mcp.getOrCreatePlatformToken(user)).token
+                const inject = (opts) => {
+                    const nonce = this.app.nonceStore.createSourceNonce({ source, toolName })
+                    return this.app.inject({
+                        ...opts,
+                        headers: {
+                            ...opts.headers,
+                            authorization: `Bearer ${token}`,
+                            'x-ff-source-nonce': nonce
+                        }
+                    })
+                }
+
+                const { formatResponse } = require('../ee/lib/mcp/toolLoader')
+                const args = applyInputDefaults(tool, data?.input || {})
+                const response = await tool.handler(args, { inject, app: this.app, user, mcpSessionId, scope: callerScope })
+                result = formatResponse(response)
                 break
             }
             default:
