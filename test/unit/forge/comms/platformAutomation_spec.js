@@ -238,8 +238,32 @@ describe('PlatformAutomationHandler', function () {
                 meta: { toolDefinition: { annotations: tool.annotations } }
             })
 
+            // A missing comms stack is a real failure, so it must arrive as an error envelope.
+            // Returned as a bare { error } object it had no statusCode, so formatResponse
+            // passed it through as a successful result.
             res.ok.should.be.true()
-            res.result.should.have.property('error', 'Device communications not available')
+            res.result.should.have.property('isError', true)
+            res.result.should.have.property('code', 503)
+            res.result.content.code.should.equal('unexpected_error')
+            res.result.content.error.should.match(/Device communications are not available/)
+        })
+    })
+
+    describe('unknown user', function () {
+        it('errors instead of reporting a silent empty success', async function () {
+            const tool = handler.findTool('platform_get_active_user')
+
+            const res = await invokeToolCall({
+                userId: 'not-a-real-user-hashid',
+                toolName: 'platform_get_active_user',
+                meta: { toolDefinition: { annotations: tool.annotations } }
+            })
+
+            // The tool-call branch used to be wrapped in a bare `if (user)` with no else, so an
+            // unresolvable userId left result as {} and fired onSuccess - a call that appeared to
+            // succeed while doing nothing at all.
+            res.ok.should.be.false()
+            res.code.should.equal('MCP_PLATFORM_USER_NOT_FOUND')
         })
     })
 

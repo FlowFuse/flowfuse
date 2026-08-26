@@ -338,13 +338,114 @@ describe('MCP Instances Tools', function () {
             response.statusCode.should.equal(200)
         })
 
-        it('reports the failure status when every requested section failed', async function () {
+        it('keeps the per-section report readable when every requested section failed', async function () {
             inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/ha` }).resolves({ statusCode: 404, json: () => ({ code: 'not_found' }) })
             inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/protectInstance` }).resolves({ statusCode: 404, json: () => ({ code: 'not_found' }) })
 
             const response = await tool.handler({ hostedInstanceId: instanceId, sections: ['ha', 'protection'] }, { inject })
 
-            response.statusCode.should.equal(404)
+            // Each section already reports its own statusCode, so failing the envelope too only
+            // pushed the whole report through formatResponse's error branch, which stringifies it.
+            response.statusCode.should.equal(200)
+            response.json().ha.statusCode.should.equal(404)
+            response.json().protection.statusCode.should.equal(404)
+        })
+    })
+
+    describe('platform_check_hosted_instance_name_availability', function () {
+        const tool = getTool('platform_check_hosted_instance_name_availability')
+
+        it('reports a free name as available', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ available: true }) })
+
+            const response = await tool.handler({ name: 'a-free-name' }, { inject })
+
+            response.statusCode.should.equal(200)
+            response.json().available.should.equal(true)
+        })
+
+        it('reports a taken name as available: false rather than as an error', async function () {
+            // The route answers 409 for a name that is taken or disallowed. That is the answer
+            // this tool exists to give, so passing it back as an error envelope made a normal
+            // negative result indistinguishable from the tool malfunctioning.
+            inject.resolves({ statusCode: 409, json: () => ({ code: 'invalid_project_name', error: 'name in use' }) })
+
+            const response = await tool.handler({ name: 'ladida' }, { inject })
+
+            response.statusCode.should.equal(200)
+            response.json().should.eql({ available: false, reason: 'name in use' })
+        })
+
+        it('keeps the reason distinct for a disallowed name', async function () {
+            inject.resolves({ statusCode: 409, json: () => ({ code: 'invalid_project_name', error: 'name not allowed' }) })
+
+            const response = await tool.handler({ name: 'admin' }, { inject })
+
+            response.json().should.eql({ available: false, reason: 'name not allowed' })
+        })
+
+        it('still surfaces a genuine error', async function () {
+            const errorResponse = { statusCode: 400, json: () => ({ code: 'invalid_name', error: 'Invalid name' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ name: 'x' }, { inject })
+
+            response.should.equal(errorResponse)
+        })
+    })
+
+    describe('platform_create_hosted_instance', function () {
+        const tool = getTool('platform_create_hosted_instance')
+
+        it('blanks hidden template env values, as the read tools do', async function () {
+            // GET /projects/:id blanks these; the create route does not, so without this the
+            // same secrets platform_get_hosted_instance redacts came back here in plaintext.
+            inject.resolves({
+                statusCode: 200,
+                json: () => ({
+                    id: 'new-uuid',
+                    template: {
+                        settings: {
+                            env: [
+                                { name: 'SECRET', value: 'a-real-secret', hidden: true },
+                                { name: 'PUBLIC', value: 'visible', hidden: false },
+                                { name: 'NO_FLAG', value: 'also-visible' }
+                            ]
+                        }
+                    }
+                })
+            })
+
+            const response = await tool.handler({
+                name: 'inst', applicationId: 'app1', projectType: 'pt1', stack: 'st1', template: 'tm1'
+            }, { inject })
+
+            response.json().template.settings.env.should.eql([
+                { name: 'SECRET', value: '', hidden: true },
+                { name: 'PUBLIC', value: 'visible', hidden: false },
+                { name: 'NO_FLAG', value: 'also-visible' }
+            ])
+        })
+
+        it('does not fall over when the response carries no template env', async function () {
+            inject.resolves({ statusCode: 200, json: () => ({ id: 'new-uuid' }) })
+
+            const response = await tool.handler({
+                name: 'inst', applicationId: 'app1', projectType: 'pt1', stack: 'st1', template: 'tm1'
+            }, { inject })
+
+            response.json().should.eql({ id: 'new-uuid' })
+        })
+
+        it('passes an error response straight through', async function () {
+            const errorResponse = { statusCode: 409, json: () => ({ code: 'invalid_project_name', error: 'name in use' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({
+                name: 'inst', applicationId: 'app1', projectType: 'pt1', stack: 'st1', template: 'tm1'
+            }, { inject })
+
+            response.should.equal(errorResponse)
         })
     })
 
@@ -368,10 +469,38 @@ describe('MCP Instances Tools', function () {
             const response = await tool.handler({ hostedInstanceId: instanceId, includeStatus: true }, { inject })
 
             inject.calledTwice.should.be.true()
+            // Each part carries its own status, as get_hosted_instance_config does. Reporting the
+            // composed body under the first response's error status sent it down formatResponse's
+            // error branch, which stringified the whole thing into one unreadable `error` field.
+            response.statusCode.should.equal(200)
             response.json().should.eql({
-                hostname: { hostname: 'my.example.com' },
-                status: { code: 'not_verified' }
+                hostname: { statusCode: 200, data: { hostname: 'my.example.com' } },
+                status: { statusCode: 410, data: { code: 'not_verified' } }
             })
+        })
+
+        it('still reports both parts, as a success, when the hostname itself 404s', async function () {
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/customHostname` }).resolves({ statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) })
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/customHostname/status` }).resolves({ statusCode: 200, json: () => ({ verified: true }) })
+
+            const response = await tool.handler({ hostedInstanceId: instanceId, includeStatus: true }, { inject })
+
+            response.statusCode.should.equal(200)
+            response.json().hostname.statusCode.should.equal(404)
+            response.json().status.data.should.eql({ verified: true })
+        })
+
+        it('stays readable when both parts fail, which is the no-hostname-configured case', async function () {
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/customHostname` }).resolves({ statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) })
+            inject.withArgs({ method: 'GET', url: `/api/v1/projects/${instanceId}/customHostname/status` }).resolves({ statusCode: 404, json: () => ({ code: 'not_found', error: 'Not Found' }) })
+
+            const response = await tool.handler({ hostedInstanceId: instanceId, includeStatus: true }, { inject })
+
+            // An error status here would send the composed body down formatResponse's error
+            // branch and stringify the per-part report into one unreadable `error` field.
+            response.statusCode.should.equal(200)
+            response.json().hostname.statusCode.should.equal(404)
+            response.json().status.statusCode.should.equal(404)
         })
     })
 

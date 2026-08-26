@@ -105,7 +105,7 @@ module.exports = [
     {
         name: 'platform_get_template',
         title: 'Get Template',
-        description: 'Get a single template by id. Hidden environment variable values are blanked in the response; visible ones are returned as set.',
+        description: 'FlowFuse platform automation tool: Get a single template by id. Hidden environment variable values are blanked in the response; visible ones are returned as set.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             templateId: z.string().describe('Template hashid')
@@ -118,7 +118,7 @@ module.exports = [
     {
         name: 'platform_get_blueprint',
         title: 'Get Blueprint',
-        description: 'Get a single flow blueprint by id. By default the flow content is omitted from the response.',
+        description: 'FlowFuse platform automation tool: Get a single flow blueprint by id. By default the flow content is omitted from the response.',
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             flowBlueprintId: z.string().describe('Flow blueprint hashid'),
@@ -200,7 +200,7 @@ module.exports = [
                     sessions: [],
                     message: 'No active browser sessions found for this user. ' +
                         'Please let the user know they need to: ' +
-                        `1. Open the [FlowFuse platform](${baseUrl}) in their browser.` +
+                        `1. Open the [FlowFuse platform](${baseUrl}) in their browser. ` +
                         '2. Click the MCP toggle button (plug icon next to the Expert button in the header). ' +
                         'Once enabled, the browser tab will appear in this list. ' +
                         'Share these instructions with the user and retry once they confirm the toggle is on.'
@@ -294,6 +294,9 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Returns the browser tab currently pinned as the active target for platform_ui and flow_building tool calls,
             as set by platform_set_active_browser_session.
+            The capabilities array reports which browser-bound tool groups this tab can actually serve: a plain platform
+            page carries platform_ui but not flow_building, which needs a tab open on a Node-RED editor. Read it before
+            assuming a flow_building call will work.
             If none is set, or the pinned tab is no longer live, call platform_list_browser_sessions and
             platform_set_active_browser_session to pick one.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
@@ -312,7 +315,11 @@ module.exports = [
                 }
             }
 
-            return { activeSessionId: activeSession.sessionId, context: activeSession.context || null }
+            return {
+                activeSessionId: activeSession.sessionId,
+                capabilities: activeSession.capabilities || [],
+                context: activeSession.context || null
+            }
         }
     }
 ]

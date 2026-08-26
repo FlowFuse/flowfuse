@@ -10,6 +10,9 @@ module.exports = [
             Searches across a team's resources: applications, hosted instances, and remote instances (devices).
             Use this when the user wants to find something by name across the whole team, or when you have a name
             but not the ID of the resource you need.
+            Every match is returned in one response with full detail per entry, and the listing cannot be paged or
+            limited, so a short or common query against a large team produces a very long result. Prefer a specific
+            query, or platform_search_instances when you only need instances.
             To search only instances (hosted and remote), use platform_search_instances instead.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {

@@ -128,14 +128,30 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Checks if a name is available for a new hosted instance.
             Hosted instance names must be unique across the entire platform.
-            Use this before calling platform_create_hosted_instance to make sure the name the user picked is not already taken.`,
+            Use this before calling platform_create_hosted_instance to make sure the name the user picked is not already taken.
+            A name already in use is a normal answer, not a failure: it comes back as { available: false } with a reason,
+            so treat only a genuine error envelope as something going wrong.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             name: z.string().regex(/^[a-zA-Z][a-zA-Z0-9-]*$/).describe('The hosted instance name to check')
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'POST', url: '/api/v1/projects/check-name', payload: { name: args.name } })
-            return response
+            // A taken name is the answer this tool exists to give, so report it as
+            // available: false rather than passing the route's 409 back as an error.
+            if (response.statusCode === 409) {
+                return {
+                    statusCode: 200,
+                    json: () => ({ available: false, reason: response.json()?.error || 'name in use' })
+                }
+            }
+            if (response.statusCode >= 400) {
+                return response
+            }
+            return {
+                statusCode: 200,
+                json: () => ({ ...response.json(), available: true })
+            }
         }
     },
     {
@@ -172,7 +188,19 @@ module.exports = [
                 payload.flowBlueprintId = args.flowBlueprintId
             }
             const response = await inject({ method: 'POST', url: '/api/v1/projects', payload })
-            return response
+            if (response.statusCode >= 400) {
+                return response
+            }
+            // GET /projects/:id blanks hidden template env values before replying; the create
+            // route does not, so without this the same secrets that platform_get_hosted_instance
+            // and platform_get_template redact come back here in plaintext.
+            const project = response.json()
+            if (Array.isArray(project.template?.settings?.env)) {
+                project.template.settings.env = project.template.settings.env.map(
+                    (env) => (env?.hidden ? { ...env, value: '' } : env)
+                )
+            }
+            return { statusCode: response.statusCode, json: () => project }
         }
     },
     {
@@ -184,7 +212,7 @@ module.exports = [
             "ha" - the High Availability configuration, which runs an instance across multiple replicas so it stays up if one replica fails (plan-gated: a team without it enabled gets a 404 for this section).
             "protection" - the protected-instance configuration, which requires extra confirmation before destructive actions such as suspension or deletion (plan-gated: a team without it enabled gets a 404 for this section).
             "autoUpdateStack" - the auto-update stack (weekly restart) schedule, controlling the windows in which the platform may automatically restart the instance to apply a stack update (no plan gate: a 404 means the instance does not exist).
-            Omit sections to return all three. Each section is reported independently as { statusCode, data }, where data holds that section's payload (an object for "ha" and "protection", an array of weekly restart windows for "autoUpdateStack"). One section being unavailable does not affect the others.`,
+            Omit sections to return all three. Each section is reported independently as { statusCode, data }, where data holds that section's payload (an object for "ha" and "protection", an array of weekly restart windows for "autoUpdateStack"). One section being unavailable does not affect the others, and the call itself succeeds even when every section is unavailable - read each section's own statusCode rather than treating the whole call as failed.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             hostedInstanceId,
@@ -205,11 +233,10 @@ module.exports = [
                 const response = responses[index]
                 result[section] = { statusCode: response.statusCode, data: response.json() }
             })
-            const anySucceeded = requested.some((section) => result[section].statusCode < 400)
-            return {
-                statusCode: anySucceeded ? 200 : result[requested[0]].statusCode,
-                json: () => result
-            }
+            // Always a successful call, for the same reason as above: every section reports its
+            // own statusCode, so an error status on the envelope would only stringify the whole
+            // per-section report away - which is what happened when all requested sections 404'd.
+            return { statusCode: 200, json: () => result }
         }
     },
     {
@@ -220,6 +247,8 @@ module.exports = [
             Custom hostnames are a plan-gated feature: a team without it enabled gets a 404 error.
             Set includeStatus to also fetch the live verification status of the hostname, i.e. whether the DNS
             CNAME record has been set up correctly and points at the platform.
+            When includeStatus is set, the two parts are reported independently as { statusCode, data }, the same way
+            platform_get_hosted_instance_config reports its sections - one part failing does not hide the other.
             For that status, a 200 means the hostname is verified, a 410 means a hostname is set but its CNAME
             record does not resolve to the platform yet, and a 404 can mean no custom hostname is configured,
             the platform does not support hostname verification, or the feature is not enabled for the team.`,
@@ -234,10 +263,19 @@ module.exports = [
                 return hostnameResponse
             }
             const statusResponse = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/customHostname/status` })
-            return {
-                statusCode: hostnameResponse.statusCode,
-                json: () => ({ hostname: hostnameResponse.json(), status: statusResponse.json() })
+            // Report each part with its own status, as get_hosted_instance_config does. Keeping the
+            // first response's error status here would send this composed body down formatResponse's
+            // error branch, where it gets stringified into a single unreadable `error` field.
+            const result = {
+                hostname: { statusCode: hostnameResponse.statusCode, data: hostnameResponse.json() },
+                status: { statusCode: statusResponse.statusCode, data: statusResponse.json() }
             }
+            // Always a successful call: gathering the report worked, and each part carries its
+            // own statusCode to say how that part went. Returning an error status here instead
+            // sends this composed body down formatResponse's error branch, which stringifies the
+            // whole thing into one unreadable `error` field - including the ordinary "no custom
+            // hostname configured" case, where both parts are a 404.
+            return { statusCode: 200, json: () => result }
         }
     },
     {
@@ -264,6 +302,10 @@ module.exports = [
         title: 'Get Hosted Instance Resources',
         description: `FlowFuse platform automation tool:
             Reads recent resource usage (CPU, memory) for a hosted instance as a time-series: a list of samples over time, each with a timestamp, rather than a single current reading.
+            Each sample uses short keys: ts is the sample time (epoch milliseconds), ps is resident memory in megabytes,
+            cpu is CPU use as a percentage of one core, and src is a short hash of the reporting replica's hostname,
+            which is what separates the replicas of an HA instance. cpu is absent on the first sample after a start,
+            because it is derived from the delta against the previous sample.
             This is plan-gated on the instanceResources feature, which defaults to disabled; if the team's plan has this feature disabled, the call returns a not-found error.
             This returns the stored usage history, not a live streaming feed.
             The whole retained history comes back in one response and cannot be paged or narrowed, so it can be long for a

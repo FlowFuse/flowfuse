@@ -100,7 +100,9 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Lists the snapshots belonging to an application.
             A snapshot is a saved copy of an instance's flows, credentials and settings at a point in time.
-            Use this to see what snapshots are available for the hosted and remote instances inside an application.`,
+            Use this to see what snapshots are available for the hosted and remote instances inside an application.
+            count is the total number of snapshots in the application, not the number returned in this page - compare it
+            against the length of the snapshots array, and follow meta.next_cursor to page rather than trusting count.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             applicationId,

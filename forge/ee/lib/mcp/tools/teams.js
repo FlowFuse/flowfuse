@@ -6,6 +6,14 @@ const { teamId, basePagination, basePaginationKeys, searchQuery, searchQueryKeys
 // (single name or array) and username. scope narrows which entity levels are
 // returned; includeChildren pulls in descendant entries within the chosen scope.
 const includeChildren = z.boolean().optional().describe('Also include audit entries from child entities within the chosen scope')
+
+// Mirrors validStates in the /:teamId/instance-counts preHandler (forge/routes/api/team.js).
+// The route 400s on anything outside this list, so publishing it as an enum is the only way a
+// caller can discover the vocabulary - and it is deliberately NOT the high-level state groups
+// that platform_list_hosted_instances accepts. Keep the two in step.
+const INSTANCE_STATES = ['starting', 'stopping', 'restarting', 'suspending', 'rollback', 'importing',
+    'error', 'crashed', 'stopped', 'suspended', 'warning', 'connected', 'info', 'success', 'pushing', 'pulling',
+    'loading', 'installing', 'safe', 'protected', 'running', '']
 const auditLogInput = { ...basePagination, ...searchQuery, ...auditLogFilters }
 const auditLogKeys = [...basePaginationKeys, ...searchQueryKeys, ...auditLogFilterKeys]
 
@@ -54,12 +62,15 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Counts a team's instances of the given type, optionally narrowed by state and application.
             instanceType is required: use "hosted" for hosted instances or "remote" for remote instances (devices).
-            Use this for quick totals instead of listing and counting every instance yourself.`,
+            Use this for quick totals instead of listing and counting every instance yourself.
+            Note that state here takes raw runtime states, NOT the high-level groups platform_list_hosted_instances
+            uses. "running", "error" and "notRunning" are group names understood only by that tool; passing them here
+            is rejected. Use the individual states from this tool's own enum instead.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
             teamId,
             instanceType: z.enum(['remote', 'hosted']).describe('Instance type to count'),
-            state: z.array(z.string()).optional().describe('Optional list of instance states to filter the counts by (defaults to empty)'),
+            state: z.array(z.enum(INSTANCE_STATES)).optional().describe('Optional list of raw instance states to filter the counts by (defaults to all). These are individual runtime states, not the "running"/"error"/"notRunning" groups used by platform_list_hosted_instances.'),
             applicationId: z.string().optional().describe('Application hashid to scope the counts to a single application')
         },
         handler: async (args, { inject }) => {
