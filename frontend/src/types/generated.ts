@@ -3565,6 +3565,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
+                            meta?: components["schemas"]["PaginationMeta"];
                             count?: number;
                             snapshots?: components["schemas"]["Snapshot"][];
                             application?: components["schemas"]["ApplicationSummary"];
