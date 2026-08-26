@@ -1,5 +1,9 @@
 const { randomUUID } = require('node:crypto')
 
+// Maps mcpSessionId to the third-party caller's PAT, consumed by the comms layer.
+const MCP_SESSION_TOKEN_CACHE = 'mcp-session-token'
+const MCP_SESSION_TOKEN_CACHE_TTL = 1000 * 60 * 60 // 1 hour
+
 /**
  * MCP Platform Tools Server
  *
@@ -82,6 +86,12 @@ module.exports = async function (app) {
         }
 
         const mcpSessionId = request.headers['mcp-session-id'] || randomUUID()
+        const authHeader = request.headers.authorization || ''
+        const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : null
+        if (token) {
+            const cache = app.caches?.getCache?.(MCP_SESSION_TOKEN_CACHE, { ttl: MCP_SESSION_TOKEN_CACHE_TTL, max: 10000 })
+            await cache?.set(mcpSessionId, token)
+        }
         const route = {
             userId: caller.userId,
             mcpSessionId
