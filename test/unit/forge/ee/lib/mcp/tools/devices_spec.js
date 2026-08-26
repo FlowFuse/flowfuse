@@ -128,4 +128,26 @@ describe('MCP Devices Tools', function () {
             response.should.equal(errorResponse)
         })
     })
+
+    describe('platform_list_team_provisioning_tokens', function () {
+        const tool = getTool('platform_list_team_provisioning_tokens')
+
+        it('injects the provisioning-tokens route and returns the response', async function () {
+            const routeResponse = { statusCode: 200, json: () => ({ meta: {}, count: 0, tokens: [] }) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/teams/team1/devices/provisioning' }).resolves(routeResponse)
+
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
+
+            inject.calledOnce.should.be.true()
+            response.should.equal(routeResponse)
+        })
+
+        it('passes through an error response', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.resolves(errorResponse)
+
+            const response = await tool.handler({ teamId: 'team1' }, { inject })
+            response.should.equal(errorResponse)
+        })
+    })
 })

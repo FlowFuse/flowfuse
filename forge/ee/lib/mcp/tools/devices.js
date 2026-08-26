@@ -1,5 +1,7 @@
 const { z } = require('zod')
 
+const { teamId } = require('../schemas')
+
 module.exports = [
     {
         name: 'platform_list_remote_instances',
@@ -187,6 +189,21 @@ module.exports = [
         },
         handler: async (args, { inject }) => {
             const response = await inject({ method: 'PUT', url: `/api/v1/devices/${args.remoteInstanceId}`, payload: { application: args.applicationId } })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_provisioning_tokens',
+        title: 'List Team Provisioning Tokens',
+        description: `FlowFuse platform automation tool:
+            Lists a team's device provisioning tokens. This summary view omits the token secret.
+            Use this to see what provisioning tokens exist for a team without exposing their secrets.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/devices/provisioning` })
             return response
         }
     }
