@@ -102,22 +102,47 @@ module.exports = async function (app) {
             toolGroups: ['platform', 'platform_ui', 'flow_building']
         }
 
+        // Attribution the gateway can't derive from the topic, sent as MQTT user properties.
+        // telemetryEnabled gates emission; patId is the PAT hashid so no raw token travels.
+        const telemetryEnabled = app.license.active() || (app.config.telemetry.enabled !== false && app.settings.get('telemetry:enabled') !== false)
+        const userProperties = {
+            telemetryEnabled: telemetryEnabled ? 'true' : 'false'
+        }
+        // The PAT's owning user, used as the telemetry identity so 3rd-party usage attributes to
+        // the same person the platform already identifies on the frontend.
+        if (request.session.User?.username) {
+            userProperties.username = request.session.User.username
+        }
+        userProperties.deployment = app.settings.get('telemetry:anonymize') === false ? 'cloud' : 'self-hosted'
+        const patId = request.session.pat?.id
+        if (patId !== undefined && patId !== null) {
+            userProperties.patId = app.db.models.AccessToken.encodeHashid(patId)
+        }
+
         // Let the gateway know which browser tab (if any) this MCP connection has pinned as its
         // target, so platform_ui/flow_building tool calls don't need an explicit session id.
-        let userProperties
         if (app.db.controllers.BrowserSession) {
             const activeBrowserSession = await app.db.controllers.BrowserSession.getActiveBrowserSession(caller.userId, mcpSessionId)
             request.log.info(`MCP ingress: userId=${caller.userId} mcpSessionId=${mcpSessionId} -> activeBrowserSession=${activeBrowserSession ? activeBrowserSession.sessionId : 'null'}`)
             if (activeBrowserSession) {
-                userProperties = { activeBrowserSessionId: activeBrowserSession.sessionId }
-                const topicParts = activeBrowserSession.context?.topicParts
+                userProperties.activeBrowserSessionId = activeBrowserSession.sessionId
+                const context = activeBrowserSession.context
+                const topicParts = context?.topicParts
                 if (topicParts?.entityType) {
                     userProperties.entityType = topicParts.entityType
                 }
                 if (topicParts?.entityId) {
                     userProperties.entityId = topicParts.entityId
                 }
+                if (context?.teamId) {
+                    userProperties.teamId = context.teamId
+                }
             }
+        }
+
+        // A single-team PAT pins the action there when no tab named a team; multi-team tokens stay unattributed.
+        if (!userProperties.teamId && caller.scope.teams.length === 1) {
+            userProperties.teamId = caller.scope.teams[0]
         }
 
         try {
