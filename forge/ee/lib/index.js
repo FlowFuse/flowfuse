@@ -96,7 +96,6 @@ module.exports = fp(async function (app, opts) {
             // Set the Bill of Materials Feature Flag
             app.config.features.register('bom', true, true)
         } else if (tiers.includes('edge') || tiers.includes('fleet')) {
-            await commonFeatures(app, opts)
             // Set the Device Groups Feature Flag
             app.config.features.register('deviceGroups', true, true)
             await require('./teamBroker').init(app)
