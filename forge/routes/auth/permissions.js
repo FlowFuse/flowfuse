@@ -91,6 +91,23 @@ module.exports = fp(async function (app, opts) {
             throw new Error(`Unrecognised scope requested: '${scope}'`)
         }
         return async (request, reply) => {
+            // Third-party MCP callers may only act on teams with the AI feature
+            // enabled. The team comes from whatever the route already resolved
+            // (directly, or via an application, instance, or device), never from
+            // the tool arguments; a request with no team context is not gated.
+            if (requestContext.get('sourceContext')?.source === 'mcp') {
+                const loadedTeam = request.team || request.application?.Team || request.project?.Team || request.device?.Team
+                const teamId = loadedTeam?.id ?? request.teamMembership?.TeamId
+                if (teamId !== undefined && teamId !== null) {
+                    // getFeatureProperty falls back to the team type, so ensure the
+                    // type is loaded, re-fetching only when it isn't already.
+                    const team = loadedTeam?.TeamType ? loadedTeam : await app.db.models.Team.byId(teamId)
+                    if (team && !team.getFeatureProperty('ai', true)) {
+                        reply.code(403).send({ code: 'unauthorized', error: 'AI features are disabled for this team' })
+                        throw new Error()
+                    }
+                }
+            }
             if (!request.session.scope && request.session.User && request.session.User.admin) {
                 // Admins get to have all the fun - as long as they are logged in and not
                 // using an access-token which has a reduced scope.
