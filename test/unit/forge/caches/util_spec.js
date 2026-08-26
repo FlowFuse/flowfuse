@@ -1,4 +1,4 @@
-const should = require('should') // eslint-disable-line
+const should = require('should')
 
 const { assertStringKey, assertStringPattern, escapeGlob, globToRegExp } = require('../../../../forge/caches/util.js')
 
