@@ -20,6 +20,8 @@ is controlled by your agent, not by FlowFuse.
 
 ## Connect your agent
 
+Any MCP client that speaks HTTP can connect. That is the only requirement.
+
 1. **Add the FlowFuse MCP address in your agent's connector settings.** See
    [where to add it, per agent](#where-to-add-it-per-agent) if you are not sure where yours
    lives.
@@ -37,12 +39,15 @@ is controlled by your agent, not by FlowFuse.
    ```
 
 2. **Sign in.** FlowFuse uses OAuth, so your agent sends you to a FlowFuse login page to
-   authenticate, in the same way as any other application you sign in to.
+   authenticate, in the same way as any other application you sign in to. If your client asks
+   for an OAuth client ID or secret, leave them blank. FlowFuse registers your client for you.
 
 3. **Choose what the agent may do.** As part of signing in you decide which teams the agent
    may act on, and whether it has editing rights or read access only.
 
-Your agent can now work your platform.
+Your agent can now work your platform. Signing in is the intended route. A few clients cannot
+do it and take a token in a header instead, which is covered in
+[connecting a client that cannot sign in](#connecting-a-client-that-cannot-sign-in).
 
 ## What your agent can do, and what you grant
 
@@ -59,8 +64,13 @@ also see which instance types, templates and blueprints your team has available.
 register remote instances and assign them to applications, take snapshots, and build and edit
 flows.
 
-An agent with read access has no ability to change anything. FlowFuse Tables is read-only for
-agents either way, so an agent can query your data to answer a question but not write to it.
+An agent with read access has no ability to change anything.
+
+FlowFuse Tables is read-only through the platform tools, for the time being, so an agent can
+query your data to answer a question but not write to it directly. A flow is a different
+route. An agent with editing rights can build a flow containing a
+[Query Node](/docs/user/ff-tables/#query-nodes), and that flow writes to your tables like any
+other flow you would have written yourself.
 
 ### Deleting, and deploying
 
@@ -75,7 +85,9 @@ production setups and in setups where experimentation is permitted, so expect th
 
 Asking about your platform needs nothing open. Editing flows happens in a live Node-RED
 editor, so that you can see the work as it happens on the canvas rather than receiving a
-result you have to go and check.
+result you have to go and check. Working in the running editor also means the agent gets
+Node-RED's own validation back as it goes, so it catches and corrects its own mistakes rather
+than handing you a flow that will not load.
 
 When you ask for flow work, your agent will guide you to connect an editor session. In the
 platform header there is a control for indicating which of your current browser sessions the
@@ -84,6 +96,9 @@ the session, or closing the tab, ends the agent's access to your editor. Switchi
 ends it.
 
 ## Where to add it, per agent
+
+The agents below are the common ones and where their settings live. Anything else that speaks
+MCP over HTTP connects in the same way.
 
 ### Microsoft Copilot
 
@@ -116,8 +131,8 @@ each person connects and signs in individually.
 ### Command-line and editor agents
 
 Claude Code, Cursor, Visual Studio Code and Gemini CLI all connect to the same address. Where
-a client offers a sign-in flow, use it. Where a client only accepts a header, use
-[an access token](#authenticating-with-an-access-token) instead.
+a client offers a sign-in flow, use it. Where it does not, see
+[connecting a client that cannot sign in](#connecting-a-client-that-cannot-sign-in).
 
 For Claude Code:
 
@@ -127,19 +142,24 @@ claude mcp add --transport http flowfuse https://app.flowfuse.com/mcp
 
 ### Local and self-hosted models
 
-Use any MCP-capable client, such as LM Studio, LibreChat or Open WebUI, pointed at your own
-model, and add the FlowFuse address as a server in that client's configuration. Note that
-Ollama is a model runtime rather than an agent, so it needs an MCP-capable client in front of
-it.
+Use any HTTP-capable MCP client, such as LM Studio, LibreChat or Open WebUI, pointed at your
+own model, and add the FlowFuse address as a server in that client's configuration. Note that
+Ollama is a model runtime rather than an agent, so it needs an MCP client in front of it.
 
-## Authenticating with an access token
+## Connecting a client that cannot sign in
 
-Some clients authenticate with a token in a header rather than signing in. This is a property
-of the client, not of the kind of agent: both routes reach the same FlowFuse.
+Signing in is the intended route, and the one to use wherever your client supports it. A few
+clients do not: they take a token in a header instead, or their configuration file only
+accepts a local command rather than an address. This is a property of the client, not of the
+kind of agent, and both routes reach the same FlowFuse with the same enforcement.
 
 Create a [Personal Access Token](/docs/user/user-settings/#personal-access-tokens) and
 [scope it](/docs/user/user-settings/#scoping-a-token) the same way you would when signing in.
-Then send it as a bearer token:
+Scope it to the team you want the agent working in rather than to everything you can reach.
+
+### Clients that take a header
+
+Claude Code, Cursor and Visual Studio Code take the address and the header directly:
 
 ```json
 {
@@ -175,18 +195,55 @@ For Visual Studio Code, prompt for the token rather than committing it to the re
 }
 ```
 
+### Clients whose configuration file takes a local command
+
+Claude Desktop is the common one. Its configuration file accepts a command to run rather than
+an address to call, so the connection goes through `mcp-remote`, which talks to FlowFuse over
+HTTP on the client's behalf. Add this alongside whatever the file already contains:
+
+```json
+{
+  "mcpServers": {
+    "flowfuse": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://app.flowfuse.com/mcp",
+        "--header",
+        "Authorization:${AUTH_HEADER}"
+      ],
+      "env": {
+        "AUTH_HEADER": "Bearer <your-token>"
+      }
+    }
+  }
+}
+```
+
+The token sits in `env` and the header argument has no space in it on purpose. Some clients do
+not escape spaces when they launch the command, which mangles the value if you write
+`Bearer <your-token>` into `args` directly.
+
+The file lives at `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS,
+and `%APPDATA%\Claude\claude_desktop_config.json` on Windows.
+
 ## Approvals and audit
 
 FlowFuse tools carry their recommended usage and permissions, so a connected agent knows what
-each one is for before it calls it. Whether your agent then asks you to confirm is up to that
-agent, and it differs between them. FlowFuse Expert's own approval cards are a first-party
-feature and do not apply here.
+each one is for before it calls it. Most MCP clients then ask you to confirm before they run a
+tool. That prompt belongs to the client rather than to FlowFuse, so how it looks, and whether
+you can turn it off, differs between them. FlowFuse Expert's own approval cards are a
+first-party feature and do not apply here.
 
-What is always enforced by FlowFuse is what you granted, whether that came from signing in or
-from the scope on an access token.
+What FlowFuse enforces on every call is what you granted: the teams, and read access or
+editing rights. That is the granularity. It is a boundary around what an agent can reach
+rather than a per-tool allow list, and it applies the same way whether the grant came from
+signing in or from the scope on an access token.
 
 Actions an agent takes appear in the
-[audit log](/docs/user/logs/#ai-agents-and-api-activity), attributed to your account.
+[audit log](/docs/user/logs/#ai-agents-and-api-activity), attributed to your account and
+marked as having come from a connected agent.
 
 ## If something is not working
 
