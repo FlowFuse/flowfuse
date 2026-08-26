@@ -1,5 +1,7 @@
 const { z } = require('zod')
 
+const { teamId, applicationId, hostedInstanceId, searchQuery, sortParams } = require('../schemas')
+
 // Mirrors the runningStates/errorStates/stoppedStates groups in frontend/src/composables/InstanceStates.js,
 // the same grouping the dashboard's own Running/Error/Not Running status filter uses (frontend/src/pages/team/Instances.vue).
 const STATE_GROUPS = {
@@ -19,25 +21,55 @@ module.exports = [
         description: `FlowFuse platform automation tool:
             Lists hosted instances, either across a whole team or narrowed down to one application.
             A hosted instance is a Node-RED that runs on the same environment as the FlowFuse platform.
-            Pass applicationId to list only the instances inside one application (unpaginated, no live status unless includeLiveStatus is set).
-            Omit applicationId to list every hosted instance in the team (paginated with page/limit, each result includes its instance type, stack, and template).
+            Provide exactly one scope: applicationId to list the instances inside one application (unpaginated, no live status unless includeLiveStatus is set), or teamId to list every hosted instance in the team (paginated with page/limit, each result includes its instance type, stack, and template). Passing both, or neither, is rejected.
             Use state to filter by high-level status group ("running", "error", or "notRunning", the same groups as the dashboard's Running/Error/Not Running filter).
             Set includeLiveStatus to true to also fetch each instance's real-time running state (running, stopped, deploying, etc) - this is slower since it queries the underlying containers, so only set it when the user actually needs to know what's happening right now.
             To read the full settings of one specific instance, call platform_get_hosted_instance with its ID.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
         inputSchema: {
-            teamId: z.string().describe('The ID or hashid of the team'),
-            applicationId: z.string().optional().describe('Restrict results to hosted instances inside this application. Omit to list every hosted instance in the team.'),
-            query: z.string().optional().describe('Search hosted instances by name'),
+            teamId: teamId.optional().describe('List every hosted instance in this team. Provide either this or applicationId, not both.'),
+            applicationId: applicationId.optional().describe('List only the hosted instances inside this application. Provide either this or teamId, not both.'),
+            query: searchQuery.query.describe('Search hosted instances by name'),
             state: z.array(z.enum(['running', 'error', 'notRunning'])).optional()
                 .describe('Filter by high-level status group, matching the dashboard\'s own status filter: "running" (includes starting/warning/deploying-type states), "error" (error/crashed), "notRunning" (stopped/suspended/offline/unknown, i.e. "Not Running" in the dashboard - note this is broader than just the "stopped" state). Team-wide, this filters on the last-known cached state. Scoped to an application, this requires a live status fetch, so it is applied after fetching (implies includeLiveStatus).'),
             includeLiveStatus: z.boolean().optional()
                 .describe('If true, also fetch each instance\'s real-time running state. Slower than filtering by state, since it queries every matching instance\'s container.'),
             page: z.number().min(1).default(1).optional().describe('Page number to fetch (1-based). Ignored when applicationId is set, since that listing is not paginated.'),
-            limit: z.number().min(1).max(10).default(10).describe('How many results to return per page. Ignored when applicationId is set.')
+            limit: z.number().min(1).max(10).default(10).describe('How many results to return per page. Ignored when applicationId is set.'),
+            sort: z.enum(['name', 'createdAt', 'updatedAt', 'application.name', 'flowLastUpdatedAt']).optional().describe('Field to sort the team-wide instance list by (ignored when applicationId is set). The "flowLastUpdatedAt" option additionally requires includeLiveStatus to be set; without it the list falls back to its default order.'),
+            dir: sortParams.dir,
+            orderByMostRecentFlows: z.boolean().optional().describe('Order the team-wide list by most recently updated flows (ignored when applicationId is set, and only applied when includeLiveStatus is also set)')
         },
         handler: async (args, { inject }) => {
+            if (args.teamId && args.applicationId) {
+                return {
+                    statusCode: 400,
+                    json: () => ({
+                        code: 'invalid_request',
+                        error: 'Provide either teamId to list a whole team or applicationId to list a single application, not both.'
+                    })
+                }
+            }
+            if (!args.teamId && !args.applicationId) {
+                return {
+                    statusCode: 400,
+                    json: () => ({
+                        code: 'invalid_request',
+                        error: 'Provide teamId to list a whole team, or applicationId to list a single application.'
+                    })
+                }
+            }
             if (args.applicationId) {
+                const teamOnly = ['sort', 'dir', 'orderByMostRecentFlows'].filter((key) => args[key] !== undefined)
+                if (teamOnly.length > 0) {
+                    return {
+                        statusCode: 400,
+                        json: () => ({
+                            code: 'invalid_request',
+                            error: `${teamOnly.join(', ')} can only be used when listing across a whole team. Drop applicationId to sort the team-wide list, or remove these parameters to list this application.`
+                        })
+                    }
+                }
                 return listApplicationHostedInstances(args, { inject })
             }
             return listTeamHostedInstances(args, { inject })
@@ -160,6 +192,121 @@ module.exports = [
             const response = await inject({ method: 'POST', url: '/api/v1/projects', payload })
             return response
         }
+    },
+    {
+        name: 'platform_get_hosted_instance_config',
+        title: 'Get Hosted Instance Configuration',
+        description: `FlowFuse platform automation tool:
+            Returns configuration sections for a hosted instance, as a keyed object with one entry per requested section.
+            The available sections are:
+            "ha" - the High Availability configuration, which runs an instance across multiple replicas so it stays up if one replica fails (plan-gated: a team without it enabled gets a 404 for this section).
+            "protection" - the protected-instance configuration, which requires extra confirmation before destructive actions such as suspension or deletion (plan-gated: a team without it enabled gets a 404 for this section).
+            "autoUpdateStack" - the auto-update stack (weekly restart) schedule, controlling the windows in which the platform may automatically restart the instance to apply a stack update (no plan gate: a 404 means the instance does not exist).
+            Omit sections to return all three. Each section is reported independently as { statusCode, data }, where data holds that section's payload (an object for "ha" and "protection", an array of weekly restart windows for "autoUpdateStack"). One section being unavailable does not affect the others.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId,
+            sections: z.array(z.enum(['ha', 'protection', 'autoUpdateStack'])).optional().describe('Which configuration sections to return. Omit to return all sections.')
+        },
+        handler: async (args, { inject }) => {
+            const sectionRoutes = {
+                ha: 'ha',
+                protection: 'protectInstance',
+                autoUpdateStack: 'autoUpdateStack'
+            }
+            const requested = args.sections?.length ? args.sections : ['ha', 'protection', 'autoUpdateStack']
+            const responses = await Promise.all(
+                requested.map((section) => inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/${sectionRoutes[section]}` }))
+            )
+            const result = {}
+            requested.forEach((section, index) => {
+                const response = responses[index]
+                result[section] = { statusCode: response.statusCode, data: response.json() }
+            })
+            const anySucceeded = requested.some((section) => result[section].statusCode < 400)
+            return {
+                statusCode: anySucceeded ? 200 : result[requested[0]].statusCode,
+                json: () => result
+            }
+        }
+    },
+    {
+        name: 'platform_get_hosted_instance_custom_hostname',
+        title: 'Get Hosted Instance Custom Hostname',
+        description: `FlowFuse platform automation tool:
+            Returns the custom hostname configured for a hosted instance.
+            Custom hostnames are a plan-gated feature: a team without it enabled gets a 404 error.
+            Set includeStatus to also fetch the live verification status of the hostname, i.e. whether the DNS
+            CNAME record has been set up correctly and points at the platform.
+            For that status, a 200 means the hostname is verified, a 410 means a hostname is set but its CNAME
+            record does not resolve to the platform yet, and a 404 can mean no custom hostname is configured,
+            the platform does not support hostname verification, or the feature is not enabled for the team.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId,
+            includeStatus: z.boolean().optional().describe('If true, also fetch the live verification status of the custom hostname')
+        },
+        handler: async (args, { inject }) => {
+            const hostnameResponse = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/customHostname` })
+            if (!args.includeStatus) {
+                return hostnameResponse
+            }
+            const statusResponse = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/customHostname/status` })
+            return {
+                statusCode: hostnameResponse.statusCode,
+                json: () => ({ hostname: hostnameResponse.json(), status: statusResponse.json() })
+            }
+        }
+    },
+    {
+        name: 'platform_list_hosted_instance_files',
+        title: 'List Hosted Instance Files',
+        description: `FlowFuse platform automation tool:
+            Lists the files and directories inside a hosted instance's file store at the given path.
+            Pass an empty string for the path to list the root of the file store.
+            The result has a "files" array, where each entry has a "name" (relative to the path just listed, not a full path) and a "type" of either "file" or "directory".
+            To descend into a directory, call again with path set to that directory's name, or joined onto the current path with a "/" separator when you are already in a subdirectory (for example "logs" then "logs/archive").
+            Static file storage is a plan-gated feature: a team without it enabled gets a 404 error.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId,
+            path: z.string().describe('Directory path within the instance file store to list, relative to the file-store root (empty string for the root itself). Build deeper paths by joining directory names with "/".')
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/files/_/${encodeURIComponent(args.path)}` })
+            return response
+        }
+    },
+    {
+        name: 'platform_get_hosted_instance_resources',
+        title: 'Get Hosted Instance Resources',
+        description: `FlowFuse platform automation tool:
+            Reads recent resource usage (CPU, memory) for a hosted instance as a time-series: a list of samples over time, each with a timestamp, rather than a single current reading.
+            This is plan-gated on the instanceResources feature, which defaults to disabled; if the team's plan has this feature disabled, the call returns a not-found error.
+            This returns the stored usage history, not a live streaming feed.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            hostedInstanceId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}/resources` })
+            return response
+        }
+    },
+    {
+        name: 'platform_list_team_dashboard_instances',
+        title: 'List Team Dashboard Instances',
+        description: `FlowFuse platform automation tool:
+            Lists the hosted instances in a team that have the Node-RED dashboard module installed.
+            Use this to find instances that expose a dashboard rather than checking every instance individually.`,
+        annotations: { readOnlyHint: true, destructiveHint: false },
+        inputSchema: {
+            teamId
+        },
+        handler: async (args, { inject }) => {
+            const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/dashboard-instances` })
+            return response
+        }
     }
 ]
 
@@ -216,6 +363,15 @@ async function listTeamHostedInstances (args, { inject }) {
     }
     if (args.includeLiveStatus) {
         params.set('includeMeta', 'true')
+    }
+    if (args.sort) {
+        params.set('sort', args.sort)
+    }
+    if (args.dir) {
+        params.set('dir', args.dir)
+    }
+    if (args.orderByMostRecentFlows) {
+        params.set('orderByMostRecentFlows', 'true')
     }
 
     const response = await inject({ method: 'GET', url: `/api/v1/teams/${args.teamId}/projects?${params}` })
