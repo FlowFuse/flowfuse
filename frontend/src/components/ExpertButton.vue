@@ -61,9 +61,16 @@ export default {
         }
     },
     watch: {
-        team () {
-            if (this.mcpActive) {
-                this.stopMcp()
+        async team () {
+            if (!this.mcpActive) {
+                return
+            }
+            // Straight to the store action rather than stopMcp(), which announces the close
+            // itself - that generic notice plus the specific one below is the same event
+            // reported twice. A team switch is the more useful of the two, so it wins.
+            // Only the call that actually closed the session speaks, so the header's second
+            // toggle cannot report the same switch again.
+            if (await this.disableMcp()) {
                 alerts.emit('MCP session closed due to team switch.', 'info')
             }
         }
@@ -97,9 +104,10 @@ export default {
             this.enableMcp(this.team)
             alerts.emit('MCP session exposed. Third-party agents can now target this tab.', 'confirmation')
         },
-        stopMcp () {
-            this.disableMcp()
-            alerts.emit('MCP session closed.', 'info')
+        async stopMcp () {
+            if (await this.disableMcp()) {
+                alerts.emit('MCP session closed.', 'info')
+            }
         }
     }
 }

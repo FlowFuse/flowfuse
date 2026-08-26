@@ -31,7 +31,8 @@ class AutomationsService extends BaseService implements AutomationsServiceI {
             title: tool.title,
             description: tool.description,
             annotations: tool.annotations,
-            inputSchema: tool.inputSchema
+            inputSchema: tool.inputSchema,
+            _meta: tool._meta
         }))
     }
 

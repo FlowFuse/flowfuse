@@ -1760,5 +1760,84 @@ describe('Broker Auth v2 API', async function () {
                 }
             })
         })
+
+        describe('MCP gateway channel (forge_platform)', async function () {
+            // checkMcpTopic verifier coverage - the platform proxying third-party MCP
+            // requests to the central gateway over ff/v1/mcp/... topics
+            const MCP_SESSION = '7d292be0-d561-41c7-afc9-280a3c914284'
+            // A valid replica id that is not this instance's own app.comms.id - in a
+            // multi-replica deployment the ACL check can be served by any replica
+            const OTHER_PLATFORM_ID = '3d7e858c-259f-4d17-b9c0-0d046509cc42'
+
+            before(async function () {
+                await setupEE()
+                app.config.features.register('ai', true, true)
+                app.config.features.register('mcpThirdParty', true, true)
+            })
+
+            after(async function () {
+                await app.close()
+            })
+
+            it('allows forge_platform to publish an mcp request for another replica\'s platformId', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                })
+            })
+            it('allows forge_platform to publish an mcp request for its own platformId', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${app.comms.id}/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                })
+            })
+            it('allows forge_platform to subscribe to mcp responses for a platformId', async function () {
+                await allowRead({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/+/+/response`
+                })
+            })
+            it('denies an mcp request with a non-uuid platformId', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/not-a-uuid/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                })
+            })
+            it('denies an mcp request with a wildcard platformId', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/+/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                })
+            })
+            it('denies an mcp response subscription with a wildcard platformId', async function () {
+                await denyRead({
+                    username: 'forge_platform',
+                    topic: 'ff/v1/mcp/+/+/+/response'
+                })
+            })
+            it('denies an mcp request with a short mcp session id', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/short/request`
+                })
+            })
+            it('denies an mcp request for an unknown user', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/nonExistentUser/${MCP_SESSION}/request`
+                })
+            })
+            it('denies an mcp request when mcpThirdParty is disabled', async function () {
+                app.config.features.register('mcpThirdParty', false, true)
+                try {
+                    await denyWrite({
+                        username: 'forge_platform',
+                        topic: `ff/v1/mcp/${OTHER_PLATFORM_ID}/${TestObjects.alice.hashid}/${MCP_SESSION}/request`
+                    })
+                } finally {
+                    app.config.features.register('mcpThirdParty', true, true)
+                }
+            })
+        })
     })
 })

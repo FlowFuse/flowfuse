@@ -211,6 +211,8 @@ export default {
 
         this.teamTypes = (await teamTypesPromise).types.sort((a, b) => a.order - b.order)
         this.input.teamTypeId = this.teamTypes[0].id
+        // If any of the available types has an annualBillingPrice, show the annual billing toggle
+        this.annualBillingAvailable = this.teamTypes.some(type => !!type.annualBillingPrice)
 
         if (this.$route.query.teamType) {
             this.input.teamTypeId = this.$route.query.teamType

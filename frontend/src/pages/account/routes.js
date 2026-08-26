@@ -2,6 +2,7 @@ import { Cog8ToothIcon } from '@heroicons/vue/24/outline'
 
 import AccessRequest from './AccessRequest.vue'
 import AccessRequestEditor from './AccessRequestEditor.vue'
+import AccessRequestMCP from './AccessRequestMCP.vue'
 import AccountCreate from './Create.vue'
 import ForgotPassword from './ForgotPassword.vue'
 import PasswordReset from './PasswordReset.vue'
@@ -26,6 +27,14 @@ export default [
         // straight back to the editor without any additional actions.
         path: '/account/request/:id/editor',
         component: AccessRequestEditor,
+        meta: {
+            layout: 'modal'
+        }
+    },
+    {
+        // MCP agent OAuth consent page with access level and team selection
+        path: '/account/request/:id/mcp',
+        component: AccessRequestMCP,
         meta: {
             layout: 'modal'
         }

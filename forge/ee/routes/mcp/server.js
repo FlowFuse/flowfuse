@@ -1,5 +1,9 @@
 const { randomUUID } = require('node:crypto')
 
+// Maps mcpSessionId to the third-party caller's PAT, consumed by the comms layer.
+const MCP_SESSION_TOKEN_CACHE = 'mcp-session-token'
+const MCP_SESSION_TOKEN_CACHE_TTL = 1000 * 60 * 60 // 1 hour
+
 /**
  * MCP Platform Tools Server
  *
@@ -31,6 +35,8 @@ module.exports = async function (app) {
     // Resolves the caller's identity and scope, or sends an error reply and returns null.
     async function resolveCaller (request, reply) {
         if (!request.session?.User) {
+            // RFC 9728 §5.1: point unauthenticated callers at the resource metadata.
+            reply.header('WWW-Authenticate', `Bearer resource_metadata="${app.config.base_url}/.well-known/oauth-protected-resource/mcp"`)
             reply.code(401).send({ code: 'unauthorized', error: 'Unauthorized' })
             return null
         }
@@ -55,7 +61,7 @@ module.exports = async function (app) {
     // POST serves the MCP Streamable HTTP protocol in JSON mode: each request is
     // forwarded to the gateway and its response returned. Notifications (no id)
     // are acknowledged; the gateway populates its session on the first request.
-    app.post('/', async (request, reply) => {
+    app.post('/', { config: { allowAnonymous: true } }, async (request, reply) => {
         const caller = await resolveCaller(request, reply)
         if (!caller) {
             return
@@ -80,6 +86,12 @@ module.exports = async function (app) {
         }
 
         const mcpSessionId = request.headers['mcp-session-id'] || randomUUID()
+        const authHeader = request.headers.authorization || ''
+        const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : null
+        if (token) {
+            const cache = app.caches?.getCache?.(MCP_SESSION_TOKEN_CACHE, { ttl: MCP_SESSION_TOKEN_CACHE_TTL, max: 10000 })
+            await cache?.set(mcpSessionId, token)
+        }
         const route = {
             userId: caller.userId,
             mcpSessionId

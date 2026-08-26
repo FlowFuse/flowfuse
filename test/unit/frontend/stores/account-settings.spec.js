@@ -43,6 +43,7 @@ describe('account-settings store', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
         vi.clearAllMocks()
+        delete window.posthog
         mockAuth()
         mockTeam()
     })
@@ -81,6 +82,26 @@ describe('account-settings store', () => {
                 expect(settingsApi.getSettings).toHaveBeenCalledOnce()
                 expect(store.settings).toEqual(settings)
                 expect(store.features).toEqual({ billing: true })
+            })
+        })
+
+        describe('loadPosthogFlags', () => {
+            it('stores the flag values PostHog reports', () => {
+                const onFeatureFlags = vi.fn((cb) => cb(['MCP_THIRD_PARTY'], { MCP_THIRD_PARTY: true }))
+                window.posthog = { onFeatureFlags }
+
+                const store = useAccountSettingsStore()
+                store.loadPosthogFlags()
+
+                expect(store.posthogFlags).toEqual({ MCP_THIRD_PARTY: true })
+            })
+
+            it('does not throw when PostHog is unavailable', () => {
+                delete window.posthog
+
+                const store = useAccountSettingsStore()
+                expect(() => store.loadPosthogFlags()).not.toThrow()
+                expect(store.posthogFlags).toEqual({})
             })
         })
     })
