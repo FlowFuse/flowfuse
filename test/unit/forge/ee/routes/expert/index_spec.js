@@ -2008,7 +2008,9 @@ describe('Expert API', function () {
             })
         })
 
-        describe('MCP tools Endpoint (tool permissions catalog #421)', function () {
+        describe('MCP tools Endpoint (tool permissions catalog)', function () {
+            const mcpToolResponse = (payload) => ({ result: { content: [{ type: 'text', text: JSON.stringify(payload) }] } })
+
             it('should return 401 for instance token', async function () {
                 const response = await app.inject({
                     method: 'GET',
@@ -2028,90 +2030,102 @@ describe('Expert API', function () {
             })
 
             it('should return 404 for a non-team member', async function () {
-                const get = sinon.stub(axios, 'get') // must not proxy for a caller with no team access
-                const response = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
-                    cookies: { sid: chrisToken }
-                })
-                response.statusCode.should.equal(404)
-                get.called.should.be.false()
+                const proxyRequest = sinon.stub()
+                app.comms = { mcpGateway: { proxyRequest } }
+                try {
+                    const response = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
+                        cookies: { sid: chrisToken }
+                    })
+                    response.statusCode.should.equal(404)
+                    proxyRequest.called.should.be.false()
+                } finally {
+                    app.comms = null
+                }
             })
 
             // teamId is validated by the querystring schema (required, minLength 10),
             // which runs before the preHandler — so a missing teamId is a 400, not a 404.
             it('should return 400 when the teamId query param is missing', async function () {
-                const get = sinon.stub(axios, 'get') // should not be called
                 const response = await app.inject({
                     method: 'GET',
                     url: '/api/v1/expert/mcp/tools',
                     cookies: { sid: bobToken }
                 })
                 response.statusCode.should.equal(400)
-                get.called.should.be.false()
             })
 
-            it('should proxy the flow-tools catalog and hash for a team member', async function () {
-                const get = sinon.stub(axios, 'get').resolves({
-                    data: {
-                        catalog: [{ key: 'create-flow', name: 'Create Flow', toolClass: 'write' }],
-                        hash: 'abc123'
-                    }
-                })
-                const response = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
-                    cookies: { sid: bobToken }
-                })
-                response.statusCode.should.equal(200)
-                const json = response.json()
-                json.should.have.property('hash', 'abc123')
-                json.should.have.property('catalog').which.is.an.Array().and.have.length(1)
-                json.catalog[0].should.have.property('key', 'create-flow')
-                // the upstream request goes to the agent's /mcp/flow-tools with the service token
-                get.calledOnce.should.be.true()
-                const [calledUrl, calledOpts] = get.firstCall.args
-                calledUrl.should.endWith('/mcp/flow-tools')
-                calledOpts.headers.should.have.property('Authorization', 'Bearer test-token')
+            it('should fetch the flow-building catalog and hash from the gateway over MQTT', async function () {
+                const proxyRequest = sinon.stub().resolves(mcpToolResponse({
+                    tools: [{ name: 'create-flow', title: 'Create Flow', toolClass: 'write' }],
+                    hash: 'abc123'
+                }))
+                app.comms = { mcpGateway: { proxyRequest } }
+                try {
+                    const response = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
+                        cookies: { sid: bobToken }
+                    })
+                    response.statusCode.should.equal(200)
+                    const json = response.json()
+                    json.should.have.property('hash', 'abc123')
+                    json.should.have.property('catalog').which.is.an.Array().and.have.length(1)
+                    json.catalog[0].should.have.property('key', 'create-flow')
+                    json.catalog[0].should.have.property('name', 'Create Flow')
+                    proxyRequest.calledOnce.should.be.true()
+                    const [, payload] = proxyRequest.firstCall.args
+                    payload.mcp.params.should.have.property('name', 'list_flow_catalog')
+                    payload.toolGroups.should.deepEqual(['flow_building'])
+                } finally {
+                    app.comms = null
+                }
             })
 
-            it('should default catalog to [] and hash to null when the agent omits them', async function () {
-                sinon.stub(axios, 'get').resolves({ data: {} })
-                const response = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
-                    cookies: { sid: bobToken }
-                })
-                response.statusCode.should.equal(200)
-                response.json().should.deepEqual({ catalog: [], hash: null })
+            it('should default catalog to [] and hash to null when the gateway omits them', async function () {
+                const proxyRequest = sinon.stub().resolves(mcpToolResponse({}))
+                app.comms = { mcpGateway: { proxyRequest } }
+                try {
+                    const response = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
+                        cookies: { sid: bobToken }
+                    })
+                    response.statusCode.should.equal(200)
+                    response.json().should.deepEqual({ catalog: [], hash: null })
+                } finally {
+                    app.comms = null
+                }
             })
 
-            it('should propagate the upstream status code when the agent errors', async function () {
-                sinon.stub(axios, 'get').rejects({
-                    response: { status: 502, data: { code: 'bad_gateway', error: 'upstream down' } }
-                })
-                const response = await app.inject({
-                    method: 'GET',
-                    url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
-                    cookies: { sid: bobToken }
-                })
-                response.statusCode.should.equal(502)
-                response.json().should.have.property('code', 'bad_gateway')
+            it('should degrade to an empty flow catalog when the gateway does not respond', async function () {
+                const proxyRequest = sinon.stub().rejects(new Error('Request timed out'))
+                app.comms = { mcpGateway: { proxyRequest } }
+                try {
+                    const response = await app.inject({
+                        method: 'GET',
+                        url: `/api/v1/expert/mcp/tools?teamId=${team.hashid}`,
+                        cookies: { sid: bobToken }
+                    })
+                    response.statusCode.should.equal(200)
+                    response.json().should.deepEqual({ catalog: [], hash: null })
+                } finally {
+                    app.comms = null
+                }
             })
 
             it('should merge platform tools into the catalog, curated with a platform group and class', async function () {
-                sinon.stub(axios, 'get').resolves({
-                    data: {
-                        catalog: [{ key: 'create-flow', name: 'Create Flow', toolClass: 'write', group: 'flow-building' }],
-                        hash: 'abc123'
-                    }
-                })
+                const proxyRequest = sinon.stub().resolves(mcpToolResponse({
+                    tools: [{ name: 'create-flow', title: 'Create Flow', toolClass: 'write' }],
+                    hash: 'abc123'
+                }))
                 const getToolDefinitions = sinon.stub().returns([
                     { name: 'platform_list_stacks', description: 'List stacks', annotations: { readOnlyHint: true, destructiveHint: false } },
                     { name: 'platform_delete_instance', description: 'Delete an instance', annotations: { readOnlyHint: false, destructiveHint: true } },
                     { name: 'platform_create_instance', description: 'Create an instance', annotations: { readOnlyHint: false, destructiveHint: false } }
                 ])
-                app.comms = { platformAutomation: { getToolDefinitions } }
+                app.comms = { mcpGateway: { proxyRequest }, platformAutomation: { getToolDefinitions } }
                 try {
                     const response = await app.inject({
                         method: 'GET',
