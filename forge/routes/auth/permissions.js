@@ -31,8 +31,16 @@ function patAllowsWrite (pat, scope) {
     return !permission || permission.access === 'read'
 }
 
-// PATs are team-scoped, but entity-addressed routes set the entity, not
-// request.team, so resolve the team from whatever the route loaded.
+/**
+ * Resolve the team hashid a request is acting on.
+ *
+ * PATs are team-scoped, but entity-addressed routes set the entity, not
+ * request.team, so resolve the team from whatever the route loaded (the entity's
+ * team, falling back to the team membership).
+ * @param {object} app - The forge app instance
+ * @param {object} request - The Fastify request
+ * @returns {string|null} the team hashid, or null when there is no team context
+ */
 function resolveRequestTeamHashid (app, request) {
     const loadedTeam = request.team || request.application?.Team || request.project?.Team || request.device?.Team
     if (loadedTeam?.hashid) {
