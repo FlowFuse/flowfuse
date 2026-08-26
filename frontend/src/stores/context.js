@@ -13,10 +13,8 @@ import { useProductExpertStore } from './product-expert.js'
 
 import { useMqttExpertTopicHelper } from '@/composables/services/MqttExpertTopicHelper'
 
-// The FlowFuse Cloud host is app.flowfuse.com, where users are identified by email;
-// anything else is self-hosted and masked downstream.
 function flowfuseDeployment () {
-    return window.location?.hostname?.endsWith('app.flowfuse.com') ? 'cloud' : 'self-hosted'
+    return useAccountSettingsStore().settings?.['telemetry:anonymize'] === false ? 'cloud' : 'self-hosted'
 }
 
 export const useContextStore = defineStore('context', {

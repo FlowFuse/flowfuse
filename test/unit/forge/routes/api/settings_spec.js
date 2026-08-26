@@ -169,6 +169,29 @@ describe('Settings API', function () {
             app.config.telemetry.enabled = true
         })
     })
+    describe('Telemetry Anonymize Setting', function () {
+        const ANONYMIZE_KEY = 'telemetry:anonymize'
+        it('defaults to true when not set in yml', async function () {
+            const response = await app.inject({
+                method: 'GET',
+                url: settingsURL,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            response.json().should.have.property(ANONYMIZE_KEY, true)
+        })
+        it('is false when disabled in yml', async function () {
+            app.config.telemetry.anonymize = false
+            const response = await app.inject({
+                method: 'GET',
+                url: settingsURL,
+                cookies: { sid: TestObjects.tokens.alice }
+            })
+            response.statusCode.should.equal(200)
+            response.json().should.have.property(ANONYMIZE_KEY, false)
+            app.config.telemetry.anonymize = undefined
+        })
+    })
     describe('License Status', function () {
         it('Does not return license status for anonymous user', async function () {
             const response = await app.inject({

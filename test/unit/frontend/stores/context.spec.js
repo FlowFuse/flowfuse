@@ -386,18 +386,19 @@ describe('context store', () => {
                 expect(store.expert.telemetryEnabled).toBe(false)
             })
 
-            it('marks deployment cloud only on the app.flowfuse.com host', () => {
+            it('marks deployment cloud only when telemetry:anonymize is false', () => {
                 const store = useContextStore()
-                Object.defineProperty(window, 'location', {
-                    writable: true,
-                    value: { hostname: 'app.flowfuse.com' }
-                })
+                const settingsStore = useAccountSettingsStore()
+
+                settingsStore.settings = { 'telemetry:anonymize': false }
                 expect(store.expert.deployment).toBe('cloud')
 
-                Object.defineProperty(window, 'location', {
-                    writable: true,
-                    value: { hostname: 'example.com' }
-                })
+                settingsStore.settings = { 'telemetry:anonymize': true }
+                expect(store.expert.deployment).toBe('self-hosted')
+            })
+
+            it('defaults deployment to self-hosted when the setting is unavailable', () => {
+                const store = useContextStore()
                 expect(store.expert.deployment).toBe('self-hosted')
             })
 

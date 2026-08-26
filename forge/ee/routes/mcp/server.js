@@ -101,16 +101,7 @@ module.exports = async function (app) {
         if (request.session.User?.username) {
             userProperties.username = request.session.User.username
         }
-        // The FlowFuse Cloud host is app.flowfuse.com; any other host is a self-hosted
-        // deployment, whose telemetry identity is masked downstream.
-        userProperties.deployment = 'self-hosted'
-        try {
-            if (new URL(app.config.base_url).hostname.endsWith('app.flowfuse.com')) {
-                userProperties.deployment = 'cloud'
-            }
-        } catch (err) {
-            // Unparseable base_url: leave as self-hosted so identity is masked by default.
-        }
+        userProperties.deployment = app.config.telemetry?.anonymize === false ? 'cloud' : 'self-hosted'
         const patId = request.session.pat?.id
         if (patId !== undefined && patId !== null) {
             userProperties.patId = app.db.models.AccessToken.encodeHashid(patId)

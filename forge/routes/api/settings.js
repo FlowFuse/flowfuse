@@ -46,6 +46,7 @@ module.exports = async function (app) {
                 // Effective telemetry state, matching the MCP door: a licence forces it on,
                 // otherwise it follows the yml and admin opt-out.
                 'telemetry:enabled': app.license.active() || (app.config.telemetry?.enabled !== false && app.settings.get('telemetry:enabled') !== false),
+                'telemetry:anonymize': app.config.telemetry?.anonymize !== false,
                 email: app.postoffice.enabled(),
                 stacks: app.containers.properties().stack || {},
                 features: app.config.features.getAllFeatures(),
