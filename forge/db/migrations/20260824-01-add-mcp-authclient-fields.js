@@ -7,6 +7,7 @@
  * ownerType='mcp' and add a display name and the redirect URIs approved at
  * registration.
  *
+ *   type          - 'mcp' for dynamically registered MCP clients, null otherwise
  *   name          - the client_name supplied at registration
  *   redirectURIs  - JSON array of redirect URIs the client may use
  */
@@ -15,6 +16,11 @@ const { DataTypes } = require('sequelize')
 
 module.exports = {
     up: async (context) => {
+        await context.addColumn('AuthClients', 'type', {
+            type: DataTypes.STRING,
+            allowNull: true,
+            defaultValue: null
+        })
         await context.addColumn('AuthClients', 'name', {
             type: DataTypes.STRING,
             allowNull: true,

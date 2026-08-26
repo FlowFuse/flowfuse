@@ -19,6 +19,9 @@ import { useRouter } from 'vue-router'
 
 import EmptyState from '@/components/EmptyState.vue'
 import { removeSlashes } from '@/composables/strings/String.js'
+import Alerts from '@/services/alerts.js'
+import { useDataFarmHostedInstancesStore } from '@/stores/data-farm-hosted-instances'
+import { MIN_DASHBOARD_LAUNCHER_VERSION, meetsMinLauncherVersion } from '@/utils/instanceVersion'
 
 defineOptions({ name: 'DashboardView' })
 
@@ -34,6 +37,7 @@ const props = defineProps({
 })
 
 const router = useRouter()
+const instancesStore = useDataFarmHostedInstancesStore()
 
 const isRunning = computed(() => props.instance?.meta?.state === 'running')
 const hasDashboard = computed(() => !!props.instance?.settings?.dashboard2UI)
@@ -50,6 +54,16 @@ watch(hasDashboard, value => {
     if (!value) {
         router.push({ name: 'instance-overview', params: { id: props.instance.id } })
     }
+}, { immediate: true })
+
+const dashboardOutdated = computed(() => !!dashboardURL.value && !meetsMinLauncherVersion(props.instance, MIN_DASHBOARD_LAUNCHER_VERSION))
+
+watch(() => [dashboardOutdated.value, props.instance?.id], ([outdated, id]) => {
+    if (!outdated || !id || instancesStore.launcherVersionWarnedIds.has(id)) {
+        return
+    }
+    instancesStore.markLauncherVersionWarned(id)
+    Alerts.emit(`Update this instance to Launcher ${MIN_DASHBOARD_LAUNCHER_VERSION} or later to fix a known dashboard error.`, 'warning', 7500)
 }, { immediate: true })
 </script>
 
