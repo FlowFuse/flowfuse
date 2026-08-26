@@ -1,5 +1,7 @@
 const { z } = require('zod')
 
+const { PLATFORM_UI_TOOL_NAMES, SESSION_GATED_GROUPS, noBrowserSessionGuidance } = require('../sessionGatedTools')
+
 function getProperty (properties, key) {
     let value = properties
     for (const part of key.split('.')) {
@@ -141,6 +143,7 @@ module.exports = [
                     userId: session.userId,
                     lastSeen: session.lastSeen,
                     visibility: session.visibility || 'unknown',
+                    capabilities: session.capabilities || [],
                     context: session.context || null
                 }))
             }
@@ -171,17 +174,47 @@ module.exports = [
                 return {
                     success: false,
                     message: `No live browser session with sessionId '${args.session_id}' was found for this user. ` +
-                        'Call platform_list_browser_sessions to see the current live tabs and pick one from there.'
+                        'A tab that was listed earlier may have been closed, had its MCP toggle turned off, or stopped ' +
+                        'sending presence heartbeats. ' + noBrowserSessionGuidance(app.config.base_url || '')
                 }
             }
 
             await app.db.controllers.BrowserSession.setActiveBrowserSession(user.hashid, mcpSessionId, args.session_id)
 
+            // Callers list the tool surface once, up front - usually before any tab is pinned - and
+            // rarely list it again. Naming what this pin just unlocked means the caller learns about
+            // the browser-bound groups from this response, without having to re-run list_tools.
+            // Report only the groups THIS tab can actually answer for: a plain platform page carries
+            // platform_ui but not flow_building (that needs the Node-RED editor), so announcing both
+            // unconditionally would send the caller after tools this tab cannot serve.
+            const tabCapabilities = Array.isArray(match.capabilities) ? match.capabilities : []
+            const unlockedToolGroups = SESSION_GATED_GROUPS.filter(group => tabCapabilities.includes(group))
+            const unlockedTools = {}
+            if (unlockedToolGroups.includes('platform_ui')) {
+                unlockedTools.platform_ui = PLATFORM_UI_TOOL_NAMES
+            }
+            if (unlockedToolGroups.includes('flow_building')) {
+                unlockedTools.flow_building = 'All flow_building_* tools - call list_tools or search_tools for the current set.'
+            }
+
+            let message = 'Active browser session set. Subsequent platform_ui and flow_building tool calls will target this tab. '
+            if (unlockedToolGroups.length) {
+                message += `This tab can serve the ${unlockedToolGroups.join(' and ')} ` +
+                    `${unlockedToolGroups.length === 1 ? 'group' : 'groups'}` +
+                    `${unlockedTools.platform_ui ? `, including ${PLATFORM_UI_TOOL_NAMES.join(', ')}` : ''}. ` +
+                    'If you listed the available tools before this pin, that list was missing these groups - re-read them from unlockedTools above rather than assuming they are unavailable.'
+            } else {
+                message += 'Note this tab reports no browser-bound capabilities yet, so platform_ui and flow_building calls against it may fail. ' +
+                    'flow_building needs a tab open on a Node-RED editor; if the tab was only just opened, retry after its next presence heartbeat.'
+            }
+
             return {
                 success: true,
                 activeSessionId: args.session_id,
                 context: match.context || null,
-                message: 'Active browser session set. Subsequent platform_ui and flow_building tool calls will target this tab.'
+                unlockedToolGroups,
+                unlockedTools,
+                message
             }
         }
     },
@@ -204,8 +237,8 @@ module.exports = [
             const activeSession = await app.db.controllers.BrowserSession.getActiveBrowserSession(user.hashid, mcpSessionId)
             if (!activeSession) {
                 return {
-                    message: 'No active browser session is set. Call platform_list_browser_sessions to see available tabs, ' +
-                        'then platform_set_active_browser_session to pick one.'
+                    activeSessionId: null,
+                    message: 'No active browser session is set. ' + noBrowserSessionGuidance(app.config.base_url || '')
                 }
             }
 

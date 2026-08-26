@@ -28,6 +28,7 @@ const tools: McpToolDefinition[] = [
             (like "/device/:id/overview" means you need to pass { id: "..." }), and metadata like the page title.
             You do not need to call this every time. If you already know the route name from a tool description (e.g. platform_create_hosted_instance tells you to use "instance-overview"), just use it directly.`,
         annotations: { readOnlyHint: true, destructiveHint: false },
+        _meta: { requiresBrowserSession: true },
         inputSchema: {
             type: 'object',
             properties: {}

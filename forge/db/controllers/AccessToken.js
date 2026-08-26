@@ -4,6 +4,14 @@ const { generateToken, generateNumericToken, sha256, randomPhrase } = require('.
 
 const DEFAULT_TOKEN_SESSION_EXPIRY = 1000 * 60 * 30 // 30 mins session - with refresh token support
 
+const DEFAULT_REFRESH_TOKEN_EXPIRY = 1000 * 60 * 60 * 24 * 30 // 30 days - sliding refresh token lifetime
+
+// Concurrent refreshes of the same refresh token reuse the cached access token
+// rather than each minting a new one and overwriting the row. Re-mint once the
+// cached token is within this window of expiry.
+const MCP_ACCESS_TOKEN_CACHE = 'mcp-oauth-access-token'
+const MCP_ACCESS_TOKEN_REMAINING_LIMIT = 1000 * 60 * 5 // 5 minutes
+
 const DEFAULT_DEVICE_OTC_EXPIRY = 1000 * 60 * 60 * 24 // 24 hours
 
 /*
@@ -265,6 +273,39 @@ module.exports = {
         await app.settings.set('platform:stats:token', false)
     },
 
+    createMCPOAuthToken: async function (app, userId, { readOnly = false, teamIds = [] } = {}) {
+        const token = generateToken(32, 'ffpat')
+        const refreshToken = generateToken(32, 'ffpat')
+        const expiresAt = Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY
+        const refreshTokenExpiresAt = Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY
+
+        await app.db.sequelize.transaction(async (t) => {
+            const tok = await app.db.models.AccessToken.create({
+                name: 'MCP Agent',
+                token,
+                refreshToken,
+                scope: '',
+                expiresAt,
+                refreshTokenExpiresAt,
+                readOnly,
+                adminOptIn: false,
+                ownerId: '' + userId,
+                ownerType: 'user'
+            }, { transaction: t })
+
+            if (teamIds.length > 0) {
+                const scopes = teamIds.map(teamId => ({
+                    AccessTokenId: tok.id,
+                    TeamId: app.db.models.Team.decodeHashid(teamId),
+                    UserId: userId
+                }))
+                await app.db.models.AccessTokenTeamScope.bulkCreate(scopes, { transaction: t })
+            }
+        })
+
+        return { token, expiresAt, refreshToken }
+    },
+
     createPersonalAccessToken: async function (app, user, scope, expiresAt, name, { readOnly = false, adminOptIn = false, teamIds = [] } = {}) {
         const userId = typeof user === 'number' ? user : user.id
         const token = generateToken(32, 'ffpat')
@@ -402,8 +443,13 @@ module.exports = {
 
     refreshToken: async function (app, refreshToken) {
         const existingToken = await app.db.models.AccessToken.byRefreshToken(refreshToken)
-        if (existingToken) {
-            const [prefix] = refreshToken.split('_')
+        if (!existingToken) {
+            return null
+        }
+        const [prefix] = refreshToken.split('_')
+
+        // Editor sessions have no refresh lifetime: rotate the refresh token each use.
+        if (!existingToken.refreshTokenExpiresAt) {
             const tokenUpdates = {
                 token: generateToken(32, prefix),
                 refreshToken: generateToken(32, prefix),
@@ -412,7 +458,30 @@ module.exports = {
             await app.db.models.AccessToken.update(tokenUpdates, { where: { refreshToken: existingToken.refreshToken } })
             return tokenUpdates
         }
-        return null
+
+        // Past its lifetime the refresh token is dead: remove the row.
+        if (existingToken.refreshTokenExpiresAt.getTime() < Date.now()) {
+            await existingToken.destroy()
+            return null
+        }
+
+        // Stable refresh token: concurrent refreshes reuse the cached access token
+        // instead of each minting one and overwriting the row.
+        const cache = app.caches?.getCache?.(MCP_ACCESS_TOKEN_CACHE, { ttl: DEFAULT_TOKEN_SESSION_EXPIRY, max: 10000 })
+        const cacheKey = sha256(refreshToken)
+        const cached = await cache?.get(cacheKey)
+        if (cached && cached.expiresAt - Date.now() > MCP_ACCESS_TOKEN_REMAINING_LIMIT) {
+            return { token: cached.token, expiresAt: cached.expiresAt, refreshToken }
+        }
+
+        const token = generateToken(32, prefix)
+        const expiresAt = Date.now() + DEFAULT_TOKEN_SESSION_EXPIRY
+        await app.db.models.AccessToken.update(
+            { token, expiresAt, refreshTokenExpiresAt: Date.now() + DEFAULT_REFRESH_TOKEN_EXPIRY },
+            { where: { refreshToken: existingToken.refreshToken } }
+        )
+        await cache?.set(cacheKey, { token, expiresAt })
+        return { token, expiresAt, refreshToken }
     },
 
     /**
@@ -434,8 +503,15 @@ module.exports = {
         })
         if (accessToken) {
             if (accessToken.expiresAt && accessToken.expiresAt.getTime() < Date.now()) {
-                await accessToken.destroy()
-                accessToken = null
+                const refreshTokenValid = accessToken.refreshTokenExpiresAt && accessToken.refreshTokenExpiresAt.getTime() > Date.now()
+                if (refreshTokenValid) {
+                    // Refresh token still valid: reject the access token but keep the
+                    // row so the client can refresh (RFC 6749 §1.5).
+                    accessToken = null
+                } else {
+                    await accessToken.destroy()
+                    accessToken = null
+                }
             }
         }
         return accessToken

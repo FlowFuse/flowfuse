@@ -193,6 +193,24 @@ describe('account-settings store', () => {
                 expect(store.featuresCheck.isHostedInstancesEnabledForTeam).toBe(true)
             })
 
+            it('isTelemetryEnabled reflects the telemetry:enabled setting', () => {
+                const store = useAccountSettingsStore()
+                store.setSettings({ 'telemetry:enabled': true })
+                expect(store.featuresCheck.isTelemetryEnabled).toBe(true)
+                store.setSettings({ 'telemetry:enabled': false })
+                expect(store.featuresCheck.isTelemetryEnabled).toBe(false)
+            })
+
+            it('deployment is cloud only when telemetry:anonymize is false', () => {
+                const store = useAccountSettingsStore()
+                store.setSettings({ 'telemetry:anonymize': false })
+                expect(store.featuresCheck.deployment).toBe('cloud')
+                store.setSettings({ 'telemetry:anonymize': true })
+                expect(store.featuresCheck.deployment).toBe('self-hosted')
+                store.setSettings({})
+                expect(store.featuresCheck.deployment).toBe('self-hosted')
+            })
+
             it('isBlueprintsFeatureEnabled is true when enabled on both platform and team', () => {
                 mockTeam({ team: { id: 'team-1', billing: {}, type: { properties: { features: { flowBlueprints: true }, billing: {}, instances: {} } } } })
                 const store = useAccountSettingsStore()
