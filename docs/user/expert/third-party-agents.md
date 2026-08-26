@@ -157,9 +157,42 @@ Create a [Personal Access Token](/docs/user/user-settings/#personal-access-token
 [scope it](/docs/user/user-settings/#scoping-a-token) the same way you would when signing in.
 Scope it to the team you want the agent working in rather than to everything you can reach.
 
+### Clients whose configuration file takes a local command
+
+Claude Desktop is the common one. Its configuration file accepts a command to run rather than
+an address to call, so the connection goes through `mcp-remote`, which talks to FlowFuse over
+HTTP on the client's behalf. Add this alongside whatever the file already contains:
+
+```json
+{
+  "mcpServers": {
+    "flowfuse": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://app.flowfuse.com/mcp",
+        "--header",
+        "Authorization:${AUTH_HEADER}"
+      ],
+      "env": {
+        "AUTH_HEADER": "Bearer <your-token>"
+      }
+    }
+  }
+}
+```
+
+The token sits in `env` and the header argument has no space in it on purpose. Some clients do
+not escape spaces when they launch the command, which mangles the value if you write
+`Bearer <your-token>` into `args` directly.
+
+The file lives at `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS,
+and `%APPDATA%\Claude\claude_desktop_config.json` on Windows.
+
 ### Clients that take a header
 
-Claude Code, Cursor and Visual Studio Code take the address and the header directly:
+Editor and command-line agents generally take the address and the header directly:
 
 ```json
 {
@@ -194,39 +227,6 @@ For Visual Studio Code, prompt for the token rather than committing it to the re
   ]
 }
 ```
-
-### Clients whose configuration file takes a local command
-
-Claude Desktop is the common one. Its configuration file accepts a command to run rather than
-an address to call, so the connection goes through `mcp-remote`, which talks to FlowFuse over
-HTTP on the client's behalf. Add this alongside whatever the file already contains:
-
-```json
-{
-  "mcpServers": {
-    "flowfuse": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://app.flowfuse.com/mcp",
-        "--header",
-        "Authorization:${AUTH_HEADER}"
-      ],
-      "env": {
-        "AUTH_HEADER": "Bearer <your-token>"
-      }
-    }
-  }
-}
-```
-
-The token sits in `env` and the header argument has no space in it on purpose. Some clients do
-not escape spaces when they launch the command, which mangles the value if you write
-`Bearer <your-token>` into `args` directly.
-
-The file lives at `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS,
-and `%APPDATA%\Claude\claude_desktop_config.json` on Windows.
 
 ## Approvals and audit
 
