@@ -57,6 +57,36 @@ const curatePlatformTool = (def) => {
     }
 }
 
+// Unwraps list_flow_catalog's CallToolResult: nr-mcp-server-nodes wraps the payload as JSON
+// in content[0].text, matching the Expert gateway-client's parseToolResult.
+const parseFlowCatalogResult = (mcpResponse) => {
+    const result = mcpResponse?.result
+    const text = result?.content?.[0]?.text
+    if (typeof text === 'string') {
+        try {
+            return JSON.parse(text)
+        } catch (e) {
+            return null
+        }
+    }
+    return result?.structuredContent ?? null
+}
+
+// Maps a gateway flow-building descriptor to the permissions-UI entry, identical to the
+// Expert gateway-client's toUiCatalogEntry so the shape matches the old HTTP path.
+const toUiCatalogEntry = (d) => {
+    const ann = d.annotations || {}
+    const meta = d._meta || {}
+    return {
+        key: d.key || d.name,
+        name: ann.title || d.title || d.name,
+        toolClass: d.toolClass,
+        destructive: d.toolClass === 'delete',
+        minVersion: meta.assistantMinVersion || null,
+        maxVersion: meta.assistantMaxVersion || null
+    }
+}
+
 /**
  * @param {import('../../forge.js').ForgeApplication} app
  */
@@ -700,40 +730,46 @@ module.exports = async function (app) {
         if (!request.isExpertAssistantEnabled) {
             return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
-        try {
-            const toolsUrl = `${app.expert.expertUrl.split('/').slice(0, -1).join('/')}/mcp/flow-tools`
-            const response = await axios.get(toolsUrl, {
-                headers: {
-                    Origin: request.headers.origin,
-                    ...(app.expert.serviceToken ? { Authorization: `Bearer ${app.expert.serviceToken}` } : {})
-                },
-                timeout: app.expert.requestTimeout
-            })
-            const catalog = response.data?.catalog || []
 
-            // Merge in the FlowFuse platform tools. They are global (no per-team filtering)
-            // and served from the handler singleton already constructed on app.comms, so we
-            // reuse it rather than newing one up — constructing re-registers its MQTT event
-            // listener. getToolDefinitions() is synchronous and takes no args.
-            const platformHandler = app.comms?.platformAutomation
-            if (platformHandler) {
-                const platformDefs = platformHandler.getToolDefinitions() || []
-                catalog.push(...platformDefs.map(curatePlatformTool))
+        // Fetch the flow-building catalog from the gateway's list_flow_catalog meta-tool over
+        // the MQTT bridge (no Expert service token). It is session-less, so no team/scope is
+        // sent; failure degrades to the platform tools alone.
+        let catalog = []
+        let hash = null
+        const mcpGateway = app.comms?.mcpGateway
+        if (mcpGateway) {
+            try {
+                const mcpResponse = await mcpGateway.proxyRequest(
+                    { userId: request.user.hashid, mcpSessionId: uuidv4() },
+                    {
+                        mcp: {
+                            jsonrpc: '2.0',
+                            id: 1,
+                            method: 'tools/call',
+                            params: { name: 'list_flow_catalog', arguments: {} }
+                        },
+                        toolGroups: ['flow_building']
+                    },
+                    app.expert.requestTimeout
+                )
+                const parsed = parseFlowCatalogResult(mcpResponse)
+                const tools = Array.isArray(parsed?.tools) ? parsed.tools : []
+                catalog = tools.map(toUiCatalogEntry)
+                hash = parsed?.hash || null
+            } catch (error) {
+                app.log.warn(`[expert/mcp/tools] gateway flow-catalog fetch failed: ${error.message}`)
             }
-
-            reply.send({ catalog, hash: response.data?.hash || null })
-        } catch (error) {
-            // The tool catalog is a non-fatal enhancement (the client swallows failures and
-            // gates safely with defaults). Never forward an upstream auth failure as our own
-            // 401. The SPA's axios interceptor treats any 401 as session-expiry and logs the
-            // user out, which an unrelated expert-service token rejection must not trigger.
-            const upstreamStatus = error.response?.status
-            app.log.warn(`[expert/mcp/tools] upstream tool-catalog fetch failed: status=${upstreamStatus} msg=${error.message}`)
-            if (upstreamStatus === 401 || upstreamStatus === 403) {
-                return reply.send({ catalog: [], hash: null })
-            }
-            reply.code(upstreamStatus || 500).send({ code: error.response?.data?.code || 'unexpected_error', error: error.response?.data?.error || error.message })
         }
+
+        // Merge in the global platform tools, reusing the app.comms singleton (constructing
+        // one re-registers its MQTT listener).
+        const platformHandler = app.comms?.platformAutomation
+        if (platformHandler) {
+            const platformDefs = platformHandler.getToolDefinitions() || []
+            catalog.push(...platformDefs.map(curatePlatformTool))
+        }
+
+        reply.send({ catalog, hash })
     })
 }
 
