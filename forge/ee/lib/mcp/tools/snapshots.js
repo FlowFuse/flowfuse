@@ -141,4 +141,5 @@ module.exports = [
             const response = await inject({ method: 'POST', url: `/api/v1/devices/${args.remoteInstanceId}/snapshots`, payload })
             return response
         }
+    }
 ]

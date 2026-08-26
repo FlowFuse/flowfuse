@@ -1,5 +1,6 @@
 const { z } = require('zod')
 
+const { basePagination, basePaginationKeys, searchQuery, searchQueryKeys, appendQuery } = require('../schemas')
 const { PLATFORM_UI_TOOL_NAMES, SESSION_GATED_GROUPS, noBrowserSessionGuidance } = require('../sessionGatedTools')
 
 function getProperty (properties, key) {
