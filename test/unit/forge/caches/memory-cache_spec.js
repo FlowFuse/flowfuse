@@ -108,6 +108,28 @@ describe('Memory Cache', function () {
         all = await cache.all()
         all.should.deepEqual({ one: 'one', two: 'two', four: 'four' })
     })
+    it('scan matches keys by glob pattern', async function () {
+        const cache = app.caches.getCache('scanCache')
+        await cache.set('response:aaa', 1)
+        await cache.set('response:bbb', 2)
+        await cache.set('state:ccc', 3)
+        await cache.set('a.c', 4)
+        await cache.set('abc', 5)
+
+        ;(await cache.scan('response:*')).sort().should.deepEqual(['response:aaa', 'response:bbb'])
+        ;(await cache.scan('*')).length.should.equal(5)
+        ;(await cache.scan('state:?c?')).should.deepEqual(['state:ccc'])
+        ;(await cache.scan('response:[ab]*')).sort().should.deepEqual(['response:aaa', 'response:bbb'])
+        ;(await cache.scan('nomatch:*')).should.deepEqual([])
+        // '.' in a pattern is a literal, not a regex wildcard
+        ;(await cache.scan('a.c')).should.deepEqual(['a.c'])
+    })
+
+    it('scan rejects a non-string pattern', async function () {
+        const cache = app.caches.getCache('scanCache')
+        await cache.scan(1).should.be.rejectedWith(/Cache scan pattern must be a string/)
+    })
+
     it('rejects non-string keys on get/set/del', async function () {
         const cache = app.caches.getCache('cache1')
         await cache.get(1).should.be.rejectedWith(/Cache key must be a string/)
