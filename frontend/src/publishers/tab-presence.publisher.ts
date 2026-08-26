@@ -4,6 +4,7 @@ import { TeamPublisher } from './team-publisher.contract'
 import getAppOrchestrator from '@/services/app.orchestrator'
 import { useAccountAuthStore } from '@/stores/account-auth.js'
 import { useContextStore } from '@/stores/context.js'
+import { useProductMcpStore } from '@/stores/product-mcp.js'
 import { createMqttTransport } from '@/transport/mqtt.transport'
 import type { CreatePublisherOptions } from '@/types/publishers/publisher.types'
 import type { TeamRef } from '@/types/subscribers/subscriber.types'
@@ -47,10 +48,20 @@ class TabPresencePublisher extends TeamPublisher {
         this._publishPresence()
     }
 
+    /**
+     * This publisher only runs while MCP is exposed and is the thing meant to beat
+     * continuously, so its health is the tab's health.
+     */
+    protected _onLinkDown (): void {
+        useProductMcpStore().markInterrupted()
+    }
+
     protected _onStarted (teamId: string, userId: string): void {
         // _onConnect fires again on every broker reconnect, so tear down any timers
         // and listeners from a previous run before registering new ones.
         this._onStopped()
+        // Runs on first connect and every reconnect, so it doubles as the all-clear
+        useProductMcpStore().markLinkHealthy()
 
         const authStore = useAccountAuthStore()
         this.$userId = userId
@@ -131,8 +142,16 @@ class TabPresencePublisher extends TeamPublisher {
             focused: document.hasFocus(),
             capabilities: this._capabilities(context),
             context
+        }).then(() => {
+            // A publish can be rejected while the socket stays up (ACL change, rate limit),
+            // and no reconnect follows to clear that. A heartbeat landing is the all-clear
+            // for exactly the case _onStarted cannot cover.
+            useProductMcpStore().markLinkHealthy()
         }).catch((err) => {
             console.warn('Failed to publish tab presence:', err)
+            // A heartbeat that does not land leaves the platform's entry going stale, even
+            // if the socket still looks up
+            useProductMcpStore().markInterrupted()
         })
     }
 
@@ -176,6 +195,15 @@ export function startTabPresence (team: TeamRef): TabPresencePublisher {
             console.warn('Failed to start tab presence:', err)
         })
     return publisher
+}
+
+/**
+ * Heartbeat now, if a publisher is live. For the session subscriber: the platform's answer
+ * is not retained, so one sent before that subscription is up is dropped and the tab waits
+ * out a whole interval. Re-announcing on subscribe closes that window.
+ */
+export function announceTabPresence (): void {
+    activePublisher?.announcePresence()
 }
 
 /**
