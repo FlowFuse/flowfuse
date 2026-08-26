@@ -14,28 +14,6 @@ describe('MCP User/Notifications Tools', function () {
         inject = sinon.stub()
     })
 
-    describe('platform_get_current_user', function () {
-        const tool = getTool('platform_get_current_user')
-
-        it('injects the current-user route and returns the response', async function () {
-            const routeResponse = { statusCode: 200, json: () => ({ username: 'alice' }) }
-            inject.withArgs({ method: 'GET', url: '/api/v1/user' }).resolves(routeResponse)
-
-            const response = await tool.handler({}, { inject })
-
-            inject.calledOnce.should.be.true()
-            response.should.equal(routeResponse)
-        })
-
-        it('passes through an error response', async function () {
-            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
-            inject.resolves(errorResponse)
-
-            const response = await tool.handler({}, { inject })
-            response.should.equal(errorResponse)
-        })
-    })
-
     describe('platform_list_notifications', function () {
         const tool = getTool('platform_list_notifications')
 

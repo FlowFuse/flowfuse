@@ -1,13 +1,13 @@
-const { z } = require('zod')
+const { hostedInstanceId } = require('../schemas')
 
 module.exports = [
     {
         name: 'platform_get_hosted_instance_editor_url',
         title: 'Get Hosted Instance Editor URL',
         description: 'FlowFuse platform automation tool: Get the URL to open the Node-RED editor in immersive mode for a hosted instance. Returns a URL the user can open in their browser. Only use this tool when the user requests the URL.',
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The id (UUID) of the hosted instance')
+            hostedInstanceId
         },
         handler: async (args, { inject, app }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}` })
@@ -26,9 +26,9 @@ module.exports = [
         name: 'platform_get_hosted_instance_overview_url',
         title: 'Get Hosted Instance Overview URL',
         description: 'FlowFuse platform automation tool: Get the URL to open the hosted instance overview page in the FlowFuse platform. Returns a URL the user can open in their browser. Only use this tool when the user requests the URL.',
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
-            hostedInstanceId: z.string().describe('The id (UUID) of the hosted instance')
+            hostedInstanceId
         },
         handler: async (args, { inject, app }) => {
             const response = await inject({ method: 'GET', url: `/api/v1/projects/${args.hostedInstanceId}` })

@@ -10,8 +10,11 @@ module.exports = [
             Searches across a team's resources: applications, hosted instances, and remote instances (devices).
             Use this when the user wants to find something by name across the whole team, or when you have a name
             but not the ID of the resource you need.
+            Every match is returned in one response with full detail per entry, and the listing cannot be paged or
+            limited, so a short or common query against a large team produces a very long result. Prefer a specific
+            query, or platform_search_instances when you only need instances.
             To search only instances (hosted and remote), use platform_search_instances instead.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
             query: z.string().trim().min(1).describe('The search term')
@@ -29,7 +32,7 @@ module.exports = [
             Searches the hosted instances and remote instances (devices) of a team.
             Use this when the user wants to find an instance by name and you do not already have its ID.
             To search across all resource types (including applications), use platform_search_team_resources instead.`,
-        annotations: { readOnlyHint: true, destructiveHint: false },
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             teamId,
             query: z.string().trim().min(1).describe('The search term')

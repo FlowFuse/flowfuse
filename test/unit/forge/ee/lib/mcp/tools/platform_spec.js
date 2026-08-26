@@ -110,18 +110,16 @@ describe('MCP Platform Catalog Tools', function () {
             response.types[0].id.should.equal('type1')
         })
 
-        it('returns an error object when the team fetch fails', async function () {
-            inject.withArgs({ method: 'GET', url: '/api/v1/teams/team1' }).resolves({
-                statusCode: 404,
-                json: () => ({ code: 'not_found' })
-            })
+        it('passes the team fetch error response through untouched', async function () {
+            const errorResponse = { statusCode: 404, json: () => ({ code: 'not_found' }) }
+            inject.withArgs({ method: 'GET', url: '/api/v1/teams/team1' }).resolves(errorResponse)
 
             const response = await tool.handler({ teamId: 'team1' }, { inject })
 
-            response.should.eql({ content: { code: 'not_found' }, code: 404, isError: true })
+            response.should.equal(errorResponse)
         })
 
-        it('returns an error object when the project-types fetch fails', async function () {
+        it('passes the project-types fetch error response through untouched', async function () {
             inject.withArgs({ method: 'GET', url: '/api/v1/teams/team1' }).resolves({
                 statusCode: 200,
                 json: () => ({ properties: {}, type: { properties: {} }, instanceCountByType: {} })
@@ -133,7 +131,8 @@ describe('MCP Platform Catalog Tools', function () {
 
             const response = await tool.handler({ teamId: 'team1' }, { inject })
 
-            response.should.eql({ content: { code: 'unexpected_error' }, code: 500, isError: true })
+            response.statusCode.should.equal(500)
+            response.json().should.eql({ code: 'unexpected_error' })
         })
     })
 

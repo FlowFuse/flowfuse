@@ -49,14 +49,16 @@ describe('MCP Pipelines Tools', function () {
             const response = await tool.handler({}, { inject })
 
             inject.called.should.be.false()
-            response.should.match({ code: 400, isError: true })
+            response.statusCode.should.equal(400)
+            response.json().should.match({ code: 'invalid_request' })
         })
 
         it('returns an error without injecting when both teamId and applicationId are given', async function () {
             const response = await tool.handler({ teamId: 'team1', applicationId: 'app1' }, { inject })
 
             inject.called.should.be.false()
-            response.should.match({ code: 400, isError: true })
+            response.statusCode.should.equal(400)
+            response.json().should.match({ code: 'invalid_request' })
         })
     })
 
