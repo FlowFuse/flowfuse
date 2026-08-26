@@ -2008,8 +2008,7 @@ describe('Expert API', function () {
             })
         })
 
-        describe('MCP tools Endpoint (tool permissions catalog #421)', function () {
-            // Mimic the gateway's list_flow_catalog CallToolResult (payload JSON in content[0].text).
+        describe('MCP tools Endpoint (tool permissions catalog)', function () {
             const mcpToolResponse = (payload) => ({ result: { content: [{ type: 'text', text: JSON.stringify(payload) }] } })
 
             it('should return 401 for instance token', async function () {

@@ -57,8 +57,7 @@ const curatePlatformTool = (def) => {
     }
 }
 
-// Unwraps list_flow_catalog's CallToolResult: nr-mcp-server-nodes wraps the payload as JSON
-// in content[0].text, matching the Expert gateway-client's parseToolResult.
+// Unwraps a CallToolResult: the payload is JSON in content[0].text.
 const parseFlowCatalogResult = (mcpResponse) => {
     const result = mcpResponse?.result
     const text = result?.content?.[0]?.text
@@ -72,8 +71,7 @@ const parseFlowCatalogResult = (mcpResponse) => {
     return result?.structuredContent ?? null
 }
 
-// Maps a gateway flow-building descriptor to the permissions-UI entry, identical to the
-// Expert gateway-client's toUiCatalogEntry so the shape matches the old HTTP path.
+// Maps a flow-building tool descriptor to the permissions-UI entry shape.
 const toUiCatalogEntry = (d) => {
     const ann = d.annotations || {}
     const meta = d._meta || {}
@@ -731,9 +729,9 @@ module.exports = async function (app) {
             return reply.status(404).send({ code: 'not_found', error: 'Not Found' })
         }
 
-        // Fetch the flow-building catalog from the gateway's list_flow_catalog meta-tool over
-        // the MQTT bridge (no Expert service token). It is session-less, so no team/scope is
-        // sent; failure degrades to the platform tools alone.
+        // Flow-building catalog, over MQTT:
+        // - no service token, no team/scope (catalog is global)
+        // - failure degrades to platform tools alone
         let catalog = []
         let hash = null
         const mcpGateway = app.comms?.mcpGateway
@@ -761,8 +759,6 @@ module.exports = async function (app) {
             }
         }
 
-        // Merge in the global platform tools, reusing the app.comms singleton (constructing
-        // one re-registers its MQTT listener).
         const platformHandler = app.comms?.platformAutomation
         if (platformHandler) {
             const platformDefs = platformHandler.getToolDefinitions() || []
