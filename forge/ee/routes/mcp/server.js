@@ -104,7 +104,7 @@ module.exports = async function (app) {
 
         // Attribution the gateway can't derive from the topic, sent as MQTT user properties.
         // telemetryEnabled gates emission; patId is the PAT hashid so no raw token travels.
-        const telemetryEnabled = app.license.active() || (app.config.telemetry?.enabled !== false && app.settings.get('telemetry:enabled') !== false)
+        const telemetryEnabled = app.license.active() || (app.config.telemetry.enabled !== false && app.settings.get('telemetry:enabled') !== false)
         const userProperties = {
             telemetryEnabled: telemetryEnabled ? 'true' : 'false'
         }
@@ -113,7 +113,7 @@ module.exports = async function (app) {
         if (request.session.User?.username) {
             userProperties.username = request.session.User.username
         }
-        userProperties.deployment = app.config.telemetry?.anonymize === false ? 'cloud' : 'self-hosted'
+        userProperties.deployment = app.settings.get('telemetry:anonymize') === false ? 'cloud' : 'self-hosted'
         const patId = request.session.pat?.id
         if (patId !== undefined && patId !== null) {
             userProperties.patId = app.db.models.AccessToken.encodeHashid(patId)

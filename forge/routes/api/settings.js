@@ -43,10 +43,8 @@ module.exports = async function (app) {
                 'user:offboarding-required': app.settings.get('user:offboarding-required'),
                 'user:offboarding-url': app.settings.get('user:offboarding-url'),
                 'user:team:trial-mode:projectType': app.settings.get('user:team:trial-mode:projectType'),
-                // Effective telemetry state, matching the MCP door: a licence forces it on,
-                // otherwise it follows the yml and admin opt-out.
-                'telemetry:enabled': app.license.active() || (app.config.telemetry?.enabled !== false && app.settings.get('telemetry:enabled') !== false),
-                'telemetry:anonymize': app.config.telemetry?.anonymize !== false,
+                'telemetry:enabled': app.license.active() || (app.config.telemetry.enabled !== false && app.settings.get('telemetry:enabled') !== false),
+                'telemetry:anonymize': app.settings.get('telemetry:anonymize'),
                 email: app.postoffice.enabled(),
                 stacks: app.containers.properties().stack || {},
                 features: app.config.features.getAllFeatures(),
