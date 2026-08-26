@@ -3,6 +3,21 @@ const sinon = require('sinon')
 
 const setup = require('../../setup')
 
+const FF_UTIL = require('flowforge-test-utils')
+
+const { Roles } = FF_UTIL.require('forge/lib/roles')
+
+const ENTERPRISE_LICENSE = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNDFmNmRjLTBmM2QtNGFmNy1hNzk0LWIyNWFhNGJmYTliZCIsInZlciI6IjIwMjQtMDMtMDQiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGdXNlIERldmVsb3BtZW50IiwibmJmIjoxNzMwNjc4NDAwLCJleHAiOjIwNzc3NDcyMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxMCwidGVhbXMiOjEwLCJpbnN0YW5jZXMiOjEwLCJtcXR0Q2xpZW50cyI6NiwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTczMDcyMTEyNH0.02KMRf5kogkpH3HXHVSGprUm0QQFLn21-3QIORhxFgRE9N5DIE8YnTH_f8W_21T6TlYbDUmf4PtWyj120HTM2w'
+
+// Set (and invalidate the cache for) a team's per-team AI feature override.
+async function setTeamAi (app, team, enabled) {
+    const properties = team.properties || {}
+    properties.features = { ...(properties.features || {}), ai: enabled }
+    team.properties = properties
+    await team.save()
+    await app.db.controllers.Team.clearTeamAiCache(team.hashid)
+}
+
 describe('MCP Platform Tools Server', function () {
     describe('Feature flag enabled (default)', function () {
         let app
@@ -401,12 +416,14 @@ describe('MCP Platform Tools Server', function () {
 
     describe('Feature flag disabled', function () {
         let app
+        let disabledPAT
 
         before(async function () {
             app = await setup({
                 license: 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNDFmNmRjLTBmM2QtNGFmNy1hNzk0LWIyNWFhNGJmYTliZCIsInZlciI6IjIwMjQtMDMtMDQiLCJpc3MiOiJGbG93Rm9yZ2UgSW5jLiIsInN1YiI6IkZsb3dGdXNlIERldmVsb3BtZW50IiwibmJmIjoxNzMwNjc4NDAwLCJleHAiOjIwNzc3NDcyMDAsIm5vdGUiOiJEZXZlbG9wbWVudC1tb2RlIE9ubHkuIE5vdCBmb3IgcHJvZHVjdGlvbiIsInVzZXJzIjoxMCwidGVhbXMiOjEwLCJpbnN0YW5jZXMiOjEwLCJtcXR0Q2xpZW50cyI6NiwidGllciI6ImVudGVycHJpc2UiLCJkZXYiOnRydWUsImlhdCI6MTczMDcyMTEyNH0.02KMRf5kogkpH3HXHVSGprUm0QQFLn21-3QIORhxFgRE9N5DIE8YnTH_f8W_21T6TlYbDUmf4PtWyj120HTM2w',
                 ai: { enabled: false }
             })
+            disabledPAT = await app.db.controllers.AccessToken.createPersonalAccessToken(app.user, '', null, 'ai-disabled-pat')
         })
 
         after(async function () {
@@ -415,6 +432,272 @@ describe('MCP Platform Tools Server', function () {
 
         it('should not register the expertPlatformAutomation feature flag when AI is disabled', async function () {
             should(app.config.features.enabled('expertPlatformAutomation')).not.equal(true)
+        })
+
+        it('returns 404 from the MCP door when the platform AI feature is off', async function () {
+            const response = await app.inject({
+                method: 'POST',
+                url: '/mcp',
+                headers: { authorization: `Bearer ${disabledPAT.token}` },
+                payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+            })
+            response.statusCode.should.equal(404)
+        })
+    })
+
+    describe('Per-team AI gating', function () {
+        let app
+        let proxyRequest
+        const T = {}
+
+        before(async function () {
+            app = await setup({
+                license: ENTERPRISE_LICENSE,
+                ai: { enabled: true },
+                expert: { enabled: true }
+            })
+            // app.user (alice) is already an owner of app.team; give her two more teams
+            // so the all-teams token has a mix to gate.
+            T.ateam = app.team
+            T.bteam = await app.factory.createTeam({ name: 'BTeam' })
+            await T.bteam.addUser(app.user, { through: { role: Roles.Owner } })
+            T.cteam = await app.factory.createTeam({ name: 'CTeam' })
+            await T.cteam.addUser(app.user, { through: { role: Roles.Owner } })
+
+            T.globalPAT = await app.db.controllers.AccessToken.createPersonalAccessToken(app.user, '', null, 'ai-global')
+            T.bTeamPAT = await app.db.controllers.AccessToken.createPersonalAccessToken(app.user, '', null, 'ai-bteam', { teamIds: [T.bteam.hashid] })
+            T.abTeamPAT = await app.db.controllers.AccessToken.createPersonalAccessToken(app.user, '', null, 'ai-abteam', { teamIds: [T.ateam.hashid, T.bteam.hashid] })
+
+            // Edge-case fixtures on their own users, so alice's all-teams baseline stays "every team on".
+            T.noTeamsUser = await app.factory.createUser({ username: 'bob', name: 'Bob', email: 'bob@example.com', password: 'bbPassword' })
+            T.noTeamsPAT = await app.db.controllers.AccessToken.createPersonalAccessToken(T.noTeamsUser, '', null, 'ai-no-teams')
+
+            T.carol = await app.factory.createUser({ username: 'carol', name: 'Carol', email: 'carol@example.com', password: 'ccPassword' })
+            const aiOffType = await app.factory.createTeamType({ name: 'ai-off-type', properties: { features: { ai: false } } })
+            const aiOnType = await app.factory.createTeamType({ name: 'ai-on-type', properties: { features: { ai: true } } })
+            T.inheritOffTeam = await app.factory.createTeam({ name: 'InheritOff' }, aiOffType)
+            await T.inheritOffTeam.addUser(T.carol, { through: { role: Roles.Owner } })
+            T.inheritOnTeam = await app.factory.createTeam({ name: 'InheritOn' }, aiOnType)
+            await T.inheritOnTeam.addUser(T.carol, { through: { role: Roles.Owner } })
+            T.inheritOffPAT = await app.db.controllers.AccessToken.createPersonalAccessToken(T.carol, '', null, 'ai-inherit-off', { teamIds: [T.inheritOffTeam.hashid] })
+            T.inheritOnPAT = await app.db.controllers.AccessToken.createPersonalAccessToken(T.carol, '', null, 'ai-inherit-on', { teamIds: [T.inheritOnTeam.hashid] })
+
+            T.flipType = await app.factory.createTeamType({ name: 'ai-flip-type', properties: { features: { ai: true } } })
+            T.flipTeam = await app.factory.createTeam({ name: 'FlipTeam' }, T.flipType)
+            await T.flipTeam.addUser(T.carol, { through: { role: Roles.Owner } })
+            T.flipPAT = await app.db.controllers.AccessToken.createPersonalAccessToken(T.carol, '', null, 'ai-flip', { teamIds: [T.flipTeam.hashid] })
+        })
+
+        after(async function () {
+            await app.close()
+        })
+
+        beforeEach(async function () {
+            proxyRequest = sinon.stub(app.comms.mcpGateway, 'proxyRequest')
+                .resolves({ jsonrpc: '2.0', id: 1, result: { tools: [] } })
+            // Reset every team to AI-enabled before each case.
+            await setTeamAi(app, T.ateam, true)
+            await setTeamAi(app, T.bteam, true)
+            await setTeamAi(app, T.cteam, true)
+        })
+
+        afterEach(function () {
+            proxyRequest.restore()
+        })
+
+        async function callWith (pat) {
+            proxyRequest.resetHistory()
+            return app.inject({
+                method: 'POST',
+                url: '/mcp',
+                headers: { authorization: `Bearer ${pat.token}` },
+                payload: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+            })
+        }
+
+        function forwardedTeams () {
+            return proxyRequest.firstCall.args[1].scope.teams
+        }
+
+        it('leaves an all-teams token unrestricted when every team has AI enabled', async function () {
+            const response = await callWith(T.globalPAT)
+            response.statusCode.should.equal(200)
+            forwardedTeams().should.deepEqual([])
+        })
+
+        it('narrows an all-teams token to the AI-enabled subset when some teams are disabled', async function () {
+            await setTeamAi(app, T.cteam, false)
+            const response = await callWith(T.globalPAT)
+            response.statusCode.should.equal(200)
+            const teams = forwardedTeams()
+            teams.should.have.length(2)
+            teams.should.containEql(T.ateam.hashid)
+            teams.should.containEql(T.bteam.hashid)
+            teams.should.not.containEql(T.cteam.hashid)
+        })
+
+        it('denies an all-teams token via a sentinel when every team has AI disabled', async function () {
+            await setTeamAi(app, T.ateam, false)
+            await setTeamAi(app, T.bteam, false)
+            await setTeamAi(app, T.cteam, false)
+            const response = await callWith(T.globalPAT)
+            response.statusCode.should.equal(200)
+            const teams = forwardedTeams()
+            // Non-empty (never collapses to all-teams) and matches no real team.
+            teams.should.have.length(1)
+            teams[0].should.not.equal(T.ateam.hashid)
+            teams[0].should.not.equal(T.bteam.hashid)
+            teams[0].should.not.equal(T.cteam.hashid)
+        })
+
+        it('does not attribute the sentinel as a team on a denied all-teams token', async function () {
+            await setTeamAi(app, T.ateam, false)
+            await setTeamAi(app, T.bteam, false)
+            await setTeamAi(app, T.cteam, false)
+            const response = await callWith(T.globalPAT)
+            response.statusCode.should.equal(200)
+            proxyRequest.firstCall.args[3].should.not.have.property('teamId')
+        })
+
+        it('keeps a team-scoped token when its team has AI enabled', async function () {
+            const response = await callWith(T.bTeamPAT)
+            response.statusCode.should.equal(200)
+            forwardedTeams().should.deepEqual([T.bteam.hashid])
+        })
+
+        it('denies a team-scoped token via a sentinel when its only team has AI disabled', async function () {
+            await setTeamAi(app, T.bteam, false)
+            const response = await callWith(T.bTeamPAT)
+            response.statusCode.should.equal(200)
+            const teams = forwardedTeams()
+            teams.should.have.length(1)
+            teams[0].should.not.equal(T.bteam.hashid)
+        })
+
+        it('filters a multi-team scoped token down to its AI-enabled teams', async function () {
+            await setTeamAi(app, T.bteam, false)
+            const response = await callWith(T.abTeamPAT)
+            response.statusCode.should.equal(200)
+            forwardedTeams().should.deepEqual([T.ateam.hashid])
+        })
+
+        it('caches the team AI value until it is invalidated', async function () {
+            const first = await app.db.controllers.Team.isTeamAiEnabled(T.cteam.hashid)
+            first.should.be.true()
+            // Flip the value in the database without clearing the cache.
+            const properties = T.cteam.properties
+            properties.features = { ...(properties.features || {}), ai: false }
+            T.cteam.properties = properties
+            await T.cteam.save()
+            const cached = await app.db.controllers.Team.isTeamAiEnabled(T.cteam.hashid)
+            cached.should.be.true()
+            await app.db.controllers.Team.clearTeamAiCache(T.cteam.hashid)
+            const fresh = await app.db.controllers.Team.isTeamAiEnabled(T.cteam.hashid)
+            fresh.should.be.false()
+        })
+
+        it('reflects an AI toggle made through the team API on the next call', async function () {
+            const loginResponse = await app.inject({
+                method: 'POST',
+                url: '/account/login',
+                payload: { username: 'alice', password: 'aaPassword', remember: false }
+            })
+            const sid = loginResponse.cookies[0].value
+            const putResponse = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/teams/${T.cteam.hashid}`,
+                cookies: { sid },
+                payload: { features: { ai: false } }
+            })
+            putResponse.statusCode.should.equal(200)
+
+            const response = await callWith(T.globalPAT)
+            response.statusCode.should.equal(200)
+            const teams = forwardedTeams()
+            teams.should.not.containEql(T.cteam.hashid)
+            teams.should.containEql(T.ateam.hashid)
+            teams.should.containEql(T.bteam.hashid)
+        })
+
+        it('denies an all-teams token for a user who belongs to no teams', async function () {
+            const response = await callWith(T.noTeamsPAT)
+            response.statusCode.should.equal(200)
+            const teams = forwardedTeams()
+            teams.should.have.length(1)
+            teams[0].should.not.equal(T.ateam.hashid)
+        })
+
+        it('keeps every team of a multi-team scoped token when all have AI enabled', async function () {
+            const response = await callWith(T.abTeamPAT)
+            response.statusCode.should.equal(200)
+            const teams = forwardedTeams()
+            teams.should.have.length(2)
+            teams.should.containEql(T.ateam.hashid)
+            teams.should.containEql(T.bteam.hashid)
+        })
+
+        it('denies a multi-team scoped token when all its teams have AI disabled', async function () {
+            await setTeamAi(app, T.ateam, false)
+            await setTeamAi(app, T.bteam, false)
+            const response = await callWith(T.abTeamPAT)
+            response.statusCode.should.equal(200)
+            const teams = forwardedTeams()
+            teams.should.have.length(1)
+            teams[0].should.not.equal(T.ateam.hashid)
+            teams[0].should.not.equal(T.bteam.hashid)
+        })
+
+        it('gates on the team-type value when a team has no per-team override', async function () {
+            const off = await callWith(T.inheritOffPAT)
+            off.statusCode.should.equal(200)
+            const offTeams = forwardedTeams()
+            offTeams.should.have.length(1)
+            offTeams.should.not.containEql(T.inheritOffTeam.hashid)
+
+            const on = await callWith(T.inheritOnPAT)
+            on.statusCode.should.equal(200)
+            forwardedTeams().should.deepEqual([T.inheritOnTeam.hashid])
+        })
+
+        it('reflects a new team membership on the next call', async function () {
+            await setTeamAi(app, T.cteam, false)
+            const before = await callWith(T.globalPAT)
+            before.statusCode.should.equal(200)
+            forwardedTeams().should.not.containEql(T.cteam.hashid)
+
+            const dteam = await app.factory.createTeam({ name: 'DTeam' })
+            // Through the controller, so the user-teams cache is invalidated (the path real membership changes take).
+            await app.db.controllers.Team.addUser(dteam, app.user, Roles.Owner)
+            try {
+                const after = await callWith(T.globalPAT)
+                after.statusCode.should.equal(200)
+                forwardedTeams().should.containEql(dteam.hashid)
+            } finally {
+                await dteam.destroy()
+                await app.db.controllers.Team.clearUserTeamsCache(app.user.id)
+            }
+        })
+
+        it('flushes cached team values on a team-type feature change', async function () {
+            const warm = await callWith(T.flipPAT)
+            warm.statusCode.should.equal(200)
+            forwardedTeams().should.deepEqual([T.flipTeam.hashid])
+
+            const login = await app.inject({ method: 'POST', url: '/account/login', payload: { username: 'alice', password: 'aaPassword', remember: false } })
+            const sid = login.cookies[0].value
+            const put = await app.inject({
+                method: 'PUT',
+                url: `/api/v1/team-types/${T.flipType.hashid}`,
+                cookies: { sid },
+                payload: { properties: { instances: {}, devices: {}, users: {}, features: { ai: false } } }
+            })
+            put.statusCode.should.equal(200)
+
+            const after = await callWith(T.flipPAT)
+            after.statusCode.should.equal(200)
+            const teams = forwardedTeams()
+            teams.should.have.length(1)
+            teams[0].should.not.equal(T.flipTeam.hashid)
         })
     })
 })

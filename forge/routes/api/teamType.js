@@ -217,6 +217,8 @@ module.exports = async function (app) {
                 teamType.properties = request.body.properties
             }
             await teamType.save()
+            // A feature change here shifts AI for every team of this type without an override.
+            await app.db.controllers.Team.clearAllTeamAiCache()
             // TODO: audit log
             // await app.auditLog.Platform.platform.projectType.updated(request.session.User, null, projectType, updates)
             reply.send(app.db.views.TeamType.teamType(teamType, request.session.User.admin))

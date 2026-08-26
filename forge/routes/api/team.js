@@ -930,6 +930,8 @@ module.exports = async function (app) {
                 auditLogFunc(request.session.User, null, request.team, updates)
                 app.comms?.team?.notify(request.team.hashid, 'updated')
             }
+            // Every AI-affecting update (feature, properties, team-type) reaches here.
+            await app.db.controllers.Team.clearTeamAiCache(request.team.hashid)
             reply.send(app.db.views.Team.team(request.team))
         } catch (err) {
             auditLogFunc(request.session.User, err, request.team, updates)

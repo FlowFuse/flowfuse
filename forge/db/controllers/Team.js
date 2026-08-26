@@ -1,6 +1,64 @@
 const { Roles, RoleNames } = require('../../lib/roles')
 
+// Per-team AI gate caches for the MCP door, keyed by hashid. The TTL backstops
+// the memory driver, whose del only clears the process that handled the write.
+const TEAM_AI_CACHE = 'mcp-team-ai-enabled'
+const USER_TEAMS_CACHE = 'mcp-user-teams'
+const AI_CACHE_TTL = 1000 * 60 * 5 // 5 minutes
+const AI_CACHE_MAX = 10000
+
 module.exports = {
+
+    init (app) {
+        app.caches.createCache(TEAM_AI_CACHE, { ttl: AI_CACHE_TTL, max: AI_CACHE_MAX })
+        app.caches.createCache(USER_TEAMS_CACHE, { ttl: AI_CACHE_TTL, max: AI_CACHE_MAX })
+    },
+
+    // Cached per-team AI feature value for the door's gate; a missing team
+    // resolves to false (fail closed).
+    isTeamAiEnabled: async function (app, teamHashId) {
+        const cache = app.caches.getCache(TEAM_AI_CACHE)
+        const cached = await cache.get(teamHashId)
+        if (cached !== undefined) {
+            return cached
+        }
+        const team = await app.db.models.Team.byId(teamHashId)
+        const enabled = team ? !!team.getFeatureProperty('ai', true) : false
+        await cache.set(teamHashId, enabled)
+        return enabled
+    },
+
+    // Cached team memberships for the door's all-teams path. Staleness is fail
+    // closed: downstream RBAC re-checks live membership on every call.
+    getUserTeamHashIds: async function (app, user) {
+        const cache = app.caches.getCache(USER_TEAMS_CACHE)
+        const key = '' + user.id
+        const cached = await cache.get(key)
+        if (cached !== undefined) {
+            return cached
+        }
+        const memberships = await user.getTeamMemberships(true)
+        const hashids = memberships.map(m => m.Team.hashid)
+        await cache.set(key, hashids)
+        return hashids
+    },
+
+    clearTeamAiCache: async function (app, teamHashId) {
+        await app.caches.getCache(TEAM_AI_CACHE).del(teamHashId)
+    },
+
+    // Dropped wholesale on a team-type change, which shifts AI for every team of
+    // that type without a per-team override.
+    clearAllTeamAiCache: async function (app) {
+        const cache = app.caches.getCache(TEAM_AI_CACHE)
+        for (const key of await cache.keys()) {
+            await cache.del(key)
+        }
+    },
+
+    clearUserTeamsCache: async function (app, userId) {
+        await app.caches.getCache(USER_TEAMS_CACHE).del('' + userId)
+    },
 
     createTeamForUser: async function (app, teamDetails, user) {
         const newTeam = await app.db.models.Team.create(teamDetails)
@@ -109,6 +167,7 @@ module.exports = {
         }
 
         await team.addUser(user, { through: { role: userRole } })
+        await app.db.controllers.Team.clearUserTeamsCache(user.id)
     },
     /**
      * Remove a user from a team
@@ -166,6 +225,7 @@ module.exports = {
             }
 
             await app.db.controllers.StorageSession.removeUserFromTeamSessions(user, team)
+            await app.db.controllers.Team.clearUserTeamsCache(user.id)
 
             return true
         }

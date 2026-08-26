@@ -4,6 +4,11 @@ const { randomUUID } = require('node:crypto')
 const MCP_SESSION_TOKEN_CACHE = 'mcp-session-token'
 const MCP_SESSION_TOKEN_CACHE_TTL = 1000 * 60 * 60 // 1 hour
 
+// Deny stand-in for when no team survives AI filtering. An empty team list means
+// "all teams", so we substitute a value that matches no team rather than let a
+// filtered-to-empty list read as all-teams.
+const AI_DISABLED_SENTINEL = '__ff_no_ai_team__'
+
 /**
  * MCP Platform Tools Server
  *
@@ -32,6 +37,38 @@ module.exports = async function (app) {
         return 'read'
     }
 
+    // Narrows a token's team reach (teamScopes, empty means all-teams) to the teams
+    // with AI enabled, substituting the deny sentinel when none survive.
+    async function resolveAiTeams (user, teamScopes) {
+        if (teamScopes.length > 0) {
+            const enabled = []
+            for (const teamHashId of teamScopes) {
+                if (await app.db.controllers.Team.isTeamAiEnabled(teamHashId)) {
+                    enabled.push(teamHashId)
+                }
+            }
+            return enabled.length > 0 ? enabled : [AI_DISABLED_SENTINEL]
+        }
+        const memberTeams = await app.db.controllers.Team.getUserTeamHashIds(user)
+        if (memberTeams.length === 0) {
+            return [AI_DISABLED_SENTINEL]
+        }
+        const enabled = []
+        for (const teamHashId of memberTeams) {
+            if (await app.db.controllers.Team.isTeamAiEnabled(teamHashId)) {
+                enabled.push(teamHashId)
+            }
+        }
+        if (enabled.length === 0) {
+            return [AI_DISABLED_SENTINEL]
+        }
+        // Keep an all-teams token unrestricted only when every team qualifies.
+        if (enabled.length === memberTeams.length) {
+            return []
+        }
+        return enabled
+    }
+
     // Resolves the caller's identity and scope, or sends an error reply and returns null.
     async function resolveCaller (request, reply) {
         if (!request.session?.User) {
@@ -40,18 +77,17 @@ module.exports = async function (app) {
             reply.code(401).send({ code: 'unauthorized', error: 'Unauthorized' })
             return null
         }
-        const pat = request.session.pat
-        const readOnly = !!pat?.readOnly
-        const teams = Array.isArray(pat?.teamScopes)
-            ? pat.teamScopes.map(entry => Object.keys(entry)[0])
-            : []
-        // Gate the third-party MCP surface on the platform having AI enabled. An empty
-        // allow-list is an all-teams PAT, so no single team is pinned here; per-team
-        // access is enforced downstream by the scope-capped token at invoke.
+        // Gate the third-party MCP surface on the platform having AI enabled.
         if (!app.config.features.enabled('ai')) {
             reply.code(404).send({ code: 'not_found', error: 'Not Found' })
             return null
         }
+        const pat = request.session.pat
+        const readOnly = !!pat?.readOnly
+        const teamScopes = Array.isArray(pat?.teamScopes)
+            ? pat.teamScopes.map(entry => Object.keys(entry)[0])
+            : []
+        const teams = await resolveAiTeams(request.session.User, teamScopes)
         return {
             userId: request.session.User.hashid,
             scope: { readOnly, teams }
@@ -141,7 +177,7 @@ module.exports = async function (app) {
         }
 
         // A single-team PAT pins the action there when no tab named a team; multi-team tokens stay unattributed.
-        if (!userProperties.teamId && caller.scope.teams.length === 1) {
+        if (!userProperties.teamId && caller.scope.teams.length === 1 && caller.scope.teams[0] !== AI_DISABLED_SENTINEL) {
             userProperties.teamId = caller.scope.teams[0]
         }
 
