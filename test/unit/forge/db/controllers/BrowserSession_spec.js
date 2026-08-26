@@ -181,4 +181,126 @@ describe('BrowserSession controller', function () {
             ;(await controller.getActiveMcpSessions('u40', 'tab-1')).should.deepEqual(['mcp-1'])
         })
     })
+    describe('client notifications', function () {
+        let originalComms
+        let sent
+
+        beforeEach(function () {
+            sent = []
+            originalComms = app.comms
+            app.comms = {
+                browserSession: {
+                    notifyMcp: (teamId, userId, sessionId, event, payload) => {
+                        sent.push({ teamId, userId, sessionId, event, payload })
+                    }
+                }
+            }
+        })
+
+        afterEach(function () {
+            app.comms = originalComms
+        })
+
+        it('records the teamId a tab lives under, so it can be published back to', async function () {
+            await controller.recordPresence('n1', 'tab-1', { visibility: 'visible' }, 'team-1')
+
+            const entry = await app.caches.getCache('browserSessions').get('n1:tab-1')
+            entry.should.have.property('teamId', 'team-1')
+        })
+
+        it('tells a tab its pinned clients on every heartbeat', async function () {
+            await controller.recordPresence('n2', 'tab-1', {}, 'team-1')
+            await controller.setActiveBrowserSession('n2', 'mcp-1', 'tab-1')
+            sent = []
+
+            await controller.recordPresence('n2', 'tab-1', {}, 'team-1')
+
+            sent.should.have.length(1)
+            sent[0].should.have.property('teamId', 'team-1')
+            sent[0].should.have.property('sessionId', 'tab-1')
+            sent[0].should.have.property('event', 'clients')
+            sent[0].payload.should.have.property('count', 1)
+        })
+
+        it('reports an empty set rather than staying silent when nothing is pinned', async function () {
+            await controller.recordPresence('n3', 'tab-1', {}, 'team-1')
+
+            sent.should.have.length(1)
+            sent[0].payload.should.have.property('count', 0)
+            sent[0].payload.clients.should.deepEqual([])
+        })
+
+        it('sends opaque refs, never the MCP session ids themselves', async function () {
+            await controller.recordPresence('n4', 'tab-1', {}, 'team-1')
+            await controller.setActiveBrowserSession('n4', 'super-secret-mcp-session', 'tab-1')
+
+            const payload = sent[sent.length - 1].payload
+            payload.clients.should.have.length(1)
+            payload.clients[0].should.not.equal('super-secret-mcp-session')
+            payload.clients[0].should.match(/^[a-f0-9]{12}$/)
+            JSON.stringify(payload).should.not.match(/super-secret-mcp-session/)
+        })
+
+        it('gives the same client the same ref every time, so arrivals can be told apart', async function () {
+            await controller.recordPresence('n5', 'tab-1', {}, 'team-1')
+            await controller.setActiveBrowserSession('n5', 'mcp-1', 'tab-1')
+            const first = sent[sent.length - 1].payload.clients[0]
+
+            await controller.recordPresence('n5', 'tab-1', {}, 'team-1')
+            const second = sent[sent.length - 1].payload.clients[0]
+
+            second.should.equal(first)
+        })
+
+        it('tells both tabs when a pin moves, so one count rises as the other falls', async function () {
+            await controller.recordPresence('n6', 'tab-1', {}, 'team-1')
+            await controller.recordPresence('n6', 'tab-2', {}, 'team-1')
+            await controller.setActiveBrowserSession('n6', 'mcp-1', 'tab-1')
+            sent = []
+
+            await controller.setActiveBrowserSession('n6', 'mcp-1', 'tab-2')
+
+            const byTab = Object.fromEntries(sent.map(m => [m.sessionId, m.payload.count]))
+            byTab.should.have.property('tab-2', 1)
+            byTab.should.have.property('tab-1', 0)
+        })
+
+        it('stays quiet for a tab whose snapshot predates teamId being recorded', async function () {
+            await controller.recordPresence('n7', 'tab-1', {})
+            sent = []
+
+            await controller.setActiveBrowserSession('n7', 'mcp-1', 'tab-1')
+
+            sent.should.have.length(0)
+        })
+
+        it('still pins when the platform has no comms configured', async function () {
+            app.comms = undefined
+            await controller.recordPresence('n8', 'tab-1', {}, 'team-1')
+
+            await controller.setActiveBrowserSession('n8', 'mcp-1', 'tab-1')
+
+            ;(await controller.getActiveMcpSessions('n8', 'tab-1')).should.deepEqual(['mcp-1'])
+        })
+
+        it('does not fail the pin when the notification throws', async function () {
+            await controller.recordPresence('n9', 'tab-1', {}, 'team-1')
+            app.comms.browserSession.notifyMcp = () => { throw new Error('broker down') }
+
+            await controller.setActiveBrowserSession('n9', 'mcp-1', 'tab-1')
+
+            // the pin is what matters - an agent told this failed would retry one that worked
+            ;(await controller.getActiveMcpSessions('n9', 'tab-1')).should.deepEqual(['mcp-1'])
+            ;(await controller.getActiveBrowserSession('n9', 'mcp-1')).should.have.property('sessionId', 'tab-1')
+        })
+
+        it('does not fail a heartbeat when the notification throws', async function () {
+            app.comms.browserSession.notifyMcp = () => { throw new Error('broker down') }
+
+            await controller.recordPresence('n10', 'tab-1', { visibility: 'visible' }, 'team-1')
+
+            const entry = await app.caches.getCache('browserSessions').get('n10:tab-1')
+            entry.should.have.property('sessionId', 'tab-1')
+        })
+    })
 })

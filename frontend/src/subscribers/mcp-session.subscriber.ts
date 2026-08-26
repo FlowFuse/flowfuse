@@ -8,10 +8,14 @@ import { useProductMcpStore } from '@/stores/product-mcp.js'
 import { createMqttTransport } from '@/transport/mqtt.transport'
 import type { CreateSubscriberOptions, TeamRef, TeamSubscriberI } from '@/types/subscribers/subscriber.types'
 
-/** Pinned to this tab's session, so an event meant for another tab is ignored. */
-function sessionEventPattern (sessionId: string, event: string): RegExp {
-    const session = sessionId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    return new RegExp(`^ff/v1/[^/]+/u/[^/]+/s/${session}/mcp/${event}$`)
+const escapeForPattern = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/**
+ * Pinned to this tab's user and session, so an event meant for another tab is ignored.
+ * The ACL already makes anything else unreachable; this is the same statement made locally.
+ */
+function sessionEventPattern (userId: string, sessionId: string, event: string): RegExp {
+    return new RegExp(`^ff/v1/[^/]+/u/${escapeForPattern(userId)}/s/${escapeForPattern(sessionId)}/mcp/${event}$`)
 }
 
 /**
@@ -39,8 +43,11 @@ class McpSessionSubscriber extends TeamSubscriber implements TeamSubscriberI {
     protected _topics (teamId: string, userId: string): string[] {
         const authStore = useAccountAuthStore()
 
+        // The exact topic rather than `mcp/+`: the broker ACL matches the subscription filter
+        // literally, so subscribing by wildcard would need a rule permissive enough to admit
+        // any event. There is only one, so name it.
         return [
-            `ff/v1/${teamId}/u/${userId}/s/${authStore.getSessionId()}/mcp/+`
+            `ff/v1/${teamId}/u/${userId}/s/${authStore.getSessionId()}/mcp/clients`
         ]
     }
 
@@ -54,11 +61,11 @@ class McpSessionSubscriber extends TeamSubscriber implements TeamSubscriberI {
     }
 
     protected _routes (): SubscriberRoute[] {
-        const sessionId = useAccountAuthStore().getSessionId()
+        const authStore = useAccountAuthStore()
 
         return [
             {
-                pattern: sessionEventPattern(sessionId, 'clients'),
+                pattern: sessionEventPattern(String(authStore.user?.id ?? ''), authStore.getSessionId(), 'clients'),
                 handle: (payload) => this._onClients(payload)
             }
         ]

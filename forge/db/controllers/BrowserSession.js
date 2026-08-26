@@ -173,9 +173,11 @@ module.exports = {
         // drops as the new one's rises. Both pins are already written, so nothing here may
         // fail the call - an agent told its pin failed would retry one that succeeded.
         try {
-            await notifyPinnedClients(app, userId, browserSessionId, await touchActiveBrowserSessions(app, userId, browserSessionId))
+            const activeBrowserSession = await touchActiveBrowserSessions(app, userId, browserSessionId)
+            await notifyPinnedClients(app, userId, browserSessionId, activeBrowserSession)
             if (previous && previous !== browserSessionId) {
-                await notifyPinnedClients(app, userId, previous, await touchActiveBrowserSessions(app, userId, previous))
+                const previousBrowserSession = await touchActiveBrowserSessions(app, userId, previous)
+                await notifyPinnedClients(app, userId, previous, previousBrowserSession)
             }
         } catch (err) {
             app.log?.warn(`Pin for ${browserSessionId} was written but its notification failed: ${err.toString()}`)
