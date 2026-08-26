@@ -697,6 +697,40 @@ module.exports = function (app) {
                 }
             }
             return false
+        },
+        /**
+         * First-party flow-building catalog channel - the platform fetching the global,
+         * session-less tool catalog from the central gateway.
+         *
+         *   ff/v1/mcp/catalog/<platformId>/request   platform -> gateway
+         *   ff/v1/mcp/catalog/<platformId>/response  gateway -> platform
+         *
+         * Distinct from checkMcpTopic: no user or session (the catalog is global) and no
+         * mcpThirdParty gate (this is a first-party read). Only the platform client uses it,
+         * and the platformId is concrete per replica, so only its UUID shape is validated.
+         */
+        checkMcpCatalogTopic: async function (topicParts, usernameParts, acl) {
+            // topicParts = [ fullTopic, <platformId> ]
+            const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+            const [, platformId] = topicParts
+            const [clientType] = usernameParts
+
+            if (topicParts.length !== 2 || !platformId) {
+                app.log.warn('ACL validation error for MCP catalog topic: invalid topic format')
+                return false
+            }
+            if (!acl.isPlatform || clientType !== 'forge_platform') {
+                app.log.warn('ACL validation error for MCP catalog topic: expected the platform client')
+                return false
+            }
+            if (platformId === '+') {
+                return !!acl.allowWildcard?.platformId
+            }
+            if (!UUID_RE.test(platformId)) {
+                app.log.warn('ACL validation error for MCP catalog topic: invalid platform id')
+                return false
+            }
+            return true
         }
     }
 
@@ -728,6 +762,9 @@ module.exports = function (app) {
                 // platform can listen for third-party MCP responses from the central gateway
                 // - ff/v1/mcp/<platformId>/+/+/response
                 { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/response$/, verify: 'checkMcpTopic', allowWildcard: { user: true, session: true }, isPlatform: true, isSub: true },
+                // platform can listen for first-party flow-building catalog responses
+                // - ff/v1/mcp/catalog/<platformId>/response
+                { topic: /^ff\/v1\/mcp\/catalog\/([^/]+)\/response$/, verify: 'checkMcpCatalogTopic', isPlatform: true, isSub: true },
                 // - ff/v1/<team>/u/<user>/s/<session>/<event> (shared subscription)
                 //   [^/]+ on the event segment: the subscription wildcard (+) is matched
                 //   literally, and teamFrontend's pub rule already restricts the events
@@ -767,7 +804,10 @@ module.exports = function (app) {
                 { topic: /^ff\/v1\/expert\/([^/]+)\/([^/]+)\/platform\/([^/]+)\/response$/, verify: 'checkExpertPlatformTopic', isPlatform: true, isPub: true, agent: 'platform' },
                 // platform can publish third-party MCP requests to the central gateway
                 // - ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/request
-                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', isPlatform: true, isPub: true }
+                { topic: /^ff\/v1\/mcp\/([^/]+)\/([^/]+)\/([^/]+)\/request$/, verify: 'checkMcpTopic', isPlatform: true, isPub: true },
+                // platform can publish first-party flow-building catalog requests to the central gateway
+                // - ff/v1/mcp/catalog/<platformId>/request
+                { topic: /^ff\/v1\/mcp\/catalog\/([^/]+)\/request$/, verify: 'checkMcpCatalogTopic', isPlatform: true, isPub: true }
             ]
         },
         project: {

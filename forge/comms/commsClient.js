@@ -56,6 +56,18 @@ class CommsClient extends EventEmitter {
                  * 3rd Party Mcp events
                  */
                 if (topicParts[2] === 'mcp') {
+                    // ff/v1/mcp/catalog/<platformId>/response (first-party, session-less)
+                    if (topicParts[3] === 'catalog' && topicParts[5] === 'response') {
+                        let payload
+                        try {
+                            payload = JSON.parse(message.toString())
+                        } catch (err) {
+                            this.app.log.warn(`Ignoring malformed MCP catalog response on ${topic}: ${err.message}`)
+                            return
+                        }
+                        this.emit('response/mcp-gateway', packet.properties?.correlationData, payload)
+                        return
+                    }
                     // ff/v1/mcp/<platformId>/<userId>/<mcpSessionId>/response/
                     if (topicParts[6] === 'response') {
                         let payload
@@ -293,7 +305,9 @@ class CommsClient extends EventEmitter {
                 // Browser session events - shared subscription
                 '$share/browser/ff/v1/+/u/+/s/+/+',
                 // MCP gateway responses - per-replica (not shared), same as device responses
-                `ff/v1/mcp/${this.platformId}/+/+/response`
+                `ff/v1/mcp/${this.platformId}/+/+/response`,
+                // First-party flow-building catalog responses - per-replica
+                `ff/v1/mcp/catalog/${this.platformId}/response`
             ])
         }
     }

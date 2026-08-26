@@ -688,8 +688,8 @@ module.exports = async function (app) {
 
     /**
      * Returns the merged tool catalog for the Expert permissions UI: flow-building tools
-     * proxied from the agent's /mcp/flow-tools endpoint, plus curated platform tools. A
-     * `hash` of the flow-building catalog rides along so the browser refetches only when
+     * fetched from the gateway's list_flow_catalog over MQTT, plus curated platform tools.
+     * A `hash` of the flow-building catalog rides along so the browser refetches only when
      * it changes. Team access and feature gating are enforced by the shared preHandler.
      */
     app.get('/mcp/tools', {
@@ -737,8 +737,7 @@ module.exports = async function (app) {
         const mcpGateway = app.comms?.mcpGateway
         if (mcpGateway) {
             try {
-                const mcpResponse = await mcpGateway.proxyRequest(
-                    { userId: request.user.hashid, mcpSessionId: uuidv4() },
+                const mcpResponse = await mcpGateway.proxyCatalogRequest(
                     {
                         mcp: {
                             jsonrpc: '2.0',

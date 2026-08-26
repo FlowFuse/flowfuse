@@ -2030,8 +2030,8 @@ describe('Expert API', function () {
             })
 
             it('should return 404 for a non-team member', async function () {
-                const proxyRequest = sinon.stub()
-                app.comms = { mcpGateway: { proxyRequest } }
+                const proxyCatalogRequest = sinon.stub()
+                app.comms = { mcpGateway: { proxyCatalogRequest } }
                 try {
                     const response = await app.inject({
                         method: 'GET',
@@ -2039,7 +2039,7 @@ describe('Expert API', function () {
                         cookies: { sid: chrisToken }
                     })
                     response.statusCode.should.equal(404)
-                    proxyRequest.called.should.be.false()
+                    proxyCatalogRequest.called.should.be.false()
                 } finally {
                     app.comms = null
                 }
@@ -2057,11 +2057,11 @@ describe('Expert API', function () {
             })
 
             it('should fetch the flow-building catalog and hash from the gateway over MQTT', async function () {
-                const proxyRequest = sinon.stub().resolves(mcpToolResponse({
+                const proxyCatalogRequest = sinon.stub().resolves(mcpToolResponse({
                     tools: [{ name: 'create-flow', title: 'Create Flow', toolClass: 'write' }],
                     hash: 'abc123'
                 }))
-                app.comms = { mcpGateway: { proxyRequest } }
+                app.comms = { mcpGateway: { proxyCatalogRequest } }
                 try {
                     const response = await app.inject({
                         method: 'GET',
@@ -2074,8 +2074,8 @@ describe('Expert API', function () {
                     json.should.have.property('catalog').which.is.an.Array().and.have.length(1)
                     json.catalog[0].should.have.property('key', 'create-flow')
                     json.catalog[0].should.have.property('name', 'Create Flow')
-                    proxyRequest.calledOnce.should.be.true()
-                    const [, payload] = proxyRequest.firstCall.args
+                    proxyCatalogRequest.calledOnce.should.be.true()
+                    const [payload] = proxyCatalogRequest.firstCall.args
                     payload.mcp.params.should.have.property('name', 'list_flow_catalog')
                     payload.toolGroups.should.deepEqual(['flow_building'])
                 } finally {
@@ -2084,8 +2084,8 @@ describe('Expert API', function () {
             })
 
             it('should default catalog to [] and hash to null when the gateway omits them', async function () {
-                const proxyRequest = sinon.stub().resolves(mcpToolResponse({}))
-                app.comms = { mcpGateway: { proxyRequest } }
+                const proxyCatalogRequest = sinon.stub().resolves(mcpToolResponse({}))
+                app.comms = { mcpGateway: { proxyCatalogRequest } }
                 try {
                     const response = await app.inject({
                         method: 'GET',
@@ -2100,8 +2100,8 @@ describe('Expert API', function () {
             })
 
             it('should degrade to an empty flow catalog when the gateway does not respond', async function () {
-                const proxyRequest = sinon.stub().rejects(new Error('Request timed out'))
-                app.comms = { mcpGateway: { proxyRequest } }
+                const proxyCatalogRequest = sinon.stub().rejects(new Error('Request timed out'))
+                app.comms = { mcpGateway: { proxyCatalogRequest } }
                 try {
                     const response = await app.inject({
                         method: 'GET',
@@ -2116,7 +2116,7 @@ describe('Expert API', function () {
             })
 
             it('should merge platform tools into the catalog, curated with a platform group and class', async function () {
-                const proxyRequest = sinon.stub().resolves(mcpToolResponse({
+                const proxyCatalogRequest = sinon.stub().resolves(mcpToolResponse({
                     tools: [{ name: 'create-flow', title: 'Create Flow', toolClass: 'write' }],
                     hash: 'abc123'
                 }))
@@ -2125,7 +2125,7 @@ describe('Expert API', function () {
                     { name: 'platform_delete_instance', description: 'Delete an instance', annotations: { readOnlyHint: false, destructiveHint: true } },
                     { name: 'platform_create_instance', description: 'Create an instance', annotations: { readOnlyHint: false, destructiveHint: false } }
                 ])
-                app.comms = { mcpGateway: { proxyRequest }, platformAutomation: { getToolDefinitions } }
+                app.comms = { mcpGateway: { proxyCatalogRequest }, platformAutomation: { getToolDefinitions } }
                 try {
                     const response = await app.inject({
                         method: 'GET',

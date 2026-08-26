@@ -1839,5 +1839,62 @@ describe('Broker Auth v2 API', async function () {
                 }
             })
         })
+
+        describe('MCP catalog channel (forge_platform)', async function () {
+            // checkMcpCatalogTopic verifier coverage - the platform fetching the global,
+            // session-less flow-building catalog over ff/v1/mcp/catalog/... topics
+            const OTHER_PLATFORM_ID = '3d7e858c-259f-4d17-b9c0-0d046509cc42'
+
+            before(async function () {
+                await setupEE()
+                app.config.features.register('ai', true, true)
+            })
+
+            after(async function () {
+                await app.close()
+            })
+
+            it('allows forge_platform to publish a catalog request for its own platformId', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/catalog/${app.comms.id}/request`
+                })
+            })
+            it('allows forge_platform to publish a catalog request for another replica\'s platformId', async function () {
+                await allowWrite({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/catalog/${OTHER_PLATFORM_ID}/request`
+                })
+            })
+            it('allows forge_platform to subscribe to a catalog response for a platformId', async function () {
+                await allowRead({
+                    username: 'forge_platform',
+                    topic: `ff/v1/mcp/catalog/${OTHER_PLATFORM_ID}/response`
+                })
+            })
+            it('allows a catalog request when mcpThirdParty is disabled (first-party, not gated)', async function () {
+                app.config.features.register('mcpThirdParty', false, true)
+                try {
+                    await allowWrite({
+                        username: 'forge_platform',
+                        topic: `ff/v1/mcp/catalog/${OTHER_PLATFORM_ID}/request`
+                    })
+                } finally {
+                    app.config.features.register('mcpThirdParty', true, true)
+                }
+            })
+            it('denies a catalog request with a non-uuid platformId', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: 'ff/v1/mcp/catalog/not-a-uuid/request'
+                })
+            })
+            it('denies a catalog request with a wildcard platformId', async function () {
+                await denyWrite({
+                    username: 'forge_platform',
+                    topic: 'ff/v1/mcp/catalog/+/request'
+                })
+            })
+        })
     })
 })

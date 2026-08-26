@@ -57,6 +57,31 @@ class McpGatewayHandler {
         const response = await promise
         return response.mcp || response
     }
+
+    /**
+     * Fetch the global flow-building tool catalog from the gateway over MQTT.
+     * First-party and session-less: no userId/mcpSessionId/scope, its own topic.
+     *
+     * @param {object} payload Request payload (mcp body, toolGroups)
+     * @param {number} [timeoutMs] Override default timeout
+     * @returns {Promise<object>} The MCP response body
+     */
+    async proxyCatalogRequest (payload, timeoutMs) {
+        const requestTopic = `ff/v1/mcp/catalog/${this.client.platformId}/request`
+
+        const { correlationData, mqttOptions, promise } = this.awaitReply.create({
+            timeout: timeoutMs || DEFAULT_TIMEOUT
+        })
+
+        this.client.publish(
+            requestTopic,
+            JSON.stringify({ ...payload, correlationData }),
+            mqttOptions
+        )
+
+        const response = await promise
+        return response.mcp || response
+    }
 }
 
 module.exports = {
