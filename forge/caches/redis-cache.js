@@ -1,7 +1,7 @@
 /**
  * Redis/Valkey cache driver. Caches with a ttl use per-field hash TTLs
  * (HPEXPIRE), which requires Redis >= 7.4 or Valkey >= 9.0 — set() throws
- * "unknown command" on older servers. HGETEX (Redis >= 8.0, Valkey >= 9.1)
+ * "unknown command" on older servers. HGETEX (Redis >= 8.0, Valkey >= 9.0)
  * is used opportunistically for updateAgeOnGet, with a fallback for servers
  * without it.
  */
